@@ -1,0 +1,46 @@
+
+import("methods")
+
+import("stats")
+
+importFrom("BiocGenerics",
+	"combine",
+	"cbind",
+	"rbind",
+	"sapply",
+	"tapply")
+
+exportClasses(
+	"matter",
+	"matter_vec",
+	"matter_mat",
+	"matter_matc",
+	"matter_matr")
+
+exportMethods(
+	"datamode",
+	"datamode<-",
+	"filepath",
+	"filepath<-",
+	"filemode",
+	"filemode<-")
+
+exportMethods(
+	"[",
+	"[<-",
+	"c",
+	"length",
+	"length<-",
+	"dim",
+	"dim<-",
+	"names",
+	"names<-",
+	"dimnames",
+	"dimnames<-")
+
+export(
+	"matter",
+	"matter_vec",
+	"matter_mat")
+
+useDynLib("matter")
