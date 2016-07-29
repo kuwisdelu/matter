@@ -135,6 +135,7 @@ class Files {
 //// Atoms class
 //-----------------------
 
+template<typename RType>
 class Atoms {
 
     public:
@@ -213,7 +214,6 @@ class Atoms {
             error("subscript out of bounds");
         }
 
-        template<typename RType>
         index_type read(RType * ptr, index_type offset, index_type count, Files * pfiles, size_t skip = 1) {
             index_type toRead, numRead, totLength;
             toRead = count;
@@ -251,7 +251,6 @@ class Atoms {
             return numRead;
         }
 
-        template<typename RType>
         index_type write(RType * ptr, index_type offset, index_type count, Files * pfiles, size_t skip = 1) {
             index_type toWrite, numWrote, totLength;
             toWrite = count;
@@ -289,7 +288,6 @@ class Atoms {
             return numWrote;
         }
 
-        template<typename RType>
         index_type readAt(RType * ptr, dbl_index_type * pindex, long length, Files * pfiles, size_t skip = 1) {
             index_type numRead;
             for ( long i = 0; i < length; i++ ) {
@@ -301,19 +299,18 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_type count = nx + 1;
                     index_type offset = static_cast<index_type>(pindex[i]);
-                    numRead = read<RType>(ptr + (skip * i), offset, count, pfiles, skip);
+                    numRead = read(ptr + (skip * i), offset, count, pfiles, skip);
                 }
                 else {
                     index_type count = (-nx) + 1;
                     index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
-                    numRead = read<RType>(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
+                    numRead = read(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
                 }
                 i += labs(nx);
             }
             return numRead;
         }
 
-        template<typename RType>
         index_type writeAt(RType * ptr, dbl_index_type * pindex, long length, Files * pfiles, size_t skip = 1) {
             index_type numWrote;
             for ( long i = 0; i < length; i++ ) {
@@ -324,12 +321,12 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_type count = nx + 1;
                     index_type offset = static_cast<index_type>(pindex[i]);
-                    numWrote = write<RType>(ptr + (skip * i), offset, count, pfiles, skip);
+                    numWrote = write(ptr + (skip * i), offset, count, pfiles, skip);
                 }
                 else {
                     index_type count = (-nx) + 1;
                     index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
-                    numWrote = write<RType>(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
+                    numWrote = write(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
                 }
                 i += labs(nx);
             }
