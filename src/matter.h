@@ -397,8 +397,22 @@ class Matter
             return INTEGER(_dim)[i];
         }
 
-        int dimlength(int i) {
+        int dimlength() {
             return LENGTH(_dim);
+        }
+
+        int nrows() {
+            if ( dimlength() == 2 )
+                return dim(0);
+            else
+                return 0;
+        }
+
+        int ncols() {
+            if ( dimlength() == 2 )
+                return dim(1);
+            else
+                return 0;
         }
 
         int S4class() {

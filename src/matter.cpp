@@ -46,7 +46,7 @@ void Matter :: writeVectorElements(SEXP i, SEXP value) {
 template<typename RType>
 SEXP Matter :: readMatrix() {
     SEXP retMat;
-    int nrows = dim(0), ncols = dim(1);
+    int nrows = this->nrows(), ncols = this->ncols();
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     switch(S4class()) {
@@ -69,7 +69,7 @@ SEXP Matter :: readMatrix() {
 
 template<typename RType>
 void Matter :: writeMatrix(SEXP value) {
-    int nrows = dim(0), ncols = dim(1);
+    int nrows = this->nrows(), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
     switch(S4class()) {
         case 2:
@@ -90,7 +90,7 @@ void Matter :: writeMatrix(SEXP value) {
 template<typename RType>
 SEXP Matter :: readMatrixRows(SEXP i) {
     SEXP retMat;
-    int nrows = LENGTH(i), ncols = dim(1);
+    int nrows = LENGTH(i), ncols = this->ncols();
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     double * pRow = REAL(i);
@@ -119,7 +119,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
 
 template<typename RType>
 void Matter :: writeMatrixRows(SEXP i, SEXP value) {
-    int nrows = LENGTH(i), ncols = dim(1);
+    int nrows = LENGTH(i), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
     double * pRow = REAL(i);
     switch(S4class()) {
@@ -144,7 +144,7 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
 template<typename RType>
 SEXP Matter :: readMatrixCols(SEXP j) {
     SEXP retMat;
-    int nrows = dim(0), ncols = LENGTH(j);
+    int nrows = this->nrows(), ncols = LENGTH(j);
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     double * pCol = REAL(j);
@@ -173,7 +173,7 @@ SEXP Matter :: readMatrixCols(SEXP j) {
 
 template<typename RType>
 void Matter :: writeMatrixCols(SEXP j, SEXP value) {
-    int nrows = dim(0), ncols = LENGTH(j);
+    int nrows = this->nrows(), ncols = LENGTH(j);
     RType * pValue = DataPtr<RType>(value);
     double * pCol = REAL(j);
     switch(S4class()) {
