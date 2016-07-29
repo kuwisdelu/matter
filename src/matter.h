@@ -21,26 +21,28 @@ typedef double dbl_index_type;
 template<typename CType, typename RType>
 size_t convert_read(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {
     size_t numRead;
-    CType tmp[count];
+    CType * tmp = (CType *) Calloc(count, CType);
     numRead = fread(tmp, sizeof(CType), count, stream);
     for ( size_t i = 0; i < numRead; i++ ) {
         // add code here to convert NA_C to NA_R (and NaN, Inf, -Inf, etc.)
         *ptr = static_cast<RType>(tmp[i]);
         ptr += skip;
     }
+    Free(tmp);
     return numRead;
 }
 
 template<typename CType, typename RType>
 size_t convert_write(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {
     size_t numWrote;
-    CType tmp[count];
+    CType * tmp = (CType *) Calloc(count, CType);
     for ( size_t i = 0; i < count; i++ ) {
         // add code here to convert NA_R to NA_C (and NaN, Inf, -Inf, etc.)
         tmp[i] = static_cast<CType>(*ptr);
         ptr += skip;
     }
     numWrote = fwrite(tmp, sizeof(CType), count, stream);
+    Free(tmp);
     return numWrote;
 }
 
