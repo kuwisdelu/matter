@@ -1,0 +1,17 @@
+
+CHANGES IN Version 0.2 [2016-7-28]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Overhauled backend to use C++ classes 'Matter' and 'Atoms',
+        to maximizes use of sequential reads versus random reads.
+
+CHANGES IN Version 0.1 [2016-2-17]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o First rough implementation of matter including the
+        classes 'atoms' and 'matter', and subclasses 'matter_vec',
+        'matter_matc', 'matter_matr', with a C backend.

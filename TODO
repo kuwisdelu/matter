@@ -1,0 +1,13 @@
+
+TODO for matter package
+-------------------------
+
+Priority: High
+-Add statistical tools (mean, sd, var, etc.)
+-Add functional programming tools (apply, etc.)
+
+Priority: Medium
+-Implement sparse vectors/matrices
+
+Priority: Low
+-Implement more caching and smarter buffering
