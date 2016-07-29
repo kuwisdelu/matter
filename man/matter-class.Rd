@@ -88,7 +88,8 @@ matter(\dots)
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\linkS4class{matter_vec}}
+    \code{\linkS4class{matter_vec}},
+    \code{\linkS4class{matter_mat}}
 }
 
 \examples{

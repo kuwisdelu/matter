@@ -58,6 +58,50 @@ drop.matrix <- function(x) {
 	x
 }
 
+combine.colnames <- function(x, y) {
+	if ( is.null(dimnames(x)[[2]]) && is.null(dimnames(y)[[2]]) ) {
+		colnames <- NULL
+	} else if ( is.null(dimnames(x)[[2]]) ) {
+		colnames <- c(character(dim(x)[2]), dimnames(y)[[2]])
+	} else if ( is.null(dimnames(y)[[2]]) ) {
+		colnames <- c(dimnames(x)[[2]], character(dim(x)[2]))
+	} else {
+		colnames <- c(dimnames(x)[[2]], dimnames(x)[[2]])
+	}
+	if ( !is.null(dimnames(x)[[1]]) ) {
+		rownames <- dimnames(x)[[1]]
+	} else {
+		rownames <- dimnames(y)[[1]]
+	}
+	if ( is.null(rownames) && is.null(colnames) ) {
+		NULL
+	} else {
+		list(rownames, colnames)
+	}
+}
+
+combine.rownames <- function(x, y) {
+	if ( is.null(dimnames(x)[[1]]) && is.null(dimnames(y)[[1]]) ) {
+		rownames <- NULL
+	} else if ( is.null(dimnames(x)[[1]]) ) {
+		rownames <- c(character(dim(x)[1]), dimnames(y)[[1]])
+	} else if ( is.null(dimnames(y)[[1]]) ) {
+		rownames <- c(dimnames(x)[[1]], character(dim(x)[1]))
+	} else {
+		rownames <- c(dimnames(x)[[1]], dimnames(x)[[1]])
+	}
+	if ( !is.null(dimnames(x)[[2]]) ) {
+		colnames <- dimnames(x)[[2]]
+	} else {
+		colnames <- dimnames(y)[[2]]
+	}
+	if ( is.null(rownames) && is.null(colnames) ) {
+		NULL
+	} else {
+		list(rownames, colnames)
+	}
+}
+
 #### Define data types and utility functions for them ####
 ## -------------------------------------------------------
 make.datamode <- function(datamode, type=c("C", "R")) {
@@ -227,6 +271,7 @@ setClass("matter",
 		datamode = "factor",
 		filepath = "character",
 		filemode = "character",
+		buffersize = "integer",
 		length = "numeric",
 		dim = "_dim",
 		names = "_names",
@@ -243,6 +288,8 @@ setClass("matter",
 		if ( !as.character(object@datamode) %in% R_datamodes )
 			stop("'datamode' should be one of [",
 				paste(R_datamodes, collapse=", "), "]")
+		if ( !object@buffersize > 0L )
+			stop("buffersize must be positive")
 		if ( !is.null(object@dim) && prod(object@dim) != object@length )
 			stop("dims [product ", prod(object@dim), "] ",
 				"do not match length of object [", object@length, "]")
@@ -258,9 +305,10 @@ setClass("matter",
 				stop("length of 'dimnames' [", length(object@dimnames), "] ",
 					"must match that of 'dims' [", length(object@dim), "]")
 			for ( i in seq_along(object@dimnames) ) {
-				if ( length(object@dimnames[i]) != object@dim[i] )
+				dmn <- object@dimnames[[i]]
+				if ( !is.null(dmn) && length(dmn) != object@dim[i] )
 					stop("length of 'dimnames' [", i, "] ",
-						"not equal to array eobjecttent")
+						"not equal to array extent")
 			}
 		}
 	})
@@ -324,31 +372,6 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 		x
 })
 
-setMethod("combine", "matter", function(x, y, ...) {
-	data <- combine(x@data, y@data)
-	new(class(x),
-		data=data,
-		datamode=widest.datamode(data, from="C"),
-		filepath=levels(factor(c(x@filepath, y@filepath))),
-		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
-		length=x@length + y@length,
-		dim=NULL,
-		names=NULL,
-		dimnames=NULL)
-})
-
-setMethod("c", "matter", function(x, ...)
-{
-	dots <- list(...)
-	if ( length(dots) == 0 ) {
-		x
-	} else if ( length(dots) == 1 ) {
-		combine(x, dots[[1]])
-	} else {
-		do.call(combine, list(x, ...))
-	}
-})
-
 #### Define matter<vector> class for vector-like data ####
 ## --------------------------------------------------------
 setClass("matter_vec",
@@ -357,6 +380,7 @@ setClass("matter_vec",
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
+		buffersize = 10000L,
 		length = 0,
 		dim = NULL,
 		names = NULL,
@@ -371,7 +395,7 @@ setClass("matter_vec",
 
 matter_vec <- function(data, datamode = "double", filepath = NULL,
 					filemode = ifelse(is.null(filepath), "rb+", "rb"),
-					offset = 0, extent = length, length = 0, names = NULL)
+					offset = 0, extent = length, length = 0, names = NULL, ...)
 {
 	if ( length == 0 && all(extent == 0) )
 		return(new("matter_vec"))
@@ -403,7 +427,7 @@ matter_vec <- function(data, datamode = "double", filepath = NULL,
 		length=as.numeric(sum(extent)),
 		dim=NULL,
 		names=names,
-		dimnames=NULL)
+		dimnames=NULL, ...)
 	if ( !missing(data) )
 		x[] <- data
 	x
@@ -469,6 +493,31 @@ setReplaceMethod("[",
 	c(x = "matter_vec", i = "ANY", j = "missing"),
 	function(x, i, ..., value) setVectorElements(x, i, value))
 
+setMethod("combine", "matter_vec", function(x, y, ...) {
+	data <- combine(x@data, y@data)
+	new(class(x),
+		data=data,
+		datamode=widest.datamode(data, from="C"),
+		filepath=levels(factor(c(x@filepath, y@filepath))),
+		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		length=x@length + y@length,
+		dim=NULL,
+		names=NULL,
+		dimnames=NULL)
+})
+
+setMethod("c", "matter_vec", function(x, ...)
+{
+	dots <- list(...)
+	if ( length(dots) == 0 ) {
+		x
+	} else if ( length(dots) == 1 ) {
+		combine(x, dots[[1]])
+	} else {
+		do.call(combine, list(x, ...))
+	}
+})
+
 #### Define matter<matrix> classes for matrix-like data ####
 ## --------------------------------------------------------
 setClass("matter_mat",
@@ -478,6 +527,7 @@ setClass("matter_mat",
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
+		buffersize = 10000L,
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
@@ -496,6 +546,7 @@ setClass("matter_matc",
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
+		buffersize = 10000L,
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
@@ -508,6 +559,7 @@ setClass("matter_matr",
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
+		buffersize = 10000L,
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
@@ -517,7 +569,7 @@ matter_mat <- function(data, datamode = "double", filepath = NULL,
 					filemode = ifelse(is.null(filepath), "rb+", "rb"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
-					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL)
+					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, ...)
 {
 	if ( nrow == 0 && ncol == 0 && all(extent == 0) ) {
 		if ( rowMaj ) {
@@ -581,7 +633,7 @@ matter_mat <- function(data, datamode = "double", filepath = NULL,
 		length=as.numeric(prod(c(nrow, ncol))),
 		dim=as.integer(c(nrow, ncol)),
 		names=NULL,
-		dimnames=dimnames)
+		dimnames=dimnames, ...)
 	if ( !missing(data) )
 		x[] <- data
 	x
@@ -746,4 +798,72 @@ setReplaceMethod("[",
 setReplaceMethod("[",
 	c(x = "matter_mat"),
 	function(x, i, j, ..., value) setMatrixElements(x, i, j, value))
+
+setMethod("combine", "matter_matc", function(x, y, ...) {
+	if ( nrow(x) != nrow(y) )
+		stop("number of rows of matrices must match")
+	filepaths <- levels(factor(c(x@filepath, y@filepath)))
+	data <- lapply(append(x@data, y@data), function(xs) {
+		xs@file_id <- factor(xs@file_id, levels=filepaths)
+		xs
+	})
+	new(class(x),
+		data=data,
+		datamode=widest.datamode(data, from="C"),
+		filepath=filepaths,
+		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		length=x@length + y@length,
+		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
+		names=NULL,
+		dimnames=combine.colnames(x,y))
+})
+
+setMethod("cbind", "matter_matc", function(..., deparse.level=1)
+{
+	dots <- list(...)
+	if ( length(dots) == 1 ) {
+		dots[[1]]
+	} else {
+		do.call(combine, dots)
+	}
+})
+
+setMethod("combine", "matter_matr", function(x, y, ...) {
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of matrices must match")
+	filepaths <- levels(factor(c(x@filepath, y@filepath)))
+	data <- lapply(append(x@data, y@data), function(xs) {
+		xs@file_id <- factor(xs@file_id, levels=filepaths)
+		xs
+	})
+	new(class(x),
+		data=data,
+		datamode=widest.datamode(data, from="C"),
+		filepath=filepaths,
+		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		length=x@length + y@length,
+		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+		names=NULL,
+		dimnames=combine.rownames(x,y))
+})
+
+setMethod("rbind", "matter_matr", function(..., deparse.level=1)
+{
+	dots <- list(...)
+	if ( length(dots) == 1 ) {
+		dots[[1]]
+	} else {
+		do.call(combine, dots)
+	}
+})
+
+setMethod("cbind", "matter_matr", function(..., deparse.level=1)
+{
+	stop("cannot 'cbind' row-major matrices")
+})
+
+setMethod("rbind", "matter_matc", function(..., deparse.level=1)
+{
+	stop("cannot 'rbind' column-major matrices")
+})
 

@@ -1,24 +1,26 @@
-\name{matter_vec-class}
+\name{matter_mat-class}
 \docType{class}
 
-\alias{class:matter_vec}
-\alias{matter_vec}
-\alias{matter_vec-class}
+\alias{class:matter_mat}
+\alias{matter_mat}
+\alias{matter_mat-class}
 
-\alias{[,matter_vec-method}
-\alias{[<-,matter_vec-method}
+\alias{[,matter_mat-method}
+\alias{[<-,matter_mat-method}
 
-\title{Vectors Stored on Disk}
+\title{Matrices Stored on Disk}
 
 \description{
-    The \code{matter_vec} class implements on-disk vectors.
+    The \code{matter_mat} class implements on-disk matrices.
 }
 
 \usage{
 ## Instance creation
-matter_vec(data, datamode = "double", filepath = NULL,
+matter_mat(data, datamode = "double", filepath = NULL,
             filemode = ifelse(is.null(filepath), "rb+", "rb"),
-            offset = 0, extent = length, length = 0L, names = NULL, \dots)
+            offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
+            extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
+            nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, \dots)
 
 ## Additional methods documented below
 }
@@ -36,9 +38,13 @@ matter_vec(data, datamode = "double", filepath = NULL,
 
         \item{\code{extent}}{A vector giving the length of the data for each file in 'filepath', specifying the number of elements of size 'datamode' to be accessed from each file.}
 
-        \item{\code{length}}{An optional number giving the total length of the data across all files, equal to the sum of 'extent'. This is ignored and calculated automatically if 'extent' is specified.}
+        \item{\code{nrow}}{An optional number giving the total number of rows.}
 
-        \item{\code{names}}{The names of the data elements.}
+        \item{\code{ncol}}{An optional number giving the total number of columns.}
+
+        \item{\code{rowMaj}}{Whether the data should be stored in row-major order (as opposed to column-major order) on disk. Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
+
+        \item{\code{dimnames}}{The names of the matrix dimensions.}
 
         \item{\code{\dots}}{Additional arguments to be passed to constructor.}
 }
@@ -68,13 +74,13 @@ matter_vec(data, datamode = "double", filepath = NULL,
 }
 
 \section{Creating Objects}{
-    \code{matter_vec} instances can be created through \code{matter_vec()} or \code{matter()}.
+    \code{matter_mat} instances can be created through \code{matter_mat()} or \code{matter()}.
 }
 
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[i], x[i] <- value}:}{Get or set the elements of the vector.}
+        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the vector.}
     }
 }
 
@@ -86,8 +92,8 @@ matter_vec(data, datamode = "double", filepath = NULL,
 
 \examples{
 \dontrun{
-## Create an matter_vec object
-matter_vec()
+## Create an matter_mat object
+matter_mat()
 }
 }
 

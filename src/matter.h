@@ -1,4 +1,7 @@
 
+#ifndef MATTER_H
+#define MATTER_H
+
 #include <R.h>
 #include <Rdefines.h>
 
@@ -135,7 +138,6 @@ class Files {
 //// Atoms class
 //-----------------------
 
-template<typename RType>
 class Atoms {
 
     public:
@@ -214,6 +216,7 @@ class Atoms {
             error("subscript out of bounds");
         }
 
+        template<typename RType>
         index_type read(RType * ptr, index_type offset, index_type count, Files * pfiles, size_t skip = 1) {
             index_type toRead, numRead, totLength;
             toRead = count;
@@ -251,6 +254,7 @@ class Atoms {
             return numRead;
         }
 
+        template<typename RType>
         index_type write(RType * ptr, index_type offset, index_type count, Files * pfiles, size_t skip = 1) {
             index_type toWrite, numWrote, totLength;
             toWrite = count;
@@ -288,6 +292,7 @@ class Atoms {
             return numWrote;
         }
 
+        template<typename RType>
         index_type readAt(RType * ptr, dbl_index_type * pindex, long length, Files * pfiles, size_t skip = 1) {
             index_type numRead;
             for ( long i = 0; i < length; i++ ) {
@@ -304,13 +309,14 @@ class Atoms {
                 else {
                     index_type count = (-nx) + 1;
                     index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
-                    numRead = read(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
+                    numRead = read<RType>(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
                 }
                 i += labs(nx);
             }
             return numRead;
         }
 
+        template<typename RType>
         index_type writeAt(RType * ptr, dbl_index_type * pindex, long length, Files * pfiles, size_t skip = 1) {
             index_type numWrote;
             for ( long i = 0; i < length; i++ ) {
@@ -326,7 +332,7 @@ class Atoms {
                 else {
                     index_type count = (-nx) + 1;
                     index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
-                    numWrote = write(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
+                    numWrote = write<RType>(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
                 }
                 i += labs(nx);
             }
@@ -358,6 +364,7 @@ class Matter
         {
             _data = GET_SLOT(x, mkString("data"));
             _datamode = INTEGER_VALUE(GET_SLOT(x, mkString("datamode")));
+            _buffer_size = INTEGER_VALUE(GET_SLOT(x, mkString("buffersize")));
             _length = static_cast<index_type>(NUMERIC_VALUE(GET_SLOT(x, mkString("length"))));
             _dim = GET_SLOT(x, mkString("dim"));
             const char * S4class = CHARACTER_VALUE(GET_CLASS(x));
@@ -389,6 +396,10 @@ class Matter
             return &_files;
         }
 
+        int buffer_size() {
+            return _buffer_size;
+        }
+
         index_type length() {
             return _length;
         }
@@ -397,19 +408,19 @@ class Matter
             return INTEGER(_dim)[i];
         }
 
-        int dimlength() {
+        int dimn() {
             return LENGTH(_dim);
         }
 
         int nrows() {
-            if ( dimlength() == 2 )
+            if ( dimn() == 2 )
                 return dim(0);
             else
                 return 0;
         }
 
         int ncols() {
-            if ( dimlength() == 2 )
+            if ( dimn() == 2 )
                 return dim(1);
             else
                 return 0;
@@ -460,9 +471,12 @@ class Matter
         SEXP _data;     // EITHER "atoms" OR a *list* or "atoms"
         int _datamode;  // 1 = integer, 2 = numeric
         Files _files;
+        int _buffer_size;
         index_type _length;
         SEXP _dim;
         int _S4class;      // 1 = vector, 2 = col-matrix, 3 = row-matrix
 
 };
+
+#endif
 
