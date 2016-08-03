@@ -1,4 +1,19 @@
 
+CHANGES IN Version 0.3 [2016-8-3]
+---------------------------------
+
+NEW FEATURES
+
+    o Added C++ class 'MatterAccessor' for iterating through.
+    	a buffered version of a 'matter' vector or matrix
+    o Added summary statistics including 'sum', 'mean', 'var',
+    	'sd', 'colSums', 'colMeans', 'colVar', 'colSd',
+    	'rowSums', 'rowMeans', 'rowVar', and 'rowSd'.
+    o Added support for 'apply' method for 'matter' matrices
+    o Added support for 'bigglm' linear regression.
+    o Added basic matrix multiplication for 'matter' matrices
+    	with an in-memory R matrix or vector.
+
 CHANGES IN Version 0.2 [2016-7-28]
 ---------------------------------
 
