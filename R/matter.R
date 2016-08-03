@@ -1,22 +1,36 @@
 
 #### Define new generics from base R ####
 ## -------------------------------------
+
+setGeneric("t")
+setGeneric("sum")
 setGeneric("mean")
 setGeneric("var")
 setGeneric("sd")
 setGeneric("colSums")
-setGeneric("colMeans")
 setGeneric("rowSums")
+setGeneric("colMeans")
 setGeneric("rowMeans")
+
+#### Define new generics for stats ####
+## -------------------------------------
+
+setGeneric("colVar", function(x, na.rm = FALSE) standardGeneric("colVar"))
+setGeneric("rowVar", function(x, na.rm = FALSE) standardGeneric("rowVar"))
+setGeneric("colSd", function(x, na.rm = FALSE) standardGeneric("colSd"))
+setGeneric("rowSd", function(x, na.rm = FALSE) standardGeneric("rowSd"))
 
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------
+
+setGeneric("datamode", function(x) standardGeneric("datamode"))
+setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
 setGeneric("filepath", function(x) standardGeneric("filepath"))
 setGeneric("filepath<-", function(x, value) standardGeneric("filepath<-"))
 setGeneric("filemode", function(x) standardGeneric("filemode"))
 setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
-setGeneric("datamode", function(x) standardGeneric("datamode"))
-setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
+setGeneric("chunksize", function(x) standardGeneric("chunksize"))
+setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 
 #### Miscellaneous utility functions ####
 ## --------------------------------------
@@ -104,6 +118,7 @@ combine.rownames <- function(x, y) {
 
 #### Define data types and utility functions for them ####
 ## -------------------------------------------------------
+
 make.datamode <- function(datamode, type=c("C", "R")) {
 	levels <- switch(match.arg(type),
 		C = c("short", "int", "long", "float", "double"),
@@ -161,6 +176,7 @@ coerce <- function(x, datamode) {
 
 #### Define atoms class ####
 ## -------------------------
+
 setClass("atoms",
 	slots = c(
 		length = "integer",
@@ -260,6 +276,7 @@ setMethod("show", "atoms", function(object) {
 
 #### Define matter VIRTUAL class ####
 ## ----------------------------------
+
 setClassUnion("_atoms", c("atoms", "list"))
 setClassUnion("_dim", c("integer", "NULL"))
 setClassUnion("_names", c("character", "NULL"))
@@ -271,7 +288,7 @@ setClass("matter",
 		datamode = "factor",
 		filepath = "character",
 		filemode = "character",
-		buffersize = "integer",
+		chunksize = "integer",
 		length = "numeric",
 		dim = "_dim",
 		names = "_names",
@@ -288,8 +305,8 @@ setClass("matter",
 		if ( !as.character(object@datamode) %in% R_datamodes )
 			stop("'datamode' should be one of [",
 				paste(R_datamodes, collapse=", "), "]")
-		if ( !object@buffersize > 0L )
-			stop("buffersize must be positive")
+		if ( !object@chunksize > 0L )
+			stop("chunksize must be positive")
 		if ( !is.null(object@dim) && prod(object@dim) != object@length )
 			stop("dims [product ", prod(object@dim), "] ",
 				"do not match length of object [", object@length, "]")
@@ -338,6 +355,13 @@ setReplaceMethod("filemode", "matter", function(x, value) {
 	x
 })
 
+setMethod("chunksize", "matter", function(x) x@chunksize)
+
+setReplaceMethod("chunksize", "matter", function(x, value) {
+	x@chunksize <- as.integer(value)
+	x
+})
+
 setMethod("length", "matter", function(x) x@length)
 
 setReplaceMethod("length", "matter", function(x, value) {
@@ -372,15 +396,88 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 		x
 })
 
+setMethod("sum", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getSum", x, na.rm)
+})
+
+setMethod("mean", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getMean", x, na.rm)
+})
+
+setMethod("var", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getVar", x, na.rm)
+})
+
+setMethod("sd", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	sqrt(.Call("getVar", x, na.rm))
+})
+
+setMethod("colSums", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getColSums", x, na.rm)
+})
+
+setMethod("colMeans", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getColMeans", x, na.rm)
+})
+
+setMethod("colVar", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getColVar", x, na.rm)
+})
+
+setMethod("colSd", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	sqrt(.Call("getColVar", x, na.rm))
+})
+
+setMethod("rowSums", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getRowSums", x, na.rm)
+})
+
+setMethod("rowMeans", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getRowMeans", x, na.rm)
+})
+
+setMethod("rowVar", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	.Call("getRowVar", x, na.rm)
+})
+
+setMethod("rowSd", "matter", function(x, na.rm = FALSE) {
+	if ( datamode(x) == "integer" )
+		warning("NAs not yet handled correctly for datamode 'integer'")
+	sqrt(.Call("getRowVar", x, na.rm))
+})
+
 #### Define matter<vector> class for vector-like data ####
 ## --------------------------------------------------------
+
 setClass("matter_vec",
 	prototype = prototype(
 		data = atoms(),
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
-		buffersize = 10000L,
+		chunksize = 1e6L,
 		length = 0,
 		dim = NULL,
 		names = NULL,
@@ -518,8 +615,21 @@ setMethod("c", "matter_vec", function(x, ...)
 	}
 })
 
+setMethod("t", "matter_vec", function(x)
+{
+	class(x) <- "matter_matr"
+	x@data <- list(x@data)
+	x@dim <- c(1L, as.integer(x@length))
+	if ( !is.null(x@names) )
+		x@dimnames <- list(NULL, x@namesL)
+	x@names <- NULL
+	if ( validObject(x) )
+		x
+})
+
 #### Define matter<matrix> classes for matrix-like data ####
 ## --------------------------------------------------------
+
 setClass("matter_mat",
 	contains = c("matter", "VIRTUAL"),
 	prototype = prototype(
@@ -527,7 +637,7 @@ setClass("matter_mat",
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
-		buffersize = 10000L,
+		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
@@ -546,7 +656,7 @@ setClass("matter_matc",
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
-		buffersize = 10000L,
+		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
@@ -559,7 +669,7 @@ setClass("matter_matr",
 		datamode = make.datamode("numeric", type="R"),
 		filepath = character(),
 		filemode = "rb",
-		buffersize = 10000L,
+		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
@@ -744,7 +854,7 @@ setMatrixElements <- function(x, i, j, value) {
 	if ( (length(i) * length(j)) %% length(value) != 0 )
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
-	value <- rep(value, length.out=length(j) * nrow(x))
+	value <- rep(value, length.out=length(i) * length(j))
 	value <- coerce(value, datamode(x))
 	.Call("setMatrixElements", x, i - 1, j - 1, value)
 	if ( validObject(x) )
@@ -798,6 +908,8 @@ setReplaceMethod("[",
 setReplaceMethod("[",
 	c(x = "matter_mat"),
 	function(x, i, j, ..., value) setMatrixElements(x, i, j, value))
+
+# matrix manipulation
 
 setMethod("combine", "matter_matc", function(x, y, ...) {
 	if ( nrow(x) != nrow(y) )
@@ -866,4 +978,160 @@ setMethod("rbind", "matter_matc", function(..., deparse.level=1)
 {
 	stop("cannot 'rbind' column-major matrices")
 })
+
+setMethod("t", "matter_matc", function(x)
+{
+	class(x) <- "matter_matr"
+	x@dim <- rev(x@dim)
+	x@dimnames <- rev(x@dimnames)
+	if ( validObject(x) )
+		x
+})
+
+setMethod("t", "matter_matr", function(x)
+{
+	class(x) <- "matter_matc"
+	x@dim <- rev(x@dim)
+	x@dimnames <- rev(x@dimnames)
+	if ( validObject(x) )
+		x
+})
+
+#### Matrix multiplication for matter objects ####
+## -----------------------------------------------
+
+# matrix x vector
+
+setMethod("%*%", c("matter_matc", "numeric"), function(x, y) { x %*% as.matrix(y) })
+
+setMethod("%*%", c("matter_matr", "numeric"), function(x, y) { x %*% as.matrix(y) })
+
+# vector x matrix
+
+setMethod("%*%", c("numeric", "matter_matc"), function(x, y) { t(x) %*% y })
+
+setMethod("%*%", c("numeric", "matter_matr"), function(x, y) { t(x) %*% y })
+
+# matrix x matrix
+
+setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
+{
+	.Call("rightMultRMatrix", x, y)
+})
+
+setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
+{
+	.Call("leftMultRMatrix", x, y)
+})
+
+setMethod("%*%", c("matter", "matter"), function(x, y)
+{
+	stop("at least one matrix must be in memory")
+})
+
+#### Apply functions over matter matrices ####
+## -------------------------------------------
+
+setMethod("apply", "matter_mat",
+	function(X, MARGIN, FUN, ...) {
+		apply.matter(X, MARGIN, FUN, ...)
+})
+
+# based on code from package:base and package:biganalytics
+
+apply.matter <- function(X, MARGIN, FUN, ...)
+{
+	if ( length(MARGIN) > 1 ) 
+		stop("dim(MARGIN) > 1 not supported for 'matter' objects")
+	FUN <- match.fun(FUN)
+	dn.ans <- dimnames(X)[MARGIN]
+	if ( MARGIN == 1 ) {
+		d2 <- nrow(X)
+		ans <- vector("list", nrow(X))
+		for ( i in 1:d2 ) {
+			tmp <- FUN(X[i,], ...)
+			if (!is.null(tmp))
+				ans[[i]] <- tmp
+		}
+	} else if ( MARGIN == 2 ) {
+		d2 <- ncol(X)
+		ans <- vector("list", ncol(X))
+		for (i in 1:d2) {
+			tmp <- FUN(X[,i], ...)
+			if (!is.null(tmp))
+				ans[[i]] <- tmp
+		}
+	} else {
+		stop("only MARGIN = 1 or 2 supported for 'matter' objects")
+	}
+	ans.list <- is.recursive(ans[[1]])
+	l.ans <- length(ans[[1]])
+	ans.names <- names(ans[[1]])
+	if ( !ans.list )
+		ans.list <- any(unlist(lapply(ans, length)) != l.ans)
+	if ( !ans.list && length(ans.names) ) {
+		all.same <- sapply(ans, function(x) identical(names(x), ans.names))
+		if (!all(all.same))
+			ans.names <- NULL
+	}
+	if ( ans.list ) {
+		len.a <- d2
+	} else {
+		len.a <- length(ans <- unlist(ans, recursive = FALSE))
+	}
+	if ( len.a == d2 ) {
+		if ( length(dn.ans[[1]]) )
+			names(ans) <- dn.ans[[1]]
+		return(ans)
+	}
+	if ( len.a > 0 && len.a %% d2 == 0 ) {
+		if ( is.null(dn.ans) )
+			dn.ans <- vector(mode = "list", length(d2))
+		dn.ans <- c(list(ans.names), dn.ans)
+		return(array(ans, c(len.a%/%d2, d2), if (!all(sapply(dn.ans, 
+			is.null))) dn.ans))
+	}
+	return(ans)
+}
+
+#### Linear regression for matter matrices ####
+## -------------------------------------------
+
+setMethod("bigglm", c("formula", "matter_mat"),
+	function(formula, data, ..., chunksize = NULL, factors = NULL) {
+		bigglm.matter(formula, data, ...,
+			chunksize=chunksize, fc=factors)
+})
+
+# based on code from package:biglm and package:biganalytics
+
+bigglm.matter <- function(formula, data, ..., chunksize, fc) {
+	n <- nrow(data)
+	vars <- unique(c(all.vars(formula), fc))
+	p <- length(vars)
+	if ( is.null(chunksize) )
+		chunksize <- chunksize(data) %/% p
+	if ( !is.null(fc) ) {
+		flevels <- lapply(fc, function(x) sort(unique(x[,fc])))
+		names(flevels) <- fc
+	}
+	current <- 1
+	getNextDataChunk <- function(reset = FALSE) {
+		if ( reset ) {
+			current <<- 1
+			return(NULL)
+		}
+		if ( current > n )
+			return(NULL)
+		chunkrange <- current:(current + min(chunksize, n - current))
+		chunk <- as.data.frame(data[chunkrange,vars])
+		if ( !is.null(fc) ) {
+			for ( name in names(flevels) )
+				chunk[,name] <- factor(chunk[,name], levels=flevels[name])
+		}
+		current <<- max(chunkrange) + 1
+		chunk
+	}
+	bigglm(formula, getNextDataChunk, ...)
+}
 

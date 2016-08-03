@@ -22,13 +22,23 @@ typedef double dbl_index_type;
 //----------------------------------
 
 template<typename CType, typename RType>
+CType C_cast(RType x) {
+    // add code here to convert NA_C to NA_R (and NaN, Inf, -Inf, etc.)
+    return static_cast<CType>(x);
+}
+template<typename CType, typename RType>
+RType R_cast(CType x) {
+    // add code here to convert NA_R to NA_C (and NaN, Inf, -Inf, etc.)
+    return static_cast<RType>(x);
+}
+
+template<typename CType, typename RType>
 size_t convert_read(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {
     size_t numRead;
     CType * tmp = (CType *) Calloc(count, CType);
     numRead = fread(tmp, sizeof(CType), count, stream);
     for ( size_t i = 0; i < numRead; i++ ) {
-        // add code here to convert NA_C to NA_R (and NaN, Inf, -Inf, etc.)
-        *ptr = static_cast<RType>(tmp[i]);
+        *ptr = R_cast<CType,RType>(tmp[i]);
         ptr += skip;
     }
     Free(tmp);
@@ -40,8 +50,7 @@ size_t convert_write(RType * ptr, size_t count, FILE * stream, size_t skip = 1) 
     size_t numWrote;
     CType * tmp = (CType *) Calloc(count, CType);
     for ( size_t i = 0; i < count; i++ ) {
-        // add code here to convert NA_R to NA_C (and NaN, Inf, -Inf, etc.)
-        tmp[i] = static_cast<CType>(*ptr);
+        tmp[i] = C_cast<CType,RType>(*ptr);
         ptr += skip;
     }
     numWrote = fwrite(tmp, sizeof(CType), count, stream);
@@ -57,8 +66,8 @@ void fillNA(RType * ptr, size_t count, size_t skip = 1) {
     }
 }
 
-//// Count consecutive indices (for faster reading)
-//--------------------------------------------------
+//// Count # of consecutive indices after current one (for faster reads)
+//----------------------------------------------------------------------
 
 index_type num_consecutive(double * pindex, long i, long length) {
     index_type n = 0;
@@ -186,6 +195,10 @@ class Atoms {
             return _length;
         }
 
+        index_type max_extent() {
+            return(index_extent(length() - 1));
+        }
+
         index_type file_offset(int i, index_type offset) {
             index_type byte_offset, file_offset;
             switch(datamode(i)) {
@@ -304,7 +317,7 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_type count = nx + 1;
                     index_type offset = static_cast<index_type>(pindex[i]);
-                    numRead = read(ptr + (skip * i), offset, count, pfiles, skip);
+                    numRead = read<RType>(ptr + (skip * i), offset, count, pfiles, skip);
                 }
                 else {
                     index_type count = (-nx) + 1;
@@ -327,7 +340,7 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_type count = nx + 1;
                     index_type offset = static_cast<index_type>(pindex[i]);
-                    numWrote = write(ptr + (skip * i), offset, count, pfiles, skip);
+                    numWrote = write<RType>(ptr + (skip * i), offset, count, pfiles, skip);
                 }
                 else {
                     index_type count = (-nx) + 1;
@@ -364,7 +377,7 @@ class Matter
         {
             _data = GET_SLOT(x, mkString("data"));
             _datamode = INTEGER_VALUE(GET_SLOT(x, mkString("datamode")));
-            _buffer_size = INTEGER_VALUE(GET_SLOT(x, mkString("buffersize")));
+            _chunksize = INTEGER_VALUE(GET_SLOT(x, mkString("chunksize")));
             _length = static_cast<index_type>(NUMERIC_VALUE(GET_SLOT(x, mkString("length"))));
             _dim = GET_SLOT(x, mkString("dim"));
             const char * S4class = CHARACTER_VALUE(GET_CLASS(x));
@@ -383,9 +396,19 @@ class Matter
         }
 
         SEXP data(int i) {
-            if ( i < 0 || i >= LENGTH(_data) )
+            if ( i < 0 || LENGTH(_data) <= i )
                 error("subscript out of bounds");
             return VECTOR_ELT(_data, i);
+        }
+
+        int data_n() {
+            switch(S4class()) {
+                case 2:
+                    return ncols();
+                case 3:
+                    return nrows();
+            }
+            return 0;
         }
 
         int datamode() {
@@ -396,8 +419,8 @@ class Matter
             return &_files;
         }
 
-        int buffer_size() {
-            return _buffer_size;
+        int chunksize() {
+            return _chunksize;
         }
 
         index_type length() {
@@ -408,19 +431,19 @@ class Matter
             return INTEGER(_dim)[i];
         }
 
-        int dimn() {
+        int dim_n() {
             return LENGTH(_dim);
         }
 
         int nrows() {
-            if ( dimn() == 2 )
+            if ( dim_n() == 2 )
                 return dim(0);
             else
                 return 0;
         }
 
         int ncols() {
-            if ( dimn() == 2 )
+            if ( dim_n() == 2 )
                 return dim(1);
             else
                 return 0;
@@ -466,17 +489,150 @@ class Matter
         template<typename RType>
         void writeMatrixElements(SEXP i, SEXP j, SEXP value);
 
+        SEXP sum(bool na_rm = false);
+
+        SEXP mean(bool na_rm = false);
+
+        SEXP var(bool na_rm = false);
+
+        SEXP colsums(bool na_rm = false);
+
+        SEXP rowsums(bool na_rm = false);
+
+        SEXP colmeans(bool na_rm = false);
+
+        SEXP rowmeans(bool na_rm = false);
+
+        SEXP colvar(bool na_rm = false);
+
+        SEXP rowvar(bool na_rm = false);
+
+        SEXP rmult(SEXP y);
+
+        SEXP lmult(SEXP x);
+
     protected:
 
         SEXP _data;     // EITHER "atoms" OR a *list* or "atoms"
         int _datamode;  // 1 = integer, 2 = numeric
         Files _files;
-        int _buffer_size;
+        int _chunksize;
         index_type _length;
         SEXP _dim;
         int _S4class;      // 1 = vector, 2 = col-matrix, 3 = row-matrix
 
 };
+
+
+//// MatterAccessor class
+//-----------------------
+
+template<typename RType>
+class MatterAccessor
+{
+
+    public:
+
+        MatterAccessor(Matter & x) : _matter(x)
+        {
+            switch(x.S4class()) {
+                case 1:
+                    _atoms = new Atoms(x.data());
+                    _next = -1;
+                    break;
+                default:
+                    _atoms = new Atoms(x.data(0));
+                    _next = 1;
+                    break;
+            }
+            init();
+        }
+
+        MatterAccessor(Matter & x, int i) : _matter(x)
+        {
+            _atoms = new Atoms(x.data(i));
+            _next = -1;
+            init();
+        }
+
+        int init() {
+            _chunksize = _atoms->max_extent() < _matter.chunksize() ? 
+                _atoms->max_extent() : _chunksize;
+            _current = 0;
+            _lower = 0;
+            _upper = _chunksize - 1;
+            _buffer = (RType *) Calloc(_chunksize, RType);
+            return next_chunk();
+        }
+
+        ~MatterAccessor()
+        {
+            delete _atoms;
+            Free(_buffer);
+        }
+
+        int next_chunk() {
+            if ( _current < _atoms->max_extent() )
+            {
+                int count;
+                if ( _current + _chunksize > _atoms->max_extent() )
+                    count = _atoms->max_extent() - _current;
+                else
+                    count = _chunksize;
+                if ( count > 0 )
+                {
+                    _lower = _current;
+                    _upper = _current + count - 1;
+                    return _atoms->read<RType>(_buffer, _current, count, _matter.files());
+                }    
+            }
+            else if ( 0 <= _next && _next < _matter.data_n() )
+            {
+                delete _atoms;
+                _atoms = new Atoms(_matter.data(_next));
+                _next++;
+                return init();
+            }
+            return 0;
+        }
+
+        RType operator*() { 
+            return _buffer[_current % _chunksize];
+        }
+
+        MatterAccessor<RType> & operator++() {
+            _current++;
+            if ( _current > _upper )
+                next_chunk();
+            return *this;
+        }
+
+        operator bool() {
+            return (0 <= _current && _current < _atoms->max_extent() && 
+                _lower <= _current && _current <= _upper);
+        }
+
+        bool operator !() {
+            return !(0 <= _current && _current < _atoms->max_extent() && 
+                _lower <= _current && _current <= _upper);
+        }
+
+    protected:
+        Matter & _matter;
+        Atoms * _atoms;
+        int _next;
+        int _chunksize;
+        index_type _current;
+        index_type _lower;
+        index_type _upper;
+        RType * _buffer;
+};
+
+double sum(MatterAccessor<double> & x, bool na_rm = false);
+
+double mean(MatterAccessor<double> & x, bool na_rm = false);
+
+double var(MatterAccessor<double> & x, bool na_rm = false);
 
 #endif
 

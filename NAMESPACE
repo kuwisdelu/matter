@@ -6,9 +6,7 @@ import("stats")
 importFrom("BiocGenerics",
 	"combine",
 	"cbind",
-	"rbind",
-	"sapply",
-	"tapply")
+	"rbind")
 
 exportClasses(
 	"matter",
@@ -23,9 +21,12 @@ exportMethods(
 	"filepath",
 	"filepath<-",
 	"filemode",
-	"filemode<-")
+	"filemode<-",
+	"chunksize",
+	"chunksize<-")
 
 exportMethods(
+	"%*%",
 	"[",
 	"[<-",
 	"c",
@@ -38,7 +39,26 @@ exportMethods(
 	"names",
 	"names<-",
 	"dimnames",
-	"dimnames<-")
+	"dimnames<-",
+	"t")
+
+exportMethods(
+	"sum",
+	"mean",
+	"var",
+	"sd",
+	"colSums",
+	"colMeans",
+	"colVar",
+	"colSd",
+	"rowSums",
+	"rowMeans",
+	"rowVar",
+	"rowSd")
+
+exportMethods("apply")
+
+exportMethods("bigglm")
 
 export(
 	"matter",
