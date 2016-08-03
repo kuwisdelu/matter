@@ -50,6 +50,14 @@ names2index <- function(x, i)
 dimnames2index <- function(x, i, margin)
 	as.numeric(match(i, dimnames(x)[[margin]]))
 
+all.indices <- function(x, i, margin) {
+	if ( missing(margin) ) {
+		all(i == seq_len(length(x)))
+	} else {
+		all(i == seq_len(dim(x)[margin]))
+	}
+}
+
 sizeof <- function(type) {
 	type <- as.character(type)
 	vapply(type, switch, numeric(1),
@@ -861,6 +869,68 @@ setMatrixElements <- function(x, i, j, value) {
 		invisible(x)
 }
 
+subsetMatterMatrix <- function(x, i, j) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i, 1)
+	if ( is.character(i) )
+		i <- dimnames2index(x, i, 1)
+	if ( is.logical(j) )
+		j <- logical2index(x, j, 2)
+	if ( is.character(j) )
+		j <- dimnames2index(x, j, 2)
+	if ( is(x, "matter_matc") ) {
+		if ( !all.indices(x, i, 1) )
+			stop("cannot subset column-major matrix as S4 by row")
+		subsetMatterCols(x, j)
+	} else if ( is(x, "matter_matr") ) {
+		if ( !all.indices(x, j, 2) )
+			stop("cannot subset row-major matrix as S4 by column")
+		subsetMatterRows(x, i)
+	}
+}
+
+subsetMatterCols <- function(x, j) {
+	if ( is.logical(j) )
+		j <- logical2index(x, j, 2)
+	if ( is.character(j) )
+		j <- dimnames2index(x, j, 2)
+	x <- switch(class(x),
+		matter_matc=new("matter_matc",
+			data=x@data[j],
+			datamode=x@datamode,
+			filepath=x@filepath,
+			chunksize=x@chunksize,
+			length=x@dim[1] * length(j),
+			dim=c(x@dim[1], length(j)),
+			names=NULL,
+			dimnames=if (!is.null(x@dimnames))
+				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL),
+		matter_matr=stop("cannot subset row-major matrix by columns"))
+	if ( validObject(x) )
+		invisible(x)
+}
+
+subsetMatterRows <- function(x, i) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i, 1)
+	if ( is.character(i) )
+		i <- dimnames2index(x, i, 1)
+	x <- switch(class(x),
+		matter_matc=stop("cannot subset column-major matrix by rows"),
+		matter_matr=new("matter_matr",
+			data=x@data[i],
+			datamode=x@datamode,
+			filepath=x@filepath,
+			chunksize=x@chunksize,
+			length=length(i) * x@dim[2],
+			dim=c(length(i), x@dim[2]),
+			names=NULL,
+			dimnames=if (!is.null(x@dimnames))
+				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL))
+	if ( validObject(x) )
+		invisible(x)
+}
+
 # matrix getter methods
 
 setMethod("[",
@@ -872,24 +942,42 @@ setMethod("[",
 	function(x, i, ...) getMatrixRows(x, i, drop))
 
 setMethod("[",
-	c(x = "matter_mat", j = "missing", drop = "logical"),
-	function(x, i, ..., drop) getMatrixRows(x, i, drop))
-
-setMethod("[",
 	c(x = "matter_mat", i = "missing", drop = "missing"),
 	function(x, j, ...) getMatrixCols(x, j, drop))
-
-setMethod("[",
-	c(x = "matter_mat", i = "missing", drop = "logical"),
-	function(x, j, ..., drop) getMatrixCols(x, j, drop))
 
 setMethod("[",
 	c(x = "matter_mat", drop = "missing"),
 	function(x, i, j, ...) getMatrixElements(x, i, j, drop))
 
 setMethod("[",
+	c(x = "matter_mat", j = "missing", drop = "logical"),
+	function(x, i, ..., drop) {
+		if ( is.na(drop) ) {
+			subsetMatterRows(x, i)
+		} else {
+			getMatrixRows(x, i, drop)
+		}
+})
+
+setMethod("[",
+	c(x = "matter_mat", i = "missing", drop = "logical"),
+	function(x, j, ..., drop) {
+		if ( is.na(drop) ) {
+			subsetMatterCols(x, j)
+		} else {
+			getMatrixCols(x, j, drop)
+		}
+})
+
+setMethod("[",
 	c(x = "matter_mat", drop = "logical"),
-	function(x, i, j, ..., drop) getMatrixElements(x, i, j, drop))
+	function(x, i, j, ..., drop) {
+		if ( is.na(drop) ) {
+			subsetMatterMatrix(x, i, j)
+		} else {
+			getMatrixElements(x, i, j, drop)
+		}
+})
 
 # matrix setter methods
 

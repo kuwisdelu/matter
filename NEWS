@@ -1,5 +1,13 @@
 
-CHANGES IN Version 0.3 [2016-8-3]
+CHANGES IN VERSION 0.4 [2016-8-3]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Added support for class-preserving subsetting of 'matter'
+         matrices with 'drop=NA' argument for Cardinal compatibility
+
+CHANGES IN VERSION 0.3 [2016-8-2]
 ---------------------------------
 
 NEW FEATURES
@@ -14,7 +22,7 @@ NEW FEATURES
     o Added basic matrix multiplication for 'matter' matrices
     	with an in-memory R matrix or vector.
 
-CHANGES IN Version 0.2 [2016-7-28]
+CHANGES IN VERSION 0.2 [2016-7-28]
 ---------------------------------
 
 SIGNIFICANT USER-VISIBLE CHANGES
@@ -22,7 +30,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Overhauled backend to use C++ classes 'Matter' and 'Atoms',
         to maximizes use of sequential reads versus random reads.
 
-CHANGES IN Version 0.1 [2016-2-17]
+CHANGES IN VERSION 0.1 [2016-2-17]
 ---------------------------------
 
 SIGNIFICANT USER-VISIBLE CHANGES
