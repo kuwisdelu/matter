@@ -182,6 +182,40 @@ coerce <- function(x, datamode) {
 		numeric = as.numeric(x))
 }
 
+bytes.used <- function(x) {
+	if ( is.list(x) ) {
+		bytes <- sum(vapply(x, bytes.used, numeric(1)))
+	} else {
+		bytes <- sum(x@extent * sizeof(datamode(x)))
+	}
+	class(bytes) <- "bytes"
+	bytes
+}
+
+# based on utils::format.object_size
+
+format.bytes <- function (x, units = "b", ...)  {
+    units <- match.arg(units, c("auto",
+				"B", "KB", "MB", "GB", "TB", "PB"))
+    if (units == "auto")
+        units <- if (x >= 1000^4) 
+            "TB"
+        else if (x >= 1000^3) 
+            "GB"
+        else if (x >= 1000^2) 
+            "MB"
+        else if (x >= 1000) 
+            "KB"
+        else "B"
+    switch(units, 
+    	B = paste(x, "bytes"),
+    	KB = paste(round(x/1000, 1L), "KB"),
+    	MB = paste(round(x/1000^2, 1L), "MB"), 
+        GB = paste(round(x/1000^3, 1L), "GB"),
+        TB = paste(round(x/1000^4, 1L), "TB"),
+        PB = paste(round(x/1000^5, 1L), "PB"))
+}
+
 #### Define atoms class ####
 ## -------------------------
 
@@ -341,6 +375,15 @@ setClass("matter",
 matter <- function(...) {
 	# need to implement
 }
+
+setMethod("show", "matter", function(object) {
+	object.memory <- object.size(object)
+	class(object.memory) <- "bytes"
+	cat("    files: ", length(object@filepath), "\n", sep="")
+	cat("    datamode: ", paste(object@datamode), "\n", sep="")
+	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
+	cat("    ", format(bytes.used(object@data), units="auto"), " on-disk\n", sep="")
+})
 
 setMethod("datamode", "matter", function(x) x@datamode)
 
@@ -537,6 +580,13 @@ matter_vec <- function(data, datamode = "double", filepath = NULL,
 		x[] <- data
 	x
 }
+
+setMethod("show", "matter_vec", function(object) {
+	cat("An object of class '", class(object), "'\n", sep="")
+	cat("  <", object@length, " length> ",
+		"on-disk binary vector", "\n", sep="")
+	callNextMethod(object)
+})
 
 getVector <- function(x) {
 	y <- .Call("getVector", x)
@@ -756,6 +806,13 @@ matter_mat <- function(data, datamode = "double", filepath = NULL,
 		x[] <- data
 	x
 }
+
+setMethod("show", "matter_mat", function(object) {
+	cat("An object of class '", class(object), "'\n", sep="")
+	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
+		"on-disk binary matrix", "\n", sep="")
+	callNextMethod(object)
+})
 
 getMatrix <- function(x) {
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)

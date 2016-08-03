@@ -10,6 +10,6 @@ Description: Memory-efficient reading, writing, and manipulation of
 License: Artistic-2.0
 Depends: methods, stats, biglm
 Imports: BiocGenerics
-Suggests: irlba
+Suggests: Cardinal, irlba
 biocViews: Software, Infrastructure
 URL: http://www.cardinalmsi.org

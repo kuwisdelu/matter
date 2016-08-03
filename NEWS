@@ -5,7 +5,9 @@ CHANGES IN VERSION 0.4 [2016-8-3]
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Added support for class-preserving subsetting of 'matter'
-         matrices with 'drop=NA' argument for Cardinal compatibility
+         matrices with 'drop=NA' argument for Cardinal compatibility.
+    o Added new 'show' method for 'matter' vectors and matrices showing
+        their size in in-memory and size on disk.
 
 CHANGES IN VERSION 0.3 [2016-8-2]
 ---------------------------------
