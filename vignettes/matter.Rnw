@@ -24,31 +24,57 @@ BiocStyle::latex()
 
 \section{Introduction}
 
+\Rpackage{matter} is designed for rapid prototyping of new statistical methods when working with larger-than-memory datasets on disk. Unlike related packages \Rpackage{bigmemory} and \Rpackage{ff}, which also work with file-backed larger-than-memory datasets, \Rpackage{matter} aims to offer maximum flexibility with on-disk data structures, so it can be easily adapted to domain-specific file formats.
+
+\section{Basic use and data manipulation}
+
 <<echo=FALSE,results=hide>>=
 options(width=100)
 library(matter)
 @ 
 
-Text text text text text text.
+\Rpackage{matter} matrices and vectors can be initialized similarly to ordinary \R{} matrices. When no file is given, a new temporary file is created in the default temporary file directory, which will be cleaned up later by either \R{} or the operating system.
+
+Here, we initialize a \Rpackage{matter} matrix with 10 rows and 10 columns. The resulting object is a subclass of the \Robject{matter} class, and stores file metadata that gives the location of the data on disk. In many cases, it can be treated as an ordinary \R{} matrix.
 
 <<>>=
 x <- matter_mat(data=1:50, nrow=10, ncol=5)
 x
 x[]
+@
 
+As seen above, this is a small toy example in which the in-memory metadata actually takes up more space than the size of the data stored on disk. For much larger datasets, the in-memory metadata will be a small fraction of the total size of the dataset on disk.
+
+\Rpackage{matter}'s matrices and vectors can be indexed into like ordinary \R{} matrices and vectors.
+
+<<>>=
 x[1:4,]
 x[,3:4]
+@
 
+We can assign names to \Robject{matter_vec} vectors and row and column names to \Robject{matter_mat} matrices.
+
+<<>>=
 rownames(x) <- 1:10
 colnames(x) <- letters[1:5]
 x[]
+@
 
+\Rpackage{matter} provides methods for calculating summary statistics for its vectors and matrices, including some methods that do not exist in base \R{}, such as \Robject{colVar}.
+
+<<>>=
 colSums(x)
 colSums(x[])
 
 colVar(x)
 apply(x, 2, var)
+@
 
+One of the major advantages of the flexibility of \Rpackage{matter} is being able to treat data from multiple files as a single dataset. This is particularly useful if analysing data from a domain where each sample in an experiment generates large files, such as high-resolution, high-throughput mass spectrometry imaging.
+
+Below, we create a second matrix, and show its data is stored in a separate file. We then combine the matrices, and the result can be treated as a single matrix, despite originating from multiple files. Combinging the matrices does not create new data or change the existing data on disk.
+
+<<>>=
 y <- matter_mat(data=51:100, nrow=10, ncol=5)
 
 filepath(x)
@@ -57,28 +83,54 @@ filepath(y)
 z <- cbind(x, y)
 z
 z[]
+@
 
-try(rbind(x, y))
+Note that matrices in \Rpackage{matter} are either stored in a column-major or a row-major format. The default is to use the column-major format, as \R{} does. Column-major matrices are optimized for fast column-access, and assume that each column is stored contiguously or mostly-contiguously on disk. Conversely, row-major matrices are optimized for fast row-access, and make the same assumption for rows.
 
+Since \Rpackage{matter} does support both column-major and row-major formats, transposing a matrix is a trivial operation in \Rpackage{matter} that only needs to change the matrix metadata, and doesn't touch the data on disk.
+
+<<>>=
 t(x)
 
 rbind(t(x), t(y))
+@
 
+Note that this is equivalent to \verb|t(cbind(x, y))|.
+
+Below, we inspect the metadata associated with the different columns of \Robject{x}.
+
+<<>>=
 x@data
+@
 
-xsub <- matter_mat(offset=c(40, 120, 200, 280,360),
+Note that each column has a byte offset and an extent (i.e., length) associated with it.
+
+Now we show how to create a \Robject{matter_mat} matrix for an pre-existing file. We will point the new matrix to the bottom half of \Robject{x}.
+
+<<>>=
+xsub <- matter_mat(offset=c(40, 120, 200, 280, 360),
             extent=rep(5,5), filepath=filepath(x))
 x[6:10,]
 xsub[]
+@
 
+It is possible to build \Robject{matter} objects from nearly any possible combination of files and locations within files. It is even possible to build up a matrix from vectors, which we do below.
+
+<<>>=
 x2 <- matter_vec(offset=80, extent=10, filepath=filepath(x))
 y3 <- matter_vec(offset=160, extent=10, filepath=filepath(y))
 cbind(x2, y3)[]
 cbind(x[,2], y[,3])
 @
 
+This is a quick and easy way to build a dataset from many files where each column of the dataset is stored in a separate file. Even if the resulting matrix would fit into memory, using \Rpackage{matter} can be a tidy, efficient way of reading complex binary data from multiple files into \R{}.
 
-\section{Examples}
+
+\section{Linear regression for on-disk datasets}
+
+\Rpackage{matter} is designed to provide a statistical computing environment for larger-than-memory datasets on disk. To facilitate this, \Rpackage{matter} provides a method for fitting of linear models for \Robject{matter} matrices through the \Rpackage{biglm} package. \Rpackage{matter} provides a wrapper for \Rpackage{biglm}'s \Robject{bigglm} function that works with \Robejct{matter_mat} matrices, which we demonstrate below.
+
+First, we simulate some data appropriate for linear regression.
 
 <<setup-example>>=
 set.seed(81216)
@@ -104,8 +156,12 @@ data
 head(data)
 @
 
+This creates a 1.2 GB dataset on disk, but barely 32 KB of metadata is stored in memory.
+
 % for some reason colSums, colMeans, etc. don't work here
 % need to find bug since they work for other matrices
+
+Now we calculate some statistical summaries using \Rpackage{matter}'s \Robject{apply} method for \Robject{matter_mat} matrices.
 
 <<summary-stats>>=
 apply(data, 2, mean)
@@ -113,39 +169,35 @@ apply(data, 2, mean)
 apply(data, 2, var)
 @
 
-<<formula>>=
-fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
+We could also have used \Robject{colMeans} and \Robject{colSums}.
 
-fm
-@
+Now we fit the linear model to the data using the \Robject{bigglm} method for \Robject{matter_mat} matrices. Note that it requires and formula, and (unfortunately) it does not allow \verb|y ~ .|, so all variables must be stated explicitly.
 
 <<bigglm>>=
-bigglm.out <- bigglm(fm, data=data, chunksize=floor(n / 100))
+matter:::profile({
+fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
+bigglm.out <- bigglm(fm, data=data, chunksize=floor(n / 2000))
+})
 
 summary(bigglm.out)
 
 cbind(coef(bigglm.out)[-1], b)
 @
 
-
-\section{Examples}
-
-
-Text text text text text text.
-
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, fitting the linear model takes 44 seconds and uses an additional 259 MB of memory overhead. The max amount of memory used while fitting the model was only 406 MB, for the 1.2 GB dataset.
 
 
 \section{Design and implementation}
 
-\matter is designed with several goals in mind. Like the \textit{bigmemory} and \textit{ff} packages, it seeks to make statistical methods scalable to larger-than-memory datasets by utilizing data-on-disk. Unlike those packages, it seeks to make domain-specific file formats (such as Analyze 7.5 and imzML for MS imaging experiments) accessible from disk directly without additional file conversion. It seeks to have a minimal memory footprint, and require minimal developer effort to use, while maintaining computational efficiency wherever possible.
+\Rpackage{matter} is designed with several goals in mind. Like the \textit{bigmemory} and \textit{ff} packages, it seeks to make statistical methods scalable to larger-than-memory datasets by utilizing data-on-disk. Unlike those packages, it seeks to make domain-specific file formats (such as Analyze 7.5 and imzML for MS imaging experiments) accessible from disk directly without additional file conversion. It seeks to have a minimal memory footprint, and require minimal developer effort to use, while maintaining computational efficiency wherever possible.
 
 \subsection{S4 classes}
 
-\matter utilizes S4 classes to implement on-disk matrices in a way so that they can be seamlessly accessed as if they were ordinary R matrices. These are the \Robject{atoms} class and the \Robject{matter} class. The \Robject{atoms} class is not exported to the user, who only interacts with the \Robject{matter} class and \Robject{matter} objects to create and manipulate on-disk matrices.
+\Rpackage{matter} utilizes S4 classes to implement on-disk matrices in a way so that they can be seamlessly accessed as if they were ordinary \R{} matrices. These are the \Robject{atoms} class and the \Robject{matter} class. The \Robject{atoms} class is not exported to the user, who only interacts with the \Robject{matter} class and \Robject{matter} objects to create and manipulate on-disk matrices.
 
 \subsubsection{\Robject{atoms}: contiguous sectors of data on disk}
 
-By analogy to R's notion of "atomic" vectors, the \Robject{atoms} class uses the notion of contiguous "atomic" sectors of disk. Each "atom" in an \Robject{atoms} object gives the location of contiguous data on disk, as denoted by a file path, an byte offset from the beginning of the file, a data type, and the number of data elements (i.e., the length) of the atom. An \Robject{atoms} object may consist of multiple files and multiple locations on disk, while representing a single vector or row or column of a matrix.
+By analogy to \R{}'s notion of ``atomic'' vectors, the \Robject{atoms} class uses the notion of contiguous ``atomic'' sectors of disk. Each ``atom'' in an \Robject{atoms} object gives the location of one block of contiguous data on disk, as denoted by a file path, an byte offset from the beginning of the file, a data type, and the number of data elements (i.e., the length) of the atom. An \Robject{atoms} object may consist of many atoms from multiple files and multiple locations on disk, while ultimately representing a single vector or row or column of a matrix.
 
 Structure:
 \begin{itemize}
@@ -158,7 +210,7 @@ Structure:
 \item \Robject{index\_extent}: the cumulative one-past-the-end index of each atom
 \end{itemize}
 
-The \Robject{atoms} class has a C++ backend in the \Robject{Atoms} class.
+The \Robject{atoms} class has a C++ backend in the \Robject{Atoms} C++ class.
 
 \subsubsection{\Robject{matter}: vectors and matrices stored on disk}
 
@@ -177,24 +229,27 @@ Structure:
 \item \Robject{dimnames}: the names of the dimensions (for a matrix)
 \end{itemize}
 
-The \Robject{matter} class has a C++ backend in the \Robject{Matter} class.
+A \Robject{matter_vec} vector contains a single \Robject{atoms} object that represents all of the atoms of the vector. The \Robject{matter_mat} matrix class has two subtypes for column-major (\Robject{matter_matc}) and row-major (\Robject{matter_matr}) matrices. A column-major \Robject{matter_matc} matrix has one \Robject{atoms} object for each column, while a row-major \Robject{matter_matr} matrix has one \Robject{atoms} object for each row.
+
+The \Robject{matter} class has a C++ backend in the \Robject{Matter} C++ class.
 
 \subsection{C++ classes}
 
-\matter utilizes a C++ backend to access the data on disk and transform it into the appropriate representation in R. Although these classes correspond to S4 classes in R, and are responsible for most of the computational work, all of the required metadata is stored in the S4 classes, and simply read by the C++ classes. This means that \matter never depends on external pointers, which makes it trivial to share \Robject{matter} vectors and \Robject{matter} matrices between R sessions that have access to the same filesystem.
+\Rpackage{matter} utilizes a C++ backend to access the data on disk and transform it into the appropriate representation in R. Although these classes correspond to S4 classes in \R{}, and are responsible for most of the computational work, all of the required metadata is stored in the S4 classes in \R{}, and are simply read by the C++ classes. This means that \Rpackage{matter} never depends on external pointers, which makes it trivial to share \Robject{matter} vectors and \Robject{matter} matrices between \R{} sessions that have access to the same filesystem.
 
 \subsubsection{\Robject{Atoms}: contiguous sectors of data on disk}
 
-The \Robject{Atoms} C++ class is responsible for reading and writing from each atomic sector on disk. For computational efficiency, it tries to perform sequential reads over random read/writes whenever possible, while minimizing the total number of read/writes to disk. \todo{Should say more about this.}
+The \Robject{Atoms} C++ class is responsible for reading and writing the data on disk, based on its metadata. For computational efficiency, it tries to perform sequential reads over random read/writes whenever possible, while minimizing the total number of atomic read/writes on disk.
 
 \subsubsection{\Robject{Matter}: vectors and matrices stored on disk}
 
-The \Robject{Matter} C++ class is responsible for transforming the data read by the \Robject{Atoms} class into a format appropriate for R. This may include re-arranging contiguous data that has been read sequentially into a different order, either due to the inherent organization of the dataset, or as requested by the user in R. \todo{Should say more about this.}
+The \Robject{Matter} C++ class is responsible for transforming the data read by the \Robject{Atoms} class into a format appropriate for R. This may include re-arranging contiguous data that has been read sequentially into a different order, either due to the inherent organization of the dataset, or as requested by the user in R.
 
 \subsubsection{\Robject{MatterAccessor}: iterate over virtual disk objects}
 
-Text text text text text text.
+The \Robject{MatterAccessor} C++ class acts similarly to an iterator, and allows buffered iteration over a \Robject{Matter} object. It can either iterate over the whole dataset (for both vectors and matrices), or over a single column for column-major matrices, or over a single row for row-major matrices.
 
+A \Robject{MatterAccessor} object will load portions of the dataset (as many elements as the \Robject{chunksize} at once) into memory, and then free that portion of the data and load a new chunk, as necessary. This buffering is handled automatically by the class, and code can treat it as a regular iterator. This allows seamless and simply iteration over \Robject{Matter} objects while maintaining strict control over the memory footprint of the calculation.
 
 
 \section{Session info}

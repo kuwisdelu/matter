@@ -116,7 +116,7 @@ Features   Pixels
 \end{Soutput}
 \end{Schunk}
 
-On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, parsing the imzML file and attaching the dataset takes approximately 5 minutes and uses roughly 4 GB of memory. This is entirely from parsing the 857.7 MB imzML file. \Rpackage{Cardinal} relies on an XML library which requires building a full representation of the XML file in memory, in addition to other memory overhead.
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, parsing the imzML file and attaching the dataset takes approximately 5 minutes and uses roughly 3.6 GB of memory. This is entirely from parsing the 857.7 MB imzML file. \Rpackage{Cardinal} relies on an XML library which requires building a full representation of the XML file in memory, in addition to other memory overhead.
 
 
 \begin{Schunk}
@@ -150,6 +150,8 @@ Nonetheless, we can, for example, use \Robject{pixelApply} to calculate the tota
 \end{Soutput}
 \end{Schunk}
 
+On the same MacBook Pro, computing the TIC for every pixel takes approximately 4 minutes and uses about 500 MB of additional memory.
+
 We will plot an image of the TIC later.
 
 \section{Plotting 3D ion images}
@@ -162,7 +164,7 @@ We will plot an image of the TIC later.
 \end{Sinput}
 \end{Schunk}
 
-Loading the ion image from file and plotting it takes approximately 2 minutes on the same MacBook Pro and uses an additional 2 GB of memory in overhead. The max amount of memory used while plotting the image was just under 3 GB, for a 26.4 GB dataset.
+Loading the ion image from file and plotting it takes approximately 2 minutes on the same MacBook Pro and uses an additional 2 GB of memory in overhead. The max amount of memory used while plotting the image was just under 3 GB, for the 26.4 GB dataset.
 
 \begin{Schunk}
 \begin{Sinput}
