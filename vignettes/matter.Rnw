@@ -128,6 +128,9 @@ cbind(coef(bigglm.out)[-1], b)
 @
 
 
+\section{Examples}
+
+
 Text text text text text text.
 
 
@@ -190,7 +193,7 @@ The \Robject{Matter} C++ class is responsible for transforming the data read by 
 
 \subsubsection{\Robject{MatterAccessor}: iterate over virtual disk objects}
 
-Text text text
+Text text text text text text.
 
 
 
