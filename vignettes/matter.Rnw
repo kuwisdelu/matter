@@ -1,0 +1,65 @@
+
+%\VignetteIndexEntry{matter: Rapid prototyping with data on disk}
+%\VignetteKeyword{Infrastructure}
+
+\documentclass[a4paper]{article}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+<<eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+\title{\Rpackage{matter}: Rapid prototyping with data on disk}
+
+\author{Kylie A. Bemis}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+<<echo=FALSE,results=hide>>=
+library(matter)
+options(width=100)
+@ 
+
+Text text text text text text.
+
+<<setup-parm>>=
+set.seed(81216)
+n <- 1e7
+p <- 9
+b <- runif(p)
+names(b) <- paste0("x", seq_len(p))
+x <- matter_mat(nrow=n, ncol=p + 1)
+@
+
+\section{Examples}
+
+
+Text text text text text text.
+
+
+
+\section{Design and implementation}
+
+Text text text text text text.
+
+
+
+\section{Session info}
+
+<<results=tex, echo=FALSE>>=
+toLatex(sessionInfo())
+@
+
+% \bibliographystyle{unsrt}
+% \bibliography{matter}
+
+\end{document}

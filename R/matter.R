@@ -216,6 +216,15 @@ format.bytes <- function (x, units = "b", ...)  {
         PB = paste(round(x/1000^5, 1L), "PB"))
 }
 
+# based on pryr::mem_used
+
+mem <- function(reset = FALSE) {
+	cell.size <- c(Ncells=56, Vcells=8)
+	mem <- round(colSums(gc(reset=reset)[,c(1,3,5)] * cell.size) / 1000^2, 1)
+	names(mem) <- c("used (MB)", "gc trigger (MB)", "max used (MB)")
+	mem
+}
+
 #### Define atoms class ####
 ## -------------------------
 
