@@ -1,0 +1,129 @@
+
+%\VignetteIndexEntry{matter: 3D MSI examples with Cardinal}
+%\VignetteKeyword{Infrastructure, ImagingMassSpectrometry}
+
+\documentclass[a4paper]{article}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+<<eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+\title{\Rpackage{matter}: 3D MSI examples with Cardinal}
+
+\author{Kylie A. Bemis}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+This vignette demonstrates the usefulness of \Rpackage{matter} for working with large mass spectrometry imaging (MSI) experiments in \Rpackage{Cardinal}. For versions >=1.5, \Rpackage{Cardinal} supports using \Rpackage{matter} matrices to access larger-than-memory MSI datasets.
+
+
+\section{Attaching larger-than-memory MS imaging datasets}
+
+This example will use one of the benchmark 3D MSI experiments from Oetjen {\it et al.} \cite{Oetjen:2015en}. We will use the 3D mouse pancreas dataset, which is comprised of 29 tissue sections, with a total of 497,227 pixels and 13,297 features. The data is stored in imzML format \cite{Schramm}. The ".imzML" XML file with experimetnal metadata is 857.7 MB, and the ".ibd" binary file with the m/z values and spectral intensities is 26.45 GB.
+
+Due to the various offsets in imzML ibd files, they cannot be attached as simply as \Rpackage{bigmemory} or \Rpackage{ff} files. These packages have strict requirements on the format of their data, for maximum computational effiency. \Rpackage{matter} takes a different approach with more flexibility, which allows use of imzML's domain-specific binary file format directly, and with minimal memory footprint, at the cost potentially slower computational performance in some situations.
+
+<<setup>>=
+library(matter)
+library(Cardinal)
+path <- "~/Documents/Datasets/MALDI-Imaging/3D_Mouse_Pancreas/"
+file <- "3D_Mouse_Pancreas.imzML"
+@
+
+<<echo=FALSE,results=hide>>=
+options(width=100)
+options(Cardinal.verbose=FALSE)
+options(Cardinal.progress=FALSE)
+@
+
+We load the dataset with \Robject{readMSIData} with \Robject{attach.only} set to TRUE. In older versions of \Rpackage{Cardinal} (<1.5), this would use a \Robject{Binmat} matrix, which is far less efficient than a \Robject{matter} matrix. For newer versions of \Rpackage{Cardinal} (>=1.5), if \Rpackage{matter} is in the search path, then \Rpackage{Cardinal} will use a \Robject{matter} matrix.
+
+<<attach-data>>=
+mouse <- readMSIData(paste0(path, file), attach.only=TRUE)
+mouse
+dims(mouse)
+dim(mouse)
+@
+
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, parsing the imzML file and attaching the dataset takes approximately 5 minutes and uses roughly 4 GB of memory. This is entirely from parsing the 857.7 MB imzML file. \Rpackage{Cardinal} relies on an XML library which requires building a full representation of the XML file in memory, in addition to other memory overhead.
+
+<<echo=FALSE,results=hide>>=
+gc()
+@
+
+<<idata>>=
+iData(mouse)
+@
+
+As shown above, the matrix metadata takes up approximately 1.4 GB in memory, and points to 26.4 GB on disk.
+
+Some \Rpackage{Cardinal} methods can be used normally, such as \Robject{pixelApply} and \Robject{featureApply}. Note that it is advisable to \textit{avoid} using \Robject{featureApply} for large on-disk datasets, because it will be extremely efficient. Because imzML ibd files store spectra contiguously, rather than images, loading images requires many non-contiguous reads, which take much longer than reading contiguous mass spectra.
+
+Nonetheless, we can, for example, use \Robject{pixelApply} to calculate the total ion current (TIC) for each pixel.
+
+<<tic>>=
+mouse.tic <- pixelApply(mouse, sum)
+summary(mouse.tic)
+@
+
+We will plot an image of the TIC later.
+
+\section{Plotting 3D ion images}
+
+3D molecular ion images can be plotted using the \Robject{image3D} method introduced in \Rpackage{Cardinal} v1.3.2. We will plot the ion image for $m/z$ 5806, which corresponds to insulin.
+
+<<ion-image>>=
+image3D(mouse, mz=5806, plusminus=1, phi=45, theta=180, strip=FALSE)
+@
+
+Loading the ion image from file and plotting it takes approximately 2 minutes on the same MacBook Pro and uses an additional 2 GB of memory in overhead. The max amount of memory used while plotting the image was just under 3 GB, for a 26.4 GB dataset.
+
+<<tic-image>>=
+image3D(mouse, mouse.tic ~ x * y * z, phi=45, theta=180, strip=FALSE)
+@
+
+Lastly, we will plot TIC of each pixel, which we calculated earlier using \Robject{pixelApply} above.
+
+\setkeys{Gin}{width=\textwidth}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.3\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<ion-image>>
+@
+\caption{\small $m/z$ 5806 (insulin)}
+\label{fig:mz5806}
+\end{subfigure}
+\begin{subfigure}{.3\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<tic-image>>
+@
+\caption{\small TIC (total ion current)}
+\label{fig:tic}
+\end{subfigure}
+\caption{\small Plotting 3D images of the benchmark 3D mouse pancreas dataset.}
+\end{figure}
+
+
+\section{Session info}
+
+<<results=tex, echo=FALSE>>=
+toLatex(sessionInfo())
+@
+
+% \bibliographystyle{unsrt}
+\bibliography{matter-extra}
+
+\end{document}

@@ -72,10 +72,10 @@ drop.matrix <- function(x) {
 	dmn <- dimnames(x)
 	if ( dim(x)[1] == 1 ) {
 		x <- as.vector(x)
-		names(x) <- dmn[[1]]
+		names(x) <- dmn[[2]]
 	} else if ( dim(x)[2] == 1 ) {
 		x <- as.vector(x)
-		names(x) <- dmn[[2]]
+		names(x) <- dmn[[1]]
 	}
 	x
 }
@@ -182,9 +182,9 @@ coerce <- function(x, datamode) {
 		numeric = as.numeric(x))
 }
 
-bytes.used <- function(x) {
+disk.used <- function(x) {
 	if ( is.list(x) ) {
-		bytes <- sum(vapply(x, bytes.used, numeric(1)))
+		bytes <- sum(vapply(x, disk.used, numeric(1)))
 	} else {
 		bytes <- sum(x@extent * sizeof(datamode(x)))
 	}
@@ -194,7 +194,7 @@ bytes.used <- function(x) {
 
 # based on utils::format.object_size
 
-format.bytes <- function (x, units = "b", ...)  {
+show.bytes <- function (x, units = "auto", ...)  {
     units <- match.arg(units, c("auto",
 				"B", "KB", "MB", "GB", "TB", "PB"))
     if (units == "auto")
@@ -208,12 +208,45 @@ format.bytes <- function (x, units = "b", ...)  {
             "KB"
         else "B"
     switch(units, 
-    	B = paste(x, "bytes"),
-    	KB = paste(round(x/1000, 1L), "KB"),
-    	MB = paste(round(x/1000^2, 1L), "MB"), 
-        GB = paste(round(x/1000^3, 1L), "GB"),
-        TB = paste(round(x/1000^4, 1L), "TB"),
-        PB = paste(round(x/1000^5, 1L), "PB"))
+    	B = c("bytes"=x),
+    	KB = c("KB"=round(x/1000, 1L)),
+    	MB = c("MB"=round(x/1000^2, 1L)), 
+        GB = c("GB"=round(x/1000^3, 1L)),
+        TB = c("TB"=round(x/1000^4, 1L)),
+        PB = c("PB"=round(x/1000^5, 1L)))
+}
+
+format.bytes <- function(x, units = "auto", ...) {
+	bytes <- show.bytes(x, units=units)
+	paste(bytes, names(bytes))
+}
+
+# based on pryr::mem_used and pryr::mem_change
+
+mem <- function(x, reset = FALSE) {
+	if ( !missing(x) ) {
+		mem <- as.numeric(object.size(x))
+		mem <- show.bytes(mem)
+	} else {
+		cell.size <- c(Ncells=56, Vcells=8)
+		mem <- round(colSums(gc(reset=reset)[,c(1,3,5)] * cell.size) / 1000^2, 1)
+		names(mem) <- c("used (MB)", "gc trigger (MB)", "max used (MB)")
+	}
+	mem
+}
+
+profile <- function(expr, reset = FALSE) {
+	start <- mem(reset = TRUE)
+	t.start <- proc.time()
+	expr <- substitute(expr)
+	eval(expr, parent.frame())
+	rm(expr)
+	t.end <- proc.time()
+	end <- mem()
+	mem <- c(start[1], end[1], end[3], end[3] - end[1], t.end[3] - t.start[3])
+	names(mem) <- c("start (MB)", "finish (MB)",
+		"max used (MB)", "overhead (MB)", "time (sec)")
+	mem
 }
 
 #### Define atoms class ####
@@ -382,7 +415,7 @@ setMethod("show", "matter", function(object) {
 	cat("    files: ", length(object@filepath), "\n", sep="")
 	cat("    datamode: ", paste(object@datamode), "\n", sep="")
 	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
-	cat("    ", format(bytes.used(object@data), units="auto"), " on-disk\n", sep="")
+	cat("    ", format(disk.used(object@data), units="auto"), " on-disk\n", sep="")
 })
 
 setMethod("datamode", "matter", function(x) x@datamode)
@@ -450,73 +483,97 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 setMethod("sum", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getSum", x, na.rm)
+	ret <- .Call("getSum", x, na.rm)
+	names(ret) <- names(x)
+	ret
 })
 
 setMethod("mean", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getMean", x, na.rm)
+	ret <- .Call("getMean", x, na.rm)
+	names(ret) <- names(x)
+	ret
 })
 
 setMethod("var", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getVar", x, na.rm)
+	ret <- .Call("getVar", x, na.rm)
+	names(ret) <- names(x)
+	ret
 })
 
 setMethod("sd", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	sqrt(.Call("getVar", x, na.rm))
+	ret <- sqrt(.Call("getVar", x, na.rm))
+	names(ret) <- names(x)
+	ret
 })
 
 setMethod("colSums", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getColSums", x, na.rm)
+	ret <- .Call("getColSums", x, na.rm)
+	names(ret) <- colnames(x)
+	ret
 })
 
 setMethod("colMeans", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getColMeans", x, na.rm)
+	ret <- .Call("getColMeans", x, na.rm)
+	names(ret) <- colnames(x)
+	ret	
 })
 
 setMethod("colVar", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getColVar", x, na.rm)
+	ret <- .Call("getColVar", x, na.rm)
+	names(ret) <- colnames(x)
+	ret
 })
 
 setMethod("colSd", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	sqrt(.Call("getColVar", x, na.rm))
+	ret <- sqrt(.Call("getColVar", x, na.rm))
+	names(ret) <- colnames(x)
+	ret
 })
 
 setMethod("rowSums", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getRowSums", x, na.rm)
+	ret <- .Call("getRowSums", x, na.rm)
+	names(ret) <- rownames(x)
+	ret
 })
 
 setMethod("rowMeans", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getRowMeans", x, na.rm)
+	ret <- .Call("getRowMeans", x, na.rm)
+	names(ret) <- rownames(x)
+	ret
 })
 
 setMethod("rowVar", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	.Call("getRowVar", x, na.rm)
+	ret <- .Call("getRowVar", x, na.rm)
+	names(ret) <- rownames(x)
+	ret
 })
 
 setMethod("rowSd", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	sqrt(.Call("getRowVar", x, na.rm))
+	ret <- sqrt(.Call("getRowVar", x, na.rm))
+	names(ret) <- rownames(x)
+	ret
 })
 
 #### Define matter<vector> class for vector-like data ####
@@ -1057,6 +1114,8 @@ setReplaceMethod("[",
 # matrix manipulation
 
 setMethod("combine", "matter_matc", function(x, y, ...) {
+	if ( is(y, "matter_vec") )
+		y <- t(t(y))
 	if ( nrow(x) != nrow(y) )
 		stop("number of rows of matrices must match")
 	filepaths <- levels(factor(c(x@filepath, y@filepath)))
@@ -1075,9 +1134,14 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		dimnames=combine.colnames(x,y))
 })
 
-setMethod("cbind", "matter_matc", function(..., deparse.level=1)
+setMethod("cbind", "matter", function(..., deparse.level=1)
 {
 	dots <- list(...)
+	for ( i in seq_along(dots) )
+		dots[[i]] <- switch(class(dots[[i]]),
+			matter_vec=t(t(dots[[i]])),
+			matter_matc=dots[[i]],
+			matter_matr=stop("cannot 'cbind' row-major matrices"))
 	if ( length(dots) == 1 ) {
 		dots[[1]]
 	} else {
@@ -1086,6 +1150,8 @@ setMethod("cbind", "matter_matc", function(..., deparse.level=1)
 })
 
 setMethod("combine", "matter_matr", function(x, y, ...) {
+	if ( is(y, "matter_vec") )
+		y <- t(y)
 	if ( ncol(x) != ncol(y) )
 		stop("number of columns of matrices must match")
 	filepaths <- levels(factor(c(x@filepath, y@filepath)))
@@ -1104,24 +1170,19 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 		dimnames=combine.rownames(x,y))
 })
 
-setMethod("rbind", "matter_matr", function(..., deparse.level=1)
+setMethod("rbind", "matter", function(..., deparse.level=1)
 {
 	dots <- list(...)
+	for ( i in seq_along(dots) )
+		dots[[i]] <- switch(class(dots[[i]]),
+			matter_vec=t(dots[[i]]),
+			matter_matc=stop("cannot 'rbind' column-major matrices"),
+			matter_matr=dots[[i]])
 	if ( length(dots) == 1 ) {
 		dots[[1]]
 	} else {
 		do.call(combine, dots)
 	}
-})
-
-setMethod("cbind", "matter_matr", function(..., deparse.level=1)
-{
-	stop("cannot 'cbind' row-major matrices")
-})
-
-setMethod("rbind", "matter_matc", function(..., deparse.level=1)
-{
-	stop("cannot 'rbind' column-major matrices")
 })
 
 setMethod("t", "matter_matc", function(x)

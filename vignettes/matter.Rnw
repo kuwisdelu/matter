@@ -1,0 +1,206 @@
+
+%\VignetteIndexEntry{matter: Rapid prototyping with data on disk}
+%\VignetteKeyword{Infrastructure}
+
+\documentclass[a4paper]{article}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+<<eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+\title{\Rpackage{matter}: Rapid prototyping with data on disk}
+
+\author{Kylie A. Bemis}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+<<echo=FALSE,results=hide>>=
+options(width=100)
+library(matter)
+@ 
+
+Text text text text text text.
+
+<<>>=
+x <- matter_mat(data=1:50, nrow=10, ncol=5)
+x
+x[]
+
+x[1:4,]
+x[,3:4]
+
+rownames(x) <- 1:10
+colnames(x) <- letters[1:5]
+x[]
+
+colSums(x)
+colSums(x[])
+
+colVar(x)
+apply(x, 2, var)
+
+y <- matter_mat(data=51:100, nrow=10, ncol=5)
+
+filepath(x)
+filepath(y)
+
+z <- cbind(x, y)
+z
+z[]
+
+try(rbind(x, y))
+
+t(x)
+
+rbind(t(x), t(y))
+
+x@data
+
+xsub <- matter_mat(offset=c(40, 120, 200, 280,360),
+            extent=rep(5,5), filepath=filepath(x))
+x[6:10,]
+xsub[]
+
+x2 <- matter_vec(offset=80, extent=10, filepath=filepath(x))
+y3 <- matter_vec(offset=160, extent=10, filepath=filepath(y))
+cbind(x2, y3)[]
+cbind(x[,2], y[,3])
+@
+
+
+\section{Examples}
+
+<<setup-example>>=
+set.seed(81216)
+n <- 15e6
+p <- 9
+
+b <- runif(p)
+names(b) <- paste0("x", 1:p)
+
+data <- matter_mat(nrow=n, ncol=p + 1)
+
+colnames(data) <- c(names(b), "y")
+
+data[,p + 1] <- 0
+for ( i in 1:p ) {
+  xi <- rnorm(n)
+  data[,i] <- xi
+  data[,p + 1] <- data[,p + 1] + xi * b[i]
+}
+
+data
+
+head(data)
+@
+
+% for some reason colSums, colMeans, etc. don't work here
+% need to find bug since they work for other matrices
+
+<<summary-stats>>=
+apply(data, 2, mean)
+
+apply(data, 2, var)
+@
+
+<<formula>>=
+fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
+
+fm
+@
+
+<<bigglm>>=
+bigglm.out <- bigglm(fm, data=data, chunksize=floor(n / 100))
+
+summary(bigglm.out)
+
+cbind(coef(bigglm.out)[-1], b)
+@
+
+
+Text text text text text text.
+
+
+
+\section{Design and implementation}
+
+\matter is designed with several goals in mind. Like the \textit{bigmemory} and \textit{ff} packages, it seeks to make statistical methods scalable to larger-than-memory datasets by utilizing data-on-disk. Unlike those packages, it seeks to make domain-specific file formats (such as Analyze 7.5 and imzML for MS imaging experiments) accessible from disk directly without additional file conversion. It seeks to have a minimal memory footprint, and require minimal developer effort to use, while maintaining computational efficiency wherever possible.
+
+\subsection{S4 classes}
+
+\matter utilizes S4 classes to implement on-disk matrices in a way so that they can be seamlessly accessed as if they were ordinary R matrices. These are the \Robject{atoms} class and the \Robject{matter} class. The \Robject{atoms} class is not exported to the user, who only interacts with the \Robject{matter} class and \Robject{matter} objects to create and manipulate on-disk matrices.
+
+\subsubsection{\Robject{atoms}: contiguous sectors of data on disk}
+
+By analogy to R's notion of "atomic" vectors, the \Robject{atoms} class uses the notion of contiguous "atomic" sectors of disk. Each "atom" in an \Robject{atoms} object gives the location of contiguous data on disk, as denoted by a file path, an byte offset from the beginning of the file, a data type, and the number of data elements (i.e., the length) of the atom. An \Robject{atoms} object may consist of multiple files and multiple locations on disk, while representing a single vector or row or column of a matrix.
+
+Structure:
+\begin{itemize}
+\item \Robject{length}: the total cumulative length of all of the atoms
+\item \Robject{file\_id}: the ID's of the files where each atom is located
+\item \Robject{datamode}: the type of data (short, int, long, float, double) for each atom
+\item \Robject{offset}: each atom's byte offset from the beginning of the file
+\item \Robject{extent}: the length of each atom
+\item \Robject{index\_offset}: the cumulative index of the first element of each atom
+\item \Robject{index\_extent}: the cumulative one-past-the-end index of each atom
+\end{itemize}
+
+The \Robject{atoms} class has a C++ backend in the \Robject{Atoms} class.
+
+\subsubsection{\Robject{matter}: vectors and matrices stored on disk}
+
+A \Robject{matter} object is made of one or more \Robject{atoms} objects, and represents a vector or matrix. It includes additional metadata such as dimensions and row names or column names.
+
+Structure:
+\begin{itemize}
+\item \Robject{data}: one or more \Robject{atoms} objects
+\item \Robject{datamode}: the type of data (integer, numeric) for the represented vector or matrix
+\item \Robject{filepath}: the paths to the files used by the \Robject{atoms} objects
+\item \Robject{filemode}: should the files be open for read/write, or read-only?
+\item \Robject{chunksize}: how large the chunk sizes should be for calculations that operate on chunks of the dataset
+\item \Robject{length}: the total length of the dataset
+\item \Robject{dim}: the extent of each dimension (for a matrix)
+\item \Robject{names}: the names of the data elements (for a vector)
+\item \Robject{dimnames}: the names of the dimensions (for a matrix)
+\end{itemize}
+
+The \Robject{matter} class has a C++ backend in the \Robject{Matter} class.
+
+\subsection{C++ classes}
+
+\matter utilizes a C++ backend to access the data on disk and transform it into the appropriate representation in R. Although these classes correspond to S4 classes in R, and are responsible for most of the computational work, all of the required metadata is stored in the S4 classes, and simply read by the C++ classes. This means that \matter never depends on external pointers, which makes it trivial to share \Robject{matter} vectors and \Robject{matter} matrices between R sessions that have access to the same filesystem.
+
+\subsubsection{\Robject{Atoms}: contiguous sectors of data on disk}
+
+The \Robject{Atoms} C++ class is responsible for reading and writing from each atomic sector on disk. For computational efficiency, it tries to perform sequential reads over random read/writes whenever possible, while minimizing the total number of read/writes to disk. \todo{Should say more about this.}
+
+\subsubsection{\Robject{Matter}: vectors and matrices stored on disk}
+
+The \Robject{Matter} C++ class is responsible for transforming the data read by the \Robject{Atoms} class into a format appropriate for R. This may include re-arranging contiguous data that has been read sequentially into a different order, either due to the inherent organization of the dataset, or as requested by the user in R. \todo{Should say more about this.}
+
+\subsubsection{\Robject{MatterAccessor}: iterate over virtual disk objects}
+
+Text text text
+
+
+
+\section{Session info}
+
+<<results=tex, echo=FALSE>>=
+toLatex(sessionInfo())
+@
+
+% \bibliographystyle{unsrt}
+% \bibliography{matter}
+
+\end{document}
