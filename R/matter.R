@@ -11,6 +11,7 @@ setGeneric("colSums")
 setGeneric("rowSums")
 setGeneric("colMeans")
 setGeneric("rowMeans")
+setGeneric("apply")
 
 #### Define new generics for stats ####
 ## -------------------------------------

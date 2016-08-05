@@ -29,7 +29,7 @@ BiocStyle::latex()
 \section{Basic use and data manipulation}
 
 <<echo=FALSE,results=hide>>=
-options(width=100)
+options(width=72)
 library(matter)
 @ 
 
@@ -52,7 +52,7 @@ x[1:4,]
 x[,3:4]
 @
 
-We can assign names to \Robject{matter_vec} vectors and row and column names to \Robject{matter_mat} matrices.
+We can assign names to \Robject{matter\_vec} vectors and row and column names to \Robject{matter\_mat} matrices.
 
 <<>>=
 rownames(x) <- 1:10
@@ -105,7 +105,7 @@ x@data
 
 Note that each column has a byte offset and an extent (i.e., length) associated with it.
 
-Now we show how to create a \Robject{matter_mat} matrix for an pre-existing file. We will point the new matrix to the bottom half of \Robject{x}.
+Now we show how to create a \Robject{matter\_mat} matrix for an pre-existing file. We will point the new matrix to the bottom half of \Robject{x}.
 
 <<>>=
 xsub <- matter_mat(offset=c(40, 120, 200, 280, 360),
@@ -128,7 +128,7 @@ This is a quick and easy way to build a dataset from many files where each colum
 
 \section{Linear regression for on-disk datasets}
 
-\Rpackage{matter} is designed to provide a statistical computing environment for larger-than-memory datasets on disk. To facilitate this, \Rpackage{matter} provides a method for fitting of linear models for \Robject{matter} matrices through the \Rpackage{biglm} package. \Rpackage{matter} provides a wrapper for \Rpackage{biglm}'s \Robject{bigglm} function that works with \Robejct{matter_mat} matrices, which we demonstrate below.
+\Rpackage{matter} is designed to provide a statistical computing environment for larger-than-memory datasets on disk. To facilitate this, \Rpackage{matter} provides a method for fitting of linear models for \Robject{matter} matrices through the \Rpackage{biglm} package. \Rpackage{matter} provides a wrapper for \Rpackage{biglm}'s \Robject{bigglm} function that works with \Robject{matter\_mat} matrices, which we demonstrate below.
 
 First, we simulate some data appropriate for linear regression.
 
@@ -158,10 +158,7 @@ head(data)
 
 This creates a 1.2 GB dataset on disk, but barely 32 KB of metadata is stored in memory.
 
-% for some reason colSums, colMeans, etc. don't work here
-% need to find bug since they work for other matrices
-
-Now we calculate some statistical summaries using \Rpackage{matter}'s \Robject{apply} method for \Robject{matter_mat} matrices.
+Now we calculate some statistical summaries using \Rpackage{matter}'s \Robject{apply} method for \Robject{matter\_mat} matrices.
 
 <<summary-stats>>=
 apply(data, 2, mean)
@@ -169,15 +166,13 @@ apply(data, 2, mean)
 apply(data, 2, var)
 @
 
-We could also have used \Robject{colMeans} and \Robject{colSums}.
+We could also have used \Robject{colMeans} and \Robject{colVar}.
 
-Now we fit the linear model to the data using the \Robject{bigglm} method for \Robject{matter_mat} matrices. Note that it requires and formula, and (unfortunately) it does not allow \verb|y ~ .|, so all variables must be stated explicitly.
+Now we fit the linear model to the data using the \Robject{bigglm} method for \Robject{matter\_mat} matrices. Note that it requires a formula, and (unfortunately) it does not allow \verb|y ~ .|, so all variables must be stated explicitly.
 
 <<bigglm>>=
-matter:::profile({
 fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
 bigglm.out <- bigglm(fm, data=data, chunksize=floor(n / 2000))
-})
 
 summary(bigglm.out)
 
@@ -185,6 +180,96 @@ cbind(coef(bigglm.out)[-1], b)
 @
 
 On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, fitting the linear model takes 44 seconds and uses an additional 259 MB of memory overhead. The max amount of memory used while fitting the model was only 406 MB, for the 1.2 GB dataset.
+
+
+\section{Principal components analysis for on-disk datasets}
+
+Because \Rpackage{matter} provides basic linear algebra for on-disk \Robject{matter\_mat} matrices with in-memory R matrices, it opens up the possibility for the use of many iterative statistical methods which can operate on only small portions of the data at a time.
+
+For example, \Robject{matter\_mat} matrices are compatible with the \Rpackage{irlba} package, which performs efficient, bounded-memory singular value decomposition (SVD) of matrices, and which can therefore be used for efficient principal components analysis (PCA) of large datasets \cite{irlba}.
+
+First, we simulate some data appropriate for principal components analysis.
+
+<<setup-example>>=
+set.seed(81216)
+n <- 15e5
+p <- 100
+
+data <- matter_mat(nrow=n, ncol=p)
+
+for ( i in 1:10 )
+  data[,i] <- (1:n)/n + rnorm(n)
+for ( i in 11:20 )
+  data[,i] <- (n:1)/n + rnorm(n)
+for ( i in 21:p )
+  data[,i] <- rnorm(n)
+
+data
+@
+
+This again creates a 1.2 GB dataset on disk, but barely 32 KB of metadata is stored in memory. Note that only the first twenty variables show systematic variation, with the first ten varying distinctly from the next ten variables.
+
+First we calculate the variance for each column.
+
+<<plot-var>>=
+var.out <- colVar(data)
+plot(var.out, type='h', ylab="Variance")
+@
+
+This takes only 7 seconds and uses less than 30 KB of additional memory. The maximum amount of memory used while calculating the variance for all columns of the 1.2 GB dataset is only 27 MB.
+
+Now we load the \Rpackage{irlba} package and use it to calculate the first two right singular vectors, which correspond to the first two principal components.
+
+Note that the \Robject{irlba} function has an optional argument \verb|mult| which allows specification of a custom matrix multiplication method, for use with packages such as \Rpackage{bigmemory} and \Rpackage{ff}. This is especially useful since it allows a \verb|transpose=TRUE| argument, so that the identity \verb|t(t(B) %*% A)| can be used in place of \verb|t(A) %*% B)| when transposition is an expensive operation. However, this is not necessary for \Rpackage{matter}, since transposition is a trivial operation for \Robject{matter\_mat} matrices.
+
+<<fit-irlba>>=
+library(irlba)
+irlba.out <- irlba(data, nu=0, nv=2)
+@
+
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, calculating the first two principal components takes roughly 2-3 minutes and uses an additional 337 MB of memory overhead. The max amount of memory used during the computation was only 433 MB, for the 1.2 GB dataset.
+
+Now we plot the first two principal components.
+
+<<plot-pc1>>=
+plot(irlba.out$v[,1], type='h', ylab="PC 1")
+@
+
+<<plot-pc2>>=
+plot(irlba.out$v[,2], type='h', ylab="PC 2")
+@
+
+\setkeys{Gin}{width=\textwidth}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.2\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<plot-var>>
+@
+\caption{\small Sample variance}
+\label{fig:var}
+\end{subfigure}
+\begin{subfigure}{.2\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<plot-pc1>>
+@
+\caption{\small PC1 loadings}
+\label{fig:pc1}
+\end{subfigure}
+\begin{subfigure}{.2\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<plot-pc2>>
+@
+\caption{\small PC2 loadings}
+\label{fig:pc2}
+\end{subfigure}
+\caption{\small Principal components analysis for on-disk dataset.}
+\end{figure}
+
+As shown in the plots of the first and second principal components, the first PC shows that most of the variation in the data occurs in the first twenty variables, while the second PC distinguishes the first ten variables from the next ten variables.
 
 
 \section{Design and implementation}
@@ -229,7 +314,7 @@ Structure:
 \item \Robject{dimnames}: the names of the dimensions (for a matrix)
 \end{itemize}
 
-A \Robject{matter_vec} vector contains a single \Robject{atoms} object that represents all of the atoms of the vector. The \Robject{matter_mat} matrix class has two subtypes for column-major (\Robject{matter_matc}) and row-major (\Robject{matter_matr}) matrices. A column-major \Robject{matter_matc} matrix has one \Robject{atoms} object for each column, while a row-major \Robject{matter_matr} matrix has one \Robject{atoms} object for each row.
+A \Robject{matter\_vec} vector contains a single \Robject{atoms} object that represents all of the atoms of the vector. The \Robject{matter\_mat} matrix class has two subtypes for column-major (\Robject{matter\_matc}) and row-major (\Robject{matter\_matr}) matrices. A column-major \Robject{matter\_matc} matrix has one \Robject{atoms} object for each column, while a row-major \Robject{matter\_matr} matrix has one \Robject{atoms} object for each row.
 
 The \Robject{matter} class has a C++ backend in the \Robject{Matter} C++ class.
 
@@ -259,6 +344,6 @@ toLatex(sessionInfo())
 @
 
 % \bibliographystyle{unsrt}
-% \bibliography{matter}
+\bibliography{matter}
 
 \end{document}

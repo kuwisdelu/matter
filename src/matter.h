@@ -538,7 +538,7 @@ class MatterAccessor
             switch(x.S4class()) {
                 case 1:
                     _atoms = new Atoms(x.data());
-                    _next = -1;
+                    _next = -99;
                     break;
                 default:
                     _atoms = new Atoms(x.data(0));
@@ -551,13 +551,13 @@ class MatterAccessor
         MatterAccessor(Matter & x, int i) : _matter(x)
         {
             _atoms = new Atoms(x.data(i));
-            _next = -1;
+            _next = -99;
             init();
         }
 
         int init() {
             _chunksize = _atoms->max_extent() < _matter.chunksize() ? 
-                _atoms->max_extent() : _chunksize;
+                _atoms->max_extent() : _matter.chunksize();
             _current = 0;
             _lower = 0;
             _upper = _chunksize - 1;
