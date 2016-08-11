@@ -144,7 +144,7 @@ data <- matter_mat(nrow=n, ncol=p + 1)
 
 colnames(data) <- c(names(b), "y")
 
-data[,p + 1] <- 0
+data[,p + 1] <- rnorm(n)
 for ( i in 1:p ) {
   xi <- rnorm(n)
   data[,i] <- xi

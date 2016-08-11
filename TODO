@@ -3,8 +3,11 @@ TODO for matter package
 -------------------------
 
 Priority: High
--Add vector recycling for initializing matter objects
--Add delayed execution for scaling and centering
+-Delayed execution for scaling and centering (and other ops)
+
+Priority: Medium
+-Sparse vectors/matrices (both in-memory and on-disk)
+-Add data.frame and factor types
 
 Priority: Low
--Implement sparse vectors/matrices
+-Smart caching of frequently-accessed parts of data
