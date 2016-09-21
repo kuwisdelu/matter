@@ -408,7 +408,27 @@ setClass("matter",
 	})
 
 matter <- function(...) {
-	# need to implement
+	dots <- match.call(expand.dots=FALSE)$...
+	nm <- names(dots)
+	if ( "data" %in% nm ) {
+		data <- dots$data
+	} else {
+		data <- eval(dots[[1]])
+	}
+	if ( "extent" %in% nm ) {
+		uneq.extent <- length(unique(eval(dots$extent))) > 1
+	} else {
+		uneq.extent <- FALSE
+	}
+	vec.args <- c("length", "names")
+	mat.args <- c("nrow", "ncol", "dimnames", "rowMaj")
+	if ( any(vec.args %in% nm ) || is.vector(dots) || uneq.extent ) {
+		matter_vec(...)
+	} else if ( any(mat.args %in% nm ) || is.matrix(dots) ) {
+		matter_mat(...)
+	} else {
+		matter_mat(...)
+	}
 }
 
 setMethod("show", "matter", function(object) {
