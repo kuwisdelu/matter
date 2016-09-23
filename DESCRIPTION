@@ -9,7 +9,7 @@ Description: Memory-efficient reading, writing, and manipulation of
 	structured binary data on disk as vectors, matrices, and arrays.
 License: Artistic-2.0
 Depends: methods, stats, biglm
-Imports: BiocGenerics
-Suggests: Cardinal, irlba
+Imports: BiocGenerics, utils
+Suggests: BiocStyle, Cardinal, irlba
 biocViews: Software, Infrastructure
 URL: http://www.cardinalmsi.org

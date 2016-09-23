@@ -104,10 +104,10 @@ class Files {
 
         Files(SEXP x)
         {
-            _paths = GET_SLOT(x, mkString("filepath"));
+            _paths = GET_SLOT(x, mkString("filepaths"));
             _mode = GET_SLOT(x, mkString("filemode"));
             if ( LENGTH(_paths) == 0 )
-                error("empty 'filepath'");
+                error("empty 'filepaths'");
             _length = LENGTH(_paths);
             _streams = (FILE **) Calloc(_length, FILE*);
             for ( int i = 0; i < _length; i++ )

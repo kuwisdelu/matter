@@ -3,10 +3,39 @@
 
 \alias{class:matter_mat}
 \alias{matter_mat}
+\alias{matter_matc}
+\alias{matter_matr}
 \alias{matter_mat-class}
+\alias{matter_matc-class}
+\alias{matter_matr-class}
 
 \alias{[,matter_mat-method}
+\alias{[,matter_mat,ANY,ANY,logical-method}
+\alias{[,matter_mat,ANY,ANY,missing-method}
+\alias{[,matter_mat,ANY,missing,logical-method}
+\alias{[,matter_mat,ANY,missing,missing-method}
+\alias{[,matter_mat,missing,ANY,logical-method}
+\alias{[,matter_mat,missing,ANY,missing-method}
+\alias{[,matter_mat,missing,missing,missing-method}
 \alias{[<-,matter_mat-method}
+\alias{[<-,matter_mat,ANY,ANY-method}
+\alias{[<-,matter_mat,ANY,missing-method}
+\alias{[<-,matter_mat,missing,ANY-method}
+\alias{[<-,matter_mat,missing,missing-method}
+
+\alias{cbind,matter-method}
+\alias{rbind,matter-method}
+
+\alias{t,matter_matc-method}
+\alias{t,matter_matr-method}
+
+\alias{\%*\%,matter,matter-method}
+\alias{\%*\%,matrix,matter_mat-method}
+\alias{\%*\%,matter_mat,matrix-method}
+\alias{\%*\%,matter_matc,numeric-method}
+\alias{\%*\%,matter_matr,numeric-method}
+\alias{\%*\%,numeric,matter_matc-method}
+\alias{\%*\%,numeric,matter_matr-method}
 
 \title{Matrices Stored on Disk}
 
@@ -16,8 +45,8 @@
 
 \usage{
 ## Instance creation
-matter_mat(data, datamode = "double", filepath = NULL,
-            filemode = ifelse(is.null(filepath), "rb+", "rb"),
+matter_mat(data, datamode = "double", filepaths = NULL,
+            filemode = ifelse(is.null(filepaths), "rb+", "rb"),
             offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
             extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
             nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, \dots)
@@ -26,27 +55,27 @@ matter_mat(data, datamode = "double", filepath = NULL,
 }
 
 \arguments{
-        \item{\code{data}}{An optional data vector which will be initially written to the data on disk if provided.}
+        \item{data}{An optional data vector which will be initially written to the data on disk if provided.}
 
-        \item{\code{datamode}}{A 'character' vector giving the storage mode of the data on disk. Allowable values are 'short', 'int', 'long', 'float', and 'double'.}
+        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are 'short', 'int', 'long', 'float', and 'double'.}
 
-        \item{\code{filepath}}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link[base]{tempfile}}.}
+        \item{filepaths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link[base]{tempfile}}.}
 
-        \item{\code{filemode}}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
+        \item{filemode}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
 
-        \item{\code{offset}}{A vector giving the offsets in number of bytes from the beginning of each file in 'filepath', specifying the start of the data to be accessed for each file.}
+        \item{offset}{A vector giving the offsets in number of bytes from the beginning of each file in 'filepaths', specifying the start of the data to be accessed for each file.}
 
-        \item{\code{extent}}{A vector giving the length of the data for each file in 'filepath', specifying the number of elements of size 'datamode' to be accessed from each file.}
+        \item{extent}{A vector giving the length of the data for each file in 'filepaths', specifying the number of elements of size 'datamode' to be accessed from each file.}
 
-        \item{\code{nrow}}{An optional number giving the total number of rows.}
+        \item{nrow}{An optional number giving the total number of rows.}
 
-        \item{\code{ncol}}{An optional number giving the total number of columns.}
+        \item{ncol}{An optional number giving the total number of columns.}
 
-        \item{\code{rowMaj}}{Whether the data should be stored in row-major order (as opposed to column-major order) on disk. Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
+        \item{rowMaj}{Whether the data should be stored in row-major order (as opposed to column-major order) on disk. Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
 
-        \item{\code{dimnames}}{The names of the matrix dimensions.}
+        \item{dimnames}{The names of the matrix dimensions.}
 
-        \item{\code{\dots}}{Additional arguments to be passed to constructor.}
+        \item{\dots}{Additional arguments to be passed to constructor.}
 }
 
 \section{Slots}{
@@ -55,9 +84,11 @@ matter_mat(data, datamode = "double", filepath = NULL,
 
         \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
 
-        \item{\code{filepath}:}{A 'character' vector of the paths to the files where the data are stored.}
+        \item{\code{filepaths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
         \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
+
+        \item{\code{chunksize}:}{The maximum number of elements which should be loaded into memory at once. Used by methods implementing summary statistics and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\code{length}:}{The length of the data.}
 
@@ -80,7 +111,13 @@ matter_mat(data, datamode = "double", filepath = NULL,
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the vector.}
+        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the matrix.}
+
+        \item{\code{x \%*\% y}:}{Matrix multiplication. At least one matrix must be an in-memory R matrix (or vector).}
+
+        \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine matrices by row or column.}
+
+        \item{\code{t(x)}:}{Transpose a matrix. This is a quick operation which only changes metadata and does not touch the on-disk data.}
     }
 }
 

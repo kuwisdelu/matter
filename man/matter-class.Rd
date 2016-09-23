@@ -5,12 +5,24 @@
 \alias{matter}
 \alias{matter-class}
 
+\alias{datamode}
+\alias{datamode<-}
+\alias{datamode,atoms-method}
+\alias{datamode<-,atoms-method}
 \alias{datamode,matter-method}
 \alias{datamode<-,matter-method}
-\alias{filepath,matter-method}
-\alias{filepath<-,matter-method}
+\alias{filepaths}
+\alias{filepaths<-}
+\alias{filepaths,matter-method}
+\alias{filepaths<-,matter-method}
+\alias{filemode}
+\alias{filemode<-}
 \alias{filemode,matter-method}
 \alias{filemode<-,matter-method}
+\alias{chunksize}
+\alias{chunksize<-}
+\alias{chunksize,matter-method}
+\alias{chunksize<-,matter-method}
 
 \alias{length,matter-method}
 \alias{length<-,matter-method}
@@ -20,6 +32,8 @@
 \alias{names<-,matter-method}
 \alias{dimnames,matter-method}
 \alias{dimnames<-,matter-method}
+
+\alias{c,atoms-method}
 \alias{c,matter-method}
 
 \title{Vectors, Matrices, and Arrays Stored on Disk}
@@ -36,7 +50,7 @@ matter(\dots)
 }
 
 \arguments{
-        \item{\dots}{Arguments passed to subclasses.}
+    \item{\dots}{Arguments passed to subclasses.}
 }
 
 \section{Slots}{
@@ -45,9 +59,11 @@ matter(\dots)
 
         \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
 
-        \item{\code{filepath}:}{A 'character' vector of the paths to the files where the data are stored.}
+        \item{\code{filepaths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
         \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
+
+        \item{\code{chunksize}:}{The maximum number of elements which should be loaded into memory at once. Used by methods implementing summary statistics and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\code{length}:}{The length of the data.}
 
@@ -71,6 +87,8 @@ matter(\dots)
         \item{\code{filepaths(x), filepaths(x) <- value}:}{Get or set 'filepaths'.}
 
         \item{\code{filemode(x), filemode(x) <- value}:}{Get or set 'filemode'.}
+
+        \item{\code{chunksize(x), chunksize(x) <- value}:}{Get or set 'filemode'.}
     }
 
     Standard generic methods:
@@ -80,8 +98,6 @@ matter(\dots)
         \item{\code{names(x), names(x) <- value}:}{Get or set 'names'.}
 
         \item{\code{dimnames(x), dimnames(x) <- value}:}{Get or set 'dimnames'.}
-
-        \item{\code{c(x, ...)}:}{Combine \code{matter} objects into a vector.}
     }
 }
 
