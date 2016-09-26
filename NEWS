@@ -1,4 +1,15 @@
 
+CHANGES IN VERSION 0.6 [2016-9-25]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Updated maintainer and author email address
+
+BUG FIXES
+
+    o Fixed bug in rowVar for matter_matc
+
 CHANGES IN VERSION 0.5 [2016-9-25]
 ---------------------------------
 

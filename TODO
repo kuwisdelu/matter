@@ -9,6 +9,7 @@ Priority: High
 
 Priority: Medium
 -Sparse vectors/matrices (both in-memory and on-disk)
+-Add method for principal components analysis
 -Add data.frame and factor types
 
 Priority: Low

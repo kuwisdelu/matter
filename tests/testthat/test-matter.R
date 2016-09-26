@@ -50,9 +50,9 @@ test_that("matrix multiplication", {
 
 test_that("summary statistics", {
 
-	x <- matrix(1:100, nrow=10, ncol=10)
+	x <- seq_len(100)
 
-	y <- matter_mat(x, nrow=10, ncol=10)
+	y <- matter_vec(x, length=100)
 
 	expect_equal(sum(x), sum(y))
 
@@ -62,9 +62,13 @@ test_that("summary statistics", {
 
 	expect_equal(sd(x), sd(y))
 
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10)
+
 	expect_equal(colSums(x), colSums(y))
 
-	expect_equal(colMean(x), colMean(y))
+	expect_equal(colMeans(x), colMeans(y))
 
 	expect_equal(apply(x, 2, var), colVar(y))
 
@@ -72,11 +76,11 @@ test_that("summary statistics", {
 
 	expect_equal(rowSums(x), rowSums(y))
 
-	expect_equal(rowMean(x), rowMean(y))
+	expect_equal(rowMeans(x), rowMeans(y))
 
 	expect_equal(apply(x, 1, var), rowVar(y))
 
-	expect_equal(apply(x, 2, sd), rowSd(y))
+	expect_equal(apply(x, 1, sd), rowSd(y))
 
 })
 

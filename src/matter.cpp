@@ -600,7 +600,7 @@ SEXP Matter :: rowvar(bool na_rm) {
                 double * m_new = (double *) Calloc(nrows(), double);
                 double * n = (double *) Calloc(nrows(), double);
                 for ( int i = 0; i < nrows(); i++ ) {
-                    pRetVal[i] = R_NaN;
+                    pRetVal[i] = 0;
                     n[i] = 0;
                 }
                 for ( int j = 0; j < ncols(); j++ ) {
