@@ -1,4 +1,19 @@
 
+
+CHANGES IN VERSION 0.99.2 [2016-9-26]
+---------------------------------
+
+BUG FIXES
+
+    o Cleaned up double assignments in C++ code
+
+CHANGES IN VERSION 0.99.1 [2016-9-26]
+---------------------------------
+
+BUG FIXES
+
+    o Version bump for Bioconductor build system
+
 CHANGES IN VERSION 0.99.0 [2016-9-26]
 ---------------------------------
 

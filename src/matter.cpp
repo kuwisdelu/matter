@@ -380,7 +380,7 @@ SEXP Matter :: colsums(bool na_rm) {
                     else if ( !na_rm && !R_FINITE(*x) )
                         pRetVal[j] = R_NaN;
                     else if ( R_FINITE(*x) )
-                        pRetVal[j] = pRetVal[j] += *x;
+                        pRetVal[j] += *x;
                     j++;
                     ++x;
                 }
@@ -421,7 +421,7 @@ SEXP Matter :: colmeans(bool na_rm) {
                             pRetVal[j] = R_NaN;
                         else if ( R_FINITE(*x) )
                         {
-                            pRetVal[j] = pRetVal[j] += *x;
+                            pRetVal[j] += *x;
                             n[j]++;
                         }
                         j++;
@@ -429,7 +429,7 @@ SEXP Matter :: colmeans(bool na_rm) {
                     }
                 }
                 for ( int j = 0; j < ncols(); j++ )
-                    pRetVal[j] = pRetVal[j] /= n[j];
+                    pRetVal[j] /= n[j];
                 Free(n);
             }
             break;
@@ -523,7 +523,7 @@ SEXP Matter :: rowsums(bool na_rm) {
                     else if ( !na_rm && !R_FINITE(*x) )
                         pRetVal[i] = R_NaN;
                     else if ( R_FINITE(*x) )
-                        pRetVal[i] = pRetVal[i] += *x;
+                        pRetVal[i] += *x;
                     i++;
                     ++x;
                 }
@@ -564,7 +564,7 @@ SEXP Matter :: rowmeans(bool na_rm) {
                             pRetVal[i] = R_NaN;
                         else if ( R_FINITE(*x) )
                         {
-                            pRetVal[i] = pRetVal[i] += *x;
+                            pRetVal[i] += *x;
                             n[i]++;
                         }
                         i++;
@@ -572,7 +572,7 @@ SEXP Matter :: rowmeans(bool na_rm) {
                     }
                 }
                 for ( int i = 0; i < nrows(); i++ )
-                    pRetVal[i] = pRetVal[i] /= n[i];
+                    pRetVal[i] /= n[i];
                 Free(n);
             }
             break;
