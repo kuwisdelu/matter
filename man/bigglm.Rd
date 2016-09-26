@@ -36,9 +36,17 @@
 }
 
 \examples{
-\dontrun{
-## Do something
-}
+set.seed(1)
+
+x <- matter_mat(rnorm(1000), nrow=100, ncol=10)
+
+colnames(x) <- c(paste0("x", 1:9), "y")
+
+fm <- paste0("y ~ ", paste0(paste0("x", 1:9), collapse=" + "))
+fm <- as.formula(fm)
+
+fit <- bigglm(fm, data=x, chunksize=50)
+coef(fit)
 }
 
 \keyword{models}

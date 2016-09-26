@@ -128,10 +128,8 @@ matter_mat(data, datamode = "double", filepaths = NULL,
 }
 
 \examples{
-\dontrun{
-## Create an matter_mat object
-matter_mat()
-}
+x <- matter_mat(1:100, nrow=10, ncol=10)
+x[]
 }
 
 \keyword{classes}

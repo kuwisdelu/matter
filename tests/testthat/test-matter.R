@@ -1,0 +1,120 @@
+require(testthat)
+
+context("matter")
+
+## for now, just test datamode double
+
+test_that("vector subsetting", {
+
+	x <- seq_len(100)
+
+	y <- matter_vec(x, length=length(x))
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1], y[1])
+
+	expect_equal(x[1:10], y[1:10])
+
+})
+
+test_that("matrix subsetting", {
+
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,1], y[1,1])
+
+	expect_equal(x[1:10,1:10], y[1:10,1:10])
+
+})
+
+test_that("matrix multiplication", {
+
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10)
+
+	expect_equal(x %*% x, x %*% y)
+
+	expect_equal(x %*% x, y %*% x)
+
+})
+
+test_that("summary statistics", {
+
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10)
+
+	expect_equal(sum(x), sum(y))
+
+	expect_equal(mean(x), mean(y))
+
+	expect_equal(var(x), var(y))
+
+	expect_equal(sd(x), sd(y))
+
+	expect_equal(colSums(x), colSums(y))
+
+	expect_equal(colMean(x), colMean(y))
+
+	expect_equal(apply(x, 2, var), colVar(y))
+
+	expect_equal(apply(x, 2, sd), colSd(y))
+
+	expect_equal(rowSums(x), rowSums(y))
+
+	expect_equal(rowMean(x), rowMean(y))
+
+	expect_equal(apply(x, 1, var), rowVar(y))
+
+	expect_equal(apply(x, 2, sd), rowSd(y))
+
+})
+
+test_that("apply", {
+
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10)
+
+	expect_equal(apply(x, 1, sum), apply(y, 1, sum))
+
+	expect_equal(apply(x, 2, sum), apply(y, 2, sum))
+
+})
+
+test_that("bigglm", {
+
+	set.seed(1)
+
+	x <- matrix(rnorm(1000), nrow=100, ncol=10)
+
+	y <- matter_mat(x, nrow=100, ncol=10)
+
+	colnames(x) <- c(paste0("x", 1:9), "y")
+
+	colnames(y) <- c(paste0("x", 1:9), "y")
+
+	fm <- paste0("y ~ ", paste0(paste0("x", 1:9), collapse=" + "))
+	fm <- as.formula(fm)
+
+	fit.x <- glm(fm, data=as.data.frame(x))
+
+	fit.y <- bigglm(fm, data=y, chunksize=100)
+
+	expect_equal(coef(fit.x), coef(fit.y))
+
+})
+
+
+
+

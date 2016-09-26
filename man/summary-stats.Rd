@@ -75,9 +75,22 @@
 }
 
 \examples{
-\dontrun{
-## Do something
-}
+x <- matter(1:100, nrow=10, ncol=10)
+
+sum(x)
+mean(x)
+var(x)
+sd(x)
+
+colSums(x)
+colMeans(x)
+colVar(x)
+colSd(x)
+
+rowSums(x)
+rowMeans(x)
+rowVar(x)
+rowSd(x)
 }
 
 \keyword{methods}

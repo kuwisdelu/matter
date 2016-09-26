@@ -109,10 +109,13 @@ matter(\dots)
 }
 
 \examples{
-\dontrun{
-## Create an matter object
-matter()
-}
+## Create a vector
+x <- matter(1:100, length=100)
+x[]
+
+## Create a matrix
+x <- matter(1:100, nrow=10, ncol=10)
+x[]
 }
 
 \keyword{classes}

@@ -653,11 +653,12 @@ SEXP Matter :: rowvar(bool na_rm) {
     return retVal;
 }
 
+template<typename RType>
 SEXP Matter :: rmult(SEXP y) {
     SEXP retMat;
     PROTECT(retMat = allocMatrix(DataType<double>(), nrows(), ::ncols(y)));
     double * pRetMat = REAL(retMat);
-    double * pY = REAL(y);
+    RType * pY = DataPtr<RType>(y);
     for ( int k = 0; k < LENGTH(retMat); k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
@@ -694,11 +695,12 @@ SEXP Matter :: rmult(SEXP y) {
     return retMat;
 }
 
+template<typename RType>
 SEXP Matter :: lmult(SEXP x) {
     SEXP retMat;
     PROTECT(retMat = allocMatrix(DataType<double>(), ::nrows(x), ncols()));
     double * pRetMat = REAL(retMat);
-    double * pX = REAL(x);
+    RType * pX = DataPtr<RType>(x);
     for ( int k = 0; k < LENGTH(retMat); k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
@@ -931,11 +933,21 @@ extern "C" {
 
     SEXP rightMultRMatrix(SEXP x, SEXP y) {
         Matter mMat(x);
-        return mMat.rmult(y);
+        if ( TYPEOF(y) == INTSXP )
+            return mMat.rmult<int>(y);
+        else if ( TYPEOF(y) == REALSXP )
+            return mMat.rmult<double>(y);
+        else
+            return R_NilValue;
     }
 
     SEXP leftMultRMatrix(SEXP x, SEXP y) {
         Matter mMat(y);
-        return mMat.lmult(x);
+        if ( TYPEOF(x) == INTSXP )
+            return mMat.lmult<int>(x);
+        else if ( TYPEOF(x) == REALSXP )
+            return mMat.lmult<double>(x);
+        else
+            return R_NilValue;
     }
 }

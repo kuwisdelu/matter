@@ -38,9 +38,9 @@
 }
 
 \examples{
-\dontrun{
-## Do something
-}
+x <- matter(1:100, nrow=10, ncol=10)
+
+apply(x, 2, summary)
 }
 
 \keyword{methods}

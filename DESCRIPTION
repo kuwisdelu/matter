@@ -1,8 +1,8 @@
 Package: matter
 Type: Package
 Title: A framework for rapid prototyping with binary data on disk
-Version: 0.4
-Date: 2016-2-17
+Version: 0.5
+Date: 2016-9-25
 Author: Kylie A. Bemis <kbemis@purdue.edu>
 Maintainer: Kylie A. Bemis <kbemis@purdue.edu>
 Description: Memory-efficient reading, writing, and manipulation of
@@ -10,6 +10,6 @@ Description: Memory-efficient reading, writing, and manipulation of
 License: Artistic-2.0
 Depends: methods, stats, biglm
 Imports: BiocGenerics, utils
-Suggests: BiocStyle, Cardinal, irlba
+Suggests: BiocStyle, Cardinal, irlba, testthat
 biocViews: Software, Infrastructure
 URL: http://www.cardinalmsi.org

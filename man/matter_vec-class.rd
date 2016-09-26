@@ -99,10 +99,8 @@ matter_vec(data, datamode = "double", filepaths = NULL,
 }
 
 \examples{
-\dontrun{
-## Create an matter_vec object
-matter_vec()
-}
+x <- matter_vec(1:100, length=100)
+x[]
 }
 
 \keyword{classes}

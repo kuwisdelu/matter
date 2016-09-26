@@ -1,4 +1,15 @@
 
+CHANGES IN VERSION 0.5 [2016-9-25]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Updated documentation with examples and added unit tests
+
+BUG FIXES
+
+    o Fixed matrix multiplication on mixed data types (int x double)
+
 CHANGES IN VERSION 0.4 [2016-8-3]
 ---------------------------------
 

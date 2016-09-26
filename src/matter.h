@@ -489,6 +489,12 @@ class Matter
         template<typename RType>
         void writeMatrixElements(SEXP i, SEXP j, SEXP value);
 
+        template<typename RType>
+        SEXP rmult(SEXP y);
+
+        template<typename RType>
+        SEXP lmult(SEXP x);
+
         SEXP sum(bool na_rm = false);
 
         SEXP mean(bool na_rm = false);
@@ -506,10 +512,6 @@ class Matter
         SEXP colvar(bool na_rm = false);
 
         SEXP rowvar(bool na_rm = false);
-
-        SEXP rmult(SEXP y);
-
-        SEXP lmult(SEXP x);
 
     protected:
 
