@@ -119,6 +119,24 @@ test_that("bigglm", {
 
 })
 
+test_that("irlba", {
+
+	set.seed(1)
+
+	x <- matrix(rnorm(1000), nrow=100, ncol=10)
+
+	y <- matter_mat(x, nrow=100, ncol=10)
+
+	require(irlba)
+
+	fit.x <- irlba(x, nu=0, nv=2)
+
+	fit.y <- irlba(y, nu=0, nv=2, mult=`%*%`)
+
+	expect_equal(fit.x$v, fit.y$v, tolerance=0.5)
+
+})
+
 
 
 
