@@ -224,7 +224,7 @@ Note that the \Robject{irlba} function has an optional argument \verb|mult| whic
 
 <<fit-irlba>>=
 library(irlba)
-irlba.out <- irlba(data, nu=0, nv=2)
+irlba.out <- irlba(data, nu=0, nv=2, mult=`%*%`)
 @
 
 On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, calculating the first two principal components takes roughly 2-3 minutes and uses an additional 337 MB of memory overhead. The max amount of memory used during the computation was only 433 MB, for the 1.2 GB dataset.
