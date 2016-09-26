@@ -101,6 +101,10 @@ matter(\dots)
     }
 }
 
+\value{
+    An object of class \code{\linkS4class{matter}}.
+}
+
 \author{Kylie A. Bemis}
 
 \seealso{

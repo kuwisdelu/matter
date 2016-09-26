@@ -92,6 +92,10 @@ matter_vec(data, datamode = "double", filepaths = NULL,
     }
 }
 
+\value{
+    An object of class \code{\linkS4class{matter_vec}}.
+}
+
 \author{Kylie A. Bemis}
 
 \seealso{

@@ -1,4 +1,13 @@
 
+CHANGES IN VERSION 0.99.0 [2016-9-26]
+---------------------------------
+
+BUG FIXES
+
+    o Updated PCA example in vignette (irlba now requires 'mult'
+        argument to be non-missing for non-C execution)
+    o Added irlba unit test
+
 CHANGES IN VERSION 0.6 [2016-9-25]
 ---------------------------------
 
