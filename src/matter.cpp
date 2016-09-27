@@ -1,6 +1,35 @@
 
 #include "matter.h"
 
+//// Count # of consecutive indices after current one (for faster reads)
+//----------------------------------------------------------------------
+
+index_type num_consecutive(double * pindex, long i, long length) {
+    index_type n = 0;
+    if ( ISNA(pindex[i + 1]) )
+        return n;
+    if ( i < length - 1 && pindex[i + 1] > pindex[i] ) {
+        while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
+            static_cast<index_type>(pindex[i + 1] - pindex[i]) == 1 )
+        {
+            i++;
+            n++;
+        }
+        return n;
+    }
+    else if ( i < length - 1 && pindex[i + 1] < pindex[i] ) {
+        while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
+            static_cast<index_type>(pindex[i + 1] - pindex[i]) == -1 )
+        {
+            i++;
+            n--;
+        }
+        return n;
+    }
+    else
+        return n;
+}
+
 //// Vector methods implemented for class Matter
 //-----------------------------------------------
 

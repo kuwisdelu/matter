@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 0.99.4 [2016-9-27]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Added .Call native routine registration for C++ methods
+
 CHANGES IN VERSION 0.99.3 [2016-9-27]
 ---------------------------------
 

@@ -69,31 +69,7 @@ void fillNA(RType * ptr, size_t count, size_t skip = 1) {
 //// Count # of consecutive indices after current one (for faster reads)
 //----------------------------------------------------------------------
 
-index_type num_consecutive(double * pindex, long i, long length) {
-    index_type n = 0;
-    if ( ISNA(pindex[i + 1]) )
-        return n;
-    if ( i < length - 1 && pindex[i + 1] > pindex[i] ) {
-        while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
-            static_cast<index_type>(pindex[i + 1] - pindex[i]) == 1 )
-        {
-            i++;
-            n++;
-        }
-        return n;
-    }
-    else if ( i < length - 1 && pindex[i + 1] < pindex[i] ) {
-        while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
-            static_cast<index_type>(pindex[i + 1] - pindex[i]) == -1 )
-        {
-            i++;
-            n--;
-        }
-        return n;
-    }
-    else
-        return n;
-}
+index_type num_consecutive(double * pindex, long i, long length);
 
 //// Files class
 //----------------
@@ -635,6 +611,57 @@ double sum(MatterAccessor<double> & x, bool na_rm = false);
 double mean(MatterAccessor<double> & x, bool na_rm = false);
 
 double var(MatterAccessor<double> & x, bool na_rm = false);
+
+//// Exported C functions
+//-----------------------
+
+extern "C" {
+
+    SEXP getVector(SEXP x);
+
+    void setVector(SEXP x, SEXP value);
+
+    SEXP getVectorElements(SEXP x, SEXP i);
+
+    void setVectorElements(SEXP x, SEXP i, SEXP value);
+
+    SEXP getMatrix(SEXP x);
+
+    void setMatrix(SEXP x, SEXP value);
+
+    SEXP getMatrixRows(SEXP x, SEXP i);
+
+    void setMatrixRows(SEXP x, SEXP i, SEXP value);
+
+    SEXP getMatrixCols(SEXP x, SEXP j);
+
+    void setMatrixCols(SEXP x, SEXP j, SEXP value);
+
+    SEXP getMatrixElements(SEXP x, SEXP i, SEXP j);
+
+    void setMatrixElements(SEXP x, SEXP i, SEXP j, SEXP value);
+
+    SEXP getSum(SEXP x, SEXP na_rm);
+
+    SEXP getMean(SEXP x, SEXP na_rm);
+
+    SEXP getVar(SEXP x, SEXP na_rm);
+
+    SEXP getColSums(SEXP x, SEXP na_rm);
+
+    SEXP getColVar(SEXP x, SEXP na_rm);
+
+    SEXP getRowSums(SEXP x, SEXP na_rm);
+
+    SEXP getRowMeans(SEXP x, SEXP na_rm);
+
+    SEXP getRowVar(SEXP x, SEXP na_rm);
+
+    SEXP rightMultRMatrix(SEXP x, SEXP y);
+
+    SEXP leftMultRMatrix(SEXP x, SEXP y);
+
+}
 
 #endif
 
