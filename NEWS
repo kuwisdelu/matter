@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 0.99.3 [2016-9-27]
+---------------------------------
+
+BUG FIXES
+
+    o Import generics from S4Vectors for 'colMeans', 'colSums',
+        'rowMeans', and 'rowSums'
+    o Cleaned up method signatures and class unions
 
 CHANGES IN VERSION 0.99.2 [2016-9-26]
 ---------------------------------

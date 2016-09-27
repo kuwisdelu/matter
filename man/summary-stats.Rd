@@ -1,9 +1,14 @@
 \name{summary-stats}
 \docType{methods}
 
+\alias{mean}
+\alias{sum}
+\alias{sd}
+\alias{var}
+
 \alias{mean,matter-method}
-\alias{sd,matter-method}
 \alias{sum,matter-method}
+\alias{sd,matter-method}
 \alias{var,matter-method}
 
 \alias{colSd}

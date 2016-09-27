@@ -10,6 +10,12 @@ importFrom("BiocGenerics",
 	"cbind",
 	"rbind")
 
+importFrom("S4Vectors",
+	"colMeans",
+	"colSums",
+	"rowMeans",
+	"rowSums")
+
 importFrom("utils",
 	"object.size")
 

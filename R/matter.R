@@ -5,12 +5,12 @@
 setGeneric("t")
 setGeneric("sum")
 setGeneric("mean")
-setGeneric("var")
-setGeneric("sd")
-setGeneric("colSums")
-setGeneric("rowSums")
-setGeneric("colMeans")
-setGeneric("rowMeans")
+setGeneric("var", signature="x")
+setGeneric("sd", signature="x")
+# setGeneric("colSums") # Use S4Vectors generic
+# setGeneric("rowSums") # Use S4Vectors generic
+# setGeneric("colMeans") # Use S4Vectors generic
+# setGeneric("rowMeans") # Use S4Vectors generic
 setGeneric("apply")
 
 #### Define new generics for stats ####
@@ -354,22 +354,22 @@ setMethod("show", "atoms", function(object) {
 #### Define matter VIRTUAL class ####
 ## ----------------------------------
 
-setClassUnion("_atoms", c("atoms", "list"))
-setClassUnion("_dim", c("integer", "NULL"))
-setClassUnion("_names", c("character", "NULL"))
-setClassUnion("_dimnames", c("list", "NULL"))
+setClassUnion("atomsORlist", c("atoms", "list"))
+setClassUnion("characterORNULL", c("character", "NULL")) # can't find S4Vectors export (???)
+setClassUnion("integerORNULL", c("integer", "NULL"))
+setClassUnion("listORNULL", c("list", "NULL"))
 
 setClass("matter",
 	slots = c(
-		data = "_atoms",
+		data = "atomsORlist",
 		datamode = "factor",
 		filepaths = "character",
 		filemode = "character",
 		chunksize = "integer",
 		length = "numeric",
-		dim = "_dim",
-		names = "_names",
-		dimnames = "_dimnames"),
+		dim = "integerORNULL",
+		names = "characterORNULL",
+		dimnames = "listORNULL"),
 	contains = "VIRTUAL",
 	validity = function(object) {
 		if ( !is.null(object@filepaths) && any(!file.exists(object@filepaths)) )
