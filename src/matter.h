@@ -649,6 +649,8 @@ extern "C" {
 
     SEXP getColSums(SEXP x, SEXP na_rm);
 
+    SEXP getColMeans(SEXP x, SEXP na_rm);
+
     SEXP getColVar(SEXP x, SEXP na_rm);
 
     SEXP getRowSums(SEXP x, SEXP na_rm);

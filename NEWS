@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 0.99.5 [2016-9-27]
+---------------------------------
+
+BUG FIXES
+
+    o Fixed .Call native routine registration for C++ methods
+    o Added "C_" prefix for C++ methods called through .Call
+
 CHANGES IN VERSION 0.99.4 [2016-9-27]
 ---------------------------------
 

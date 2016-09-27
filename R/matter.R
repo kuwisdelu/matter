@@ -505,7 +505,7 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 setMethod("sum", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getSum", x, na.rm)
+	ret <- .Call("C_getSum", x, na.rm)
 	names(ret) <- names(x)
 	ret
 })
@@ -513,7 +513,7 @@ setMethod("sum", "matter", function(x, na.rm = FALSE) {
 setMethod("mean", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getMean", x, na.rm)
+	ret <- .Call("C_getMean", x, na.rm)
 	names(ret) <- names(x)
 	ret
 })
@@ -521,7 +521,7 @@ setMethod("mean", "matter", function(x, na.rm = FALSE) {
 setMethod("var", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getVar", x, na.rm)
+	ret <- .Call("C_getVar", x, na.rm)
 	names(ret) <- names(x)
 	ret
 })
@@ -529,7 +529,7 @@ setMethod("var", "matter", function(x, na.rm = FALSE) {
 setMethod("sd", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- sqrt(.Call("getVar", x, na.rm))
+	ret <- sqrt(.Call("C_getVar", x, na.rm))
 	names(ret) <- names(x)
 	ret
 })
@@ -537,7 +537,7 @@ setMethod("sd", "matter", function(x, na.rm = FALSE) {
 setMethod("colSums", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getColSums", x, na.rm)
+	ret <- .Call("C_getColSums", x, na.rm)
 	names(ret) <- colnames(x)
 	ret
 })
@@ -545,7 +545,7 @@ setMethod("colSums", "matter", function(x, na.rm = FALSE) {
 setMethod("colMeans", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getColMeans", x, na.rm)
+	ret <- .Call("C_getColMeans", x, na.rm)
 	names(ret) <- colnames(x)
 	ret	
 })
@@ -553,7 +553,7 @@ setMethod("colMeans", "matter", function(x, na.rm = FALSE) {
 setMethod("colVar", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getColVar", x, na.rm)
+	ret <- .Call("C_getColVar", x, na.rm)
 	names(ret) <- colnames(x)
 	ret
 })
@@ -561,7 +561,7 @@ setMethod("colVar", "matter", function(x, na.rm = FALSE) {
 setMethod("colSd", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- sqrt(.Call("getColVar", x, na.rm))
+	ret <- sqrt(.Call("C_getColVar", x, na.rm))
 	names(ret) <- colnames(x)
 	ret
 })
@@ -569,7 +569,7 @@ setMethod("colSd", "matter", function(x, na.rm = FALSE) {
 setMethod("rowSums", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getRowSums", x, na.rm)
+	ret <- .Call("C_getRowSums", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
@@ -577,7 +577,7 @@ setMethod("rowSums", "matter", function(x, na.rm = FALSE) {
 setMethod("rowMeans", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getRowMeans", x, na.rm)
+	ret <- .Call("C_getRowMeans", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
@@ -585,7 +585,7 @@ setMethod("rowMeans", "matter", function(x, na.rm = FALSE) {
 setMethod("rowVar", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- .Call("getRowVar", x, na.rm)
+	ret <- .Call("C_getRowVar", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
@@ -593,7 +593,7 @@ setMethod("rowVar", "matter", function(x, na.rm = FALSE) {
 setMethod("rowSd", "matter", function(x, na.rm = FALSE) {
 	if ( datamode(x) == "integer" )
 		warning("NAs not yet handled correctly for datamode 'integer'")
-	ret <- sqrt(.Call("getRowVar", x, na.rm))
+	ret <- sqrt(.Call("C_getRowVar", x, na.rm))
 	names(ret) <- rownames(x)
 	ret
 })
@@ -668,7 +668,7 @@ setMethod("show", "matter_vec", function(object) {
 })
 
 getVector <- function(x) {
-	y <- .Call("getVector", x)
+	y <- .Call("C_getVector", x)
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)
 	y
@@ -680,7 +680,7 @@ setVector <- function(x, value) {
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(x)) # should do this in C++ code
 	value <- coerce(value, datamode(x))
-	.Call("setVector", x, value)
+	.Call("C_setVector", x, value)
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -690,7 +690,7 @@ getVectorElements <- function(x, i) {
 		i <- logical2index(x, i)
 	if ( is.character(i) )
 		i <- names2index(x, i)
-	y <- .Call("getVectorElements", x, i - 1)
+	y <- .Call("C_getVectorElements", x, i - 1)
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)[i]
 	y	
@@ -706,7 +706,7 @@ setVectorElements <- function(x, i, value) {
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(i))
 	value <- coerce(value, datamode(x))
-	.Call("setVectorElements", x, i - 1, value)
+	.Call("C_setVectorElements", x, i - 1, value)
 	if ( validObject(x) )
 		invisible(x)	
 }
@@ -895,7 +895,7 @@ setMethod("show", "matter_mat", function(object) {
 
 getMatrix <- function(x) {
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
-	y <- .Call("getMatrix", x, rowMaj)
+	y <- .Call("C_getMatrix", x)
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- dimnames(x)
 	y
@@ -908,7 +908,7 @@ setMatrix <- function(x, value) {
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
 	value <- rep(value, length.out=length(x)) # should do this in C++ code
 	value <- coerce(value, datamode(x))
-	.Call("setMatrix", x, value, rowMaj)
+	.Call("C_setMatrix", x, value)
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -918,7 +918,7 @@ getMatrixRows <- function(x, i, drop=TRUE) {
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
-	y <- .Call("getMatrixRows", x, i - 1)
+	y <- .Call("C_getMatrixRows", x, i - 1)
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x)[i], colnames(x))
 	if ( drop ) 
@@ -936,7 +936,7 @@ setMatrixRows <- function(x, i, value) {
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(i) * ncol(x))
 	value <- coerce(value, datamode(x))
-	.Call("setMatrixRows", x, i - 1, value)
+	.Call("C_setMatrixRows", x, i - 1, value)
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -946,7 +946,7 @@ getMatrixCols <- function(x, j, drop=TRUE) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
-	y <- .Call("getMatrixCols", x, j - 1)
+	y <- .Call("C_getMatrixCols", x, j - 1)
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x), colnames(x)[j])
 	if ( drop ) 
@@ -964,7 +964,7 @@ setMatrixCols <- function(x, j, value) {
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(j) * nrow(x))
 	value <- coerce(value, datamode(x))
-	.Call("setMatrixCols", x, j - 1, value)
+	.Call("C_setMatrixCols", x, j - 1, value)
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -978,7 +978,7 @@ getMatrixElements <- function(x, i, j, drop=TRUE) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
-	y <- .Call("getMatrixElements", x, i - 1, j - 1)
+	y <- .Call("C_getMatrixElements", x, i - 1, j - 1)
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x)[i], colnames(x)[j])
 	if ( drop ) 
@@ -1000,7 +1000,7 @@ setMatrixElements <- function(x, i, j, value) {
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(i) * length(j))
 	value <- coerce(value, datamode(x))
-	.Call("setMatrixElements", x, i - 1, j - 1, value)
+	.Call("C_setMatrixElements", x, i - 1, j - 1, value)
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -1244,12 +1244,12 @@ setMethod("%*%", c("numeric", "matter_matr"), function(x, y) { t(x) %*% y })
 
 setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
 {
-	.Call("rightMultRMatrix", x, y)
+	.Call("C_rightMultRMatrix", x, y)
 })
 
 setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 {
-	.Call("leftMultRMatrix", x, y)
+	.Call("C_leftMultRMatrix", x, y)
 })
 
 setMethod("%*%", c("matter", "matter"), function(x, y)

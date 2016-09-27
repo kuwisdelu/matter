@@ -76,4 +76,4 @@ export(
 	"matter_vec",
 	"matter_mat")
 
-useDynLib("matter")
+useDynLib("matter", .registration=TRUE)
