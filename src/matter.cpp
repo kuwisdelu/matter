@@ -7,12 +7,12 @@
 //// Low-level read/write functions
 //----------------------------------
 
-// convert from R to C representation
+// convert between C and R representations, handling NAs
 
-// from integer
+// ----> short
 
 template<>
-short C_cast<short,int>(int x) {
+short coerce_cast<int,short>(int x) {
     if ( x < R_SHORT_MIN || x > R_SHORT_MAX || x == NA_INTEGER )
     {
         if ( x != NA_INTEGER )
@@ -24,38 +24,7 @@ short C_cast<short,int>(int x) {
 }
 
 template<>
-int C_cast<int,int>(int x) {
-    return x;
-}
-
-template<>
-long C_cast<long,int>(int x) {
-    if ( x == NA_INTEGER )
-        return NA_LONG;
-    else
-        return static_cast<long>(x);
-}
-
-template<>
-float C_cast<float,int>(int x) {
-    if ( x == NA_INTEGER )
-        return static_cast<float>(NA_REAL);
-    else
-        return static_cast<float>(x);
-}
-
-template<>
-double C_cast<double,int>(int x) {
-    if ( x == NA_INTEGER )
-        return NA_REAL;
-    else
-        return static_cast<double>(x);
-}
-
-// from numeric
-
-template<>
-short C_cast<short,double>(double x) {
+short coerce_cast<double,short>(double x) {
     if ( x < R_SHORT_MIN || x > R_SHORT_MAX ||  !R_FINITE(x) )
     {
         if ( !ISNA(x) )
@@ -66,53 +35,10 @@ short C_cast<short,double>(double x) {
     return static_cast<short>(x);
 }
 
-template<>
-int C_cast<int,double>(double x) {
-    if ( x < R_INT_MIN || x > R_INT_MAX ||  !R_FINITE(x) )
-    {
-        if ( !ISNA(x) )
-            warning("value is out of range for type 'int', element will be set to NA");
-        return NA_INTEGER;
-    }
-    warning("casting from 'double' to 'int', precision may be lost");
-    return static_cast<int>(x);
-}
+// ----> int
 
 template<>
-long C_cast<long,double>(double x) {
-    if ( !R_FINITE(x) )
-    {
-        if ( !ISNA(x) )
-            warning("value is out of range for type 'long', element will be set to NA");
-        return NA_LONG;
-    }
-    warning("casting from 'double' to 'long', precision may be lost");
-    return static_cast<long>(x);
-}
-
-template<>
-float C_cast<float,double>(double x) {
-    if ( !R_FINITE(x) )
-    {
-        if ( !ISNA(x) )
-            warning("value is out of range for type 'float' and will be set to NA");
-        return static_cast<float>(NA_REAL);
-    }
-    warning("casting from 'double' to 'float', precision may be lost");
-    return static_cast<float>(x);
-}
-
-template<>
-double C_cast<double,double>(double x) {
-    return x;
-}
-
-// convert from C to R representation
-
-// to integer
-
-template<>
-int R_cast<short,int>(short x) {
+int coerce_cast<short,int>(short x) {
     if ( x == NA_SHORT )
         return NA_INTEGER;
     else
@@ -120,12 +46,12 @@ int R_cast<short,int>(short x) {
 }
 
 template<>
-int R_cast<int,int>(int x) {
+int coerce_cast<int,int>(int x) {
     return x;
 }
 
 template<>
-int R_cast<long,int>(long x) {
+int coerce_cast<long,int>(long x) {
     if ( x < R_INT_MIN || x > R_INT_MAX || x == NA_LONG )
     {
         if ( x != NA_LONG )
@@ -139,7 +65,7 @@ int R_cast<long,int>(long x) {
 }
 
 template<>
-int R_cast<float,int>(float x) {
+int coerce_cast<float,int>(float x) {
     warning("casting from 'float' to 'int', precision may be lost");
     if ( isnan(x) )
         return NA_INTEGER;
@@ -148,18 +74,65 @@ int R_cast<float,int>(float x) {
 }
 
 template<>
-int R_cast<double,int>(double x) {
-    warning("casting from 'double' to 'int', precision may be lost");
-    if ( !R_FINITE(x) )
+int coerce_cast<double,int>(double x) {
+    if ( x < R_INT_MIN || x > R_INT_MAX || !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'int', element will be set to NA");
         return NA_INTEGER;
-    else
-        return static_cast<int>(x);
+    }
+    warning("casting from 'double' to 'int', precision may be lost");
+    return static_cast<int>(x);
 }
 
-// to numeric
+// ----> long
 
 template<>
-double R_cast<short,double>(short x) {
+long coerce_cast<int,long>(int x) {
+    if ( x == NA_INTEGER )
+        return NA_LONG;
+    else
+        return static_cast<long>(x);
+}
+
+template<>
+long coerce_cast<double,long>(double x) {
+    if ( !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'long', element will be set to NA");
+        return NA_LONG;
+    }
+    warning("casting from 'double' to 'long', precision may be lost");
+    return static_cast<long>(x);
+}
+
+// ----> float
+
+template<>
+float coerce_cast<int,float>(int x) {
+    if ( x == NA_INTEGER )
+        return static_cast<float>(NA_REAL);
+    else
+        return static_cast<float>(x);
+}
+
+template<>
+float coerce_cast<double,float>(double x) {
+    if ( !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'float' and will be set to NA");
+        return static_cast<float>(NA_REAL);
+    }
+    warning("casting from 'double' to 'float', precision may be lost");
+    return static_cast<float>(x);
+}
+
+// ----> double
+
+template<>
+double coerce_cast<short,double>(short x) {
     if ( x == NA_SHORT )
         return NA_REAL;
     else
@@ -167,7 +140,7 @@ double R_cast<short,double>(short x) {
 }
 
 template<>
-double R_cast<int,double>(int x) {
+double coerce_cast<int,double>(int x) {
     if ( x == NA_INTEGER )
         return NA_REAL;
     else
@@ -175,7 +148,7 @@ double R_cast<int,double>(int x) {
 }
 
 template<>
-double R_cast<long,double>(long x) {
+double coerce_cast<long,double>(long x) {
     if ( x == NA_LONG )
         return NA_REAL;
     else
@@ -183,7 +156,7 @@ double R_cast<long,double>(long x) {
 }
 
 template<>
-double R_cast<float,double>(float x) {
+double coerce_cast<float,double>(float x) {
     if ( isnan(x) )
         return NA_REAL;
     else
@@ -191,7 +164,7 @@ double R_cast<float,double>(float x) {
 }
 
 template<>
-double R_cast<double,double>(double x) {
+double coerce_cast<double,double>(double x) {
     return x;
 }
 
@@ -917,7 +890,7 @@ SEXP Matter :: rmult(SEXP y) {
                 int i = 0;
                 while ( x ) {
                     for ( int jj = 0; jj < ::ncols(retMat); jj++ ) {
-                        double val = (*x) * pY[j + jj * ::nrows(y)];
+                        double val = (*x) * coerce_cast<RType,double>(pY[j + jj * ::nrows(y)]);
                         pRetMat[i + jj * ::nrows(retMat)] += val;
                     }
                     i++;
@@ -931,7 +904,7 @@ SEXP Matter :: rmult(SEXP y) {
                 int j = 0;
                 while ( x ) {
                     for ( int jj = 0; jj < ::ncols(retMat); jj++ ) {
-                        double val = (*x) * pY[j + jj * ::nrows(y)];
+                        double val = (*x) * coerce_cast<RType,double>(pY[j + jj * ::nrows(y)]);
                         pRetMat[i + jj * ::nrows(retMat)] += val;
                     }
                     j++;
@@ -959,7 +932,7 @@ SEXP Matter :: lmult(SEXP x) {
                 int i = 0;
                 while ( y ) {
                     for ( int ii = 0; ii < ::nrows(retMat); ii++ ) {
-                        double val = pX[ii + i * ::nrows(x)] * (*y);
+                        double val = coerce_cast<RType,double>(pX[ii + i * ::nrows(x)]) * (*y);
                         pRetMat[ii + j * ::nrows(retMat)] += val;
                     }
                     i++;
@@ -973,7 +946,7 @@ SEXP Matter :: lmult(SEXP x) {
                 int j = 0;
                 while ( y ) {
                     for ( int ii = 0; ii < ::nrows(retMat); ii++ ) {
-                        double val = pX[ii + i * ::nrows(x)] * (*y);
+                        double val = coerce_cast<RType,double>(pX[ii + i * ::nrows(x)]) * (*y);
                         pRetMat[ii + j * ::nrows(retMat)] += val;
                     }
                     j++;

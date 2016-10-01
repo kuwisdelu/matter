@@ -21,11 +21,8 @@ typedef double dbl_index_type;
 //// Low-level read/write functions
 //----------------------------------
 
-template<typename CType, typename RType>
-CType C_cast(RType x);
-
-template<typename CType, typename RType>
-RType R_cast(CType x);
+template<typename T1, typename T2>
+T2 coerce_cast(T1 x);
 
 template<typename CType, typename RType>
 size_t convert_read(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {
@@ -33,7 +30,7 @@ size_t convert_read(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {
     CType * tmp = (CType *) Calloc(count, CType);
     numRead = fread(tmp, sizeof(CType), count, stream);
     for ( size_t i = 0; i < numRead; i++ ) {
-        *ptr = R_cast<CType,RType>(tmp[i]);
+        *ptr = coerce_cast<CType,RType>(tmp[i]);
         ptr += skip;
     }
     Free(tmp);
@@ -45,7 +42,7 @@ size_t convert_write(RType * ptr, size_t count, FILE * stream, size_t skip = 1) 
     size_t numWrote;
     CType * tmp = (CType *) Calloc(count, CType);
     for ( size_t i = 0; i < count; i++ ) {
-        tmp[i] = C_cast<CType,RType>(*ptr);
+        tmp[i] = coerce_cast<RType,CType>(*ptr);
         ptr += skip;
     }
     numWrote = fwrite(tmp, sizeof(CType), count, stream);

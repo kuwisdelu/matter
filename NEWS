@@ -7,6 +7,7 @@ BUG FIXES
 
     o Fixed handling of NA, NaN, Inf, and -Inf during C type coercion
     o Improved handling of NA, NaN, Inf, and -Inf in summary stats
+    o Fixed handling of NAs in matrix multiplication for integerscol
 
 CHANGES IN VERSION 0.99.5 [2016-9-27]
 ---------------------------------
