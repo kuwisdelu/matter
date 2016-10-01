@@ -67,7 +67,7 @@ int coerce_cast<long,int>(long x) {
 template<>
 int coerce_cast<float,int>(float x) {
     warning("casting from 'float' to 'int', precision may be lost");
-    if ( isnan(x) )
+    if ( std::isnan(x) )
         return NA_INTEGER;
     else
         return static_cast<int>(x);
@@ -157,7 +157,7 @@ double coerce_cast<long,double>(long x) {
 
 template<>
 double coerce_cast<float,double>(float x) {
-    if ( isnan(x) )
+    if ( std::isnan(x) )
         return NA_REAL;
     else
         return static_cast<double>(x);
