@@ -3,7 +3,7 @@ TODO for matter package
 -------------------------
 
 Priority: High
--Make NAs work for integers
+-Fix handling of NAs in summary stats and matrix multiplication
 -Change 'atoms' to S3 class (~2.7x space savings)
 -Delayed execution for scaling and centering (and other ops)
 

@@ -503,96 +503,72 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 })
 
 setMethod("sum", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getSum", x, na.rm)
 	names(ret) <- names(x)
 	ret
 })
 
 setMethod("mean", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getMean", x, na.rm)
 	names(ret) <- names(x)
 	ret
 })
 
 setMethod("var", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getVar", x, na.rm)
 	names(ret) <- names(x)
 	ret
 })
 
 setMethod("sd", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- sqrt(.Call("C_getVar", x, na.rm))
 	names(ret) <- names(x)
 	ret
 })
 
 setMethod("colSums", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getColSums", x, na.rm)
 	names(ret) <- colnames(x)
 	ret
 })
 
 setMethod("colMeans", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getColMeans", x, na.rm)
 	names(ret) <- colnames(x)
 	ret	
 })
 
 setMethod("colVar", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getColVar", x, na.rm)
 	names(ret) <- colnames(x)
 	ret
 })
 
 setMethod("colSd", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- sqrt(.Call("C_getColVar", x, na.rm))
 	names(ret) <- colnames(x)
 	ret
 })
 
 setMethod("rowSums", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getRowSums", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
 
 setMethod("rowMeans", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getRowMeans", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
 
 setMethod("rowVar", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- .Call("C_getRowVar", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
 
 setMethod("rowSd", "matter", function(x, na.rm = FALSE) {
-	if ( datamode(x) == "integer" )
-		warning("NAs not yet handled correctly for datamode 'integer'")
 	ret <- sqrt(.Call("C_getRowVar", x, na.rm))
 	names(ret) <- rownames(x)
 	ret
@@ -679,7 +655,10 @@ setVector <- function(x, value) {
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(x)) # should do this in C++ code
-	value <- coerce(value, datamode(x))
+	if ( is.logical(value) )
+		value <- as.integer(value)
+	if ( is.character(value) )
+		value <- as.double(value)
 	.Call("C_setVector", x, value)
 	if ( validObject(x) )
 		invisible(x)
@@ -705,7 +684,10 @@ setVectorElements <- function(x, i, value) {
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(i))
-	value <- coerce(value, datamode(x))
+	if ( is.logical(value) )
+		value <- as.integer(value)
+	if ( is.character(value) )
+		value <- as.double(value)
 	.Call("C_setVectorElements", x, i - 1, value)
 	if ( validObject(x) )
 		invisible(x)	
@@ -907,7 +889,10 @@ setMatrix <- function(x, value) {
 			"a multiple of replacement length")
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
 	value <- rep(value, length.out=length(x)) # should do this in C++ code
-	value <- coerce(value, datamode(x))
+	if ( is.logical(value) )
+		value <- as.integer(value)
+	if ( is.character(value) )
+		value <- as.double(value)
 	.Call("C_setMatrix", x, value)
 	if ( validObject(x) )
 		invisible(x)
@@ -935,7 +920,10 @@ setMatrixRows <- function(x, i, value) {
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(i) * ncol(x))
-	value <- coerce(value, datamode(x))
+	if ( is.logical(value) )
+		value <- as.integer(value)
+	if ( is.character(value) )
+		value <- as.double(value)
 	.Call("C_setMatrixRows", x, i - 1, value)
 	if ( validObject(x) )
 		invisible(x)
@@ -962,8 +950,11 @@ setMatrixCols <- function(x, j, value) {
 	if ( (length(j) * nrow(x)) %% length(value) != 0 )
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
+	if ( is.logical(value) )
+		value <- as.integer(value)
+	if ( is.character(value) )
+		value <- as.double(value)
 	value <- rep(value, length.out=length(j) * nrow(x))
-	value <- coerce(value, datamode(x))
 	.Call("C_setMatrixCols", x, j - 1, value)
 	if ( validObject(x) )
 		invisible(x)
@@ -999,7 +990,10 @@ setMatrixElements <- function(x, i, j, value) {
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(i) * length(j))
-	value <- coerce(value, datamode(x))
+	if ( is.logical(value) )
+		value <- as.integer(value)
+	if ( is.character(value) )
+		value <- as.double(value)
 	.Call("C_setMatrixElements", x, i - 1, j - 1, value)
 	if ( validObject(x) )
 		invisible(x)

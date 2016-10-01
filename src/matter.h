@@ -22,15 +22,10 @@ typedef double dbl_index_type;
 //----------------------------------
 
 template<typename CType, typename RType>
-CType C_cast(RType x) {
-    // add code here to convert NA_C to NA_R (and NaN, Inf, -Inf, etc.)
-    return static_cast<CType>(x);
-}
+CType C_cast(RType x);
+
 template<typename CType, typename RType>
-RType R_cast(CType x) {
-    // add code here to convert NA_R to NA_C (and NaN, Inf, -Inf, etc.)
-    return static_cast<RType>(x);
-}
+RType R_cast(CType x);
 
 template<typename CType, typename RType>
 size_t convert_read(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {

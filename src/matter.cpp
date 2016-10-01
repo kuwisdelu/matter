@@ -1,5 +1,199 @@
 
+#include <cmath>
+
 #include "matter.h"
+#include "matterDefines.h"
+
+//// Low-level read/write functions
+//----------------------------------
+
+// convert from R to C representation
+
+// from integer
+
+template<>
+short C_cast<short,int>(int x) {
+    if ( x < R_SHORT_MIN || x > R_SHORT_MAX || x == NA_INTEGER )
+    {
+        if ( x != NA_INTEGER )
+            warning("value is out of range for type 'short', element will be set to NA");
+        return NA_SHORT;
+    }
+    warning("casting from 'int' to 'short', precision may be lost");
+    return static_cast<short>(x);
+}
+
+template<>
+int C_cast<int,int>(int x) {
+    return x;
+}
+
+template<>
+long C_cast<long,int>(int x) {
+    if ( x == NA_INTEGER )
+        return NA_LONG;
+    else
+        return static_cast<long>(x);
+}
+
+template<>
+float C_cast<float,int>(int x) {
+    if ( x == NA_INTEGER )
+        return static_cast<float>(NA_REAL);
+    else
+        return static_cast<float>(x);
+}
+
+template<>
+double C_cast<double,int>(int x) {
+    if ( x == NA_INTEGER )
+        return NA_REAL;
+    else
+        return static_cast<double>(x);
+}
+
+// from numeric
+
+template<>
+short C_cast<short,double>(double x) {
+    if ( x < R_SHORT_MIN || x > R_SHORT_MAX ||  !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'short', element will be set to NA");
+        return NA_SHORT;
+    }
+    warning("casting from 'double' to 'short', precision may be lost");
+    return static_cast<short>(x);
+}
+
+template<>
+int C_cast<int,double>(double x) {
+    if ( x < R_INT_MIN || x > R_INT_MAX ||  !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'int', element will be set to NA");
+        return NA_INTEGER;
+    }
+    warning("casting from 'double' to 'int', precision may be lost");
+    return static_cast<int>(x);
+}
+
+template<>
+long C_cast<long,double>(double x) {
+    if ( !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'long', element will be set to NA");
+        return NA_LONG;
+    }
+    warning("casting from 'double' to 'long', precision may be lost");
+    return static_cast<long>(x);
+}
+
+template<>
+float C_cast<float,double>(double x) {
+    if ( !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'float' and will be set to NA");
+        return static_cast<float>(NA_REAL);
+    }
+    warning("casting from 'double' to 'float', precision may be lost");
+    return static_cast<float>(x);
+}
+
+template<>
+double C_cast<double,double>(double x) {
+    return x;
+}
+
+// convert from C to R representation
+
+// to integer
+
+template<>
+int R_cast<short,int>(short x) {
+    if ( x == NA_SHORT )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+template<>
+int R_cast<int,int>(int x) {
+    return x;
+}
+
+template<>
+int R_cast<long,int>(long x) {
+    if ( x < R_INT_MIN || x > R_INT_MAX || x == NA_LONG )
+    {
+        if ( x != NA_LONG )
+            warning("value is out of range for type 'int', element will be set to NA");
+        return NA_SHORT;
+    }
+    if ( x == NA_LONG )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+template<>
+int R_cast<float,int>(float x) {
+    warning("casting from 'float' to 'int', precision may be lost");
+    if ( isnan(x) )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+template<>
+int R_cast<double,int>(double x) {
+    warning("casting from 'double' to 'int', precision may be lost");
+    if ( !R_FINITE(x) )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+// to numeric
+
+template<>
+double R_cast<short,double>(short x) {
+    if ( x == NA_SHORT )
+        return NA_REAL;
+    else
+        return static_cast<double>(x);
+}
+
+template<>
+double R_cast<int,double>(int x) {
+    if ( x == NA_INTEGER )
+        return NA_REAL;
+    else
+        return static_cast<double>(x);
+}
+
+template<>
+double R_cast<long,double>(long x) {
+    if ( x == NA_LONG )
+        return NA_REAL;
+    else
+        return static_cast<double>(x);
+}
+
+template<>
+double R_cast<float,double>(float x) {
+    if ( isnan(x) )
+        return NA_REAL;
+    else
+        return static_cast<double>(x);
+}
+
+template<>
+double R_cast<double,double>(double x) {
+    return x;
+}
 
 //// Count # of consecutive indices after current one (for faster reads)
 //----------------------------------------------------------------------
@@ -296,15 +490,12 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
 double sum(MatterAccessor<double> & x, bool na_rm) {
     double retVal = 0;
     while ( x ) {
-        if ( !na_rm && !R_FINITE(*x) )
-        {
-            retVal = R_NaN;
-            break;
-        }
-        else if ( R_FINITE(*x) )
+        if ( R_FINITE(*x) )
         {
             retVal += *x;
         }
+        else if ( !na_rm || R_INFINITE(*x) )
+            return *x;
         ++x;
     }
     return retVal;
@@ -314,16 +505,13 @@ double mean(MatterAccessor<double> & x, bool na_rm) {
     double retVal = 0;
     index_type n = 0;
     while ( x ) {
-        if ( !na_rm && !R_FINITE(*x) )
-        {
-            retVal = R_NaN;
-            break;
-        }
-        else if ( R_FINITE(*x) )
+        if ( R_FINITE(*x) )
         {
             retVal += *x;
             n++;
         }
+        else if ( !na_rm || R_INFINITE(*x) )
+            return *x;
         ++x;
     }
     return retVal /= n;
@@ -331,21 +519,29 @@ double mean(MatterAccessor<double> & x, bool na_rm) {
 
 double var(MatterAccessor<double> & x, bool na_rm) {
     double m_old, m_new, s_old, s_new;
-    index_type n = 1;
-    m_new = *x;
-    s_new = 0;
-    ++x;
+    index_type n = 0;
     while ( x ) {
-        if ( !na_rm && !R_FINITE(*x) )
-            return R_NaN;
-        else if ( R_FINITE(*x) )
+        if ( R_FINITE(*x) )
         {
-            n++;
-            m_old = m_new;
-            s_old = s_new;
-            m_new = m_old + (*x - m_old) / n;
-            s_new = s_old + (*x - m_old) * (*x - m_new);
+            if ( n < 1 )
+            {
+                n = 1;
+                m_new = *x;
+                s_new = 0;
+            }
+            else
+            {
+                n++;
+                m_old = m_new;
+                s_old = s_new;
+                m_new = m_old + (*x - m_old) / n;
+                s_new = s_old + (*x - m_old) * (*x - m_new);
+            }
         }
+        else if ( !na_rm && (ISNA(*x) || ISNAN(*x)) )
+            return NA_REAL;
+        else if ( R_INFINITE(*x) )
+            return R_NaN;
         ++x;
     }
     if ( n < 2 )
@@ -404,12 +600,13 @@ SEXP Matter :: colsums(bool na_rm) {
                 MatterAccessor<double> x(*this, i);
                 int j = 0;
                 while ( x ) {
-                    if ( !R_FINITE(pRetVal[j]) )
-                        pRetVal[j] = R_NaN;
-                    else if ( !na_rm && !R_FINITE(*x) )
-                        pRetVal[j] = R_NaN;
-                    else if ( R_FINITE(*x) )
-                        pRetVal[j] += *x;
+                    if ( R_FINITE(pRetVal[j]) )
+                    {
+                        if ( R_FINITE(*x) )
+                            pRetVal[j] += *x;
+                        else if ( !na_rm || R_INFINITE(*x) )
+                            pRetVal[j] = *x;
+                    }
                     j++;
                     ++x;
                 }
@@ -444,21 +641,23 @@ SEXP Matter :: colmeans(bool na_rm) {
                     MatterAccessor<double> x(*this, i);
                     int j = 0;
                     while ( x ) {
-                        if ( !R_FINITE(pRetVal[j]) )
-                            pRetVal[j] = R_NaN;
-                        else if ( !na_rm && !R_FINITE(*x) )
-                            pRetVal[j] = R_NaN;
-                        else if ( R_FINITE(*x) )
+                        if ( R_FINITE(pRetVal[j]) )
                         {
-                            pRetVal[j] += *x;
-                            n[j]++;
+                            if ( R_FINITE(*x) )
+                            {
+                                pRetVal[j] += *x;
+                                n[j]++;
+                            }
+                            else if ( !na_rm || R_INFINITE(*x) )
+                                pRetVal[j] = *x;
                         }
                         j++;
                         ++x;
                     }
                 }
                 for ( int j = 0; j < ncols(); j++ )
-                    pRetVal[j] /= n[j];
+                    if ( R_FINITE(pRetVal[j]) )
+                        pRetVal[j] /= n[j];
                 Free(n);
             }
             break;
@@ -493,24 +692,30 @@ SEXP Matter :: colvar(bool na_rm) {
                     MatterAccessor<double> x(*this, i);
                     int j = 0;
                     while ( x ) {
-                        if ( !R_FINITE(pRetVal[j]) )
-                            pRetVal[j] = R_NaN;
-                        else if ( !na_rm && !R_FINITE(*x) )
-                            pRetVal[j] = R_NaN;
-                        else if ( R_FINITE(*x) )
+                        if ( R_FINITE(pRetVal[j]) )
                         {
-                            if ( n[j] < 1 )
+                            if ( R_FINITE(*x) )
                             {
-                                n[j]++;
-                                m_new[j] = *x;
-                                pRetVal[j] = 0;
+                                if ( n[j] < 1 )
+                                {
+                                    n[j]++;
+                                    m_new[j] = *x;
+                                    pRetVal[j] = 0;
+                                }
+                                else
+                                {
+                                    n[j]++;
+                                    m_old[j] = m_new[j];
+                                    m_new[j]= m_old[j] + (*x - m_old[j]) / n[j];
+                                    pRetVal[j] = pRetVal[j] + (*x - m_old[j]) * (*x - m_new[j]);
+                                }
                             }
                             else
                             {
-                                n[j]++;
-                                m_old[j] = m_new[j];
-                                m_new[j]= m_old[j] + (*x - m_old[j]) / n[j];
-                                pRetVal[j] = pRetVal[j] + (*x - m_old[j]) * (*x - m_new[j]);
+                                if ( !na_rm && (ISNA(*x) || ISNAN(*x)) )
+                                    pRetVal[j] = NA_REAL;
+                                else if ( R_INFINITE(*x) )
+                                    pRetVal[j] = R_NaN;
                             }
                         }
                         j++;
@@ -518,10 +723,13 @@ SEXP Matter :: colvar(bool na_rm) {
                     }
                 }
                 for ( int j = 0; j < ncols(); j++ ) {
-                    if ( n[j] < 2 )
-                        pRetVal[j] = R_NaN;
-                    else
-                        pRetVal[j] = pRetVal[j] / (n[j] - 1);
+                    if ( R_FINITE(pRetVal[j]) )
+                    {
+                        if ( n[j] < 2 )
+                            pRetVal[j] = NA_REAL;
+                        else
+                            pRetVal[j] = pRetVal[j] / (n[j] - 1);
+                    }
                 }
                 Free(m_old);
                 Free(m_new);
@@ -547,12 +755,13 @@ SEXP Matter :: rowsums(bool na_rm) {
                 MatterAccessor<double> x(*this, j);
                 int i = 0;
                 while ( x ) {
-                    if ( !R_FINITE(pRetVal[i]) )
-                        pRetVal[i] = R_NaN;
-                    else if ( !na_rm && !R_FINITE(*x) )
-                        pRetVal[i] = R_NaN;
-                    else if ( R_FINITE(*x) )
-                        pRetVal[i] += *x;
+                    if ( R_FINITE(pRetVal[i]) )
+                    {
+                        if ( R_FINITE(*x) )
+                            pRetVal[i] += *x;
+                        else if ( !na_rm || R_INFINITE(*x) )
+                            pRetVal[i] = *x;
+                    }
                     i++;
                     ++x;
                 }
@@ -587,21 +796,23 @@ SEXP Matter :: rowmeans(bool na_rm) {
                     MatterAccessor<double> x(*this, j);
                     int i = 0;
                     while ( x ) {
-                        if ( !R_FINITE(pRetVal[i]) )
-                            pRetVal[i] = R_NaN;
-                        else if ( !na_rm && !R_FINITE(*x) )
-                            pRetVal[i] = R_NaN;
-                        else if ( R_FINITE(*x) )
+                        if ( R_FINITE(pRetVal[i]) )
                         {
-                            pRetVal[i] += *x;
-                            n[i]++;
+                            if ( R_FINITE(*x) )
+                            {
+                                pRetVal[i] += *x;
+                                n[i]++;
+                            }
+                            else if ( !na_rm || R_INFINITE(*x) )
+                                pRetVal[i] = *x;
                         }
                         i++;
                         ++x;
                     }
                 }
                 for ( int i = 0; i < nrows(); i++ )
-                    pRetVal[i] /= n[i];
+                    if ( R_FINITE(pRetVal[i]) )
+                        pRetVal[i] /= n[i];
                 Free(n);
             }
             break;
@@ -636,24 +847,30 @@ SEXP Matter :: rowvar(bool na_rm) {
                     MatterAccessor<double> x(*this, j);
                     int i = 0;
                     while ( x ) {
-                        if ( !R_FINITE(pRetVal[i]) )
-                            pRetVal[i] = R_NaN;
-                        else if ( !na_rm && !R_FINITE(*x) )
-                            pRetVal[i] = R_NaN;
-                        else if ( R_FINITE(*x) )
+                        if ( R_FINITE(pRetVal[i]) )
                         {
-                            if ( n[i] < 1 )
+                            if ( R_FINITE(*x) )
                             {
-                                n[i]++;
-                                m_new[i] = *x;
-                                pRetVal[i] = 0;
+                                if ( n[i] < 1 )
+                                {
+                                    n[i]++;
+                                    m_new[i] = *x;
+                                    pRetVal[i] = 0;
+                                }
+                                else
+                                {
+                                    n[i]++;
+                                    m_old[i] = m_new[i];
+                                    m_new[i]= m_old[i] + (*x - m_old[i]) / n[i];
+                                    pRetVal[i] = pRetVal[i] + (*x - m_old[i]) * (*x - m_new[i]);
+                                }
                             }
                             else
                             {
-                                n[i]++;
-                                m_old[i] = m_new[i];
-                                m_new[i]= m_old[i] + (*x - m_old[i]) / n[i];
-                                pRetVal[i] = pRetVal[i] + (*x - m_old[i]) * (*x - m_new[i]);
+                                if ( !na_rm && (ISNA(*x) || ISNAN(*x)) )
+                                    pRetVal[i] = NA_REAL;
+                                else if ( R_INFINITE(*x) )
+                                    pRetVal[i] = R_NaN;
                             }
                         }
                         i++;
@@ -661,10 +878,13 @@ SEXP Matter :: rowvar(bool na_rm) {
                     }
                 }
                 for ( int i = 0; i < nrows(); i++ ) {
-                    if ( n[i] < 2 )
-                        pRetVal[i] = R_NaN;
-                    else
-                        pRetVal[i] = pRetVal[i] / (n[i] - 1);
+                    if ( R_FINITE(pRetVal[i]) )
+                    {
+                        if ( n[i] < 2 )
+                            pRetVal[i] = R_NaN;
+                        else
+                            pRetVal[i] = pRetVal[i] / (n[i] - 1);
+                    }
                 }
                 Free(m_old);
                 Free(m_new);
@@ -785,11 +1005,11 @@ extern "C" {
 
     void setVector(SEXP x, SEXP value) {
         Matter mVec(x);
-        switch(mVec.datamode()) {
-            case 1:
+        switch(TYPEOF(value)) {
+            case INTSXP:
                 mVec.writeVector<int>(value);
                 break;
-            case 2:
+            case REALSXP:
                 mVec.writeVector<double>(value);
                 break;
         }
@@ -809,11 +1029,11 @@ extern "C" {
 
     void setVectorElements(SEXP x, SEXP i, SEXP value) {
         Matter mVec(x);
-        switch(mVec.datamode()) {
-            case 1:
+        switch(TYPEOF(value)) {
+            case INTSXP:
                 mVec.writeVectorElements<int>(i, value);
                 break;
-            case 2:
+            case REALSXP:
                 mVec.writeVectorElements<double>(i, value);
                 break;
         }
@@ -833,11 +1053,11 @@ extern "C" {
 
     void setMatrix(SEXP x, SEXP value) {
         Matter mMat(x);
-        switch(mMat.datamode()) {
-            case 1:
+        switch(TYPEOF(value)) {
+            case INTSXP:
                 mMat.writeMatrix<int>(value);
                 break;
-            case 2:
+            case REALSXP:
                 mMat.writeMatrix<double>(value);
                 break;
         }
@@ -857,11 +1077,11 @@ extern "C" {
 
     void setMatrixRows(SEXP x, SEXP i, SEXP value) {
         Matter mMat(x);
-        switch(mMat.datamode()) {
-            case 1:
+        switch(TYPEOF(value)) {
+            case INTSXP:
                 mMat.writeMatrixRows<int>(i, value);
                 break;
-            case 2:
+            case REALSXP:
                 mMat.writeMatrixRows<double>(i, value);
                 break;
         }
@@ -881,11 +1101,11 @@ extern "C" {
 
     void setMatrixCols(SEXP x, SEXP j, SEXP value) {
         Matter mMat(x);
-        switch(mMat.datamode()) {
-            case 1:
+        switch(TYPEOF(value)) {
+            case INTSXP:
                 mMat.writeMatrixCols<int>(j, value);
                 break;
-            case 2:
+            case REALSXP:
                 mMat.writeMatrixCols<double>(j, value);
                 break;
         }
@@ -905,11 +1125,11 @@ extern "C" {
 
     void setMatrixElements(SEXP x, SEXP i, SEXP j, SEXP value) {
         Matter mMat(x);
-        switch(mMat.datamode()) {
-            case 1:
+        switch(TYPEOF(value)) {
+            case INTSXP:
                 mMat.writeMatrixElements<int>(i, j, value);
                 break;
-            case 2:
+            case REALSXP:
                 mMat.writeMatrixElements<double>(i, j, value);
                 break;
         }

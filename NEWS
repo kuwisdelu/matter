@@ -1,4 +1,13 @@
 
+
+CHANGES IN VERSION 0.99.6 [2016-10-1]
+---------------------------------
+
+BUG FIXES
+
+    o Fixed handling of NA, NaN, Inf, and -Inf during C type coercion
+    o Improved handling of NA, NaN, Inf, and -Inf in summary stats
+
 CHANGES IN VERSION 0.99.5 [2016-9-27]
 ---------------------------------
 

@@ -55,7 +55,7 @@ matter_vec(data, datamode = "double", filepaths = NULL,
     \describe{
         \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
 
-        \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
+        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of length one with value 'integer' or 'numeric'.}
 
         \item{\code{filepaths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
