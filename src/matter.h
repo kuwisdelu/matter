@@ -119,7 +119,7 @@ class Atoms {
 
     public:
 
-        Atoms(SEXP x)
+        Atoms(SEXP x, )
         {
             _length = INTEGER_VALUE(GET_SLOT(x, mkString("length")));
             _file_id = INTEGER(GET_SLOT(x, mkString("file_id")));
@@ -185,6 +185,8 @@ class Atoms {
                 case 5:
                     byte_offset = sizeof(double) * (offset - index_offset(i));
                     break;
+                default:
+                    error("unsupported datamode");
             }
             file_offset = this->offset(i) + byte_offset;
             return file_offset;
@@ -226,6 +228,8 @@ class Atoms {
                     case 5:
                         n = convert_read<double,RType>(ptr, n, stream, skip);
                         break;
+                    default:
+                        error("unsupported datamode");
                 }
                 toRead -= n;
                 numRead += n;
@@ -264,6 +268,8 @@ class Atoms {
                     case 5:
                         n = convert_write<double,RType>(ptr, n, stream, skip);
                         break;
+                    default:
+                        error("unsupported datamode");
                 }
                 toWrite -= n;
                 numWrote += n;

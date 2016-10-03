@@ -7,11 +7,11 @@ setGeneric("sum")
 setGeneric("mean")
 setGeneric("var", signature="x")
 setGeneric("sd", signature="x")
-# setGeneric("colSums") # Use S4Vectors generic
-# setGeneric("rowSums") # Use S4Vectors generic
-# setGeneric("colMeans") # Use S4Vectors generic
-# setGeneric("rowMeans") # Use S4Vectors generic
-setGeneric("apply")
+# setGeneric("colSums") # Use S4Vectors generic (should be moved to BiocGenerics?)
+# setGeneric("rowSums") # Use S4Vectors generic (should be moved to BiocGenerics?)
+# setGeneric("colMeans") # Use S4Vectors generic (should be moved to BiocGenerics?)
+# setGeneric("rowMeans") # Use S4Vectors generic (should be moved to BiocGenerics?)
+setGeneric("apply", signature="X")
 
 #### Define new generics for stats ####
 ## -------------------------------------
@@ -60,25 +60,13 @@ all.indices <- function(x, i, margin) {
 }
 
 sizeof <- function(type) {
-	type <- as.character(type)
-	vapply(type, switch, numeric(1),
+	type <- make.datamode(type, type="C")
+	vapply(as.character(type), switch, numeric(1),
 		short = 2,
 		int = 4,
 		long = 8,
 		float = 4,
 		double = 8)
-}
-
-drop.matrix <- function(x) {
-	dmn <- dimnames(x)
-	if ( dim(x)[1] == 1 ) {
-		x <- as.vector(x)
-		names(x) <- dmn[[2]]
-	} else if ( dim(x)[2] == 1 ) {
-		x <- as.vector(x)
-		names(x) <- dmn[[1]]
-	}
-	x
 }
 
 combine.colnames <- function(x, y) {
@@ -149,10 +137,10 @@ make.datamode <- function(datamode, type=c("C", "R")) {
 
 tabulate.datamode <- function(x) {
 	if ( class(x) == "atoms" ) {
-		x <- as.character(datamode(x))
+		x <- datamode(x)
 	} else if ( class(x) == "list" ) {
 		x <- unlist(lapply(x, function(xs)
-			as.character(datamode(xs))))
+			datamode(xs)))
 	}
 	summary(make.datamode(x, type="C"))
 }
@@ -172,15 +160,6 @@ widest.datamode <- function(x, from=c("C", "R")) {
 			integer = "int",
 			numeric = "double"), type="C")
 	}
-}
-
-coerce <- function(x, datamode) {
-	datamode <- as.character(datamode)
-	if ( datamode == "integer" && is.double(x) )
-		warning("coercing 'double' to 'integer' precision")
-	switch(datamode,
-		integer = as.integer(x),
-		numeric = as.numeric(x))
 }
 
 disk.used <- function(x) {
@@ -257,8 +236,8 @@ profile <- function(expr, reset = FALSE) {
 setClass("atoms",
 	slots = c(
 		length = "integer",
-		file_id = "factor",
-		datamode = "factor",
+		file_id = "integer",
+		datamode = "integer",
 		offset = "numeric", # byte offset from start of file
 		extent = "numeric", # number of elements
 		index_offset = "numeric", # cumulative index of first element
@@ -282,10 +261,10 @@ setClass("atoms",
 			stop("'length' not equal to length of object elements")
 		if ( object@index_offset[1] != 0 )
 			stop("'index_offset' must begin at 0")
-		C_datamodes <- levels(make.datamode(type="C"))
-		if ( any(!as.character(object@datamode) %in% C_datamodes) )
-			stop("'datamode' should be one of [",
-				paste(C_datamodes, collapse=", "), "]")
+		# C_datamodes <- levels(make.datamode(type="C"))
+		# if ( any(!as.character(object@datamode) %in% C_datamodes) )
+		# 	stop("'datamode' should be one of [",
+		# 		paste(C_datamodes, collapse=", "), "]")
 		extent <- object@index_extent - object@index_offset
 		if ( any(extent != object@extent) )
 			stop("'index_offset' or 'index_extent' incongruent with 'extent'")
@@ -298,13 +277,13 @@ setClass("atoms",
 			stop("'index_extent' must terminate at sum of 'extent' [", length, "]")
 	})
 
-atoms <- function(file_id = factor(NA), datamode=make.datamode("double", type="C"),
-				offset = numeric(1), extent = numeric(1))
+atoms <- function(file_id = as.integer(NA), datamode="double",
+					offset = numeric(1), extent = numeric(1))
 {
 	new("atoms",
 		length=as.integer(length(file_id)),
-		file_id=as.factor(file_id),
-		datamode=make.datamode(datamode),
+		file_id=as.integer(file_id),
+		datamode=as.integer(make.datamode(datamode, type="C")),
 		offset=as.numeric(offset),
 		extent=as.numeric(extent),
 		index_offset=as.numeric(c(0, cumsum(extent)[-length(extent)])),
@@ -314,17 +293,13 @@ atoms <- function(file_id = factor(NA), datamode=make.datamode("double", type="C
 setMethod("datamode", "atoms", function(x) x@datamode)
 
 setReplaceMethod("datamode", "atoms", function(x, value) {
-	x@datamode <- value
+	x@datamode <- as.integer(make.datamode(value, type="C"))
 	x
 })
 
 setMethod("combine", "atoms", function(x, y, ...) {
-	atoms(file_id=factor(c(
-			as.character(x@file_id),
-			as.character(y@file_id))),
-		datamode=make.datamode(c(
-			as.character(x@datamode),
-			as.character(y@datamode))),
+	atoms(file_id=c(x@file_id, y@file_id),
+		datamode=c(x@datamode, y@datamode),
 		offset=c(x@offset, y@offset),
 		extent=c(x@extent, y@extent))
 })
@@ -343,8 +318,8 @@ setMethod("c", "atoms", function(x, ..., recursive=FALSE)
 
 setMethod("show", "atoms", function(object) {
 	print(data.frame(
-		file_id=as.integer(object@file_id),
-		datamode=object@datamode,
+		file_id=object@file_id,
+		datamode=make.datamode(object@datamode, type="C"),
 		offset=object@offset,
 		extent=object@extent,
 		index_offset=object@index_offset,
@@ -620,8 +595,8 @@ matter_vec <- function(data, datamode = "double", filepaths = NULL,
 		filepaths <- rep(filepaths, length.out=length(extent))
 	x <- new("matter_vec",
 		data=atoms(
-			file_id=factor(filepaths),
-			datamode=make.datamode(datamode, type="C"),
+			file_id=as.integer(factor(filepaths)),
+			datamode=as.integer(make.datamode(datamode, type="C")),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
 		datamode=widest.datamode(datamode, from="C"),
@@ -710,11 +685,18 @@ setReplaceMethod("[",
 	function(x, i, ..., value) setVectorElements(x, i, value))
 
 setMethod("combine", "matter_vec", function(x, y, ...) {
+	filepaths <- levels(factor(c(x@filepaths, y@filepaths)))
+	x@data@file_id <- as.integer(factor(x@data@file_id,
+		levels=seq_len(length(filepaths)),
+		labels=filepaths))
+	y@data@file_id <- as.integer(factor(y@data@file_id,
+		levels=seq_len(length(filepaths)),
+		labels=filepaths))
 	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
 		datamode=widest.datamode(data, from="C"),
-		filepaths=levels(factor(c(x@filepaths, y@filepaths))),
+		filepaths=filepaths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=NULL,
@@ -907,7 +889,7 @@ getMatrixRows <- function(x, i, drop=TRUE) {
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x)[i], colnames(x))
 	if ( drop ) 
-		y <- drop.matrix(y)
+		y <- drop(y)
 	y
 }
 
@@ -938,7 +920,7 @@ getMatrixCols <- function(x, j, drop=TRUE) {
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x), colnames(x)[j])
 	if ( drop ) 
-		y <- drop.matrix(y)
+		y <- drop(y)
 	y
 }
 
@@ -973,7 +955,7 @@ getMatrixElements <- function(x, i, j, drop=TRUE) {
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x)[i], colnames(x)[j])
 	if ( drop ) 
-		y <- drop.matrix(y)
+		y <- drop(y)
 	y
 }
 
@@ -1133,10 +1115,12 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 	if ( is(y, "matter_vec") )
 		y <- t(t(y))
 	if ( nrow(x) != nrow(y) )
-		stop("number of rows of matrices must match")
+		stop("number of rows of column-major matrices must match")
 	filepaths <- levels(factor(c(x@filepaths, y@filepaths)))
 	data <- lapply(append(x@data, y@data), function(xs) {
-		xs@file_id <- factor(xs@file_id, levels=filepaths)
+		xs@file_id <- as.integer(factor(xs@file_id,
+			levels=seq_len(length(filepaths)),
+			labels=filepaths))
 		xs
 	})
 	new(class(x),
@@ -1169,10 +1153,12 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 	if ( is(y, "matter_vec") )
 		y <- t(y)
 	if ( ncol(x) != ncol(y) )
-		stop("number of columns of matrices must match")
+		stop("number of columns of row-major matrices must match")
 	filepaths <- levels(factor(c(x@filepaths, y@filepaths)))
 	data <- lapply(append(x@data, y@data), function(xs) {
-		xs@file_id <- factor(xs@file_id, levels=filepaths)
+		xs@file_id <- as.integer(factor(xs@file_id,
+			levels=seq_len(length(filepaths)),
+			labels=filepaths))
 		xs
 	})
 	new(class(x),

@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 0.99.8 [2016-10-3]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o In S4 class 'atoms', slot 'file_id' is now type 'integer' to save space
+    o In S4 class 'atoms', slot 'datamode' is now type 'integer' to save space
+
 CHANGES IN VERSION 0.99.7 [2016-10-1]
 ---------------------------------
 
