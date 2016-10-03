@@ -7,10 +7,10 @@ setGeneric("sum")
 setGeneric("mean")
 setGeneric("var", signature="x")
 setGeneric("sd", signature="x")
-# setGeneric("colSums") # Use S4Vectors generic (should be moved to BiocGenerics?)
-# setGeneric("rowSums") # Use S4Vectors generic (should be moved to BiocGenerics?)
-# setGeneric("colMeans") # Use S4Vectors generic (should be moved to BiocGenerics?)
-# setGeneric("rowMeans") # Use S4Vectors generic (should be moved to BiocGenerics?)
+# setGeneric("colSums", signature="x") # Use S4Vectors or BiocGenerics(?) generic
+# setGeneric("rowSums", signature="x") # Use S4Vectors or BiocGenerics(?) generic
+# setGeneric("colMeans", signature="x") # Use S4Vectors or BiocGenerics(?) generic
+# setGeneric("rowMeans", signature="x") # Use S4Vectors or BiocGenerics(?) generic
 setGeneric("apply", signature="X")
 
 #### Define new generics for stats ####
@@ -243,12 +243,14 @@ setClass("atoms",
 		index_offset = "numeric", # cumulative index of first element
 		index_extent = "numeric"), # cumulative index of one-past-the-end
 	validity = function(object) {
+		errors <- NULL
 		lens <- c(file_id=length(object@file_id),
 			datamode=length(object@datamode),
 			offset=length(object@offset),
 			extent=length(object@extent),
 			index_offset=length(object@index_offset),
 			index_extent=length(object@index_extent))
+
 		if ( length(unique(lens)) != 1 )
 			stop("lengths of 'file_id' [", lens["file_id"], "], ",
 				"'datamode' [", lens["datamode"], "], ",
@@ -258,23 +260,24 @@ setClass("atoms",
 				"and 'index_extent' [", lens["index_extent"], "], ",
 				"must all be equal")
 		if ( object@length != unique(lens) )
-			stop("'length' not equal to length of object elements")
+			errors <- c(errors, "'length' not equal to length of object elements")
 		if ( object@index_offset[1] != 0 )
-			stop("'index_offset' must begin at 0")
+			errors <- c(errors, "'index_offset' must begin at 0")
 		# C_datamodes <- levels(make.datamode(type="C"))
 		# if ( any(!as.character(object@datamode) %in% C_datamodes) )
-		# 	stop("'datamode' should be one of [",
+		# 	errors <- c(errors, "'datamode' should be one of [",
 		# 		paste(C_datamodes, collapse=", "), "]")
 		extent <- object@index_extent - object@index_offset
 		if ( any(extent != object@extent) )
-			stop("'index_offset' or 'index_extent' incongruent with 'extent'")
+			errors <- c(errors, "'index_offset' or 'index_extent' incongruent with 'extent'")
 		index_offset.drop <-  object@index_offset[-1L]
 		index_extent.drop <-  object@index_extent[-length(object@index_extent)]
 		if ( any(index_offset.drop != index_extent.drop) )
-			stop("'index_offset' or 'index_extent' are non-contiguous")
+			errors <- c(errors, "'index_offset' or 'index_extent' are non-contiguous")
 		length <- sum(object@extent)
 		if ( length != object@index_extent[length(object@index_extent)] )
-			stop("'index_extent' must terminate at sum of 'extent' [", length, "]")
+			errors <- c(errors, "'index_extent' must terminate at sum of 'extent' [", length, "]")
+		if ( is.null(errors) ) TRUE else errors
 	})
 
 atoms <- function(file_id = as.integer(NA), datamode="double",
@@ -347,39 +350,41 @@ setClass("matter",
 		dimnames = "listORNULL"),
 	contains = "VIRTUAL",
 	validity = function(object) {
+		errors <- NULL
 		if ( !is.null(object@filepaths) && any(!file.exists(object@filepaths)) )
-			stop("file [", which(!file.exists(object@filepaths)), "] does not exist")
+			errors <- c(errors, "file [", which(!file.exists(object@filepaths)), "] does not exist")
 		C_readmodes <- c("rb", "rb+")
 		if ( length(object@filemode) != 1 || !object@filemode %in% C_readmodes )
-			stop("'filemode' should be one of [",
+			errors <- c(errors, "'filemode' should be one of [",
 				paste(C_readmodes, collapse=", "), "]")
 		R_datamodes <- levels(make.datamode(type="R"))
 		if ( !as.character(object@datamode) %in% R_datamodes )
-			stop("'datamode' should be one of [",
+			errors <- c(errors, "'datamode' should be one of [",
 				paste(R_datamodes, collapse=", "), "]")
 		if ( !object@chunksize > 0L )
-			stop("chunksize must be positive")
+			errors <- c(errors, "chunksize must be positive")
 		if ( !is.null(object@dim) && prod(object@dim) != object@length )
-			stop("dims [product ", prod(object@dim), "] ",
+			errors <- c(errors, "dims [product ", prod(object@dim), "] ",
 				"do not match length of object [", object@length, "]")
 		if ( !is.null(object@names) && length(object@names) != object@length )
-			stop("names [length ", length(object@names), "] ",
+			errors <- c(errors, "names [length ", length(object@names), "] ",
 				"do not match length of object [", object@length, "]")
 		if ( !is.null(dimnames) && is.null(dim) )
-			stop("'dimnames' applied to non-array")
+			errors <- c(errors, "'dimnames' applied to non-array")
 		if ( !is.null (object@dimnames) ) {
 			if ( is.null(object@dim) )
-				stop("'dimnames' applied to non-array")
+				errors <- c(errors, "'dimnames' applied to non-array")
 			if ( length(object@dimnames) != length(object@dim) )
-				stop("length of 'dimnames' [", length(object@dimnames), "] ",
+				errors <- c(errors, "length of 'dimnames' [", length(object@dimnames), "] ",
 					"must match that of 'dims' [", length(object@dim), "]")
 			for ( i in seq_along(object@dimnames) ) {
 				dmn <- object@dimnames[[i]]
 				if ( !is.null(dmn) && length(dmn) != object@dim[i] )
-					stop("length of 'dimnames' [", i, "] ",
+					errors <- c(errors, "length of 'dimnames' [", i, "] ",
 						"not equal to array extent")
 			}
 		}
+		if ( is.null(errors) ) TRUE else errors
 	})
 
 matter <- function(...) {
@@ -565,10 +570,12 @@ setClass("matter_vec",
 		dimnames = NULL),
 	contains = "matter",
 	validity = function(object) {
+		errors <- NULL
 		if ( !is.null(object@dim) )
-			stop("vector must have NULL 'dim'")
+			errors <- c(errors, "vector must have NULL 'dim'")
 		if ( !is.null(object@dimnames) )
-			stop("vector must have NULL 'dimnames'")
+			errors <- c(errors, "vector must have NULL 'dimnames'")
+		if ( is.null(errors) ) TRUE else errors
 	})
 
 matter_vec <- function(data, datamode = "double", filepaths = NULL,
@@ -744,10 +751,12 @@ setClass("matter_mat",
 		names = NULL,
 		dimnames = NULL),
 	validity = function(object) {
+		errors <- NULL
 		if ( is.null(object@dim) )
-			stop("matrix must have non-NULL 'dim'")
+			errors <- c(errors, "matrix must have non-NULL 'dim'")
 		if ( length(object@dim) != 2 )
-			stop("matrix must have 'dim' of length 2")
+			errors <- c(errors, "matrix must have 'dim' of length 2")
+		if ( is.null(errors) ) TRUE else errors
 	})
 
 setClass("matter_matc",

@@ -1,6 +1,7 @@
 \name{apply}
 \docType{methods}
 
+\alias{apply}
 \alias{apply,matter_mat-method}
 
 \title{Apply Functions Over ``matter'' Matrices}

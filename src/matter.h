@@ -119,7 +119,7 @@ class Atoms {
 
     public:
 
-        Atoms(SEXP x, )
+        Atoms(SEXP x)
         {
             _length = INTEGER_VALUE(GET_SLOT(x, mkString("length")));
             _file_id = INTEGER(GET_SLOT(x, mkString("file_id")));
