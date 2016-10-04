@@ -11,44 +11,94 @@
 #include "utils.h"
 
 #define within_bounds(x, a, b) ((a) <= (x) && (x) < (b))
-
 #define out_of_bounds(x, a, b) ((x) < (a) && (b) <= (x))
 
-typedef long index_type;
+#define MATTER_VEC 1
+#define MATTER_MATC 2
+#define MATTER_MATR 3
 
+#define NONE -99
+
+typedef long index_type;
 typedef double dbl_index_type;
 
-//// Low-level read/write functions
+//// Delayed operations on atoms
+//-------------------------------
+
+struct Scaled {
+    SEXP scale;
+    SEXP center;
+};
+
+typedef struct Scaled Scaled;
+
+enum Ops_t { none, scalar, vector };
+
+struct Ops {
+    Ops_t center_t;
+    double * center;
+    Ops_t scale_t;
+    double * scale; };
+
+typedef struct Ops Ops;
+
+Ops null_transform();
+
+template<typename T>
+T transform(T x, Ops o, int i) {
+    switch(o.center_t) {
+        case none:
+            break;
+        case scalar:
+            x -= (*o.center);
+            break;
+        case vector:
+            x -= o.center[i];
+            break;
+    }
+    switch(o.scale_t) {
+        case none:
+            break;
+        case scalar:
+            x /= (*o.scale);
+            break;
+        case vector:
+            x /= o.scale[i];
+            break;
+    }
+    return x;
+}
+
+template<typename T>
+T backtransform(T x, Ops o, int i) {
+    switch(o.scale_t) {
+        case none:
+            break;
+        case scalar:
+            x *= (*o.scale);
+            break;
+        case vector:
+            x *= o.scale[i];
+            break;
+    }
+    switch(o.center_t) {
+        case none:
+            break;
+        case scalar:
+            x += (*o.center);
+            break;
+        case vector:
+            x += o.center[i];
+            break;
+    }
+    return x;
+}
+
+//// Low-level utility functions
 //----------------------------------
 
 template<typename T1, typename T2>
 T2 coerce_cast(T1 x);
-
-template<typename CType, typename RType>
-size_t convert_read(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {
-    size_t numRead;
-    CType * tmp = (CType *) Calloc(count, CType);
-    numRead = fread(tmp, sizeof(CType), count, stream);
-    for ( size_t i = 0; i < numRead; i++ ) {
-        *ptr = coerce_cast<CType,RType>(tmp[i]);
-        ptr += skip;
-    }
-    Free(tmp);
-    return numRead;
-}
-
-template<typename CType, typename RType>
-size_t convert_write(RType * ptr, size_t count, FILE * stream, size_t skip = 1) {
-    size_t numWrote;
-    CType * tmp = (CType *) Calloc(count, CType);
-    for ( size_t i = 0; i < count; i++ ) {
-        tmp[i] = coerce_cast<RType,CType>(*ptr);
-        ptr += skip;
-    }
-    numWrote = fwrite(tmp, sizeof(CType), count, stream);
-    Free(tmp);
-    return numWrote;
-}
 
 template<typename RType>
 void fillNA(RType * ptr, size_t count, size_t skip = 1) {
@@ -119,7 +169,7 @@ class Atoms {
 
     public:
 
-        Atoms(SEXP x)
+        Atoms(SEXP x, Files * f, Ops o) : _files(f), _ops(o)
         {
             _length = INTEGER_VALUE(GET_SLOT(x, mkString("length")));
             _file_id = INTEGER(GET_SLOT(x, mkString("file_id")));
@@ -199,8 +249,38 @@ class Atoms {
             error("subscript out of bounds");
         }
 
+        template<typename CType, typename RType>
+        index_type read_atom(RType * ptr, int which, index_type offset, index_type count, size_t skip = 1) {
+            index_type numRead;
+            FILE * stream = _files->require(file_id(which));
+            fseek(stream, file_offset(which, offset), SEEK_SET);
+            CType * tmp = (CType *) Calloc(count, CType);
+            numRead = fread(tmp, sizeof(CType), count, stream);
+            for ( index_type i = 0; i < numRead; i++ ) {
+                *ptr = transform<RType>(coerce_cast<CType,RType>(tmp[i]), _ops, offset + i);
+                ptr += skip;
+            }
+            Free(tmp);
+            return numRead;
+        }
+
+        template<typename CType, typename RType>
+        index_type write_atom(RType * ptr, int which, index_type offset, index_type count, size_t skip = 1) {
+            index_type numWrote;
+            FILE * stream = _files->require(file_id(which));
+            fseek(stream, file_offset(which, offset), SEEK_SET);
+            CType * tmp = (CType *) Calloc(count, CType);
+            for ( index_type i = 0; i < count; i++ ) {
+                tmp[i] = backtransform<RType>(coerce_cast<RType,CType>(*ptr), _ops, offset + i);
+                ptr += skip;
+            }
+            numWrote = fwrite(tmp, sizeof(CType), count, stream);
+            Free(tmp);
+            return numWrote;
+        }
+
         template<typename RType>
-        index_type read(RType * ptr, index_type offset, index_type count, Files * pfiles, size_t skip = 1) {
+        index_type read(RType * ptr, index_type offset, index_type count, size_t skip = 1) {
             index_type toRead, numRead, totLength;
             toRead = count;
             numRead = 0;
@@ -210,23 +290,21 @@ class Atoms {
             while ( numRead < count && offset < totLength ) {
                 int i = find_atom(offset);
                 index_type n = toRead < extent(i) ? toRead : extent(i);
-                FILE * stream = pfiles->require(file_id(i));
-                fseek(stream, file_offset(i, offset), SEEK_SET);
                 switch(datamode(i)) {
                     case 1:
-                        n = convert_read<short,RType>(ptr, n, stream, skip);
+                        n = read_atom<short,RType>(ptr, i, offset, n, skip);
                         break;
                     case 2:
-                        n = convert_read<int,RType>(ptr, n, stream, skip);
+                        n = read_atom<int,RType>(ptr, i, offset, n, skip);
                         break;
                     case 3:
-                        n = convert_read<long,RType>(ptr, n, stream, skip);
+                        n = read_atom<long,RType>(ptr, i, offset, n, skip);
                         break;
                     case 4:
-                        n = convert_read<float,RType>(ptr, n, stream, skip);
+                        n = read_atom<float,RType>(ptr, i, offset, n, skip);
                         break;
                     case 5:
-                        n = convert_read<double,RType>(ptr, n, stream, skip);
+                        n = read_atom<double,RType>(ptr, i, offset, n, skip);
                         break;
                     default:
                         error("unsupported datamode");
@@ -240,7 +318,7 @@ class Atoms {
         }
 
         template<typename RType>
-        index_type write(RType * ptr, index_type offset, index_type count, Files * pfiles, size_t skip = 1) {
+        index_type write(RType * ptr, index_type offset, index_type count, size_t skip = 1) {
             index_type toWrite, numWrote, totLength;
             toWrite = count;
             numWrote = 0;
@@ -250,23 +328,21 @@ class Atoms {
             while ( numWrote < count && offset < totLength ) {
                 int i = find_atom(offset);
                 index_type n = toWrite < extent(i) ? toWrite : extent(i);
-                FILE * stream = pfiles->require(file_id(i));
-                fseek(stream, file_offset(i, offset), SEEK_SET);
                 switch(datamode(i)) {
                     case 1:
-                        n = convert_write<short,RType>(ptr, n, stream, skip);
+                        n = write_atom<short,RType>(ptr, i, offset, n, skip);
                         break;
                     case 2:
-                        n = convert_write<int,RType>(ptr, n, stream, skip);
+                        n = write_atom<int,RType>(ptr, i, offset, n, skip);
                         break;
                     case 3:
-                        n = convert_write<long,RType>(ptr, n, stream, skip);
+                        n = write_atom<long,RType>(ptr, i, offset, n, skip);
                         break;
                     case 4:
-                        n = convert_write<float,RType>(ptr, n, stream, skip);
+                        n = write_atom<float,RType>(ptr, i, offset, n, skip);
                         break;
                     case 5:
-                        n = convert_write<double,RType>(ptr, n, stream, skip);
+                        n = write_atom<double,RType>(ptr, i, offset, n, skip);
                         break;
                     default:
                         error("unsupported datamode");
@@ -280,7 +356,7 @@ class Atoms {
         }
 
         template<typename RType>
-        index_type readAt(RType * ptr, dbl_index_type * pindex, long length, Files * pfiles, size_t skip = 1) {
+        index_type read_indices(RType * ptr, dbl_index_type * pindex, long length, size_t skip = 1) {
             index_type numRead;
             for ( long i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
@@ -291,12 +367,12 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_type count = nx + 1;
                     index_type offset = static_cast<index_type>(pindex[i]);
-                    numRead = read<RType>(ptr + (skip * i), offset, count, pfiles, skip);
+                    numRead = read<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
                     index_type count = (-nx) + 1;
                     index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
-                    numRead = read<RType>(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
+                    numRead = read<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);
             }
@@ -304,7 +380,7 @@ class Atoms {
         }
 
         template<typename RType>
-        index_type writeAt(RType * ptr, dbl_index_type * pindex, long length, Files * pfiles, size_t skip = 1) {
+        index_type write_indices(RType * ptr, dbl_index_type * pindex, long length, size_t skip = 1) {
             index_type numWrote;
             for ( long i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
@@ -314,12 +390,12 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_type count = nx + 1;
                     index_type offset = static_cast<index_type>(pindex[i]);
-                    numWrote = write<RType>(ptr + (skip * i), offset, count, pfiles, skip);
+                    numWrote = write<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
                     index_type count = (-nx) + 1;
                     index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
-                    numWrote = write<RType>(ptr + skip * (i + (-nx)), offset, count, pfiles, -skip);
+                    numWrote = write<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);
             }
@@ -335,6 +411,9 @@ class Atoms {
         double * _index_offset; // index from 0
         double * _index_extent; // index from 0
         int _length;
+
+        Files * _files;
+        Ops _ops;
 
 };
 
@@ -356,11 +435,15 @@ class Matter
             _dim = GET_SLOT(x, mkString("dim"));
             const char * S4class = CHARACTER_VALUE(GET_CLASS(x));
             if ( strcmp(S4class, "matter_vec") == 0 )
-                _S4class = 1;
+                _S4class = MATTER_VEC;
             else if ( strcmp(S4class, "matter_matc") == 0 )
-                _S4class = 2;
+                _S4class = MATTER_MATC;
             else if ( strcmp(S4class, "matter_matr") == 0 )
-                _S4class = 3;
+                _S4class = MATTER_MATR;
+            const char * attr_center = "scaled:center";
+            _scaled.center = GET_ATTR(x, install(attr_center));
+            const char * attr_scale = "scaled:scale";
+            _scaled.scale = GET_ATTR(x, install(attr_scale));
         }
 
         ~Matter(){}
@@ -377,9 +460,9 @@ class Matter
 
         int data_n() {
             switch(S4class()) {
-                case 2:
+                case MATTER_MATC:
                     return ncols();
-                case 3:
+                case MATTER_MATR:
                     return nrows();
             }
             return 0;
@@ -425,6 +508,41 @@ class Matter
 
         int S4class() {
             return _S4class;
+        }
+
+        Ops ops() {
+            return null_transform();
+        }
+
+        Ops ops(int i) {
+            Ops retOps = null_transform();
+            switch(S4class()) {
+                case MATTER_MATC:
+                    if ( _scaled.center != R_NilValue )
+                    {
+                        retOps.center_t = scalar;
+                        retOps.center = REAL(_scaled.center) + i;
+                    }
+                    if ( _scaled.scale != R_NilValue )
+                    {
+                        retOps.scale_t = scalar;
+                        retOps.scale = REAL(_scaled.scale) + i;
+                    }
+                    break;
+                case MATTER_MATR:
+                    if ( _scaled.center != R_NilValue )
+                    {
+                        retOps.center_t = vector;
+                        retOps.center = REAL(_scaled.center);
+                    }
+                    if ( _scaled.scale != R_NilValue )
+                    {
+                        retOps.scale_t = vector;
+                        retOps.scale = REAL(_scaled.scale);
+                    }
+                    break;
+            }
+            return retOps;
         }
 
         template<typename RType>
@@ -489,13 +607,14 @@ class Matter
 
     protected:
 
-        SEXP _data;     // EITHER "atoms" OR a *list* or "atoms"
+        SEXP _data;     // EITHER "atoms" OR a *list* of "atoms"
         int _datamode;  // 1 = integer, 2 = numeric
         Files _files;
         int _chunksize;
         index_type _length;
         SEXP _dim;
         int _S4class;      // 1 = vector, 2 = col-matrix, 3 = row-matrix
+        Scaled _scaled;
 
 };
 
@@ -513,11 +632,11 @@ class MatterAccessor
         {
             switch(x.S4class()) {
                 case 1:
-                    _atoms = new Atoms(x.data());
-                    _next = -99;
+                    _atoms = new Atoms(x.data(), x.files(), x.ops());
+                    _next = NONE;
                     break;
                 default:
-                    _atoms = new Atoms(x.data(0));
+                    _atoms = new Atoms(x.data(0), x.files(), x.ops(0));
                     _next = 1;
                     break;
             }
@@ -526,8 +645,8 @@ class MatterAccessor
 
         MatterAccessor(Matter & x, int i) : _matter(x)
         {
-            _atoms = new Atoms(x.data(i));
-            _next = -99;
+            _atoms = new Atoms(x.data(i), x.files(), x.ops(i));
+            _next = NONE;
             init();
         }
 
@@ -559,13 +678,13 @@ class MatterAccessor
                 {
                     _lower = _current;
                     _upper = _current + count - 1;
-                    return _atoms->read<RType>(_buffer, _current, count, _matter.files());
+                    return _atoms->read<RType>(_buffer, _current, count);
                 }    
             }
             else if ( 0 <= _next && _next < _matter.data_n() )
             {
                 delete _atoms;
-                _atoms = new Atoms(_matter.data(_next));
+                _atoms = new Atoms(_matter.data(_next), _matter.files(), _matter.ops(_next));
                 _next++;
                 return init();
             }

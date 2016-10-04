@@ -16,10 +16,16 @@ setGeneric("apply", signature="X")
 #### Define new generics for stats ####
 ## -------------------------------------
 
-setGeneric("colVar", function(x, na.rm = FALSE) standardGeneric("colVar"))
-setGeneric("rowVar", function(x, na.rm = FALSE) standardGeneric("rowVar"))
-setGeneric("colSd", function(x, na.rm = FALSE) standardGeneric("colSd"))
-setGeneric("rowSd", function(x, na.rm = FALSE) standardGeneric("rowSd"))
+# Do these conditionally in case user has generics from matrixStats package
+
+if ( !isGeneric("colVars") )
+	setGeneric("colVars", function(x, na.rm = FALSE) standardGeneric("colVars"))
+if ( !isGeneric("rowVars") )
+	setGeneric("rowVars", function(x, na.rm = FALSE) standardGeneric("rowVars"))
+if ( !isGeneric("colSds") )
+	setGeneric("colSds", function(x, na.rm = FALSE) standardGeneric("colSds"))
+if ( !isGeneric("rowSds") )
+	setGeneric("rowSds", function(x, na.rm = FALSE) standardGeneric("rowSds"))
 
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------

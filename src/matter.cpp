@@ -4,8 +4,8 @@
 #include "matter.h"
 #include "matterDefines.h"
 
-//// Low-level read/write functions
-//----------------------------------
+//// Low-level utility functions
+//-------------------------------
 
 // convert between C and R representations, handling NAs
 
@@ -168,6 +168,18 @@ double coerce_cast<double,double>(double x) {
     return x;
 }
 
+//// Delayed operations on atoms
+//-------------------------------
+
+Ops null_transform() {
+    Ops ret;
+    ret.center_t = none;
+    ret.center = NULL;
+    ret.scale_t = none;
+    ret.scale = NULL;
+    return ret;
+}
+
 //// Count # of consecutive indices after current one (for faster reads)
 //----------------------------------------------------------------------
 
@@ -203,10 +215,10 @@ index_type num_consecutive(double * pindex, long i, long length) {
 template<typename RType>
 SEXP Matter :: readVector() {
     SEXP retVec;
-    Atoms atoms(data());
+    Atoms atoms(data(), files(), ops());
     PROTECT(retVec = allocVector(DataType<RType>(), length()));
     RType * pRetVec = DataPtr<RType>(retVec);
-    atoms.read<RType>(pRetVec, 0, length(), files());
+    atoms.read<RType>(pRetVec, 0, length());
     UNPROTECT(1);
     return retVec;
 }
@@ -214,8 +226,8 @@ SEXP Matter :: readVector() {
 template<typename RType>
 void Matter :: writeVector(SEXP value) {
     RType * pValue = DataPtr<RType>(value);
-    Atoms atoms(data());
-    atoms.write<RType>(pValue, 0, length(), files());
+    Atoms atoms(data(), files(), ops());
+    atoms.write<RType>(pValue, 0, length());
 }
 
 template<typename RType>
@@ -224,8 +236,8 @@ SEXP Matter :: readVectorElements(SEXP i) {
     PROTECT(retVec = allocVector(DataType<RType>(), XLENGTH(i)));
     RType * pRetVec = DataPtr<RType>(retVec);
     double * pIndex = REAL(i);
-    Atoms atoms(data());
-    atoms.readAt<RType>(pRetVec, pIndex, XLENGTH(i), files());
+    Atoms atoms(data(), files(), ops());
+    atoms.read_indices<RType>(pRetVec, pIndex, XLENGTH(i));
     UNPROTECT(1);
     return retVec;
 }
@@ -234,8 +246,8 @@ template<typename RType>
 void Matter :: writeVectorElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
     double * pIndex = REAL(i);
-    Atoms atoms(data());
-    atoms.writeAt(pValue, pIndex, XLENGTH(i), files());
+    Atoms atoms(data(), files(), ops());
+    atoms.write_indices(pValue, pIndex, XLENGTH(i));
 }
 
 //// Matrix methods implemented for class Matter
@@ -248,16 +260,16 @@ SEXP Matter :: readMatrix() {
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col));
-                atoms.read<RType>(pRetMat + col * nrows, 0, nrows, files());
+                Atoms atoms(data(col), files(), ops(col));
+                atoms.read<RType>(pRetMat + col * nrows, 0, nrows);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row));
-                atoms.read<RType>(pRetMat + row, 0, ncols, files(), nrows);
+                Atoms atoms(data(row), files(), ops(row));
+                atoms.read<RType>(pRetMat + row, 0, ncols, nrows);
             }
             break;
     }
@@ -270,16 +282,16 @@ void Matter :: writeMatrix(SEXP value) {
     int nrows = this->nrows(), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col));
-                atoms.write<RType>(pValue + col * nrows, 0, nrows, files());
+                Atoms atoms(data(col), files(), ops(col));
+                atoms.write<RType>(pValue + col * nrows, 0, nrows);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row));
-                atoms.write<RType>(pValue + row, 0, ncols, files(), nrows);
+                Atoms atoms(data(row), files(), ops(row));
+                atoms.write<RType>(pValue + row, 0, ncols, nrows);
             }
             break;
     }
@@ -293,20 +305,20 @@ SEXP Matter :: readMatrixRows(SEXP i) {
     RType * pRetMat = DataPtr<RType>(retMat);
     double * pRow = REAL(i);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col));
-                atoms.readAt<RType>(pRetMat + col * nrows, pRow, nrows, files());
+                Atoms atoms(data(col), files(), ops(col));
+                atoms.read_indices<RType>(pRetMat + col * nrows, pRow, nrows);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int l = 0; l < nrows; l++ ) {
                 if ( ISNA(pRow[l]) )
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_type row = static_cast<index_type>(pRow[l]);
-                    Atoms atoms(data(row));
-                    atoms.read<RType>(pRetMat + l, 0, ncols, files(), nrows);
+                    Atoms atoms(data(row), files(), ops(row));
+                    atoms.read<RType>(pRetMat + l, 0, ncols, nrows);
                 }
             }
             break;
@@ -321,19 +333,19 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
     double * pRow = REAL(i);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col));
-                atoms.writeAt(pValue + col * nrows, pRow, nrows, files());
+                Atoms atoms(data(col), files(), ops(col));
+                atoms.write_indices(pValue + col * nrows, pRow, nrows);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int l = 0; l < nrows; l++ ) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_type row = static_cast<index_type>(pRow[l]);
-                Atoms atoms(data(row));
-                atoms.write<RType>(pValue + l, 0, ncols, files(), nrows);
+                Atoms atoms(data(row), files(), ops(row));
+                atoms.write<RType>(pValue + l, 0, ncols, nrows);
             }
             break;
     }
@@ -347,21 +359,21 @@ SEXP Matter :: readMatrixCols(SEXP j) {
     RType * pRetMat = DataPtr<RType>(retMat);
     double * pCol = REAL(j);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_type col = static_cast<index_type>(pCol[l]);
-                    Atoms atoms(data(col));
-                    atoms.read<RType>(pRetMat + l * nrows, 0, nrows, files());
+                    Atoms atoms(data(col), files(), ops(col));
+                    atoms.read<RType>(pRetMat + l * nrows, 0, nrows);
                 }
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row));
-                atoms.readAt<RType>(pRetMat + row, pCol, ncols, files(), nrows);
+                Atoms atoms(data(row), files(), ops(row));
+                atoms.read_indices<RType>(pRetMat + row, pCol, ncols, nrows);
             }
             break;
     }
@@ -375,19 +387,19 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
     double * pCol = REAL(j);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_type col = static_cast<index_type>(pCol[l]);
-                Atoms atoms(data(col));
-                atoms.write<RType>(pValue + l * nrows, 0, nrows, files());
+                Atoms atoms(data(col), files(), ops(col));
+                atoms.write<RType>(pValue + l * nrows, 0, nrows);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row));
-                atoms.writeAt(pValue + row, pCol, ncols, files(), nrows);
+                Atoms atoms(data(row), files(), ops(row));
+                atoms.write_indices(pValue + row, pCol, ncols, nrows);
             }
             break;
     }
@@ -402,25 +414,25 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
     double * pRow = REAL(i);
     double * pCol = REAL(j);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_type col = static_cast<index_type>(pCol[l]);
-                    Atoms atoms(data(col));
-                    atoms.readAt<RType>(pRetMat + l * nrows, pRow, nrows, files());
+                    Atoms atoms(data(col), files(), ops(col));
+                    atoms.read_indices<RType>(pRetMat + l * nrows, pRow, nrows);
                 }
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int l = 0; l < nrows; l++ ) {
                 if ( ISNA(pRow[l]) )
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_type row = static_cast<index_type>(pRow[l]);
-                    Atoms atoms(data(row));
-                    atoms.readAt<RType>(pRetMat + l, pCol, ncols, files(), nrows);
+                    Atoms atoms(data(row), files(), ops(row));
+                    atoms.read_indices<RType>(pRetMat + l, pCol, ncols, nrows);
                 }
             }
             break;
@@ -436,22 +448,22 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     double * pRow = REAL(i);
     double * pCol = REAL(j);
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_type col = static_cast<index_type>(pCol[l]);
-                Atoms atoms(data(col));
-                atoms.writeAt(pValue + l * nrows, pRow, nrows, files());
+                Atoms atoms(data(col), files(), ops(col));
+                atoms.write_indices(pValue + l * nrows, pRow, nrows);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int l = 0; l < nrows; l++ ) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_type row = static_cast<index_type>(pRow[l]);
-                Atoms atoms(data(row));
-                atoms.writeAt(pValue + l, pCol, ncols, files(), nrows);
+                Atoms atoms(data(row), files(), ops(row));
+                atoms.write_indices(pValue + l, pCol, ncols, nrows);
             }
             break;
     }
@@ -558,15 +570,15 @@ SEXP Matter :: colsums(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(ncols()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case 1:
+        case MATTER_VEC:
             error("'x' must be an array of at least two dimensions");
-        case 2:
+        case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterAccessor<double> x(*this, j);
                 pRetVal[j] = ::sum(x, na_rm);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int j = 0; j < ncols(); j++ )
                 pRetVal[j] = 0;
             for ( int i = 0; i < nrows(); i++ ) {
@@ -595,15 +607,15 @@ SEXP Matter :: colmeans(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(ncols()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case 1:
+        case MATTER_VEC:
             error("'x' must be an array of at least two dimensions");
-        case 2:
+        case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterAccessor<double> x(*this, j);
                 pRetVal[j] = ::mean(x, na_rm);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             {
                 double * n = (double *) Calloc(ncols(), double);
                 for ( int j = 0; j < ncols(); j++ ) {
@@ -644,15 +656,15 @@ SEXP Matter :: colvar(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(ncols()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case 1:
+        case MATTER_VEC:
             error("'x' must be an array of at least two dimensions");
-        case 2:
+        case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterAccessor<double> x(*this, j);
                 pRetVal[j] = ::var(x, na_rm);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             {
                 double * m_old = (double *) Calloc(ncols(), double);
                 double * m_new = (double *) Calloc(ncols(), double);
@@ -719,9 +731,9 @@ SEXP Matter :: rowsums(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(nrows()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case 1:
+        case MATTER_VEC:
             error("'x' must be an array of at least two dimensions");
-        case 2:
+        case MATTER_MATC:
             for ( int i = 0; i < nrows(); i++ )
                 pRetVal[i] = 0;
             for ( int j = 0; j < ncols(); j++ ) {
@@ -740,7 +752,7 @@ SEXP Matter :: rowsums(bool na_rm) {
                 }
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
                 MatterAccessor<double> x(*this, i);
                 pRetVal[i] = ::sum(x, na_rm);
@@ -756,9 +768,9 @@ SEXP Matter :: rowmeans(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(nrows()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case 1:
+        case MATTER_VEC:
             error("'x' must be an array of at least two dimensions");
-        case 2:
+        case MATTER_MATC:
             {
                 double * n = (double *) Calloc(nrows(), double);
                 for ( int i = 0; i < nrows(); i++ ) {
@@ -789,7 +801,7 @@ SEXP Matter :: rowmeans(bool na_rm) {
                 Free(n);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
                 MatterAccessor<double> x(*this, i);
                 pRetVal[i] = ::mean(x, na_rm);
@@ -805,9 +817,9 @@ SEXP Matter :: rowvar(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(nrows()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case 1:
+        case MATTER_VEC:
             error("'x' must be an array of at least two dimensions");
-        case 2:
+        case MATTER_MATC:
             {
                 double * m_old = (double *) Calloc(nrows(), double);
                 double * m_new = (double *) Calloc(nrows(), double);
@@ -864,7 +876,7 @@ SEXP Matter :: rowvar(bool na_rm) {
                 Free(n);
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
                 MatterAccessor<double> x(*this, i);
                 pRetVal[i] = ::var(x, na_rm);
@@ -884,7 +896,7 @@ SEXP Matter :: rmult(SEXP y) {
     for ( int k = 0; k < LENGTH(retMat); k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterAccessor<double> x(*this, j);
                 int i = 0;
@@ -898,7 +910,7 @@ SEXP Matter :: rmult(SEXP y) {
                 }
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
                 MatterAccessor<double> x(*this, i);
                 int j = 0;
@@ -926,7 +938,7 @@ SEXP Matter :: lmult(SEXP x) {
     for ( int k = 0; k < LENGTH(retMat); k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
-        case 2:
+        case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterAccessor<double> y(*this, j);
                 int i = 0;
@@ -940,7 +952,7 @@ SEXP Matter :: lmult(SEXP x) {
                 }
             }
             break;
-        case 3:
+        case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
                 MatterAccessor<double> y(*this, i);
                 int j = 0;
