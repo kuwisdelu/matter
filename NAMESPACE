@@ -10,6 +10,9 @@ importFrom("BiocGenerics",
 	"cbind",
 	"rbind")
 
+importFrom("irlba",
+	"irlba")
+
 importFrom("S4Vectors",
 	"colMeans",
 	"colSums",

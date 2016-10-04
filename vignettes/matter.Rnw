@@ -60,13 +60,13 @@ colnames(x) <- letters[1:5]
 x[]
 @
 
-\Rpackage{matter} provides methods for calculating summary statistics for its vectors and matrices, including some methods that do not exist in base \R{}, such as \Robject{colVar}.
+\Rpackage{matter} provides methods for calculating summary statistics for its vectors and matrices, including some methods that do not exist in base \R{}, such as \Robject{colVars}.
 
 <<>>=
 colSums(x)
 colSums(x[])
 
-colVar(x)
+colVars(x)
 apply(x, 2, var)
 @
 
@@ -166,7 +166,7 @@ apply(data, 2, mean)
 apply(data, 2, var)
 @
 
-We could also have used \Robject{colMeans} and \Robject{colVar}.
+We could also have used \Robject{colMeans} and \Robject{colVars}.
 
 Now we fit the linear model to the data using the \Robject{bigglm} method for \Robject{matter\_mat} matrices. Note that it requires a formula, and (unfortunately) it does not allow \verb|y ~ .|, so all variables must be stated explicitly.
 
@@ -212,7 +212,7 @@ This again creates a 1.2 GB dataset on disk, but barely 32 KB of metadata is sto
 First we calculate the variance for each column.
 
 <<plot-var>>=
-var.out <- colVar(data)
+var.out <- colVars(data)
 plot(var.out, type='h', ylab="Variance")
 @
 

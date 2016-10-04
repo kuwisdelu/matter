@@ -1,4 +1,16 @@
 
+CHANGES IN VERSION 0.99.9 [2016-10-4]
+---------------------------------
+
+NEW FEATURES
+
+    o Added delayed scaling and centering via 'scale' method
+    o Renamed 'colSd' -> 'colSds', 'colVar' -> 'colVars', etc.
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Moved 'irlba' from Suggests to Imports to support 'prcomp' method
+
 CHANGES IN VERSION 0.99.8 [2016-10-3]
 ---------------------------------
 

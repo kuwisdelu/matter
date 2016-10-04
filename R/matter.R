@@ -12,6 +12,7 @@ setGeneric("sd", signature="x")
 # setGeneric("colMeans", signature="x") # Use S4Vectors or BiocGenerics(?) generic
 # setGeneric("rowMeans", signature="x") # Use S4Vectors or BiocGenerics(?) generic
 setGeneric("apply", signature="X")
+setGeneric("scale", signature="x")
 
 #### Define new generics for stats ####
 ## -------------------------------------
@@ -28,7 +29,7 @@ if ( !isGeneric("rowSds") )
 	setGeneric("rowSds", function(x, na.rm = FALSE) standardGeneric("rowSds"))
 
 #### Basic accessor, setter, and manipulation ####
-## -----------------------------------------------
+## -----------------------------------------------	
 
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
@@ -524,13 +525,13 @@ setMethod("colMeans", "matter", function(x, na.rm = FALSE) {
 	ret	
 })
 
-setMethod("colVar", "matter", function(x, na.rm = FALSE) {
+setMethod("colVars", "matter", function(x, na.rm = FALSE) {
 	ret <- .Call("C_getColVar", x, na.rm)
 	names(ret) <- colnames(x)
 	ret
 })
 
-setMethod("colSd", "matter", function(x, na.rm = FALSE) {
+setMethod("colSds", "matter", function(x, na.rm = FALSE) {
 	ret <- sqrt(.Call("C_getColVar", x, na.rm))
 	names(ret) <- colnames(x)
 	ret
@@ -548,13 +549,13 @@ setMethod("rowMeans", "matter", function(x, na.rm = FALSE) {
 	ret
 })
 
-setMethod("rowVar", "matter", function(x, na.rm = FALSE) {
+setMethod("rowVars", "matter", function(x, na.rm = FALSE) {
 	ret <- .Call("C_getRowVar", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
 
-setMethod("rowSd", "matter", function(x, na.rm = FALSE) {
+setMethod("rowSds", "matter", function(x, na.rm = FALSE) {
 	ret <- sqrt(.Call("C_getRowVar", x, na.rm))
 	names(ret) <- rownames(x)
 	ret
@@ -869,6 +870,10 @@ setMethod("show", "matter_mat", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
 		"on-disk binary matrix", "\n", sep="")
+	if ( !is.null(attr(object, "scaled:center")) )
+		cat("    scaled:center = TRUE")
+	if ( !is.null(attr(object, "scaled:scale")) )
+		cat("    scaled:scale = TRUE")
 	callNextMethod(object)
 })
 
@@ -1218,6 +1223,29 @@ setMethod("t", "matter_matr", function(x)
 	x@dimnames <- rev(x@dimnames)
 	if ( validObject(x) )
 		x
+})
+
+setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
+{
+	if ( isTRUE(center) ) {
+		center <- colMeans(x, na.rm=TRUE)
+	} else if ( is.numeric(center) && length(center) != ncol(x) ) {
+		stop("length of 'center' must equal the number of columns of 'x'")
+	} else if ( !is.null(center) ) {
+		stop("'center' must be logical, a numeric vector, or NULL")
+	}
+	if ( isTRUE(scale) ) {
+		scale <- colSds(x, na.rm=TRUE) # this differs from scale.default
+	} else if ( is.numeric(scale) && length(scale) != ncol(x) ) {
+		stop("length of 'center' must equal the number of columns of 'x'")
+	} else if ( !is.null(scale) ) {
+		stop("'scale' must be logical, a numeric vector, or NULL")
+	}
+	if ( is.numeric(center) || is.null(center) )
+		attr(x, "scaled:center") <- center
+	if ( is.numeric(scale) || is.null(scale) )
+		attr(x, "scaled:scale") <- scale
+	x
 })
 
 #### Matrix multiplication for matter objects ####

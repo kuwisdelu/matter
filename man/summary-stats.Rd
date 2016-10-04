@@ -11,19 +11,19 @@
 \alias{sd,matter-method}
 \alias{var,matter-method}
 
-\alias{colSd}
-\alias{colVar}
+\alias{colSds}
+\alias{colVars}
 \alias{colMeans,matter-method}
 \alias{colSums,matter-method}
-\alias{colSd,matter-method}
-\alias{colVar,matter-method}
+\alias{colSds,matter-method}
+\alias{colVars,matter-method}
 
-\alias{rowSd}
-\alias{rowVar}
+\alias{rowSds}
+\alias{rowVars}
 \alias{rowMeans,matter-method}
 \alias{rowSums,matter-method}
-\alias{rowSd,matter-method}
-\alias{rowVar,matter-method}
+\alias{rowSds,matter-method}
+\alias{rowVars,matter-method}
 
 \title{Summary Statistics for ``matter'' Objects}
 
@@ -38,12 +38,12 @@
 \S4method{var}{matter}(x, na.rm)
 \S4method{colMeans}{matter}(x, na.rm)
 \S4method{colSums}{matter}(x, na.rm)
-\S4method{colSd}{matter}(x, na.rm)
-\S4method{colVar}{matter}(x, na.rm)
+\S4method{colSds}{matter}(x, na.rm)
+\S4method{colVars}{matter}(x, na.rm)
 \S4method{rowMeans}{matter}(x, na.rm)
 \S4method{rowSums}{matter}(x, na.rm)
-\S4method{rowSd}{matter}(x, na.rm)
-\S4method{rowVar}{matter}(x, na.rm)
+\S4method{rowSds}{matter}(x, na.rm)
+\S4method{rowVars}{matter}(x, na.rm)
 }
 
 \arguments{
@@ -59,7 +59,7 @@
 
     The efficiency of these methods is entirely dependent on the \code{chunksize} of \code{x}. Larger chunks will yield faster calculations, but greater memory usage. The row and column summary methods may be more or less efficient than the equivalent call to \code{\link[matter]{apply}}, depending on the chunk size.
 
-    Variance and standard deviation are calculated using a running sum of squares formula which can be calculated iteratively and is accurate for large floating-point datasets (see reference).
+    Varsiance and standard deviation are calculated using a running sum of squares formula which can be calculated iteratively and is accurate for large floating-point datasets (see reference).
 }
 
 \value{
@@ -89,13 +89,13 @@ sd(x)
 
 colSums(x)
 colMeans(x)
-colVar(x)
-colSd(x)
+colVars(x)
+colSds(x)
 
 rowSums(x)
 rowMeans(x)
-rowVar(x)
-rowSd(x)
+rowVars(x)
+rowSds(x)
 }
 
 \keyword{methods}
