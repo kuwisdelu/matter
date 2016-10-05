@@ -1,10 +1,11 @@
 
-CHANGES IN VERSION 0.99.9 [2016-10-4]
+CHANGES IN VERSION 0.99.9 [2016-10-5]
 ---------------------------------
 
 NEW FEATURES
 
     o Added delayed scaling and centering via 'scale' method
+    o Added 'prcomp' method for principal components analysis
     o Renamed 'colSd' -> 'colSds', 'colVar' -> 'colVars', etc.
 
 SIGNIFICANT USER-VISIBLE CHANGES

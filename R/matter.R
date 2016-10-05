@@ -7,15 +7,20 @@ setGeneric("sum")
 setGeneric("mean")
 setGeneric("var", signature="x")
 setGeneric("sd", signature="x")
-# setGeneric("colSums", signature="x") # Use S4Vectors or BiocGenerics(?) generic
-# setGeneric("rowSums", signature="x") # Use S4Vectors or BiocGenerics(?) generic
-# setGeneric("colMeans", signature="x") # Use S4Vectors or BiocGenerics(?) generic
-# setGeneric("rowMeans", signature="x") # Use S4Vectors or BiocGenerics(?) generic
+# setGeneric("colSums", signature="x") # Use S4Vectors or BiocGenerics(?)
+# setGeneric("rowSums", signature="x") # Use S4Vectors or BiocGenerics(?)
+# setGeneric("colMeans", signature="x") # Use S4Vectors or BiocGenerics(?)
+# setGeneric("rowMeans", signature="x") # Use S4Vectors or BiocGenerics(?)
 setGeneric("apply", signature="X")
 setGeneric("scale", signature="x")
 
-#### Define new generics for stats ####
+#### Define new generics from stats ####
 ## -------------------------------------
+
+setGeneric("prcomp")
+
+#### Define new generics for summary stats ####
+## --------------------------------------------
 
 # Do these conditionally in case user has generics from matrixStats package
 
@@ -871,9 +876,9 @@ setMethod("show", "matter_mat", function(object) {
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
 		"on-disk binary matrix", "\n", sep="")
 	if ( !is.null(attr(object, "scaled:center")) )
-		cat("    scaled:center = TRUE")
+		cat("    scaled:center = TRUE\n")
 	if ( !is.null(attr(object, "scaled:scale")) )
-		cat("    scaled:scale = TRUE")
+		cat("    scaled:scale = TRUE\n")
 	callNextMethod(object)
 })
 
@@ -1227,15 +1232,17 @@ setMethod("t", "matter_matr", function(x)
 
 setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
 {
-	if ( isTRUE(center) ) {
-		center <- colMeans(x, na.rm=TRUE)
+	if ( is.logical(center) ) {
+		if ( center )
+			center <- colMeans(x, na.rm=TRUE)
 	} else if ( is.numeric(center) && length(center) != ncol(x) ) {
 		stop("length of 'center' must equal the number of columns of 'x'")
 	} else if ( !is.null(center) ) {
 		stop("'center' must be logical, a numeric vector, or NULL")
 	}
-	if ( isTRUE(scale) ) {
-		scale <- colSds(x, na.rm=TRUE) # this differs from scale.default
+	if ( is.logical(scale) ) {
+		if ( scale )
+			scale <- colSds(x, na.rm=TRUE) # this differs from scale.default
 	} else if ( is.numeric(scale) && length(scale) != ncol(x) ) {
 		stop("length of 'center' must equal the number of columns of 'x'")
 	} else if ( !is.null(scale) ) {
@@ -1386,3 +1393,40 @@ bigglm.matter <- function(formula, data, ..., chunksize, fc) {
 	bigglm(formula, getNextDataChunk, ...)
 }
 
+#### Linear regression for matter matrices ####
+## -------------------------------------------
+
+setMethod("prcomp", "matter_mat",
+	function(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, ...) {
+		prcomp.matter(x, n=n, retx=retx, center=center, scale.=scale., ...)
+})
+
+# based on code for prcomp_irlba from package:irlba
+
+prcomp.matter <- function(x, n, retx, center, scale., ...) {
+	nm <- names(as.list(match.call()))
+    if ( "tol" %in% nm ) 
+        warning("The 'tol' truncation argument from 'prcomp' is not supported\n
+        	for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n
+        	to control that algorithm's convergence tolerance.")
+    x <- scale(x, center=center, scale=scale.)
+    sv <- irlba(x, nv=n, fastpath=FALSE, ...)
+    ans <- list(sdev = sv$d/sqrt(max(1, nrow(x) - 1)), rotation = sv$v)
+    colnames(ans$rotation) <- paste0("PC", seq(1, ncol(ans$rotation)))
+    if ( !is.null(attr(x, "scaled:center")) ) {
+    	ans$center <- attr(x, "scaled:center")
+    } else {
+    	ans$center <- FALSE
+    }
+    if ( !is.null(attr(x, "scaled:scale")) ) {
+    	ans$scale <- attr(x, "scaled:scale")
+    } else {
+    	ans$scale <- FALSE
+    }
+    if ( retx ) {
+        ans <- c(ans, list(x = sv$d * sv$u))
+        colnames(ans$x) <- paste("PC", seq(1, ncol(ans$rotation)), sep = "")
+    }
+    class(ans) <- "prcomp"
+    ans
+}

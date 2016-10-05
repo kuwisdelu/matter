@@ -63,16 +63,20 @@ exportMethods(
 	"sd",
 	"colSums",
 	"colMeans",
-	"colVar",
-	"colSd",
+	"colVars",
+	"colSds",
 	"rowSums",
 	"rowMeans",
-	"rowVar",
-	"rowSd")
+	"rowVars",
+	"rowSds")
 
 exportMethods("apply")
 
+exportMethods("scale")
+
 exportMethods("bigglm")
+
+exportMethods("prcomp")
 
 export(
 	"matter",

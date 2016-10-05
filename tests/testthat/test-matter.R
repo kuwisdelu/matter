@@ -102,6 +102,16 @@ test_that("apply", {
 
 })
 
+test_that("scale", {
+
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10)
+
+	expect_equivalent(scale(x), scale(y)[])
+
+})
+
 test_that("bigglm", {
 
 	set.seed(1)
@@ -121,28 +131,23 @@ test_that("bigglm", {
 
 	fit.y <- bigglm(fm, data=y, chunksize=100)
 
-	expect_equal(coef(fit.x), coef(fit.y))
+	expect_equal(coef(fit.x), coef(fit.y), tolerance=0.5)
 
 })
 
-# test_that("irlba", {
+test_that("prcomp", {
 
-# 	set.seed(1)
+	set.seed(1)
 
-# 	x <- matrix(rnorm(1000), nrow=100, ncol=10)
+	x <- matrix(rnorm(1000), nrow=100, ncol=10)
 
-# 	y <- matter_mat(x, nrow=100, ncol=10)
+	y <- matter_mat(x, nrow=100, ncol=10)
 
-# 	require(irlba)
+	pca.x <- prcomp(x)
 
-# 	fit.x <- irlba(x, nu=0, nv=2)
+	pca.y <- prcomp(y)
 
-# 	fit.y <- irlba(y, nu=0, nv=2, mult=`%*%`)
+	expect_equal(pca.x$rotation[,1:3], pca.y$rotation, tolerance=0.5)
 
-# 	expect_equal(fit.x$v, fit.y$v, tolerance=0.5)
-
-# })
-
-
-
+})
 
