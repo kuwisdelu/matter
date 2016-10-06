@@ -11,11 +11,12 @@ SIGNIFICANT USER-VISIBLE CHANGES
 
     o Renamed 'colSd' -> 'colSds', 'colVar' -> 'colVars', etc.
     o Renamed 'filepaths' -> 'paths' and 'file_id' -> 'source_id'
-    o Moved 'irlba' from Suggests to Imports to support 'prcomp' method
+    o Moved 'irlba' from Suggests to Imports to support new 'prcomp' method
+    o Updated vignette to use new 'prcomp' method in the PCA example
 
 BUG FIXES
 
-    o Fixed bug when combining 'matter' objects with multiple sources
+    o Fixed bug when combining 'matter' objects with multiple data sources
 
 CHANGES IN VERSION 0.99.8 [2016-10-3]
 ---------------------------------

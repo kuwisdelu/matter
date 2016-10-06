@@ -1412,8 +1412,7 @@ setMethod("prcomp", "matter_mat",
 # based on code for prcomp_irlba from package:irlba
 
 prcomp.matter <- function(x, n, retx, center, scale., ...) {
-	nm <- names(as.list(match.call()))
-    if ( "tol" %in% nm ) 
+    if ( "tol" %in% names(match.call(expand.dots=FALSE)$...) )
         warning("The 'tol' truncation argument from 'prcomp' is not supported\n
         	for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n
         	to control that algorithm's convergence tolerance.")

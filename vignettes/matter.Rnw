@@ -156,7 +156,7 @@ data
 head(data)
 @
 
-This creates a 1.2 GB dataset on disk, but barely 32 KB of metadata is stored in memory.
+This creates a 1.2 GB dataset on disk, but less than 20 KB of metadata is stored in memory.
 
 Now we calculate some statistical summaries using \Rpackage{matter}'s \Robject{apply} method for \Robject{matter\_mat} matrices.
 
@@ -172,14 +172,14 @@ Now we fit the linear model to the data using the \Robject{bigglm} method for \R
 
 <<bigglm>>=
 fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
-bigglm.out <- bigglm(fm, data=data, chunksize=floor(n / 2000))
+bigglm.out <- bigglm(fm, data=data, chunksize=10000)
 
 summary(bigglm.out)
 
 cbind(coef(bigglm.out)[-1], b)
 @
 
-On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, fitting the linear model takes 44 seconds and uses an additional 259 MB of memory overhead. The max amount of memory used while fitting the model was only 406 MB, for the 1.2 GB dataset.
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, fitting the linear model takes 41 seconds and uses an additional 257 MB of memory overhead. The max amount of memory used while fitting the model was only 499 MB, for the 1.2 GB dataset. This memory usage can be controlled further by using the \verb|chunksize| argument in \verb|bigglm| or by specifying a different \verb|chunksize| for the \Robject{matter} object.
 
 
 \section{Principal components analysis for on-disk datasets}
@@ -187,6 +187,8 @@ On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, 
 Because \Rpackage{matter} provides basic linear algebra for on-disk \Robject{matter\_mat} matrices with in-memory R matrices, it opens up the possibility for the use of many iterative statistical methods which can operate on only small portions of the data at a time.
 
 For example, \Robject{matter\_mat} matrices are compatible with the \Rpackage{irlba} package, which performs efficient, bounded-memory singular value decomposition (SVD) of matrices, and which can therefore be used for efficient principal components analysis (PCA) of large datasets \cite{irlba}.
+
+For convenience, \Rpackage{matter} provides a \verb|prcomp| method for performing PCA on \Robject{matter\_mat} matrices using the \verb|irlba| method from the \Rpackage{irlba} package, as demonstrated below.
 
 First, we simulate some data appropriate for principal components analysis.
 
@@ -207,7 +209,9 @@ for ( i in 21:p )
 data
 @
 
-This again creates a 1.2 GB dataset on disk, but barely 32 KB of metadata is stored in memory. Note that only the first twenty variables show systematic variation, with the first ten varying distinctly from the next ten variables.
+This again creates a 1.2 GB dataset on disk, but only 160 KB of metadata is stored in memory. More metadata is stored compared to the previous example, because the matrix has more columns, and it is stored as a column-major \Robject{matter\_matc} matrix with independent metadata for each column.
+
+Note that, in the simulated data, only the first twenty variables show systematic variation, with the first ten variables varying distinctly from the next ten variables.
 
 First we calculate the variance for each column.
 
@@ -218,25 +222,26 @@ plot(var.out, type='h', ylab="Variance")
 
 This takes only 7 seconds and uses less than 30 KB of additional memory. The maximum amount of memory used while calculating the variance for all columns of the 1.2 GB dataset is only 27 MB.
 
-Now we load the \Rpackage{irlba} package and use it to calculate the first two right singular vectors, which correspond to the first two principal components.
-
 Note that the \Robject{irlba} function has an optional argument \verb|mult| which allows specification of a custom matrix multiplication method, for use with packages such as \Rpackage{bigmemory} and \Rpackage{ff}. This is especially useful since it allows a \verb|transpose=TRUE| argument, so that the identity \verb|t(t(B) %*% A)| can be used in place of \verb|t(A) %*% B)| when transposition is an expensive operation. However, this is not necessary for \Rpackage{matter}, since transposition is a trivial operation for \Robject{matter\_mat} matrices.
 
-<<fit-irlba>>=
-library(irlba)
-irlba.out <- irlba(data, nu=0, nv=2, mult=`%*%`)
+Implicit scaling and centering is supported in \Rpackage{matter}, so the data can be scaled and centered without changing the data on disk or the additional overhead of storing a scaled version of the data.
+
+Unlike the default \verb|prcomp| method for ordinary \R{} matrices, this version supports an argument \Robject{n} for specifying the number of principal components to calculate.
+
+<<fit-prcomp>>=
+prcomp.out <- prcomp(data, n=2, center=FALSE, scale.=FALSE)
 @
 
-On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, calculating the first two principal components takes roughly 2-3 minutes and uses an additional 337 MB of memory overhead. The max amount of memory used during the computation was only 433 MB, for the 1.2 GB dataset.
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, calculating the first two principal components takes roughly 2-4 minutes and uses an additional 337 MB of memory overhead. The max amount of memory used during the computation was only 484 MB, for the 1.2 GB dataset.
 
 Now we plot the first two principal components.
 
 <<plot-pc1>>=
-plot(irlba.out$v[,1], type='h', ylab="PC 1")
+plot(prcomp.out$rotation[,1], type='h', ylab="PC 1")
 @
 
 <<plot-pc2>>=
-plot(irlba.out$v[,2], type='h', ylab="PC 2")
+plot(prcomp.out$rotation[,2], type='h', ylab="PC 2")
 @
 
 \setkeys{Gin}{width=\textwidth}
