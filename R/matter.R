@@ -38,8 +38,8 @@ if ( !isGeneric("rowSds") )
 
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
-setGeneric("filepaths", function(x) standardGeneric("filepaths"))
-setGeneric("filepaths<-", function(x, value) standardGeneric("filepaths<-"))
+setGeneric("paths", function(x) standardGeneric("paths"))
+setGeneric("paths<-", function(x, value) standardGeneric("paths<-"))
 setGeneric("filemode", function(x) standardGeneric("filemode"))
 setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
 setGeneric("chunksize", function(x) standardGeneric("chunksize"))
@@ -248,7 +248,7 @@ profile <- function(expr, reset = FALSE) {
 setClass("atoms",
 	slots = c(
 		length = "integer",
-		file_id = "integer",
+		source_id = "integer",
 		datamode = "integer",
 		offset = "numeric", # byte offset from start of file
 		extent = "numeric", # number of elements
@@ -256,7 +256,7 @@ setClass("atoms",
 		index_extent = "numeric"), # cumulative index of one-past-the-end
 	validity = function(object) {
 		errors <- NULL
-		lens <- c(file_id=length(object@file_id),
+		lens <- c(source_id=length(object@source_id),
 			datamode=length(object@datamode),
 			offset=length(object@offset),
 			extent=length(object@extent),
@@ -264,7 +264,7 @@ setClass("atoms",
 			index_extent=length(object@index_extent))
 
 		if ( length(unique(lens)) != 1 )
-			stop("lengths of 'file_id' [", lens["file_id"], "], ",
+			stop("lengths of 'source_id' [", lens["source_id"], "], ",
 				"'datamode' [", lens["datamode"], "], ",
 				"'offset' [", lens["offset"], "], ",
 				"'extent' [", lens["extent"], "], ",
@@ -292,12 +292,12 @@ setClass("atoms",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-atoms <- function(file_id = as.integer(NA), datamode="double",
+atoms <- function(source_id = as.integer(NA), datamode="double",
 					offset = numeric(1), extent = numeric(1))
 {
 	new("atoms",
-		length=as.integer(length(file_id)),
-		file_id=as.integer(file_id),
+		length=as.integer(length(source_id)),
+		source_id=as.integer(source_id),
 		datamode=as.integer(make.datamode(datamode, type="C")),
 		offset=as.numeric(offset),
 		extent=as.numeric(extent),
@@ -313,7 +313,7 @@ setReplaceMethod("datamode", "atoms", function(x, value) {
 })
 
 setMethod("combine", "atoms", function(x, y, ...) {
-	atoms(file_id=c(x@file_id, y@file_id),
+	atoms(source_id=c(x@source_id, y@source_id),
 		datamode=c(x@datamode, y@datamode),
 		offset=c(x@offset, y@offset),
 		extent=c(x@extent, y@extent))
@@ -333,7 +333,7 @@ setMethod("c", "atoms", function(x, ..., recursive=FALSE)
 
 setMethod("show", "atoms", function(object) {
 	print(data.frame(
-		file_id=object@file_id,
+		source_id=object@source_id,
 		datamode=make.datamode(object@datamode, type="C"),
 		offset=object@offset,
 		extent=object@extent,
@@ -353,7 +353,7 @@ setClass("matter",
 	slots = c(
 		data = "atomsORlist",
 		datamode = "factor",
-		filepaths = "character",
+		paths = "character",
 		filemode = "character",
 		chunksize = "integer",
 		length = "numeric",
@@ -363,8 +363,8 @@ setClass("matter",
 	contains = "VIRTUAL",
 	validity = function(object) {
 		errors <- NULL
-		if ( !is.null(object@filepaths) && any(!file.exists(object@filepaths)) )
-			errors <- c(errors, "file [", which(!file.exists(object@filepaths)), "] does not exist")
+		if ( !is.null(object@paths) && any(!file.exists(object@paths)) )
+			errors <- c(errors, "file [", which(!file.exists(object@paths)), "] does not exist")
 		C_readmodes <- c("rb", "rb+")
 		if ( length(object@filemode) != 1 || !object@filemode %in% C_readmodes )
 			errors <- c(errors, "'filemode' should be one of [",
@@ -426,7 +426,7 @@ matter <- function(...) {
 setMethod("show", "matter", function(object) {
 	object.memory <- object.size(object)
 	class(object.memory) <- "bytes"
-	cat("    files: ", length(object@filepaths), "\n", sep="")
+	cat("    sources: ", length(object@paths), "\n", sep="")
 	cat("    datamode: ", paste(object@datamode), "\n", sep="")
 	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
 	cat("    ", format(disk.used(object@data), units="auto"), " on-disk\n", sep="")
@@ -439,10 +439,10 @@ setReplaceMethod("datamode", "matter", function(x, value) {
 	x
 })
 
-setMethod("filepaths", "matter", function(x) x@filepaths)
+setMethod("paths", "matter", function(x) x@paths)
 
-setReplaceMethod("filepaths", "matter", function(x, value) {
-	x@filepaths <- value
+setReplaceMethod("paths", "matter", function(x, value) {
+	x@paths <- value
 	x
 })
 
@@ -531,13 +531,13 @@ setMethod("colMeans", "matter", function(x, na.rm = FALSE) {
 })
 
 setMethod("colVars", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getColVar", x, na.rm)
+	ret <- .Call("C_getColVars", x, na.rm)
 	names(ret) <- colnames(x)
 	ret
 })
 
 setMethod("colSds", "matter", function(x, na.rm = FALSE) {
-	ret <- sqrt(.Call("C_getColVar", x, na.rm))
+	ret <- sqrt(.Call("C_getColVars", x, na.rm))
 	names(ret) <- colnames(x)
 	ret
 })
@@ -555,13 +555,13 @@ setMethod("rowMeans", "matter", function(x, na.rm = FALSE) {
 })
 
 setMethod("rowVars", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getRowVar", x, na.rm)
+	ret <- .Call("C_getRowVars", x, na.rm)
 	names(ret) <- rownames(x)
 	ret
 })
 
 setMethod("rowSds", "matter", function(x, na.rm = FALSE) {
-	ret <- sqrt(.Call("C_getRowVar", x, na.rm))
+	ret <- sqrt(.Call("C_getRowVars", x, na.rm))
 	names(ret) <- rownames(x)
 	ret
 })
@@ -573,7 +573,7 @@ setClass("matter_vec",
 	prototype = prototype(
 		data = atoms(),
 		datamode = make.datamode("numeric", type="R"),
-		filepaths = character(),
+		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
 		length = 0,
@@ -590,8 +590,8 @@ setClass("matter_vec",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_vec <- function(data, datamode = "double", filepaths = NULL,
-					filemode = ifelse(is.null(filepaths), "rb+", "rb"),
+matter_vec <- function(data, datamode = "double", paths = NULL,
+					filemode = ifelse(is.null(paths), "rb+", "rb"),
 					offset = 0, extent = length, length = 0, names = NULL, ...)
 {
 	if ( length == 0 && all(extent == 0) )
@@ -601,25 +601,26 @@ matter_vec <- function(data, datamode = "double", filepaths = NULL,
 			"must equal length of 'extent' [", length(extent), "]")
 	if ( length(datamode) != length(extent) )
 		datamode <- rep(datamode, length.out=length(extent))
-	if ( is.null(filepaths) ) {
+	if ( is.null(paths) ) {
 		if ( missing(data) )
 			data <- NA
 		filemode <- force(filemode)
-		filepaths <- tempfile(fileext=".bin")
-		result <- file.create(filepaths)
+		paths <- tempfile(fileext=".bin")
+		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
 	}
-	if ( length(filepaths) != length(extent) )
-		filepaths <- rep(filepaths, length.out=length(extent))
+	paths <- normalizePath(paths)
+	if ( length(paths) != length(extent) )
+		paths <- rep(paths, length.out=length(extent))
 	x <- new("matter_vec",
 		data=atoms(
-			file_id=as.integer(factor(filepaths)),
+			source_id=as.integer(factor(paths)),
 			datamode=as.integer(make.datamode(datamode, type="C")),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
 		datamode=widest.datamode(datamode, from="C"),
-		filepaths=levels(factor(filepaths)),
+		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=as.numeric(sum(extent)),
 		dim=NULL,
@@ -704,18 +705,16 @@ setReplaceMethod("[",
 	function(x, i, ..., value) setVectorElements(x, i, value))
 
 setMethod("combine", "matter_vec", function(x, y, ...) {
-	filepaths <- levels(factor(c(x@filepaths, y@filepaths)))
-	x@data@file_id <- as.integer(factor(x@data@file_id,
-		levels=seq_len(length(filepaths)),
-		labels=filepaths))
-	y@data@file_id <- as.integer(factor(y@data@file_id,
-		levels=seq_len(length(filepaths)),
-		labels=filepaths))
+	paths <- levels(factor(c(x@paths, y@paths)))
+	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id],
+		levels=paths))
+	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id],
+		levels=paths))
 	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
 		datamode=widest.datamode(data, from="C"),
-		filepaths=filepaths,
+		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=NULL,
@@ -755,7 +754,7 @@ setClass("matter_mat",
 	prototype = prototype(
 		data = list(atoms()),
 		datamode = make.datamode("numeric", type="R"),
-		filepaths = character(),
+		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
 		length = 0,
@@ -776,7 +775,7 @@ setClass("matter_matc",
 	prototype = prototype(
 		data = list(),
 		datamode = make.datamode("numeric", type="R"),
-		filepaths = character(),
+		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
 		length = 0,
@@ -789,7 +788,7 @@ setClass("matter_matr",
 	prototype = prototype(
 		data = list(),
 		datamode = make.datamode("numeric", type="R"),
-		filepaths = character(),
+		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
 		length = 0,
@@ -797,8 +796,8 @@ setClass("matter_matr",
 		names = NULL,
 		dimnames = NULL))
 
-matter_mat <- function(data, datamode = "double", filepaths = NULL,
-					filemode = ifelse(is.null(filepaths), "rb+", "rb"),
+matter_mat <- function(data, datamode = "double", paths = NULL,
+					filemode = ifelse(is.null(paths), "rb+", "rb"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
 					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, ...)
@@ -839,28 +838,27 @@ matter_mat <- function(data, datamode = "double", filepaths = NULL,
 		adata <- function() list()
 	} else {
 		adata <- function() mapply(atoms,
-			factor(filepaths),
+			factor(paths),
 			make.datamode(datamode, type="C"),
 			as.numeric(offset),
 			as.numeric(extent))
 	}
-	if ( is.null(filepaths) && prod(c(nrow, ncol)) > 0 ) {
+	if ( is.null(paths) && prod(c(nrow, ncol)) > 0 ) {
 		if ( missing(data) )
 			data <- NA
 		filemode <- force(filemode)
-		filepaths <- tempfile(fileext=".bin")
-		result <- file.create(filepaths)
+		paths <- tempfile(fileext=".bin")
+		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
 	}
-	if ( prod(c(nrow, ncol)) == 0 )
-		filepaths <- as.character(NA)
-	if ( length(filepaths) != length(extent) )
-		filepaths <- rep(filepaths, length.out=max(length(extent), 1))
+	paths <- normalizePath(paths)
+	if ( length(paths) != length(extent) )
+		paths <- rep(paths, length.out=max(length(extent), 1))
 	x <- new(mclass,
 		data=adata(),
 		datamode=widest.datamode(datamode, from="C"),
-		filepaths=levels(factor(filepaths)),
+		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=as.numeric(prod(c(nrow, ncol))),
 		dim=as.integer(c(nrow, ncol)),
@@ -1035,7 +1033,7 @@ subsetMatterCols <- function(x, j) {
 		matter_matc=new("matter_matc",
 			data=x@data[j],
 			datamode=x@datamode,
-			filepaths=x@filepaths,
+			paths=x@paths,
 			chunksize=x@chunksize,
 			length=x@dim[1] * length(j),
 			dim=c(x@dim[1], length(j)),
@@ -1057,7 +1055,7 @@ subsetMatterRows <- function(x, i) {
 		matter_matr=new("matter_matr",
 			data=x@data[i],
 			datamode=x@datamode,
-			filepaths=x@filepaths,
+			paths=x@paths,
 			chunksize=x@chunksize,
 			length=length(i) * x@dim[2],
 			dim=c(length(i), x@dim[2]),
@@ -1141,17 +1139,22 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		y <- t(t(y))
 	if ( nrow(x) != nrow(y) )
 		stop("number of rows of column-major matrices must match")
-	filepaths <- levels(factor(c(x@filepaths, y@filepaths)))
-	data <- lapply(append(x@data, y@data), function(xs) {
-		xs@file_id <- as.integer(factor(xs@file_id,
-			levels=seq_len(length(filepaths)),
-			labels=filepaths))
+	paths <- levels(factor(c(x@paths, y@paths)))
+	x@data <- lapply(x@data, function(xs) {
+		xs@source_id <- as.integer(factor(x@paths[xs@source_id],
+			levels=paths))
 		xs
 	})
+	y@data <- lapply(y@data, function(ys) {
+		ys@source_id <- as.integer(factor(y@paths[ys@source_id],
+			levels=paths))
+		ys
+	})
+	data <- c(x@data, y@data)
 	new(class(x),
 		data=data,
 		datamode=widest.datamode(data, from="C"),
-		filepaths=filepaths,
+		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
@@ -1179,17 +1182,22 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 		y <- t(y)
 	if ( ncol(x) != ncol(y) )
 		stop("number of columns of row-major matrices must match")
-	filepaths <- levels(factor(c(x@filepaths, y@filepaths)))
-	data <- lapply(append(x@data, y@data), function(xs) {
-		xs@file_id <- as.integer(factor(xs@file_id,
-			levels=seq_len(length(filepaths)),
-			labels=filepaths))
+	paths <- levels(factor(c(x@paths, y@paths)))
+	x@data <- lapply(x@data, function(xs) {
+		xs@source_id <- as.integer(factor(x@paths[xs@source_id],
+			levels=paths))
 		xs
 	})
+	y@data <- lapply(y@data, function(ys) {
+		ys@source_id <- as.integer(factor(y@paths[ys@source_id],
+			levels=paths))
+		ys
+	})
+	data <- c(x@data, y@data)
 	new(class(x),
 		data=data,
 		datamode=widest.datamode(data, from="C"),
-		filepaths=filepaths,
+		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
@@ -1274,12 +1282,12 @@ setMethod("%*%", c("numeric", "matter_matr"), function(x, y) { t(x) %*% y })
 
 setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
 {
-	.Call("C_rightMultRMatrix", x, y)
+	.Call("C_rightMatrixMult", x, y)
 })
 
 setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 {
-	.Call("C_leftMultRMatrix", x, y)
+	.Call("C_leftMatrixMult", x, y)
 })
 
 setMethod("%*%", c("matter", "matter"), function(x, y)

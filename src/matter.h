@@ -113,26 +113,26 @@ void fillNA(RType * ptr, size_t count, size_t skip = 1) {
 
 index_type num_consecutive(double * pindex, long i, long length);
 
-//// Files class
+//// DataSources class
 //----------------
 
-class Files {
+class DataSources {
 
     public:
 
-        Files(SEXP x)
+        DataSources(SEXP x)
         {
-            _paths = GET_SLOT(x, mkString("filepaths"));
-            _mode = GET_SLOT(x, mkString("filemode"));
+            _paths = GET_SLOT(x, mkString("paths"));
+            _filemode = GET_SLOT(x, mkString("filemode"));
             if ( LENGTH(_paths) == 0 )
-                error("empty 'filepaths'");
+                error("empty 'paths'");
             _length = LENGTH(_paths);
             _streams = (FILE **) Calloc(_length, FILE*);
             for ( int i = 0; i < _length; i++ )
                 _streams[i] = NULL;
         }
 
-        ~Files()
+        ~DataSources()
         {
             for ( int i = 0; i < _length; i++ )
                 if ( _streams[i] != NULL )
@@ -140,22 +140,22 @@ class Files {
             Free(_streams);
         }
 
-        FILE * require(int file_id) {
-            if ( file_id == NA_INTEGER )
-                error("missing 'file_id'");
-            if ( _streams[file_id] == NULL ) {
-                const char * filename = CHARACTER_VALUE(STRING_ELT(_paths, file_id));
-                _streams[file_id] = fopen(filename, CHARACTER_VALUE(_mode));
-                if ( _streams[file_id] == NULL )
+        FILE * require(int source_id) {
+            if ( source_id == NA_INTEGER )
+                error("missing 'source_id'");
+            if ( _streams[source_id] == NULL ) {
+                const char * filename = CHARACTER_VALUE(STRING_ELT(_paths, source_id));
+                _streams[source_id] = fopen(filename, CHARACTER_VALUE(_filemode));
+                if ( _streams[source_id] == NULL )
                   error("could not open file '%s'", filename);
             }
-            return _streams[file_id];
+            return _streams[source_id];
         }
 
     protected:
 
         SEXP _paths;
-        SEXP _mode;
+        SEXP _filemode;
         FILE ** _streams;
         int _length;
 
@@ -169,10 +169,10 @@ class Atoms {
 
     public:
 
-        Atoms(SEXP x, Files * f, Ops o) : _files(f), _ops(o)
+        Atoms(SEXP x, DataSources * s, Ops o) : _sources(s), _ops(o)
         {
             _length = INTEGER_VALUE(GET_SLOT(x, mkString("length")));
-            _file_id = INTEGER(GET_SLOT(x, mkString("file_id")));
+            _source_id = INTEGER(GET_SLOT(x, mkString("source_id")));
             _datamode = INTEGER(GET_SLOT(x, mkString("datamode")));
             _offset = REAL(GET_SLOT(x, mkString("offset")));
             _extent = REAL(GET_SLOT(x, mkString("extent")));
@@ -182,10 +182,10 @@ class Atoms {
 
         ~Atoms(){}
 
-        int file_id(int i) {
-            int retId = _file_id[i] - 1;
+        int source_id(int i) {
+            int retId = _source_id[i] - 1;
             if ( retId == NA_INTEGER )
-                error("missing 'file_id'");
+                error("missing 'source_id'");
             return retId;
         }
 
@@ -217,29 +217,29 @@ class Atoms {
             return(index_extent(length() - 1));
         }
 
-        index_type file_offset(int i, index_type offset) {
-            index_type byte_offset, file_offset;
+        index_type byte_offset(int i, index_type offset) {
+            index_type byte_offset, elt_offset;
             switch(datamode(i)) {
                 case 1:
-                    byte_offset = sizeof(short) * (offset - index_offset(i));
+                    elt_offset = sizeof(short) * (offset - index_offset(i));
                     break;
                 case 2:
-                    byte_offset = sizeof(int) * (offset - index_offset(i));
+                    elt_offset = sizeof(int) * (offset - index_offset(i));
                     break;
                 case 3:
-                    byte_offset = sizeof(long) * (offset - index_offset(i));
+                    elt_offset = sizeof(long) * (offset - index_offset(i));
                     break;
                 case 4:
-                    byte_offset = sizeof(float) * (offset - index_offset(i));
+                    elt_offset = sizeof(float) * (offset - index_offset(i));
                     break;
                 case 5:
-                    byte_offset = sizeof(double) * (offset - index_offset(i));
+                    elt_offset = sizeof(double) * (offset - index_offset(i));
                     break;
                 default:
                     error("unsupported datamode");
             }
-            file_offset = this->offset(i) + byte_offset;
-            return file_offset;
+            byte_offset = this->offset(i) + elt_offset;
+            return byte_offset;
         }
 
         int find_atom(index_type offset) {
@@ -252,8 +252,8 @@ class Atoms {
         template<typename CType, typename RType>
         index_type read_atom(RType * ptr, int which, index_type offset, index_type count, size_t skip = 1) {
             index_type numRead;
-            FILE * stream = _files->require(file_id(which));
-            fseek(stream, file_offset(which, offset), SEEK_SET);
+            FILE * stream = _sources->require(source_id(which));
+            fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
             numRead = fread(tmp, sizeof(CType), count, stream);
             for ( index_type i = 0; i < numRead; i++ ) {
@@ -267,8 +267,8 @@ class Atoms {
         template<typename CType, typename RType>
         index_type write_atom(RType * ptr, int which, index_type offset, index_type count, size_t skip = 1) {
             index_type numWrote;
-            FILE * stream = _files->require(file_id(which));
-            fseek(stream, file_offset(which, offset), SEEK_SET);
+            FILE * stream = _sources->require(source_id(which));
+            fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
             for ( index_type i = 0; i < count; i++ ) {
                 tmp[i] = backtransform<RType>(coerce_cast<RType,CType>(*ptr), _ops, offset + i);
@@ -404,7 +404,7 @@ class Atoms {
 
     protected:
 
-        int * _file_id;    // index from 1
+        int * _source_id;    // index from 1
         int * _datamode;   // 1 = short, 2 = int, 3 = index_type, 4 = float, 5 = double
         double * _offset;
         double * _extent;
@@ -412,7 +412,7 @@ class Atoms {
         double * _index_extent; // index from 0
         int _length;
 
-        Files * _files;
+        DataSources * _sources;
         Ops _ops;
 
 };
@@ -426,7 +426,7 @@ class Matter
 
     public:
 
-        Matter(SEXP x) : _files(x)
+        Matter(SEXP x) : _sources(x)
         {
             _data = GET_SLOT(x, mkString("data"));
             _datamode = INTEGER_VALUE(GET_SLOT(x, mkString("datamode")));
@@ -472,8 +472,8 @@ class Matter
             return _datamode;
         }
 
-        Files * files() {
-            return &_files;
+        DataSources * sources() {
+            return &_sources;
         }
 
         int chunksize() {
@@ -609,7 +609,7 @@ class Matter
 
         SEXP _data;     // EITHER "atoms" OR a *list* of "atoms"
         int _datamode;  // 1 = integer, 2 = numeric
-        Files _files;
+        DataSources _sources;
         int _chunksize;
         index_type _length;
         SEXP _dim;
@@ -632,11 +632,11 @@ class MatterAccessor
         {
             switch(x.S4class()) {
                 case 1:
-                    _atoms = new Atoms(x.data(), x.files(), x.ops());
+                    _atoms = new Atoms(x.data(), x.sources(), x.ops());
                     _next = NONE;
                     break;
                 default:
-                    _atoms = new Atoms(x.data(0), x.files(), x.ops(0));
+                    _atoms = new Atoms(x.data(0), x.sources(), x.ops(0));
                     _next = 1;
                     break;
             }
@@ -645,7 +645,7 @@ class MatterAccessor
 
         MatterAccessor(Matter & x, int i) : _matter(x)
         {
-            _atoms = new Atoms(x.data(i), x.files(), x.ops(i));
+            _atoms = new Atoms(x.data(i), x.sources(), x.ops(i));
             _next = NONE;
             init();
         }
@@ -684,7 +684,7 @@ class MatterAccessor
             else if ( 0 <= _next && _next < _matter.data_n() )
             {
                 delete _atoms;
-                _atoms = new Atoms(_matter.data(_next), _matter.files(), _matter.ops(_next));
+                _atoms = new Atoms(_matter.data(_next), _matter.sources(), _matter.ops(_next));
                 _next++;
                 return init();
             }
@@ -768,17 +768,17 @@ extern "C" {
 
     SEXP getColMeans(SEXP x, SEXP na_rm);
 
-    SEXP getColVar(SEXP x, SEXP na_rm);
+    SEXP getColVars(SEXP x, SEXP na_rm);
 
     SEXP getRowSums(SEXP x, SEXP na_rm);
 
     SEXP getRowMeans(SEXP x, SEXP na_rm);
 
-    SEXP getRowVar(SEXP x, SEXP na_rm);
+    SEXP getRowVars(SEXP x, SEXP na_rm);
 
-    SEXP rightMultRMatrix(SEXP x, SEXP y);
+    SEXP rightMatrixMult(SEXP x, SEXP y);
 
-    SEXP leftMultRMatrix(SEXP x, SEXP y);
+    SEXP leftMatrixMult(SEXP x, SEXP y);
 
 }
 

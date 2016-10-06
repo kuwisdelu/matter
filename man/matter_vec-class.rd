@@ -24,8 +24,8 @@
 
 \usage{
 ## Instance creation
-matter_vec(data, datamode = "double", filepaths = NULL,
-            filemode = ifelse(is.null(filepaths), "rb+", "rb"),
+matter_vec(data, datamode = "double", paths = NULL,
+            filemode = ifelse(is.null(paths), "rb+", "rb"),
             offset = 0, extent = length, length = 0L, names = NULL, \dots)
 
 ## Additional methods documented below
@@ -36,13 +36,13 @@ matter_vec(data, datamode = "double", filepaths = NULL,
 
         \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are 'short', 'int', 'long', 'float', and 'double'.}
 
-        \item{filepaths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link[base]{tempfile}}.}
+        \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link[base]{tempfile}}.}
 
         \item{filemode}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
 
-        \item{offset}{A vector giving the offsets in number of bytes from the beginning of each file in 'filepaths', specifying the start of the data to be accessed for each file.}
+        \item{offset}{A vector giving the offsets in number of bytes from the beginning of each file in 'paths', specifying the start of the data to be accessed for each file.}
 
-        \item{extent}{A vector giving the length of the data for each file in 'filepaths', specifying the number of elements of size 'datamode' to be accessed from each file.}
+        \item{extent}{A vector giving the length of the data for each file in 'paths', specifying the number of elements of size 'datamode' to be accessed from each file.}
 
         \item{length}{An optional number giving the total length of the data across all files, equal to the sum of 'extent'. This is ignored and calculated automatically if 'extent' is specified.}
 
@@ -57,7 +57,7 @@ matter_vec(data, datamode = "double", filepaths = NULL,
 
         \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of length one with value 'integer' or 'numeric'.}
 
-        \item{\code{filepaths}:}{A 'character' vector of the paths to the files where the data are stored.}
+        \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
         \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
 

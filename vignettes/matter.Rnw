@@ -77,8 +77,8 @@ Below, we create a second matrix, and show its data is stored in a separate file
 <<>>=
 y <- matter_mat(data=51:100, nrow=10, ncol=5)
 
-filepaths(x)
-filepaths(y)
+paths(x)
+paths(y)
 
 z <- cbind(x, y)
 z
@@ -109,7 +109,7 @@ Now we show how to create a \Robject{matter\_mat} matrix for an pre-existing fil
 
 <<>>=
 xsub <- matter_mat(offset=c(40, 120, 200, 280, 360),
-            extent=rep(5,5), filepaths=filepaths(x))
+            extent=rep(5,5), paths=paths(x))
 x[6:10,]
 xsub[]
 @
@@ -117,8 +117,8 @@ xsub[]
 It is possible to build \Robject{matter} objects from nearly any possible combination of files and locations within files. It is even possible to build up a matrix from vectors, which we do below.
 
 <<>>=
-x2 <- matter_vec(offset=80, extent=10, filepaths=filepaths(x))
-y3 <- matter_vec(offset=160, extent=10, filepaths=filepaths(y))
+x2 <- matter_vec(offset=80, extent=10, paths=paths(x))
+y3 <- matter_vec(offset=160, extent=10, paths=paths(y))
 cbind(x2, y3)[]
 cbind(x[,2], y[,3])
 @
@@ -287,7 +287,7 @@ By analogy to \R{}'s notion of ``atomic'' vectors, the \Robject{atoms} class use
 Structure:
 \begin{itemize}
 \item \Robject{length}: the total cumulative length of all of the atoms
-\item \Robject{file\_id}: the ID's of the files where each atom is located
+\item \Robject{source\_id}: the ID's of the file paths where each atom is located
 \item \Robject{datamode}: the type of data (short, int, long, float, double) for each atom
 \item \Robject{offset}: each atom's byte offset from the beginning of the file
 \item \Robject{extent}: the length of each atom
@@ -305,7 +305,7 @@ Structure:
 \begin{itemize}
 \item \Robject{data}: one or more \Robject{atoms} objects
 \item \Robject{datamode}: the type of data (integer, numeric) for the represented vector or matrix
-\item \Robject{filepaths}: the paths to the files used by the \Robject{atoms} objects
+\item \Robject{paths}: the paths to the files used by the \Robject{atoms} objects
 \item \Robject{filemode}: should the files be open for read/write, or read-only?
 \item \Robject{chunksize}: how large the chunk sizes should be for calculations that operate on chunks of the dataset
 \item \Robject{length}: the total length of the dataset

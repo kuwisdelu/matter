@@ -215,7 +215,7 @@ index_type num_consecutive(double * pindex, long i, long length) {
 template<typename RType>
 SEXP Matter :: readVector() {
     SEXP retVec;
-    Atoms atoms(data(), files(), ops());
+    Atoms atoms(data(), sources(), ops());
     PROTECT(retVec = allocVector(DataType<RType>(), length()));
     RType * pRetVec = DataPtr<RType>(retVec);
     atoms.read<RType>(pRetVec, 0, length());
@@ -226,7 +226,7 @@ SEXP Matter :: readVector() {
 template<typename RType>
 void Matter :: writeVector(SEXP value) {
     RType * pValue = DataPtr<RType>(value);
-    Atoms atoms(data(), files(), ops());
+    Atoms atoms(data(), sources(), ops());
     atoms.write<RType>(pValue, 0, length());
 }
 
@@ -236,7 +236,7 @@ SEXP Matter :: readVectorElements(SEXP i) {
     PROTECT(retVec = allocVector(DataType<RType>(), XLENGTH(i)));
     RType * pRetVec = DataPtr<RType>(retVec);
     double * pIndex = REAL(i);
-    Atoms atoms(data(), files(), ops());
+    Atoms atoms(data(), sources(), ops());
     atoms.read_indices<RType>(pRetVec, pIndex, XLENGTH(i));
     UNPROTECT(1);
     return retVec;
@@ -246,7 +246,7 @@ template<typename RType>
 void Matter :: writeVectorElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
     double * pIndex = REAL(i);
-    Atoms atoms(data(), files(), ops());
+    Atoms atoms(data(), sources(), ops());
     atoms.write_indices(pValue, pIndex, XLENGTH(i));
 }
 
@@ -262,13 +262,13 @@ SEXP Matter :: readMatrix() {
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), files(), ops(col));
+                Atoms atoms(data(col), sources(), ops(col));
                 atoms.read<RType>(pRetMat + col * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), files(), ops(row));
+                Atoms atoms(data(row), sources(), ops(row));
                 atoms.read<RType>(pRetMat + row, 0, ncols, nrows);
             }
             break;
@@ -284,13 +284,13 @@ void Matter :: writeMatrix(SEXP value) {
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), files(), ops(col));
+                Atoms atoms(data(col), sources(), ops(col));
                 atoms.write<RType>(pValue + col * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), files(), ops(row));
+                Atoms atoms(data(row), sources(), ops(row));
                 atoms.write<RType>(pValue + row, 0, ncols, nrows);
             }
             break;
@@ -307,7 +307,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), files(), ops(col));
+                Atoms atoms(data(col), sources(), ops(col));
                 atoms.read_indices<RType>(pRetMat + col * nrows, pRow, nrows);
             }
             break;
@@ -317,7 +317,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_type row = static_cast<index_type>(pRow[l]);
-                    Atoms atoms(data(row), files(), ops(row));
+                    Atoms atoms(data(row), sources(), ops(row));
                     atoms.read<RType>(pRetMat + l, 0, ncols, nrows);
                 }
             }
@@ -335,7 +335,7 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), files(), ops(col));
+                Atoms atoms(data(col), sources(), ops(col));
                 atoms.write_indices(pValue + col * nrows, pRow, nrows);
             }
             break;
@@ -344,7 +344,7 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_type row = static_cast<index_type>(pRow[l]);
-                Atoms atoms(data(row), files(), ops(row));
+                Atoms atoms(data(row), sources(), ops(row));
                 atoms.write<RType>(pValue + l, 0, ncols, nrows);
             }
             break;
@@ -365,14 +365,14 @@ SEXP Matter :: readMatrixCols(SEXP j) {
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_type col = static_cast<index_type>(pCol[l]);
-                    Atoms atoms(data(col), files(), ops(col));
+                    Atoms atoms(data(col), sources(), ops(col));
                     atoms.read<RType>(pRetMat + l * nrows, 0, nrows);
                 }
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), files(), ops(row));
+                Atoms atoms(data(row), sources(), ops(row));
                 atoms.read_indices<RType>(pRetMat + row, pCol, ncols, nrows);
             }
             break;
@@ -392,13 +392,13 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_type col = static_cast<index_type>(pCol[l]);
-                Atoms atoms(data(col), files(), ops(col));
+                Atoms atoms(data(col), sources(), ops(col));
                 atoms.write<RType>(pValue + l * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), files(), ops(row));
+                Atoms atoms(data(row), sources(), ops(row));
                 atoms.write_indices(pValue + row, pCol, ncols, nrows);
             }
             break;
@@ -420,7 +420,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_type col = static_cast<index_type>(pCol[l]);
-                    Atoms atoms(data(col), files(), ops(col));
+                    Atoms atoms(data(col), sources(), ops(col));
                     atoms.read_indices<RType>(pRetMat + l * nrows, pRow, nrows);
                 }
             }
@@ -431,7 +431,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_type row = static_cast<index_type>(pRow[l]);
-                    Atoms atoms(data(row), files(), ops(row));
+                    Atoms atoms(data(row), sources(), ops(row));
                     atoms.read_indices<RType>(pRetMat + l, pCol, ncols, nrows);
                 }
             }
@@ -453,7 +453,7 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_type col = static_cast<index_type>(pCol[l]);
-                Atoms atoms(data(col), files(), ops(col));
+                Atoms atoms(data(col), sources(), ops(col));
                 atoms.write_indices(pValue + l * nrows, pRow, nrows);
             }
             break;
@@ -462,7 +462,7 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_type row = static_cast<index_type>(pRow[l]);
-                Atoms atoms(data(row), files(), ops(row));
+                Atoms atoms(data(row), sources(), ops(row));
                 atoms.write_indices(pValue + l, pCol, ncols, nrows);
             }
             break;
@@ -1145,7 +1145,7 @@ extern "C" {
         return mMat.colmeans(LOGICAL_VALUE(na_rm));
     }
 
-    SEXP getColVar(SEXP x, SEXP na_rm) {
+    SEXP getColVars(SEXP x, SEXP na_rm) {
         Matter mMat(x);
         return mMat.colvar(LOGICAL_VALUE(na_rm));
     }
@@ -1160,12 +1160,12 @@ extern "C" {
         return mMat.rowmeans(LOGICAL_VALUE(na_rm));
     }
 
-    SEXP getRowVar(SEXP x, SEXP na_rm) {
+    SEXP getRowVars(SEXP x, SEXP na_rm) {
         Matter mMat(x);
         return mMat.rowvar(LOGICAL_VALUE(na_rm));
     }
 
-    SEXP rightMultRMatrix(SEXP x, SEXP y) {
+    SEXP rightMatrixMult(SEXP x, SEXP y) {
         Matter mMat(x);
         if ( TYPEOF(y) == INTSXP )
             return mMat.rmult<int>(y);
@@ -1175,7 +1175,7 @@ extern "C" {
             return R_NilValue;
     }
 
-    SEXP leftMultRMatrix(SEXP x, SEXP y) {
+    SEXP leftMatrixMult(SEXP x, SEXP y) {
         Matter mMat(y);
         if ( TYPEOF(x) == INTSXP )
             return mMat.lmult<int>(x);

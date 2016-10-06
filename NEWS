@@ -6,11 +6,16 @@ NEW FEATURES
 
     o Added delayed scaling and centering via 'scale' method
     o Added 'prcomp' method for principal components analysis
-    o Renamed 'colSd' -> 'colSds', 'colVar' -> 'colVars', etc.
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
+    o Renamed 'colSd' -> 'colSds', 'colVar' -> 'colVars', etc.
+    o Renamed 'filepaths' -> 'paths' and 'file_id' -> 'source_id'
     o Moved 'irlba' from Suggests to Imports to support 'prcomp' method
+
+BUG FIXES
+
+    o Fixed bug when combining 'matter' objects with multiple sources
 
 CHANGES IN VERSION 0.99.8 [2016-10-3]
 ---------------------------------

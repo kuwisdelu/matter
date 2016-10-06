@@ -21,12 +21,12 @@ extern "C" {
         {"C_getVar", (DL_FUNC) &getVar, 2},
         {"C_getColSums", (DL_FUNC) &getColSums, 2},
         {"C_getColMeans", (DL_FUNC) &getColMeans, 2},
-        {"C_getColVar", (DL_FUNC) &getColVar, 2},
+        {"C_getColVars", (DL_FUNC) &getColVars, 2},
         {"C_getRowSums", (DL_FUNC) &getRowSums, 2},
         {"C_getRowMeans", (DL_FUNC) &getRowMeans, 2},
-        {"C_getRowVar", (DL_FUNC) &getRowVar, 2},
-        {"C_rightMultRMatrix", (DL_FUNC) &rightMultRMatrix, 2},
-        {"C_leftMultRMatrix", (DL_FUNC) &leftMultRMatrix, 2},
+        {"C_getRowVars", (DL_FUNC) &getRowVars, 2},
+        {"C_rightMatrixMult", (DL_FUNC) &rightMatrixMult, 2},
+        {"C_leftMatrixMult", (DL_FUNC) &leftMatrixMult, 2},
         {NULL, NULL, 0}
     };
 

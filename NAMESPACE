@@ -32,8 +32,8 @@ exportClasses(
 exportMethods(
 	"datamode",
 	"datamode<-",
-	"filepaths",
-	"filepaths<-",
+	"paths",
+	"paths<-",
 	"filemode",
 	"filemode<-",
 	"chunksize",

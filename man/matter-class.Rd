@@ -11,10 +11,10 @@
 \alias{datamode<-,atoms-method}
 \alias{datamode,matter-method}
 \alias{datamode<-,matter-method}
-\alias{filepaths}
-\alias{filepaths<-}
-\alias{filepaths,matter-method}
-\alias{filepaths<-,matter-method}
+\alias{paths}
+\alias{paths<-}
+\alias{paths,matter-method}
+\alias{paths<-,matter-method}
 \alias{filemode}
 \alias{filemode<-}
 \alias{filemode,matter-method}
@@ -59,7 +59,7 @@ matter(\dots)
 
         \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
 
-        \item{\code{filepaths}:}{A 'character' vector of the paths to the files where the data are stored.}
+        \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
         \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
 
@@ -84,7 +84,7 @@ matter(\dots)
     \describe{
         \item{\code{datamode(x), datamode(x) <- value}:}{Get or set 'datamode'.}
 
-        \item{\code{filepaths(x), filepaths(x) <- value}:}{Get or set 'filepaths'.}
+        \item{\code{paths(x), paths(x) <- value}:}{Get or set 'paths'.}
 
         \item{\code{filemode(x), filemode(x) <- value}:}{Get or set 'filemode'.}
 
