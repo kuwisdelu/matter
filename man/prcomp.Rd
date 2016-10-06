@@ -23,7 +23,7 @@
 
     \item{center}{A logical value indicating whether the variables should be shifted to be zero-centered, or a centering vector of length equal to the number of columns of \code{x}. The centering is performed implicitly and does not change the data-on-disk in \code{x}.}
 
-    \item{scale}{A logical value indicating whether the variables should be scaled to have unit variance, or a scaling vector of length equal to the number of columns of \code{x}. The scaling is performed implicitly and does not change the data-on-disk in \code{x}.}
+    \item{scale.}{A logical value indicating whether the variables should be scaled to have unit variance, or a scaling vector of length equal to the number of columns of \code{x}. The scaling is performed implicitly and does not change the data-on-disk in \code{x}.}
 
     \item{\dots}{Additional options passed to \code{\link[irlba]{irlba}}.}
 }
@@ -33,7 +33,7 @@
 }
 
 \note{
-	The ‘tol’ truncation argument found in the default \code{\link[stats]{prcomp}} method is not supported. In place of the truncation tolerance in the original function, the argument \code{n} explicitly gives the number of principal components to return. A warning is generated if the argument ‘tol’ is used.
+	The 'tol' truncation argument found in the default \code{\link[stats]{prcomp}} method is not supported. In place of the truncation tolerance in the original function, the argument \code{n} explicitly gives the number of principal components to return. A warning is generated if the argument 'tol' is used.
 }
 
 \author{Kylie A. Bemis}

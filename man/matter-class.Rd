@@ -31,7 +31,7 @@
 \alias{names,matter-method}
 \alias{names<-,matter-method}
 \alias{dimnames,matter-method}
-\alias{dimnames<-,matter-method}
+\alias{dimnames<-,matter,ANY-method}
 
 \alias{c,atoms-method}
 \alias{c,matter-method}
