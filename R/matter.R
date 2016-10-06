@@ -1413,9 +1413,9 @@ setMethod("prcomp", "matter_mat",
 
 prcomp.matter <- function(x, n, retx, center, scale., ...) {
     if ( "tol" %in% names(match.call(expand.dots=FALSE)$...) )
-        warning("The 'tol' truncation argument from 'prcomp' is not supported\n
-        	for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n
-        	to control that algorithm's convergence tolerance.")
+        warning("The 'tol' truncation argument from 'prcomp' is not supported\n",
+        	"  for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n",
+        	"  to control that algorithm's convergence tolerance.")
     x <- scale(x, center=center, scale=scale.)
     sv <- irlba(x, nv=n, fastpath=FALSE, ...)
     ans <- list(sdev = sv$d/sqrt(max(1, nrow(x) - 1)), rotation = sv$v)
