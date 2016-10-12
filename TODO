@@ -1,0 +1,15 @@
+
+TODO for matter package
+-------------------------
+
+Priority: High
+-Update principal components section of vignette
+-Delayed execution for scaling and centering (and other ops)
+
+Priority: Medium
+-Sparse vectors/matrices (both in-memory and on-disk)
+-Add method for principal components analysis
+-Add data.frame and factor types
+
+Priority: Low
+-Smart caching of frequently-accessed parts of data
