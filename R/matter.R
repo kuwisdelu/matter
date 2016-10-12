@@ -64,7 +64,7 @@ names2index <- function(x, i)
 dimnames2index <- function(x, i, margin)
 	as.numeric(match(i, dimnames(x)[[margin]]))
 
-all.indices <- function(x, i, margin) {
+allIndices <- function(x, i, margin) {
 	if ( missing(margin) ) {
 		all(i == seq_len(length(x)))
 	} else {
@@ -73,7 +73,7 @@ all.indices <- function(x, i, margin) {
 }
 
 sizeof <- function(type) {
-	type <- make.datamode(type, type="C")
+	type <- make_datamode(type, type="C")
 	vapply(as.character(type), switch, numeric(1),
 		short = 2,
 		int = 4,
@@ -82,7 +82,7 @@ sizeof <- function(type) {
 		double = 8)
 }
 
-combine.colnames <- function(x, y) {
+combine_colnames <- function(x, y) {
 	if ( is.null(dimnames(x)[[2]]) && is.null(dimnames(y)[[2]]) ) {
 		colnames <- NULL
 	} else if ( is.null(dimnames(x)[[2]]) ) {
@@ -104,7 +104,7 @@ combine.colnames <- function(x, y) {
 	}
 }
 
-combine.rownames <- function(x, y) {
+combine_rownames <- function(x, y) {
 	if ( is.null(dimnames(x)[[1]]) && is.null(dimnames(y)[[1]]) ) {
 		rownames <- NULL
 	} else if ( is.null(dimnames(x)[[1]]) ) {
@@ -129,7 +129,7 @@ combine.rownames <- function(x, y) {
 #### Define data types and utility functions for them ####
 ## -------------------------------------------------------
 
-make.datamode <- function(datamode, type=c("C", "R")) {
+make_datamode <- function(datamode, type=c("C", "R")) {
 	levels <- switch(match.arg(type),
 		C = c("short", "int", "long", "float", "double"),
 		R = c("integer", "numeric"))
@@ -148,36 +148,36 @@ make.datamode <- function(datamode, type=c("C", "R")) {
 	}
 }
 
-tabulate.datamode <- function(x) {
+tabulate_datamode <- function(x) {
 	if ( class(x) == "atoms" ) {
 		x <- datamode(x)
 	} else if ( class(x) == "list" ) {
 		x <- unlist(lapply(x, function(xs)
 			datamode(xs)))
 	}
-	summary(make.datamode(x, type="C"))
+	summary(make_datamode(x, type="C"))
 }
 
-widest.datamode <- function(x, from=c("C", "R")) {
-	counts <- tabulate.datamode(x)
-	tdatamode <- make.datamode(max(which(counts > 0)))
+widest_datamode <- function(x, from=c("C", "R")) {
+	counts <- tabulate_datamode(x)
+	tdatamode <- make_datamode(max(which(counts > 0)))
 	if ( from == "C" ) {
-		make.datamode(switch(as.character(tdatamode),
+		make_datamode(switch(as.character(tdatamode),
 		short = "integer",
 		int = "integer",
 		long = "numeric",
 		float = "numeric",
 		double = "numeric"), type="R")
 	} else if ( from == "R" ) {
-		make.datamode(switch(as.character(tdatamode),
+		make_datamode(switch(as.character(tdatamode),
 			integer = "int",
 			numeric = "double"), type="C")
 	}
 }
 
-disk.used <- function(x) {
+disk_used <- function(x) {
 	if ( is.list(x) ) {
-		bytes <- sum(vapply(x, disk.used, numeric(1)))
+		bytes <- sum(vapply(x, disk_used, numeric(1)))
 	} else {
 		bytes <- sum(x@extent * sizeof(datamode(x)))
 	}
@@ -187,7 +187,7 @@ disk.used <- function(x) {
 
 # based on utils::format.object_size
 
-show.bytes <- function (x, units = "auto", ...)  {
+show_bytes <- function (x, units = "auto", ...)  {
     units <- match.arg(units, c("auto",
 				"B", "KB", "MB", "GB", "TB", "PB"))
     if (units == "auto")
@@ -209,8 +209,8 @@ show.bytes <- function (x, units = "auto", ...)  {
         PB = c("PB"=round(x/1000^5, 1L)))
 }
 
-format.bytes <- function(x, units = "auto", ...) {
-	bytes <- show.bytes(x, units=units)
+format_bytes <- function(x, units = "auto", ...) {
+	bytes <- show_bytes(x, units=units)
 	paste(bytes, names(bytes))
 }
 
@@ -219,7 +219,7 @@ format.bytes <- function(x, units = "auto", ...) {
 mem <- function(x, reset = FALSE) {
 	if ( !missing(x) ) {
 		mem <- as.numeric(object.size(x))
-		mem <- show.bytes(mem)
+		mem <- show_bytes(mem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
 		mem <- round(colSums(gc(reset=reset)[,c(1,3,5)] * cell.size) / 1000^2, 1)
@@ -276,7 +276,7 @@ setClass("atoms",
 			errors <- c(errors, "'length' not equal to length of object elements")
 		if ( object@index_offset[1] != 0 )
 			errors <- c(errors, "'index_offset' must begin at 0")
-		# C_datamodes <- levels(make.datamode(type="C"))
+		# C_datamodes <- levels(make_datamode(type="C"))
 		# if ( any(!as.character(object@datamode) %in% C_datamodes) )
 		# 	errors <- c(errors, "'datamode' should be one of [",
 		# 		paste(C_datamodes, collapse=", "), "]")
@@ -299,7 +299,7 @@ atoms <- function(source_id = as.integer(NA), datamode="double",
 	new("atoms",
 		length=as.integer(length(source_id)),
 		source_id=as.integer(source_id),
-		datamode=as.integer(make.datamode(datamode, type="C")),
+		datamode=as.integer(make_datamode(datamode, type="C")),
 		offset=as.numeric(offset),
 		extent=as.numeric(extent),
 		index_offset=as.numeric(c(0, cumsum(extent)[-length(extent)])),
@@ -309,7 +309,7 @@ atoms <- function(source_id = as.integer(NA), datamode="double",
 setMethod("datamode", "atoms", function(x) x@datamode)
 
 setReplaceMethod("datamode", "atoms", function(x, value) {
-	x@datamode <- as.integer(make.datamode(value, type="C"))
+	x@datamode <- as.integer(make_datamode(value, type="C"))
 	x
 })
 
@@ -335,7 +335,7 @@ setMethod("c", "atoms", function(x, ..., recursive=FALSE)
 setMethod("show", "atoms", function(object) {
 	print(data.frame(
 		source_id=object@source_id,
-		datamode=make.datamode(object@datamode, type="C"),
+		datamode=make_datamode(object@datamode, type="C"),
 		offset=object@offset,
 		extent=object@extent,
 		index_offset=object@index_offset,
@@ -370,7 +370,7 @@ setClass("matter",
 		if ( length(object@filemode) != 1 || !object@filemode %in% C_readmodes )
 			errors <- c(errors, "'filemode' should be one of [",
 				paste(C_readmodes, collapse=", "), "]")
-		R_datamodes <- levels(make.datamode(type="R"))
+		R_datamodes <- levels(make_datamode(type="R"))
 		if ( !as.character(object@datamode) %in% R_datamodes )
 			errors <- c(errors, "'datamode' should be one of [",
 				paste(R_datamodes, collapse=", "), "]")
@@ -432,7 +432,7 @@ setMethod("show", "matter", function(object) {
 	cat("    sources: ", length(object@paths), "\n", sep="")
 	cat("    datamode: ", paste(object@datamode), "\n", sep="")
 	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
-	cat("    ", format(disk.used(object@data), units="auto"), " on-disk\n", sep="")
+	cat("    ", format(disk_used(object@data), units="auto"), " on-disk\n", sep="")
 })
 
 setMethod("datamode", "matter", function(x) x@datamode)
@@ -575,7 +575,7 @@ setMethod("rowSds", "matter", function(x, na.rm = FALSE) {
 setClass("matter_vec",
 	prototype = prototype(
 		data = atoms(),
-		datamode = make.datamode("numeric", type="R"),
+		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
@@ -619,10 +619,10 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	x <- new("matter_vec",
 		data=atoms(
 			source_id=as.integer(factor(paths)),
-			datamode=as.integer(make.datamode(datamode, type="C")),
+			datamode=as.integer(make_datamode(datamode, type="C")),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
-		datamode=widest.datamode(datamode, from="C"),
+		datamode=widest_datamode(datamode, from="C"),
 		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=as.numeric(sum(extent)),
@@ -716,7 +716,7 @@ setMethod("combine", "matter_vec", function(x, y, ...) {
 	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
-		datamode=widest.datamode(data, from="C"),
+		datamode=widest_datamode(data, from="C"),
 		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
@@ -756,7 +756,7 @@ setClass("matter_mat",
 	contains = c("matter", "VIRTUAL"),
 	prototype = prototype(
 		data = list(atoms()),
-		datamode = make.datamode("numeric", type="R"),
+		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
@@ -777,7 +777,7 @@ setClass("matter_matc",
 	contains = "matter_mat",
 	prototype = prototype(
 		data = list(),
-		datamode = make.datamode("numeric", type="R"),
+		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
@@ -790,7 +790,7 @@ setClass("matter_matr",
 	contains = "matter_mat",
 	prototype = prototype(
 		data = list(),
-		datamode = make.datamode("numeric", type="R"),
+		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
 		chunksize = 1e6L,
@@ -842,7 +842,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	} else {
 		adata <- function() mapply(atoms,
 			factor(paths),
-			make.datamode(datamode, type="C"),
+			make_datamode(datamode, type="C"),
 			as.numeric(offset),
 			as.numeric(extent))
 	}
@@ -860,7 +860,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 		paths <- rep(paths, length.out=max(length(extent), 1))
 	x <- new(mclass,
 		data=adata(),
-		datamode=widest.datamode(datamode, from="C"),
+		datamode=widest_datamode(datamode, from="C"),
 		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=as.numeric(prod(c(nrow, ncol))),
@@ -1017,11 +1017,11 @@ subsetMatterMatrix <- function(x, i, j) {
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
 	if ( is(x, "matter_matc") ) {
-		if ( !all.indices(x, i, 1) )
+		if ( !allIndices(x, i, 1) )
 			stop("cannot subset column-major matrix as S4 by row")
 		subsetMatterCols(x, j)
 	} else if ( is(x, "matter_matr") ) {
-		if ( !all.indices(x, j, 2) )
+		if ( !allIndices(x, j, 2) )
 			stop("cannot subset row-major matrix as S4 by column")
 		subsetMatterRows(x, i)
 	}
@@ -1156,13 +1156,13 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 	data <- c(x@data, y@data)
 	new(class(x),
 		data=data,
-		datamode=widest.datamode(data, from="C"),
+		datamode=widest_datamode(data, from="C"),
 		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
 		names=NULL,
-		dimnames=combine.colnames(x,y))
+		dimnames=combine_colnames(x,y))
 })
 
 setMethod("cbind", "matter", function(..., deparse.level=1)
@@ -1199,13 +1199,13 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 	data <- c(x@data, y@data)
 	new(class(x),
 		data=data,
-		datamode=widest.datamode(data, from="C"),
+		datamode=widest_datamode(data, from="C"),
 		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
 		names=NULL,
-		dimnames=combine.rownames(x,y))
+		dimnames=combine_rownames(x,y))
 })
 
 setMethod("rbind", "matter", function(..., deparse.level=1)
@@ -1303,12 +1303,12 @@ setMethod("%*%", c("matter", "matter"), function(x, y)
 
 setMethod("apply", "matter_mat",
 	function(X, MARGIN, FUN, ...) {
-		apply.matter(X, MARGIN, FUN, ...)
+		apply_matter(X, MARGIN, FUN, ...)
 })
 
 # based on code from package:base and package:biganalytics
 
-apply.matter <- function(X, MARGIN, FUN, ...)
+apply_matter <- function(X, MARGIN, FUN, ...)
 {
 	if ( length(MARGIN) > 1 ) 
 		stop("dim(MARGIN) > 1 not supported for 'matter' objects")
@@ -1368,13 +1368,13 @@ apply.matter <- function(X, MARGIN, FUN, ...)
 
 setMethod("bigglm", c("formula", "matter_mat"),
 	function(formula, data, ..., chunksize = NULL, fc = NULL) {
-		bigglm.matter(formula, data, ...,
+		bigglm_matter(formula, data, ...,
 			chunksize=chunksize, fc=fc)
 })
 
 # based on code from package:biglm and package:biganalytics
 
-bigglm.matter <- function(formula, data, ..., chunksize, fc) {
+bigglm_matter <- function(formula, data, ..., chunksize, fc) {
 	n <- nrow(data)
 	vars <- unique(c(all.vars(formula), fc))
 	p <- length(vars)
@@ -1409,12 +1409,12 @@ bigglm.matter <- function(formula, data, ..., chunksize, fc) {
 
 setMethod("prcomp", "matter_mat",
 	function(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, ...) {
-		prcomp.matter(x, n=n, retx=retx, center=center, scale.=scale., ...)
+		prcomp_matter(x, n=n, retx=retx, center=center, scale.=scale., ...)
 })
 
 # based on code for prcomp_irlba from package:irlba
 
-prcomp.matter <- function(x, n, retx, center, scale., ...) {
+prcomp_matter <- function(x, n, retx, center, scale., ...) {
     if ( "tol" %in% names(match.call(expand.dots=FALSE)$...) )
         warning("The 'tol' truncation argument from 'prcomp' is not supported\n",
         	"  for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n",

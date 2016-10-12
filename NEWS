@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 0.99.10 [2016-10-11]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Updated vignettes with installation instructions, faster build time
+    o Added 'adata' method for accessing 'matter' class @data slot
+
 CHANGES IN VERSION 0.99.9 [2016-10-5]
 ---------------------------------
 
