@@ -24,7 +24,16 @@ BiocStyle::latex()
 
 \section{Introduction}
 
-\Rpackage{matter} is designed for rapid prototyping of new statistical methods when working with larger-than-memory datasets on disk. Unlike related packages \Rpackage{bigmemory} and \Rpackage{ff}, which also work with file-backed larger-than-memory datasets, \Rpackage{matter} aims to offer maximum flexibility with on-disk data structures, so it can be easily adapted to domain-specific file formats.
+\Rpackage{matter} is designed for rapid prototyping of new statistical methods when working with larger-than-memory datasets on disk. Unlike related packages \Rpackage{bigmemory} and \Rpackage{ff}, which also work with file-backed larger-than-memory datasets, \Rpackage{matter} aims to offer strict control over memory and maximum flexibility with on-disk data structures, so it can be easily adapted to domain-specific file formats, including user-customized file formats.
+
+\section{Installation}
+
+\Rpackage{matter} can be installed from Bioconductor using the following commands in \R{}.
+
+<<eval=FALSE>>=
+source("https://bioconductor.org/biocLite.R")
+biocLite("matter")
+@
 
 \section{Basic use and data manipulation}
 
@@ -36,7 +45,7 @@ data(matter_ex)
 
 \Rpackage{matter} matrices and vectors can be initialized similarly to ordinary \R{} matrices. When no file is given, a new temporary file is created in the default temporary file directory, which will be cleaned up later by either \R{} or the operating system.
 
-Here, we initialize a \Rpackage{matter} matrix with 10 rows and 10 columns. The resulting object is a subclass of the \Robject{matter} class, and stores file metadata that gives the location of the data on disk. In many cases, it can be treated as an ordinary \R{} matrix.
+Here, we initialize a \Rpackage{matter} matrix with 10 rows and 5 columns. The resulting object is a subclass of the \Robject{matter} class, and stores file metadata that gives the location of the data on disk. In many cases, it can be treated as an ordinary \R{} matrix.
 
 <<>>=
 x <- matter_mat(data=1:50, nrow=10, ncol=5)
