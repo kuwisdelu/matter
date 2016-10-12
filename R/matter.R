@@ -36,6 +36,7 @@ if ( !isGeneric("rowSds") )
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------	
 
+setGeneric("adata", function(object) standardGeneric("adata"))
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
 setGeneric("paths", function(x) standardGeneric("paths"))
@@ -422,6 +423,8 @@ matter <- function(...) {
 		matter_mat(...)
 	}
 }
+
+setMethod("adata", "matter", function(object) object@data)
 
 setMethod("show", "matter", function(object) {
 	object.memory <- object.size(object)

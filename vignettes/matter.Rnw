@@ -107,10 +107,10 @@ rbind(t(x), t(y))
 
 Note that this is equivalent to \verb|t(cbind(x, y))|.
 
-Below, we inspect the metadata associated with the different columns of \Robject{x}.
+Below, we inspect the metadata associated with the different columns of \Robject{x} using the \verb|adata| method.
 
 <<>>=
-x@data
+adata(x)
 @
 
 Note that each column has a byte offset and an extent (i.e., length) associated with it.

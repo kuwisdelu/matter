@@ -5,6 +5,8 @@
 \alias{matter}
 \alias{matter-class}
 
+\alias{adata}
+\alias{adata,matter-method}
 \alias{datamode}
 \alias{datamode<-}
 \alias{datamode,atoms-method}
@@ -82,6 +84,8 @@ matter(\dots)
 \section{Methods}{
     Class-specific methods:
     \describe{
+        \item{\code{adata(x)}:}{Access the 'data' slot.}
+
         \item{\code{datamode(x), datamode(x) <- value}:}{Get or set 'datamode'.}
 
         \item{\code{paths(x), paths(x) <- value}:}{Get or set 'paths'.}

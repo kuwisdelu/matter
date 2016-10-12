@@ -30,6 +30,7 @@ exportClasses(
 	"matter_matr")
 
 exportMethods(
+	"adata",
 	"datamode",
 	"datamode<-",
 	"paths",
