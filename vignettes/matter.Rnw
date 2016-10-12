@@ -24,7 +24,7 @@ BiocStyle::latex()
 
 \section{Introduction}
 
-\Rpackage{matter} is designed for rapid prototyping of new statistical methods when working with larger-than-memory datasets on disk. Unlike related packages \Rpackage{bigmemory} and \Rpackage{ff}, which also work with file-backed larger-than-memory datasets, \Rpackage{matter} aims to offer strict control over memory and maximum flexibility with on-disk data structures, so it can be easily adapted to domain-specific file formats, including user-customized file formats.
+\Rpackage{matter} is designed for rapid prototyping of new statistical methods when working with larger-than-memory datasets on disk. Unlike related packages \Rpackage{bigmemory} \cite{bigmemory} and \Rpackage{ff} \cite{ff}, which also work with file-backed larger-than-memory datasets, \Rpackage{matter} aims to offer strict control over memory and maximum flexibility with on-disk data structures, so it can be easily adapted to domain-specific file formats, including user-customized file formats.
 
 \section{Installation}
 
@@ -70,7 +70,7 @@ colnames(x) <- letters[1:5]
 x[]
 @
 
-\Rpackage{matter} provides methods for calculating summary statistics for its vectors and matrices, including some methods that do not exist in base \R{}, such as \Robject{colVars}.
+\Rpackage{matter} provides methods for calculating summary statistics for its vectors and matrices, including some methods that do not exist in base \R{}, such as \Robject{colVars}, which uses a memory-efficient running variance calculation  that is accurate for large floating-point datasets \cite{Welford:1962tw}.
 
 <<>>=
 colSums(x)
@@ -138,7 +138,7 @@ This is a quick and easy way to build a dataset from many files where each colum
 
 \section{Linear regression for on-disk datasets}
 
-\Rpackage{matter} is designed to provide a statistical computing environment for larger-than-memory datasets on disk. To facilitate this, \Rpackage{matter} provides a method for fitting of linear models for \Robject{matter} matrices through the \Rpackage{biglm} package. \Rpackage{matter} provides a wrapper for \Rpackage{biglm}'s \Robject{bigglm} function that works with \Robject{matter\_mat} matrices, which we demonstrate below.
+\Rpackage{matter} is designed to provide a statistical computing environment for larger-than-memory datasets on disk. To facilitate this, \Rpackage{matter} provides a method for fitting of linear models for \Robject{matter} matrices through the \Rpackage{biglm} package \cite{biglm}. \Rpackage{matter} provides a wrapper for \Rpackage{biglm}'s \Robject{bigglm} function that works with \Robject{matter\_mat} matrices, which we demonstrate below.
 
 First, we simulate some data appropriate for linear regression.
 
@@ -372,7 +372,7 @@ The \Robject{Matter} C++ class is responsible for transforming the data read by 
 
 The \Robject{MatterAccessor} C++ class acts similarly to an iterator, and allows buffered iteration over a \Robject{Matter} object. It can either iterate over the whole dataset (for both vectors and matrices), or over a single column for column-major matrices, or over a single row for row-major matrices.
 
-A \Robject{MatterAccessor} object will load portions of the dataset (as many elements as the \Robject{chunksize} at once) into memory, and then free that portion of the data and load a new chunk, as necessary. This buffering is handled automatically by the class, and code can treat it as a regular iterator. This allows seamless and simply iteration over \Robject{Matter} objects while maintaining strict control over the memory footprint of the calculation.
+A \Robject{MatterAccessor} object will load portions of the dataset (as many elements as the \Robject{chunksize} at once) into memory, and then free that portion of the data and load a new chunk, as necessary. This buffering is handled automatically by the class, and code can treat it as a regular iterator. This allows seamless and simple iteration over \Robject{Matter} objects while maintaining strict control over the memory footprint of the calculation.
 
 
 \section{Session info}
