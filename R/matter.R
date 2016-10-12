@@ -175,6 +175,8 @@ widest_datamode <- function(x, from=c("C", "R")) {
 	}
 }
 
+# creates internal S3 class 'bytes'
+
 disk_used <- function(x) {
 	if ( is.list(x) ) {
 		bytes <- sum(vapply(x, disk_used, numeric(1)))
@@ -187,7 +189,7 @@ disk_used <- function(x) {
 
 # based on utils::format.object_size
 
-show_bytes <- function (x, units = "auto", ...)  {
+show.bytes <- function (x, units = "auto", ...)  {
     units <- match.arg(units, c("auto",
 				"B", "KB", "MB", "GB", "TB", "PB"))
     if (units == "auto")
@@ -209,8 +211,8 @@ show_bytes <- function (x, units = "auto", ...)  {
         PB = c("PB"=round(x/1000^5, 1L)))
 }
 
-format_bytes <- function(x, units = "auto", ...) {
-	bytes <- show_bytes(x, units=units)
+format.bytes <- function(x, units = "auto", ...) {
+	bytes <- show.bytes(x, units=units)
 	paste(bytes, names(bytes))
 }
 
@@ -219,7 +221,7 @@ format_bytes <- function(x, units = "auto", ...) {
 mem <- function(x, reset = FALSE) {
 	if ( !missing(x) ) {
 		mem <- as.numeric(object.size(x))
-		mem <- show_bytes(mem)
+		mem <- show.bytes(mem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
 		mem <- round(colSums(gc(reset=reset)[,c(1,3,5)] * cell.size) / 1000^2, 1)
