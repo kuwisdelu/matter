@@ -1,0 +1,87 @@
+
+import("methods")
+
+import("stats")
+
+import("biglm")
+
+importFrom("BiocGenerics",
+	"combine",
+	"cbind",
+	"rbind")
+
+importFrom("irlba",
+	"irlba")
+
+importFrom("S4Vectors",
+	"colMeans",
+	"colSums",
+	"rowMeans",
+	"rowSums")
+
+importFrom("utils",
+	"object.size")
+
+exportClasses(
+	"matter",
+	"matter_vec",
+	"matter_mat",
+	"matter_matc",
+	"matter_matr")
+
+exportMethods(
+	"adata",
+	"datamode",
+	"datamode<-",
+	"paths",
+	"paths<-",
+	"filemode",
+	"filemode<-",
+	"chunksize",
+	"chunksize<-")
+
+exportMethods(
+	"%*%",
+	"[",
+	"[<-",
+	"c",
+	"cbind",
+	"rbind",
+	"length",
+	"length<-",
+	"dim",
+	"dim<-",
+	"names",
+	"names<-",
+	"dimnames",
+	"dimnames<-",
+	"t")
+
+exportMethods(
+	"sum",
+	"mean",
+	"var",
+	"sd",
+	"colSums",
+	"colMeans",
+	"colVars",
+	"colSds",
+	"rowSums",
+	"rowMeans",
+	"rowVars",
+	"rowSds")
+
+exportMethods("apply")
+
+exportMethods("scale")
+
+exportMethods("bigglm")
+
+exportMethods("prcomp")
+
+export(
+	"matter",
+	"matter_vec",
+	"matter_mat")
+
+useDynLib("matter", .registration=TRUE)

@@ -1,0 +1,171 @@
+
+
+CHANGES IN VERSION 0.99.11 [2016-10-11]
+---------------------------------
+
+BUG FIXES
+
+    o Updated documentation details.
+
+CHANGES IN VERSION 0.99.10 [2016-10-11]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Updated vignettes with installation instructions, faster build time
+    o Added 'adata' method for accessing 'matter' class @data slot
+
+CHANGES IN VERSION 0.99.9 [2016-10-5]
+---------------------------------
+
+NEW FEATURES
+
+    o Added delayed scaling and centering via 'scale' method
+    o Added 'prcomp' method for principal components analysis
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Renamed 'colSd' -> 'colSds', 'colVar' -> 'colVars', etc.
+    o Renamed 'filepaths' -> 'paths' and 'file_id' -> 'source_id'
+    o Moved 'irlba' from Suggests to Imports to support new 'prcomp' method
+    o Updated vignette to use new 'prcomp' method in the PCA example
+
+BUG FIXES
+
+    o Fixed bug when combining 'matter' objects with multiple data sources
+
+CHANGES IN VERSION 0.99.8 [2016-10-3]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o In S4 class 'atoms', slot 'file_id' is now type 'integer' to save space
+    o In S4 class 'atoms', slot 'datamode' is now type 'integer' to save space
+    o More comprehensive error messages in constructors for S4 classes
+
+CHANGES IN VERSION 0.99.7 [2016-10-1]
+---------------------------------
+
+BUG FIXES
+
+    o Try to fix namespace std::isnan scoping issues on Windows
+
+CHANGES IN VERSION 0.99.6 [2016-10-1]
+---------------------------------
+
+BUG FIXES
+
+    o Fixed handling of NA, NaN, Inf, and -Inf during C type coercion
+    o Improved handling of NA, NaN, Inf, and -Inf in summary stats
+    o Fixed handling of NAs in matrix multiplication for integers
+
+CHANGES IN VERSION 0.99.5 [2016-9-27]
+---------------------------------
+
+BUG FIXES
+
+    o Fixed .Call native routine registration for C++ methods
+    o Added "C_" prefix for C++ methods called through .Call
+
+CHANGES IN VERSION 0.99.4 [2016-9-27]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Added .Call native routine registration for C++ methods
+
+CHANGES IN VERSION 0.99.3 [2016-9-27]
+---------------------------------
+
+BUG FIXES
+
+    o Import generics from S4Vectors for 'colMeans', 'colSums',
+        'rowMeans', and 'rowSums'
+    o Cleaned up method signatures and class unions
+
+CHANGES IN VERSION 0.99.2 [2016-9-26]
+---------------------------------
+
+BUG FIXES
+
+    o Cleaned up double assignments in C++ code
+
+CHANGES IN VERSION 0.99.1 [2016-9-26]
+---------------------------------
+
+BUG FIXES
+
+    o Version bump for Bioconductor build system
+
+CHANGES IN VERSION 0.99.0 [2016-9-26]
+---------------------------------
+
+BUG FIXES
+
+    o Updated PCA example in vignette (irlba now requires 'mult'
+        argument to be non-missing for non-C execution)
+    o Added irlba unit test
+
+CHANGES IN VERSION 0.6 [2016-9-25]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Updated maintainer and author email address
+
+BUG FIXES
+
+    o Fixed bug in rowVar for matter_matc
+
+CHANGES IN VERSION 0.5 [2016-9-25]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Updated documentation with examples and added unit tests
+
+BUG FIXES
+
+    o Fixed matrix multiplication on mixed data types (int x double)
+
+CHANGES IN VERSION 0.4 [2016-8-3]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Added support for class-preserving subsetting of 'matter'
+         matrices with 'drop=NA' argument for Cardinal compatibility.
+    o Added new 'show' method for 'matter' vectors and matrices showing
+        their size in in-memory and size on disk.
+
+CHANGES IN VERSION 0.3 [2016-8-2]
+---------------------------------
+
+NEW FEATURES
+
+    o Added C++ class 'MatterAccessor' for iterating through.
+    	a buffered version of a 'matter' vector or matrix
+    o Added summary statistics including 'sum', 'mean', 'var',
+    	'sd', 'colSums', 'colMeans', 'colVar', 'colSd',
+    	'rowSums', 'rowMeans', 'rowVar', and 'rowSd'.
+    o Added support for 'apply' method for 'matter' matrices
+    o Added support for 'bigglm' linear regression.
+    o Added basic matrix multiplication for 'matter' matrices
+    	with an in-memory R matrix or vector.
+
+CHANGES IN VERSION 0.2 [2016-7-28]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Overhauled backend to use C++ classes 'Matter' and 'Atoms',
+        to maximizes use of sequential reads versus random reads.
+
+CHANGES IN VERSION 0.1 [2016-2-17]
+---------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o First rough implementation of matter including the
+        classes 'atoms' and 'matter', and subclasses 'matter_vec',
+        'matter_matc', 'matter_matr', with a C backend.
