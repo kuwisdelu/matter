@@ -31,6 +31,7 @@ BiocStyle::latex()
 <<echo=FALSE,results=hide>>=
 options(width=72)
 library(matter)
+data(matter_ex)
 @ 
 
 \Rpackage{matter} matrices and vectors can be initialized similarly to ordinary \R{} matrices. When no file is given, a new temporary file is created in the default temporary file directory, which will be cleaned up later by either \R{} or the operating system.
@@ -132,7 +133,7 @@ This is a quick and easy way to build a dataset from many files where each colum
 
 First, we simulate some data appropriate for linear regression.
 
-<<setup-example>>=
+<<setup-bigglm>>=
 set.seed(81216)
 n <- 15e6
 p <- 9
@@ -170,10 +171,19 @@ We could also have used \Robject{colMeans} and \Robject{colVars}.
 
 Now we fit the linear model to the data using the \Robject{bigglm} method for \Robject{matter\_mat} matrices. Note that it requires a formula, and (unfortunately) it does not allow \verb|y ~ .|, so all variables must be stated explicitly.
 
-<<bigglm>>=
+% <<fit-bigglm-offline>>=
+% matter:::profile({
+%   fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
+%   bigglm.out <- bigglm(fm, data=data, chunksize=10000)
+% })
+% @
+
+<<fit-bigglm, eval=FALSE>>=
 fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
 bigglm.out <- bigglm(fm, data=data, chunksize=10000)
+@
 
+<<coef>>=
 summary(bigglm.out)
 
 cbind(coef(bigglm.out)[-1], b)
@@ -192,7 +202,7 @@ For convenience, \Rpackage{matter} provides a \verb|prcomp| method for performin
 
 First, we simulate some data appropriate for principal components analysis.
 
-<<setup-example>>=
+<<setup-prcomp>>=
 set.seed(81216)
 n <- 15e5
 p <- 100
@@ -228,7 +238,13 @@ Implicit scaling and centering is supported in \Rpackage{matter}, so the data ca
 
 Unlike the default \verb|prcomp| method for ordinary \R{} matrices, this version supports an argument \Robject{n} for specifying the number of principal components to calculate.
 
-<<fit-prcomp>>=
+% <<fit-prcomp-offline>>=
+% matter:::profile({
+%   prcomp.out <- prcomp(data, n=2, retx=FALSE, center=FALSE, scale.=FALSE)
+% })
+% @
+
+<<fit-prcomp, eval=FALSE>>=
 prcomp.out <- prcomp(data, n=2, center=FALSE, scale.=FALSE)
 @
 
@@ -275,6 +291,14 @@ plot(prcomp.out$rotation[,2], type='h', ylab="PC 2")
 \end{figure}
 
 As shown in the plots of the first and second principal components, the first PC shows that most of the variation in the data occurs in the first twenty variables, while the second PC distinguishes the first ten variables from the next ten variables.
+
+
+%%%%%------- save data ----------%%%%%%
+
+% <<save-data>>=
+% save(bigglm.out, prcomp.out, file="~/Documents/Developer/Projects/matter/data/matter_ex.rda")
+% @
+
 
 
 \section{Design and implementation}
