@@ -6,7 +6,7 @@
 \title{Using ``biglm'' with ``matter''}
 
 \description{
-    This method allows \code{\linkS4class{matter_mat}} matrices to be used with the \code{\link[biglm]{bigglm}} function from the 
+    This method allows \code{\linkS4class{matter_mat}} matrices to be used with the \code{\link[biglm]{bigglm}} function from the ``biglm'' package.
 }
 
 \usage{

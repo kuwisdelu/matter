@@ -18,7 +18,7 @@ data(matter_ex)
 }
 
 \value{
-	None. Loads data objects required to build vignettes.
+	None. Loads objects required to build vignettes.
 }
 
 \keyword{datasets}
