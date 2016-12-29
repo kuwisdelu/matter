@@ -6,6 +6,8 @@
 \alias{sd}
 \alias{var}
 
+\alias{mean.matter}
+
 \alias{mean,matter-method}
 \alias{sum,matter-method}
 \alias{sd,matter-method}

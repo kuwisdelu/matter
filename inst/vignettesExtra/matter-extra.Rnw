@@ -134,7 +134,7 @@ dims(microbe)
 dim(microbe)
 @
 
-The dataset was stored so that the first time point $t = 4$ corresponds to $z = {1,2,3,4,5,6}$, the second time point $t = 8$ corresponds to $z = {7,8,9,10,11,12}$, and the third time point $t = 11$ corresponds to $z = {13,14,15,16,17,18}$. We will reparamaterize the coordinates below to make it easier to work with the dataset. We also remove duplicated coordinates caused by converting the z-dimension to integers from their original non-integer form.
+The dataset was stored so that the first time point $t = 4$ corresponds to $z = {1,2,3,4,5,6}$, the second time point $t = 8$ corresponds to $z = {7,8,9,10,11,12}$, and the third time point $t = 11$ corresponds to $z = {13,14,15,16,17,18}$. We will reparamaterize the coordinates below to make it easier to work with the dataset. We also remove duplicated coordinates caused by converting the z-dimension to sequential integers.
 
 <<>>=
 microbe <- microbe[,!duplicated(coord(microbe))]
@@ -179,10 +179,90 @@ validObject(microbe)
 We can now plot the molecular ion image for $m/z$ 262.
 
 <<microbe-ion>>=
-image3D(microbe, ~ x * z * y, mz=262, theta=-55, contrast="supp", layout=c(3,1))
+image3D(microbe, ~ x * z * y, mz=262, theta=-55, contrast="suppress", layout=c(3,1))
 @
 
-Now we perform principal components analysis. (Still need to add this part.)
+Now we perform principal components analysis.
+
+% <<microbe-pca-offline>>=
+% matter:::profile({
+% 	microbe.pca <- PCA(microbe, ncomp=3, method="irlba", center=TRUE)
+% 	pData(microbe)[,c("PC1","PC2","PC3")] <- microbe.pca$scores[["ncomp = 3"]]
+% 	fData(microbe)[,c("PC1","PC2","PC3")] <- microbe.pca$loadings[["ncomp = 3"]]
+% })
+%   # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%   #    146.300       148.500       203.300        54.800      1900.234 
+%   #     146.600       146.600       203.200        56.600      1931.998 
+%      # 144.100       148.000       204.000        56.000      2154.024 
+%       # 144.10        148.00        204.90         56.90       2091.53
+%     # 144.100       148.000       204.900        56.900      2066.895 
+
+% figpath <- "~/Documents/Northeastern/Papers/Bioinformatics-matter/figs/"
+
+% save(microbe.pca, file=paste0(figpath, "microbe-pca.RData"))
+
+% pdf(paste0(figpath, "microbe-ion-img.pdf"), height=3, width=4)
+% image3D(microbe, ~ x * z * y, mz=262, theta=-55, contrast="suppress", layout=c(3,1))
+% dev.off()
+
+% pdf(paste0(figpath, "microbe-pc1-img.pdf"), height=3, width=4)
+% image3D(microbe, PC1 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+% dev.off()
+
+% pdf(paste0(figpath, "microbe-pc2-img.pdf"), height=3, width=4)
+% image3D(microbe, PC2 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+% dev.off()
+% @
+
+<<microbe-pca>>=
+microbe.pca <- PCA(microbe, ncomp=3, method="irlba", center=TRUE)
+pData(microbe)[,c("PC1","PC2","PC3")] <- microbe.pca$scores[["ncomp = 3"]]
+fData(microbe)[,c("PC1","PC2","PC3")] <- microbe.pca$loadings[["ncomp = 3"]]
+@
+
+<<microbe-pc1-img>>=
+image3D(microbe, PC1 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+@
+
+<<microbe-pc2-img>>=
+image3D(microbe, PC2 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+@
+
+<<microbe-pc3-img>>=
+image3D(microbe, PC3 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+@
+
+\setkeys{Gin}{width=\textwidth}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.2\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<microbe-pc1-img>>
+@
+\caption{\small PC1 scores}
+\label{fig:pc1}
+\end{subfigure}
+\begin{subfigure}{.2\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<microbe-pc2-img>>
+@
+\caption{\small PC2 scores}
+\label{fig:pc2}
+\end{subfigure}
+\begin{subfigure}{.2\textwidth}
+  \centering
+<<fig=TRUE, echo=FALSE, results=hide>>=
+<<microbe-pc3-img>>
+@
+\caption{\small PC3 scores}
+\label{fig:pc3}
+\end{subfigure}
+\caption{\small Plotting the first 3 principal components for the 3D microbial time course experiment.}
+\end{figure}
+
+On the same 2012 retina MacBook Pro with 2.6 GHz Intel CPU, fitting the first 3 principal components takes approximately 31 minutes (1900 seconds), or about 10 minutes (633 seconds) per component. The data is implicitly centered during the calculation without changing any data on disk. The calculation used 53 MB of memory in overhead, and the maximum amount of memory used during the entire calculation was only 199 MB for the 2.85 GB dataset.
 
 
 \section{Session info}

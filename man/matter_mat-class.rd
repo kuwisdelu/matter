@@ -26,6 +26,7 @@
 \alias{cbind,matter-method}
 \alias{rbind,matter-method}
 
+\alias{t.matter}
 \alias{t,matter_matc-method}
 \alias{t,matter_matr-method}
 
@@ -36,6 +37,11 @@
 \alias{\%*\%,matter_matr,numeric-method}
 \alias{\%*\%,numeric,matter_matc-method}
 \alias{\%*\%,numeric,matter_matr-method}
+
+\alias{crossprod,matter,ANY-method}
+\alias{crossprod,ANY,matter-method}
+\alias{tcrossprod,matter,ANY-method}
+\alias{tcrossprod,ANY,matter-method}
 
 \title{Matrices Stored on Disk}
 
@@ -114,6 +120,10 @@ matter_mat(data, datamode = "double", paths = NULL,
         \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the matrix.}
 
         \item{\code{x \%*\% y}:}{Matrix multiplication. At least one matrix must be an in-memory R matrix (or vector).}
+
+        \item{\code{crossprod(x, y)}:}{Alias for t(x) \%*\% y.}
+
+        \item{\code{tcrossprod(x, y)}:}{Alias for x \%*\% t(y).}
 
         \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine matrices by row or column.}
 
