@@ -348,9 +348,9 @@ setMethod("show", "atoms", function(object) {
 ## ----------------------------------
 
 setClassUnion("atomsORlist", c("atoms", "list"))
-setClassUnion("characterORNULL", c("character", "NULL")) # can't find S4Vectors export (???)
-setClassUnion("integerORNULL", c("integer", "NULL"))
-setClassUnion("listORNULL", c("list", "NULL"))
+#setClassUnion("character_OR_NULL", c("character", "NULL")) # imported from S4Vectors
+setClassUnion("integer_OR_NULL", c("integer", "NULL"))
+setClassUnion("list_OR_NULL", c("list", "NULL"))
 
 setClass("matter",
 	slots = c(
@@ -360,9 +360,9 @@ setClass("matter",
 		filemode = "character",
 		chunksize = "integer",
 		length = "numeric",
-		dim = "integerORNULL",
-		names = "characterORNULL",
-		dimnames = "listORNULL"),
+		dim = "integer_OR_NULL",
+		names = "character_OR_NULL",
+		dimnames = "list_OR_NULL"),
 	contains = "VIRTUAL",
 	validity = function(object) {
 		errors <- NULL

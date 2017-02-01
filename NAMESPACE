@@ -19,6 +19,8 @@ importFrom("S4Vectors",
 	"rowMeans",
 	"rowSums")
 
+importClassFrom("S4Vectors", "character_OR_NULL")
+
 importFrom("utils",
 	"object.size")
 
