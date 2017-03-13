@@ -18,6 +18,12 @@ extern "C" {
 }
 
 template<>
+Rbyte * DataPtr<Rbyte>(SEXP x)
+{
+	return RAW(x);
+}
+
+template<>
 int * DataPtr<int>(SEXP x)
 {
 	return INTEGER(x);
@@ -30,6 +36,12 @@ double * DataPtr<double>(SEXP x)
 }
 
 template<>
+SEXPTYPE DataType<Rbyte>()
+{
+	return RAWSXP;
+}
+
+template<>
 SEXPTYPE DataType<int>()
 {
 	return INTSXP;
@@ -39,6 +51,13 @@ template<>
 SEXPTYPE DataType<double>()
 {
 	return REALSXP;
+}
+
+template<>
+Rbyte DataNA<Rbyte>()
+{
+	error("NAs unsupported for type RAW");
+	return 0;
 }
 
 template<>
