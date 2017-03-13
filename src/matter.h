@@ -646,17 +646,76 @@ class Matter
 
 };
 
-
 //// MatterAccessor class
 //-----------------------
 
+// template<typename RType>
+// class MatterAccessor
+// {
+
+//     public:
+
+//         MatterAccessor(Matter & x, int i) : _matter(x)
+//         {
+//             _atoms = new Atoms(x.data(i), x.sources(), x.ops(i));
+//             _buffersize = _atoms->max_extent() < _matter.chunksize() ? 
+//                 _atoms->max_extent() : _matter.chunksize();
+//             _buffer = (RType *) Calloc(_buffersize, RType);
+//             new_chunk(0);
+//         }
+
+//         ~MatterAccessor()
+//         {
+//             Free(_buffer);
+//             delete _atoms;
+//         }
+
+//         int new_chunk(index_t i) {
+//             if ( 0 <= i && i < _atoms->max_extent() )
+//             {
+//                 int count;
+//                 if ( i + _buffersize > _atoms->max_extent() )
+//                     count = _atoms->max_extent() - i;
+//                 else
+//                     count = _buffersize;
+//                 if ( count > 0 )
+//                 {
+//                     _lower = i;
+//                     _upper = i + count;
+//                     return _atoms->read<RType>(_buffer, i, count);
+//                 }    
+//             }
+//             else
+//                 error("subscript out of bounds");
+//             return 0;
+//         }
+
+//         RType operator[](index_t i) { 
+//             if ( i < _lower || _upper <= i )
+//                 new_chunk(i);
+//             return _buffer[i % _buffersize];
+//         }
+
+
+//     protected:
+//         Matter & _matter;
+//         Atoms * _atoms;
+//         int _buffersize;
+//         index_t _lower;
+//         index_t _upper;
+//         RType * _buffer;
+// };
+
+//// MatterIterator class
+//-----------------------
+
 template<typename RType>
-class MatterAccessor
+class MatterIterator
 {
 
     public:
 
-        MatterAccessor(Matter & x) : _matter(x)
+        MatterIterator(Matter & x) : _matter(x)
         {
             switch(x.S4class()) {
                 case MATTER_VEC:
@@ -672,7 +731,7 @@ class MatterAccessor
             init();
         }
 
-        MatterAccessor(Matter & x, int i) : _matter(x)
+        MatterIterator(Matter & x, int i) : _matter(x)
         {
             _atoms = new Atoms(x.data(i), x.sources(), x.ops(i));
             _next = NULL_INDEX;
@@ -680,29 +739,29 @@ class MatterAccessor
         }
 
         int init() {
-            _chunksize = _atoms->max_extent() < _matter.chunksize() ? 
+            _buffersize = _atoms->max_extent() < _matter.chunksize() ? 
                 _atoms->max_extent() : _matter.chunksize();
+            _buffer = (RType *) Calloc(_buffersize, RType);
             _current = 0;
             _lower = 0;
-            _upper = _chunksize - 1;
-            _buffer = (RType *) Calloc(_chunksize, RType);
+            _upper = _buffersize - 1;
             return next_chunk();
         }
 
-        ~MatterAccessor()
+        ~MatterIterator()
         {
-            delete _atoms;
             Free(_buffer);
+            delete _atoms;
         }
 
         int next_chunk() {
             if ( _current < _atoms->max_extent() )
             {
                 int count;
-                if ( _current + _chunksize > _atoms->max_extent() )
+                if ( _current + _buffersize > _atoms->max_extent() )
                     count = _atoms->max_extent() - _current;
                 else
-                    count = _chunksize;
+                    count = _buffersize;
                 if ( count > 0 )
                 {
                     _lower = _current;
@@ -721,10 +780,10 @@ class MatterAccessor
         }
 
         RType operator*() { 
-            return _buffer[_current % _chunksize];
+            return _buffer[_current % _buffersize];
         }
 
-        MatterAccessor<RType> & operator++() {
+        MatterIterator<RType> & operator++() {
             _current++;
             if ( _current > _upper )
                 next_chunk();
@@ -745,18 +804,18 @@ class MatterAccessor
         Matter & _matter;
         Atoms * _atoms;
         int _next;
-        int _chunksize;
+        int _buffersize;
         index_t _current;
         index_t _lower;
         index_t _upper;
         RType * _buffer;
 };
 
-double sum(MatterAccessor<double> & x, bool na_rm = false);
+double sum(MatterIterator<double> & x, bool na_rm = false);
 
-double mean(MatterAccessor<double> & x, bool na_rm = false);
+double mean(MatterIterator<double> & x, bool na_rm = false);
 
-double var(MatterAccessor<double> & x, bool na_rm = false);
+double var(MatterIterator<double> & x, bool na_rm = false);
 
 //// Exported C functions
 //-----------------------

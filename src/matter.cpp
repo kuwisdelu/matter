@@ -787,10 +787,10 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     }
 }
 
-//// Statistical functions applied on MatterAccessor
+//// Statistical functions applied on MatterIterator
 //--------------------------------------------------
 
-double sum(MatterAccessor<double> & x, bool na_rm) {
+double sum(MatterIterator<double> & x, bool na_rm) {
     double retVal = 0;
     while ( x ) {
         if ( R_FINITE(*x) )
@@ -804,7 +804,7 @@ double sum(MatterAccessor<double> & x, bool na_rm) {
     return retVal;
 }
 
-double mean(MatterAccessor<double> & x, bool na_rm) {
+double mean(MatterIterator<double> & x, bool na_rm) {
     double retVal = 0;
     index_t n = 0;
     while ( x ) {
@@ -820,7 +820,7 @@ double mean(MatterAccessor<double> & x, bool na_rm) {
     return retVal /= n;
 }
 
-double var(MatterAccessor<double> & x, bool na_rm) {
+double var(MatterIterator<double> & x, bool na_rm) {
     double m_old, m_new, s_old, s_new;
     index_t n = 0;
     while ( x ) {
@@ -859,7 +859,7 @@ double var(MatterAccessor<double> & x, bool na_rm) {
 SEXP Matter :: sum(bool na_rm) {
     SEXP retVal;
     PROTECT(retVal = NEW_NUMERIC(1));
-    MatterAccessor<double> x(*this);
+    MatterIterator<double> x(*this);
     *REAL(retVal) = ::sum(x, na_rm);
     UNPROTECT(1);
     return retVal;
@@ -868,7 +868,7 @@ SEXP Matter :: sum(bool na_rm) {
 SEXP Matter :: mean(bool na_rm) {
     SEXP retVal;
     PROTECT(retVal = NEW_NUMERIC(1));
-    MatterAccessor<double> x(*this);
+    MatterIterator<double> x(*this);
     *REAL(retVal) = ::mean(x, na_rm);
     UNPROTECT(1);
     return retVal;
@@ -877,7 +877,7 @@ SEXP Matter :: mean(bool na_rm) {
 SEXP Matter :: var(bool na_rm) {
     SEXP retVal;
     PROTECT(retVal = NEW_NUMERIC(1));
-    MatterAccessor<double> x(*this);
+    MatterIterator<double> x(*this);
     *REAL(retVal) = ::var(x, na_rm);
     UNPROTECT(1);
     return retVal;
@@ -892,7 +892,7 @@ SEXP Matter :: colsums(bool na_rm) {
             error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
-                MatterAccessor<double> x(*this, j);
+                MatterIterator<double> x(*this, j);
                 pRetVal[j] = ::sum(x, na_rm);
             }
             break;
@@ -900,7 +900,7 @@ SEXP Matter :: colsums(bool na_rm) {
             for ( int j = 0; j < ncols(); j++ )
                 pRetVal[j] = 0;
             for ( int i = 0; i < nrows(); i++ ) {
-                MatterAccessor<double> x(*this, i);
+                MatterIterator<double> x(*this, i);
                 int j = 0;
                 while ( x ) {
                     if ( R_FINITE(pRetVal[j]) )
@@ -929,7 +929,7 @@ SEXP Matter :: colmeans(bool na_rm) {
             error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
-                MatterAccessor<double> x(*this, j);
+                MatterIterator<double> x(*this, j);
                 pRetVal[j] = ::mean(x, na_rm);
             }
             break;
@@ -941,7 +941,7 @@ SEXP Matter :: colmeans(bool na_rm) {
                     n[j] = 0;
                 }
                 for ( int i = 0; i < nrows(); i++ ) {
-                    MatterAccessor<double> x(*this, i);
+                    MatterIterator<double> x(*this, i);
                     int j = 0;
                     while ( x ) {
                         if ( R_FINITE(pRetVal[j]) )
@@ -978,7 +978,7 @@ SEXP Matter :: colvar(bool na_rm) {
             error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
-                MatterAccessor<double> x(*this, j);
+                MatterIterator<double> x(*this, j);
                 pRetVal[j] = ::var(x, na_rm);
             }
             break;
@@ -992,7 +992,7 @@ SEXP Matter :: colvar(bool na_rm) {
                     n[j] = 0;
                 }
                 for ( int i = 0; i < nrows(); i++ ) {
-                    MatterAccessor<double> x(*this, i);
+                    MatterIterator<double> x(*this, i);
                     int j = 0;
                     while ( x ) {
                         if ( R_FINITE(pRetVal[j]) )
@@ -1055,7 +1055,7 @@ SEXP Matter :: rowsums(bool na_rm) {
             for ( int i = 0; i < nrows(); i++ )
                 pRetVal[i] = 0;
             for ( int j = 0; j < ncols(); j++ ) {
-                MatterAccessor<double> x(*this, j);
+                MatterIterator<double> x(*this, j);
                 int i = 0;
                 while ( x ) {
                     if ( R_FINITE(pRetVal[i]) )
@@ -1072,7 +1072,7 @@ SEXP Matter :: rowsums(bool na_rm) {
             break;
         case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
-                MatterAccessor<double> x(*this, i);
+                MatterIterator<double> x(*this, i);
                 pRetVal[i] = ::sum(x, na_rm);
             }
             break;
@@ -1096,7 +1096,7 @@ SEXP Matter :: rowmeans(bool na_rm) {
                     n[i] = 0;
                 }
                 for ( int j = 0; j < ncols(); j++ ) {
-                    MatterAccessor<double> x(*this, j);
+                    MatterIterator<double> x(*this, j);
                     int i = 0;
                     while ( x ) {
                         if ( R_FINITE(pRetVal[i]) )
@@ -1121,7 +1121,7 @@ SEXP Matter :: rowmeans(bool na_rm) {
             break;
         case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
-                MatterAccessor<double> x(*this, i);
+                MatterIterator<double> x(*this, i);
                 pRetVal[i] = ::mean(x, na_rm);
             }
             break;
@@ -1147,7 +1147,7 @@ SEXP Matter :: rowvar(bool na_rm) {
                     n[i] = 0;
                 }
                 for ( int j = 0; j < ncols(); j++ ) {
-                    MatterAccessor<double> x(*this, j);
+                    MatterIterator<double> x(*this, j);
                     int i = 0;
                     while ( x ) {
                         if ( R_FINITE(pRetVal[i]) )
@@ -1196,7 +1196,7 @@ SEXP Matter :: rowvar(bool na_rm) {
             break;
         case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
-                MatterAccessor<double> x(*this, i);
+                MatterIterator<double> x(*this, i);
                 pRetVal[i] = ::var(x, na_rm);
             }
             break;
@@ -1211,17 +1211,20 @@ SEXP Matter :: rmult(SEXP y) {
     PROTECT(retMat = allocMatrix(DataType<double>(), nrows(), ::ncols(y)));
     double * pRetMat = REAL(retMat);
     RType * pY = DataPtr<RType>(y);
+    int nrRetMat = ::nrows(retMat);
+    int ncRetMat = ::ncols(retMat);
+    int nrY = ::nrows(y);
     for ( int k = 0; k < LENGTH(retMat); k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
-                MatterAccessor<double> x(*this, j);
+                MatterIterator<double> x(*this, j);
                 int i = 0;
                 while ( x ) {
-                    for ( int jj = 0; jj < ::ncols(retMat); jj++ ) {
-                        double val = (*x) * coerce_cast<RType,double>(pY[j + jj * ::nrows(y)]);
-                        pRetMat[i + jj * ::nrows(retMat)] += val;
+                    for ( int jj = 0; jj < ncRetMat; jj++ ) {
+                        double val = (*x) * coerce_cast<RType,double>(pY[j + jj * nrY]);
+                        pRetMat[i + jj * nrRetMat] += val;
                     }
                     i++;
                     ++x;
@@ -1230,16 +1233,23 @@ SEXP Matter :: rmult(SEXP y) {
             break;
         case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
-                MatterAccessor<double> x(*this, i);
+                MatterIterator<double> x(*this, i);
                 int j = 0;
                 while ( x ) {
-                    for ( int jj = 0; jj < ::ncols(retMat); jj++ ) {
-                        double val = (*x) * coerce_cast<RType,double>(pY[j + jj * ::nrows(y)]);
-                        pRetMat[i + jj * ::nrows(retMat)] += val;
+                    for ( int jj = 0; jj < ncRetMat; jj++ ) {
+                        double val = (*x) * coerce_cast<RType,double>(pY[j + jj * nrY]);
+                        pRetMat[i + jj * nrRetMat] += val;
                     }
                     j++;
                     ++x;
                 }
+                // MatterAccessor<double> x(*this, i);
+                // for ( int j = 0; j < ncols(); j++ ) {
+                //     for ( int jj = 0; jj < ncRetMat; jj++ ) {
+                //         double val = x[j] * coerce_cast<RType,double>(pY[j + jj * nrY]);
+                //         pRetMat[i + jj * nrRetMat] += val;
+                //     }
+                // }
             }
             break;
     }
@@ -1253,17 +1263,19 @@ SEXP Matter :: lmult(SEXP x) {
     PROTECT(retMat = allocMatrix(DataType<double>(), ::nrows(x), ncols()));
     double * pRetMat = REAL(retMat);
     RType * pX = DataPtr<RType>(x);
+    int nrRetMat = ::nrows(retMat);
+    int nrX = ::nrows(x);
     for ( int k = 0; k < LENGTH(retMat); k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
-                MatterAccessor<double> y(*this, j);
+                MatterIterator<double> y(*this, j);
                 int i = 0;
                 while ( y ) {
-                    for ( int ii = 0; ii < ::nrows(retMat); ii++ ) {
-                        double val = coerce_cast<RType,double>(pX[ii + i * ::nrows(x)]) * (*y);
-                        pRetMat[ii + j * ::nrows(retMat)] += val;
+                    for ( int ii = 0; ii < nrRetMat; ii++ ) {
+                        double val = coerce_cast<RType,double>(pX[ii + i * nrX]) * (*y);
+                        pRetMat[ii + j * nrRetMat] += val;
                     }
                     i++;
                     ++y;
@@ -1272,12 +1284,12 @@ SEXP Matter :: lmult(SEXP x) {
             break;
         case MATTER_MATR:
             for ( int i = 0; i < nrows(); i++ ) {
-                MatterAccessor<double> y(*this, i);
+                MatterIterator<double> y(*this, i);
                 int j = 0;
                 while ( y ) {
-                    for ( int ii = 0; ii < ::nrows(retMat); ii++ ) {
-                        double val = coerce_cast<RType,double>(pX[ii + i * ::nrows(x)]) * (*y);
-                        pRetMat[ii + j * ::nrows(retMat)] += val;
+                    for ( int ii = 0; ii < nrRetMat; ii++ ) {
+                        double val = coerce_cast<RType,double>(pX[ii + i * nrX]) * (*y);
+                        pRetMat[ii + j * nrRetMat] += val;
                     }
                     j++;
                     ++y;

@@ -3,7 +3,6 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Clean up magic constant codes
 - Optimize atoms to use run length encoding
 - Add more delayed arithmetic options
 
