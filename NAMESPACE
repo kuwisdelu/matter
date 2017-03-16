@@ -23,6 +23,7 @@ importFrom("utils",
 	"object.size")
 
 exportClasses(
+	"drle",
 	"matter",
 	"matter_vec",
 	"matter_mat",
@@ -59,6 +60,11 @@ exportMethods(
 	"t",
 	"crossprod",
 	"tcrossprod")
+
+export(
+	"drle",
+	"drleCompress",
+	"is.drle")
 
 export(
 	"t.matter",

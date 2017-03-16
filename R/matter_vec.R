@@ -48,6 +48,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		paths <- rep(paths, length.out=length(extent))
 	x <- new("matter_vec",
 		data=atoms(
+			group_id=rep.int(1L, length(extent)),
 			source_id=as.integer(factor(paths)),
 			datamode=as.integer(make_datamode(datamode, type="C")),
 			offset=as.numeric(offset),
@@ -139,9 +140,9 @@ setReplaceMethod("[",
 
 setMethod("combine", "matter_vec", function(x, y, ...) {
 	paths <- levels(factor(c(x@paths, y@paths)))
-	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id],
+	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
 		levels=paths))
-	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id],
+	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
 		levels=paths))
 	data <- combine(x@data, y@data)
 	new(class(x),

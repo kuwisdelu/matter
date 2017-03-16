@@ -5,7 +5,7 @@
 setClass("matter_mat",
 	contains = c("matter", "VIRTUAL"),
 	prototype = prototype(
-		data = list(atoms()),
+		data = atoms(),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
@@ -26,7 +26,7 @@ setClass("matter_mat",
 setClass("matter_matc",
 	contains = "matter_mat",
 	prototype = prototype(
-		data = list(),
+		data = atoms(),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
@@ -39,7 +39,7 @@ setClass("matter_matc",
 setClass("matter_matr",
 	contains = "matter_mat",
 	prototype = prototype(
-		data = list(),
+		data = atoms(),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
@@ -87,18 +87,9 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 			noatoms <- TRUE
 		}
 	}
-	if ( noatoms ) {
-		adata <- function() list()
-	} else {
-		adata <- function() mapply(atoms,
-			factor(paths),
-			make_datamode(datamode, type="C"),
-			as.numeric(offset),
-			as.numeric(extent))
-	}
 	if ( is.null(paths) && prod(c(nrow, ncol)) > 0 ) {
-		if ( missing(data) )
-			data <- NA
+		# if ( missing(data) )
+		# 	data <- NA
 		filemode <- force(filemode)
 		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
@@ -108,6 +99,21 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	paths <- normalizePath(paths)
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=max(length(extent), 1))
+	if ( noatoms ) {
+		adata <- function() atoms()
+	} else {
+		# adata <- function() mapply(atoms,
+		# 	factor(paths),
+		# 	make_datamode(datamode, type="C"),
+		# 	as.numeric(offset),
+		# 	as.numeric(extent))
+		adata <- function() atoms(
+			group_id=seq_along(extent),
+			source_id=as.integer(factor(paths)),
+			datamode=as.integer(make_datamode(datamode, type="C")),
+			offset=as.numeric(offset),
+			extent=as.numeric(extent))
+	}
 	x <- new(mclass,
 		data=adata(),
 		datamode=widest_datamode(datamode, from="C"),
@@ -393,17 +399,22 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 	if ( nrow(x) != nrow(y) )
 		stop("number of rows of column-major matrices must match")
 	paths <- levels(factor(c(x@paths, y@paths)))
-	x@data <- lapply(x@data, function(xs) {
-		xs@source_id <- as.integer(factor(x@paths[xs@source_id],
-			levels=paths))
-		xs
-	})
-	y@data <- lapply(y@data, function(ys) {
-		ys@source_id <- as.integer(factor(y@paths[ys@source_id],
-			levels=paths))
-		ys
-	})
-	data <- c(x@data, y@data)
+	# x@data <- lapply(x@data, function(xs) {
+	# 	xs@source_id <- as.integer(factor(x@paths[xs@source_id[]],
+	# 		levels=paths))
+	# 	xs
+	# })
+	# y@data <- lapply(y@data, function(ys) {
+	# 	ys@source_id <- as.integer(factor(y@paths[ys@source_id[]],
+	# 		levels=paths))
+	# 	ys
+	# })
+	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
+		levels=paths))
+	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
+		levels=paths))
+	y@data@group_id <- y@data@group_id[] + max(x@data@group_id[])
+	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
 		datamode=widest_datamode(data, from="C"),
@@ -436,17 +447,22 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 	if ( ncol(x) != ncol(y) )
 		stop("number of columns of row-major matrices must match")
 	paths <- levels(factor(c(x@paths, y@paths)))
-	x@data <- lapply(x@data, function(xs) {
-		xs@source_id <- as.integer(factor(x@paths[xs@source_id],
-			levels=paths))
-		xs
-	})
-	y@data <- lapply(y@data, function(ys) {
-		ys@source_id <- as.integer(factor(y@paths[ys@source_id],
-			levels=paths))
-		ys
-	})
-	data <- c(x@data, y@data)
+	# x@data <- lapply(x@data, function(xs) {
+	# 	xs@source_id <- as.integer(factor(x@paths[xs@source_id[]],
+	# 		levels=paths))
+	# 	xs
+	# })
+	# y@data <- lapply(y@data, function(ys) {
+	# 	ys@source_id <- as.integer(factor(y@paths[ys@source_id[]],
+	# 		levels=paths))
+	# 	ys
+	# })
+	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
+		levels=paths))
+	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
+		levels=paths))
+	y@data@group_id <- y@data@group_id[] + max(x@data@group_id[])
+	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
 		datamode=widest_datamode(data, from="C"),

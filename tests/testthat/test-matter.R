@@ -2,6 +2,20 @@ require(testthat)
 
 context("matter")
 
+test_that("delta run length encoding", {
+
+	x <- c(1,1,1,1,1,6,7,8,9,10,21,32,33,34,15)
+
+	y <- drle(x)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1], y[1])
+
+	expect_equal(x[1:15], y[1:15])
+
+})
+
 test_that("vector subsetting", {
 
 	x <- seq_len(100)

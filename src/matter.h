@@ -12,6 +12,7 @@
 
 #define within_bounds(x, a, b) ((a) <= (x) && (x) < (b))
 #define out_of_bounds(x, a, b) ((x) < (a) && (b) <= (x))
+#define is_equal_double(x, y) (fabs((x) - (y)) < 1E-9 || (ISNA(x) && ISNA(y)))
 
 //// Delayed operations on atoms
 //-------------------------------
@@ -99,13 +100,78 @@ void fillNA(RType * ptr, size_t count, size_t skip = 1) {
     }
 }
 
-//// Count # of consecutive indices after current one (for faster reads)
-//----------------------------------------------------------------------
+//// Delta run length encoding 
+//-----------------------------
 
-index_t num_consecutive(double * pindex, long i, long length);
+index_t count_consecutive(double * pindex, long i, long length);
+
+template<typename T>
+T run_delta(T * values, int i, int n);
+
+template<typename T>
+int run_length(T * values, int i, int n, T delta);
+
+template<typename T>
+int count_runs(T * values, int n);
+
+template<typename T>
+SEXP makeDRLE(SEXP x, SEXP nruns);
+
+template<typename RType>
+class VectorOrDRLE {
+
+    public:
+
+        VectorOrDRLE(SEXP x)
+        {
+            if ( isS4(x) )
+            {
+                values = DataPtr<RType>(GET_SLOT(x, install("values")));
+                lengths = INTEGER(GET_SLOT(x, install("lengths")));
+                deltas = DataPtr<RType>(GET_SLOT(x, install("deltas")));
+                nruns = LENGTH(GET_SLOT(x, install("values")));
+                isDRLE = true;
+            }
+            else
+            {
+                values = DataPtr<RType>(x);
+                nruns = LENGTH(x);
+                isDRLE = false;
+            }
+            ref_index = 0;
+            ref_run = 0;
+        }
+
+        ~VectorOrDRLE(){}
+
+        SEXP readVector();
+
+        SEXP readVectorElements(SEXP i);
+
+        int find(RType value);
+
+        RType operator[](int i);
+
+    protected:
+
+        RType * values;
+        int * lengths;
+        RType * deltas;
+        int nruns;
+        int ref_index;
+        int ref_run;
+        bool isDRLE;
+
+};
+
+template<>
+int VectorOrDRLE<int> :: find(int value);
+
+template<>
+int VectorOrDRLE<double> :: find(double value);
 
 //// DataSources class
-//----------------
+//---------------------
 
 class DataSources {
 
@@ -113,8 +179,8 @@ class DataSources {
 
         DataSources(SEXP x)
         {
-            _paths = GET_SLOT(x, mkString("paths"));
-            _filemode = GET_SLOT(x, mkString("filemode"));
+            _paths = GET_SLOT(x, install("paths"));
+            _filemode = GET_SLOT(x, install("filemode"));
             if ( LENGTH(_paths) == 0 )
                 error("empty 'paths'");
             _length = LENGTH(_paths);
@@ -162,50 +228,93 @@ class Atoms {
 
         Atoms(SEXP x, DataSources * s, Ops o) : _sources(s), _ops(o)
         {
-            _length = INTEGER_VALUE(GET_SLOT(x, mkString("length")));
-            _source_id = INTEGER(GET_SLOT(x, mkString("source_id")));
-            _datamode = INTEGER(GET_SLOT(x, mkString("datamode")));
-            _offset = REAL(GET_SLOT(x, mkString("offset")));
-            _extent = REAL(GET_SLOT(x, mkString("extent")));
-            _index_offset = REAL(GET_SLOT(x, mkString("index_offset")));
-            _index_extent = REAL(GET_SLOT(x, mkString("index_extent")));
+            _natoms = INTEGER_VALUE(GET_SLOT(x, install("natoms")));
+            _ngroups = INTEGER_VALUE(GET_SLOT(x, install("ngroups")));
+            _group_id = new VectorOrDRLE<int>(GET_SLOT(x, install("group_id")));
+            _source_id = new VectorOrDRLE<int>(GET_SLOT(x, install("source_id")));
+            _datamode = new VectorOrDRLE<int>(GET_SLOT(x, install("datamode")));
+            _offset = new VectorOrDRLE<double>(GET_SLOT(x, install("offset")));
+            _extent = new VectorOrDRLE<double>(GET_SLOT(x, install("extent")));
+            _index_offset = new VectorOrDRLE<double>(GET_SLOT(x, install("index_offset")));
+            _index_extent = new VectorOrDRLE<double>(GET_SLOT(x, install("index_extent")));
+            set_group(0);
         }
 
-        ~Atoms(){}
+        ~Atoms()
+        {
+            delete _group_id;
+            delete _source_id;
+            delete _datamode;
+            delete _offset;
+            delete _extent;
+            delete _index_offset;
+            delete _index_extent;
+        }
+
+        int group() {
+            return _group;
+        }
+
+        int group_offset() {
+            return _group_offset;
+        }
+
+        int group_length() {
+            return _group_length;
+        }
+
+        bool set_group(int i) {
+            if ( 0 <= i && i < length() )
+            {
+                _group = i;
+                _group_offset = _group_id->find(i + 1);
+                int j = i + 1;
+                while ( j < length() && (*_group_id)[j] == _group + 1 )
+                    j++;
+                _group_length = j - i;
+                return true;
+            }
+            else
+                return false;
+        }
+
+        bool next_group() {
+            return set_group(group() + 1);
+        }
 
         int source_id(int i) {
-            int retId = _source_id[i] - 1;
+            int retId = (*_source_id)[i + group_offset()] - 1;
             if ( retId == NA_INTEGER )
                 error("missing 'source_id'");
             return retId;
         }
 
         int datamode(int i) {
-            return _datamode[i];
+            return (*_datamode)[i + group_offset()];
         }
 
         index_t offset(int i) {
-            return static_cast<index_t>(_offset[i]);
+            return static_cast<index_t>((*_offset)[i + group_offset()]);
         }
 
         index_t extent(int i) {
-            return static_cast<index_t>(_extent[i]);
+            return static_cast<index_t>((*_extent)[i + group_offset()]);
         }
 
         index_t index_offset(int i) {
-            return static_cast<index_t>(_index_offset[i]);
+            return static_cast<index_t>((*_index_offset)[i + group_offset()]);
         }
 
         index_t index_extent(int i) {
-            return static_cast<index_t>(_index_extent[i]);
+            return static_cast<index_t>((*_index_extent)[i + group_offset()]);
         }
 
         int length() {
-            return _length;
+            return _ngroups;
         }
 
         index_t max_extent() {
-            return(index_extent(length() - 1));
+            return(index_extent(group_length() - 1));
         }
 
         index_t byte_offset(int i, index_t offset) {
@@ -241,7 +350,7 @@ class Atoms {
         }
 
         int find_atom(index_t offset) {
-            for ( int retIdx = 0; retIdx < length(); retIdx++ )
+            for ( int retIdx = 0; retIdx < group_length(); retIdx++ )
                 if ( within_bounds(offset, index_offset(retIdx), index_extent(retIdx)) )
                     return retIdx;
             error("subscript not found in any atom");
@@ -282,7 +391,7 @@ class Atoms {
             index_t toRead, numRead, totLength;
             toRead = count;
             numRead = 0;
-            totLength = index_extent(length() - 1);
+            totLength = index_extent(group_length() - 1);
             if ( offset < 0 || offset + count > totLength )
                 error("subscript out of bounds");
             while ( numRead < count && offset < totLength ) {
@@ -335,7 +444,7 @@ class Atoms {
             index_t toWrite, numWrote, totLength;
             toWrite = count;
             numWrote = 0;
-            totLength = index_extent(length() - 1);
+            totLength = index_extent(group_length() - 1);
             if ( offset < 0 || offset + count > totLength )
                 error("subscript out of bounds");
             while ( numWrote < count && offset < totLength ) {
@@ -391,7 +500,7 @@ class Atoms {
                     ptr[skip * i] = DataNA<RType>();
                     continue;
                 }
-                index_t nx = num_consecutive(pindex, i, length);
+                index_t nx = count_consecutive(pindex, i, length);
                 if ( nx >= 0 ) {
                     index_t count = nx + 1;
                     index_t offset = static_cast<index_t>(pindex[i]);
@@ -414,7 +523,7 @@ class Atoms {
                 if ( ISNA(pindex[i]) ) {
                     continue;
                 }
-                index_t nx = num_consecutive(pindex, i, length);
+                index_t nx = count_consecutive(pindex, i, length);
                 if ( nx >= 0 ) {
                     index_t count = nx + 1;
                     index_t offset = static_cast<index_t>(pindex[i]);
@@ -432,13 +541,20 @@ class Atoms {
 
     protected:
 
-        int * _source_id;    // index from 1
-        int * _datamode;   // 1 = short, 2 = int, 3 = index_t, 4 = float, 5 = double
-        double * _offset;
-        double * _extent;
-        double * _index_offset; // index from 0
-        double * _index_extent; // index from 0
-        int _length;
+        int _natoms;
+        int _ngroups;
+
+        int _group;
+        int _group_offset;
+        int _group_length;
+
+        VectorOrDRLE<int> * _group_id;     // index from 1
+        VectorOrDRLE<int> * _source_id;    // index from 1
+        VectorOrDRLE<int> * _datamode;
+        VectorOrDRLE<double> * _offset;
+        VectorOrDRLE<double> * _extent;
+        VectorOrDRLE<double> * _index_offset; // index from 0
+        VectorOrDRLE<double> * _index_extent; // index from 0
 
         DataSources * _sources;
         Ops _ops;
@@ -456,11 +572,11 @@ class Matter
 
         Matter(SEXP x) : _sources(x)
         {
-            _data = GET_SLOT(x, mkString("data"));
-            _datamode = INTEGER_VALUE(GET_SLOT(x, mkString("datamode")));
-            _chunksize = INTEGER_VALUE(GET_SLOT(x, mkString("chunksize")));
-            _length = static_cast<index_t>(NUMERIC_VALUE(GET_SLOT(x, mkString("length"))));
-            _dim = GET_SLOT(x, mkString("dim"));
+            _data = GET_SLOT(x, install("data"));
+            _datamode = INTEGER_VALUE(GET_SLOT(x, install("datamode")));
+            _chunksize = INTEGER_VALUE(GET_SLOT(x, install("chunksize")));
+            _length = static_cast<index_t>(NUMERIC_VALUE(GET_SLOT(x, install("length"))));
+            _dim = GET_SLOT(x, install("dim"));
             const char * S4class = CHARACTER_VALUE(GET_CLASS(x));
             if ( strcmp(S4class, "matter_vec") == 0 )
                 _S4class = MATTER_VEC;
@@ -468,6 +584,8 @@ class Matter
                 _S4class = MATTER_MATC;
             else if ( strcmp(S4class, "matter_matr") == 0 )
                 _S4class = MATTER_MATR;
+            else
+                error("subclass not implemented yet");
             const char * attr_center = "scaled:center";
             _scaled.center = GET_ATTR(x, install(attr_center));
             const char * attr_scale = "scaled:scale";
@@ -867,6 +985,14 @@ extern "C" {
     SEXP rightMatrixMult(SEXP x, SEXP y);
 
     SEXP leftMatrixMult(SEXP x, SEXP y);
+
+    SEXP countRuns(SEXP x);
+
+    SEXP createDRLE(SEXP x, SEXP nruns);
+
+    SEXP getDRLEVector(SEXP x);
+
+    SEXP getDRLEVectorElements(SEXP x, SEXP i);
 
 }
 
