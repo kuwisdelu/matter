@@ -84,6 +84,43 @@ combine_rownames <- function(x, y) {
 	}
 }
 
+#### Define allowed delayed operation types ####
+## -----------------------------------------------
+
+make_op <- function(x) {
+	levels <- c("+", "-", "*", "/", "^", "log")
+	if ( missing(x) )
+		return(factor(levels=levels))
+	if ( is.numeric(x) ) {
+		x <- as.integer(x)
+		factor(x, levels=seq_along(levels), labels=levels)
+	} else if ( is.character(x) ) {
+		x <- tolower(x)
+		if ( any(!x %in% levels) )
+			stop("unsupported delayed operation type")
+		factor(x, levels=levels)
+	} else {
+		as.factor(x)
+	}
+}
+
+register_op <- function(x, lhs, rhs, op, where) {
+	if ( is.null(lhs) && is.null(rhs) ) {
+		where <- "scalar"
+	} else if ( !is.null(lhs) && length(lhs) == 1 ) {
+		where <- "scalar"
+	} else if ( !is.null(rhs) && length(rhs) == 1 ) {
+		where <- "scalar"
+	} else if ( missing(where) ) {
+		stop("non-scalar arguments not supported")
+	}
+	op <- make_op(op)
+	where <- switch(where, scalar=0, by_major_dim=1, by_minor_dim=2)
+	op <- list(lhs=lhs, rhs=rhs, op=op, where=where)
+	x@ops <- c(x@ops, list(op))
+	x
+}
+
 #### Define data types and utility functions for them ####
 ## -------------------------------------------------------
 

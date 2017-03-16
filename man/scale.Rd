@@ -24,7 +24,7 @@
 }
 
 \details{
-	This method differs from \code{\link[base]{scale}} in its behavior when \code{center} is \code{FALSE} and \code{scale} is \code{TRUE}. In this case, \code{scale.default} would scale by the root-mean-square of each column, but this method will still use the column standard deviations.
+	See \code{\link[base]{scale}} for details.
 }
 
 \value{
