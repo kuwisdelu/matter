@@ -4,6 +4,7 @@
 extern "C" {
 
     static const R_CallMethodDef callMethods[] = {
+        {"C_createAtoms", (DL_FUNC) &createAtoms, 5},
         {"C_getVector", (DL_FUNC) &getVector, 1},
         {"C_setVector", (DL_FUNC) &setVector, 2},
         {"C_getVectorElements", (DL_FUNC) &getVectorElements, 2},

@@ -17,6 +17,16 @@ setClass("atoms",
 		extent = "numericORdrle", # number of elements
 		index_offset = "numericORdrle", # cumulative index of first element
 		index_extent = "numericORdrle"), # cumulative index of one-past-the-end
+	prototype = c(
+		natoms = 1L,
+		ngroups = 1L,
+		group_id = 1L,
+		source_id = as.integer(NA),
+		datamode = make_datamode("double", type="C"),
+		offset = numeric(1),
+		extent = numeric(1),
+		index_extent = numeric(1),
+		index_offset = numeric(1)),
 	validity = function(object) {
 		errors <- NULL
 		lens <- c(group_id=length(object@group_id),
@@ -42,20 +52,6 @@ setClass("atoms",
 			errors <- c(errors, "'group_id' must be positive and increasing")
 		if ( object@index_offset[1] != 0 )
 			errors <- c(errors, "'index_offset' must begin at 0")
-		# C_datamodes <- levels(make_datamode(type="C"))
-		# if ( any(!as.character(object@datamode) %in% C_datamodes) )
-		# 	errors <- c(errors, "'datamode' should be one of [",
-		# 		paste(C_datamodes, collapse=", "), "]")
-		# extent <- object@index_extent[] - object@index_offset[]
-		# if ( any(extent != object@extent[]) )
-		# 	errors <- c(errors, "'index_offset' or 'index_extent' incongruent with 'extent'")
-		# index_offset.drop <-  object@index_offset[-1L]
-		# index_extent.drop <-  object@index_extent[-length(object@index_extent)]
-		# if ( any(index_offset.drop != index_extent.drop) )
-		# 	errors <- c(errors, "'index_offset' or 'index_extent' are non-contiguous")
-		# length <- sum(object@extent[])
-		# if ( length != object@index_extent[length(object@index_extent)] )
-		# 	errors <- c(errors, "'index_extent' must terminate at sum of 'extent' [", length, "]")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -72,18 +68,7 @@ atoms <- function(group_id = 1L, source_id = as.integer(NA),
 		offset <- offset[o]
 		extent <- extent[o]
 	}
-	index_extent <- tapply(extent[], group_id[], cumsum)
-	index_offset <- lapply(index_extent, function(i) c(0, i[-length(i)]))
-	x <- new("atoms",
-		natoms=length(index_extent),
-		ngroups=max(group_id[]),
-		group_id=group_id,
-		source_id=source_id,
-		datamode=datamode,
-		offset=offset,
-		extent=extent,
-		index_offset=as.vector(unlist(index_offset)),
-		index_extent=as.vector(unlist(index_extent)))
+	x <- .Call("C_createAtoms", group_id, source_id, datamode, offset, extent)
 	if ( compress )
 		x <- compressAtoms(x, compression_threshold=compression_threshold)
 	x
