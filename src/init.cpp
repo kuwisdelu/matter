@@ -30,8 +30,8 @@ extern "C" {
         {"C_leftMatrixMult", (DL_FUNC) &leftMatrixMult, 2},
         {"C_countRuns", (DL_FUNC) &countRuns, 1},
         {"C_createDRLE", (DL_FUNC) &createDRLE, 2},
-        {"C_getDRLEVector", (DL_FUNC) &getDRLEVector, 1},
-        {"C_getDRLEVectorElements", (DL_FUNC) &getDRLEVectorElements, 2},
+        {"C_getDRLE", (DL_FUNC) &getDRLE, 1},
+        {"C_getDRLEElements", (DL_FUNC) &getDRLEElements, 2},
         {NULL, NULL, 0}
     };
 

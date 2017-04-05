@@ -88,7 +88,13 @@ combine_rownames <- function(x, y) {
 ## -----------------------------------------------
 
 make_op <- function(x) {
-	levels <- c("+", "-", "*", "/", "^", "log")
+	levels <- c(
+		"+",
+		"-",
+		"*",
+		"/",
+		"^",
+		"log")
 	if ( missing(x) )
 		return(factor(levels=levels))
 	if ( is.numeric(x) ) {
@@ -104,18 +110,13 @@ make_op <- function(x) {
 	}
 }
 
-register_op <- function(x, lhs, rhs, op, where) {
-	if ( is.null(lhs) && is.null(rhs) ) {
-		where <- "scalar"
-	} else if ( !is.null(lhs) && length(lhs) == 1 ) {
-		where <- "scalar"
-	} else if ( !is.null(rhs) && length(rhs) == 1 ) {
-		where <- "scalar"
-	} else if ( missing(where) ) {
-		stop("non-scalar arguments not supported")
-	}
+register_op <- function(x, lhs, rhs, op,
+	where = c("by_group", "by_each_group"))
+{
 	op <- make_op(op)
-	where <- switch(where, scalar=0, by_major_dim=1, by_minor_dim=2)
+	where <- match.arg(where)
+	where <- switch(where,
+		by_group=1, by_each_group=2)
 	op <- list(lhs=lhs, rhs=rhs, op=op, where=where)
 	x@ops <- c(x@ops, list(op))
 	x
@@ -129,9 +130,22 @@ register_op <- function(x, lhs, rhs, op, where) {
 make_datamode <- function(x, type=c("C", "R")) {
 	type <- match.arg(type)
 	levels <- switch(type,
-		C = c("char", "uchar", "short", "ushort", "int", "uint",
-			"long", "ulong", "float", "double"),
-		R = c("raw", "integer", "numeric"))
+		C = c(
+			"char",
+			"uchar",
+			"short",
+			"ushort",
+			"int",
+			"uint",
+			"long",
+			"ulong",
+			"float",
+			"double"),
+		R = c(
+			"raw",
+			"logical",
+			"integer",
+			"numeric"))
 	if ( missing(x) )
 		return(factor(levels=levels))
 	if ( is.numeric(x) ) {
@@ -180,6 +194,7 @@ convert_datamode <- function(x, to=c("C", "R")) {
 	} else {
 		vapply(as.character(x), switch, character(1),
 			raw = "uchar",
+			logical = "int",
 			integer = "int",
 			numeric = "double")
 	}
@@ -197,6 +212,7 @@ widest_datamode <- function(x) {
 		x <- max(as.integer(make_datamode(x, type="R")))
 		make_datamode(switch(x,
 			raw="raw",
+			logical="logical",
 			integer="integer",
 			numeric="numeric"), type="R")
 	} else if ( all(x %in% levels(make_datamode(type="C"))) ) {

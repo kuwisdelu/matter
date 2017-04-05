@@ -3,14 +3,16 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Clean up detritus
-- Add support for different data sources
+- Add Compare and Logic operators for 'matter_vec' class
+- Add 'match', '%in%', and 'which' functions for 'matter_vec' class
+- Add list and data.frame (datamode=<vector of data modes>) types
+- Add text (datamode="character") and factor (datamode="integer") types
 
 Priority: Medium
+- Do vector recycling during assignment in C/C++ instead of R
 - Sparse vectors/matrices (both in-memory and on-disk)
-- Add factor types (datamode="integer")
-- Add list and data.frame (datamode=<vector of data modes>) types
-- Add text (datamode="character") types
 
 Priority: Low
+- Add support for different data sources via @datasources slot
+- Add 'readonly' parameter to constructors and as an accessor method
 - Smart caching of frequently-accessed parts of data

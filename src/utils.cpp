@@ -18,45 +18,41 @@ extern "C" {
 }
 
 template<>
-Rbyte * DataPtr<Rbyte>(SEXP x)
+Rbyte * DataPtr<Rbyte,RAWSXP>(SEXP x)
 {
 	return RAW(x);
 }
 
 template<>
-int * DataPtr<int>(SEXP x)
+int * DataPtr<int,LGLSXP>(SEXP x)
+{
+	return LOGICAL(x);
+}
+
+template<>
+int * DataPtr<int,INTSXP>(SEXP x)
 {
 	return INTEGER(x);
 }
 
 template<>
-double * DataPtr<double>(SEXP x)
+double * DataPtr<double,REALSXP>(SEXP x)
 {
 	return REAL(x);
 }
 
-template<>
-SEXPTYPE DataType<Rbyte>()
-{
-	return RAWSXP;
-}
-
-template<>
-SEXPTYPE DataType<int>()
-{
-	return INTSXP;
-}
-
-template<>
-SEXPTYPE DataType<double>()
-{
-	return REALSXP;
-}
 
 template<>
 Rbyte DataNA<Rbyte>()
 {
-	error("NAs unsupported for type RAW");
+	error("NAs unsupported for type 'Rbyte'");
+	return 0;
+}
+
+template<>
+bool DataNA<bool>()
+{
+	error("NAs unsupported for type 'bool'");
 	return 0;
 }
 
