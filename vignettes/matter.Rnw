@@ -185,6 +185,49 @@ Now we fit the linear model to the data using the \Robject{bigglm} method for \R
 %   fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
 %   bigglm.out <- bigglm(fm, data=data, chunksize=10000)
 % })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #    209.000       209.600       983.100       773.500        39.766 
+%    #  204.100       204.800      1050.900       846.100        42.655
+%    # 204.100       204.800      1050.900       846.100        42.055 
+%     # 204.100       204.800      1050.900       846.100        42.019 
+%         # 204.100       204.800      1050.900       846.100        42.352 
+
+% require(biganalytics)
+% data.m <- data[]
+% data.df <- as.data.frame(data.m)
+% data.bm <- as.big.matrix(data.m)
+% rm(data.m)
+% gc()
+
+% matter:::profile({
+%   lm.out <- lm(fm, data=data.df)
+% })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #   1409.600      5663.400      7103.600      1440.200        32.574
+%    # 1409.40       5663.20       7103.50       1440.30         33.57 
+%         # 1409.400      5663.200      7103.500      1440.300        33.349
+%      # 1409.400      5663.200      7103.500      1440.300        34.583 
+%       # 1409.400      5663.200      7103.500      1440.300        34.125
+
+% matter:::profile({
+%   biglm.out <- bigglm(fm, data=data.df, chunksize=10000)
+% })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #   5663.400      5663.400      8992.600      3329.200       171.613 
+%    # 5663.200      5663.300      8992.400      3329.100       174.812 
+%    # 5663.200      5663.300      8992.400      3329.100       170.309
+%      # 5663.200      5663.300      8992.400      3329.100       179.001
+%       # 5663.200      5663.300      8992.400      3329.100       170.043 
+
+% matter:::profile({
+%   biglm.bm.out <- biglm.big.matrix(fm, data=data.bm, chunksize=10000)
+% })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #    5663.40       5663.50       9163.30       3499.80         23.52 
+%    # 5663.300      5663.400      9163.100      3499.700        24.488 
+%    # 5663.300      5663.400      9163.100      3499.700        23.727
+%     # 5663.300      5663.400      9163.100      3499.700        26.083
+%      # 5663.300      5663.400      9163.100      3499.700        23.452 
 % @
 
 <<fit-bigglm, eval=FALSE>>=
@@ -251,6 +294,60 @@ Unlike the default \verb|prcomp| method for ordinary \R{} matrices, this version
 % matter:::profile({
 %   prcomp.out <- prcomp(data, n=2, retx=FALSE, center=FALSE, scale.=FALSE)
 % })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #     84.200        84.600      1004.800       920.200       224.628 
+%     # 84.200        84.600      1004.800       920.200       226.084 
+%      # 84.200        84.600      1004.800       920.200       244.885 
+%        # 84.200        84.600      1004.800       920.200       247.294 
+%         # 84.400        84.800      1005.000       920.200       237.696 
+
+% require(bigalgebra)
+% require(irlba)
+% data.m <- data[]
+% data.bm <- as.big.matrix(data.m)
+% gc()
+
+% matter:::profile({
+%   svd.out <- svd(data.m, nu=0, nv=2)
+% })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #   1288.700      1288.700      3689.100      2400.400        68.158 
+%     # 1288.700      1288.700      3689.100      2400.400        67.937 
+%       # 1288.70       1288.70       3689.10       2400.40         67.53 
+%      # 1288.700      1288.700      3689.100      2400.400        84.922 
+%       # 1288.900      1288.900      3689.300      2400.400        73.907 
+
+% matter:::profile({
+%   irlba.out <- irlba(data.m, nu=0, nv=2, fastpath=FALSE)
+% })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #   1300.900      1300.900      3546.400      2245.500        11.653
+%     # 1288.700      1300.700      3540.100      2239.400        12.085  
+%       # 1288.700      1300.700      3540.100      2239.400        11.855 
+%      # 1288.700      1300.700      3540.100      2239.400        13.295 
+%       # 1288.900      1300.900      3540.300      2239.400        12.294 
+
+% mult <- function(A, B, transpose=FALSE) {
+%     if ( is.null(dim(B)) )
+%       B <- as.matrix(B)
+%     if ( is.null(dim(A)) )
+%       A <- t(A)
+%     if ( transpose ) {
+%       cbind((t(B) %*% A)[])
+%     } else {
+%       cbind((A %*% B)[])
+%     }
+% }
+
+% matter:::profile({
+%   irlba.out <- irlba(data.bm, nu=0, nv=2, mult=mult)
+% })
+%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
+%    #   1288.700      1300.900      3550.600      2249.700        10.188 
+%     # 1300.700      1300.900      3544.600      2243.700        10.779 
+%      # 1300.70       1300.90       3544.60       2243.70         10.34 
+%         # 1300.700      1300.900      3544.600      2243.700        10.171 
+%          # 1300.900      1301.100      3544.800      2243.700        10.543 
 % @
 
 <<fit-prcomp, eval=FALSE>>=

@@ -117,11 +117,11 @@ matter(\dots)
 }
 
 \examples{
-## Create a vector
+## Create a matter_vec vector
 x <- matter(1:100, length=100)
 x[]
 
-## Create a matrix
+## Create a matter_mat matrix
 x <- matter(1:100, nrow=10, ncol=10)
 x[]
 }
