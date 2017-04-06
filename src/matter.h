@@ -1,26 +1,17 @@
 
-#ifndef MATTER_H
-#define MATTER_H
+#ifndef MATTER
+#define MATTER
 
 #include <R.h>
-#include <Rdefines.h>
 
 #include <cstdio>
 #include <cstdlib>
 
 #include "utils.h"
+#include "matterDefines.h"
 
 #define within_bounds(x, a, b) ((a) <= (x) && (x) < (b))
 #define out_of_bounds(x, a, b) ((x) < (a) && (b) <= (x))
-
-#define MATTER_VEC 1
-#define MATTER_MATC 2
-#define MATTER_MATR 3
-
-#define NONE -99
-
-typedef long index_type;
-typedef double dbl_index_type;
 
 //// Delayed operations on atoms
 //-------------------------------
@@ -111,7 +102,7 @@ void fillNA(RType * ptr, size_t count, size_t skip = 1) {
 //// Count # of consecutive indices after current one (for faster reads)
 //----------------------------------------------------------------------
 
-index_type num_consecutive(double * pindex, long i, long length);
+index_t num_consecutive(double * pindex, long i, long length);
 
 //// DataSources class
 //----------------
@@ -193,46 +184,53 @@ class Atoms {
             return _datamode[i];
         }
 
-        index_type offset(int i) {
-            return static_cast<index_type>(_offset[i]);
+        index_t offset(int i) {
+            return static_cast<index_t>(_offset[i]);
         }
 
-        index_type extent(int i) {
-            return static_cast<index_type>(_extent[i]);
+        index_t extent(int i) {
+            return static_cast<index_t>(_extent[i]);
         }
 
-        index_type index_offset(int i) {
-            return static_cast<index_type>(_index_offset[i]);
+        index_t index_offset(int i) {
+            return static_cast<index_t>(_index_offset[i]);
         }
 
-        index_type index_extent(int i) {
-            return static_cast<index_type>(_index_extent[i]);
+        index_t index_extent(int i) {
+            return static_cast<index_t>(_index_extent[i]);
         }
 
         int length() {
             return _length;
         }
 
-        index_type max_extent() {
+        index_t max_extent() {
             return(index_extent(length() - 1));
         }
 
-        index_type byte_offset(int i, index_type offset) {
-            index_type byte_offset, elt_offset;
+        index_t byte_offset(int i, index_t offset) {
+            index_t byte_offset, elt_offset;
             switch(datamode(i)) {
-                case 1:
+                case C_CHAR:
+                case C_UCHAR:
+                    elt_offset = sizeof(char) * (offset - index_offset(i));
+                    break;
+                case C_SHORT:
+                case C_USHORT:
                     elt_offset = sizeof(short) * (offset - index_offset(i));
                     break;
-                case 2:
+                case C_INT:
+                case C_UINT:
                     elt_offset = sizeof(int) * (offset - index_offset(i));
                     break;
-                case 3:
+                case C_LONG:
+                case C_ULONG:
                     elt_offset = sizeof(long) * (offset - index_offset(i));
                     break;
-                case 4:
+                case C_FLOAT:
                     elt_offset = sizeof(float) * (offset - index_offset(i));
                     break;
-                case 5:
+                case C_DOUBLE:
                     elt_offset = sizeof(double) * (offset - index_offset(i));
                     break;
                 default:
@@ -242,21 +240,21 @@ class Atoms {
             return byte_offset;
         }
 
-        int find_atom(index_type offset) {
+        int find_atom(index_t offset) {
             for ( int retIdx = 0; retIdx < length(); retIdx++ )
                 if ( within_bounds(offset, index_offset(retIdx), index_extent(retIdx)) )
                     return retIdx;
-            error("subscript out of bounds");
+            error("subscript not found in any atom");
         }
 
         template<typename CType, typename RType>
-        index_type read_atom(RType * ptr, int which, index_type offset, index_type count, size_t skip = 1) {
-            index_type numRead;
+        index_t read_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
+            index_t numRead;
             FILE * stream = _sources->require(source_id(which));
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
             numRead = fread(tmp, sizeof(CType), count, stream);
-            for ( index_type i = 0; i < numRead; i++ ) {
+            for ( index_t i = 0; i < numRead; i++ ) {
                 *ptr = transform<RType>(coerce_cast<CType,RType>(tmp[i]), _ops, offset + i);
                 ptr += skip;
             }
@@ -265,12 +263,12 @@ class Atoms {
         }
 
         template<typename CType, typename RType>
-        index_type write_atom(RType * ptr, int which, index_type offset, index_type count, size_t skip = 1) {
-            index_type numWrote;
+        index_t write_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
+            index_t numWrote;
             FILE * stream = _sources->require(source_id(which));
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
-            for ( index_type i = 0; i < count; i++ ) {
+            for ( index_t i = 0; i < count; i++ ) {
                 tmp[i] = backtransform<RType>(coerce_cast<RType,CType>(*ptr), _ops, offset + i);
                 ptr += skip;
             }
@@ -280,8 +278,8 @@ class Atoms {
         }
 
         template<typename RType>
-        index_type read(RType * ptr, index_type offset, index_type count, size_t skip = 1) {
-            index_type toRead, numRead, totLength;
+        index_t read(RType * ptr, index_t offset, index_t count, size_t skip = 1) {
+            index_t toRead, numRead, totLength;
             toRead = count;
             numRead = 0;
             totLength = index_extent(length() - 1);
@@ -289,21 +287,36 @@ class Atoms {
                 error("subscript out of bounds");
             while ( numRead < count && offset < totLength ) {
                 int i = find_atom(offset);
-                index_type n = toRead < extent(i) ? toRead : extent(i);
+                index_t n = toRead < extent(i) ? toRead : extent(i);
                 switch(datamode(i)) {
-                    case 1:
+                    case C_CHAR:
+                        n = read_atom<char,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_UCHAR:
+                        n = read_atom<unsigned char,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_SHORT:
                         n = read_atom<short,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 2:
+                    case C_USHORT:
+                        n = read_atom<unsigned short,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_INT:
                         n = read_atom<int,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 3:
+                    case C_UINT:
+                        n = read_atom<unsigned int,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_LONG:
                         n = read_atom<long,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 4:
+                    case C_ULONG:
+                        n = read_atom<unsigned long,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_FLOAT:
                         n = read_atom<float,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 5:
+                    case C_DOUBLE:
                         n = read_atom<double,RType>(ptr, i, offset, n, skip);
                         break;
                     default:
@@ -318,8 +331,8 @@ class Atoms {
         }
 
         template<typename RType>
-        index_type write(RType * ptr, index_type offset, index_type count, size_t skip = 1) {
-            index_type toWrite, numWrote, totLength;
+        index_t write(RType * ptr, index_t offset, index_t count, size_t skip = 1) {
+            index_t toWrite, numWrote, totLength;
             toWrite = count;
             numWrote = 0;
             totLength = index_extent(length() - 1);
@@ -327,21 +340,36 @@ class Atoms {
                 error("subscript out of bounds");
             while ( numWrote < count && offset < totLength ) {
                 int i = find_atom(offset);
-                index_type n = toWrite < extent(i) ? toWrite : extent(i);
+                index_t n = toWrite < extent(i) ? toWrite : extent(i);
                 switch(datamode(i)) {
-                    case 1:
+                    case C_CHAR:
+                        n = write_atom<char,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_UCHAR:
+                        n = write_atom<unsigned char,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_SHORT:
                         n = write_atom<short,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 2:
+                    case C_USHORT:
+                        n = write_atom<unsigned short,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_INT:
                         n = write_atom<int,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 3:
+                    case C_UINT:
+                        n = write_atom<unsigned int,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_LONG:
                         n = write_atom<long,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 4:
+                    case C_ULONG:
+                        n = write_atom<unsigned long,RType>(ptr, i, offset, n, skip);
+                        break;
+                    case C_FLOAT:
                         n = write_atom<float,RType>(ptr, i, offset, n, skip);
                         break;
-                    case 5:
+                    case C_DOUBLE:
                         n = write_atom<double,RType>(ptr, i, offset, n, skip);
                         break;
                     default:
@@ -356,22 +384,22 @@ class Atoms {
         }
 
         template<typename RType>
-        index_type read_indices(RType * ptr, dbl_index_type * pindex, long length, size_t skip = 1) {
-            index_type numRead;
+        index_t read_indices(RType * ptr, Rindex_t * pindex, long length, size_t skip = 1) {
+            index_t numRead;
             for ( long i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
                     ptr[skip * i] = DataNA<RType>();
                     continue;
                 }
-                index_type nx = num_consecutive(pindex, i, length);
+                index_t nx = num_consecutive(pindex, i, length);
                 if ( nx >= 0 ) {
-                    index_type count = nx + 1;
-                    index_type offset = static_cast<index_type>(pindex[i]);
+                    index_t count = nx + 1;
+                    index_t offset = static_cast<index_t>(pindex[i]);
                     numRead = read<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
-                    index_type count = (-nx) + 1;
-                    index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
+                    index_t count = (-nx) + 1;
+                    index_t offset = static_cast<index_t>(pindex[i + (-nx)]);
                     numRead = read<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);
@@ -380,21 +408,21 @@ class Atoms {
         }
 
         template<typename RType>
-        index_type write_indices(RType * ptr, dbl_index_type * pindex, long length, size_t skip = 1) {
-            index_type numWrote;
+        index_t write_indices(RType * ptr, Rindex_t * pindex, long length, size_t skip = 1) {
+            index_t numWrote;
             for ( long i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
                     continue;
                 }
-                index_type nx = num_consecutive(pindex, i, length);
+                index_t nx = num_consecutive(pindex, i, length);
                 if ( nx >= 0 ) {
-                    index_type count = nx + 1;
-                    index_type offset = static_cast<index_type>(pindex[i]);
+                    index_t count = nx + 1;
+                    index_t offset = static_cast<index_t>(pindex[i]);
                     numWrote = write<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
-                    index_type count = (-nx) + 1;
-                    index_type offset = static_cast<index_type>(pindex[i + (-nx)]);
+                    index_t count = (-nx) + 1;
+                    index_t offset = static_cast<index_t>(pindex[i + (-nx)]);
                     numWrote = write<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);
@@ -405,7 +433,7 @@ class Atoms {
     protected:
 
         int * _source_id;    // index from 1
-        int * _datamode;   // 1 = short, 2 = int, 3 = index_type, 4 = float, 5 = double
+        int * _datamode;   // 1 = short, 2 = int, 3 = index_t, 4 = float, 5 = double
         double * _offset;
         double * _extent;
         double * _index_offset; // index from 0
@@ -431,7 +459,7 @@ class Matter
             _data = GET_SLOT(x, mkString("data"));
             _datamode = INTEGER_VALUE(GET_SLOT(x, mkString("datamode")));
             _chunksize = INTEGER_VALUE(GET_SLOT(x, mkString("chunksize")));
-            _length = static_cast<index_type>(NUMERIC_VALUE(GET_SLOT(x, mkString("length"))));
+            _length = static_cast<index_t>(NUMERIC_VALUE(GET_SLOT(x, mkString("length"))));
             _dim = GET_SLOT(x, mkString("dim"));
             const char * S4class = CHARACTER_VALUE(GET_CLASS(x));
             if ( strcmp(S4class, "matter_vec") == 0 )
@@ -480,7 +508,7 @@ class Matter
             return _chunksize;
         }
 
-        index_type length() {
+        index_t length() {
             return _length;
         }
 
@@ -611,7 +639,7 @@ class Matter
         int _datamode;  // 1 = integer, 2 = numeric
         DataSources _sources;
         int _chunksize;
-        index_type _length;
+        index_t _length;
         SEXP _dim;
         int _S4class;      // 1 = vector, 2 = col-matrix, 3 = row-matrix
         Scaled _scaled;
@@ -631,11 +659,12 @@ class MatterAccessor
         MatterAccessor(Matter & x) : _matter(x)
         {
             switch(x.S4class()) {
-                case 1:
+                case MATTER_VEC:
                     _atoms = new Atoms(x.data(), x.sources(), x.ops());
-                    _next = NONE;
+                    _next = NULL_INDEX;
                     break;
-                default:
+                case MATTER_MATC:
+                case MATTER_MATR:
                     _atoms = new Atoms(x.data(0), x.sources(), x.ops(0));
                     _next = 1;
                     break;
@@ -646,7 +675,7 @@ class MatterAccessor
         MatterAccessor(Matter & x, int i) : _matter(x)
         {
             _atoms = new Atoms(x.data(i), x.sources(), x.ops(i));
-            _next = NONE;
+            _next = NULL_INDEX;
             init();
         }
 
@@ -717,9 +746,9 @@ class MatterAccessor
         Atoms * _atoms;
         int _next;
         int _chunksize;
-        index_type _current;
-        index_type _lower;
-        index_type _upper;
+        index_t _current;
+        index_t _lower;
+        index_t _upper;
         RType * _buffer;
 };
 

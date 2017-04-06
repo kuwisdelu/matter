@@ -15,17 +15,17 @@
 
 \alias{colSds}
 \alias{colVars}
-\alias{colMeans,matter-method}
-\alias{colSums,matter-method}
-\alias{colSds,matter-method}
-\alias{colVars,matter-method}
+\alias{colMeans,matter_mat-method}
+\alias{colSums,matter_mat-method}
+\alias{colSds,matter_mat-method}
+\alias{colVars,matter_mat-method}
 
 \alias{rowSds}
 \alias{rowVars}
-\alias{rowMeans,matter-method}
-\alias{rowSums,matter-method}
-\alias{rowSds,matter-method}
-\alias{rowVars,matter-method}
+\alias{rowMeans,matter_mat-method}
+\alias{rowSums,matter_mat-method}
+\alias{rowSds,matter_mat-method}
+\alias{rowVars,matter_mat-method}
 
 \title{Summary Statistics for ``matter'' Objects}
 
@@ -38,14 +38,14 @@
 \S4method{sum}{matter}(x, na.rm)
 \S4method{sd}{matter}(x, na.rm)
 \S4method{var}{matter}(x, na.rm)
-\S4method{colMeans}{matter}(x, na.rm)
-\S4method{colSums}{matter}(x, na.rm)
-\S4method{colSds}{matter}(x, na.rm)
-\S4method{colVars}{matter}(x, na.rm)
-\S4method{rowMeans}{matter}(x, na.rm)
-\S4method{rowSums}{matter}(x, na.rm)
-\S4method{rowSds}{matter}(x, na.rm)
-\S4method{rowVars}{matter}(x, na.rm)
+\S4method{colMeans}{matter_mat}(x, na.rm)
+\S4method{colSums}{matter_mat}(x, na.rm)
+\S4method{colSds}{matter_mat}(x, na.rm)
+\S4method{colVars}{matter_mat}(x, na.rm)
+\S4method{rowMeans}{matter_mat}(x, na.rm)
+\S4method{rowSums}{matter_mat}(x, na.rm)
+\S4method{rowSds}{matter_mat}(x, na.rm)
+\S4method{rowVars}{matter_mat}(x, na.rm)
 }
 
 \arguments{
