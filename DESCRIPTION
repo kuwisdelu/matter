@@ -6,9 +6,7 @@ Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
 Description: Memory-efficient reading, writing, and manipulation of
-	structured binary data on disk as vectors, matrices, and arrays.
-	This package is designed to be used as a back-end for Cardinal
-	for working with high-resolution mass spectrometry imaging data.
+        structured binary data on disk as vectors, matrices, and arrays.
 License: Artistic-2.0
 Depends: methods, stats, biglm
 Imports: BiocGenerics, irlba, utils
@@ -16,4 +14,4 @@ Suggests: BiocStyle, testthat
 Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
 	matter_vec.R matter_mat.R stats.R apply.R bigglm.R prcomp.R
 biocViews: Software, Infrastructure
-URL: http://www.cardinalmsi.org
+URL: https://github.com/kuwisdelu/matter
