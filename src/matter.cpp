@@ -104,7 +104,9 @@ template<>
 unsigned char coerce_cast<int,unsigned char>(int x) {
     if ( x < 0 || x > R_UCHAR_MAX || x == NA_INTEGER )
     {
-        if ( x != NA_INTEGER )
+        if ( x == NA_INTEGER )
+            warning("NAs not supported for type 'unsigned char', element will be set to 0");
+        else
             warning("value is out of range for type 'unsigned char', element will be set to 0");
         return 0;
     }
@@ -115,7 +117,9 @@ template<>
 unsigned char coerce_cast<double,unsigned char>(double x) {
     if ( x < 0 || x > R_UCHAR_MAX || !R_FINITE(x) )
     {
-        if ( !ISNA(x) )
+        if ( ISNA(x) )
+            warning("NAs not supported for type 'unsigned char', element will be set to 0");
+        else
             warning("value is out of range for type 'unsigned char', element will be set to 0");
         return 0;
     }
@@ -165,7 +169,9 @@ template<>
 unsigned short coerce_cast<int,unsigned short>(int x) {
     if ( x < 0 || x > R_USHORT_MAX || x == NA_INTEGER )
     {
-        if ( x != NA_INTEGER )
+        if ( x == NA_INTEGER )
+            warning("NAs not supported for type 'unsigned short', element will be set to 0");
+        else
             warning("value is out of range for type 'unsigned short', element will be set to 0");
         return 0;
     }
@@ -176,7 +182,9 @@ template<>
 unsigned short coerce_cast<double,unsigned short>(double x) {
     if ( x < 0 || x > R_USHORT_MAX || !R_FINITE(x) )
     {
-        if ( !ISNA(x) )
+        if ( ISNA(x) )
+            warning("NAs not supported for type 'unsigned short', element will be set to 0");
+        else
             warning("value is out of range for type 'unsigned short', element will be set to 0");
         return 0;
     }
@@ -194,9 +202,12 @@ unsigned int coerce_cast<Rbyte,unsigned int>(Rbyte x) {
 
 template<>
 unsigned int coerce_cast<int,unsigned int>(int x) {
-    if ( x < 0 )
+    if ( x < 0 || x == NA_INTEGER )
     {
-        warning("value is out of range for type 'int', element will be set to 0");
+        if ( x == NA_INTEGER )
+            warning("NAs not supported for type 'unsigned int', element will be set to 0");
+        else
+            warning("value is out of range for type 'unsigned int', element will be set to 0");
         return 0;
     }
     return static_cast<int>(x);
@@ -206,7 +217,9 @@ template<>
 unsigned int coerce_cast<double,unsigned int>(double x) {
     if ( x < 0 || x > R_UINT_MAX || !R_FINITE(x) )
     {
-        if ( !ISNA(x) )
+        if ( ISNA(x) )
+            warning("NAs not supported for type 'unsigned int', element will be set to 0");
+        else
             warning("value is out of range for type 'unsigned int', element will be set to 0");
         return 0;
     }
@@ -233,7 +246,7 @@ template<>
 long coerce_cast<double,long>(double x) {
     if ( !R_FINITE(x) )
     {
-        if ( !ISNA(x) )
+        if ( ISNA(x) )
             warning("value is out of range for type 'long', element will be set to NA");
         return NA_LONG;
     }
@@ -250,9 +263,12 @@ unsigned long coerce_cast<Rbyte,unsigned long>(Rbyte x) {
 
 template<>
 unsigned long coerce_cast<int,unsigned long>(int x) {
-    if ( x == NA_INTEGER )
+    if ( x < 0 || x == NA_INTEGER )
     {
-        warning("value is out of range for type 'long', element will be set to 0");
+        if ( x == NA_INTEGER )
+            warning("NAs not supported for type 'unsigned long', element will be set to 0");
+        else
+            warning("value is out of range for type 'unsigned long', element will be set to 0");
         return 0;
     }
     else
@@ -263,7 +279,9 @@ template<>
 unsigned long coerce_cast<double,unsigned long>(double x) {
     if ( !R_FINITE(x) )
     {
-        if ( !ISNA(x) )
+        if ( ISNA(x) )
+            warning("NAs not supported for type 'unsigned long', element will be set to 0");
+        else
             warning("value is out of range for type 'long', element will be set to 0");
         return 0;
     }
@@ -306,7 +324,10 @@ template<>
 Rbyte coerce_cast<char,Rbyte>(char x) {
     if ( x < 0 || x == NA_CHAR )
     {
-        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        if ( x == NA_CHAR )
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
+        else
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
         return 0;
     }
     else
@@ -317,7 +338,10 @@ template<>
 Rbyte coerce_cast<short,Rbyte>(short x) {
     if ( x < 0 || x > R_UCHAR_MAX || x == NA_SHORT )
     {
-        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        if ( x == NA_CHAR )
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
+        else
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
         return 0;
     }
     else
@@ -348,7 +372,10 @@ template<>
 Rbyte coerce_cast<long,Rbyte>(long x) {
     if ( x < 0 || x > R_UCHAR_MAX || x == NA_LONG )
     {
-        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        if ( x == NA_LONG )
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
+        else
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
         return 0;
     }
     else
@@ -378,6 +405,79 @@ Rbyte coerce_cast<float,Rbyte>(float x) {
         return static_cast<Rbyte>(x);
     }
 }
+
+// (char,uchar,short,ushort,int,uint,long,ulong,float,double) ----> bool
+
+template<>
+bool coerce_cast<char,bool>(char x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<unsigned char,bool>(unsigned char x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<short,bool>(short x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<unsigned short,bool>(unsigned short x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<int,bool>(int x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<unsigned int,bool>(unsigned int x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<long,bool>(long x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<unsigned long,bool>(unsigned long x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<float,bool>(float x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
+template<>
+bool coerce_cast<double,bool>(double x) {
+    if ( x != 0 && x != 1 )
+        warning("value is out of range for type 'bool', element will be set to FALSE");
+    return static_cast<bool>(x);
+}
+
 
 // (char,uchar,short,ushort,uint,long,ulong,float) ----> int
 
@@ -530,10 +630,26 @@ index_t count_consecutive(Rindex_t * pindex, long i, long length) {
         return n;
 }
 
-template<typename T>
-T run_delta(T * values, int i, int n) {
-    if ( i < n - 1 )
-        return values[i + 1] - values[i];
+template<>
+int run_delta<int>(int * values, int i, int n) {
+    if ( i < n - 1 ) {
+        if ( values[i] == NA_INTEGER || values[i + 1] == NA_INTEGER )
+            return 0;
+        else
+            return values[i + 1] - values[i];
+    }
+    else
+        return 0;
+}
+
+template<>
+double run_delta<double>(double * values, int i, int n) {
+    if ( i < n - 1 ) {
+        if ( ISNA(values[i]) || ISNA(values[i + 1]) )
+            return 0;
+        else
+            return values[i + 1] - values[i];
+    }
     else
         return 0;
 }
@@ -542,6 +658,10 @@ template<>
 int run_length<int>(int * values, int i, int n, int delta) {
     int length = 1;
     while ( i < n - 1 && values[i + 1] - values[i] == delta ) {
+        if ( values[i] == NA_INTEGER && values[i + 1] != NA_INTEGER )
+            break;
+        if ( values[i] != NA_INTEGER && values[i + 1] == NA_INTEGER )
+            break;
         length++;
         i++;
     }
@@ -552,6 +672,10 @@ template<>
 int run_length<double>(double * values, int i, int n, double delta) {
     int length = 1;
     while ( i < n - 1 && is_equal_double(values[i + 1] - values[i], delta) ) {
+        if ( ISNA(values[i]) && !ISNA(values[i + 1]) )
+            break;
+        if ( !ISNA(values[i]) && ISNA(values[i + 1]) )
+            break;
         length++;
         i++;
     }
@@ -737,12 +861,12 @@ SEXP makeDRLE<double>(SEXP x, SEXP nruns) {
     return retObj;
 }
 
-template<typename RType>
-SEXP VectorOrDRLE<RType> :: readVector() {
+template<typename RType, int SType>
+SEXP VectorOrDRLE<RType,SType> :: readVector() {
     SEXP retVec;
     int nout = length();
-    PROTECT(retVec = allocVector(DataType<RType>(), nout));
-    RType * pRetVec = DataPtr<RType>(retVec);
+    PROTECT(retVec = allocVector(SType, nout));
+    RType * pRetVec = DataPtr<RType,SType>(retVec);
     if ( isDRLE ) {
         int cum_index = 0;
         for ( int nrun = 0; nrun < nruns; nrun++ ) {
@@ -758,11 +882,11 @@ SEXP VectorOrDRLE<RType> :: readVector() {
     return retVec;
 }
 
-template<typename RType>
-SEXP VectorOrDRLE<RType> :: readVectorElements(SEXP i) {
+template<typename RType, int SType>
+SEXP VectorOrDRLE<RType,SType> :: readVectorElements(SEXP i) {
     SEXP retVec;
-    PROTECT(retVec = allocVector(DataType<RType>(), LENGTH(i)));
-    RType * pRetVec = DataPtr<RType>(retVec);
+    PROTECT(retVec = allocVector(SType, LENGTH(i)));
+    RType * pRetVec = DataPtr<RType,SType>(retVec);
     int * pIndex = INTEGER(i);
     for ( int k = 0; k < LENGTH(i); k++ )
         pRetVec[k] = (*this)[pIndex[k]];
@@ -770,8 +894,8 @@ SEXP VectorOrDRLE<RType> :: readVectorElements(SEXP i) {
     return retVec;   
 }
 
-template<typename RType>
-int VectorOrDRLE<RType> :: length() {
+template<typename RType, int SType>
+int VectorOrDRLE<RType,SType> :: length() {
     int length;
     if ( isDRLE ) {
         length = 0;
@@ -784,7 +908,7 @@ int VectorOrDRLE<RType> :: length() {
 }
 
 template<>
-int VectorOrDRLE<int> :: find(int value) {
+int VectorOrDRLE<int,INTSXP> :: find(int value) {
     if ( isDRLE )
     {
         int cum_index = 0;
@@ -809,7 +933,7 @@ int VectorOrDRLE<int> :: find(int value) {
 }
 
 template<>
-int VectorOrDRLE<double> :: find(double value) {
+int VectorOrDRLE<double,REALSXP> :: find(double value) {
     if ( isDRLE )
     {
         int cum_index = 0;
@@ -833,8 +957,8 @@ int VectorOrDRLE<double> :: find(double value) {
     return NA_REAL;
 }
 
-template<typename RType>
-RType VectorOrDRLE<RType> :: operator[](int i) {
+template<typename RType, int SType>
+RType VectorOrDRLE<RType,SType> :: operator[](int i) {
     if ( i < 0 )
         error("subscript out of bounds");
     if ( !isDRLE ) {
@@ -877,189 +1001,871 @@ RType VectorOrDRLE<RType> :: operator[](int i) {
 //// Delayed operations on atoms
 //-------------------------------
 
-template<typename T>
-T Ops :: arg(int i, index_t offset, int group) {
-    index_t k;
+void Ops :: init_args() {
+    for ( int i = 0; i < length(); i++ ) {
+        if ( has_lhs(i) ) {
+            switch (type(i)) {
+                case RAWSXP:
+                    _arg[i].r = RAW(lhs(i));
+                    break;
+                case LGLSXP:
+                    _arg[i].i = LOGICAL(lhs(i));
+                    break;
+                case INTSXP:
+                    _arg[i].i = INTEGER(lhs(i));
+                    break;
+                case REALSXP:
+                    _arg[i].d = REAL(lhs(i));
+                    break;
+                case STRSXP:
+                    _arg[i].s = STRING_PTR(lhs(i));
+                    break;
+                case S4SXP:
+                    // assumes 'matter' will be the only S4 class that ends up here
+                    _arg[i].m = new Matter(lhs(i));
+                    break;
+            }
+            if ( type(i) != S4SXP )
+                _arglengths[i] = static_cast<index_t>(XLENGTH(lhs(i)));
+            else
+                _arglengths[i] = _arg[i].m->length();
+        }
+        else if ( has_rhs(i) ) {
+            switch (type(i)) {
+                case RAWSXP:
+                    _arg[i].r = RAW(rhs(i));
+                    break;
+                case LGLSXP:
+                    _arg[i].i = LOGICAL(rhs(i));
+                    break;
+                case INTSXP:
+                    _arg[i].i = INTEGER(rhs(i));
+                    break;
+                case REALSXP:
+                    _arg[i].d = REAL(rhs(i));
+                    break;
+                case STRSXP:
+                    _arg[i].s = STRING_PTR(rhs(i));
+                    break;
+                case S4SXP:
+                    // assumes 'matter' will be the only S4 class that ends up here
+                    _arg[i].m = new Matter(rhs(i));
+                    break;
+            }
+            if ( type(i) != S4SXP )
+                _arglengths[i] = static_cast<index_t>(XLENGTH(rhs(i)));
+            else
+                _arglengths[i] = _arg[i].m->length();
+        }
+    }
+}
+
+void Ops :: finalize_args() {
+    for ( int i = 0; i < length(); i++ )
+        if ( type(i) == S4SXP )
+            delete _arg[i].m;
+}
+
+template<>
+Rbyte * Ops :: arg<Rbyte,RAWSXP>(int i) {
+    return _arg[i].r;
+}
+
+template<>
+int * Ops :: arg<int,LGLSXP>(int i) {
+    return _arg[i].i;
+}
+
+template<>
+int * Ops :: arg<int,INTSXP>(int i) {
+    return _arg[i].i;
+}
+
+template<>
+double * Ops :: arg<double,REALSXP>(int i) {
+    return _arg[i].d;
+}
+
+template<>
+SEXP * Ops :: arg<SEXP,STRSXP>(int i) {
+    return _arg[i].s;
+}
+
+template<>
+Matter * Ops :: arg<Matter,S4SXP>(int i) {
+    return _arg[i].m;
+}
+
+template<typename T1, typename T2>
+void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    if ( ylen == 1 ) {
+        for ( index_t k = 0; k < count; k++ ) {
+            *x += y[0];
+            x += skip;
+        }
+        return;
+    }
     switch(where(i)) {
-        case OPS_SCALAR:
-            k = 0;
+        case BY_GROUP:
+            xlen = atm->max_extent();
+            if ( ylen == xlen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x += y[offset + k];
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x += y[((atm->group() * xlen) + (offset + k))];
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x += y[((atm->group() * xlen) + (offset + k)) % ylen];
+                    x += skip;
+                }
+            }
             break;
-        case OPS_BY_MAJOR_DIM:
-            k = offset;
-            break;
-        case OPS_BY_MINOR_DIM:
-            k = group;
+        case BY_EACH_GROUP:
+            xlen = atm->length();
+            if ( xlen == ylen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x += y[atm->group()];
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x += y[(((offset + k) * xlen + atm->group()))];
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x += y[(((offset + k) * xlen + atm->group())) % ylen];
+                    x += skip;
+                }
+            }
             break;
     }
+}
+
+template<typename T1, typename T2>
+void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
     if ( has_lhs(i) )
     {
-        if ( type(i) == INTSXP )
-            return static_cast<T>(INTEGER(lhs(i))[k]);
-        else if ( type(i) == REALSXP )
-            return static_cast<T>(REAL(lhs(i))[k]);
-        else
-            error("unsupported argument in delayed operation");
+        if ( ylen == 1 ) {
+            for ( index_t k = 0; k < count; k++ ) {
+                *x = y[0] - (*x);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[offset + k] - (*x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[((atm->group() * xlen) + (offset + k))] - (*x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[((atm->group() * xlen) + (offset + k)) % ylen] - (*x);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[atm->group()] - (*x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[(((offset + k) * xlen + atm->group()))] - (*x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[(((offset + k) * xlen + atm->group())) % ylen] - (*x);
+                        x += skip;
+                    }
+                }
+                break;
+        }
     }
-    else if ( has_rhs(i) )
+    else
     {
-        if ( type(i) == INTSXP )
-            return static_cast<T>(INTEGER(rhs(i))[k]);
-        else if ( type(i) == REALSXP )
-            return static_cast<T>(REAL(rhs(i))[k]);
-        else
-            error("unsupported argument in delayed operation");
+        if ( ylen == 1 ) {
+            for ( index_t k = 0; k < count; k++ ) {
+                *x -= y[0];
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->length();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x -= y[offset + k];
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x -= y[((atm->group() * xlen) + (offset + k))];
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x -= y[((atm->group() * xlen) + (offset + k)) % ylen];
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x -= y[atm->group()];
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x -= y[(((offset + k) * xlen + atm->group()))];
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x -= y[(((offset + k) * xlen + atm->group())) % ylen];
+                        x += skip;
+                    }
+                }
+                break;
+        }
     }
-    return DataNA<T>();
+}
+
+template<typename T1, typename T2>
+void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    if ( ylen == 1 ) {
+        for ( index_t k = 0; k < count; k++ ) {
+            *x *= y[0];
+            x += skip;
+        }
+        return;
+    }
+    switch(where(i)) {
+        case BY_GROUP:
+            xlen = atm->max_extent();
+            if ( ylen == xlen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x *= y[offset + k];
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x *= y[((atm->group() * xlen) + (offset + k))];
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x *= y[((atm->group() * xlen) + (offset + k)) % ylen];
+                    x += skip;
+                }
+            }
+            break;
+        case BY_EACH_GROUP:
+            xlen = atm->length();
+            if ( xlen == ylen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x *= y[atm->group()];
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x *= y[(((offset + k) * xlen + atm->group()))];
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    *x *= y[(((offset + k) * xlen + atm->group())) % ylen];
+                    x += skip;
+                }
+            }
+            break;
+    }
+}
+
+template<typename T1, typename T2>
+void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    if ( has_lhs(i) )
+    {
+        if ( ylen == 1 ) {
+            for ( index_t k = 0; k < count; k++ ) {
+                *x = y[0] / (*x);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[offset + k] / (*x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[((atm->group() * xlen) + (offset + k))] / (*x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[((atm->group() * xlen) + (offset + k)) % ylen] / (*x);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[atm->group()] / (*x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[(((offset + k) * xlen + atm->group()))] / (*x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x = y[(((offset + k) * xlen + atm->group())) % ylen] / (*x);
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
+    else
+    {
+        if ( ylen == 1 ) {
+            for ( index_t k = 0; k < count; k++ ) {
+                *x /= y[0];
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->length();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x /= y[offset + k];
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x /= y[((atm->group() * xlen) + (offset + k))];
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x /= y[((atm->group() * xlen) + (offset + k)) % ylen];
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x /= y[atm->group()];
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x /= y[(((offset + k) * xlen + atm->group()))];
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        *x /= y[(((offset + k) * xlen + atm->group())) % ylen];
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
 }
 
 template<typename T>
-T Ops :: do_ops(T x, index_t offset, int group) {
-    for ( int i = 0; i < length(); i++ )
+void Ops :: exp(T * x, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    for ( index_t k = 0; k < count; k++ ) {
+        *x = coerce_exp<T>(*x);
+        x += skip;
+    }
+}
+
+template<typename T1, typename T2>
+void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    if ( has_lhs(i) )
     {
-        T y = arg<T>(i, offset, group);
-        switch(op(i))
-        {
-            case OP_ADD:
-                x += y;
-                break;
-            case OP_SUB:
-                if ( has_lhs(i) )
-                    x = y - x;
+        if ( ylen == 1 ) {
+            for ( index_t k = 0; k < count; k++ ) {
+                T1 yt = static_cast<T1>(y[0]);
+                *x = coerce_pow<T1>(yt, (*x));
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[offset + k]);
+                        *x = coerce_pow<T1>(yt, (*x));
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
+                        *x = coerce_pow<T1>(yt, (*x));
+                        x += skip;
+                    }
+                }
                 else
-                    x -= y;
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
+                        *x = coerce_pow<T1>(yt, (*x));
+                        x += skip;
+                    }
+                }
                 break;
-            case OP_MUL:
-                x *= y;
-                break;
-            case OP_DIV:
-                if ( has_lhs(i) )
-                    x = y / x;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[atm->group()]);
+                        *x = coerce_pow<T1>(yt, (*x));
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
+                        *x = coerce_pow<T1>(yt, (*x));
+                        x += skip;
+                    }
+                }
                 else
-                    x /= y;
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
+                        *x = coerce_pow<T1>(yt, (*x));
+                        x += skip;
+                    }
+                }
                 break;
-            case OP_EXP:
-                if ( has_lhs(i) )
-                    x = coerce_pow<T>(y, x);
-                else if ( has_rhs(i) )
-                    x = coerce_pow<T>(x, y);
-                else
-                    x = coerce_exp<T>(x);
-                break;
-            case OP_LOG:
-                if ( has_rhs(i) )
-                    x = coerce_log(x) / coerce_log(y);
-                else
-                    x = coerce_log(x);
         }
     }
-    return x;
+    else
+    {
+        if ( ylen == 1 ) {
+            for ( index_t k = 0; k < count; k++ ) {
+                T1 yt = static_cast<T1>(y[0]);
+                *x = coerce_pow<T1>(*x, yt);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[offset + k]);
+                        *x = coerce_pow<T1>((*x), yt);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
+                        *x = coerce_pow<T1>((*x), yt);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
+                        *x = coerce_pow<T1>((*x), yt);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[atm->group()]);
+                        *x = coerce_pow<T1>((*x), yt);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
+                        *x = coerce_pow<T1>((*x), yt);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
+                        *x = coerce_pow<T1>((*x), yt);
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
 }
 
 template<typename T>
-T Ops :: reverse_ops(T x, index_t offset, int group) {
+void Ops :: log(T * x, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    for ( index_t k = 0; k < count; k++ ) {
+        *x = coerce_log<T>(*x);
+        x += skip;
+    }
+}
+
+template<typename T1, typename T2>
+void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    if ( has_lhs(i) )
+    {
+        if ( ylen == 1) {
+            for ( index_t k = 0; k < count; k++ ) {
+                T1 yt = static_cast<T1>(y[0]);
+                *x = coerce_log<T1>(*x) / coerce_log<T1>(yt);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[offset + k]);
+                        *x = coerce_log<T1>(*x) / coerce_log<T1>(yt);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
+                        *x = coerce_log<T1>(*x) / coerce_log<T1>(yt);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
+                        *x = coerce_log<T1>(*x) / coerce_log<T1>(yt);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[atm->group()]);
+                        *x = coerce_log<T1>(*x) / coerce_log<T1>(yt);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
+                        *x = coerce_log<T1>(*x) / coerce_log<T1>(yt);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        T1 yt = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
+                        *x = coerce_log<T1>(*x) / coerce_log<T1>(yt);
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
+}
+
+template<typename T>
+void Ops :: do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t skip) {
     for ( int i = 0; i < length(); i++ )
     {
-        T y = arg<T>(i, offset, group);
+        // assumes 'matter' will be the only S4 class that ends up here
+        // T * y;
+        // if ( type(i) == S4SXP ) {
+        //     y = (T *) Calloc(count, T);
+        //     arg<Matter,S4SXP>(i)->data().set_group(atm->group());
+        //     arg<Matter,S4SXP>(i)->data().read<T>(y, offset, count);
+        // }
         switch(op(i))
         {
             case OP_ADD:
-                x -= y;
+                switch(type(i)) {
+                    case INTSXP:
+                        add<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        add<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    // case S4SXP:
+                    //     add<T,T>(x, y, i, atm, offset, count, skip);
+                    //     break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
                 break;
             case OP_SUB:
-                if ( has_lhs(i) )
-                    x = y - x;
-                else
-                    x += y;
+                switch(type(i)) {
+                    case INTSXP:
+                        sub<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        sub<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
                 break;
             case OP_MUL:
-                x /= y;
+                switch(type(i)) {
+                    case INTSXP:
+                        mul<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        mul<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
                 break;
             case OP_DIV:
-                if ( has_lhs(i) )
-                    x = y / x;
-                else
-                    x *= y;
+                switch(type(i)) {
+                    case INTSXP:
+                        div<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        div<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
                 break;
             case OP_EXP:
-                if ( has_lhs(i) )
-                    x = coerce_log<T>(x) / coerce_log<T>(y);
-                else if ( has_rhs(i) )
-                    x = coerce_pow<T>(x, 1.0 / y);
-                else
-                    x = coerce_log<T>(x);
+                switch(type(i)) {
+                    case NILSXP:
+                        exp<T>(x, i, atm, offset, count, skip);
+                        break;
+                    case INTSXP:
+                        exp<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        exp<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to mathematical function");
+                }
                 break;
             case OP_LOG:
-                if ( has_rhs(i) )
-                    x = coerce_pow(y, x);
-                else
-                    x = coerce_exp(x);
+                switch(type(i)) {
+                    case NILSXP:
+                        log<T>(x, i, atm, offset, count, skip);
+                        break;
+                    case INTSXP:
+                        log<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        log<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to mathematical function");
+                }
+                break;
         }
+        // if ( type(i) == S4SXP )
+        //     Free(y);
     }
-    return x;
 }
 
 //// Vector methods implemented for class Matter
 //-----------------------------------------------
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: readVector() {
     SEXP retVec;
-    Atoms atoms = data();
-    PROTECT(retVec = allocVector(DataType<RType>(), length()));
-    RType * pRetVec = DataPtr<RType>(retVec);
-    atoms.read<RType>(pRetVec, 0, length());
+    PROTECT(retVec = allocVector(SType, length()));
+    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    data().read<RType>(pRetVec, 0, length());
     UNPROTECT(1);
     return retVec;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 void Matter :: writeVector(SEXP value) {
-    RType * pValue = DataPtr<RType>(value);
-    Atoms atoms = data();
-    atoms.write<RType>(pValue, 0, length());
+    RType * pValue = DataPtr<RType,SType>(value);
+    data().write<RType>(pValue, 0, length());
 }
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: readVectorElements(SEXP i) {
     SEXP retVec;
-    PROTECT(retVec = allocVector(DataType<RType>(), XLENGTH(i)));
-    RType * pRetVec = DataPtr<RType>(retVec);
-    Rindex_t * pIndex = INDEX_PTR(i);
-    Atoms atoms = data();
-    atoms.read_indices<RType>(pRetVec, pIndex, XLENGTH(i));
+    PROTECT(retVec = allocVector(SType, XLENGTH(i)));
+    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    Rindex_t * pIndex = R_INDEX_PTR(i);
+    data().read_indices<RType>(pRetVec, pIndex, XLENGTH(i));
     UNPROTECT(1);
     return retVec;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 void Matter :: writeVectorElements(SEXP i, SEXP value) {
-    RType * pValue = DataPtr<RType>(value);
-    Rindex_t * pIndex = INDEX_PTR(i);
-    Atoms atoms = data();
-    atoms.write_indices(pValue, pIndex, XLENGTH(i));
+    RType * pValue = DataPtr<RType,SType>(value);
+    Rindex_t * pIndex = R_INDEX_PTR(i);
+    data().write_indices(pValue, pIndex, XLENGTH(i));
 }
 
 //// Matrix methods implemented for class Matter
 //-----------------------------------------------
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: readMatrix() {
     SEXP retMat;
     int nrows = this->nrows(), ncols = this->ncols();
-    PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
-    RType * pRetMat = DataPtr<RType>(retMat);
-    Atoms atoms = data();
+    PROTECT(retMat = allocMatrix(SType, nrows, ncols));
+    RType * pRetMat = DataPtr<RType,SType>(retMat);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                atoms.set_group(col);
-                atoms.read<RType>(pRetMat + col * nrows, 0, nrows);
+                data().set_group(col);
+                data().read<RType>(pRetMat + col * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                atoms.set_group(row);
-                atoms.read<RType>(pRetMat + row, 0, ncols, nrows);
+                data().set_group(row);
+                data().read<RType>(pRetMat + row, 0, ncols, nrows);
             }
             break;
     }
@@ -1067,40 +1873,38 @@ SEXP Matter :: readMatrix() {
     return retMat;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 void Matter :: writeMatrix(SEXP value) {
     int nrows = this->nrows(), ncols = this->ncols();
-    RType * pValue = DataPtr<RType>(value);
-    Atoms atoms = data();
+    RType * pValue = DataPtr<RType,SType>(value);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                atoms.set_group(col);
-                atoms.write<RType>(pValue + col * nrows, 0, nrows);
+                data().set_group(col);
+                data().write<RType>(pValue + col * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                atoms.set_group(row);
-                atoms.write<RType>(pValue + row, 0, ncols, nrows);
+                data().set_group(row);
+                data().write<RType>(pValue + row, 0, ncols, nrows);
             }
             break;
     }
 }
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: readMatrixRows(SEXP i) {
     SEXP retMat;
     int nrows = LENGTH(i), ncols = this->ncols();
-    PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
-    RType * pRetMat = DataPtr<RType>(retMat);
-    Rindex_t * pRow = INDEX_PTR(i);
-    Atoms atoms = data();
+    PROTECT(retMat = allocMatrix(SType, nrows, ncols));
+    RType * pRetMat = DataPtr<RType,SType>(retMat);
+    Rindex_t * pRow = R_INDEX_PTR(i);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                atoms.set_group(col);
-                atoms.read_indices<RType>(pRetMat + col * nrows, pRow, nrows);
+                data().set_group(col);
+                data().read_indices<RType>(pRetMat + col * nrows, pRow, nrows);
             }
             break;
         case MATTER_MATR:
@@ -1109,8 +1913,8 @@ SEXP Matter :: readMatrixRows(SEXP i) {
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_t row = static_cast<index_t>(pRow[l]);
-                    atoms.set_group(row);
-                    atoms.read<RType>(pRetMat + l, 0, ncols, nrows);
+                    data().set_group(row);
+                    data().read<RType>(pRetMat + l, 0, ncols, nrows);
                 }
             }
             break;
@@ -1119,17 +1923,16 @@ SEXP Matter :: readMatrixRows(SEXP i) {
     return retMat;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 void Matter :: writeMatrixRows(SEXP i, SEXP value) {
     int nrows = LENGTH(i), ncols = this->ncols();
-    RType * pValue = DataPtr<RType>(value);
-    Rindex_t * pRow = INDEX_PTR(i);
-    Atoms atoms = data();
+    RType * pValue = DataPtr<RType,SType>(value);
+    Rindex_t * pRow = R_INDEX_PTR(i);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                atoms.set_group(col);
-                atoms.write_indices(pValue + col * nrows, pRow, nrows);
+                data().set_group(col);
+                data().write_indices(pValue + col * nrows, pRow, nrows);
             }
             break;
         case MATTER_MATR:
@@ -1137,21 +1940,20 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_t row = static_cast<index_t>(pRow[l]);
-                atoms.set_group(row);
-                atoms.write<RType>(pValue + l, 0, ncols, nrows);
+                data().set_group(row);
+                data().write<RType>(pValue + l, 0, ncols, nrows);
             }
             break;
     }
 }
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: readMatrixCols(SEXP j) {
     SEXP retMat;
     int nrows = this->nrows(), ncols = LENGTH(j);
-    PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
-    RType * pRetMat = DataPtr<RType>(retMat);
-    Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms = data();
+    PROTECT(retMat = allocMatrix(SType, nrows, ncols));
+    RType * pRetMat = DataPtr<RType,SType>(retMat);
+    Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
@@ -1159,15 +1961,15 @@ SEXP Matter :: readMatrixCols(SEXP j) {
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_t col = static_cast<index_t>(pCol[l]);
-                    atoms.set_group(col);
-                    atoms.read<RType>(pRetMat + l * nrows, 0, nrows);
+                    data().set_group(col);
+                    data().read<RType>(pRetMat + l * nrows, 0, nrows);
                 }
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                atoms.set_group(row);
-                atoms.read_indices<RType>(pRetMat + row, pCol, ncols, nrows);
+                data().set_group(row);
+                data().read_indices<RType>(pRetMat + row, pCol, ncols, nrows);
             }
             break;
     }
@@ -1175,40 +1977,38 @@ SEXP Matter :: readMatrixCols(SEXP j) {
     return retMat;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 void Matter :: writeMatrixCols(SEXP j, SEXP value) {
     int nrows = this->nrows(), ncols = LENGTH(j);
-    RType * pValue = DataPtr<RType>(value);
-    Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms = data();
+    RType * pValue = DataPtr<RType,SType>(value);
+    Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_t col = static_cast<index_t>(pCol[l]);
-                atoms.set_group(col);
-                atoms.write<RType>(pValue + l * nrows, 0, nrows);
+                data().set_group(col);
+                data().write<RType>(pValue + l * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                atoms.set_group(row);
-                atoms.write_indices(pValue + row, pCol, ncols, nrows);
+                data().set_group(row);
+                data().write_indices(pValue + row, pCol, ncols, nrows);
             }
             break;
     }
 }
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
     SEXP retMat;
     int nrows = LENGTH(i), ncols = LENGTH(j);
-    PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
-    RType * pRetMat = DataPtr<RType>(retMat);
-    Rindex_t * pRow = INDEX_PTR(i);
-    Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms = data();
+    PROTECT(retMat = allocMatrix(SType, nrows, ncols));
+    RType * pRetMat = DataPtr<RType,SType>(retMat);
+    Rindex_t * pRow = R_INDEX_PTR(i);
+    Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
@@ -1216,8 +2016,8 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_t col = static_cast<index_t>(pCol[l]);
-                    atoms.set_group(col);
-                    atoms.read_indices<RType>(pRetMat + l * nrows, pRow, nrows);
+                    data().set_group(col);
+                    data().read_indices<RType>(pRetMat + l * nrows, pRow, nrows);
                 }
             }
             break;
@@ -1227,8 +2027,8 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_t row = static_cast<index_t>(pRow[l]);
-                    atoms.set_group(row);
-                    atoms.read_indices<RType>(pRetMat + l, pCol, ncols, nrows);
+                    data().set_group(row);
+                    data().read_indices<RType>(pRetMat + l, pCol, ncols, nrows);
                 }
             }
             break;
@@ -1237,21 +2037,20 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
     return retMat;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     int nrows = LENGTH(i), ncols = LENGTH(j);
-    RType * pValue = DataPtr<RType>(value);
-    Rindex_t * pRow = INDEX_PTR(i);
-    Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms = data();
+    RType * pValue = DataPtr<RType,SType>(value);
+    Rindex_t * pRow = R_INDEX_PTR(i);
+    Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_t col = static_cast<index_t>(pCol[l]);
-                atoms.set_group(col);
-                atoms.write_indices(pValue + l * nrows, pRow, nrows);
+                data().set_group(col);
+                data().write_indices(pValue + l * nrows, pRow, nrows);
             }
             break;
         case MATTER_MATR:
@@ -1259,8 +2058,8 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_t row = static_cast<index_t>(pRow[l]);
-                atoms.set_group(row);
-                atoms.write_indices(pValue + l, pCol, ncols, nrows);
+                data().set_group(row);
+                data().write_indices(pValue + l, pCol, ncols, nrows);
             }
             break;
     }
@@ -1684,16 +2483,17 @@ SEXP Matter :: rowvar(bool na_rm) {
     return retVal;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: rmult(SEXP y) {
     SEXP retMat;
-    PROTECT(retMat = allocMatrix(DataType<double>(), nrows(), ::ncols(y)));
+    PROTECT(retMat = allocMatrix(REALSXP, nrows(), ::ncols(y)));
     double * pRetMat = REAL(retMat);
-    RType * pY = DataPtr<RType>(y);
+    RType * pY = DataPtr<RType,SType>(y);
     int nrRetMat = ::nrows(retMat);
     int ncRetMat = ::ncols(retMat);
     int nrY = ::nrows(y);
-    for ( int k = 0; k < LENGTH(retMat); k++ )
+    R_xlen_t len = XLENGTH(retMat);
+    for ( int k = 0; k < len; k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
         case MATTER_MATC:
@@ -1722,13 +2522,6 @@ SEXP Matter :: rmult(SEXP y) {
                     j++;
                     ++x;
                 }
-                // MatterAccessor<double> x(*this, i);
-                // for ( int j = 0; j < ncols(); j++ ) {
-                //     for ( int jj = 0; jj < ncRetMat; jj++ ) {
-                //         double val = x[j] * coerce_cast<RType,double>(pY[j + jj * nrY]);
-                //         pRetMat[i + jj * nrRetMat] += val;
-                //     }
-                // }
             }
             break;
     }
@@ -1736,15 +2529,16 @@ SEXP Matter :: rmult(SEXP y) {
     return retMat;
 }
 
-template<typename RType>
+template<typename RType, int SType>
 SEXP Matter :: lmult(SEXP x) {
     SEXP retMat;
-    PROTECT(retMat = allocMatrix(DataType<double>(), ::nrows(x), ncols()));
+    PROTECT(retMat = allocMatrix(REALSXP, ::nrows(x), ncols()));
     double * pRetMat = REAL(retMat);
-    RType * pX = DataPtr<RType>(x);
+    RType * pX = DataPtr<RType,SType>(x);
     int nrRetMat = ::nrows(retMat);
     int nrX = ::nrows(x);
-    for ( int k = 0; k < LENGTH(retMat); k++ )
+    int len = LENGTH(retMat);
+    for ( int k = 0; k < len; k++ )
         pRetMat[k] = 0;
     switch(S4class()) {
         case MATTER_MATC:
@@ -1795,8 +2589,8 @@ extern "C" {
 
         SEXP natoms, ngroups, index_offset, index_extent;
         double * pIndexOffset, * pIndexExtent;
-        VectorOrDRLE<int> vGroupID(group_id);
-        VectorOrDRLE<double> vExtent(extent);
+        VectorOrDRLE<int,INTSXP> vGroupID(group_id);
+        VectorOrDRLE<double,REALSXP> vExtent(extent);
         int n = vGroupID.length();
         PROTECT(natoms = NEW_INTEGER(1));
         PROTECT(ngroups = NEW_INTEGER(1));
@@ -1839,11 +2633,13 @@ extern "C" {
         Matter mVec(x);
         switch(mVec.datamode()) {
             case R_RAW:
-                return mVec.readVector<Rbyte>();
+                return mVec.readVector<Rbyte,RAWSXP>();
+            case R_LOGICAL:
+                return mVec.readVector<int,LGLSXP>();
             case R_INTEGER:
-                return mVec.readVector<int>();
+                return mVec.readVector<int,INTSXP>();
             case R_NUMERIC:
-                return mVec.readVector<double>();
+                return mVec.readVector<double,REALSXP>();
             default:
                 return R_NilValue;
         }
@@ -1853,13 +2649,16 @@ extern "C" {
         Matter mVec(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mVec.writeVector<Rbyte>(value);
+                mVec.writeVector<Rbyte,RAWSXP>(value);
+                break;
+            case LGLSXP:
+                mVec.writeVector<int,LGLSXP>(value);
                 break;
             case INTSXP:
-                mVec.writeVector<int>(value);
+                mVec.writeVector<int,INTSXP>(value);
                 break;
             case REALSXP:
-                mVec.writeVector<double>(value);
+                mVec.writeVector<double,REALSXP>(value);
                 break;
         }
     }
@@ -1868,11 +2667,13 @@ extern "C" {
         Matter mVec(x);
         switch(mVec.datamode()) {
             case R_RAW:
-                return mVec.readVectorElements<Rbyte>(i);
+                return mVec.readVectorElements<Rbyte,RAWSXP>(i);
+            case R_LOGICAL:
+                return mVec.readVectorElements<int,LGLSXP>(i);
             case R_INTEGER:
-                return mVec.readVectorElements<int>(i);
+                return mVec.readVectorElements<int,INTSXP>(i);
             case R_NUMERIC:
-                return mVec.readVectorElements<double>(i);
+                return mVec.readVectorElements<double,REALSXP>(i);
             default:
                 return R_NilValue;
         }
@@ -1882,13 +2683,16 @@ extern "C" {
         Matter mVec(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mVec.writeVectorElements<Rbyte>(i, value);
+                mVec.writeVectorElements<Rbyte,RAWSXP>(i, value);
+                break;
+            case LGLSXP:
+                mVec.writeVectorElements<int,LGLSXP>(i, value);
                 break;
             case INTSXP:
-                mVec.writeVectorElements<int>(i, value);
+                mVec.writeVectorElements<int,INTSXP>(i, value);
                 break;
             case REALSXP:
-                mVec.writeVectorElements<double>(i, value);
+                mVec.writeVectorElements<double,REALSXP>(i, value);
                 break;
         }
     }
@@ -1897,11 +2701,13 @@ extern "C" {
         Matter mMat(x);
         switch(mMat.datamode()) {
             case R_RAW:
-                return mMat.readMatrix<Rbyte>();
+                return mMat.readMatrix<Rbyte,RAWSXP>();
+            case R_LOGICAL:
+                return mMat.readMatrix<int,LGLSXP>();
             case R_INTEGER:
-                return mMat.readMatrix<int>();
+                return mMat.readMatrix<int,INTSXP>();
             case R_NUMERIC:
-                return mMat.readMatrix<double>();
+                return mMat.readMatrix<double,REALSXP>();
             default:
                 return R_NilValue;
         }
@@ -1911,13 +2717,16 @@ extern "C" {
         Matter mMat(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mMat.writeMatrix<Rbyte>(value);
+                mMat.writeMatrix<Rbyte,RAWSXP>(value);
+                break;
+            case LGLSXP:
+                mMat.writeMatrix<int,LGLSXP>(value);
                 break;
             case INTSXP:
-                mMat.writeMatrix<int>(value);
+                mMat.writeMatrix<int,INTSXP>(value);
                 break;
             case REALSXP:
-                mMat.writeMatrix<double>(value);
+                mMat.writeMatrix<double,REALSXP>(value);
                 break;
         }
     }
@@ -1926,11 +2735,13 @@ extern "C" {
         Matter mMat(x);
         switch(mMat.datamode()) {
             case R_RAW:
-                return mMat.readMatrixRows<Rbyte>(i);
+                return mMat.readMatrixRows<Rbyte,RAWSXP>(i);
+            case R_LOGICAL:
+                return mMat.readMatrixRows<int,LGLSXP>(i);
             case R_INTEGER:
-                return mMat.readMatrixRows<int>(i);
+                return mMat.readMatrixRows<int,INTSXP>(i);
             case R_NUMERIC:
-                return mMat.readMatrixRows<double>(i);
+                return mMat.readMatrixRows<double,REALSXP>(i);
             default:
                 return R_NilValue;
         }
@@ -1940,13 +2751,16 @@ extern "C" {
         Matter mMat(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mMat.writeMatrixRows<Rbyte>(i, value);
+                mMat.writeMatrixRows<Rbyte,RAWSXP>(i, value);
+                break;
+            case LGLSXP:
+                mMat.writeMatrixRows<int,LGLSXP>(i, value);
                 break;
             case INTSXP:
-                mMat.writeMatrixRows<int>(i, value);
+                mMat.writeMatrixRows<int,INTSXP>(i, value);
                 break;
             case REALSXP:
-                mMat.writeMatrixRows<double>(i, value);
+                mMat.writeMatrixRows<double,REALSXP>(i, value);
                 break;
         }
     }
@@ -1955,11 +2769,13 @@ extern "C" {
         Matter mMat(x);
         switch(mMat.datamode()) {
             case R_RAW:
-                return mMat.readMatrixCols<Rbyte>(j);
+                return mMat.readMatrixCols<Rbyte,RAWSXP>(j);
+            case R_LOGICAL:
+                return mMat.readMatrixCols<int,LGLSXP>(j);
             case R_INTEGER:
-                return mMat.readMatrixCols<int>(j);
+                return mMat.readMatrixCols<int,INTSXP>(j);
             case R_NUMERIC:
-                return mMat.readMatrixCols<double>(j);
+                return mMat.readMatrixCols<double,REALSXP>(j);
             default:
                 return R_NilValue;
         }
@@ -1969,13 +2785,16 @@ extern "C" {
         Matter mMat(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mMat.writeMatrixCols<Rbyte>(j, value);
+                mMat.writeMatrixCols<Rbyte,RAWSXP>(j, value);
+                break;
+            case LGLSXP:
+                mMat.writeMatrixCols<int,LGLSXP>(j, value);
                 break;
             case INTSXP:
-                mMat.writeMatrixCols<int>(j, value);
+                mMat.writeMatrixCols<int,INTSXP>(j, value);
                 break;
             case REALSXP:
-                mMat.writeMatrixCols<double>(j, value);
+                mMat.writeMatrixCols<double,REALSXP>(j, value);
                 break;
         }
     }
@@ -1984,11 +2803,13 @@ extern "C" {
         Matter mMat(x);
         switch(mMat.datamode()) {
             case R_RAW:
-                return mMat.readMatrixElements<Rbyte>(i, j);
+                return mMat.readMatrixElements<Rbyte,RAWSXP>(i, j);
+            case R_LOGICAL:
+                return mMat.readMatrixElements<int,LGLSXP>(i, j);
             case R_INTEGER:
-                return mMat.readMatrixElements<int>(i, j);
+                return mMat.readMatrixElements<int,INTSXP>(i, j);
             case R_NUMERIC:
-                return mMat.readMatrixElements<double>(i, j);
+                return mMat.readMatrixElements<double,REALSXP>(i, j);
             default:
                 return R_NilValue;
         }
@@ -1998,13 +2819,16 @@ extern "C" {
         Matter mMat(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mMat.writeMatrixElements<Rbyte>(i, j, value);
+                mMat.writeMatrixElements<Rbyte,RAWSXP>(i, j, value);
+                break;
+            case LGLSXP:
+                mMat.writeMatrixElements<int,LGLSXP>(i, j, value);
                 break;
             case INTSXP:
-                mMat.writeMatrixElements<int>(i, j, value);
+                mMat.writeMatrixElements<int,INTSXP>(i, j, value);
                 break;
             case REALSXP:
-                mMat.writeMatrixElements<double>(i, j, value);
+                mMat.writeMatrixElements<double,REALSXP>(i, j, value);
                 break;
         }
     }
@@ -2057,9 +2881,9 @@ extern "C" {
     SEXP rightMatrixMult(SEXP x, SEXP y) {
         Matter mMat(x);
         if ( TYPEOF(y) == INTSXP )
-            return mMat.rmult<int>(y);
+            return mMat.rmult<int,INTSXP>(y);
         else if ( TYPEOF(y) == REALSXP )
-            return mMat.rmult<double>(y);
+            return mMat.rmult<double,REALSXP>(y);
         else
             return R_NilValue;
     }
@@ -2067,9 +2891,9 @@ extern "C" {
     SEXP leftMatrixMult(SEXP x, SEXP y) {
         Matter mMat(y);
         if ( TYPEOF(x) == INTSXP )
-            return mMat.lmult<int>(x);
+            return mMat.lmult<int,INTSXP>(x);
         else if ( TYPEOF(x) == REALSXP )
-            return mMat.lmult<double>(x);
+            return mMat.lmult<double,REALSXP>(x);
         else
             return R_NilValue;
     }
@@ -2101,31 +2925,31 @@ extern "C" {
         return R_NilValue;
     }
 
-    SEXP getDRLEVector(SEXP x) {
+    SEXP getDRLE(SEXP x) {
         SEXP values = GET_SLOT(x, install("values"));
         if ( TYPEOF(values) == INTSXP )
         {
-            VectorOrDRLE<int> dVec(x);
+            VectorOrDRLE<int,INTSXP> dVec(x);
             return dVec.readVector();
         }
         else if ( TYPEOF(values) == REALSXP )
         {
-            VectorOrDRLE<double> dVec(x);
+            VectorOrDRLE<double,REALSXP> dVec(x);
             return dVec.readVector();
         }
         return R_NilValue;
     }
 
-    SEXP getDRLEVectorElements(SEXP x, SEXP i) {
+    SEXP getDRLEElements(SEXP x, SEXP i) {
         SEXP values = GET_SLOT(x, install("values"));
         if ( TYPEOF(values) == INTSXP )
         {
-            VectorOrDRLE<int> dVec(x);
+            VectorOrDRLE<int,INTSXP> dVec(x);
             return dVec.readVectorElements(i);
         }
         else if ( TYPEOF(values) == REALSXP )
         {
-            VectorOrDRLE<double> dVec(x);
+            VectorOrDRLE<double,REALSXP> dVec(x);
             return dVec.readVectorElements(i);
         }
         return R_NilValue;

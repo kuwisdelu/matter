@@ -25,26 +25,16 @@ setClass("drle",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-drle <- function(x)
+drle <- function(x, cr_threshold = 3)
 {
-	if ( !(is.integer(x) || is.numeric(x)) )
-		stop("'x' must be an 'integer' or 'numeric' vector")
-	nruns <- .Call("C_countRuns", x)
-	out <- .Call("C_createDRLE", x, nruns)
-	if ( validObject(out) )
-		out
-}
-
-drleCompress <- function(x, compression_threshold = 1)
-{
-	if ( class(x) == "drle" )
+	if ( is.drle(x) )
 		return(x)
 	if ( !(is.integer(x) || is.numeric(x)) )
 		stop("'x' must be an 'integer' or 'numeric' vector")
 	nruns <- .Call("C_countRuns", x)
 	comp_size <- nruns * (sizeof("integer") + 2 * sizeof(typeof(x)))
 	uncomp_size <- length(x) * sizeof(typeof(x))
-	if ( uncomp_size / comp_size > compression_threshold ) {
+	if ( uncomp_size / comp_size > cr_threshold ) {
 		out <- .Call("C_createDRLE", x, nruns)
 	} else {
 		out <- x
@@ -55,31 +45,31 @@ drleCompress <- function(x, compression_threshold = 1)
 
 is.drle <- function(x) class(x) == "drle"
 
-getDRLEVector <- function(x) {
-	.Call("C_getDRLEVector", x)
+getDRLE <- function(x) {
+	.Call("C_getDRLE", x)
 }
 
-getDRLEVectorElements <- function(x, i) {
+getDRLEElements <- function(x, i) {
 	if ( is.logical(i) )
 		i <- logical2index(x, i)
 	i <- as.integer(i - 1)
 	if ( length(i) > 1 && is.unsorted(i) ) {
 		o <- order(i)
-		y <- .Call("C_getDRLEVectorElements", x, i[o])
+		y <- .Call("C_getDRLEElements", x, i[o])
 		y[o] <- y
 	} else {
-		y <- .Call("C_getDRLEVectorElements", x, i)
+		y <- .Call("C_getDRLEElements", x, i)
 	}
 	y
 }
 
 setMethod("[",
 	c(x = "drle", i = "missing", j = "missing", drop = "missing"),
-	function(x, ...) getDRLEVector(x))
+	function(x, ...) getDRLE(x))
 
 setMethod("[",
 	c(x = "drle", i = "ANY", j = "missing", drop = "missing"),
-	function(x, i, ...) getDRLEVectorElements(x, i))
+	function(x, i, ...) getDRLEElements(x, i))
 
 setMethod("length", "drle", function(x) sum(x@lengths))
 
@@ -106,10 +96,10 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 })
 
 setMethod("combine", c("drle", "numeric"),
-	function(x, y, ...) combine(x, drle(y)))
+	function(x, y, ...) combine(x[], y))
 
 setMethod("combine", c("numeric", "drle"),
-	function(x, y, ...) combine(drle(x), y))
+	function(x, y, ...) combine(x, y[]))
 
 setMethod("c", "drle", function(x, ..., recursive=FALSE)
 {

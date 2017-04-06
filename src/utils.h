@@ -7,6 +7,10 @@
 
 #include <cstdlib>
 
+struct Bool { int x; };
+
+typedef struct Bool Bool;
+
 #define SWAP(x) swap_bytes(&x, sizeof(x));
 
 extern "C" {
@@ -15,11 +19,8 @@ extern "C" {
 
 }
 
-template<typename T>
+template<typename T, int S>
 T * DataPtr(SEXP x);
-
-template<typename T>
-SEXPTYPE DataType();
 
 template<typename T>
 T DataNA();

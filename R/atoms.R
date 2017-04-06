@@ -58,7 +58,7 @@ setClass("atoms",
 atoms <- function(group_id = 1L, source_id = as.integer(NA),
 					datamode=make_datamode("double", type="C"),
 					offset = numeric(1), extent = numeric(1),
-					..., compress = TRUE, compression_threshold = 0)
+					..., compress = TRUE, cr_threshold = 3)
 {
 	if ( is.unsorted(group_id[]) ) {
 		o <- order(group_id[])
@@ -69,27 +69,14 @@ atoms <- function(group_id = 1L, source_id = as.integer(NA),
 		extent <- extent[o]
 	}
 	x <- .Call("C_createAtoms", group_id, source_id, datamode, offset, extent)
-	if ( compress )
-		x <- compressAtoms(x, compression_threshold=compression_threshold)
-	x
-}
-
-compressAtoms <- function(x, compression_threshold = 0) {
-	if ( length(x) > 1 ) {
-		x@group_id <- drleCompress(x@group_id,
-			compression_threshold=compression_threshold)
-		x@source_id <- drleCompress(x@source_id,
-			compression_threshold=compression_threshold)
-		x@datamode <- drleCompress(x@datamode,
-			compression_threshold=compression_threshold)
-		x@offset <- drleCompress(x@offset,
-			compression_threshold=compression_threshold)
-		x@extent <- drleCompress(x@extent,
-			compression_threshold=compression_threshold)
-		x@index_offset <- drleCompress(x@index_offset,
-			compression_threshold=compression_threshold)
-		x@index_extent <- drleCompress(x@index_extent,
-			compression_threshold=compression_threshold)
+	if ( compress && x@natoms > 1 ) {
+		x@group_id <- drle(x@group_id, cr_threshold=cr_threshold)
+		x@source_id <- drle(x@source_id, cr_threshold=cr_threshold)
+		x@datamode <- drle(x@datamode, cr_threshold=cr_threshold)
+		x@offset <- drle(x@offset, cr_threshold=cr_threshold)
+		x@extent <- drle(x@extent, cr_threshold=cr_threshold)
+		x@index_offset <- drle(x@index_offset, cr_threshold=cr_threshold)
+		x@index_extent <- drle(x@index_extent, cr_threshold=cr_threshold)
 	}
 	x
 }

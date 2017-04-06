@@ -37,7 +37,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		datamode <- rep(datamode, length.out=length(extent))
 	if ( is.null(paths) ) {
 		if ( missing(data) )
-			data <- NA
+			data <- 0
 		filemode <- force(filemode)
 		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
@@ -179,7 +179,7 @@ setMethod("t", "matter_vec", function(x)
 	x@data <- x@data
 	x@dim <- c(1L, as.integer(x@length))
 	if ( !is.null(x@names) )
-		x@dimnames <- list(NULL, x@namesL)
+		x@dimnames <- list(NULL, x@names)
 	x@names <- NULL
 	if ( validObject(x) )
 		x
@@ -188,59 +188,84 @@ setMethod("t", "matter_vec", function(x)
 #### Arithmetic and other operators ####
 ## --------------------------------------
 
+check_comformable_lengths <- function(x, y, margin = 1) {
+	if ( is.vector(x) ) {
+		return(check_comformable_dims(y, x))
+	} else if ( length(y) != 1 && length(x) != length(y) ) {
+		warning("argument length unequal to vector length and will be recycled")
+	}
+	TRUE
+}
+
+# setMethod("+", c("matter_vec", "matter_vec"),
+# 	function(e1, e2) {
+# 		register_op(e1, NULL, e2, "+")
+# })
+
 setMethod("+", c("matter_vec", "numeric"),
 	function(e1, e2) {
-		register_op(e1, NULL, e2, "+")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e1, NULL, e2, "+")
 })
 
 setMethod("+", c("numeric", "matter_vec"),
 	function(e1, e2) {
-		register_op(e2, e1, NULL, "+")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e2, e1, NULL, "+")
 })
 
 setMethod("-", c("matter_vec", "numeric"),
 	function(e1, e2) {
-		register_op(e1, NULL, e2, "-")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e1, NULL, e2, "-")
 })
 
 setMethod("-", c("numeric", "matter_vec"),
 	function(e1, e2) {
-		register_op(e2, e1, NULL, "-")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e2, e1, NULL, "-")
 })
 
 setMethod("*", c("matter_vec", "numeric"),
 	function(e1, e2) {
-		register_op(e1, NULL, e2, "*")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e1, NULL, e2, "*")
 })
 
 setMethod("*", c("numeric", "matter_vec"),
 	function(e1, e2) {
-		register_op(e2, e1, NULL, "*")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e2, e1, NULL, "*")
 })
 
 setMethod("/", c("matter_vec", "numeric"),
 	function(e1, e2) {
-		register_op(e1, NULL, e2, "/")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e1, NULL, e2, "/")
 })
 
 setMethod("/", c("numeric", "matter_vec"),
 	function(e1, e2) {
-		register_op(e2, e1, NULL, "/")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e2, e1, NULL, "/")
 })
 
 setMethod("^", c("matter_vec", "numeric"),
 	function(e1, e2) {
-		register_op(e1, NULL, e2, "^")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e1, NULL, e2, "^")
 })
 
 setMethod("^", c("numeric", "matter_vec"),
 	function(e1, e2) {
-		register_op(e2, e1, NULL, "^")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(e2, e1, NULL, "^")
 })
 
 setMethod("exp", "matter_vec",
 	function(x) {
-		register_op(x, NULL, NULL, "^")
+		if ( check_comformable_lengths(e1, e2) )
+			register_op(x, NULL, NULL, "^")
 })
 
 setMethod("log", "matter_vec",
@@ -248,7 +273,8 @@ setMethod("log", "matter_vec",
 		if ( missing(base) ) {
 			register_op(x, NULL, NULL, "log")
 		} else {
-			register_op(x, NULL, base, "log")
+			if ( check_comformable_lengths(e1, e2) )
+				register_op(x, base, NULL, "log")
 		}
 })
 

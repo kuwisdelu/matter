@@ -17,7 +17,7 @@ extern "C"
 typedef long index_t;
 typedef double Rindex_t;
 
-#define INDEX_PTR(x) REAL(x)
+#define R_INDEX_PTR(x) REAL(x)
 
 // S4 class codes
 
@@ -28,8 +28,9 @@ typedef double Rindex_t;
 // R-level datamodes (must match factor levels)
 
 #define R_RAW			1
-#define R_INTEGER       2
-#define R_NUMERIC       3
+#define R_LOGICAL		2
+#define R_INTEGER       3
+#define R_NUMERIC       4
 
 // C-level datamodes (must match factor levels)
 
@@ -44,13 +45,6 @@ typedef double Rindex_t;
 #define C_FLOAT         9
 #define C_DOUBLE        10
 
-// Delayed operation index codes
-
-#define INDEX_LHS			0
-#define INDEX_RHS			1
-#define INDEX_OP			2
-#define INDEX_WHERE			3
-
 // Delayed operation OP codes
 
 #define OP_ADD			1
@@ -58,19 +52,12 @@ typedef double Rindex_t;
 #define OP_MUL			3
 #define OP_DIV			4
 #define OP_EXP			5	// lhs = base, rhs = exp
-#define OP_LOG			6	//			   rhs = base
+#define OP_LOG			6	// lhs = base, rhs = x
 
 // Delayed operation WHERE codes
 
-#define OPS_SCALAR			0
-#define OPS_BY_MAJOR_DIM	1
-#define OPS_BY_MINOR_DIM	2
-
-// Delayed operation arg codes
-
-#define HAS_LHS_ARG			1
-#define HAS_RHS_ARG			2
-#define HAS_NO_ARGS			3
+#define BY_GROUP				1
+#define BY_EACH_GROUP			2
 
 // MatterAccessor access
 
