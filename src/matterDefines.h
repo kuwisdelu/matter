@@ -66,6 +66,12 @@ typedef double Rindex_t;
 #define OPS_BY_MAJOR_DIM	1
 #define OPS_BY_MINOR_DIM	2
 
+// Delayed operation arg codes
+
+#define HAS_LHS_ARG			1
+#define HAS_RHS_ARG			2
+#define HAS_NO_ARGS			3
+
 // MatterAccessor access
 
 #define NULL_INDEX -99

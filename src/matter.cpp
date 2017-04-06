@@ -739,17 +739,20 @@ SEXP makeDRLE<double>(SEXP x, SEXP nruns) {
 
 template<typename RType>
 SEXP VectorOrDRLE<RType> :: readVector() {
-    int nrun, nout = 0;
-    for ( nrun = 0; nrun < nruns; nrun++ )
-        nout += lengths[nrun];
     SEXP retVec;
+    int nout = length();
     PROTECT(retVec = allocVector(DataType<RType>(), nout));
     RType * pRetVec = DataPtr<RType>(retVec);
-    int cum_index = 0;
-    for ( nrun = 0; nrun < nruns; nrun++ ) {
-        for ( int i = 0; i < lengths[nrun]; i++ )
-            pRetVec[cum_index + i] = values[nrun] + deltas[nrun] * i;
-        cum_index += lengths[nrun];
+    if ( isDRLE ) {
+        int cum_index = 0;
+        for ( int nrun = 0; nrun < nruns; nrun++ ) {
+            for ( int i = 0; i < lengths[nrun]; i++ )
+                pRetVec[cum_index + i] = values[nrun] + deltas[nrun] * i;
+            cum_index += lengths[nrun];
+        }
+    } else {
+        for ( int i = 0; i < nout; i++ )
+            pRetVec[i] = values[i];
     }
     UNPROTECT(1);
     return retVec;
@@ -767,6 +770,19 @@ SEXP VectorOrDRLE<RType> :: readVectorElements(SEXP i) {
     return retVec;   
 }
 
+template<typename RType>
+int VectorOrDRLE<RType> :: length() {
+    int length;
+    if ( isDRLE ) {
+        length = 0;
+        for ( int nrun = 0; nrun < nruns; nrun++ )
+            length += lengths[nrun];
+    }
+    else
+        length = nruns;
+    return length;
+}
+
 template<>
 int VectorOrDRLE<int> :: find(int value) {
     if ( isDRLE )
@@ -774,8 +790,11 @@ int VectorOrDRLE<int> :: find(int value) {
         int cum_index = 0;
         for ( int nrun = 0; nrun < nruns; nrun++ ) {
             int diff = value - values[nrun];
-            if ( diff % deltas[nrun] == 0 )
-                return static_cast<int>(cum_index + diff / deltas[nrun]);
+            int del = deltas[nrun];
+            if ( diff == 0 )
+                return static_cast<int>(cum_index);
+            else if ( (del != 0 && diff % del == 0) )
+                return static_cast<int>(cum_index + diff / del);
             else
                 cum_index += lengths[nrun];
         }
@@ -795,9 +814,12 @@ int VectorOrDRLE<double> :: find(double value) {
     {
         int cum_index = 0;
         for ( int nrun = 0; nrun < nruns; nrun++ ) {
-            int diff = value - values[nrun];
-            if ( is_equal_double(fmod(diff, deltas[nrun]), 0) )
-                return static_cast<int>(cum_index + diff / deltas[nrun]);
+            double diff = value - values[nrun];
+            double del = deltas[nrun];
+            if ( is_equal_double(diff, 0) )
+                return static_cast<int>(cum_index);
+            else if ( (!is_equal_double(del, 0)) && is_equal_double(fmod(diff, del), 0) )
+                return static_cast<int>(cum_index + diff / del);
             else
                 cum_index += lengths[nrun];
         }
@@ -871,17 +893,21 @@ T Ops :: arg(int i, index_t offset, int group) {
     }
     if ( has_lhs(i) )
     {
-        if ( TYPEOF(lhs(i)) == INTSXP )
+        if ( type(i) == INTSXP )
             return static_cast<T>(INTEGER(lhs(i))[k]);
-        else if ( TYPEOF(lhs(i)) == REALSXP )
+        else if ( type(i) == REALSXP )
             return static_cast<T>(REAL(lhs(i))[k]);
+        else
+            error("unsupported argument in delayed operation");
     }
     else if ( has_rhs(i) )
     {
-        if ( TYPEOF(rhs(i)) == INTSXP )
+        if ( type(i) == INTSXP )
             return static_cast<T>(INTEGER(rhs(i))[k]);
-        else if ( TYPEOF(rhs(i)) == REALSXP )
+        else if ( type(i) == REALSXP )
             return static_cast<T>(REAL(rhs(i))[k]);
+        else
+            error("unsupported argument in delayed operation");
     }
     return DataNA<T>();
 }
@@ -1758,6 +1784,56 @@ SEXP Matter :: lmult(SEXP x) {
 //---------------------------------
 
 extern "C" {
+
+    SEXP createAtoms(
+        SEXP group_id,
+        SEXP source_id,
+        SEXP datamode,
+        SEXP offset,
+        SEXP extent)
+    {
+
+        SEXP natoms, ngroups, index_offset, index_extent;
+        double * pIndexOffset, * pIndexExtent;
+        VectorOrDRLE<int> vGroupID(group_id);
+        VectorOrDRLE<double> vExtent(extent);
+        int n = vGroupID.length();
+        PROTECT(natoms = NEW_INTEGER(1));
+        PROTECT(ngroups = NEW_INTEGER(1));
+        PROTECT(index_offset = NEW_NUMERIC(n));
+        PROTECT(index_extent = NEW_NUMERIC(n));
+        pIndexOffset = REAL(index_offset);
+        pIndexExtent = REAL(index_extent);
+        int ext, gid, g_cur = 0, g_n = 0, cum_sum = 0;
+        for ( int i = 0; i < n; i++ ) {
+            gid = vGroupID[i];
+            ext = vExtent[i];
+            if ( gid != g_cur ) {
+                g_cur = gid;
+                cum_sum = 0;
+                g_n++;
+            }
+            pIndexOffset[i] = cum_sum;
+            cum_sum += ext;
+            pIndexExtent[i] = cum_sum;
+        }
+        INTEGER(natoms)[0] = n;
+        INTEGER(ngroups)[0] = g_n;
+        SEXP classDef, retObj;
+        PROTECT(classDef = MAKE_CLASS("atoms"));
+        PROTECT(retObj = NEW_OBJECT(classDef));
+        SET_SLOT(retObj, install("natoms"), natoms);
+        SET_SLOT(retObj, install("ngroups"), ngroups);
+        SET_SLOT(retObj, install("group_id"), group_id);
+        SET_SLOT(retObj, install("source_id"), source_id);
+        SET_SLOT(retObj, install("datamode"), datamode);
+        SET_SLOT(retObj, install("offset"), offset);
+        SET_SLOT(retObj, install("extent"), extent);
+        SET_SLOT(retObj, install("index_offset"), index_offset);
+        SET_SLOT(retObj, install("index_extent"), index_extent);
+        UNPROTECT(6);
+        return retObj;
+    }
 
     SEXP getVector(SEXP x) {
         Matter mVec(x);

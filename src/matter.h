@@ -85,6 +85,8 @@ class VectorOrDRLE {
 
         SEXP readVectorElements(SEXP i);
 
+        int length();
+
         int find(RType value);
 
         RType operator[](int i);
@@ -164,23 +166,45 @@ class Ops {
 
         Ops(SEXP x)
         {
-            _ops = GET_SLOT(x, install("ops"));
-            if ( _ops != R_NilValue )
-                _length = LENGTH(_ops);
+            SEXP _x = GET_SLOT(x, install("ops"));
+            if ( _x != R_NilValue ) {
+                _length = LENGTH(_x);
+                _lhs = Calloc(_length, SEXP);
+                _rhs = Calloc(_length, SEXP);
+                _op = Calloc(_length, int);
+                _where = Calloc(_length, int);
+                _type = Calloc(_length, int);
+                for ( int i = 0; i < _length; i++ ) {
+                    SEXP _elt = VECTOR_ELT(_x, i);
+                    _lhs[i] = VECTOR_ELT(_elt, INDEX_LHS);
+                    _rhs[i] = VECTOR_ELT(_elt, INDEX_RHS);
+                    _op[i] = INTEGER_VALUE(VECTOR_ELT(_elt, INDEX_OP));
+                    _where[i] = INTEGER_VALUE(VECTOR_ELT(_elt, INDEX_WHERE));
+                    if ( has_lhs(i) )
+                        _type[i] = TYPEOF(lhs(i));
+                    else if ( has_rhs(i) )
+                        _type[i] = TYPEOF(rhs(i));
+                    else
+                        _type[i] = NILSXP;
+                }
+            }
             else
                 _length = 0;
         }
 
-        ~Ops(){}
+        ~Ops()
+        {
+            if ( _length > 0 ) {
+                Free(_lhs);
+                Free(_rhs);
+                Free(_op);
+                Free(_where);
+                Free(_type);
+            }
+        }
 
         int length() {
             return _length;
-        }
-
-        SEXP elt(int i) {
-            if ( i < 0 || _length <= i )
-                error("delayed operation subscript out of bounds");
-            return VECTOR_ELT(_ops, i);
         }
 
         bool has_lhs(int i) {
@@ -192,19 +216,23 @@ class Ops {
         }
 
         SEXP lhs(int i) {
-            return VECTOR_ELT(elt(i), INDEX_LHS);
+            return _lhs[i];
         }
 
         SEXP rhs(int i) {
-            return VECTOR_ELT(elt(i), INDEX_RHS);
+            return _rhs[i];
         }
 
         int op(int i) {
-            return INTEGER_VALUE(VECTOR_ELT(elt(i), INDEX_OP));
+            return _op[i];
         }
 
         int where(int i) {
-            return INTEGER_VALUE(VECTOR_ELT(elt(i), INDEX_WHERE));
+            return _where[i];
+        }
+
+        int type(int i) {
+            return _type[i];
         }
 
         template<typename T>
@@ -218,8 +246,13 @@ class Ops {
 
     protected:
 
-        SEXP _ops;
         int _length;
+        SEXP * _lhs;
+        SEXP * _rhs;
+        int * _op;
+        int * _where;
+        int * _side;
+        int * _type;
 
 };
 
@@ -267,19 +300,18 @@ class Atoms {
             return _group_length;
         }
 
-        bool set_group(int i) {
+        void set_group(int i) {
             if ( 0 <= i && i < length() )
             {
                 _group = i;
                 _group_offset = _group_id->find(i + 1);
-                int j = i + 1;
-                while ( j < length() && (*_group_id)[j] == _group + 1 )
+                int j = _group_offset + 1;
+                while ( j < _natoms && (*_group_id)[j] == _group + 1 )
                     j++;
-                _group_length = j - i;
-                return true;
+                _group_length = j - _group_offset;
             }
             else
-                return false;
+                error("subscript out of bounds");
         }
 
         int source_id(int i) {
@@ -910,6 +942,14 @@ double var(MatterIterator<double> & x, bool na_rm = false);
 //-----------------------
 
 extern "C" {
+
+    SEXP createAtoms(
+        SEXP group_id,
+        SEXP source_id,
+        SEXP datamode,
+        SEXP offset,
+        SEXP extent
+    );
 
     SEXP getVector(SEXP x);
 
