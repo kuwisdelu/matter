@@ -14,6 +14,13 @@
 #define out_of_bounds(x, a, b) ((x) < (a) && (b) <= (x))
 #define is_equal_double(x, y) (fabs((x) - (y)) < 1E-9 || (ISNA(x) && ISNA(y)))
 
+// Declare Atoms and Matter classes now since component classes need them
+//----------------------------------
+
+class Atoms;
+
+class Matter;
+
 //// Low-level utility functions
 //----------------------------------
 
@@ -54,7 +61,7 @@ int count_runs(T * values, int n);
 template<typename T>
 SEXP makeDRLE(SEXP x, SEXP nruns);
 
-template<typename RType>
+template<typename RType, int SType>
 class VectorOrDRLE {
 
     public:
@@ -63,15 +70,15 @@ class VectorOrDRLE {
         {
             if ( isS4(x) )
             {
-                values = DataPtr<RType>(GET_SLOT(x, install("values")));
+                values = DataPtr<RType,SType>(GET_SLOT(x, install("values")));
                 lengths = INTEGER(GET_SLOT(x, install("lengths")));
-                deltas = DataPtr<RType>(GET_SLOT(x, install("deltas")));
+                deltas = DataPtr<RType,SType>(GET_SLOT(x, install("deltas")));
                 nruns = LENGTH(GET_SLOT(x, install("values")));
                 isDRLE = true;
             }
             else
             {
-                values = DataPtr<RType>(x);
+                values = DataPtr<RType,SType>(x);
                 nruns = LENGTH(x);
                 isDRLE = false;
             }
@@ -104,10 +111,10 @@ class VectorOrDRLE {
 };
 
 template<>
-int VectorOrDRLE<int> :: find(int value);
+int VectorOrDRLE<int,INTSXP> :: find(int value);
 
 template<>
-int VectorOrDRLE<double> :: find(double value);
+int VectorOrDRLE<double,REALSXP> :: find(double value);
 
 //// DataSources class
 //---------------------
@@ -160,12 +167,19 @@ class DataSources {
 //// Delayed operations on atoms
 //-------------------------------
 
+union R_ANY {
+    Rbyte * r;
+    int * i;
+    double * d;
+    SEXP * s;
+    Matter * m;
+};
+
 class Ops {
 
     public:
 
-        Ops(SEXP x)
-        {
+        Ops(SEXP x) {
             SEXP _x = GET_SLOT(x, install("ops"));
             if ( _x != R_NilValue ) {
                 _length = LENGTH(_x);
@@ -173,13 +187,15 @@ class Ops {
                 _rhs = Calloc(_length, SEXP);
                 _op = Calloc(_length, int);
                 _where = Calloc(_length, int);
-                _type = Calloc(_length, int);
+                _type = Calloc(_length, SEXPTYPE);
+                _arg = Calloc(_length, R_ANY);
+                _arglengths = Calloc(_length, index_t);
                 for ( int i = 0; i < _length; i++ ) {
                     SEXP _elt = VECTOR_ELT(_x, i);
-                    _lhs[i] = VECTOR_ELT(_elt, INDEX_LHS);
-                    _rhs[i] = VECTOR_ELT(_elt, INDEX_RHS);
-                    _op[i] = INTEGER_VALUE(VECTOR_ELT(_elt, INDEX_OP));
-                    _where[i] = INTEGER_VALUE(VECTOR_ELT(_elt, INDEX_WHERE));
+                    _lhs[i] = VECTOR_ELT(_elt, 0);
+                    _rhs[i] = VECTOR_ELT(_elt, 1);
+                    _op[i] = INTEGER_VALUE(VECTOR_ELT(_elt, 2));
+                    _where[i] = INTEGER_VALUE(VECTOR_ELT(_elt, 3));
                     if ( has_lhs(i) )
                         _type[i] = TYPEOF(lhs(i));
                     else if ( has_rhs(i) )
@@ -187,21 +203,28 @@ class Ops {
                     else
                         _type[i] = NILSXP;
                 }
+                init_args();
             }
             else
                 _length = 0;
         }
 
-        ~Ops()
-        {
-            if ( _length > 0 ) {
+        ~Ops() {
+            if ( length() > 0 ) {
+                finalize_args();
                 Free(_lhs);
                 Free(_rhs);
                 Free(_op);
                 Free(_where);
                 Free(_type);
+                Free(_arg);
+                Free(_arglengths);
             }
         }
+
+        void init_args();
+
+        void finalize_args();
 
         int length() {
             return _length;
@@ -231,18 +254,43 @@ class Ops {
             return _where[i];
         }
 
-        int type(int i) {
+        SEXPTYPE type(int i) {
             return _type[i];
         }
 
-        template<typename T>
-        T arg(int i, index_t offset, int group);
+        index_t arglength(int i) {
+            return _arglengths[i];
+        }
+
+        template<typename RType, int SType>
+        RType * arg(int i);
+
+        template<typename T1, typename T2>
+        void add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
 
         template<typename T>
-        T do_ops(T x, index_t offset, int group);
+        void exp(T * x, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
 
         template<typename T>
-        T reverse_ops(T x, index_t offset, int group);
+        void log(T * x, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T>
+        void do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t skip);
 
     protected:
 
@@ -251,8 +299,9 @@ class Ops {
         SEXP * _rhs;
         int * _op;
         int * _where;
-        int * _side;
-        int * _type;
+        SEXPTYPE * _type;
+        R_ANY * _arg;
+        index_t * _arglengths;
 
 };
 
@@ -267,13 +316,13 @@ class Atoms {
         {
             _natoms = INTEGER_VALUE(GET_SLOT(x, install("natoms")));
             _ngroups = INTEGER_VALUE(GET_SLOT(x, install("ngroups")));
-            _group_id = new VectorOrDRLE<int>(GET_SLOT(x, install("group_id")));
-            _source_id = new VectorOrDRLE<int>(GET_SLOT(x, install("source_id")));
-            _datamode = new VectorOrDRLE<int>(GET_SLOT(x, install("datamode")));
-            _offset = new VectorOrDRLE<double>(GET_SLOT(x, install("offset")));
-            _extent = new VectorOrDRLE<double>(GET_SLOT(x, install("extent")));
-            _index_offset = new VectorOrDRLE<double>(GET_SLOT(x, install("index_offset")));
-            _index_extent = new VectorOrDRLE<double>(GET_SLOT(x, install("index_extent")));
+            _group_id = new VectorOrDRLE<int,INTSXP>(GET_SLOT(x, install("group_id")));
+            _source_id = new VectorOrDRLE<int,INTSXP>(GET_SLOT(x, install("source_id")));
+            _datamode = new VectorOrDRLE<int,INTSXP>(GET_SLOT(x, install("datamode")));
+            _offset = new VectorOrDRLE<double,REALSXP>(GET_SLOT(x, install("offset")));
+            _extent = new VectorOrDRLE<double,REALSXP>(GET_SLOT(x, install("extent")));
+            _index_offset = new VectorOrDRLE<double,REALSXP>(GET_SLOT(x, install("index_offset")));
+            _index_extent = new VectorOrDRLE<double,REALSXP>(GET_SLOT(x, install("index_extent")));
             set_group(0);
         }
 
@@ -301,6 +350,8 @@ class Atoms {
         }
 
         void set_group(int i) {
+            if ( i > 0 && _group == i )
+                return;
             if ( 0 <= i && i < length() )
             {
                 _group = i;
@@ -394,27 +445,27 @@ class Atoms {
             FILE * stream = _sources.require(source_id(which));
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
-            RType tmp2;
+            RType * optr = ptr;
             numRead = fread(tmp, sizeof(CType), count, stream);
             for ( index_t i = 0; i < numRead; i++ ) {
-                tmp2 = coerce_cast<CType,RType>(tmp[i]);
-                *ptr = _ops.do_ops<RType>(tmp2, offset + i, group());
+                *ptr = coerce_cast<CType,RType>(tmp[i]);
                 ptr += skip;
             }
             Free(tmp);
+            _ops.do_ops<RType>(optr, this, offset, count, skip);
             return numRead;
         }
 
         template<typename CType, typename RType>
         index_t write_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
             index_t numWrote;
+            if ( _ops.length() > 0 )
+                error("assignment not supported with delayed operations");
             FILE * stream = _sources.require(source_id(which));
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
-            RType tmp2;
             for ( index_t i = 0; i < count; i++ ) {
-                tmp2 = _ops.reverse_ops<RType>(*ptr, offset + i, group());
-                tmp[i] = coerce_cast<RType,CType>(tmp2);
+                tmp[i] = coerce_cast<RType,CType>(*ptr);
                 ptr += skip;
             }
             numWrote = fwrite(tmp, sizeof(CType), count, stream);
@@ -469,7 +520,7 @@ class Atoms {
                 }
                 toRead -= n;
                 numRead += n;
-                ptr += n;
+                ptr += (n * skip);
                 offset += n;
             }
             return numRead;
@@ -522,7 +573,7 @@ class Atoms {
                 }
                 toWrite -= n;
                 numWrote += n;
-                ptr += n;
+                ptr += (n * skip);
                 offset += n;
             }
             return numWrote;
@@ -584,13 +635,13 @@ class Atoms {
         int _group_offset;
         int _group_length;
 
-        VectorOrDRLE<int> * _group_id;     // index from 1
-        VectorOrDRLE<int> * _source_id;    // index from 1
-        VectorOrDRLE<int> * _datamode;
-        VectorOrDRLE<double> * _offset;
-        VectorOrDRLE<double> * _extent;
-        VectorOrDRLE<double> * _index_offset; // index from 0
-        VectorOrDRLE<double> * _index_extent; // index from 0
+        VectorOrDRLE<int,INTSXP> * _group_id;     // index from 1
+        VectorOrDRLE<int,INTSXP> * _source_id;    // index from 1
+        VectorOrDRLE<int,INTSXP> * _datamode;
+        VectorOrDRLE<double,REALSXP> * _offset;
+        VectorOrDRLE<double,REALSXP> * _extent;
+        VectorOrDRLE<double,REALSXP> * _index_offset; // index from 0
+        VectorOrDRLE<double,REALSXP> * _index_extent; // index from 0
 
         DataSources & _sources;
         Ops & _ops;
@@ -608,17 +659,17 @@ class Matter
 
         Matter(SEXP x) : _sources(x), _ops(x)
         {
-            _data = GET_SLOT(x, install("data"));
+            _data = new Atoms(GET_SLOT(x, install("data")), _sources, _ops);
             _datamode = INTEGER_VALUE(GET_SLOT(x, install("datamode")));
             _chunksize = INTEGER_VALUE(GET_SLOT(x, install("chunksize")));
             _length = static_cast<index_t>(NUMERIC_VALUE(GET_SLOT(x, install("length"))));
             _dim = GET_SLOT(x, install("dim"));
-            const char * S4class = CHARACTER_VALUE(GET_CLASS(x));
-            if ( strcmp(S4class, "matter_vec") == 0 )
+            const char * classname = CHARACTER_VALUE(GET_CLASS(x));
+            if ( strcmp(classname, "matter_vec") == 0 )
                 _S4class = MATTER_VEC;
-            else if ( strcmp(S4class, "matter_matc") == 0 )
+            else if ( strcmp(classname, "matter_matc") == 0 )
                 _S4class = MATTER_MATC;
-            else if ( strcmp(S4class, "matter_matr") == 0 )
+            else if ( strcmp(classname, "matter_matr") == 0 )
                 _S4class = MATTER_MATR;
             else
                 error("subclass not implemented yet");
@@ -628,22 +679,13 @@ class Matter
             // _scaled.scale = GET_ATTR(x, install(attr_scale));
         }
 
-        ~Matter(){}
-
-        Atoms data() {
-            Atoms a(_data, sources(), ops());
-            return a;
+        ~Matter() {
+            delete _data;
         }
 
-        // int data_n() {
-        //     switch(S4class()) {
-        //         case MATTER_MATC:
-        //             return ncols();
-        //         case MATTER_MATR:
-        //             return nrows();
-        //     }
-        //     return 0;
-        // }
+        Atoms & data() {
+            return (*_data);
+        }
 
         int datamode() {
             return _datamode;
@@ -691,46 +733,46 @@ class Matter
             return _ops;
         }
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP readVector();
 
-        template<typename RType>
+        template<typename RType, int SType>
         void writeVector(SEXP value);
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP readVectorElements(SEXP i);
 
-        template<typename RType>
+        template<typename RType, int SType>
         void writeVectorElements(SEXP i, SEXP value);
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP readMatrix();
 
-        template<typename RType>
+        template<typename RType, int SType>
         void writeMatrix(SEXP value);
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP readMatrixRows(SEXP i);
 
-        template<typename RType>
+        template<typename RType, int SType>
         void writeMatrixRows(SEXP i, SEXP value);
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP readMatrixCols(SEXP j);
 
-        template<typename RType>
+        template<typename RType, int SType>
         void writeMatrixCols(SEXP j, SEXP value);
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP readMatrixElements(SEXP i, SEXP j);
 
-        template<typename RType>
+        template<typename RType, int SType>
         void writeMatrixElements(SEXP i, SEXP j, SEXP value);
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP rmult(SEXP y);
 
-        template<typename RType>
+        template<typename RType, int SType>
         SEXP lmult(SEXP x);
 
         SEXP sum(bool na_rm = false);
@@ -753,7 +795,7 @@ class Matter
 
     protected:
 
-        SEXP _data;     // EITHER "atoms" OR a *list* of "atoms"
+        Atoms * _data;     // EITHER "atoms" OR a *list* of "atoms"
         int _datamode;  // 1 = integer, 2 = numeric
         DataSources _sources;
         Ops _ops;
@@ -765,65 +807,6 @@ class Matter
 
 };
 
-//// MatterAccessor class
-//-----------------------
-
-// template<typename RType>
-// class MatterAccessor
-// {
-
-//     public:
-
-//         MatterAccessor(Matter & x, int i) : _matter(x)
-//         {
-//             _atoms = new Atoms(x.data(i), x.sources(), x.ops(i));
-//             _buffersize = _atoms->max_extent() < _matter.chunksize() ? 
-//                 _atoms->max_extent() : _matter.chunksize();
-//             _buffer = (RType *) Calloc(_buffersize, RType);
-//             new_chunk(0);
-//         }
-
-//         ~MatterAccessor()
-//         {
-//             Free(_buffer);
-//             delete _atoms;
-//         }
-
-//         int new_chunk(index_t i) {
-//             if ( 0 <= i && i < _atoms->max_extent() )
-//             {
-//                 int count;
-//                 if ( i + _buffersize > _atoms->max_extent() )
-//                     count = _atoms->max_extent() - i;
-//                 else
-//                     count = _buffersize;
-//                 if ( count > 0 )
-//                 {
-//                     _lower = i;
-//                     _upper = i + count;
-//                     return _atoms->read<RType>(_buffer, i, count);
-//                 }    
-//             }
-//             else
-//                 error("subscript out of bounds");
-//             return 0;
-//         }
-
-//         RType operator[](index_t i) { 
-//             if ( i < _lower || _upper <= i )
-//                 new_chunk(i);
-//             return _buffer[i % _buffersize];
-//         }
-
-
-//     protected:
-//         Matter & _matter;
-//         Atoms * _atoms;
-//         int _buffersize;
-//         index_t _lower;
-//         index_t _upper;
-//         RType * _buffer;
-// };
 
 //// MatterIterator class
 //-----------------------
@@ -834,36 +817,32 @@ class MatterIterator
 
     public:
 
-        MatterIterator(Matter & x) : _matter(x), _atoms(x.data())
+        MatterIterator(Matter & x) : _x(x)
         {
             switch(x.S4class()) {
                 case MATTER_VEC:
-                    // _atoms = new Atoms(x.data(), x.sources(), x.ops());
                     _next = NULL_INDEX;
                     break;
                 case MATTER_MATC:
-                    // _atoms = new Atoms(x.data(), x.sources(), x.ops());
                     _next = 1;
                     break;
                 case MATTER_MATR:
-                    // _atoms = new Atoms(x.data(), x.sources(), x.ops());
                     _next = 1;
                     break;
             }
             init();
         }
 
-        MatterIterator(Matter & x, int i) : _matter(x), _atoms(x.data())
+        MatterIterator(Matter & x, int i) : _x(x)
         {
-            // _atoms = new Atoms(x.data(), x.sources(), x.ops());
-            _atoms.set_group(i);
+            _x.data().set_group(i);
             _next = NULL_INDEX;
             init();
         }
 
         int init() {
-            _buffersize = _atoms.max_extent() < _matter.chunksize() ? 
-                _atoms.max_extent() : _matter.chunksize();
+            _buffersize = _x.data().max_extent() < _x.chunksize() ? 
+                _x.data().max_extent() : _x.chunksize();
             _buffer = (RType *) Calloc(_buffersize, RType);
             _current = 0;
             _lower = 0;
@@ -877,23 +856,23 @@ class MatterIterator
         }
 
         int next_chunk() {
-            if ( _current < _atoms.max_extent() )
+            if ( _current < _x.data().max_extent() )
             {
                 int count;
-                if ( _current + _buffersize > _atoms.max_extent() )
-                    count = _atoms.max_extent() - _current;
+                if ( _current + _buffersize > _x.data().max_extent() )
+                    count = _x.data().max_extent() - _current;
                 else
                     count = _buffersize;
                 if ( count > 0 )
                 {
                     _lower = _current;
                     _upper = _current + count - 1;
-                    return _atoms.read<RType>(_buffer, _current, count);
+                    return _x.data().template read<RType>(_buffer, _current, count);
                 }    
             }
-            else if ( 0 <= _next && _next < _atoms.length() )
+            else if ( 0 <= _next && _next < _x.data().length() )
             {
-                _atoms.set_group(_next);
+                _x.data().set_group(_next);
                 _next++;
                 return init();
             }
@@ -912,18 +891,17 @@ class MatterIterator
         }
 
         operator bool() {
-            return (0 <= _current && _current < _atoms.max_extent() && 
+            return (0 <= _current && _current < _x.data().max_extent() && 
                 _lower <= _current && _current <= _upper);
         }
 
         bool operator !() {
-            return !(0 <= _current && _current < _atoms.max_extent() && 
+            return !(0 <= _current && _current < _x.data().max_extent() && 
                 _lower <= _current && _current <= _upper);
         }
 
     protected:
-        Matter & _matter;
-        Atoms _atoms;
+        Matter & _x;
         int _next;
         int _buffersize;
         index_t _current;
@@ -1001,9 +979,9 @@ extern "C" {
 
     SEXP createDRLE(SEXP x, SEXP nruns);
 
-    SEXP getDRLEVector(SEXP x);
+    SEXP getDRLE(SEXP x);
 
-    SEXP getDRLEVectorElements(SEXP x, SEXP i);
+    SEXP getDRLEElements(SEXP x, SEXP i);
 
 }
 

@@ -499,8 +499,8 @@ setMethod("t", "matter_matr", function(x)
 setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
 {
 	by_which_dim <- switch(class(x),
-		matter_matc = "by_minor_dim",
-		matter_matr = "by_major_dim")
+		matter_matc = "by_each_group",
+		matter_matr = "by_group")
 	if ( is.logical(center) ) {
 		if ( center ) {
 			center <- colMeans(x, na.rm=TRUE)
@@ -578,154 +578,166 @@ check_comformable_dims <- function(x, y, margin = 1) {
 	if ( is.vector(x) ) {
 		return(check_comformable_dims(y, x))
 	} else if ( length(y) != 1 && length(y) != dim(x)[margin] ) {
-		error("vector length is non-conformable with matrix dimensions")
+		stop("argument length is non-conformable with matrix dimensions")
 	}
 	TRUE
 }
 
+# setMethod("+", c("matter_matc", "matter_matc"),
+# 	function(e1, e2) {
+# 		if ( all(dim(e1) == dim(e2)) )
+# 			register_op(e1, NULL, e2, "+")
+# })
+
+# setMethod("+", c("matter_matr", "matter_matr"),
+# 	function(e1, e2) {
+# 		if ( all(dim(e1) == dim(e2)) )
+# 			register_op(e1, NULL, e2, "+")
+# })
+
 setMethod("+", c("matter_matc", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "+", "by_major_dim")
+			register_op(e1, NULL, e2, "+", "by_group")
 })
 
 setMethod("+", c("matter_matr", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "+", "by_minor_dim")
+			register_op(e1, NULL, e2, "+", "by_each_group")
 })
 
 setMethod("+", c("numeric", "matter_matc"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "+", "by_major_dim")
+			register_op(e2, e1, NULL, "+", "by_group")
 })
 
 setMethod("+", c("numeric", "matter_matr"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "+", "by_minor_dim")
+			register_op(e2, e1, NULL, "+", "by_each_group")
 })
 
 setMethod("-", c("matter_matc", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "-", "by_major_dim")
+			register_op(e1, NULL, e2, "-", "by_group")
 })
 
 setMethod("-", c("matter_matr", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "-", "by_minor_dim")
+			register_op(e1, NULL, e2, "-", "by_each_group")
 })
 
 setMethod("-", c("numeric", "matter_matc"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "-", "by_major_dim")
+			register_op(e2, e1, NULL, "-", "by_group")
 })
 
 setMethod("-", c("numeric", "matter_matr"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "-", "by_minor_dim")
+			register_op(e2, e1, NULL, "-", "by_each_group")
 })
 
 setMethod("*", c("matter_matc", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "*", "by_major_dim")
+			register_op(e1, NULL, e2, "*", "by_group")
 })
 
 setMethod("*", c("matter_matr", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "*", "by_minor_dim")
+			register_op(e1, NULL, e2, "*", "by_each_group")
 })
 
 setMethod("*", c("numeric", "matter_matc"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "*", "by_major_dim")
+			register_op(e2, e1, NULL, "*", "by_group")
 })
 
 setMethod("*", c("numeric", "matter_matr"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "*", "by_minor_dim")
+			register_op(e2, e1, NULL, "*", "by_each_group")
 })
 
 setMethod("/", c("matter_matc", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "/", "by_major_dim")
+			register_op(e1, NULL, e2, "/", "by_group")
 })
 
 setMethod("/", c("matter_matr", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "/", "by_minor_dim")
+			register_op(e1, NULL, e2, "/", "by_each_group")
 })
 
 setMethod("/", c("numeric", "matter_matc"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "/", "by_major_dim")
+			register_op(e2, e1, NULL, "/", "by_group")
 })
 
 setMethod("/", c("numeric", "matter_matr"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "/", "by_minor_dim")
+			register_op(e2, e1, NULL, "/", "by_each_group")
 })
 
 setMethod("^", c("matter_matc", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "^", "by_major_dim")
+			register_op(e1, NULL, e2, "^", "by_group")
 })
 
 setMethod("^", c("matter_matr", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "^", "by_minor_dim")
+			register_op(e1, NULL, e2, "^", "by_each_group")
 })
 
 setMethod("^", c("numeric", "matter_matc"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "^", "by_major_dim")
+			register_op(e2, e1, NULL, "^", "by_group")
 })
 
 setMethod("^", c("numeric", "matter_matr"),
 	function(e1, e2) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "^", "by_minor_dim")
+			register_op(e2, e1, NULL, "^", "by_each_group")
 })
 
 setMethod("exp", "matter_mat",
 	function(x) {
 		if ( check_comformable_dims(e1, e2) )
-			register_op(x, NULL, NULL, "^", "by_minor_dim")
+			register_op(x, NULL, NULL, "^", "by_each_group")
 })
 
 setMethod("log", "matter_matc",
 	function(x, base) {
 		if ( missing(base) ) {
-			register_op(x, NULL, NULL, "log", "by_major_dim")
+			register_op(x, NULL, NULL, "log", "by_group")
 		} else {
 			if ( check_comformable_dims(x, base) )
-				register_op(x, NULL, base, "log", "by_major_dim")
+				register_op(x, base, NULL, "log", "by_group")
 		}
 })
 
 setMethod("log", "matter_matr",
 	function(x, base) {
 		if ( missing(base) ) {
-			register_op(x, NULL, NULL, "log", "by_minor_dim")
+			register_op(x, NULL, NULL, "log", "by_each_group")
 		} else {
 			if ( check_comformable_dims(e1, e2) )
-				register_op(x, NULL, base, "log", "by_minor_dim")
+				register_op(x, base, NULL, "log", "by_each_group")
 		}
 })
 

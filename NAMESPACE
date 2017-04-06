@@ -65,7 +65,6 @@ exportMethods(
 
 export(
 	"drle",
-	"drleCompress",
 	"is.drle")
 
 export(
