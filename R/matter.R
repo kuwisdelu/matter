@@ -2,23 +2,23 @@
 #### Define matter VIRTUAL class ####
 ## ----------------------------------
 
-setClassUnion("atomsORlist", c("atoms", "list"))
-setClassUnion("characterORNULL", c("character", "NULL")) # can't find S4Vectors export (???)
-setClassUnion("integerORNULL", c("integer", "NULL"))
-setClassUnion("listORNULL", c("list", "NULL"))
+# setClassUnion("atoms_OR_list", c("atoms", "list"))
+setClassUnion("character_OR_NULL", c("character", "NULL"))
+setClassUnion("integer_OR_NULL", c("integer", "NULL"))
+setClassUnion("list_OR_NULL", c("list", "NULL"))
 
 setClass("matter",
 	slots = c(
-		data = "atomsORlist",
+		data = "atoms",
 		datamode = "factor",
 		paths = "character",
 		filemode = "character",
 		chunksize = "integer",
 		length = "numeric",
-		dim = "integerORNULL",
-		names = "characterORNULL",
-		dimnames = "listORNULL",
-		ops = "listORNULL"),
+		dim = "integer_OR_NULL",
+		names = "character_OR_NULL",
+		dimnames = "list_OR_NULL",
+		ops = "list_OR_NULL"),
 	contains = "VIRTUAL",
 	validity = function(object) {
 		errors <- NULL
