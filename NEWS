@@ -12,6 +12,10 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o S4 methods for matrix-specific summary statistics are
         now only defined on matter_mat and its subclasses
 
+BUG FIXES
+
+    o Dramatically improved speed of matrix multiplication 
+
 CHANGES IN VERSION 1.1.1 [2016-11-29]
 ---------------------------------
 
