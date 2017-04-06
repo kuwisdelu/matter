@@ -13,6 +13,6 @@ Description: Memory-efficient reading, writing, and manipulation of
 License: Artistic-2.0
 Depends: methods, stats, biglm
 Imports: BiocGenerics, irlba, S4Vectors (>= 0.13.13), utils
-Suggests: BiocStyle, Cardinal, testthat
+Suggests: BiocStyle, testthat
 biocViews: Software, Infrastructure
 URL: http://www.cardinalmsi.org
