@@ -264,8 +264,7 @@ setMethod("^", c("numeric", "matter_vec"),
 
 setMethod("exp", "matter_vec",
 	function(x) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(x, NULL, NULL, "^")
+		register_op(x, NULL, NULL, "^")
 })
 
 setMethod("log", "matter_vec",
@@ -273,7 +272,7 @@ setMethod("log", "matter_vec",
 		if ( missing(base) ) {
 			register_op(x, NULL, NULL, "log")
 		} else {
-			if ( check_comformable_lengths(e1, e2) )
+			if ( check_comformable_lengths(x, base) )
 				register_op(x, base, NULL, "log")
 		}
 })

@@ -11,7 +11,7 @@ Description: Memory-efficient reading, writing, and manipulation of
 	for working with high-resolution mass spectrometry imaging data.
 License: Artistic-2.0
 Depends: methods, stats, biglm
-Imports: BiocGenerics, irlba, S4Vectors, utils
+Imports: BiocGenerics, irlba, utils
 Suggests: BiocStyle, testthat
 Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
 	matter_vec.R matter_mat.R stats.R apply.R bigglm.R prcomp.R
