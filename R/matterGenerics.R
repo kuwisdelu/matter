@@ -58,3 +58,9 @@ setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
 setGeneric("chunksize", function(x) standardGeneric("chunksize"))
 setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 
+#### Implement basic generics from BiocGenerics ####
+## ---------------------------------------------------
+
+setMethod("combine", c("numeric", "numeric"),
+	function(x, y, ...) c(x, y))
+

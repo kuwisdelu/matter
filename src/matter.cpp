@@ -498,10 +498,10 @@ Ops null_transform() {
     return ret;
 }
 
-//// Count # of consecutive indices after current one (for faster reads)
-//----------------------------------------------------------------------
+//// Delta run length encoding 
+//-----------------------------
 
-index_t num_consecutive(Rindex_t * pindex, long i, long length) {
+index_t count_consecutive(Rindex_t * pindex, long i, long length) {
     index_t n = 0;
     if ( ISNA(pindex[i + 1]) )
         return n;
@@ -526,6 +526,330 @@ index_t num_consecutive(Rindex_t * pindex, long i, long length) {
     else
         return n;
 }
+
+template<typename T>
+T run_delta(T * values, int i, int n) {
+    if ( i < n - 1 )
+        return values[i + 1] - values[i];
+    else
+        return 0;
+}
+
+template<>
+int run_length<int>(int * values, int i, int n, int delta) {
+    int length = 1;
+    while ( i < n - 1 && values[i + 1] - values[i] == delta ) {
+        length++;
+        i++;
+    }
+    return length;
+}
+
+template<>
+int run_length<double>(double * values, int i, int n, double delta) {
+    int length = 1;
+    while ( i < n - 1 && is_equal_double(values[i + 1] - values[i], delta) ) {
+        length++;
+        i++;
+    }
+    return length;
+}
+
+template<>
+int count_runs<int>(int * values, int n) {
+    int delta1, delta2, length1, length2, i = 0, nruns = 0;
+    while ( i < n ) {
+        delta1 = run_delta<int>(values, i, n);
+        length1 = run_length<int>(values, i, n, delta1);
+        if ( length1 == 2 ) {
+            delta2 = run_delta<int>(values, i + 1, n);
+            length2 = run_length<int>(values, i + 1, n, delta2);
+            if ( length2 > 2 ) {
+                if ( delta1 == delta2 )
+                {
+                    nruns++;
+                    i += (length2 + 1);
+                    continue;
+                }
+                else
+                {
+                    nruns += 2;
+                    i += (length2 + 1);
+                    continue;
+                }
+            }
+        }
+        nruns++;
+        i += length1;
+    }
+    return nruns;
+}
+
+template<>
+int count_runs<double>(double * values, int n) {
+    double delta1, delta2;
+    int length1, length2, i = 0, nruns = 0;
+    while ( i < n ) {
+        delta1 = run_delta<double>(values, i, n);
+        length1 = run_length<double>(values, i, n, delta1);
+        if ( length1 == 2 ) {
+            delta2 = run_delta<double>(values, i + 1, n);
+            length2 = run_length<double>(values, i + 1, n, delta2);
+            if ( length2 > 2 ) {
+                if ( is_equal_double(delta1, delta2) )
+                {
+                    nruns++;
+                    i += (length2 + 1);
+                    continue;
+                }
+                else
+                {
+                    nruns += 2;
+                    i += (length2 + 1);
+                    continue;
+                }
+            }
+        }
+        nruns++;
+        i += length1;
+    }
+    return nruns;
+}
+
+template<>
+SEXP makeDRLE<int>(SEXP x, SEXP nruns) {
+    SEXP retVals, retLengths, retDeltas;
+    int * pX, * pRetVals, * pRetLengths, * pRetDeltas;
+    PROTECT(retVals = NEW_INTEGER(INTEGER_VALUE(nruns)));
+    PROTECT(retLengths = NEW_INTEGER(INTEGER_VALUE(nruns)));
+    PROTECT(retDeltas = NEW_INTEGER(INTEGER_VALUE(nruns)));
+    pX = INTEGER(x);
+    pRetVals = INTEGER(retVals);
+    pRetLengths = INTEGER(retLengths);
+    pRetDeltas = INTEGER(retDeltas);
+    int delta1, delta2, length1, length2, i = 0, nrun = 0, n = LENGTH(x);
+    while ( i < n ) {
+        delta1 = run_delta<int>(pX, i, n);
+        length1 = run_length<int>(pX, i, n, delta1);
+        if ( length1 == 2 ) {
+            delta2 = run_delta<int>(pX, i + 1, n);
+            length2 = run_length<int>(pX, i + 1, n, delta2);
+            if ( length2 > 2 ) {
+                if ( delta1 == delta2 )
+                {
+                    pRetVals[nrun] = pX[i];
+                    pRetLengths[nrun] = length2 + 1;
+                    pRetDeltas[nrun] = delta1;
+                    nrun++;
+                    i += (length2 + 1);
+                    continue;
+                }
+                else
+                {
+                    pRetVals[nrun] = pX[i];
+                    pRetLengths[nrun] = 1;
+                    pRetDeltas[nrun] = 0;
+                    pRetVals[nrun + 1] = pX[i + 1];
+                    pRetLengths[nrun + 1] = length2;
+                    pRetDeltas[nrun + 1] = delta2;
+                    nrun += 2;
+                    i += (length2 + 1);
+                    continue;
+                }
+            }
+        }
+        pRetVals[nrun] = pX[i];
+        pRetLengths[nrun] = length1;
+        pRetDeltas[nrun] = delta1;
+        nrun++;
+        i += length1;
+    }
+    SEXP classDef, retObj;
+    PROTECT(classDef = MAKE_CLASS("drle"));
+    PROTECT(retObj = NEW_OBJECT(classDef));
+    SET_SLOT(retObj, install("values"), retVals);
+    SET_SLOT(retObj, install("lengths"), retLengths);
+    SET_SLOT(retObj, install("deltas"), retDeltas);
+    UNPROTECT(5);
+    return retObj;
+}
+
+template<>
+SEXP makeDRLE<double>(SEXP x, SEXP nruns) {
+    SEXP retVals, retLengths, retDeltas;
+    double * pX, * pRetVals, * pRetDeltas;
+    int * pRetLengths;
+    PROTECT(retVals = NEW_NUMERIC(INTEGER_VALUE(nruns)));
+    PROTECT(retLengths = NEW_INTEGER(INTEGER_VALUE(nruns)));
+    PROTECT(retDeltas = NEW_NUMERIC(INTEGER_VALUE(nruns)));
+    pX = REAL(x);
+    pRetVals = REAL(retVals);
+    pRetLengths = INTEGER(retLengths);
+    pRetDeltas = REAL(retDeltas);
+    double delta1, delta2;
+    int length1, length2, i = 0, nrun = 0, n = LENGTH(x);
+    while ( i < n ) {
+        delta1 = run_delta<double>(pX, i, n);
+        length1 = run_length<double>(pX, i, n, delta1);
+        if ( length1 == 2 ) {
+            delta2 = run_delta<double>(pX, i + 1, n);
+            length2 = run_length<double>(pX, i + 1, n, delta2);
+            if ( length2 > 2 ) {
+                if ( is_equal_double(delta1, delta2) )
+                {
+                    pRetVals[nrun] = pX[i];
+                    pRetLengths[nrun] = length2 + 1;
+                    pRetDeltas[nrun] = delta1;
+                    nrun++;
+                    i += (length2 + 1);
+                    continue;
+                }
+                else
+                {
+                    pRetVals[nrun] = pX[i];
+                    pRetLengths[nrun] = 1;
+                    pRetDeltas[nrun] = 0;
+                    pRetVals[nrun + 1] = pX[i + 1];
+                    pRetLengths[nrun + 1] = length2;
+                    pRetDeltas[nrun + 1] = delta2;
+                    nrun += 2;
+                    i += (length2 + 1);
+                    continue;
+                }
+            }
+        }
+        pRetVals[nrun] = pX[i];
+        pRetLengths[nrun] = length1;
+        pRetDeltas[nrun] = delta1;
+        nrun++;
+        i += length1;
+    }
+    SEXP classDef, retObj;
+    PROTECT(classDef = MAKE_CLASS("drle"));
+    PROTECT(retObj = NEW_OBJECT(classDef));
+    SET_SLOT(retObj, install("values"), retVals);
+    SET_SLOT(retObj, install("lengths"), retLengths);
+    SET_SLOT(retObj, install("deltas"), retDeltas);
+    UNPROTECT(5);
+    return retObj;
+}
+
+template<typename RType>
+SEXP VectorOrDRLE<RType> :: readVector() {
+    int nrun, nout = 0;
+    for ( nrun = 0; nrun < nruns; nrun++ )
+        nout += lengths[nrun];
+    SEXP retVec;
+    PROTECT(retVec = allocVector(DataType<RType>(), nout));
+    RType * pRetVec = DataPtr<RType>(retVec);
+    int cum_index = 0;
+    for ( nrun = 0; nrun < nruns; nrun++ ) {
+        for ( int i = 0; i < lengths[nrun]; i++ )
+            pRetVec[cum_index + i] = values[nrun] + deltas[nrun] * i;
+        cum_index += lengths[nrun];
+    }
+    UNPROTECT(1);
+    return retVec;
+}
+
+template<typename RType>
+SEXP VectorOrDRLE<RType> :: readVectorElements(SEXP i) {
+    SEXP retVec;
+    PROTECT(retVec = allocVector(DataType<RType>(), LENGTH(i)));
+    RType * pRetVec = DataPtr<RType>(retVec);
+    int * pIndex = INTEGER(i);
+    for ( int k = 0; k < LENGTH(i); k++ )
+        pRetVec[k] = (*this)[pIndex[k]];
+    UNPROTECT(1);
+    return retVec;   
+}
+
+template<>
+int VectorOrDRLE<int> :: find(int value) {
+    if ( isDRLE )
+    {
+        int cum_index = 0;
+        for ( int nrun = 0; nrun < nruns; nrun++ ) {
+            int diff = value - values[nrun];
+            if ( diff % deltas[nrun] == 0 )
+                return static_cast<int>(cum_index + diff / deltas[nrun]);
+            else
+                cum_index += lengths[nrun];
+        }
+    }
+    else
+    {
+        for ( int i = 0; i < nruns; i++ )
+            if ( (*this)[i] == value )
+                return i;
+    }
+    return NA_INTEGER;
+}
+
+template<>
+int VectorOrDRLE<double> :: find(double value) {
+    if ( isDRLE )
+    {
+        int cum_index = 0;
+        for ( int nrun = 0; nrun < nruns; nrun++ ) {
+            int diff = value - values[nrun];
+            if ( is_equal_double(fmod(diff, deltas[nrun]), 0) )
+                return static_cast<int>(cum_index + diff / deltas[nrun]);
+            else
+                cum_index += lengths[nrun];
+        }
+    }
+    else
+    {
+        for ( int i = 0; i < nruns; i++ )
+            if ( is_equal_double((*this)[i], value) )
+                return i;
+    }
+    return NA_REAL;
+}
+
+template<typename RType>
+RType VectorOrDRLE<RType> :: operator[](int i) {
+    if ( i < 0 )
+        error("subscript out of bounds");
+    if ( !isDRLE ) {
+        if ( i < nruns )
+            return values[i];
+        else
+            error("subscript out of bounds");
+    }
+    if ( i >= ref_index )
+    {
+        while ( ref_run < nruns ) {
+            if ( i < ref_index + lengths[ref_run] )
+                return values[ref_run] + deltas[ref_run] * (i - ref_index);
+            else
+            {
+                ref_index += lengths[ref_run];
+                ref_run++;
+            }
+        }
+    }
+    else
+    {
+        ref_run--;
+        ref_index -= lengths[ref_run];
+        while ( ref_run >= 0 ) {
+            if ( i >= ref_index )
+                return values[ref_run] + deltas[ref_run] * (i - ref_index);
+            else
+            {
+                ref_run--;
+                ref_index -= lengths[ref_run];
+            }
+        }
+    }
+    if ( i >= ref_index )
+        error("subscript out of bounds");
+    return DataNA<RType>();
+}
+
+
 
 //// Vector methods implemented for class Matter
 //-----------------------------------------------
@@ -577,16 +901,17 @@ SEXP Matter :: readMatrix() {
     int nrows = this->nrows(), ncols = this->ncols();
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), sources(), ops(col));
+                atoms.set_group(col);
                 atoms.read<RType>(pRetMat + col * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), sources(), ops(row));
+                atoms.set_group(row);
                 atoms.read<RType>(pRetMat + row, 0, ncols, nrows);
             }
             break;
@@ -599,16 +924,17 @@ template<typename RType>
 void Matter :: writeMatrix(SEXP value) {
     int nrows = this->nrows(), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), sources(), ops(col));
+                atoms.set_group(col);
                 atoms.write<RType>(pValue + col * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), sources(), ops(row));
+                atoms.set_group(row);
                 atoms.write<RType>(pValue + row, 0, ncols, nrows);
             }
             break;
@@ -622,10 +948,11 @@ SEXP Matter :: readMatrixRows(SEXP i) {
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pRow = INDEX_PTR(i);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), sources(), ops(col));
+                atoms.set_group(col);
                 atoms.read_indices<RType>(pRetMat + col * nrows, pRow, nrows);
             }
             break;
@@ -635,7 +962,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_t row = static_cast<index_t>(pRow[l]);
-                    Atoms atoms(data(row), sources(), ops(row));
+                    atoms.set_group(row);
                     atoms.read<RType>(pRetMat + l, 0, ncols, nrows);
                 }
             }
@@ -650,10 +977,11 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
     int nrows = LENGTH(i), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
     Rindex_t * pRow = INDEX_PTR(i);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
-                Atoms atoms(data(col), sources(), ops(col));
+                atoms.set_group(col);
                 atoms.write_indices(pValue + col * nrows, pRow, nrows);
             }
             break;
@@ -662,7 +990,7 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_t row = static_cast<index_t>(pRow[l]);
-                Atoms atoms(data(row), sources(), ops(row));
+                atoms.set_group(row);
                 atoms.write<RType>(pValue + l, 0, ncols, nrows);
             }
             break;
@@ -676,6 +1004,7 @@ SEXP Matter :: readMatrixCols(SEXP j) {
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pCol = INDEX_PTR(j);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
@@ -683,14 +1012,14 @@ SEXP Matter :: readMatrixCols(SEXP j) {
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_t col = static_cast<index_t>(pCol[l]);
-                    Atoms atoms(data(col), sources(), ops(col));
+                    atoms.set_group(col);
                     atoms.read<RType>(pRetMat + l * nrows, 0, nrows);
                 }
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), sources(), ops(row));
+                atoms.set_group(row);
                 atoms.read_indices<RType>(pRetMat + row, pCol, ncols, nrows);
             }
             break;
@@ -704,19 +1033,20 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
     int nrows = this->nrows(), ncols = LENGTH(j);
     RType * pValue = DataPtr<RType>(value);
     Rindex_t * pCol = INDEX_PTR(j);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_t col = static_cast<index_t>(pCol[l]);
-                Atoms atoms(data(col), sources(), ops(col));
+                atoms.set_group(col);
                 atoms.write<RType>(pValue + l * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
-                Atoms atoms(data(row), sources(), ops(row));
+                atoms.set_group(row);
                 atoms.write_indices(pValue + row, pCol, ncols, nrows);
             }
             break;
@@ -731,6 +1061,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
     RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pRow = INDEX_PTR(i);
     Rindex_t * pCol = INDEX_PTR(j);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
@@ -738,7 +1069,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
                     index_t col = static_cast<index_t>(pCol[l]);
-                    Atoms atoms(data(col), sources(), ops(col));
+                    atoms.set_group(col);
                     atoms.read_indices<RType>(pRetMat + l * nrows, pRow, nrows);
                 }
             }
@@ -749,7 +1080,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
                     index_t row = static_cast<index_t>(pRow[l]);
-                    Atoms atoms(data(row), sources(), ops(row));
+                    atoms.set_group(row);
                     atoms.read_indices<RType>(pRetMat + l, pCol, ncols, nrows);
                 }
             }
@@ -765,13 +1096,14 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
     Rindex_t * pRow = INDEX_PTR(i);
     Rindex_t * pCol = INDEX_PTR(j);
+    Atoms atoms(data(), sources(), ops());
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
                 index_t col = static_cast<index_t>(pCol[l]);
-                Atoms atoms(data(col), sources(), ops(col));
+                atoms.set_group(col);
                 atoms.write_indices(pValue + l * nrows, pRow, nrows);
             }
             break;
@@ -780,7 +1112,7 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                 if ( ISNA(pRow[l]) )
                     continue;
                 index_t row = static_cast<index_t>(pRow[l]);
-                Atoms atoms(data(row), sources(), ops(row));
+                atoms.set_group(row);
                 atoms.write_indices(pValue + l, pCol, ncols, nrows);
             }
             break;
@@ -1543,5 +1875,62 @@ extern "C" {
             return mMat.lmult<double>(x);
         else
             return R_NilValue;
+    }
+
+    SEXP countRuns(SEXP x) {
+        SEXP ret;
+        PROTECT(ret = NEW_INTEGER(1));
+        if ( TYPEOF(x) == INTSXP )
+        {
+            INTEGER(ret)[0] = count_runs<int>(INTEGER(x), LENGTH(x));
+        }
+        else if ( TYPEOF(x) == REALSXP )
+        {
+            INTEGER(ret)[0] = count_runs<double>(REAL(x), LENGTH(x));
+        }
+        UNPROTECT(1);
+        return ret;
+    }
+
+    SEXP createDRLE(SEXP x, SEXP nruns) {
+        if ( TYPEOF(x) == INTSXP )
+        {
+            return makeDRLE<int>(x, nruns);
+        }
+        else if ( TYPEOF(x) == REALSXP )
+        {
+            return makeDRLE<double>(x, nruns);;
+        }
+        return R_NilValue;
+    }
+
+    SEXP getDRLEVector(SEXP x) {
+        SEXP values = GET_SLOT(x, install("values"));
+        if ( TYPEOF(values) == INTSXP )
+        {
+            VectorOrDRLE<int> dVec(x);
+            return dVec.readVector();
+        }
+        else if ( TYPEOF(values) == REALSXP )
+        {
+            VectorOrDRLE<double> dVec(x);
+            return dVec.readVector();
+        }
+        return R_NilValue;
+    }
+
+    SEXP getDRLEVectorElements(SEXP x, SEXP i) {
+        SEXP values = GET_SLOT(x, install("values"));
+        if ( TYPEOF(values) == INTSXP )
+        {
+            VectorOrDRLE<int> dVec(x);
+            return dVec.readVectorElements(i);
+        }
+        else if ( TYPEOF(values) == REALSXP )
+        {
+            VectorOrDRLE<double> dVec(x);
+            return dVec.readVectorElements(i);
+        }
+        return R_NilValue;
     }
 }
