@@ -14,80 +14,17 @@
 #define out_of_bounds(x, a, b) ((x) < (a) && (b) <= (x))
 #define is_equal_double(x, y) (fabs((x) - (y)) < 1E-9 || (ISNA(x) && ISNA(y)))
 
-//// Delayed operations on atoms
-//-------------------------------
-
-struct Scaled {
-    SEXP scale;
-    SEXP center;
-};
-
-typedef struct Scaled Scaled;
-
-enum Ops_t { none, scalar, vector };
-
-struct Ops {
-    Ops_t center_t;
-    double * center;
-    Ops_t scale_t;
-    double * scale; };
-
-typedef struct Ops Ops;
-
-Ops null_transform();
-
-template<typename T>
-T transform(T x, Ops o, int i) {
-    switch(o.center_t) {
-        case none:
-            break;
-        case scalar:
-            x -= (*o.center);
-            break;
-        case vector:
-            x -= o.center[i];
-            break;
-    }
-    switch(o.scale_t) {
-        case none:
-            break;
-        case scalar:
-            x /= (*o.scale);
-            break;
-        case vector:
-            x /= o.scale[i];
-            break;
-    }
-    return x;
-}
-
-template<typename T>
-T backtransform(T x, Ops o, int i) {
-    switch(o.scale_t) {
-        case none:
-            break;
-        case scalar:
-            x *= (*o.scale);
-            break;
-        case vector:
-            x *= o.scale[i];
-            break;
-    }
-    switch(o.center_t) {
-        case none:
-            break;
-        case scalar:
-            x += (*o.center);
-            break;
-        case vector:
-            x += o.center[i];
-            break;
-    }
-    return x;
-}
-
 //// Low-level utility functions
 //----------------------------------
+
+template<typename T>
+T coerce_pow(T base, T exponent);
+
+template<typename T>
+T coerce_exp(T x);
+
+template<typename T>
+T coerce_log(T x);
 
 template<typename T1, typename T2>
 T2 coerce_cast(T1 x);
@@ -218,6 +155,73 @@ class DataSources {
 
 };
 
+//// Delayed operations on atoms
+//-------------------------------
+
+class Ops {
+
+    public:
+
+        Ops(SEXP x)
+        {
+            _ops = GET_SLOT(x, install("ops"));
+            if ( _ops != R_NilValue )
+                _length = LENGTH(_ops);
+            else
+                _length = 0;
+        }
+
+        ~Ops(){}
+
+        int length() {
+            return _length;
+        }
+
+        SEXP elt(int i) {
+            if ( i < 0 || _length <= i )
+                error("delayed operation subscript out of bounds");
+            return VECTOR_ELT(_ops, i);
+        }
+
+        bool has_lhs(int i) {
+            return lhs(i) != R_NilValue;
+        }
+
+        bool has_rhs(int i) {
+            return rhs(i) != R_NilValue;
+        }
+
+        SEXP lhs(int i) {
+            return VECTOR_ELT(elt(i), INDEX_LHS);
+        }
+
+        SEXP rhs(int i) {
+            return VECTOR_ELT(elt(i), INDEX_RHS);
+        }
+
+        int op(int i) {
+            return INTEGER_VALUE(VECTOR_ELT(elt(i), INDEX_OP));
+        }
+
+        int where(int i) {
+            return INTEGER_VALUE(VECTOR_ELT(elt(i), INDEX_WHERE));
+        }
+
+        template<typename T>
+        T arg(int i, index_t offset, int group);
+
+        template<typename T>
+        T do_ops(T x, index_t offset, int group);
+
+        template<typename T>
+        T reverse_ops(T x, index_t offset, int group);
+
+    protected:
+
+        SEXP _ops;
+        int _length;
+
+};
 
 //// Atoms class
 //-----------------------
@@ -226,7 +230,7 @@ class Atoms {
 
     public:
 
-        Atoms(SEXP x, DataSources * s, Ops o) : _sources(s), _ops(o)
+        Atoms(SEXP x, DataSources & s, Ops & o) : _sources(s), _ops(o)
         {
             _natoms = INTEGER_VALUE(GET_SLOT(x, install("natoms")));
             _ngroups = INTEGER_VALUE(GET_SLOT(x, install("ngroups")));
@@ -276,10 +280,6 @@ class Atoms {
             }
             else
                 return false;
-        }
-
-        bool next_group() {
-            return set_group(group() + 1);
         }
 
         int source_id(int i) {
@@ -359,12 +359,14 @@ class Atoms {
         template<typename CType, typename RType>
         index_t read_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
             index_t numRead;
-            FILE * stream = _sources->require(source_id(which));
+            FILE * stream = _sources.require(source_id(which));
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
+            RType tmp2;
             numRead = fread(tmp, sizeof(CType), count, stream);
             for ( index_t i = 0; i < numRead; i++ ) {
-                *ptr = transform<RType>(coerce_cast<CType,RType>(tmp[i]), _ops, offset + i);
+                tmp2 = coerce_cast<CType,RType>(tmp[i]);
+                *ptr = _ops.do_ops<RType>(tmp2, offset + i, group());
                 ptr += skip;
             }
             Free(tmp);
@@ -374,11 +376,13 @@ class Atoms {
         template<typename CType, typename RType>
         index_t write_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
             index_t numWrote;
-            FILE * stream = _sources->require(source_id(which));
+            FILE * stream = _sources.require(source_id(which));
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
+            RType tmp2;
             for ( index_t i = 0; i < count; i++ ) {
-                tmp[i] = backtransform<RType>(coerce_cast<RType,CType>(*ptr), _ops, offset + i);
+                tmp2 = _ops.reverse_ops<RType>(*ptr, offset + i, group());
+                tmp[i] = coerce_cast<RType,CType>(tmp2);
                 ptr += skip;
             }
             numWrote = fwrite(tmp, sizeof(CType), count, stream);
@@ -556,8 +560,8 @@ class Atoms {
         VectorOrDRLE<double> * _index_offset; // index from 0
         VectorOrDRLE<double> * _index_extent; // index from 0
 
-        DataSources * _sources;
-        Ops _ops;
+        DataSources & _sources;
+        Ops & _ops;
 
 };
 
@@ -570,7 +574,7 @@ class Matter
 
     public:
 
-        Matter(SEXP x) : _sources(x)
+        Matter(SEXP x) : _sources(x), _ops(x)
         {
             _data = GET_SLOT(x, install("data"));
             _datamode = INTEGER_VALUE(GET_SLOT(x, install("datamode")));
@@ -586,40 +590,35 @@ class Matter
                 _S4class = MATTER_MATR;
             else
                 error("subclass not implemented yet");
-            const char * attr_center = "scaled:center";
-            _scaled.center = GET_ATTR(x, install(attr_center));
-            const char * attr_scale = "scaled:scale";
-            _scaled.scale = GET_ATTR(x, install(attr_scale));
+            // const char * attr_center = "scaled:center";
+            // _scaled.center = GET_ATTR(x, install(attr_center));
+            // const char * attr_scale = "scaled:scale";
+            // _scaled.scale = GET_ATTR(x, install(attr_scale));
         }
 
         ~Matter(){}
 
-        SEXP data() {
-            return _data;
+        Atoms data() {
+            Atoms a(_data, sources(), ops());
+            return a;
         }
 
-        SEXP data(int i) {
-            if ( i < 0 || LENGTH(_data) <= i )
-                error("subscript out of bounds");
-            return VECTOR_ELT(_data, i);
-        }
-
-        int data_n() {
-            switch(S4class()) {
-                case MATTER_MATC:
-                    return ncols();
-                case MATTER_MATR:
-                    return nrows();
-            }
-            return 0;
-        }
+        // int data_n() {
+        //     switch(S4class()) {
+        //         case MATTER_MATC:
+        //             return ncols();
+        //         case MATTER_MATR:
+        //             return nrows();
+        //     }
+        //     return 0;
+        // }
 
         int datamode() {
             return _datamode;
         }
 
-        DataSources * sources() {
-            return &_sources;
+        DataSources & sources() {
+            return _sources;
         }
 
         int chunksize() {
@@ -634,19 +633,19 @@ class Matter
             return INTEGER(_dim)[i];
         }
 
-        int dim_n() {
+        int dim_length() {
             return LENGTH(_dim);
         }
 
         int nrows() {
-            if ( dim_n() == 2 )
+            if ( dim_length() == 2 )
                 return dim(0);
             else
                 return 0;
         }
 
         int ncols() {
-            if ( dim_n() == 2 )
+            if ( dim_length() == 2 )
                 return dim(1);
             else
                 return 0;
@@ -656,39 +655,8 @@ class Matter
             return _S4class;
         }
 
-        Ops ops() {
-            return null_transform();
-        }
-
-        Ops ops(int i) {
-            Ops retOps = null_transform();
-            switch(S4class()) {
-                case MATTER_MATC:
-                    if ( _scaled.center != R_NilValue )
-                    {
-                        retOps.center_t = scalar;
-                        retOps.center = REAL(_scaled.center) + i;
-                    }
-                    if ( _scaled.scale != R_NilValue )
-                    {
-                        retOps.scale_t = scalar;
-                        retOps.scale = REAL(_scaled.scale) + i;
-                    }
-                    break;
-                case MATTER_MATR:
-                    if ( _scaled.center != R_NilValue )
-                    {
-                        retOps.center_t = vector;
-                        retOps.center = REAL(_scaled.center);
-                    }
-                    if ( _scaled.scale != R_NilValue )
-                    {
-                        retOps.scale_t = vector;
-                        retOps.scale = REAL(_scaled.scale);
-                    }
-                    break;
-            }
-            return retOps;
+        Ops & ops() {
+            return _ops;
         }
 
         template<typename RType>
@@ -756,11 +724,12 @@ class Matter
         SEXP _data;     // EITHER "atoms" OR a *list* of "atoms"
         int _datamode;  // 1 = integer, 2 = numeric
         DataSources _sources;
+        Ops _ops;
         int _chunksize;
         index_t _length;
         SEXP _dim;
         int _S4class;      // 1 = vector, 2 = col-matrix, 3 = row-matrix
-        Scaled _scaled;
+        // Scaled _scaled;
 
 };
 
@@ -833,32 +802,36 @@ class MatterIterator
 
     public:
 
-        MatterIterator(Matter & x) : _matter(x)
+        MatterIterator(Matter & x) : _matter(x), _atoms(x.data())
         {
             switch(x.S4class()) {
                 case MATTER_VEC:
-                    _atoms = new Atoms(x.data(), x.sources(), x.ops());
+                    // _atoms = new Atoms(x.data(), x.sources(), x.ops());
                     _next = NULL_INDEX;
                     break;
                 case MATTER_MATC:
+                    // _atoms = new Atoms(x.data(), x.sources(), x.ops());
+                    _next = 1;
+                    break;
                 case MATTER_MATR:
-                    _atoms = new Atoms(x.data(0), x.sources(), x.ops(0));
+                    // _atoms = new Atoms(x.data(), x.sources(), x.ops());
                     _next = 1;
                     break;
             }
             init();
         }
 
-        MatterIterator(Matter & x, int i) : _matter(x)
+        MatterIterator(Matter & x, int i) : _matter(x), _atoms(x.data())
         {
-            _atoms = new Atoms(x.data(i), x.sources(), x.ops(i));
+            // _atoms = new Atoms(x.data(), x.sources(), x.ops());
+            _atoms.set_group(i);
             _next = NULL_INDEX;
             init();
         }
 
         int init() {
-            _buffersize = _atoms->max_extent() < _matter.chunksize() ? 
-                _atoms->max_extent() : _matter.chunksize();
+            _buffersize = _atoms.max_extent() < _matter.chunksize() ? 
+                _atoms.max_extent() : _matter.chunksize();
             _buffer = (RType *) Calloc(_buffersize, RType);
             _current = 0;
             _lower = 0;
@@ -869,28 +842,26 @@ class MatterIterator
         ~MatterIterator()
         {
             Free(_buffer);
-            delete _atoms;
         }
 
         int next_chunk() {
-            if ( _current < _atoms->max_extent() )
+            if ( _current < _atoms.max_extent() )
             {
                 int count;
-                if ( _current + _buffersize > _atoms->max_extent() )
-                    count = _atoms->max_extent() - _current;
+                if ( _current + _buffersize > _atoms.max_extent() )
+                    count = _atoms.max_extent() - _current;
                 else
                     count = _buffersize;
                 if ( count > 0 )
                 {
                     _lower = _current;
                     _upper = _current + count - 1;
-                    return _atoms->read<RType>(_buffer, _current, count);
+                    return _atoms.read<RType>(_buffer, _current, count);
                 }    
             }
-            else if ( 0 <= _next && _next < _matter.data_n() )
+            else if ( 0 <= _next && _next < _atoms.length() )
             {
-                delete _atoms;
-                _atoms = new Atoms(_matter.data(_next), _matter.sources(), _matter.ops(_next));
+                _atoms.set_group(_next);
                 _next++;
                 return init();
             }
@@ -909,18 +880,18 @@ class MatterIterator
         }
 
         operator bool() {
-            return (0 <= _current && _current < _atoms->max_extent() && 
+            return (0 <= _current && _current < _atoms.max_extent() && 
                 _lower <= _current && _current <= _upper);
         }
 
         bool operator !() {
-            return !(0 <= _current && _current < _atoms->max_extent() && 
+            return !(0 <= _current && _current < _atoms.max_extent() && 
                 _lower <= _current && _current <= _upper);
         }
 
     protected:
         Matter & _matter;
-        Atoms * _atoms;
+        Atoms _atoms;
         int _next;
         int _buffersize;
         index_t _current;

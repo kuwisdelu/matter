@@ -3,8 +3,7 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Optimize atoms to use groups instead of a list of atoms
-- Add more delayed arithmetic options
+- Clean up detritus
 - Add support for different data sources
 
 Priority: Medium

@@ -6,6 +6,23 @@
 //// Low-level utility functions
 //-------------------------------
 
+template<typename T>
+T coerce_pow(T base, T exponent) {
+    double b = static_cast<double>(base);
+    double x = static_cast<double>(exponent);
+    return static_cast<T>(pow(b, x));
+}
+
+template<typename T>
+T coerce_exp(T x) {
+    return static_cast<T>(exp(static_cast<double>(x)));
+}
+
+template<typename T>
+T coerce_log(T x) {
+    return static_cast<T>(log(static_cast<double>(x)));
+}
+
 //// ----------------- R <----> C ----------------- /////
 
 // Rbyte <----> Rbyte
@@ -484,20 +501,6 @@ double coerce_cast<float,double>(float x) {
         return static_cast<double>(x);
 }
 
-
-
-//// Delayed operations on atoms
-//-------------------------------
-
-Ops null_transform() {
-    Ops ret;
-    ret.center_t = none;
-    ret.center = NULL;
-    ret.scale_t = none;
-    ret.scale = NULL;
-    return ret;
-}
-
 //// Delta run length encoding 
 //-----------------------------
 
@@ -849,7 +852,125 @@ RType VectorOrDRLE<RType> :: operator[](int i) {
     return DataNA<RType>();
 }
 
+//// Delayed operations on atoms
+//-------------------------------
 
+template<typename T>
+T Ops :: arg(int i, index_t offset, int group) {
+    index_t k;
+    switch(where(i)) {
+        case OPS_SCALAR:
+            k = 0;
+            break;
+        case OPS_BY_MAJOR_DIM:
+            k = offset;
+            break;
+        case OPS_BY_MINOR_DIM:
+            k = group;
+            break;
+    }
+    if ( has_lhs(i) )
+    {
+        if ( TYPEOF(lhs(i)) == INTSXP )
+            return static_cast<T>(INTEGER(lhs(i))[k]);
+        else if ( TYPEOF(lhs(i)) == REALSXP )
+            return static_cast<T>(REAL(lhs(i))[k]);
+    }
+    else if ( has_rhs(i) )
+    {
+        if ( TYPEOF(rhs(i)) == INTSXP )
+            return static_cast<T>(INTEGER(rhs(i))[k]);
+        else if ( TYPEOF(rhs(i)) == REALSXP )
+            return static_cast<T>(REAL(rhs(i))[k]);
+    }
+    return DataNA<T>();
+}
+
+template<typename T>
+T Ops :: do_ops(T x, index_t offset, int group) {
+    for ( int i = 0; i < length(); i++ )
+    {
+        T y = arg<T>(i, offset, group);
+        switch(op(i))
+        {
+            case OP_ADD:
+                x += y;
+                break;
+            case OP_SUB:
+                if ( has_lhs(i) )
+                    x = y - x;
+                else
+                    x -= y;
+                break;
+            case OP_MUL:
+                x *= y;
+                break;
+            case OP_DIV:
+                if ( has_lhs(i) )
+                    x = y / x;
+                else
+                    x /= y;
+                break;
+            case OP_EXP:
+                if ( has_lhs(i) )
+                    x = coerce_pow<T>(y, x);
+                else if ( has_rhs(i) )
+                    x = coerce_pow<T>(x, y);
+                else
+                    x = coerce_exp<T>(x);
+                break;
+            case OP_LOG:
+                if ( has_rhs(i) )
+                    x = coerce_log(x) / coerce_log(y);
+                else
+                    x = coerce_log(x);
+        }
+    }
+    return x;
+}
+
+template<typename T>
+T Ops :: reverse_ops(T x, index_t offset, int group) {
+    for ( int i = 0; i < length(); i++ )
+    {
+        T y = arg<T>(i, offset, group);
+        switch(op(i))
+        {
+            case OP_ADD:
+                x -= y;
+                break;
+            case OP_SUB:
+                if ( has_lhs(i) )
+                    x = y - x;
+                else
+                    x += y;
+                break;
+            case OP_MUL:
+                x /= y;
+                break;
+            case OP_DIV:
+                if ( has_lhs(i) )
+                    x = y / x;
+                else
+                    x *= y;
+                break;
+            case OP_EXP:
+                if ( has_lhs(i) )
+                    x = coerce_log<T>(x) / coerce_log<T>(y);
+                else if ( has_rhs(i) )
+                    x = coerce_pow<T>(x, 1.0 / y);
+                else
+                    x = coerce_log<T>(x);
+                break;
+            case OP_LOG:
+                if ( has_rhs(i) )
+                    x = coerce_pow(y, x);
+                else
+                    x = coerce_exp(x);
+        }
+    }
+    return x;
+}
 
 //// Vector methods implemented for class Matter
 //-----------------------------------------------
@@ -857,7 +978,7 @@ RType VectorOrDRLE<RType> :: operator[](int i) {
 template<typename RType>
 SEXP Matter :: readVector() {
     SEXP retVec;
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     PROTECT(retVec = allocVector(DataType<RType>(), length()));
     RType * pRetVec = DataPtr<RType>(retVec);
     atoms.read<RType>(pRetVec, 0, length());
@@ -868,7 +989,7 @@ SEXP Matter :: readVector() {
 template<typename RType>
 void Matter :: writeVector(SEXP value) {
     RType * pValue = DataPtr<RType>(value);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     atoms.write<RType>(pValue, 0, length());
 }
 
@@ -878,7 +999,7 @@ SEXP Matter :: readVectorElements(SEXP i) {
     PROTECT(retVec = allocVector(DataType<RType>(), XLENGTH(i)));
     RType * pRetVec = DataPtr<RType>(retVec);
     Rindex_t * pIndex = INDEX_PTR(i);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     atoms.read_indices<RType>(pRetVec, pIndex, XLENGTH(i));
     UNPROTECT(1);
     return retVec;
@@ -888,7 +1009,7 @@ template<typename RType>
 void Matter :: writeVectorElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
     Rindex_t * pIndex = INDEX_PTR(i);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     atoms.write_indices(pValue, pIndex, XLENGTH(i));
 }
 
@@ -901,7 +1022,7 @@ SEXP Matter :: readMatrix() {
     int nrows = this->nrows(), ncols = this->ncols();
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -924,7 +1045,7 @@ template<typename RType>
 void Matter :: writeMatrix(SEXP value) {
     int nrows = this->nrows(), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -948,7 +1069,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pRow = INDEX_PTR(i);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -977,7 +1098,7 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
     int nrows = LENGTH(i), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
     Rindex_t * pRow = INDEX_PTR(i);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -1004,7 +1125,7 @@ SEXP Matter :: readMatrixCols(SEXP j) {
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
@@ -1033,7 +1154,7 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
     int nrows = this->nrows(), ncols = LENGTH(j);
     RType * pValue = DataPtr<RType>(value);
     Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
@@ -1061,7 +1182,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
     RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pRow = INDEX_PTR(i);
     Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
@@ -1096,7 +1217,7 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
     Rindex_t * pRow = INDEX_PTR(i);
     Rindex_t * pCol = INDEX_PTR(j);
-    Atoms atoms(data(), sources(), ops());
+    Atoms atoms = data();
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {

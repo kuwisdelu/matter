@@ -29,7 +29,7 @@
 }
 
 \value{
-	See \code{\link[base]{apply}} for details.        
+	See \code{\link[base]{apply}} for details.
 }
 
 \author{Kylie A. Bemis}
