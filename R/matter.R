@@ -2,7 +2,7 @@
 #### Define matter VIRTUAL class ####
 ## ----------------------------------
 
-setClassUnion("character_OR_NULL", c("character", "NULL")) # imported from S4Vectors
+setClassUnion("character_OR_NULL", c("character", "NULL"))
 setClassUnion("integer_OR_NULL", c("integer", "NULL"))
 setClassUnion("list_OR_NULL", c("list", "NULL"))
 
@@ -16,7 +16,7 @@ setClass("matter",
 		length = "numeric",
 		dim = "integer_OR_NULL",
 		names = "character_OR_NULL",
-		dimnames = "list_OR_NULL"),
+		dimnames = "list_OR_NULL",
 		ops = "list_OR_NULL"),
 	contains = "VIRTUAL",
 	validity = function(object) {
