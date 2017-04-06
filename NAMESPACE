@@ -33,6 +33,7 @@ exportClasses(
 
 exportMethods(
 	"adata",
+	"atomdata",
 	"datamode",
 	"datamode<-",
 	"paths",
@@ -57,7 +58,14 @@ exportMethods(
 	"names<-",
 	"dimnames",
 	"dimnames<-",
-	"t")
+	"t",
+	"crossprod",
+	"tcrossprod")
+
+export(
+	"t.matter",
+	"mean.matter",
+	"scale.matter")
 
 exportMethods(
 	"sum",

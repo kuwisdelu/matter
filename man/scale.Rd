@@ -2,6 +2,7 @@
 \docType{methods}
 
 \alias{scale}
+\alias{scale.matter}
 \alias{scale,matter_mat-method}
 
 \title{Scaling and Centering of ``matter'' Matrices}

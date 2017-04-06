@@ -1,4 +1,17 @@
 
+CHANGES IN VERSION 1.1.1 [2016-11-29]
+---------------------------------
+
+NEW FEATURES
+
+    o Added 'crossprod' (t(x) %*% y) and 'tcrossprod' (x %*% t(y)) methods
+    o Added 'atomdata' accessor method, for which 'adata' is now an alias
+
+BUG FIXES
+
+    o Added S3 versions of some S4 methods to fix scoping issues
+    o Removed Cardinal package from Suggests to avoid circular dependency
+    o Reduced memory consumption in bigglm-matter method
 
 CHANGES IN VERSION 0.99.11 [2016-10-11]
 ---------------------------------

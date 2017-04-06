@@ -7,12 +7,23 @@ setGeneric("sum")
 setGeneric("mean")
 setGeneric("var", signature="x")
 setGeneric("sd", signature="x")
-# setGeneric("colSums", signature="x") # Use S4Vectors or BiocGenerics(?)
-# setGeneric("rowSums", signature="x") # Use S4Vectors or BiocGenerics(?)
-# setGeneric("colMeans", signature="x") # Use S4Vectors or BiocGenerics(?)
-# setGeneric("rowMeans", signature="x") # Use S4Vectors or BiocGenerics(?)
+# setGeneric("colSums", signature="x") # Use S4Vectors or BiocGenerics (?)
+# setGeneric("rowSums", signature="x") # Use S4Vectors or BiocGenerics (?)
+# setGeneric("colMeans", signature="x") # Use S4Vectors or BiocGenerics (?)
+# setGeneric("rowMeans", signature="x") # Use S4Vectors or BiocGenerics (?)
 setGeneric("apply", signature="X")
 setGeneric("scale", signature="x")
+
+t.matter <- function(x) t(x)
+
+mean.matter <- function(x, ...) mean(x, ...)
+
+scale.matter <- function(x, center = TRUE, scale = TRUE) {
+	scale(x, center = center, scale = scale)
+}
+
+setGeneric("crossprod", signature=c("x", "y"))
+setGeneric("tcrossprod", signature=c("x", "y"))
 
 #### Define new generics from stats ####
 ## -------------------------------------
@@ -37,6 +48,7 @@ if ( !isGeneric("rowSds") )
 ## -----------------------------------------------	
 
 setGeneric("adata", function(object) standardGeneric("adata"))
+setGeneric("atomdata", function(object) standardGeneric("atomdata"))
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
 setGeneric("paths", function(x) standardGeneric("paths"))
@@ -426,7 +438,9 @@ matter <- function(...) {
 	}
 }
 
-setMethod("adata", "matter", function(object) object@data)
+setMethod("adata", "matter", function(object) atomdata(x))
+
+setMethod("atomdata", "matter", function(object) object@data)
 
 setMethod("show", "matter", function(object) {
 	object.memory <- object.size(object)
@@ -1300,6 +1314,16 @@ setMethod("%*%", c("matter", "matter"), function(x, y)
 	stop("at least one matrix must be in memory")
 })
 
+# aliases for crossprod and tcrossprod
+
+setMethod("crossprod", c("matter", "ANY"), function(x, y) t(x) %*% y)
+
+setMethod("crossprod", c("ANY", "matter"), function(x, y) t(x) %*% y)
+
+setMethod("tcrossprod", c("matter", "ANY"), function(x, y) x %*% t(y))
+
+setMethod("tcrossprod", c("ANY", "matter"), function(x, y) x %*% t(y))
+
 #### Apply functions over matter matrices ####
 ## -------------------------------------------
 
@@ -1395,7 +1419,8 @@ bigglm_matter <- function(formula, data, ..., chunksize, fc) {
 		if ( current > n )
 			return(NULL)
 		chunkrange <- current:(current + min(chunksize, n - current))
-		chunk <- as.data.frame(data[chunkrange,vars])
+		chunk <- sapply(vars, function(v) data[chunkrange,v], simplify=FALSE)
+		chunk <- as.data.frame(chunk)
 		if ( !is.null(fc) ) {
 			for ( name in names(flevels) )
 				chunk[,name] <- factor(chunk[,name], levels=flevels[name])
@@ -1422,7 +1447,7 @@ prcomp_matter <- function(x, n, retx, center, scale., ...) {
         	"  for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n",
         	"  to control that algorithm's convergence tolerance.")
     x <- scale(x, center=center, scale=scale.)
-    sv <- irlba(x, nv=n, fastpath=FALSE, ...)
+    sv <- irlba(x, nu=n, nv=n, fastpath=FALSE, ...)
     ans <- list(sdev = sv$d/sqrt(max(1, nrow(x) - 1)), rotation = sv$v)
     colnames(ans$rotation) <- paste0("PC", seq(1, ncol(ans$rotation)))
     if ( !is.null(attr(x, "scaled:center")) ) {
@@ -1442,3 +1467,6 @@ prcomp_matter <- function(x, n, retx, center, scale., ...) {
     class(ans) <- "prcomp"
     ans
 }
+
+
+
