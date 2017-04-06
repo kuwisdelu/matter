@@ -1,19 +1,17 @@
 
 import("methods")
 
-import("stats")
-
 import("biglm")
-
-importFrom("BiocGenerics",
-	"combine",
-	"cbind",
-	"rbind")
 
 importFrom("irlba",
 	"irlba")
 
-importFrom("S4Vectors",
+importFrom("BiocGenerics",
+	"sd",
+	"var",
+	"combine",
+	"cbind",
+	"rbind",
 	"colMeans",
 	"colSums",
 	"rowMeans",

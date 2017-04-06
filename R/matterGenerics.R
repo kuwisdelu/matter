@@ -5,12 +5,12 @@
 setGeneric("t")
 setGeneric("sum")
 setGeneric("mean")
-setGeneric("var", signature="x")
-setGeneric("sd", signature="x")
-# setGeneric("colSums", signature="x") # Use S4Vectors or BiocGenerics (?)
-# setGeneric("rowSums", signature="x") # Use S4Vectors or BiocGenerics (?)
-# setGeneric("colMeans", signature="x") # Use S4Vectors or BiocGenerics (?)
-# setGeneric("rowMeans", signature="x") # Use S4Vectors or BiocGenerics (?)
+# setGeneric("var", signature="x") # Use BiocGenerics
+# setGeneric("sd", signature="x") # Use BiocGenerics
+# setGeneric("colSums", signature="x") # Use BiocGenerics
+# setGeneric("rowSums", signature="x") # Use BiocGenerics
+# setGeneric("colMeans", signature="x") # Use BiocGenerics
+# setGeneric("rowMeans", signature="x") # Use BiocGenerics
 setGeneric("apply", signature="X")
 setGeneric("scale", signature="x")
 

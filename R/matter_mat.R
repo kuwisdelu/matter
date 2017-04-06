@@ -717,8 +717,7 @@ setMethod("^", c("numeric", "matter_matr"),
 
 setMethod("exp", "matter_mat",
 	function(x) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(x, NULL, NULL, "^", "by_each_group")
+		register_op(x, NULL, NULL, "^", "by_each_group")
 })
 
 setMethod("log", "matter_matc",
@@ -736,7 +735,7 @@ setMethod("log", "matter_matr",
 		if ( missing(base) ) {
 			register_op(x, NULL, NULL, "log", "by_each_group")
 		} else {
-			if ( check_comformable_dims(e1, e2) )
+			if ( check_comformable_dims(x, base) )
 				register_op(x, base, NULL, "log", "by_each_group")
 		}
 })

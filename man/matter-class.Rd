@@ -28,6 +28,7 @@
 \alias{chunksize,matter-method}
 \alias{chunksize<-,matter-method}
 
+\alias{length,atoms-method}
 \alias{length,matter-method}
 \alias{length<-,matter-method}
 \alias{dim,matter-method}
@@ -36,6 +37,9 @@
 \alias{names<-,matter-method}
 \alias{dimnames,matter-method}
 \alias{dimnames<-,matter,ANY-method}
+
+\alias{[,atoms,ANY,ANY,ANY-method}
+\alias{[[,atoms-method}
 
 \alias{c,atoms-method}
 \alias{c,matter-method}
@@ -76,6 +80,8 @@ matter(\dots)
         \item{\code{names}:}{The names of the data elements for vectors.}
 
         \item{\code{dimnames}:}{Either 'NULL' or the names for the dimensions. If not 'NULL', then this should be a list of character vectors of the length given by 'dim' for each dimension. This is always 'NULL' for vectors.}
+
+        \item{\code{ops}:}{Delayed operations to be applied on atoms.}
     }
 }
 
@@ -101,6 +107,8 @@ matter(\dots)
 
     Standard generic methods:
     \describe{
+        \item{\code{length(x), length(x) <- value}:}{Get or set 'length'.}
+
         \item{\code{dim(x), dim(x) <- value}:}{Get or set 'dim'.}
 
         \item{\code{names(x), names(x) <- value}:}{Get or set 'names'.}
