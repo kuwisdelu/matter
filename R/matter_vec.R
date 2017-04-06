@@ -4,7 +4,7 @@
 
 setClass("matter_vec",
 	prototype = prototype(
-		data = atoms(),
+		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
@@ -54,7 +54,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 			datamode=as.integer(make_datamode(datamode, type="C")),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
-		datamode=widest_datamode(datamode, from="C"),
+		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=as.numeric(sum(extent)),
@@ -151,7 +151,7 @@ setMethod("combine", "matter_vec", function(x, y, ...) {
 	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
-		datamode=widest_datamode(data, from="C"),
+		datamode=widest_datamode(datamode(data)),
 		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
@@ -176,7 +176,7 @@ setMethod("c", "matter_vec", function(x, ...)
 setMethod("t", "matter_vec", function(x)
 {
 	class(x) <- "matter_matr"
-	x@data <- list(x@data)
+	x@data <- x@data
 	x@dim <- c(1L, as.integer(x@length))
 	if ( !is.null(x@names) )
 		x@dimnames <- list(NULL, x@namesL)

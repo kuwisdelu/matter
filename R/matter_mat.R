@@ -5,7 +5,7 @@
 setClass("matter_mat",
 	contains = c("matter", "VIRTUAL"),
 	prototype = prototype(
-		data = atoms(),
+		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
@@ -27,7 +27,7 @@ setClass("matter_mat",
 setClass("matter_matc",
 	contains = "matter_mat",
 	prototype = prototype(
-		data = atoms(),
+		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
@@ -40,7 +40,7 @@ setClass("matter_matc",
 setClass("matter_matr",
 	contains = "matter_mat",
 	prototype = prototype(
-		data = atoms(),
+		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
 		filemode = "rb",
@@ -103,11 +103,6 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	if ( noatoms ) {
 		adata <- function() atoms()
 	} else {
-		# adata <- function() mapply(atoms,
-		# 	factor(paths),
-		# 	make_datamode(datamode, type="C"),
-		# 	as.numeric(offset),
-		# 	as.numeric(extent))
 		adata <- function() atoms(
 			group_id=seq_along(extent),
 			source_id=as.integer(factor(paths)),
@@ -117,7 +112,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	}
 	x <- new(mclass,
 		data=adata(),
-		datamode=widest_datamode(datamode, from="C"),
+		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=as.numeric(prod(c(nrow, ncol))),
@@ -409,16 +404,6 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
 	paths <- levels(factor(c(x@paths, y@paths)))
-	# x@data <- lapply(x@data, function(xs) {
-	# 	xs@source_id <- as.integer(factor(x@paths[xs@source_id[]],
-	# 		levels=paths))
-	# 	xs
-	# })
-	# y@data <- lapply(y@data, function(ys) {
-	# 	ys@source_id <- as.integer(factor(y@paths[ys@source_id[]],
-	# 		levels=paths))
-	# 	ys
-	# })
 	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
 		levels=paths))
 	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
@@ -427,7 +412,7 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
-		datamode=widest_datamode(data, from="C"),
+		datamode=widest_datamode(datamode(data)),
 		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
@@ -460,16 +445,6 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
 	paths <- levels(factor(c(x@paths, y@paths)))
-	# x@data <- lapply(x@data, function(xs) {
-	# 	xs@source_id <- as.integer(factor(x@paths[xs@source_id[]],
-	# 		levels=paths))
-	# 	xs
-	# })
-	# y@data <- lapply(y@data, function(ys) {
-	# 	ys@source_id <- as.integer(factor(y@paths[ys@source_id[]],
-	# 		levels=paths))
-	# 	ys
-	# })
 	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
 		levels=paths))
 	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
@@ -478,7 +453,7 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 	data <- combine(x@data, y@data)
 	new(class(x),
 		data=data,
-		datamode=widest_datamode(data, from="C"),
+		datamode=widest_datamode(datamode(data)),
 		paths=paths,
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,

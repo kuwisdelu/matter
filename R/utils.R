@@ -124,6 +124,8 @@ register_op <- function(x, lhs, rhs, op, where) {
 #### Define data types and utility functions for them ####
 ## -------------------------------------------------------
 
+# --> R , --> C
+
 make_datamode <- function(x, type=c("C", "R")) {
 	type <- match.arg(type)
 	levels <- switch(type,
@@ -138,11 +140,18 @@ make_datamode <- function(x, type=c("C", "R")) {
 	} else if ( is.character(x) ) {
 		x <- tolower(x)
 		if ( any(!x %in% levels) ) {
-			if ( any(x %in% levels(make_datamode(type="R"))) ) {
-				x <- switch(x,
-					raw = "uchar",
-					integer = "int",
-					numeric = "double")
+			if ( type == "C" ) {
+				if ( all(x %in% levels(make_datamode(type="R"))) ) {
+					x <- convert_datamode(x, to="C")
+				} else {
+					stop("unsupported data type")
+				}
+			} else if ( type == "R" ) {
+				if ( all(x %in% levels(make_datamode(type="C"))) ) {
+					x <- convert_datamode(x, to="R")
+				} else {
+					stop("unsupported data type")
+				}
 			} else {
 				stop("unsupported data type")
 			}
@@ -153,36 +162,58 @@ make_datamode <- function(x, type=c("C", "R")) {
 	}
 }
 
-tabulate_datamode <- function(x) {
-	if ( class(x) == "atoms" ) {
-		x <- datamode(x)
-	} else if ( class(x) == "list" ) {
-		x <- unlist(lapply(x, function(xs)
-			datamode(xs)))
-	}
-	summary(make_datamode(x[], type="C"))
-}
+# R <--> C
 
-widest_datamode <- function(x, from=c("C", "R")) {
-	counts <- tabulate_datamode(x)
-	topmode <- make_datamode(max(which(counts > 0)))
-	if ( from == "C" ) {
-		make_datamode(switch(as.character(topmode),
-		char = "integer",
-		uchar = "integer",
-		short = "integer",
-		ushort = "integer",
-		int = "integer",
-		uint = "integer",
-		long = "numeric",
-		ulong = "numeric",
-		float = "numeric",
-		double = "numeric"), type="R")
-	} else if ( from == "R" ) {
-		make_datamode(switch(as.character(topmode),
+convert_datamode <- function(x, to=c("C", "R")) {
+	if ( to == "R" ) {
+		vapply(as.character(x), switch, character(1),
+			char = "integer",
+			uchar = "integer",
+			short = "integer",
+			ushort = "integer",
+			int = "integer",
+			uint = "integer",
+			long = "numeric",
+			ulong = "numeric",
+			float = "numeric",
+			double = "numeric")
+	} else {
+		vapply(as.character(x), switch, character(1),
 			raw = "uchar",
 			integer = "int",
-			numeric = "double"), type="C")
+			numeric = "double")
+	}
+}
+
+# --> R
+
+widest_datamode <- function(x) {
+	if ( is.drle(x) )
+		x <- x[]
+	if ( is.integer(x) )
+		x <- make_datamode(x, type="C")
+	x <- as.character(unique(x))
+	if ( all(x %in% levels(make_datamode(type="R"))) ) {
+		x <- max(as.integer(make_datamode(x, type="R")))
+		make_datamode(switch(x,
+			raw="raw",
+			integer="integer",
+			numeric="numeric"), type="R")
+	} else if ( all(x %in% levels(make_datamode(type="C"))) ) {
+		x <- max(as.integer(make_datamode(x, type="C")))
+		make_datamode(switch(x,
+			char = "integer",
+			uchar = "integer",
+			short = "integer",
+			ushort = "integer",
+			int = "integer",
+			uint = "integer",
+			long = "numeric",
+			ulong = "numeric",
+			float = "numeric",
+			double = "numeric"), type="R")
+	} else {
+		stop("unsupported data type")
 	}
 }
 
