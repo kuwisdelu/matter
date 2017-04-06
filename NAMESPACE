@@ -17,8 +17,6 @@ importFrom("BiocGenerics",
 	"rowMeans",
 	"rowSums")
 
-importClassFrom("S4Vectors", "character_OR_NULL")
-
 importFrom("utils",
 	"object.size")
 
