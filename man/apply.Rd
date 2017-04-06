@@ -25,7 +25,7 @@
 }
 
 \details{
-	Because \code{FUN} is executed by in the appropriate R environment, the full row or column must be loaded into memory, and the \code{chunksize} of \code{X} is ignored. For summary statistics, functions like \code{\link[matter]{colMeans,matter-method}} and \code{\link[matter]{rowMeans,matter-method}} offer greater control over memory pressure.
+	Because \code{FUN} must be executed by the interpreter in the appropriate R environment, the full row or column will be loaded into memory. The \code{chunksize} of \code{X} is ignored. For summary statistics, functions like \code{\link[matter]{colMeans,matter-method}} and \code{\link[matter]{rowMeans,matter-method}} offer greater control over memory pressure.
 }
 
 \value{

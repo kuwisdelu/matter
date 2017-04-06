@@ -29,11 +29,11 @@ This vignette demonstrates the usefulness of \Rpackage{matter} for working with 
 
 \section{Attaching larger-than-memory MS imaging datasets}
 
-This example will use one of the benchmark 3D MSI experiments from Oetjen {\it et al.} \cite{Oetjen:2015en}. We will use the 3D mouse pancreas dataset, which is comprised of 29 tissue sections, with a total of 497,227 pixels and 13,297 features. The data is stored in imzML format \cite{Schramm}. The ".imzML" XML file with experimetnal metadata is 857.7 MB, and the ".ibd" binary file with the m/z values and spectral intensities is 26.45 GB.
+This example will use one of the benchmark 3D MSI experiments from Oetjen {\it et al.} \cite{Oetjen:2015en}. We will use the 3D mouse pancreas dataset, which is comprised of 29 tissue sections, with a total of 497,227 pixels and 13,297 features. The data is stored in imzML format \cite{Schramm}. The ".imzML" XML file with experimental metadata is 857.7 MB, and the ".ibd" binary file with the m/z values and spectral intensities is 26.45 GB.
 
 Due to the various offsets in imzML ibd files, they cannot be attached as simply as \Rpackage{bigmemory} or \Rpackage{ff} files. These packages have strict requirements on the format of their data, for maximum computational effiency. \Rpackage{matter} takes a different approach with more flexibility, which allows use of imzML's domain-specific binary file format directly, and with minimal memory footprint, at the cost potentially slower computational performance in some situations.
 
-<<setup>>=
+<<setup-pancreas>>=
 library(matter)
 library(Cardinal)
 path <- "~/Documents/Datasets/MALDI-Imaging/3D_Mouse_Pancreas/"
@@ -118,6 +118,71 @@ Lastly, we will plot TIC of each pixel, which we calculated earlier using \Robje
 \end{subfigure}
 \caption{\small Plotting 3D images of the benchmark 3D mouse pancreas dataset.}
 \end{figure}
+
+\section{Principal componenets analysis of large 3D MS images}
+
+Now we will demonstrate principal components analysis (PCA) with one of the benchmark 3D MSI experiments from Oetjen {\it et al.} \cite{Oetjen:2015en}. PCA is a common unsupervised multivariate technique used to summarize and visualize the majority of the variation in the dataset.
+
+We will use the 3D microbial timecourse experiment, which is comprised of interacting microbes at 3 time points, with a total of 17,672 pixels and 40,299 features. The data is stored in imzML format \cite{Schramm}. The ".imzML" XML file with experimental metadata is 30.5, and the ".ibd" binary file with the m/z values and spectral intensities is 2.85 GB.
+
+<<setup-microbe>>=
+path <- "~/Documents/Datasets/MALDI-Imaging/3D_Timecourse/"
+file <- "Microbe_Interaction_3D_Timecourse_LP.imzML"
+microbe <- readMSIData(paste0(path, file), attach.only=TRUE)
+iData(microbe)
+dims(microbe)
+dim(microbe)
+@
+
+The dataset was stored so that the first time point $t = 4$ corresponds to $z = {1,2,3,4,5,6}$, the second time point $t = 8$ corresponds to $z = {7,8,9,10,11,12}$, and the third time point $t = 11$ corresponds to $z = {13,14,15,16,17,18}$. We will reparamaterize the coordinates below to make it easier to work with the dataset. We also remove duplicated coordinates caused by converting the z-dimension to integers from their original non-integer form.
+
+<<>>=
+microbe <- microbe[,!duplicated(coord(microbe))]
+
+microbe$sample <- factor(sapply(microbe$z, function(z) {
+	if ( z %in% 1:6 ) {
+		1
+	} else if ( z %in% 7:12 ) {
+		2
+	} else if ( z %in% 13:18 )  {
+		3
+	}
+}), labels=c("t = 4", "t = 8", "t = 11"))
+
+microbe$z <- sapply(microbe$z, function(z) {
+	if ( z %in% 1:6 ) {
+		z
+	} else if ( z %in% 7:12 ) {
+		z-6
+	} else if ( z %in% 13:18 )  {
+		z-12
+	}
+})
+
+microbe$x <- mapply(function(x, t) {
+	switch(as.integer(t),
+		x-30,
+		x-15,
+		x)
+}, microbe$x, microbe$sample)
+
+varMetadata(microbe)[c("x","y","z","sample"),"labelType"] <- "dim"
+
+protocolData(microbe) <- AnnotatedDataFrame(
+	data=data.frame(row.names=sampleNames(microbe)))
+
+microbe <- regeneratePositions(microbe)
+
+validObject(microbe)
+@
+
+We can now plot the molecular ion image for $m/z$ 262.
+
+<<microbe-ion>>=
+image3D(microbe, ~ x * z * y, mz=262, theta=-55, contrast="supp", layout=c(3,1))
+@
+
+Now we perform principal components analysis. (Still need to add this part.)
 
 
 \section{Session info}
