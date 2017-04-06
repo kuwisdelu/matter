@@ -3,17 +3,15 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Update principal components section of vignette
 - Clean up magic constant codes
-- Add rowMoments and colMoments
+- Optimize atoms to use run length encoding
 - Add more delayed arithmetic options
 
 Priority: Medium
-- Smart caching of frequently-accessed parts of data
 - Sparse vectors/matrices (both in-memory and on-disk)
-- Implement fuzzy maps and fuzzy sparse matrices
-
-Priority: Low
 - Add factor types (datamode="integer")
 - Add list and data.frame (datamode=<vector of data modes>) types
 - Add text (datamode="character") types
+
+Priority: Low
+- Smart caching of frequently-accessed parts of data

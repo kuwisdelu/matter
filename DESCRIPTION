@@ -1,7 +1,7 @@
 Package: matter
 Type: Package
 Title: A framework for rapid prototyping with binary data on disk
-Version: 1.1.1
+Version: 1.1.2
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
@@ -14,5 +14,7 @@ License: Artistic-2.0
 Depends: methods, stats, biglm
 Imports: BiocGenerics, irlba, S4Vectors (>= 0.13.13), utils
 Suggests: BiocStyle, testthat
+Collate: matterGenerics.R utils.R atoms.R matter.R matter_vec.R matter_mat.R
+	stats.R apply.R bigglm.R prcomp.R
 biocViews: Software, Infrastructure
 URL: http://www.cardinalmsi.org

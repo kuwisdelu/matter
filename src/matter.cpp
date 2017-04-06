@@ -2,75 +2,24 @@
 #include <cmath>
 
 #include "matter.h"
-#include "matterDefines.h"
 
 //// Low-level utility functions
 //-------------------------------
 
-// convert between C and R representations, handling NAs
+//// ----------------- R <----> C ----------------- /////
 
-// ----> short
-
-template<>
-short coerce_cast<int,short>(int x) {
-    if ( x < R_SHORT_MIN || x > R_SHORT_MAX || x == NA_INTEGER )
-    {
-        if ( x != NA_INTEGER )
-            warning("value is out of range for type 'short', element will be set to NA");
-        return NA_SHORT;
-    }
-    warning("casting from 'int' to 'short', precision may be lost");
-    return static_cast<short>(x);
-}
+// Rbyte <----> Rbyte
 
 template<>
-short coerce_cast<double,short>(double x) {
-    if ( x < R_SHORT_MIN || x > R_SHORT_MAX ||  !R_FINITE(x) )
-    {
-        if ( !ISNA(x) )
-            warning("value is out of range for type 'short', element will be set to NA");
-        return NA_SHORT;
-    }
-    warning("casting from 'double' to 'short', precision may be lost");
-    return static_cast<short>(x);
+Rbyte coerce_cast<Rbyte,Rbyte>(Rbyte x) {
+    return x;
 }
 
-// ----> int
-
-template<>
-int coerce_cast<short,int>(short x) {
-    if ( x == NA_SHORT )
-        return NA_INTEGER;
-    else
-        return static_cast<int>(x);
-}
+// (int,double) ----> int
 
 template<>
 int coerce_cast<int,int>(int x) {
     return x;
-}
-
-template<>
-int coerce_cast<long,int>(long x) {
-    if ( x < R_INT_MIN || x > R_INT_MAX || x == NA_LONG )
-    {
-        if ( x != NA_LONG )
-            warning("value is out of range for type 'int', element will be set to NA");
-        return NA_SHORT;
-    }
-    if ( x == NA_LONG )
-        return NA_INTEGER;
-    else
-        return static_cast<int>(x);
-}
-
-template<>
-int coerce_cast<float,int>(float x) {
-    warning("casting from 'float' to 'int', precision may be lost");
-    if ( std::isnan(x) )
-        return NA_INTEGER;
-    else
-        return static_cast<int>(x);
 }
 
 template<>
@@ -85,7 +34,175 @@ int coerce_cast<double,int>(double x) {
     return static_cast<int>(x);
 }
 
-// ----> long
+// (int,double) ----> double
+
+template<>
+double coerce_cast<int,double>(int x) {
+    if ( x == NA_INTEGER )
+        return NA_REAL;
+    else
+        return static_cast<double>(x);
+}
+
+template<>
+double coerce_cast<double,double>(double x) {
+    return x;
+}
+
+//// ----------------- R -----> C ----------------- /////
+
+// (Rbyte,int,double) ----> char
+
+template<>
+char coerce_cast<Rbyte,char>(Rbyte x) {
+    return static_cast<char>(x);
+}
+
+template<>
+char coerce_cast<int,char>(int x) {
+    if ( x < R_CHAR_MIN || x > R_CHAR_MAX || x == NA_INTEGER )
+    {
+        if ( x != NA_INTEGER )
+            warning("value is out of range for type 'char', element will be set to NA");
+        return NA_CHAR;
+    }
+    return static_cast<char>(x);
+}
+
+template<>
+char coerce_cast<double,char>(double x) {
+    if ( x < R_CHAR_MIN || x > R_CHAR_MAX || !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'char', element will be set to NA");
+        return NA_CHAR;
+    }
+    warning("casting from 'double' to 'char', precision may be lost");
+    return static_cast<char>(x);
+}
+
+// (int,double) ----> uchar
+
+template<>
+unsigned char coerce_cast<int,unsigned char>(int x) {
+    if ( x < 0 || x > R_UCHAR_MAX || x == NA_INTEGER )
+    {
+        if ( x != NA_INTEGER )
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    return static_cast<unsigned char>(x);
+}
+
+template<>
+unsigned char coerce_cast<double,unsigned char>(double x) {
+    if ( x < 0 || x > R_UCHAR_MAX || !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    warning("casting from 'double' to 'unsigned char', precision may be lost");
+    return static_cast<unsigned char>(x);
+}
+
+// (Rbyte,int,double) ----> short
+
+template<>
+short coerce_cast<Rbyte,short>(Rbyte x) {
+    return static_cast<short>(x);
+}
+
+template<>
+short coerce_cast<int,short>(int x) {
+    if ( x < R_SHORT_MIN || x > R_SHORT_MAX || x == NA_INTEGER )
+    {
+        if ( x != NA_INTEGER )
+            warning("value is out of range for type 'short', element will be set to NA");
+        return NA_SHORT;
+    }
+    return static_cast<short>(x);
+}
+
+template<>
+short coerce_cast<double,short>(double x) {
+    if ( x < R_SHORT_MIN || x > R_SHORT_MAX || !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'short', element will be set to NA");
+        return NA_SHORT;
+    }
+    warning("casting from 'double' to 'short', precision may be lost");
+    return static_cast<short>(x);
+}
+
+
+// (Rbyte,int,double) ----> ushort
+
+template<>
+unsigned short coerce_cast<Rbyte,unsigned short>(Rbyte x) {
+    return static_cast<unsigned short>(x);
+}
+
+template<>
+unsigned short coerce_cast<int,unsigned short>(int x) {
+    if ( x < 0 || x > R_USHORT_MAX || x == NA_INTEGER )
+    {
+        if ( x != NA_INTEGER )
+            warning("value is out of range for type 'unsigned short', element will be set to 0");
+        return 0;
+    }
+    return static_cast<unsigned short>(x);
+}
+
+template<>
+unsigned short coerce_cast<double,unsigned short>(double x) {
+    if ( x < 0 || x > R_USHORT_MAX || !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'unsigned short', element will be set to 0");
+        return 0;
+    }
+    warning("casting from 'double' to 'unsigned short', precision may be lost");
+    return static_cast<unsigned short>(x);
+}
+
+
+// (Rbyte,int,double) ----> uint
+
+template<>
+unsigned int coerce_cast<Rbyte,unsigned int>(Rbyte x) {
+    return static_cast<unsigned int>(x);
+}
+
+template<>
+unsigned int coerce_cast<int,unsigned int>(int x) {
+    if ( x < 0 )
+    {
+        warning("value is out of range for type 'int', element will be set to 0");
+        return 0;
+    }
+    return static_cast<int>(x);
+}
+
+template<>
+unsigned int coerce_cast<double,unsigned int>(double x) {
+    if ( x < 0 || x > R_UINT_MAX || !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'unsigned int', element will be set to 0");
+        return 0;
+    }
+    warning("casting from 'double' to 'unsigned int', precision may be lost");
+    return static_cast<unsigned int>(x);
+}
+
+// (Rbyte,int,double) ----> long
+
+template<>
+long coerce_cast<Rbyte,long>(Rbyte x) {
+    return static_cast<long>(x);
+}
 
 template<>
 long coerce_cast<int,long>(int x) {
@@ -107,7 +224,42 @@ long coerce_cast<double,long>(double x) {
     return static_cast<long>(x);
 }
 
-// ----> float
+// (Rbyte,int, double) ----> ulong
+
+template<>
+unsigned long coerce_cast<Rbyte,unsigned long>(Rbyte x) {
+    return static_cast<unsigned long>(x);
+}
+
+template<>
+unsigned long coerce_cast<int,unsigned long>(int x) {
+    if ( x == NA_INTEGER )
+    {
+        warning("value is out of range for type 'long', element will be set to 0");
+        return 0;
+    }
+    else
+        return static_cast<unsigned long>(x);
+}
+
+template<>
+unsigned long coerce_cast<double,unsigned long>(double x) {
+    if ( !R_FINITE(x) )
+    {
+        if ( !ISNA(x) )
+            warning("value is out of range for type 'long', element will be set to 0");
+        return 0;
+    }
+    warning("casting from 'double' to 'unsigned long', precision may be lost");
+    return static_cast<unsigned long>(x);
+}
+
+// (Rbyte,int,double) ----> float
+
+template<>
+float coerce_cast<Rbyte,float>(Rbyte x) {
+    return static_cast<float>(x);
+}
 
 template<>
 float coerce_cast<int,float>(int x) {
@@ -129,7 +281,169 @@ float coerce_cast<double,float>(double x) {
     return static_cast<float>(x);
 }
 
-// ----> double
+//// C -----> R
+
+// (char,short,ushort,uint,long,ulong,float) ----> Rbyte
+
+template<>
+Rbyte coerce_cast<char,Rbyte>(char x) {
+    if ( x < 0 || x == NA_CHAR )
+    {
+        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    else
+        return static_cast<Rbyte>(x);
+}
+
+template<>
+Rbyte coerce_cast<short,Rbyte>(short x) {
+    if ( x < 0 || x > R_UCHAR_MAX || x == NA_SHORT )
+    {
+        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    else
+        return static_cast<Rbyte>(x);
+}
+
+template<>
+Rbyte coerce_cast<unsigned short,Rbyte>(unsigned short x) {
+    if ( x > R_UCHAR_MAX )
+    {
+        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;   
+    }
+    return static_cast<Rbyte>(x);
+}
+
+template<>
+Rbyte coerce_cast<unsigned int,Rbyte>(unsigned int x) {
+    if ( x > R_UCHAR_MAX )
+    {
+        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    return static_cast<Rbyte>(x);
+}
+
+template<>
+Rbyte coerce_cast<long,Rbyte>(long x) {
+    if ( x < 0 || x > R_UCHAR_MAX || x == NA_LONG )
+    {
+        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    else
+        return static_cast<Rbyte>(x);
+}
+
+template<>
+Rbyte coerce_cast<unsigned long,Rbyte>(unsigned long x) {
+    if ( x > R_UCHAR_MAX )
+    {
+        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    return static_cast<Rbyte>(x);
+}
+
+template<>
+Rbyte coerce_cast<float,Rbyte>(float x) {
+    if ( x < 0 || x > R_UCHAR_MAX || std::isnan(x) )
+    {
+        warning("value is out of range for type 'unsigned char', element will be set to 0");
+        return 0;
+    }
+    else
+    {
+        warning("casting from 'float' to 'unsigned char', precision may be lost");
+        return static_cast<Rbyte>(x);
+    }
+}
+
+// (char,uchar,short,ushort,uint,long,ulong,float) ----> int
+
+template<>
+int coerce_cast<char,int>(char x) {
+    if ( x == NA_CHAR )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+template<>
+int coerce_cast<unsigned char,int>(unsigned char x) {
+    return static_cast<int>(x);
+}
+
+template<>
+int coerce_cast<short,int>(short x) {
+    if ( x == NA_SHORT )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+template<>
+int coerce_cast<unsigned short,int>(unsigned short x) {
+    return static_cast<int>(x);
+}
+
+template<>
+int coerce_cast<unsigned int,int>(unsigned int x) {
+    if ( x > R_INT_MAX )
+    {
+        warning("value is out of range for type 'int', element will be set to NA");
+        return NA_INTEGER;
+    }
+    return static_cast<int>(x);
+}
+
+template<>
+int coerce_cast<long,int>(long x) {
+    if ( x < R_INT_MIN || x > R_INT_MAX || x == NA_LONG )
+    {
+        if ( x != NA_LONG )
+            warning("value is out of range for type 'int', element will be set to NA");
+        return NA_INTEGER;
+    }
+    if ( x == NA_LONG )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+template<>
+int coerce_cast<unsigned long,int>(unsigned long x) {
+    if ( x > R_INT_MAX )
+    {
+        warning("value is out of range for type 'int', element will be set to NA");
+        return NA_INTEGER;
+    }
+    return static_cast<int>(x);
+}
+
+template<>
+int coerce_cast<float,int>(float x) {
+    warning("casting from 'float' to 'int', precision may be lost");
+    if ( std::isnan(x) )
+        return NA_INTEGER;
+    else
+        return static_cast<int>(x);
+}
+
+// (char,uchar,short,ushort,uint,long,ulong,float) ----> double
+
+template<>
+double coerce_cast<char,double>(char x) {
+    return static_cast<double>(x);
+}
+
+template<>
+double coerce_cast<unsigned char,double>(unsigned char x) {
+    return static_cast<double>(x);
+}
 
 template<>
 double coerce_cast<short,double>(short x) {
@@ -140,11 +454,13 @@ double coerce_cast<short,double>(short x) {
 }
 
 template<>
-double coerce_cast<int,double>(int x) {
-    if ( x == NA_INTEGER )
-        return NA_REAL;
-    else
-        return static_cast<double>(x);
+double coerce_cast<unsigned short,double>(unsigned short x) {
+    return static_cast<double>(x);
+}
+
+template<>
+double coerce_cast<unsigned int,double>(unsigned int x) {
+    return static_cast<double>(x);
 }
 
 template<>
@@ -156,6 +472,11 @@ double coerce_cast<long,double>(long x) {
 }
 
 template<>
+double coerce_cast<unsigned long,double>(unsigned long x) {
+    return static_cast<double>(x);
+}
+
+template<>
 double coerce_cast<float,double>(float x) {
     if ( std::isnan(x) )
         return NA_REAL;
@@ -163,10 +484,7 @@ double coerce_cast<float,double>(float x) {
         return static_cast<double>(x);
 }
 
-template<>
-double coerce_cast<double,double>(double x) {
-    return x;
-}
+
 
 //// Delayed operations on atoms
 //-------------------------------
@@ -183,13 +501,13 @@ Ops null_transform() {
 //// Count # of consecutive indices after current one (for faster reads)
 //----------------------------------------------------------------------
 
-index_type num_consecutive(double * pindex, long i, long length) {
-    index_type n = 0;
+index_t num_consecutive(Rindex_t * pindex, long i, long length) {
+    index_t n = 0;
     if ( ISNA(pindex[i + 1]) )
         return n;
     if ( i < length - 1 && pindex[i + 1] > pindex[i] ) {
         while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
-            static_cast<index_type>(pindex[i + 1] - pindex[i]) == 1 )
+            static_cast<index_t>(pindex[i + 1] - pindex[i]) == 1 )
         {
             i++;
             n++;
@@ -198,7 +516,7 @@ index_type num_consecutive(double * pindex, long i, long length) {
     }
     else if ( i < length - 1 && pindex[i + 1] < pindex[i] ) {
         while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
-            static_cast<index_type>(pindex[i + 1] - pindex[i]) == -1 )
+            static_cast<index_t>(pindex[i + 1] - pindex[i]) == -1 )
         {
             i++;
             n--;
@@ -235,7 +553,7 @@ SEXP Matter :: readVectorElements(SEXP i) {
     SEXP retVec;
     PROTECT(retVec = allocVector(DataType<RType>(), XLENGTH(i)));
     RType * pRetVec = DataPtr<RType>(retVec);
-    double * pIndex = REAL(i);
+    Rindex_t * pIndex = INDEX_PTR(i);
     Atoms atoms(data(), sources(), ops());
     atoms.read_indices<RType>(pRetVec, pIndex, XLENGTH(i));
     UNPROTECT(1);
@@ -245,7 +563,7 @@ SEXP Matter :: readVectorElements(SEXP i) {
 template<typename RType>
 void Matter :: writeVectorElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType>(value);
-    double * pIndex = REAL(i);
+    Rindex_t * pIndex = INDEX_PTR(i);
     Atoms atoms(data(), sources(), ops());
     atoms.write_indices(pValue, pIndex, XLENGTH(i));
 }
@@ -303,7 +621,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
     int nrows = LENGTH(i), ncols = this->ncols();
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
-    double * pRow = REAL(i);
+    Rindex_t * pRow = INDEX_PTR(i);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -316,7 +634,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
                 if ( ISNA(pRow[l]) )
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
-                    index_type row = static_cast<index_type>(pRow[l]);
+                    index_t row = static_cast<index_t>(pRow[l]);
                     Atoms atoms(data(row), sources(), ops(row));
                     atoms.read<RType>(pRetMat + l, 0, ncols, nrows);
                 }
@@ -331,7 +649,7 @@ template<typename RType>
 void Matter :: writeMatrixRows(SEXP i, SEXP value) {
     int nrows = LENGTH(i), ncols = this->ncols();
     RType * pValue = DataPtr<RType>(value);
-    double * pRow = REAL(i);
+    Rindex_t * pRow = INDEX_PTR(i);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -343,7 +661,7 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
             for ( int l = 0; l < nrows; l++ ) {
                 if ( ISNA(pRow[l]) )
                     continue;
-                index_type row = static_cast<index_type>(pRow[l]);
+                index_t row = static_cast<index_t>(pRow[l]);
                 Atoms atoms(data(row), sources(), ops(row));
                 atoms.write<RType>(pValue + l, 0, ncols, nrows);
             }
@@ -357,14 +675,14 @@ SEXP Matter :: readMatrixCols(SEXP j) {
     int nrows = this->nrows(), ncols = LENGTH(j);
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
-    double * pCol = REAL(j);
+    Rindex_t * pCol = INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
-                    index_type col = static_cast<index_type>(pCol[l]);
+                    index_t col = static_cast<index_t>(pCol[l]);
                     Atoms atoms(data(col), sources(), ops(col));
                     atoms.read<RType>(pRetMat + l * nrows, 0, nrows);
                 }
@@ -385,13 +703,13 @@ template<typename RType>
 void Matter :: writeMatrixCols(SEXP j, SEXP value) {
     int nrows = this->nrows(), ncols = LENGTH(j);
     RType * pValue = DataPtr<RType>(value);
-    double * pCol = REAL(j);
+    Rindex_t * pCol = INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
-                index_type col = static_cast<index_type>(pCol[l]);
+                index_t col = static_cast<index_t>(pCol[l]);
                 Atoms atoms(data(col), sources(), ops(col));
                 atoms.write<RType>(pValue + l * nrows, 0, nrows);
             }
@@ -411,15 +729,15 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
     int nrows = LENGTH(i), ncols = LENGTH(j);
     PROTECT(retMat = allocMatrix(DataType<RType>(), nrows, ncols));
     RType * pRetMat = DataPtr<RType>(retMat);
-    double * pRow = REAL(i);
-    double * pCol = REAL(j);
+    Rindex_t * pRow = INDEX_PTR(i);
+    Rindex_t * pCol = INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     fillNA<RType>(pRetMat + l * nrows, nrows);
                 else {
-                    index_type col = static_cast<index_type>(pCol[l]);
+                    index_t col = static_cast<index_t>(pCol[l]);
                     Atoms atoms(data(col), sources(), ops(col));
                     atoms.read_indices<RType>(pRetMat + l * nrows, pRow, nrows);
                 }
@@ -430,7 +748,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                 if ( ISNA(pRow[l]) )
                     fillNA<RType>(pRetMat + l, ncols, nrows);
                 else {
-                    index_type row = static_cast<index_type>(pRow[l]);
+                    index_t row = static_cast<index_t>(pRow[l]);
                     Atoms atoms(data(row), sources(), ops(row));
                     atoms.read_indices<RType>(pRetMat + l, pCol, ncols, nrows);
                 }
@@ -445,14 +763,14 @@ template<typename RType>
 void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     int nrows = LENGTH(i), ncols = LENGTH(j);
     RType * pValue = DataPtr<RType>(value);
-    double * pRow = REAL(i);
-    double * pCol = REAL(j);
+    Rindex_t * pRow = INDEX_PTR(i);
+    Rindex_t * pCol = INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int l = 0; l < ncols; l++ ) {
                 if ( ISNA(pCol[l]) )
                     continue;
-                index_type col = static_cast<index_type>(pCol[l]);
+                index_t col = static_cast<index_t>(pCol[l]);
                 Atoms atoms(data(col), sources(), ops(col));
                 atoms.write_indices(pValue + l * nrows, pRow, nrows);
             }
@@ -461,7 +779,7 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
             for ( int l = 0; l < nrows; l++ ) {
                 if ( ISNA(pRow[l]) )
                     continue;
-                index_type row = static_cast<index_type>(pRow[l]);
+                index_t row = static_cast<index_t>(pRow[l]);
                 Atoms atoms(data(row), sources(), ops(row));
                 atoms.write_indices(pValue + l, pCol, ncols, nrows);
             }
@@ -488,7 +806,7 @@ double sum(MatterAccessor<double> & x, bool na_rm) {
 
 double mean(MatterAccessor<double> & x, bool na_rm) {
     double retVal = 0;
-    index_type n = 0;
+    index_t n = 0;
     while ( x ) {
         if ( R_FINITE(*x) )
         {
@@ -504,7 +822,7 @@ double mean(MatterAccessor<double> & x, bool na_rm) {
 
 double var(MatterAccessor<double> & x, bool na_rm) {
     double m_old, m_new, s_old, s_new;
-    index_type n = 0;
+    index_t n = 0;
     while ( x ) {
         if ( R_FINITE(*x) )
         {
@@ -979,9 +1297,11 @@ extern "C" {
     SEXP getVector(SEXP x) {
         Matter mVec(x);
         switch(mVec.datamode()) {
-            case 1:
+            case R_RAW:
+                return mVec.readVector<Rbyte>();
+            case R_INTEGER:
                 return mVec.readVector<int>();
-            case 2:
+            case R_NUMERIC:
                 return mVec.readVector<double>();
             default:
                 return R_NilValue;
@@ -991,6 +1311,9 @@ extern "C" {
     void setVector(SEXP x, SEXP value) {
         Matter mVec(x);
         switch(TYPEOF(value)) {
+            case RAWSXP:
+                mVec.writeVector<Rbyte>(value);
+                break;
             case INTSXP:
                 mVec.writeVector<int>(value);
                 break;
@@ -1003,9 +1326,11 @@ extern "C" {
     SEXP getVectorElements(SEXP x, SEXP i) {
         Matter mVec(x);
         switch(mVec.datamode()) {
-            case 1:
+            case R_RAW:
+                return mVec.readVectorElements<Rbyte>(i);
+            case R_INTEGER:
                 return mVec.readVectorElements<int>(i);
-            case 2:
+            case R_NUMERIC:
                 return mVec.readVectorElements<double>(i);
             default:
                 return R_NilValue;
@@ -1015,6 +1340,9 @@ extern "C" {
     void setVectorElements(SEXP x, SEXP i, SEXP value) {
         Matter mVec(x);
         switch(TYPEOF(value)) {
+            case RAWSXP:
+                mVec.writeVectorElements<Rbyte>(i, value);
+                break;
             case INTSXP:
                 mVec.writeVectorElements<int>(i, value);
                 break;
@@ -1027,9 +1355,11 @@ extern "C" {
     SEXP getMatrix(SEXP x) {
         Matter mMat(x);
         switch(mMat.datamode()) {
-            case 1:
+            case R_RAW:
+                return mMat.readMatrix<Rbyte>();
+            case R_INTEGER:
                 return mMat.readMatrix<int>();
-            case 2:
+            case R_NUMERIC:
                 return mMat.readMatrix<double>();
             default:
                 return R_NilValue;
@@ -1039,6 +1369,9 @@ extern "C" {
     void setMatrix(SEXP x, SEXP value) {
         Matter mMat(x);
         switch(TYPEOF(value)) {
+            case RAWSXP:
+                mMat.writeMatrix<Rbyte>(value);
+                break;
             case INTSXP:
                 mMat.writeMatrix<int>(value);
                 break;
@@ -1051,9 +1384,11 @@ extern "C" {
     SEXP getMatrixRows(SEXP x, SEXP i) {
         Matter mMat(x);
         switch(mMat.datamode()) {
-            case 1:
+            case R_RAW:
+                return mMat.readMatrixRows<Rbyte>(i);
+            case R_INTEGER:
                 return mMat.readMatrixRows<int>(i);
-            case 2:
+            case R_NUMERIC:
                 return mMat.readMatrixRows<double>(i);
             default:
                 return R_NilValue;
@@ -1063,6 +1398,9 @@ extern "C" {
     void setMatrixRows(SEXP x, SEXP i, SEXP value) {
         Matter mMat(x);
         switch(TYPEOF(value)) {
+            case RAWSXP:
+                mMat.writeMatrixRows<Rbyte>(i, value);
+                break;
             case INTSXP:
                 mMat.writeMatrixRows<int>(i, value);
                 break;
@@ -1075,9 +1413,11 @@ extern "C" {
     SEXP getMatrixCols(SEXP x, SEXP j) {
         Matter mMat(x);
         switch(mMat.datamode()) {
-            case 1:
+            case R_RAW:
+                return mMat.readMatrixCols<Rbyte>(j);
+            case R_INTEGER:
                 return mMat.readMatrixCols<int>(j);
-            case 2:
+            case R_NUMERIC:
                 return mMat.readMatrixCols<double>(j);
             default:
                 return R_NilValue;
@@ -1087,6 +1427,9 @@ extern "C" {
     void setMatrixCols(SEXP x, SEXP j, SEXP value) {
         Matter mMat(x);
         switch(TYPEOF(value)) {
+            case RAWSXP:
+                mMat.writeMatrixCols<Rbyte>(j, value);
+                break;
             case INTSXP:
                 mMat.writeMatrixCols<int>(j, value);
                 break;
@@ -1099,9 +1442,11 @@ extern "C" {
     SEXP getMatrixElements(SEXP x, SEXP i, SEXP j) {
         Matter mMat(x);
         switch(mMat.datamode()) {
-            case 1:
+            case R_RAW:
+                return mMat.readMatrixElements<Rbyte>(i, j);
+            case R_INTEGER:
                 return mMat.readMatrixElements<int>(i, j);
-            case 2:
+            case R_NUMERIC:
                 return mMat.readMatrixElements<double>(i, j);
             default:
                 return R_NilValue;
@@ -1111,6 +1456,9 @@ extern "C" {
     void setMatrixElements(SEXP x, SEXP i, SEXP j, SEXP value) {
         Matter mMat(x);
         switch(TYPEOF(value)) {
+            case RAWSXP:
+                mMat.writeMatrixElements<Rbyte>(i, j, value);
+                break;
             case INTSXP:
                 mMat.writeMatrixElements<int>(i, j, value);
                 break;
