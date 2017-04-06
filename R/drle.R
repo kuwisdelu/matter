@@ -25,7 +25,7 @@ setClass("drle",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-drle <- function(x, cr_threshold = 3)
+drle <- function(x, cr_threshold = 0)
 {
 	if ( is.drle(x) )
 		return(x)
