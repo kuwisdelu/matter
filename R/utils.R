@@ -28,10 +28,14 @@ allIndices <- function(x, i, margin) {
 sizeof <- function(type) {
 	type <- make_datamode(type, type="C")
 	vapply(as.character(type), switch, numeric(1),
+		char = 1,
 		uchar = 1,
 		short = 2,
+		ushort = 2,
 		int = 4,
+		uint = 4,
 		long = 8,
+		ulong = 8,
 		float = 4,
 		double = 8)
 }
@@ -84,7 +88,8 @@ combine_rownames <- function(x, y) {
 ## -------------------------------------------------------
 
 make_datamode <- function(x, type=c("C", "R")) {
-	levels <- switch(match.arg(type),
+	type <- match.arg(type)
+	levels <- switch(type,
 		C = c("char", "uchar", "short", "ushort", "int", "uint",
 			"long", "ulong", "float", "double"),
 		R = c("raw", "integer", "numeric"))
@@ -95,8 +100,16 @@ make_datamode <- function(x, type=c("C", "R")) {
 		factor(x, levels=seq_along(levels), labels=levels)
 	} else if ( is.character(x) ) {
 		x <- tolower(x)
-		if ( any(!x %in% levels) )
-			stop("unsupported data type")
+		if ( any(!x %in% levels) ) {
+			if ( any(x %in% levels(make_datamode(type="R"))) ) {
+				x <- switch(x,
+					raw = "uchar",
+					integer = "int",
+					numeric = "double")
+			} else {
+				stop("unsupported data type")
+			}
+		}
 		factor(x, levels=levels)
 	} else {
 		as.factor(x)
@@ -110,7 +123,7 @@ tabulate_datamode <- function(x) {
 		x <- unlist(lapply(x, function(xs)
 			datamode(xs)))
 	}
-	summary(make_datamode(x, type="C"))
+	summary(make_datamode(x[], type="C"))
 }
 
 widest_datamode <- function(x, from=c("C", "R")) {
@@ -142,7 +155,7 @@ disk_used <- function(x) {
 	if ( is.list(x) ) {
 		bytes <- sum(vapply(x, disk_used, numeric(1)))
 	} else {
-		bytes <- sum(x@extent * sizeof(datamode(x)))
+		bytes <- sum(x@extent[] * sizeof(datamode(x)[]))
 	}
 	class(bytes) <- "bytes"
 	bytes

@@ -3,8 +3,9 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Optimize atoms to use run length encoding
+- Optimize atoms to use groups instead of a list of atoms
 - Add more delayed arithmetic options
+- Add support for different data sources
 
 Priority: Medium
 - Sparse vectors/matrices (both in-memory and on-disk)
