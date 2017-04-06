@@ -5,12 +5,16 @@ CHANGES IN VERSION 1.1.3 [2017-3-15]
 NEW FEATURES
 
     o Added class 'drle' for delta-run-length encoding vectors
+    o Added '+', '-', '*', '/', '^', 'exp', 'log', 'log2', and 'log10'
+        as possible delayed operations to on-disk atoms
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Slots of 'atoms' class now use delta-run-length encoding
     o Reduced metadata size by changing 'atoms' class to use
         groups rather then relying on a 'list' of 'atoms'
+    o The 'scale' method for 'matter_mat' now matches 'scale.default'
+        more correctly when 'center = FALSE' and 'scale = TRUE'
 
 CHANGES IN VERSION 1.1.2 [2017-3-12]
 ---------------------------------

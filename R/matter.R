@@ -17,6 +17,7 @@ setClass("matter",
 		dim = "integer_OR_NULL",
 		names = "character_OR_NULL",
 		dimnames = "list_OR_NULL"),
+		ops = "list_OR_NULL"),
 	contains = "VIRTUAL",
 	validity = function(object) {
 		errors <- NULL

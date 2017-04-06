@@ -21,9 +21,9 @@ typedef double Rindex_t;
 
 // S4 class codes
 
-#define MATTER_VEC 1
-#define MATTER_MATC 2
-#define MATTER_MATR 3
+#define MATTER_VEC 0
+#define MATTER_MATC 1
+#define MATTER_MATR 2
 
 // R-level datamodes (must match factor levels)
 
@@ -44,11 +44,33 @@ typedef double Rindex_t;
 #define C_FLOAT         9
 #define C_DOUBLE        10
 
+// Delayed operation index codes
+
+#define INDEX_LHS			0
+#define INDEX_RHS			1
+#define INDEX_OP			2
+#define INDEX_WHERE			3
+
+// Delayed operation OP codes
+
+#define OP_ADD			1
+#define OP_SUB			2
+#define OP_MUL			3
+#define OP_DIV			4
+#define OP_EXP			5	// lhs = base, rhs = exp
+#define OP_LOG			6	//			   rhs = base
+
+// Delayed operation WHERE codes
+
+#define OPS_SCALAR			0
+#define OPS_BY_MAJOR_DIM	1
+#define OPS_BY_MINOR_DIM	2
+
 // MatterAccessor access
 
 #define NULL_INDEX -99
 
-// These match definitions in bigmemory
+// Data type limits (matching definitions in bigmemory)
 
 #define NA_CHAR CHAR_MIN
 #define NA_SHORT SHRT_MIN
@@ -61,7 +83,7 @@ typedef double Rindex_t;
 #define R_DOUBLE_MIN R_NegInf
 #define R_DOUBLE_MAX R_PosInf
 
-// These don't
+// Data type limits (NOT matching definitions in bigmemory)
 
 #define R_UCHAR_MAX UCHAR_MAX
 #define R_USHORT_MAX USHRT_MAX

@@ -12,7 +12,8 @@ setClass("matter_vec",
 		length = 0,
 		dim = NULL,
 		names = NULL,
-		dimnames = NULL),
+		dimnames = NULL,
+		ops = NULL),
 	contains = "matter",
 	validity = function(object) {
 		errors <- NULL
@@ -59,7 +60,8 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		length=as.numeric(sum(extent)),
 		dim=NULL,
 		names=names,
-		dimnames=NULL, ...)
+		dimnames=NULL,
+		ops=NULL, ...)
 	if ( !missing(data) )
 		x[] <- data
 	x
@@ -139,6 +141,8 @@ setReplaceMethod("[",
 	function(x, i, ..., value) setVectorElements(x, i, value))
 
 setMethod("combine", "matter_vec", function(x, y, ...) {
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
 	paths <- levels(factor(c(x@paths, y@paths)))
 	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
 		levels=paths))
@@ -153,7 +157,8 @@ setMethod("combine", "matter_vec", function(x, y, ...) {
 		length=x@length + y@length,
 		dim=NULL,
 		names=NULL,
-		dimnames=NULL)
+		dimnames=NULL,
+		ops=NULL)
 })
 
 setMethod("c", "matter_vec", function(x, ...)
@@ -179,3 +184,75 @@ setMethod("t", "matter_vec", function(x)
 	if ( validObject(x) )
 		x
 })
+
+#### Arithmetic and other operators ####
+## --------------------------------------
+
+setMethod("+", c("matter_vec", "numeric"),
+	function(e1, e2) {
+		register_op(e1, NULL, e2, "+")
+})
+
+setMethod("+", c("numeric", "matter_vec"),
+	function(e1, e2) {
+		register_op(e2, e1, NULL, "+")
+})
+
+setMethod("-", c("matter_vec", "numeric"),
+	function(e1, e2) {
+		register_op(e1, NULL, e2, "-")
+})
+
+setMethod("-", c("numeric", "matter_vec"),
+	function(e1, e2) {
+		register_op(e2, e1, NULL, "-")
+})
+
+setMethod("*", c("matter_vec", "numeric"),
+	function(e1, e2) {
+		register_op(e1, NULL, e2, "*")
+})
+
+setMethod("*", c("numeric", "matter_vec"),
+	function(e1, e2) {
+		register_op(e2, e1, NULL, "*")
+})
+
+setMethod("/", c("matter_vec", "numeric"),
+	function(e1, e2) {
+		register_op(e1, NULL, e2, "/")
+})
+
+setMethod("/", c("numeric", "matter_vec"),
+	function(e1, e2) {
+		register_op(e2, e1, NULL, "/")
+})
+
+setMethod("^", c("matter_vec", "numeric"),
+	function(e1, e2) {
+		register_op(e1, NULL, e2, "^")
+})
+
+setMethod("^", c("numeric", "matter_vec"),
+	function(e1, e2) {
+		register_op(e2, e1, NULL, "^")
+})
+
+setMethod("exp", "matter_vec",
+	function(x) {
+		register_op(x, NULL, NULL, "^")
+})
+
+setMethod("log", "matter_vec",
+	function(x, base) {
+		if ( missing(base) ) {
+			register_op(x, NULL, NULL, "log")
+		} else {
+			register_op(x, NULL, base, "log")
+		}
+})
+
+setMethod("log2", "matter_vec", function(x) log(x, base=2))
+
+setMethod("log10", "matter_vec", function(x) log(x, base=10))
+

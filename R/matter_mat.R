@@ -13,7 +13,8 @@ setClass("matter_mat",
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
-		dimnames = NULL),
+		dimnames = NULL,
+		ops = NULL),
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )
@@ -88,8 +89,8 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 		}
 	}
 	if ( is.null(paths) && prod(c(nrow, ncol)) > 0 ) {
-		# if ( missing(data) )
-		# 	data <- NA
+		if ( missing(data) )
+			data <- NA
 		filemode <- force(filemode)
 		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
@@ -122,7 +123,8 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 		length=as.numeric(prod(c(nrow, ncol))),
 		dim=as.integer(c(nrow, ncol)),
 		names=NULL,
-		dimnames=dimnames, ...)
+		dimnames=dimnames,
+		ops=NULL, ...)
 	if ( !missing(data) )
 		x[] <- data
 	x
@@ -288,6 +290,8 @@ subsetMatterCols <- function(x, j) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
+	if ( !is.null(x@ops) )
+		warning("dropping delayed operations")
 	x <- switch(class(x),
 		matter_matc=new("matter_matc",
 			data=x@data[j],
@@ -298,7 +302,8 @@ subsetMatterCols <- function(x, j) {
 			dim=c(x@dim[1], length(j)),
 			names=NULL,
 			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL),
+				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
+			ops=NULL),
 		matter_matr=stop("cannot subset row-major matrix by columns"))
 	if ( validObject(x) )
 		invisible(x)
@@ -309,6 +314,8 @@ subsetMatterRows <- function(x, i) {
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
+	if ( !is.null(x@ops) )
+		warning("dropping delayed operations")
 	x <- switch(class(x),
 		matter_matc=stop("cannot subset column-major matrix by rows"),
 		matter_matr=new("matter_matr",
@@ -320,7 +327,8 @@ subsetMatterRows <- function(x, i) {
 			dim=c(length(i), x@dim[2]),
 			names=NULL,
 			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL))
+				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
+			ops=NULL))
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -398,6 +406,8 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		y <- t(t(y))
 	if ( nrow(x) != nrow(y) )
 		stop("number of rows of column-major matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
 	paths <- levels(factor(c(x@paths, y@paths)))
 	# x@data <- lapply(x@data, function(xs) {
 	# 	xs@source_id <- as.integer(factor(x@paths[xs@source_id[]],
@@ -423,7 +433,8 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		length=x@length + y@length,
 		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
 		names=NULL,
-		dimnames=combine_colnames(x,y))
+		dimnames=combine_colnames(x,y),
+		ops=NULL)
 })
 
 setMethod("cbind", "matter", function(..., deparse.level=1)
@@ -446,6 +457,8 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 		y <- t(y)
 	if ( ncol(x) != ncol(y) )
 		stop("number of columns of row-major matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
 	paths <- levels(factor(c(x@paths, y@paths)))
 	# x@data <- lapply(x@data, function(xs) {
 	# 	xs@source_id <- as.integer(factor(x@paths[xs@source_id[]],
@@ -471,7 +484,8 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 		length=x@length + y@length,
 		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
 		names=NULL,
-		dimnames=combine_rownames(x,y))
+		dimnames=combine_rownames(x,y),
+		ops=NULL)
 })
 
 setMethod("rbind", "matter", function(..., deparse.level=1)
@@ -509,25 +523,32 @@ setMethod("t", "matter_matr", function(x)
 
 setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
 {
+	by_which_dim <- switch(class(x),
+		matter_matc = "by_minor_dim",
+		matter_matr = "by_major_dim")
 	if ( is.logical(center) ) {
-		if ( center )
+		if ( center ) {
 			center <- colMeans(x, na.rm=TRUE)
-	} else if ( is.numeric(center) && length(center) != ncol(x) ) {
+			x <- register_op(x, NULL, center, "-", by_which_dim)
+		}
+	} else if ( is.numeric(center) && length(center) == ncol(x) ) {
+		x <- register_op(x, NULL, center, "-", by_which_dim)
+	} else {
 		stop("length of 'center' must equal the number of columns of 'x'")
-	} else if ( !is.null(center) ) {
-		stop("'center' must be logical, a numeric vector, or NULL")
 	}
 	if ( is.logical(scale) ) {
-		if ( scale )
-			scale <- colSds(x, na.rm=TRUE) # this differs from scale.default
-	} else if ( is.numeric(scale) && length(scale) != ncol(x) ) {
-		stop("length of 'center' must equal the number of columns of 'x'")
+		if ( scale ) {
+			scale <- sqrt(colSums(x^2, na.rm=TRUE) / max(1, nrow(x) - 1L))
+			x <- register_op(x, NULL, scale, "/", by_which_dim)
+		}
+	} else if ( is.numeric(scale) && length(scale) == ncol(x) ) {
+		x <- register_op(x, NULL, scale, "/", by_which_dim)
 	} else if ( !is.null(scale) ) {
-		stop("'scale' must be logical, a numeric vector, or NULL")
+		stop("length of 'center' must equal the number of columns of 'x'")
 	}
-	if ( is.numeric(center) || is.null(center) )
+	if ( is.numeric(center) )
 		attr(x, "scaled:center") <- center
-	if ( is.numeric(scale) || is.null(scale) )
+	if ( is.numeric(scale) )
 		attr(x, "scaled:scale") <- scale
 	x
 })
@@ -575,3 +596,164 @@ setMethod("tcrossprod", c("matter", "ANY"), function(x, y) x %*% t(y))
 setMethod("tcrossprod", c("ANY", "matter"), function(x, y) x %*% t(y))
 
 
+#### Arithmetic and other operators ####
+## --------------------------------------
+
+check_comformable_dims <- function(x, y, margin = 1) {
+	if ( is.vector(x) ) {
+		return(check_comformable_dims(y, x))
+	} else if ( length(y) != 1 && length(y) != dim(x)[margin] ) {
+		error("vector length is non-conformable with matrix dimensions")
+	}
+	TRUE
+}
+
+setMethod("+", c("matter_matc", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "+", "by_major_dim")
+})
+
+setMethod("+", c("matter_matr", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "+", "by_minor_dim")
+})
+
+setMethod("+", c("numeric", "matter_matc"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "+", "by_major_dim")
+})
+
+setMethod("+", c("numeric", "matter_matr"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "+", "by_minor_dim")
+})
+
+setMethod("-", c("matter_matc", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "-", "by_major_dim")
+})
+
+setMethod("-", c("matter_matr", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "-", "by_minor_dim")
+})
+
+setMethod("-", c("numeric", "matter_matc"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "-", "by_major_dim")
+})
+
+setMethod("-", c("numeric", "matter_matr"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "-", "by_minor_dim")
+})
+
+setMethod("*", c("matter_matc", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "*", "by_major_dim")
+})
+
+setMethod("*", c("matter_matr", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "*", "by_minor_dim")
+})
+
+setMethod("*", c("numeric", "matter_matc"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "*", "by_major_dim")
+})
+
+setMethod("*", c("numeric", "matter_matr"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "*", "by_minor_dim")
+})
+
+setMethod("/", c("matter_matc", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "/", "by_major_dim")
+})
+
+setMethod("/", c("matter_matr", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "/", "by_minor_dim")
+})
+
+setMethod("/", c("numeric", "matter_matc"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "/", "by_major_dim")
+})
+
+setMethod("/", c("numeric", "matter_matr"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "/", "by_minor_dim")
+})
+
+setMethod("^", c("matter_matc", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "^", "by_major_dim")
+})
+
+setMethod("^", c("matter_matr", "numeric"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e1, NULL, e2, "^", "by_minor_dim")
+})
+
+setMethod("^", c("numeric", "matter_matc"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "^", "by_major_dim")
+})
+
+setMethod("^", c("numeric", "matter_matr"),
+	function(e1, e2) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(e2, e1, NULL, "^", "by_minor_dim")
+})
+
+setMethod("exp", "matter_mat",
+	function(x) {
+		if ( check_comformable_dims(e1, e2) )
+			register_op(x, NULL, NULL, "^", "by_minor_dim")
+})
+
+setMethod("log", "matter_matc",
+	function(x, base) {
+		if ( missing(base) ) {
+			register_op(x, NULL, NULL, "log", "by_major_dim")
+		} else {
+			if ( check_comformable_dims(x, base) )
+				register_op(x, NULL, base, "log", "by_major_dim")
+		}
+})
+
+setMethod("log", "matter_matr",
+	function(x, base) {
+		if ( missing(base) ) {
+			register_op(x, NULL, NULL, "log", "by_minor_dim")
+		} else {
+			if ( check_comformable_dims(e1, e2) )
+				register_op(x, NULL, base, "log", "by_minor_dim")
+		}
+})
+
+setMethod("log2", "matter_mat", function(x) log(x, base=2))
+
+setMethod("log10", "matter_mat", function(x) log(x, base=10))

@@ -74,6 +74,17 @@ export(
 	"scale.matter")
 
 exportMethods(
+	"+",
+	"-",
+	"*",
+	"/",
+	"^",
+	"exp",
+	"log",
+	"log2",
+	"log10")
+
+exportMethods(
 	"sum",
 	"mean",
 	"var",
