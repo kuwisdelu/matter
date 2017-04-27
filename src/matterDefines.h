@@ -31,6 +31,7 @@ typedef double Rindex_t;
 #define R_LOGICAL		2
 #define R_INTEGER       3
 #define R_NUMERIC       4
+#define R_CHARACTER     5
 
 // C-level datamodes (must match factor levels)
 
@@ -45,14 +46,24 @@ typedef double Rindex_t;
 #define C_FLOAT         9
 #define C_DOUBLE        10
 
-// Delayed operation OP codes
+// Delayed operation OP codes (must match factor levels)
 
-#define OP_ADD			1
-#define OP_SUB			2
-#define OP_MUL			3
-#define OP_DIV			4
-#define OP_EXP			5	// lhs = base, rhs = exp
-#define OP_LOG			6	// lhs = base, rhs = x
+#define OP_ADD			1	// +
+#define OP_SUB			2	// -
+#define OP_MUL			3	// *
+#define OP_DIV			4	// /
+#define OP_EXP			5	// ^ 	lhs = base, rhs = exp
+#define OP_MOD			6	// %%
+#define OP_IDIV			7	// %/%
+#define OP_EQ			8	// ==
+#define OP_NE			9	// !=
+#define OP_GT			10	// >
+#define OP_LT			11	// <
+#define OP_GE			12	// >=
+#define OP_LE			13	// <=
+#define OP_AND			14	// &
+#define OP_OR			15	// |
+#define OP_LOG			16	// log 	lhs = base, rhs = x
 
 // Delayed operation WHERE codes
 

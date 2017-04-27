@@ -68,7 +68,7 @@ atoms <- function(group_id = 1L, source_id = as.integer(NA),
 		offset <- offset[o]
 		extent <- extent[o]
 	}
-	x <- .Call("C_createAtoms", group_id, source_id, datamode, offset, extent)
+	x <- .Call("C_createAtoms", group_id, source_id, datamode, offset, extent, PACKAGE="matter")
 	if ( compress && x@natoms > 1 ) {
 		x@group_id <- drle(x@group_id, cr_threshold=cr_threshold)
 		x@source_id <- drle(x@source_id, cr_threshold=cr_threshold)

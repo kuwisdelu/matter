@@ -84,6 +84,10 @@ combine_rownames <- function(x, y) {
 	}
 }
 
+is_ragged_array <- function(x) {
+	is(x, "matter_arr") && is.null(dim(x))
+}
+
 #### Define allowed delayed operation types ####
 ## -----------------------------------------------
 
@@ -94,6 +98,16 @@ make_op <- function(x) {
 		"*",
 		"/",
 		"^",
+		"%%",
+		"%/%",
+		"==",
+		"!=",
+		">",
+		"<",
+		">=",
+		"<=",
+		"&",
+		"|",
 		"log")
 	if ( missing(x) )
 		return(factor(levels=levels))

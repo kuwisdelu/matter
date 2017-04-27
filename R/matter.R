@@ -88,8 +88,8 @@ setMethod("atomdata", "matter", function(object) object@data)
 setMethod("show", "matter", function(object) {
 	object.memory <- object.size(object)
 	class(object.memory) <- "bytes"
-	cat("    sources: ", length(object@paths), "\n", sep="")
-	cat("    datamode: ", paste(object@datamode), "\n", sep="")
+	cat("    sources:", length(object@paths), "\n")
+	cat("    datamode:", paste(object@datamode), "\n")
 	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
 	cat("    ", format(disk_used(object@data), units="auto"), " on-disk\n", sep="")
 })
@@ -155,3 +155,19 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 	if ( validObject(x) )
 		x
 })
+
+#### Additional methods ####
+## ------------------------
+
+setMethod("which", "matter",
+	function(x, arr.ind = FALSE, useNames = TRUE, ...) {
+		if ( datamode(x)[1] != "logical" )
+			stop("argument to 'which' is not logical")
+		wh <- .Call("C_getWhich", x, PACKAGE="matter")
+		if ( arr.ind && !is.null(dim(x)) )  {
+			arrayInd(wh, dim(x), dimnames(x), useNames=useNames)
+		} else {
+			wh
+		}
+})
+

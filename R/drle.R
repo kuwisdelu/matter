@@ -31,11 +31,11 @@ drle <- function(x, cr_threshold = 0)
 		return(x)
 	if ( !(is.integer(x) || is.numeric(x)) )
 		stop("'x' must be an 'integer' or 'numeric' vector")
-	nruns <- .Call("C_countRuns", x)
+	nruns <- .Call("C_countRuns", x, PACKAGE="matter")
 	comp_size <- nruns * (sizeof("integer") + 2 * sizeof(typeof(x)))
 	uncomp_size <- length(x) * sizeof(typeof(x))
 	if ( uncomp_size / comp_size > cr_threshold ) {
-		out <- .Call("C_createDRLE", x, nruns)
+		out <- .Call("C_createDRLE", x, nruns, PACKAGE="matter")
 	} else {
 		out <- x
 	}
@@ -46,7 +46,7 @@ drle <- function(x, cr_threshold = 0)
 is.drle <- function(x) class(x) == "drle"
 
 getDRLE <- function(x) {
-	.Call("C_getDRLE", x)
+	.Call("C_getDRLE", x, PACKAGE="matter")
 }
 
 getDRLEElements <- function(x, i) {
@@ -55,10 +55,10 @@ getDRLEElements <- function(x, i) {
 	i <- as.integer(i - 1)
 	if ( length(i) > 1 && is.unsorted(i) ) {
 		o <- order(i)
-		y <- .Call("C_getDRLEElements", x, i[o])
+		y <- .Call("C_getDRLEElements", x, i[o], PACKAGE="matter")
 		y[o] <- y
 	} else {
-		y <- .Call("C_getDRLEElements", x, i)
+		y <- .Call("C_getDRLEElements", x, i, PACKAGE="matter")
 	}
 	y
 }

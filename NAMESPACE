@@ -15,7 +15,8 @@ importFrom("BiocGenerics",
 	"colMeans",
 	"colSums",
 	"rowMeans",
-	"rowSums")
+	"rowSums",
+	"which")
 
 importFrom("utils",
 	"object.size")
@@ -69,11 +70,8 @@ export(
 	"scale.matter")
 
 exportMethods(
-	"+",
-	"-",
-	"*",
-	"/",
-	"^",
+	"Arith",
+	"Compare",
 	"exp",
 	"log",
 	"log2",
@@ -91,7 +89,8 @@ exportMethods(
 	"rowSums",
 	"rowMeans",
 	"rowVars",
-	"rowSds")
+	"rowSds",
+	"which")
 
 exportMethods("apply")
 
