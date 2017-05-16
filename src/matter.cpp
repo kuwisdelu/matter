@@ -3133,11 +3133,11 @@ void Ops :: do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t ski
     }
 }
 
-//// Vector methods implemented for class Matter
-//-----------------------------------------------
+//// Vector and array methods implemented for class Matter
+//--------------------------------------------------------
 
 template<typename RType, int SType>
-SEXP Matter :: readVector() {
+SEXP Matter :: readArray() {
     SEXP retVec;
     PROTECT(retVec = allocVector(SType, length()));
     RType * pRetVec = DataPtr<RType,SType>(retVec);
@@ -3147,13 +3147,13 @@ SEXP Matter :: readVector() {
 }
 
 template<typename RType, int SType>
-void Matter :: writeVector(SEXP value) {
+void Matter :: writeArray(SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     data().write<RType>(pValue, 0, length());
 }
 
 template<typename RType, int SType>
-SEXP Matter :: readVectorElements(SEXP i) {
+SEXP Matter :: readArrayElements(SEXP i) {
     SEXP retVec;
     PROTECT(retVec = allocVector(SType, XLENGTH(i)));
     RType * pRetVec = DataPtr<RType,SType>(retVec);
@@ -3164,11 +3164,51 @@ SEXP Matter :: readVectorElements(SEXP i) {
 }
 
 template<typename RType, int SType>
-void Matter :: writeVectorElements(SEXP i, SEXP value) {
+void Matter :: writeArrayElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     Rindex_t * pIndex = R_INDEX_PTR(i);
     data().write_indices(pValue, pIndex, XLENGTH(i));
 }
+
+//// Homogenous list methods implemented for class Matter
+//------------------------------------------------------
+
+template<typename RType, int SType>
+SEXP Matter :: readListElements(int i) {
+    SEXP retVec;
+    PROTECT(retVec = allocVector(SType, dim(i)));
+    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    data().set_group(i);
+    data().read<RType>(pRetVec, 0, dim(i));
+    UNPROTECT(1);
+    return retVec;
+}
+
+template<typename RType, int SType>
+SEXP Matter :: readListElements(int i, SEXP j) {
+    SEXP retVec;
+    PROTECT(retVec = allocVector(SType, LENGTH(j)));
+    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    data().set_group(i);
+    data().read_indices<RType>(pRetVec, R_INDEX_PTR(j), LENGTH(j));
+    UNPROTECT(1);
+    return retVec;
+}
+
+template<typename RType, int SType>
+void Matter :: writeListElements(int i, SEXP value) {
+    RType * pValue = DataPtr<RType,SType>(value);
+    data().set_group(i);
+    data().write(pValue, 0, dim(i));
+}
+
+template<typename RType, int SType>
+void Matter :: writeListElements(int i, SEXP j, SEXP value) {
+    RType * pValue = DataPtr<RType,SType>(value);
+    data().set_group(i);
+    data().write_indices(pValue, R_INDEX_PTR(j), LENGTH(j));
+}
+
 
 //// Matrix methods implemented for class Matter
 //-----------------------------------------------
@@ -3192,6 +3232,8 @@ SEXP Matter :: readMatrix() {
                 data().read<RType>(pRetMat + row, 0, ncols, nrows);
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -3214,6 +3256,8 @@ void Matter :: writeMatrix(SEXP value) {
                 data().write<RType>(pValue + row, 0, ncols, nrows);
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
 }
 
@@ -3242,6 +3286,8 @@ SEXP Matter :: readMatrixRows(SEXP i) {
                 }
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -3268,6 +3314,8 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
                 data().write<RType>(pValue + l, 0, ncols, nrows);
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
 }
 
@@ -3296,6 +3344,8 @@ SEXP Matter :: readMatrixCols(SEXP j) {
                 data().read_indices<RType>(pRetMat + row, pCol, ncols, nrows);
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -3322,6 +3372,8 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
                 data().write_indices(pValue + row, pCol, ncols, nrows);
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
 }
 
@@ -3356,6 +3408,8 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
                 }
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -3386,6 +3440,8 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                 data().write_indices(pValue + l, pCol, ncols, nrows);
             }
             break;
+        default:
+            error("unrecognized matrix subclass");
     }
 }
 
@@ -3497,8 +3553,6 @@ SEXP Matter :: colsums(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(ncols()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case MATTER_VEC:
-            error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterIterator<T> x(*this, j);
@@ -3524,6 +3578,8 @@ SEXP Matter :: colsums(bool na_rm) {
                 }
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retVal;
@@ -3535,8 +3591,6 @@ SEXP Matter :: colmeans(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(ncols()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case MATTER_VEC:
-            error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterIterator<T> x(*this, j);
@@ -3574,6 +3628,8 @@ SEXP Matter :: colmeans(bool na_rm) {
                 Free(n);
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retVal;
@@ -3585,8 +3641,6 @@ SEXP Matter :: colvar(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(ncols()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case MATTER_VEC:
-            error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             for ( int j = 0; j < ncols(); j++ ) {
                 MatterIterator<T> x(*this, j);
@@ -3650,6 +3704,8 @@ SEXP Matter :: colvar(bool na_rm) {
                 Free(n);
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retVal;
@@ -3661,8 +3717,6 @@ SEXP Matter :: rowsums(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(nrows()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case MATTER_VEC:
-            error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             for ( int i = 0; i < nrows(); i++ )
                 pRetVal[i] = 0;
@@ -3688,6 +3742,8 @@ SEXP Matter :: rowsums(bool na_rm) {
                 pRetVal[i] = ::sum<T>(x, na_rm);
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retVal;
@@ -3699,8 +3755,6 @@ SEXP Matter :: rowmeans(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(nrows()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case MATTER_VEC:
-            error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             {
                 double * n = (double *) Calloc(nrows(), double);
@@ -3738,6 +3792,8 @@ SEXP Matter :: rowmeans(bool na_rm) {
                 pRetVal[i] = ::mean<T>(x, na_rm);
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retVal;
@@ -3749,8 +3805,6 @@ SEXP Matter :: rowvar(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(nrows()));
     double * pRetVal = REAL(retVal);
     switch(S4class()) {
-        case MATTER_VEC:
-            error("'x' must be an array of at least two dimensions");
         case MATTER_MATC:
             {
                 double * m_old = (double *) Calloc(nrows(), double);
@@ -3814,6 +3868,8 @@ SEXP Matter :: rowvar(bool na_rm) {
                 pRetVal[i] = ::var<T>(x, na_rm);
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retVal;
@@ -3860,6 +3916,8 @@ SEXP Matter :: rmult(SEXP y) {
                 }
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -3905,6 +3963,8 @@ SEXP Matter :: lmult(SEXP x) {
                 }
             }
             break;
+        default:
+            error("unrecognised matrix subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -3994,71 +4054,185 @@ extern "C" {
         return retObj;
     }
 
-    SEXP getVector(SEXP x) {
+    SEXP getArray(SEXP x) {
         Matter mVec(x);
         switch(mVec.datamode()) {
             case R_RAW:
-                return mVec.readVector<Rbyte,RAWSXP>();
+                return mVec.readArray<Rbyte,RAWSXP>();
             case R_LOGICAL:
-                return mVec.readVector<int,LGLSXP>();
+                return mVec.readArray<int,LGLSXP>();
             case R_INTEGER:
-                return mVec.readVector<int,INTSXP>();
+                return mVec.readArray<int,INTSXP>();
             case R_NUMERIC:
-                return mVec.readVector<double,REALSXP>();
+                return mVec.readArray<double,REALSXP>();
             default:
                 return R_NilValue;
         }
     }
 
-    void setVector(SEXP x, SEXP value) {
+    void setArray(SEXP x, SEXP value) {
         Matter mVec(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mVec.writeVector<Rbyte,RAWSXP>(value);
+                mVec.writeArray<Rbyte,RAWSXP>(value);
                 break;
             case LGLSXP:
-                mVec.writeVector<int,LGLSXP>(value);
+                mVec.writeArray<int,LGLSXP>(value);
                 break;
             case INTSXP:
-                mVec.writeVector<int,INTSXP>(value);
+                mVec.writeArray<int,INTSXP>(value);
                 break;
             case REALSXP:
-                mVec.writeVector<double,REALSXP>(value);
+                mVec.writeArray<double,REALSXP>(value);
                 break;
         }
     }
 
-    SEXP getVectorElements(SEXP x, SEXP i) {
+    SEXP getArrayElements(SEXP x, SEXP i) {
         Matter mVec(x);
         switch(mVec.datamode()) {
             case R_RAW:
-                return mVec.readVectorElements<Rbyte,RAWSXP>(i);
+                return mVec.readArrayElements<Rbyte,RAWSXP>(i);
             case R_LOGICAL:
-                return mVec.readVectorElements<int,LGLSXP>(i);
+                return mVec.readArrayElements<int,LGLSXP>(i);
             case R_INTEGER:
-                return mVec.readVectorElements<int,INTSXP>(i);
+                return mVec.readArrayElements<int,INTSXP>(i);
             case R_NUMERIC:
-                return mVec.readVectorElements<double,REALSXP>(i);
+                return mVec.readArrayElements<double,REALSXP>(i);
             default:
                 return R_NilValue;
         }
     }
 
-    void setVectorElements(SEXP x, SEXP i, SEXP value) {
+    void setArrayElements(SEXP x, SEXP i, SEXP value) {
         Matter mVec(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mVec.writeVectorElements<Rbyte,RAWSXP>(i, value);
+                mVec.writeArrayElements<Rbyte,RAWSXP>(i, value);
                 break;
             case LGLSXP:
-                mVec.writeVectorElements<int,LGLSXP>(i, value);
+                mVec.writeArrayElements<int,LGLSXP>(i, value);
                 break;
             case INTSXP:
-                mVec.writeVectorElements<int,INTSXP>(i, value);
+                mVec.writeArrayElements<int,INTSXP>(i, value);
                 break;
             case REALSXP:
-                mVec.writeVectorElements<double,REALSXP>(i, value);
+                mVec.writeArrayElements<double,REALSXP>(i, value);
                 break;
+        }
+    }
+
+    SEXP getList(SEXP x) {
+        Matter mVec(x);
+        SEXP retVec;
+        PROTECT(retVec = allocVector(VECSXP, mVec.length()));
+        for ( int i = 0; i < mVec.length(); i++ ) {
+            switch(mVec.datamode()) {
+                case R_RAW:
+                    SET_VECTOR_ELT(retVec, i, mVec.readListElements<Rbyte,RAWSXP>(i));
+                    break;
+                case R_LOGICAL:
+                    SET_VECTOR_ELT(retVec, i, mVec.readListElements<int,LGLSXP>(i));
+                    break;
+                case R_INTEGER:
+                    SET_VECTOR_ELT(retVec, i, mVec.readListElements<int,INTSXP>(i));
+                    break;
+                case R_NUMERIC:
+                    SET_VECTOR_ELT(retVec, i, mVec.readListElements<double,REALSXP>(i));
+                    break;
+                default:
+                    SET_VECTOR_ELT(retVec, i, R_NilValue);
+                    break;
+            }
+        }
+        UNPROTECT(1);
+        return retVec;
+    }
+
+    void setList(SEXP x, SEXP value) {
+        Matter mVec(x);
+        for ( int i = 0; i < mVec.length(); i++ ) {
+            SEXP elt = VECTOR_ELT(value, i);
+            switch(TYPEOF(elt)) {
+                case RAWSXP:
+                    mVec.writeListElements<Rbyte,RAWSXP>(i, elt);
+                    break;
+                case LGLSXP:
+                    mVec.writeListElements<int,LGLSXP>(i, elt);
+                    break;
+                case INTSXP:
+                    mVec.writeListElements<int,INTSXP>(i, elt);
+                    break;
+                case REALSXP:
+                    mVec.writeListElements<double,REALSXP>(i, elt);
+                    break;
+            }
+        }
+    }
+
+    SEXP getListElements(SEXP x, SEXP i, SEXP j) {
+        Matter mVec(x);
+        if ( j == R_NilValue ) {
+            switch(mVec.datamode()) {
+                case R_RAW:
+                    return mVec.readListElements<Rbyte,RAWSXP>(INTEGER_VALUE(i));
+                case R_LOGICAL:
+                    return mVec.readListElements<int,LGLSXP>(INTEGER_VALUE(i));
+                case R_INTEGER:
+                    return mVec.readListElements<int,INTSXP>(INTEGER_VALUE(i));
+                case R_NUMERIC:
+                    return mVec.readListElements<double,REALSXP>(INTEGER_VALUE(i));
+                default:
+                    return R_NilValue;
+            }
+        } else {
+            switch(mVec.datamode()) {
+                case R_RAW:
+                    return mVec.readListElements<Rbyte,RAWSXP>(INTEGER_VALUE(i), j);
+                case R_LOGICAL:
+                    return mVec.readListElements<int,LGLSXP>(INTEGER_VALUE(i), j);
+                case R_INTEGER:
+                    return mVec.readListElements<int,INTSXP>(INTEGER_VALUE(i), j);
+                case R_NUMERIC:
+                    return mVec.readListElements<double,REALSXP>(INTEGER_VALUE(i), j);
+                default:
+                    return R_NilValue;
+            }
+        }
+    }
+
+    void setListElements(SEXP x, SEXP i, SEXP j, SEXP value) {
+        Matter mVec(x);
+        if ( j == R_NilValue ) {
+            switch(TYPEOF(value)) {
+                case RAWSXP:
+                    mVec.writeListElements<Rbyte,RAWSXP>(INTEGER_VALUE(i), value);
+                    break;
+                case LGLSXP:
+                    mVec.writeListElements<int,LGLSXP>(INTEGER_VALUE(i), value);
+                    break;
+                case INTSXP:
+                    mVec.writeListElements<int,INTSXP>(INTEGER_VALUE(i), value);
+                    break;
+                case REALSXP:
+                    mVec.writeListElements<double,REALSXP>(INTEGER_VALUE(i), value);
+                    break;
+            }
+        } else {
+            switch(TYPEOF(value)) {
+                case RAWSXP:
+                    mVec.writeListElements<Rbyte,RAWSXP>(INTEGER_VALUE(i), j, value);
+                    break;
+                case LGLSXP:
+                    mVec.writeListElements<int,LGLSXP>(INTEGER_VALUE(i), j, value);
+                    break;
+                case INTSXP:
+                    mVec.writeListElements<int,INTSXP>(INTEGER_VALUE(i), j, value);
+                    break;
+                case REALSXP:
+                    mVec.writeListElements<double,REALSXP>(INTEGER_VALUE(i), j, value);
+                    break;
+            }
         }
     }
 

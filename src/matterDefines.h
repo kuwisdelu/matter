@@ -21,7 +21,7 @@ typedef double Rindex_t;
 
 // S4 class codes
 
-#define MATTER_VEC 0
+#define MATTER_ANY 0
 #define MATTER_MATC 1
 #define MATTER_MATR 2
 
@@ -31,7 +31,8 @@ typedef double Rindex_t;
 #define R_LOGICAL		2
 #define R_INTEGER       3
 #define R_NUMERIC       4
-#define R_CHARACTER     5
+// #define R_CHARACTER     5
+// #define R_LIST			6
 
 // C-level datamodes (must match factor levels)
 

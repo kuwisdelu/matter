@@ -781,18 +781,12 @@ class Matter
             _length = static_cast<index_t>(NUMERIC_VALUE(GET_SLOT(x, install("length"))));
             _dim = GET_SLOT(x, install("dim"));
             const char * classname = CHARACTER_VALUE(GET_CLASS(x));
-            if ( strcmp(classname, "matter_vec") == 0 )
-                _S4class = MATTER_VEC;
-            else if ( strcmp(classname, "matter_matc") == 0 )
+            if ( strcmp(classname, "matter_matc") == 0 )
                 _S4class = MATTER_MATC;
             else if ( strcmp(classname, "matter_matr") == 0 )
                 _S4class = MATTER_MATR;
             else
-                error("subclass not implemented yet");
-            // const char * attr_center = "scaled:center";
-            // _scaled.center = GET_ATTR(x, install(attr_center));
-            // const char * attr_scale = "scaled:scale";
-            // _scaled.scale = GET_ATTR(x, install(attr_scale));
+                _S4class = MATTER_ANY;
         }
 
         ~Matter() {
@@ -823,19 +817,19 @@ class Matter
             return INTEGER(_dim)[i];
         }
 
-        int dim_length() {
+        int dimlength() {
             return LENGTH(_dim);
         }
 
         int nrows() {
-            if ( dim_length() == 2 )
+            if ( dimlength() == 2 )
                 return dim(0);
             else
                 return 0;
         }
 
         int ncols() {
-            if ( dim_length() == 2 )
+            if ( dimlength() == 2 )
                 return dim(1);
             else
                 return 0;
@@ -850,16 +844,28 @@ class Matter
         }
 
         template<typename RType, int SType>
-        SEXP readVector();
+        SEXP readArray();
 
         template<typename RType, int SType>
-        void writeVector(SEXP value);
+        void writeArray(SEXP value);
 
         template<typename RType, int SType>
-        SEXP readVectorElements(SEXP i);
+        SEXP readArrayElements(SEXP i);
 
         template<typename RType, int SType>
-        void writeVectorElements(SEXP i, SEXP value);
+        void writeArrayElements(SEXP i, SEXP value);
+
+        template<typename RType, int SType>
+        SEXP readListElements(int i);
+
+        template<typename RType, int SType>
+        void writeListElements(int i, SEXP value);
+
+        template<typename RType, int SType>
+        SEXP readListElements(int i, SEXP j);
+
+        template<typename RType, int SType>
+        void writeListElements(int i, SEXP j, SEXP value);
 
         template<typename RType, int SType>
         SEXP readMatrix();
@@ -946,17 +952,11 @@ class MatterIterator
 
         MatterIterator(Matter & x) : _x(x)
         {
-            switch(x.S4class()) {
-                case MATTER_VEC:
-                    _next = NULL_INDEX;
-                    break;
-                case MATTER_MATC:
-                    _next = 1;
-                    break;
-                case MATTER_MATR:
-                    _next = 1;
-                    break;
-            }
+            x.data().set_group(0);
+            if ( x.data().length() > 1 )
+                _next = 1;
+            else
+                _next = NULL_INDEX;
             init();
         }
 
@@ -1059,13 +1059,21 @@ extern "C" {
         SEXP extent
     );
 
-    SEXP getVector(SEXP x);
+    SEXP getArray(SEXP x);
 
-    void setVector(SEXP x, SEXP value);
+    void setArray(SEXP x, SEXP value);
 
-    SEXP getVectorElements(SEXP x, SEXP i);
+    SEXP getArrayElements(SEXP x, SEXP i);
 
-    void setVectorElements(SEXP x, SEXP i, SEXP value);
+    void setArrayElements(SEXP x, SEXP i, SEXP value);
+
+    SEXP getList(SEXP x);
+
+    void setList(SEXP x, SEXP value);
+
+    SEXP getListElements(SEXP x, SEXP i, SEXP j);
+
+    void setListElements(SEXP x, SEXP i, SEXP j, SEXP value);
 
     SEXP getMatrix(SEXP x);
 

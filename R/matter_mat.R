@@ -21,6 +21,9 @@ setClass("matter_mat",
 			errors <- c(errors, "matrix must have non-NULL 'dim'")
 		if ( length(object@dim) != 2 )
 			errors <- c(errors, "matrix must have 'dim' of length 2")
+		if ( prod(object@dim) != object@length )
+			errors <- c(errors, paste0("dims [product ", prod(object@dim),
+				"] do not match the length of array [", object@length, "]"))
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -128,7 +131,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 setMethod("show", "matter_mat", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		"on-disk binary matrix", "\n", sep="")
+		"on-disk matrix", "\n", sep="")
 	if ( !is.null(attr(object, "scaled:center")) )
 		cat("    scaled:center = TRUE\n")
 	if ( !is.null(attr(object, "scaled:scale")) )

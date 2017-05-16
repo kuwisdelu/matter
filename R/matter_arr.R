@@ -1,8 +1,8 @@
 
-#### Define matter<vector> class for vector-like data ####
-## --------------------------------------------------------
+#### Define matter<array> class for array-like data ####
+## -------------------------------------------------------
 
-setClass("matter_vec",
+setClass("matter_arr",
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
@@ -10,26 +10,27 @@ setClass("matter_vec",
 		filemode = "rb",
 		chunksize = 1e6L,
 		length = 0,
-		dim = NULL,
+		dim = 0L,
 		names = NULL,
 		dimnames = NULL,
 		ops = NULL),
 	contains = "matter",
 	validity = function(object) {
 		errors <- NULL
-		if ( !is.null(object@dim) )
-			errors <- c(errors, "vector must have NULL 'dim'")
-		if ( !is.null(object@dimnames) )
-			errors <- c(errors, "vector must have NULL 'dimnames'")
+		if ( is.null(object@dim) )
+			errors <- c(errors, "array must have non-NULL 'dim'")
+		if ( prod(object@dim) != object@length )
+			errors <- c(errors, paste0("dims [product ", prod(object@dim),
+				"] do not match the length of array [", object@length, "]"))
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_vec <- function(data, datamode = "double", paths = NULL,
+matter_arr <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(is.null(paths), "rb+", "rb"),
-					offset = 0, extent = length, length = 0, names = NULL, ...)
+					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, ...)
 {
-	if ( length == 0 && all(extent == 0) )
-		return(new("matter_vec"))
+	if ( all(dim == 0) && all(extent == 0) )
+		return(new("matter_arr"))
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
@@ -47,7 +48,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	paths <- normalizePath(paths)
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=length(extent))
-	x <- new("matter_vec",
+	x <- new("matter_arr",
 		data=atoms(
 			group_id=rep.int(1L, length(extent)),
 			source_id=as.integer(factor(paths)),
@@ -57,31 +58,38 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=filemode,
-		length=as.numeric(sum(extent)),
-		dim=NULL,
-		names=names,
-		dimnames=NULL,
+		length=prod(dim),
+		dim=as.integer(dim),
+		names=NULL,
+		dimnames=dimnames,
 		ops=NULL, ...)
-	if ( !missing(data) )
-		x[] <- data
+	if ( !missing(data) ) {
+		if ( prod(dim(x)) != length(data) ) {
+			stop(paste0("dims [product ", prod(dim(x)),
+				"] do not match the length of array [", length(x), "]"))
+		} else {
+			x[] <- data
+		}
+	}
 	x
 }
 
-setMethod("show", "matter_vec", function(object) {
+setMethod("show", "matter_arr", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@length, " length> ",
-		"on-disk vector", "\n", sep="")
+	cat("  <", paste0(object@dim, collapse=" x "), " dim> ",
+		"on-disk array", "\n", sep="")
 	callNextMethod(object)
 })
 
-getVector <- function(x) {
+getArray <- function(x) {
 	y <- .Call("C_getArray", x, PACKAGE="matter")
-	if ( !is.null(names(x)) )
-		names(y) <- names(x)
+	dim(y) <- dim(x)
+	if ( !is.null(dimnames(x)) )
+		dimnames(y) <- dimnames(x)
 	y
 }
 
-setVector <- function(x, value) {
+setArray <- function(x, value) {
 	if ( length(x) %% length(value) != 0 )
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
@@ -95,23 +103,32 @@ setVector <- function(x, value) {
 		invisible(x)
 }
 
-getVectorElements <- function(x, i) {
-	if ( is.logical(i) )
-		i <- logical2index(x, i)
-	if ( is.character(i) )
-		i <- names2index(x, i)
+getArrayElements <- function(x, ind, drop) {
+	for ( i in seq_along(ind) )
+		if ( is.logical(ind[i]) )
+			ind[i] <- logical2index(x, ind[i])
+	for ( i in seq_along(ind) )
+		if ( is.character(ind[i]) )
+			ind[i] <- names2index(x, ind[i])
+	i <- linearInd(ind, dim(x))
 	y <- .Call("C_getArrayElements", x, i - 1, PACKAGE="matter")
-	if ( !is.null(names(x)) )
-		names(y) <- names(x)[i]
+	dim(y) <- sapply(ind, length)
+	if ( !is.null(dimnames(x)) )
+		dimnames(y) <- mapply(function(dnm, i) dnm[i], dimnames(x), ind)
+	if ( drop )
+		y <- drop(y)
 	y	
 }
 
-setVectorElements <- function(x, i, value) {
-	if ( is.logical(i) )
-		i <- logical2index(x, i)
-	if ( is.character(i) )
-		i <- names2index(x, i)
-	if ( length(i) %% length(value) != 0 )
+setArrayElements <- function(x, ind, value) {
+	for ( i in seq_along(ind) )
+		if ( is.logical(ind[i]) )
+			ind[i] <- logical2index(x, ind[i])
+	for ( i in seq_along(ind) )
+		if ( is.character(ind[i]) )
+			ind[i] <- names2index(x, ind[i])
+	i <- linearInd(ind, dim(x))
+	if ( length(x) %% length(value) != 0 )
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
 	value <- rep(value, length.out=length(i))
@@ -125,92 +142,71 @@ setVectorElements <- function(x, i, value) {
 }
 
 setMethod("[",
-	c(x = "matter_vec", i = "missing", j = "missing"),
-	function(x, ...) getVector(x))
+	c(x = "matter_arr", i = "ANY", j = "ANY", drop = "ANY"),
+	function(x, i, j, ..., drop = TRUE) {
+		dots <- list(...)
+		if ( missing(i) && missing(j) && length(dots) == 0 )
+			return(getArray(x))
+		if ( missing(i) && length(dim(x)) >= 1 ) {
+			i <- seq_len(dim(x)[1])
+		} else if ( missing(i) ) {
+			stop("subscript out of bounds")
+		}
+		if ( length(dim(x)) == 1 && missing(j) )
+			return(getArrayElements(x, list(ind)))
+		if ( missing(j) && length(dim(x)) >= 2 ) {
+			j <- seq_len(dim(x)[2])
+		} else if ( missing(j) ) {
+			stop("subscript out of bounds")
+		}
+		ind <- c(list(i), list(j), dots)
+		if ( length(ind) != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		getArrayElements(x, ind, drop)
+})
 
 setReplaceMethod("[",
-	c(x = "matter_vec", i = "missing", j = "missing"),
-	function(x, ..., value) setVector(x, value))
-
-setMethod("[",
-	c(x = "matter_vec", i = "ANY", j = "missing"),
-	function(x, i, ...) getVectorElements(x, i))
-
-setReplaceMethod("[",
-	c(x = "matter_vec", i = "ANY", j = "missing"),
-	function(x, i, ..., value) setVectorElements(x, i, value))
-
-setMethod("combine", "matter_vec", function(x, y, ...) {
-	if ( !is.null(x@ops) || !is.null(y@ops) )
-		warning("dropping delayed operations")
-	paths <- levels(factor(c(x@paths, y@paths)))
-	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
-		levels=paths))
-	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
-		levels=paths))
-	data <- combine(x@data, y@data)
-	new(class(x),
-		data=data,
-		datamode=widest_datamode(datamode(data)),
-		paths=paths,
-		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
-		length=x@length + y@length,
-		dim=NULL,
-		names=NULL,
-		dimnames=NULL,
-		ops=NULL)
+	c(x = "matter_arr", i = "ANY", j = "ANY"),
+	function(x, i, j, ..., value) {
+		dots <- list(...)
+		if ( missing(i) && missing(j) && length(dots) == 0 )
+			return(setArray(x, value))
+		if ( missing(i) && length(dim(x)) >= 1 ) {
+			i <- seq_len(dim(x)[1])
+		} else if ( missing(i) ) {
+			stop("subscript out of bounds")
+		}
+		if ( length(dim(x)) == 1 && missing(j) )
+			return(setArrayElements(x, list(ind), value))
+		if ( missing(j) && length(dim(x)) >= 2 ) {
+			j <- seq_len(dim(x)[2])
+		} else if ( missing(j) ) {
+			stop("subscript out of bounds")
+		}
+		ind <- c(list(i), list(j), dots)
+		if ( length(ind) != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		setArrayElements(x, ind, value)
 })
 
-setMethod("c", "matter_vec", function(x, ...)
-{
-	dots <- list(...)
-	if ( length(dots) == 0 ) {
-		x
-	} else if ( length(dots) == 1 ) {
-		combine(x, dots[[1]])
-	} else {
-		do.call(combine, list(x, ...))
-	}
-})
 
-setMethod("t", "matter_vec", function(x)
-{
-	class(x) <- "matter_matr"
-	x@data <- x@data
-	x@dim <- c(1L, as.integer(x@length))
-	if ( !is.null(x@names) )
-		x@dimnames <- list(NULL, x@names)
-	x@names <- NULL
-	if ( validObject(x) )
-		x
-})
-
-#### Delayed operations on 'matter_vec' ####
+#### Delayed operations on 'matter_arr' ####
 ## ----------------------------------------
-
-check_comformable_lengths <- function(x, y, margin = 1) {
-	if ( is.vector(x) ) {
-		return(check_comformable_dims(y, x))
-	} else if ( length(y) != 1 && length(x) != length(y) ) {
-		warning("argument length unequal to array length and will be recycled")
-	}
-	TRUE
-}
 
 # Arith
 
-setMethod("Arith", c("matter_vec", "matter_vec"),
+setMethod("Arith", c("matter_arr", "matter_arr"),
 	function(e1, e2) {
 		if ( .Generic %in% c("%%", "%/%") )
 			stop("unsupported delayed operation type")
-		if ( length(e1) == length(e2) ) {
+		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
-			stop("on-disk vector lengths must match exactly for delayed operation")
+			stop("on-disk array dims must match exactly for delayed operation")
 		}
 })
 
-setMethod("Arith", c("matter_vec", "numeric"),
+setMethod("Arith", c("matter_arr", "numeric"),
 	function(e1, e2) {
 		if ( .Generic %in% c("%%", "%/%") )
 			stop("unsupported delayed operation type")
@@ -222,7 +218,7 @@ setMethod("Arith", c("matter_vec", "numeric"),
 		}
 })
 
-setMethod("Arith", c("numeric", "matter_vec"),
+setMethod("Arith", c("numeric", "matter_arr"),
 	function(e1, e2) {
 		if ( .Generic %in% c("%%", "%/%") )
 			stop("unsupported delayed operation type")
@@ -236,19 +232,19 @@ setMethod("Arith", c("numeric", "matter_vec"),
 
 # Compare
 
-setMethod("Compare", c("matter_vec", "matter_vec"),
+setMethod("Compare", c("matter_arr", "matter_arr"),
 	function(e1, e2) {
-		if ( length(e1) == length(e2) ) {
+		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1)[1] != "logical" )
 				datamode(e1) <- c("logical", as.character(datamode(e1)))
 			e1
 		} else {
-			stop("on-disk vector lengths must match exactly for delayed operation")
+			stop("on-disk array dims must match exactly for delayed operation")
 		}
 })
 
-setMethod("Compare", c("matter_vec", "raw"),
+setMethod("Compare", c("matter_arr", "raw"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic)
@@ -258,7 +254,7 @@ setMethod("Compare", c("matter_vec", "raw"),
 		}
 })
 
-setMethod("Compare", c("raw", "matter_vec"),
+setMethod("Compare", c("raw", "matter_arr"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic)
@@ -268,7 +264,7 @@ setMethod("Compare", c("raw", "matter_vec"),
 		}
 })
 
-setMethod("Compare", c("matter_vec", "numeric"),
+setMethod("Compare", c("matter_arr", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic)
@@ -278,7 +274,7 @@ setMethod("Compare", c("matter_vec", "numeric"),
 		}
 })
 
-setMethod("Compare", c("numeric", "matter_vec"),
+setMethod("Compare", c("numeric", "matter_arr"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic)
@@ -290,7 +286,7 @@ setMethod("Compare", c("numeric", "matter_vec"),
 
 # Math
 
-setMethod("exp", "matter_vec",
+setMethod("exp", "matter_arr",
 	function(x) {
 		x <- register_op(x, NULL, NULL, "^")
 		if ( datamode(x) != "numeric" )
@@ -298,7 +294,7 @@ setMethod("exp", "matter_vec",
 		x
 })
 
-setMethod("log", "matter_vec",
+setMethod("log", "matter_arr",
 	function(x, base) {
 		if ( missing(base) ) {
 			x <- register_op(x, NULL, NULL, "log")
@@ -310,7 +306,7 @@ setMethod("log", "matter_vec",
 		x
 })
 
-setMethod("log2", "matter_vec", function(x) log(x, base=2))
+setMethod("log2", "matter_arr", function(x) log(x, base=2))
 
-setMethod("log10", "matter_vec", function(x) log(x, base=10))
+setMethod("log10", "matter_arr", function(x) log(x, base=10))
 
