@@ -74,6 +74,20 @@ setMethod("show", "matter_vec", function(object) {
 	callNextMethod(object)
 })
 
+setAs("raw", "matter_vec",
+	function(from) matter_vec(from, datamode="raw", length=length(from)))
+
+setAs("logical", "matter_vec",
+	function(from) matter_vec(from, datamode="logical", length=length(from)))
+
+setAs("integer", "matter_vec",
+	function(from) matter_vec(from, datamode="integer", length=length(from)))
+
+setAs("numeric", "matter_vec",
+	function(from) matter_vec(from, datamode="double", length=length(from)))
+
+as.matter_vec <- function(x) as(x, "matter_vec")
+
 getVector <- function(x) {
 	y <- .Call("C_getArray", x, PACKAGE="matter")
 	if ( !is.null(names(x)) )

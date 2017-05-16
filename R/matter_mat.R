@@ -139,6 +139,20 @@ setMethod("show", "matter_mat", function(object) {
 	callNextMethod(object)
 })
 
+setAs("matrix", "matter_mat",
+	function(from) matter_mat(from, datamode=typeof(from),
+		nrow=nrow(from), ncol=ncol(from)))
+
+as.matter_mat <- function(x) as(x, "matter_mat")
+
+setAs("raw", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+
+setAs("logical", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+
+setAs("integer", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+
+setAs("numeric", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+
 getMatrix <- function(x) {
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
 	y <- .Call("C_getMatrix", x, PACKAGE="matter")
@@ -497,38 +511,6 @@ setMethod("t", "matter_matr", function(x)
 	x@dimnames <- rev(x@dimnames)
 	if ( validObject(x) )
 		x
-})
-
-setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
-{
-	by_which_dim <- switch(class(x),
-		matter_matc = "by_each_group",
-		matter_matr = "by_group")
-	if ( is.logical(center) ) {
-		if ( center ) {
-			center <- colMeans(x, na.rm=TRUE)
-			x <- register_op(x, NULL, center, "-", by_which_dim)
-		}
-	} else if ( is.numeric(center) && length(center) == ncol(x) ) {
-		x <- register_op(x, NULL, center, "-", by_which_dim)
-	} else {
-		stop("length of 'center' must equal the number of columns of 'x'")
-	}
-	if ( is.logical(scale) ) {
-		if ( scale ) {
-			scale <- sqrt(colSums(x^2, na.rm=TRUE) / max(1, nrow(x) - 1L))
-			x <- register_op(x, NULL, scale, "/", by_which_dim)
-		}
-	} else if ( is.numeric(scale) && length(scale) == ncol(x) ) {
-		x <- register_op(x, NULL, scale, "/", by_which_dim)
-	} else if ( !is.null(scale) ) {
-		stop("length of 'center' must equal the number of columns of 'x'")
-	}
-	if ( is.numeric(center) )
-		attr(x, "scaled:center") <- center
-	if ( is.numeric(scale) )
-		attr(x, "scaled:scale") <- scale
-	x
 })
 
 #### Matrix multiplication for matter objects ####
