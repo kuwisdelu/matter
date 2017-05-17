@@ -4528,20 +4528,20 @@ extern "C" {
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
             case R_INTEGER:
-                if ( TYPEOF(y) == LGLSXP )
-                    return mMat.lmult<int,int,LGLSXP>(y);
-                else if ( TYPEOF(y) == INTSXP )
-                    return mMat.lmult<int,int,INTSXP>(y);
-                else if ( TYPEOF(y) == REALSXP )
-                    return mMat.lmult<int,double,REALSXP>(y);
+                if ( TYPEOF(x) == LGLSXP )
+                    return mMat.lmult<int,int,LGLSXP>(x);
+                else if ( TYPEOF(x) == INTSXP )
+                    return mMat.lmult<int,int,INTSXP>(x);
+                else if ( TYPEOF(x) == REALSXP )
+                    return mMat.lmult<int,double,REALSXP>(x);
                 return R_NilValue;
             case R_NUMERIC:
-                if ( TYPEOF(y) == LGLSXP )
-                    return mMat.lmult<double,int,LGLSXP>(y);
-                else if ( TYPEOF(y) == INTSXP )
-                    return mMat.lmult<double,int,INTSXP>(y);
-                else if ( TYPEOF(y) == REALSXP )
-                    return mMat.lmult<double,double,REALSXP>(y);
+                if ( TYPEOF(x) == LGLSXP )
+                    return mMat.lmult<double,int,LGLSXP>(x);
+                else if ( TYPEOF(x) == INTSXP )
+                    return mMat.lmult<double,int,INTSXP>(x);
+                else if ( TYPEOF(x) == REALSXP )
+                    return mMat.lmult<double,double,REALSXP>(x);
                 return R_NilValue;
             default:
                 return R_NilValue;
