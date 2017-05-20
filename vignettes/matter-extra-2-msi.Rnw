@@ -1,0 +1,517 @@
+
+%\VignetteIndexEntry{matter: Extra examples 2 - 3D mass spectrometry imaging case study}
+%\VignetteKeyword{Infrastructure, ImagingMassSpectrometry}
+
+\documentclass[a4paper]{article}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+<<eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+\title{\Rpackage{matter}: Extra examples 2 - 3D mass spectrometry imaging case study}
+
+\author{Kylie A. Bemis}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+The first half of this vignette demonstrates the usefulness of \Rpackage{matter} for working with large mass spectrometry imaging (MSI) experiments in \Rpackage{Cardinal}. \Rpackage{Cardinal} is an R package for importing, pre-processing, visualization, and statistical analysis of mass spectrometry imaging experiments. \Rpackage{Cardinal} version $\geq$ 1.8 supports using \Rpackage{matter} as a backend for larger-than-memory datasets. More information is available at \url{www.cardinalmsi.org}.
+
+The second half of this vignette presents an in-depth comparison in the performance between \Rpackage{matter}, \Rpackage{bigmemory}, and \Rpackage{ff} on real experimental datasets that are larger than memory.
+
+
+\section{Analyzing large 3D MSI experiments with \Rpackage{Cardinal} and \Rpackage{matter}}
+
+This example will use one of the benchmark 3D MSI experiments from Oetjen {\it et al.} \cite{Oetjen:2015en}. We will use the 3D microbial timecourse experiment, which is comprised of interacting microbes at 3 time points, with a total of 17,672 pixels and 40,299 features. The data is stored in imzML format \cite{Schramm}. The ".imzML" XML file with experimental metadata is 30.5 MB, and the ".ibd" binary file with the m/z values and spectral intensities is 2.85 GB. This is one of the smaller datasets, making it a good place to begin.
+
+Due to the various offsets in imzML ibd files, they cannot be attached as simply as \Rpackage{bigmemory} or \Rpackage{ff} files. These packages have strict requirements on the format of their data, for maximum computational effiency. \Rpackage{matter} takes a different approach with more flexibility, which allows use of imzML's domain-specific binary file format directly, and with minimal memory footprint, at the cost potentially slower computational performance in some situations.
+
+<<eval=FALSE>>=
+library(matter)
+library(Cardinal)
+path <- "~/Documents/Datasets/3D-MSI/3D_Timecourse/"
+file <- "Microbe_Interaction_3D_Timecourse_LP.imzML"
+@
+
+<<echo=FALSE,results=hide>>=
+options(width=72)
+require(matter)
+data(matter_msi)
+@
+
+We load the dataset in \Rpackage{Cardinal} with the \Robject{readMSIData} function and the argument \verb|attach.only=TRUE|. In \Rpackage{Cardinal} version $\geq$ 1.8, this automatically uses \Rpackage{matter}.
+
+<<eval=FALSE>>=
+msi <- readMSIData(paste0(path, file), attach.only=TRUE)
+@
+
+The data is attached as a \Robject{matter\_mat} matrix. The matrix metadata takes up approximately 14.9 KB in memory, and points to 2.8 GB on disk.
+
+The dataset was stored so that the first time point $t = 4$ corresponds to $z = {1,2,3,4,5,6}$, the second time point $t = 8$ corresponds to $z = {7,8,9,10,11,12}$, and the third time point $t = 11$ corresponds to $z = {13,14,15,16,17,18}$. We will reparamaterize the coordinates below to make it easier to work with the dataset. We also remove duplicated coordinates caused by converting the z-dimension to sequential integers.
+
+<<eval=FALSE>>=
+msi <- msi[,!duplicated(coord(msi))]
+
+msi$sample <- factor(sapply(msi$z, function(z) {
+	if ( z %in% 1:6 ) {
+		1
+	} else if ( z %in% 7:12 ) {
+		2
+	} else if ( z %in% 13:18 )  {
+		3
+	}
+}), labels=c("t = 4", "t = 8", "t = 11"))
+
+msi$z <- sapply(msi$z, function(z) {
+	if ( z %in% 1:6 ) {
+		z
+	} else if ( z %in% 7:12 ) {
+		z-6
+	} else if ( z %in% 13:18 )  {
+		z-12
+	}
+})
+
+msi$x <- mapply(function(x, t) {
+	switch(as.integer(t),
+		x-30,
+		x-15,
+		x)
+}, msi$x, msi$sample)
+
+varMetadata(msi)[c("x","y","z","sample"),"labelType"] <- "dim"
+
+protocolData(msi) <- AnnotatedDataFrame(
+	data=data.frame(row.names=sampleNames(msi)))
+
+msi <- regeneratePositions(msi)
+
+validObject(msi)
+@
+
+We can plot 3D molecular ion images using the \Robject{image3D} method.
+
+<<eval=FALSE, echo=FALSE, results=hide>>=
+pdf("~/Documents/Developer/Projects/matter/inst/vignettesExtra/msi-img.pdf", height=4.5, width=6)
+image3D(msi, ~ x * z * y, mz=262, theta=-55, contrast="suppress", layout=c(3,1))
+dev.off()
+@
+
+<<msi-ion, eval=FALSE>>=
+image3D(msi, ~ x * z * y, mz=262, theta=-55, contrast="suppress", layout=c(3,1))
+@
+
+
+Now we perform principal components analysis using the \Robject{PCA} method of \Rpackage{Cardinal}.
+
+<<msi-pca, eval=FALSE>>=
+pca <- PCA(msi, ncomp=2, method="irlba", center=TRUE)
+pData(msi)[,c("PC1","PC2")] <- pca$scores[["ncomp = 2"]]
+fData(msi)[,c("PC1","PC2")] <- pca$loadings[["ncomp = 2"]]
+@
+
+We plot the first three principal components.
+
+<<eval=FALSE, echo=FALSE, results=hide>>=
+pdf("~/Documents/Developer/Projects/matter/inst/vignettesExtra/msi-pc1.pdf", height=4.5, width=6)
+image3D(msi, PC1 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+dev.off()
+
+pdf("~/Documents/Developer/Projects/matter/inst/vignettesExtra/msi-pc2.pdf", height=4.5, width=6)
+image3D(msi, PC2 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+dev.off()
+@
+
+<<msi-pc1-img, eval=FALSE>>=
+image3D(msi, PC1 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+@
+
+<<msi-pc2-img, eval=FALSE>>=
+image3D(msi, PC2 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
+@
+
+
+\setkeys{Gin}{width=\textwidth}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.3\textwidth}
+  \centering
+\includegraphics{msi-img.pdf}
+\caption{\small $m/z$ 262}
+\label{fig:pc1}
+\end{subfigure}
+\begin{subfigure}{.3\textwidth}
+  \centering
+\includegraphics{msi-pc1.pdf}
+\caption{\small PC1 scores}
+\label{fig:pc1}
+\end{subfigure}
+\begin{subfigure}{.3\textwidth}
+  \centering
+\includegraphics{msi-pc2.pdf}
+\caption{\small PC2 scores}
+\label{fig:pc2}
+\end{subfigure}
+\caption{\small Plotting an ion image and the first 2 principal components for the 3D microbial time course experiment.}
+\end{figure}
+
+
+\section{Comparisons with alternative approaches}
+
+We will now illustrate the steps necessary for performing a principal components analysis using similar packages \Rpackage{bigmemory} or \Rpackage{ff}, and compare their performance with \Rpackage{matter}'s.
+
+\subsection{Using \Rpackage{bigmemory}}
+
+First we load \Rpackage{bigmemory} and create a blank \Robject{filebacked.big.matrix}. We will copy the data to this new matrix.
+
+We must use \Rpackage{matter} to read the data and convert it to a \Robject{filebacked.big.matrix}, because the mass spectra are stored in a binary file incompatible with \Rpackage{bigmemory}.
+
+Note that the original data elements are 32-bit floats:
+
+<<eval=FALSE>>=
+head(atomdata(iData(msi)))
+@
+
+However, if we want to use \Rpackage{bigalgebra} for matrix multiplication, we must change the data type from a 32-bit float to a 64-bit double. While \Rpackage{bigmemory} provides efficient matrix algebra routines in the \Rpackage{bigalgebra} package, they do not work with 32-bit floats; only 64-bit doubles are supported. (Note that \Rpackage{bigmemory} itself does support 32-bit float matrices; only \Rpackage{bigalgebra}'s native routines don't.)
+
+<<eval=FALSE>>=
+library(bigmemory)
+library(bigalgebra)
+
+backingfile <- paste0(expname, ".bin")
+backingpath <- "~/Documents/Temporary/"
+descriptorfile <- paste0(expname, ".desc")
+
+msi.bm <- filebacked.big.matrix(nrow=ncol(msi), ncol=nrow(msi),
+	backingfile=backingfile,
+	backingpath=backingpath,
+	descriptorfile=descriptorfile,
+	type="double")
+@
+
+Furthermore, we must transpose the matrix while converting it. This is because bioinformatics data is traditionally stored and manipulated using an P x N matrix, while most statistical functions in R expect a N x P matrix (where N is the number of samples and P is the number of features). \Rpackage{bigmemory} does not currently support virtually transposing a matrix, so it must be transposed now in order to perform PCA later.
+
+<<eval=FALSE>>=
+for ( i in seq_len(ncol(iData(msi))) )
+	msi.bm[i,] <- iData(msi)[,i]
+@
+
+Lastly, \Rpackage{bigmemory} does not support virtually scaling and centering rows or columns of a matrix. PCA should typically be performed on a centered data matrix. Although \Rpackage{bigmemory} supports arithmetic and algebra for \Robject{big.matrix} objects through the \Rpackage{bigalgebra} package, a new \Robject{big.matrix} with the transformed data is created as output.
+
+When the file must already double in size (conversion from float to double) to accomodate matrix algebra, duplicating the matrix again simply to scale it seems an unacceptable waste of storage space.
+
+Therefore, we implement implicit centering of the data matrix in a custom matrix multiplication function which can be passed to the \Robject{irlba} function.
+
+<<eval=FALSE>>=
+ct.mult.bm <- function(A, B, center = ct) {
+	if ( is.vector(A) ) {
+		A <- t(A)
+		cbind((A %*% B)[]) - (sum(A) * ct)
+	} else if ( is.vector(B) ) {
+		B <- as.matrix(B)
+		cbind((A %*% B)[]) - sum(B * ct)
+	}
+}
+@
+
+Lastly, we calculate the mean of each column, and perform PCA using singular value decomposition via \Robject{irlba} with the custom multiplication function.
+
+<<eval=FALSE>>=
+library(biganalytics)
+library(irlba)
+
+ct <- apply(msi.bm, 2, mean)
+
+pca.out <- irlba(msi.bm, nu=0, nv=2, mult=ct.mult.bm)
+fData(msi)[,c("PC1","PC2")] <- pca.out$v
+@
+
+
+
+
+\subsection{Using \Rpackage{ff}}
+
+We must again convert the dataset to a format compatible with \Rpackage{ff}. However, \Rpackage{ff} supports virtually transposing matrices, so we can keep the same virtual data layout as with \Rpackage{matter}.
+
+While \Rpackage{ff} presents its own problems with matrix multiplication, they do not extend to the data type of the data elements, so we can keep the data as 32-bit floats, saving storage space as compared to \Rpackage{bigmemory}.
+
+<<eval=FALSE>>=
+library(ff)
+
+msi.ff <- ff(dim=c(nrow(msi), ncol(msi)),
+	filename=paste0(backingpath, backingfile),
+	vmode="single")
+
+for ( i in seq_len(ncol(iData(msi))) )
+		msi.ff[,i] <- iData(msi)[,i]
+
+msi.ff <- vt(msi.ff)
+@
+
+However, the main \Rpackage{ff} package offers little in terms of arithmetic or algebraic operations that can be performed on \Robject{ff} objects. The \Rpackage{ffbase} package supplements and implements much of the arithmetic functionality missing from \Rpackage{ff}. However, it also creates brand new on-disk data files as the output rather than supporting virtual scaling and centering of matrices. Therefore, we again perform implicit centering during matrix multiplication using a custom matrix multiplication function.
+
+Unfortunately, \Rpackage{ffbase} does not implement matrix multiplication for \Robject{ff} matrices. Fortunately, the package \Rpackage{bootSVD} provides a function that performs matrix multiplication of \Robject{ff} objects.
+
+It is also worth noting that \Rpackage{ff}, \Rpackage{ffbase}, and \Rpackage{bootSVD} are each maintained by different developers.
+
+<<eval=FALSE>>=
+library(ffbase)
+library(bootSVD)
+
+ct.mult.ff <- function(A, B, center = ct) {
+	if ( is.vector(A) ) {
+		A <- t(A)
+		cbind(ffmatrixmult(A, B)[]) - (sum(A) * ct)
+	} else if ( is.vector(B) ) {
+		B <- as.matrix(B)
+		cbind(ffmatrixmult(A, B)[]) - sum(B * ct)
+	}
+}
+@
+
+Now we can calculate the mean of each column, and perform PCA using singular value decomposition via \Robject{irlba} with the custom multiplication function.
+
+<<eval=FALSE>>=
+ct <- as.vector(ffapply(X=msi.ff, MARGIN=2, AFUN=mean, RETURN=TRUE)[])
+
+pca.out <- irlba(msi.ff, nu=0, nv=2, mult=ct.mult.ff)
+fData(msi)[,c("PC1","PC2")] <- pca.out$v
+@
+
+
+\subsection{Evaluating performance between approaches}
+
+\begin{table*}
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|r||}
+\hline
+\multicolumn{6}{|c||}{Principal components analysis} \\
+\hline
+Dataset &		 					Size & 		Method &		Mem. used & 	Mem. overhead & 	Time \\
+\hline
+3D Microbial Time Course &			2.9 GB	&	matter &		228 MB &	50 MB &		13 min, 6 sec \\ % 768 sec
+					   &	   				&	bigmemory &		330 MB &	141 MB &		53 sec \\ % 53 sec
+					   &			&			ff &			278 MB &	85 MB &		19 min, 48 sec \\ % 1188 sec
+\hline
+3D Oral Squamous Cell Carcinoma &	25.4 GB	&	matter &		977 MB &	668 MB &		2 hr, 7 min, 9 sec \\ % 7629 sec
+					   &	   		&	bigmemory &		408 MB &	266 MB &		2 hr, 28 min, 2 sec \\ % 9902 sec
+					   &			&	ff &			-- &		-- &		-- \\
+\hline
+3D Mouse Pancreas &					26.4 GB	&	matter &		628 MB &	370 MB &		2 hr, 12 min, 46 sec \\ % 7966 sec
+					   &	   		&			bigmemory &		303 MB &	164 MB &		2 hr, 52 min, 10 sec \\ % 10330 sec
+					   &			&	ff &			-- &		-- &		-- \\
+\hline
+3D Mouse Kidney &					41.8 GB	&	matter &		1.5 GB &	1074 MB &		3 hr, 22 min, 23 sec \\ % 12143 sec
+					   &	   		&			bigmemory &		617 MB &	431 MB &		4 hr, 29 min, 23 sec \\ % 16163 sec
+					   &			&	ff &			-- &		-- &		-- \\
+\hline
+\end{tabular}
+\caption{\small Performance comparison of \Rpackage{matter}, \Rpackage{bigmemory}, and \Rpackage{ff} in calculating the first two principal components of real datasets. Memory overhead is the maximum memory used during the execution minus the memory in use upon completion. Some cells are missing because the analysis could not be performed with \Rpackage{ff}.}
+\label{table:pca} 
+\end{center}
+\end{table*}
+
+Table~\ref{table:pca} shows the amount of time and memory \Rpackage{matter}, \Rpackage{bigmemory}, and \Rpackage{ff} used when performing PCA on each of the 3D MSI datasets.
+
+For three of the datasets, the number of the elements in the dataset exceeded that maximum size of an \Robject{ff} object. The total length of an \Robject{ff} object is stored as a 32-bit integer, so it can at most reference $2^{31} - 1$ data elements. Conversely, \Rpackage{matter} and \Rpackage{bigmemory} store the total length of an object as a 64-bit double, allowing up to $2^52$ data elements.
+
+While \Rpackage{bigmemory} was dramatically faster than either \Rpackage{matter} or \Rpackage{ff} for the smallest 2.8 GB dataset, for the larger datasets that actually exceeded available memory, \Rpackage{matter} was faster.
+
+It should be noted that the memory consumption reported for \Rpackage{bigmemory} is likely erroneous. The analyses were timed using the \Robject{profmem} function of \Rpackage{matter}, which wraps R's basic garbage collector call. The memory use will therefore be accurate for objects that use R's garbage collector, but inaccurate for objects that do not. The \Rpackage{bigmemory} package uses \verb|mmap| on Unix systems, which is not controlled by R. In fact, system memory consumption under \Rpackage{bigmemory} was dramatically more than \Rpackage{matter}, but the authors were not able to measure this from R.
+
+For datasets which exceed available computer memory, \Rpackage{matter} appears to outperform both \Rpackage{bigmemory} and \Rpackage{ff}.
+
+Additionally, working with these datasets in \Rpackage{bigmemory} and \Rpackage{ff} either required additional steps that were either not required with \Rpackage{matter}, or, for some datasets, were simply impossible.
+
+\begin{table*}
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|r||}
+\hline
+\multicolumn{6}{|c||}{File conversion} \\
+\hline
+Dataset &		 					Size & 		Method &		Mem. used & 	Mem. overhead & 	Time \\
+\hline
+3D Microbial Time Course &			2.9 GB	&	bigmemory &		235 MB &	46 MB &		7 min, 12 sec \\ % 432 sec
+					   &	   				&	ff &			224 MB &	32 MB &		1 min, 16 sec \\ % 76 sec
+\hline
+3D Oral Squamous Cell Carcinoma &	25.4 GB	&	bigmemory &		1.4 GB &	954 MB &		51 min, 3 sec \\ % 3063 sec
+					   &	   		&			ff &			-- &	-- &		-- \\
+\hline
+3D Mouse Pancreas &					26.4 GB	&	bigmemory &		630 MB &	256 MB &		1 hr, 31 min, 30 sec \\ % 5490 sec
+					   &	   		&			ff &			-- &	-- &		-- \\
+\hline
+3D Mouse Kidney &					41.8 GB	&	bigmemory &		1.5 GB &	781 MB &		1 hr, 47 min, 58 sec \\ % 6478 sec
+					   &	   		&			ff &			-- &	-- &		-- \\
+\hline
+\end{tabular}
+\caption{\small Time and memory used converting the dataset to a file compatible with \Rpackage{bigmemory} and/or \Rpackage{ff}. Memory overhead is the maximum memory used during the execution minus the memory in use upon completion. Some cells are missing because the conversion could not be performed for \Rpackage{ff}.}
+\label{table:conv} 
+\end{center}
+\end{table*}
+
+Table~\ref{table:conv} shows the amount of time and memory it took to convert the data to files compatible with \Rpackage{bigmemory} and \Rpackage{ff}. For \Rpackage{ff}, this was only possible for one dataset. The time for file conversion (not included in the timing from Table~\ref{table:pca}) represents a substantial proportion of the total time it would take to analyze these datasets. In addition, conversion to \Rpackage{bigmemory} required doubling the file size if matrix multiplication was to be performed using \Rpackage{bigalgebra}.
+
+In summary, \Rpackage{matter} often allows working with datasets without file conversion, which is often preferred for the sake of reproducibility, and typically requires less effort even after file conversion.
+
+
+
+\section{An R script for comparing performance}
+
+<<eval=FALSE>>=
+library(matter)
+datapath <- "~/Documents/Datasets/3D-MSI/"
+figpath <- "~/Documents/Developer/Projects/matter/inst/vignettesExtra/"
+@
+
+<<eval=FALSE>>=
+require(Cardinal)
+
+# file <- "3D_Timecourse/Microbe_Interaction_3D_Timecourse_LP.imzML"
+# expname <- "3D_Timecourse"
+
+# file <- "3D_OSCC/3D_OSCC.imzML"
+# expname <- "3D_OSCC"
+
+# file <- "3D_Mouse_Pancreas/3D_Mouse_Pancreas.imzML"
+# expname <- "3D_Mouse_Pancreas"
+
+file <- "3DMouseKidney/3DMouseKidney.imzML"
+expname <- "3DMouseKidney"
+
+msi <- readMSIData(paste0(datapath, file), attach.only=TRUE)
+@
+
+<<eval=FALSE>>=
+msi.prof[[expname]][["matter"]] <- profmem({
+
+	pca.out <- PCA(msi, ncomp=2, method="irlba", center=TRUE)
+	pData(msi)[,c("PC1","PC2")] <- pca.out$scores[[1]]
+	fData(msi)[,c("PC1","PC2")] <- pca.out$loadings[[1]]
+
+})
+@
+
+
+
+<<eval=FALSE>>=
+require(bigmemory)
+require(bigalgebra)
+
+backingfile <- paste0(expname, ".bin")
+backingpath <- "~/Documents/Temporary/"
+descriptorfile <- paste0(expname, ".desc")
+
+msi.bm <- filebacked.big.matrix(nrow=ncol(msi), ncol=nrow(msi),
+	backingfile=backingfile,
+	backingpath=backingpath,
+	descriptorfile=descriptorfile,
+	type="double")
+
+msi.prof[[expname]][["convert.bigmemory"]] <- profmem({
+
+	for ( i in seq_len(ncol(iData(msi))) )
+		msi.bm[i,] <- iData(msi)[,i]
+
+})
+@
+
+<<eval=FALSE>>=
+ct.mult.bm <- function(A, B, center = ct) {
+	if ( is.vector(A) ) {
+		A <- t(A)
+		cbind((A %*% B)[]) - (sum(A) * ct)
+	} else if ( is.vector(B) ) {
+		B <- as.matrix(B)
+		cbind((A %*% B)[]) - sum(B * ct)
+	}
+}
+@
+
+
+<<eval=FALSE>>=
+require(biganalytics)
+require(irlba)
+
+msi.prof[[expname]][["bigmemory"]] <- profmem({
+
+	ct <- apply(msi.bm, 2, mean)
+
+	pca.out <- irlba(msi.bm, nu=0, nv=2, mult=ct.mult.bm)
+
+})
+
+file.remove(paste0(backingpath, backingfile))
+@
+
+
+<<eval=FALSE>>=
+require(ff)
+library(ffbase)
+require(bootSVD)
+
+msi.ff <- ff(dim=c(nrow(msi), ncol(msi)),
+	filename=paste0(backingpath, backingfile),
+	vmode="single")
+
+msi.prof[[expname]][["convert.ff"]] <- profmem({
+
+	for ( i in seq_len(ncol(iData(msi))) )
+		msi.ff[,i] <- iData(msi)[,i]
+
+})
+
+msi.ff <- vt(msi.ff)
+@
+
+<<eval=FALSE>>=
+ct.mult.ff <- function(A, B, center = ct) {
+	if ( is.vector(A) ) {
+		A <- t(A)
+		cbind(ffmatrixmult(A, B)[]) - (sum(A) * ct)
+	} else if ( is.vector(B) ) {
+		B <- as.matrix(B)
+		cbind(ffmatrixmult(A, B)[]) - sum(B * ct)
+	}
+}
+@
+
+<<eval=FALSE>>=
+msi.prof[[expname]][["ff"]] <- profmem({
+
+	ct <- as.vector(ffapply(X=msi.ff, MARGIN=2, AFUN=mean, RETURN=TRUE)[])
+
+	pca.out <- irlba(msi.ff, nu=0, nv=2, mult=ct.mult.ff)
+
+})
+
+file.remove(paste0(backingpath, backingfile))
+@
+
+<<>>=
+print(msi.prof)
+@
+
+<<echo=FALSE, results=hide, eval=FALSE>>=
+save(msi.prof, file="~/Documents/Developer/Projects/matter/data/matter_msi.rda")
+@
+
+
+\section{Session info}
+
+<<results=tex, echo=FALSE>>=
+toLatex(sessionInfo())
+@
+
+% \bibliographystyle{unsrt}
+\bibliography{matter}
+
+\end{document}

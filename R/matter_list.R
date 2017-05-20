@@ -28,30 +28,27 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = dim, dim = 0, names = NULL, dimnames = NULL, ...)
 {
-	if ( all(dim == 0) && all(extent == 0) )
+	if ( all(extent == 0) )
 		return(new("matter_list"))
 	if ( missing(data) ) {
 		missingdata <- TRUE
 	} else {
 		missingdata <- FALSE
 	}
-	if ( !is.list(data) )
+	if ( !missingdata && !is.list(data) )
 		data <- list(data)
+	if ( !missingdata && any(sapply(data, length) != extent) )
+		stop("length of data elements must equal extents")
 	if ( length(unique(sapply(data, class))) != 1 )
 		stop("elements of list data must be homogenous")
-	if ( length(dim) != length(extent) )
-		stop("length of dims [", length(offset), "] ",
-			"must equal length of 'extent' [", length(extent), "]")
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
-	if ( any(sapply(data, length) != extent) )
-		stop("length of data elements must equal extents")
 	if ( length(datamode) != length(extent) )
 		datamode <- rep(datamode, length.out=length(extent))
 	if ( is.null(paths) ) {
 		if ( missingdata )
-			data <- rep(list(0), length(dim))
+			data <- rep(list(0), length(extent))
 		filemode <- force(filemode)
 		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
@@ -63,7 +60,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		paths <- rep(paths, length.out=length(extent))
 	x <- new("matter_list",
 		data=atoms(
-			group_id=seq_along(dim),
+			group_id=seq_along(extent),
 			source_id=as.integer(factor(paths)),
 			datamode=as.integer(make_datamode(datamode, type="C")),
 			offset=as.numeric(offset),
@@ -71,8 +68,8 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=filemode,
-		length=length(dim),
-		dim=as.integer(dim),
+		length=length(extent),
+		dim=as.integer(extent),
 		names=names,
 		dimnames=dimnames,
 		ops=NULL, ...)

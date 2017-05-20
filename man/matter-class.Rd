@@ -9,6 +9,8 @@
 \alias{adata,matter-method}
 \alias{atomdata}
 \alias{atomdata,matter-method}
+\alias{atomdata<-}
+\alias{atomdata<-,matter-method}
 \alias{datamode}
 \alias{datamode<-}
 \alias{datamode,atoms-method}
@@ -40,9 +42,15 @@
 
 \alias{[,atoms,ANY,ANY,ANY-method}
 \alias{[[,atoms-method}
+\alias{[[,atoms,ANY,ANY-method}
 
 \alias{c,atoms-method}
 \alias{c,matter-method}
+
+\alias{which,matter-method}
+
+\alias{is.matter}
+\alias{as.matter}
 
 \title{Vectors, Matrices, and Arrays Stored on Disk}
 
@@ -54,11 +62,19 @@
 ## Instance creation
 matter(\dots)
 
+# Check if an object is a matter object
+is.matter(x)
+
+# Coerce an object to a matter object
+as.matter(x)
+
 ## Additional methods documented below
 }
 
 \arguments{
     \item{\dots}{Arguments passed to subclasses.}
+
+    \item{x}{An object to check if it is a matter object or coerce to a matter object.}
 }
 
 \section{Slots}{

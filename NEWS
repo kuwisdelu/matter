@@ -1,4 +1,16 @@
 
+CHANGES IN VERSION 1.3.3 [2017-5-20]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Added new vignettes with benchmarks and examples on real data
+
+BUG FIXES
+
+    o Fixed bug in delayed arithmetic operations with vectors
+
+
 CHANGES IN VERSION 1.3.2 [2017-5-15]
 -----------------------------------
 

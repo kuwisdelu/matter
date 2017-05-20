@@ -1325,7 +1325,7 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         }
         switch(where(i)) {
             case BY_GROUP:
-                xlen = atm->length();
+                xlen = atm->max_extent();
                 if ( ylen == xlen )
                 {
                     for ( index_t k = 0; k < count; k++ ) {
@@ -1598,7 +1598,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         }
         switch(where(i)) {
             case BY_GROUP:
-                xlen = atm->length();
+                xlen = atm->max_extent();
                 if ( ylen == xlen )
                 {
                     for ( index_t k = 0; k < count; k++ ) {

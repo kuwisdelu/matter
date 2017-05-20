@@ -125,4 +125,7 @@ exportMethods("bigglm")
 
 exportMethods("prcomp")
 
+export("mem",
+	"profmem")
+
 useDynLib("matter", .registration=TRUE)

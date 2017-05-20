@@ -25,28 +25,25 @@ setClass("matter_str",
 matter_str <- function(data, datamode = "raw", paths = NULL,
 					filemode = ifelse(is.null(paths), "rb+", "rb"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-					extent = dim, dim = 0, names = NULL, dimnames = NULL, ...)
+					extent = dim, dim = 0, names = NULL, ...)
 {
-	if ( all(dim == 0) && all(extent == 0) )
+	if ( all(extent == 0) )
 		return(new("matter_str"))
 	if ( missing(data) ) {
 		missingdata <- TRUE
 	} else {
 		missingdata <- FALSE
 	}
-	if ( !is.character(data) )
+	if ( !missingdata && !is.character(data) )
 		data <- as.character(data)
-	if ( length(dim) != length(extent) )
-		stop("length of dims [", length(offset), "] ",
-			"must equal length of 'extent' [", length(extent), "]")
+	if ( !missingdata && any(sapply(data, nchar, type="bytes") != extent) )
+		stop("length of character strings (in bytes) must equal extents")
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
-	if ( any(sapply(data, nchar, type="bytes") != extent) )
-		stop("length of character strings (in bytes) must equal extents")
 	if ( is.null(paths) ) {
 		if ( missingdata )
-			data <- sapply(dim, raw)
+			data <- sapply(extent, raw)
 		filemode <- force(filemode)
 		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
@@ -58,7 +55,7 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 		paths <- rep(paths, length.out=length(extent))
 	x <- new("matter_str",
 		data=atoms(
-			group_id=seq_along(dim),
+			group_id=seq_along(extent),
 			source_id=as.integer(factor(paths)),
 			datamode=as.integer(rep(make_datamode("raw", type="C"),
 				length.out=length(extent))),
@@ -67,10 +64,10 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 		datamode=make_datamode(datamode[1], type="R"),
 		paths=levels(factor(paths)),
 		filemode=filemode,
-		length=length(dim),
-		dim=as.integer(dim),
+		length=length(extent),
+		dim=as.integer(extent),
 		names=names,
-		dimnames=dimnames,
+		dimnames=NULL,
 		ops=NULL, ...)
 	if ( !missingdata )
 		x[] <- data

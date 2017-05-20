@@ -1,56 +1,66 @@
 \name{delayed-ops}
 \docType{methods}
 
-\alias{+,matter_vec,numeric-method}
-\alias{+,matter_matc,numeric-method}
-\alias{+,matter_matr,numeric-method}
-\alias{+,numeric,matter_vec-method}
-\alias{+,numeric,matter_matc-method}
-\alias{+,numeric,matter_matr-method}
+\alias{Arith,matter_vec,numeric-method}
+\alias{Arith,numeric,matter_vec-method}
+\alias{Arith,matter_vec,matter_vec-method}
 
-\alias{-,matter_vec,numeric-method}
-\alias{-,matter_matc,numeric-method}
-\alias{-,matter_matr,numeric-method}
-\alias{-,numeric,matter_vec-method}
-\alias{-,numeric,matter_matc-method}
-\alias{-,numeric,matter_matr-method}
+\alias{Arith,numeric,matter_matc-method}
+\alias{Arith,matter_matc,numeric-method}
+\alias{Arith,matter_matc,matter_matc-method}
 
-\alias{*,matter_vec,numeric-method}
-\alias{*,matter_matc,numeric-method}
-\alias{*,matter_matr,numeric-method}
-\alias{*,numeric,matter_vec-method}
-\alias{*,numeric,matter_matc-method}
-\alias{*,numeric,matter_matr-method}
+\alias{Arith,numeric,matter_matr-method}
+\alias{Arith,matter_matr,numeric-method}
+\alias{Arith,matter_matr,matter_matr-method}
 
-\alias{/,matter_vec,numeric-method}
-\alias{/,matter_matc,numeric-method}
-\alias{/,matter_matr,numeric-method}
-\alias{/,numeric,matter_vec-method}
-\alias{/,numeric,matter_matc-method}
-\alias{/,numeric,matter_matr-method}
+\alias{Arith,matter_arr,matter_arr-method}
+\alias{Arith,matter_arr,numeric-method}
+\alias{Arith,numeric,matter_arr-method}
 
-\alias{^,matter_vec,numeric-method}
-\alias{^,matter_matc,numeric-method}
-\alias{^,matter_matr,numeric-method}
-\alias{^,numeric,matter_vec-method}
-\alias{^,numeric,matter_matc-method}
-\alias{^,numeric,matter_matr-method}
+\alias{Compare,matter_vec,raw-method}
+\alias{Compare,matter_vec,numeric-method}
+\alias{Compare,raw,matter_vec-method}
+\alias{Compare,numeric,matter_vec-method}
+\alias{Compare,matter_vec,matter_vec-method}
+
+\alias{Compare,raw,matter_matc-method}
+\alias{Compare,numeric,matter_matc-method}
+\alias{Compare,matter_matc,raw-method}
+\alias{Compare,matter_matc,numeric-method}
+\alias{Compare,matter_matc,matter_matc-method}
+
+\alias{Compare,raw,matter_matr-method}
+\alias{Compare,numeric,matter_matr-method}
+\alias{Compare,matter_matr,raw-method}
+\alias{Compare,matter_matr,numeric-method}
+\alias{Compare,matter_matr,matter_matr-method}
+
+\alias{Compare,matter_arr,raw-method}
+\alias{Compare,matter_arr,numeric-method}
+\alias{Compare,raw,matter_arr-method}
+\alias{Compare,numeric,matter_arr-method}
+\alias{Compare,matter_arr,matter_arr-method}
 
 \alias{exp,matter_vec-method}
 \alias{exp,matter_mat-method}
+\alias{exp,matter_arr-method}
 
 \alias{log,matter_vec-method}
 \alias{log,matter_matc-method}
 \alias{log,matter_matr-method}
+\alias{log,matter_arr-method}
 \alias{log,matter_vec,numeric-method}
 \alias{log,matter_matc,numeric-method}
 \alias{log,matter_matr,numeric-method}
+\alias{log,matter_arr,numeric-method}
 
 \alias{log2,matter_vec-method}
 \alias{log2,matter_mat-method}
+\alias{log2,matter_arr-method}
 
 \alias{log10,matter_vec-method}
 \alias{log10,matter_mat-method}
+\alias{log10,matter_arr-method}
 
 
 \title{Delayed Operations on ``matter'' Objects}
@@ -63,6 +73,8 @@
     Currently the following operations are supported:
 
     `Arith': `+', `-', `*', `/', `^'
+
+    `Compare': `==', `>', `<', `!=', `<=', `>='
 
     `Math': `exp', `log', `log2', `log10'
 
@@ -77,12 +89,13 @@
 
 \seealso{
     \code{\link[methods]{Arith}},
+    \code{\link[methods]{Compare}},
     \code{\link[methods]{Math}}
 }
 
 \examples{
-x <- matter(1:100, length=100)
-y <- x + 1
+x <- matter(1:100)
+y <- 2 * x + 1
 
 x[1:10]
 y[1:10]
