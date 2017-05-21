@@ -138,7 +138,7 @@ setMethod("show", "matter_mat", function(object) {
 
 getMatrix <- function(x) {
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
-	y <- .Call("C_getMatrix", x)
+	y <- .Call("C_getMatrix", x, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- dimnames(x)
 	y
@@ -154,7 +154,7 @@ setMatrix <- function(x, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setMatrix", x, value)
+	.Call("C_setMatrix", x, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -164,7 +164,7 @@ getMatrixRows <- function(x, i, drop=TRUE) {
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
-	y <- .Call("C_getMatrixRows", x, i - 1)
+	y <- .Call("C_getMatrixRows", x, i - 1, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x)[i], colnames(x))
 	if ( drop ) 
@@ -185,7 +185,7 @@ setMatrixRows <- function(x, i, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setMatrixRows", x, i - 1, value)
+	.Call("C_setMatrixRows", x, i - 1, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -195,7 +195,7 @@ getMatrixCols <- function(x, j, drop=TRUE) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
-	y <- .Call("C_getMatrixCols", x, j - 1)
+	y <- .Call("C_getMatrixCols", x, j - 1, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x), colnames(x)[j])
 	if ( drop ) 
@@ -216,7 +216,7 @@ setMatrixCols <- function(x, j, value) {
 	if ( is.character(value) )
 		value <- as.double(value)
 	value <- rep(value, length.out=length(j) * nrow(x))
-	.Call("C_setMatrixCols", x, j - 1, value)
+	.Call("C_setMatrixCols", x, j - 1, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -230,7 +230,7 @@ getMatrixElements <- function(x, i, j, drop=TRUE) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
-	y <- .Call("C_getMatrixElements", x, i - 1, j - 1)
+	y <- .Call("C_getMatrixElements", x, i - 1, j - 1, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- list(rownames(x)[i], colnames(x)[j])
 	if ( drop ) 
@@ -255,7 +255,7 @@ setMatrixElements <- function(x, i, j, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setMatrixElements", x, i - 1, j - 1, value)
+	.Call("C_setMatrixElements", x, i - 1, j - 1, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -547,12 +547,12 @@ setMethod("%*%", c("numeric", "matter_matr"), function(x, y) { t(x) %*% y })
 
 setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
 {
-	.Call("C_rightMatrixMult", x, y)
+	.Call("C_rightMatrixMult", x, y, PACKAGE="matter")
 })
 
 setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 {
-	.Call("C_leftMatrixMult", x, y)
+	.Call("C_leftMatrixMult", x, y, PACKAGE="matter")
 })
 
 setMethod("%*%", c("matter", "matter"), function(x, y)
@@ -571,175 +571,231 @@ setMethod("tcrossprod", c("matter", "ANY"), function(x, y) x %*% t(y))
 setMethod("tcrossprod", c("ANY", "matter"), function(x, y) x %*% t(y))
 
 
-#### Arithmetic and other operators ####
-## --------------------------------------
+#### Delayed operations on 'matter_mat' ####
+## ----------------------------------------
 
 check_comformable_dims <- function(x, y, margin = 1) {
 	if ( is.vector(x) ) {
 		return(check_comformable_dims(y, x))
 	} else if ( length(y) != 1 && length(y) != dim(x)[margin] ) {
-		stop("argument length is non-conformable with matrix dimensions")
+		warning("argument length is non-conformable with matrix dimensions and will be recycled")
 	}
 	TRUE
 }
 
-# setMethod("+", c("matter_matc", "matter_matc"),
-# 	function(e1, e2) {
-# 		if ( all(dim(e1) == dim(e2)) )
-# 			register_op(e1, NULL, e2, "+")
-# })
+# Arith
 
-# setMethod("+", c("matter_matr", "matter_matr"),
-# 	function(e1, e2) {
-# 		if ( all(dim(e1) == dim(e2)) )
-# 			register_op(e1, NULL, e2, "+")
-# })
-
-setMethod("+", c("matter_matc", "numeric"),
+setMethod("Arith", c("matter_matc", "matter_matc"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "+", "by_group")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( all(dim(e1) == dim(e2)) ) {
+			register_op(e1, NULL, e2, .Generic)
+		} else {
+			stop("on-disk matrix dimensions must match exactly for delayed operation")
+		}
 })
 
-setMethod("+", c("matter_matr", "numeric"),
+setMethod("Arith", c("matter_matr", "matter_matr"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "+", "by_each_group")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( all(dim(e1) == dim(e2)) ) {
+			register_op(e1, NULL, e2, .Generic)
+		} else {
+			stop("on-disk matrix dimensions must match exactly for delayed operation")
+		}
 })
 
-setMethod("+", c("numeric", "matter_matc"),
+setMethod("Arith", c("matter_matc", "numeric"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "+", "by_group")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( check_comformable_dims(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_group")
+			if ( datamode(e1)[1] != "numeric" && typeof(e2) == "double" )
+				datamode(e1) <- "numeric"
+			e1
+		}
 })
 
-setMethod("+", c("numeric", "matter_matr"),
+setMethod("Arith", c("matter_matr", "numeric"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "+", "by_each_group")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( check_comformable_dims(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_each_group")
+			if ( datamode(e1)[1] != "numeric" && typeof(e2) == "double" )
+				datamode(e1) <- "numeric"
+			e1
+		}
 })
 
-setMethod("-", c("matter_matc", "numeric"),
+setMethod("Arith", c("numeric", "matter_matc"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "-", "by_group")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( check_comformable_dims(e1, e2) )  {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_group")
+			if ( datamode(e2)[1] != "numeric" && typeof(e1) == "double" )
+				datamode(e2) <- "numeric"
+			e2
+		}
 })
 
-setMethod("-", c("matter_matr", "numeric"),
+setMethod("Arith", c("numeric", "matter_matr"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "-", "by_each_group")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( check_comformable_dims(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_each_group")
+			if ( datamode(e2)[1] != "numeric" && typeof(e1) == "double" )
+				datamode(e2) <- "numeric"
+			e2
+		}
 })
 
-setMethod("-", c("numeric", "matter_matc"),
+## Compare
+
+setMethod("Compare", c("matter_matc", "matter_matc"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "-", "by_group")
+		if ( all(dim(e1) == dim(e2)) ) {
+			register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		} else {
+			stop("on-disk matrix dimensions must match exactly for delayed operation")
+		}
 })
 
-setMethod("-", c("numeric", "matter_matr"),
+setMethod("Compare", c("matter_matr", "matter_matr"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "-", "by_each_group")
+		if ( all(dim(e1) == dim(e2)) ) {
+			register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		} else {
+			stop("on-disk matrix dimensions must match exactly for delayed operation")
+		}
 })
 
-setMethod("*", c("matter_matc", "numeric"),
+setMethod("Compare", c("matter_matc", "raw"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "*", "by_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_group")
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		}
 })
 
-setMethod("*", c("matter_matr", "numeric"),
+setMethod("Compare", c("matter_matr", "raw"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "*", "by_each_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_each_group")
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		}
 })
 
-setMethod("*", c("numeric", "matter_matc"),
+setMethod("Compare", c("raw", "matter_matc"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "*", "by_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_group")
+			if ( datamode(e2)[1] != "logical" )
+				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			e2
+		}
 })
 
-setMethod("*", c("numeric", "matter_matr"),
+setMethod("Compare", c("raw", "matter_matr"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "*", "by_each_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_each_group")
+			if ( datamode(e2)[1] != "logical" )
+				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			e2
+		}
 })
 
-setMethod("/", c("matter_matc", "numeric"),
+setMethod("Compare", c("matter_matc", "numeric"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "/", "by_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_group")
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		}
 })
 
-setMethod("/", c("matter_matr", "numeric"),
+setMethod("Compare", c("matter_matr", "numeric"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "/", "by_each_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_each_group")
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		}
 })
 
-setMethod("/", c("numeric", "matter_matc"),
+setMethod("Compare", c("numeric", "matter_matc"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "/", "by_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_group")
+			if ( datamode(e2)[1] != "logical" )
+				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			e2
+		}
 })
 
-setMethod("/", c("numeric", "matter_matr"),
+setMethod("Compare", c("numeric", "matter_matr"),
 	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "/", "by_each_group")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_each_group")
+			if ( datamode(e2)[1] != "logical" )
+				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			e2
+		}
 })
 
-setMethod("^", c("matter_matc", "numeric"),
-	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "^", "by_group")
-})
-
-setMethod("^", c("matter_matr", "numeric"),
-	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e1, NULL, e2, "^", "by_each_group")
-})
-
-setMethod("^", c("numeric", "matter_matc"),
-	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "^", "by_group")
-})
-
-setMethod("^", c("numeric", "matter_matr"),
-	function(e1, e2) {
-		if ( check_comformable_dims(e1, e2) )
-			register_op(e2, e1, NULL, "^", "by_each_group")
-})
+## Math
 
 setMethod("exp", "matter_mat",
 	function(x) {
-		register_op(x, NULL, NULL, "^", "by_each_group")
+		x <- register_op(x, NULL, NULL, "^", "by_each_group")
+		if ( datamode(x) != "numeric" )
+			datamode(x) <- "numeric"
+		x
 })
 
 setMethod("log", "matter_matc",
 	function(x, base) {
 		if ( missing(base) ) {
-			register_op(x, NULL, NULL, "log", "by_group")
-		} else {
-			if ( check_comformable_dims(x, base) )
-				register_op(x, base, NULL, "log", "by_group")
+			x <- register_op(x, NULL, NULL, "log", "by_group")
+		} else if ( check_comformable_dims(x, base) ) {
+			x <- register_op(x, base, NULL, "log", "by_group")
 		}
+		if ( datamode(x) != "numeric" )
+			datamode(x) <- "numeric"
+		x
 })
 
 setMethod("log", "matter_matr",
 	function(x, base) {
 		if ( missing(base) ) {
-			register_op(x, NULL, NULL, "log", "by_each_group")
-		} else {
-			if ( check_comformable_dims(x, base) )
-				register_op(x, base, NULL, "log", "by_each_group")
+			x <- register_op(x, NULL, NULL, "log", "by_each_group")
+		} else if ( check_comformable_dims(x, base) ) {
+			x <- register_op(x, base, NULL, "log", "by_each_group")
 		}
+		if ( datamode(x) != "numeric" )
+			datamode(x) <- "numeric"
+		x
 })
 
 setMethod("log2", "matter_mat", function(x) log(x, base=2))
 
 setMethod("log10", "matter_mat", function(x) log(x, base=10))
+

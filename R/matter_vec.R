@@ -75,7 +75,7 @@ setMethod("show", "matter_vec", function(object) {
 })
 
 getVector <- function(x) {
-	y <- .Call("C_getVector", x)
+	y <- .Call("C_getVector", x, PACKAGE="matter")
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)
 	y
@@ -90,7 +90,7 @@ setVector <- function(x, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setVector", x, value)
+	.Call("C_setVector", x, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -100,7 +100,7 @@ getVectorElements <- function(x, i) {
 		i <- logical2index(x, i)
 	if ( is.character(i) )
 		i <- names2index(x, i)
-	y <- .Call("C_getVectorElements", x, i - 1)
+	y <- .Call("C_getVectorElements", x, i - 1, PACKAGE="matter")
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)[i]
 	y	
@@ -119,7 +119,7 @@ setVectorElements <- function(x, i, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setVectorElements", x, i - 1, value)
+	.Call("C_setVectorElements", x, i - 1, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)	
 }
@@ -185,8 +185,8 @@ setMethod("t", "matter_vec", function(x)
 		x
 })
 
-#### Arithmetic and other operators ####
-## --------------------------------------
+#### Delayed operations on 'matter_vec' ####
+## ----------------------------------------
 
 check_comformable_lengths <- function(x, y, margin = 1) {
 	if ( is.vector(x) ) {
@@ -197,84 +197,117 @@ check_comformable_lengths <- function(x, y, margin = 1) {
 	TRUE
 }
 
-# setMethod("+", c("matter_vec", "matter_vec"),
-# 	function(e1, e2) {
-# 		register_op(e1, NULL, e2, "+")
-# })
+# Arith
 
-setMethod("+", c("matter_vec", "numeric"),
+setMethod("Arith", c("matter_vec", "matter_vec"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e1, NULL, e2, "+")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( length(e1) == length(e2) ) {
+			register_op(e1, NULL, e2, .Generic)
+		} else {
+			stop("on-disk vector lengths must match exactly for delayed operation")
+		}
 })
 
-setMethod("+", c("numeric", "matter_vec"),
+setMethod("Arith", c("matter_vec", "numeric"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e2, e1, NULL, "+")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1)[1] != "numeric" && typeof(e2) == "double" )
+				datamode(e1) <- "numeric"
+			e1
+		}
 })
 
-setMethod("-", c("matter_vec", "numeric"),
+setMethod("Arith", c("numeric", "matter_vec"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e1, NULL, e2, "-")
+		if ( .Generic %in% c("%%", "%/%") )
+			stop("unsupported delayed operation type")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic)
+			if ( datamode(e2)[1] != "numeric" && typeof(e1) == "double" )
+				datamode(e2) <- "numeric"
+			e2
+		}
 })
 
-setMethod("-", c("numeric", "matter_vec"),
+# Compare
+
+setMethod("Compare", c("matter_vec", "matter_vec"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e2, e1, NULL, "-")
+		if ( length(e1) == length(e2) ) {
+			register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		} else {
+			stop("on-disk vector lengths must match exactly for delayed operation")
+		}
 })
 
-setMethod("*", c("matter_vec", "numeric"),
+setMethod("Compare", c("matter_vec", "raw"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e1, NULL, e2, "*")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		}
 })
 
-setMethod("*", c("numeric", "matter_vec"),
+setMethod("Compare", c("raw", "matter_vec"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e2, e1, NULL, "*")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic)
+			if ( datamode(e2)[1] != "logical" )
+				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			e2
+		}
 })
 
-setMethod("/", c("matter_vec", "numeric"),
+setMethod("Compare", c("matter_vec", "numeric"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e1, NULL, e2, "/")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1)[1] != "logical" )
+				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			e1
+		}
 })
 
-setMethod("/", c("numeric", "matter_vec"),
+setMethod("Compare", c("numeric", "matter_vec"),
 	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e2, e1, NULL, "/")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic)
+			if ( datamode(e2)[1] != "logical" )
+				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			e2
+		}
 })
 
-setMethod("^", c("matter_vec", "numeric"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e1, NULL, e2, "^")
-})
-
-setMethod("^", c("numeric", "matter_vec"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) )
-			register_op(e2, e1, NULL, "^")
-})
+# Math
 
 setMethod("exp", "matter_vec",
 	function(x) {
-		register_op(x, NULL, NULL, "^")
+		x <- register_op(x, NULL, NULL, "^")
+		if ( datamode(x) != "numeric" )
+			datamode(x) <- "numeric"
+		x
 })
 
 setMethod("log", "matter_vec",
 	function(x, base) {
 		if ( missing(base) ) {
-			register_op(x, NULL, NULL, "log")
-		} else {
-			if ( check_comformable_lengths(x, base) )
-				register_op(x, base, NULL, "log")
+			x <- register_op(x, NULL, NULL, "log")
+		} else if ( check_comformable_lengths(x, base) ) {
+			x <- register_op(x, base, NULL, "log")
 		}
+		if ( datamode(x) != "numeric" )
+			datamode(x) <- "numeric"
+		x
 })
 
 setMethod("log2", "matter_vec", function(x) log(x, base=2))

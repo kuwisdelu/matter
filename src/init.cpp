@@ -28,6 +28,7 @@ extern "C" {
         {"C_getRowVars", (DL_FUNC) &getRowVars, 2},
         {"C_rightMatrixMult", (DL_FUNC) &rightMatrixMult, 2},
         {"C_leftMatrixMult", (DL_FUNC) &leftMatrixMult, 2},
+        {"C_getWhich", (DL_FUNC) &getWhich, 1},
         {"C_countRuns", (DL_FUNC) &countRuns, 1},
         {"C_createDRLE", (DL_FUNC) &createDRLE, 2},
         {"C_getDRLE", (DL_FUNC) &getDRLE, 1},

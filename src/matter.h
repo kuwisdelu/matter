@@ -3,9 +3,11 @@
 #define MATTER
 
 #include <R.h>
+#include <Rdefines.h>
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "utils.h"
 #include "matterDefines.h"
@@ -23,6 +25,18 @@ class Matter;
 
 //// Low-level utility functions
 //----------------------------------
+
+bool is_R_NA(Rbyte x);
+
+bool is_R_NA(int x);
+
+bool is_R_NA(double x);
+
+int coerce_logical(Rbyte x);
+
+int coerce_logical(int x);
+
+int coerce_logical(double x);
 
 template<typename T>
 T coerce_pow(T base, T exponent);
@@ -175,11 +189,30 @@ union R_ANY {
     Matter * m;
 };
 
+struct R_OP_MODES {
+    int datamode;     // the mode of the resulting R object
+    int readmode;     // intermediate mode before applying ops
+    bool is_mixed;  // whether they are the same
+};
+
 class Ops {
 
     public:
 
         Ops(SEXP x) {
+            SEXP _datamode = GET_SLOT(x, install("datamode"));
+            if ( LENGTH(_datamode) > 1 )
+            {
+                _modes.datamode = INTEGER(_datamode)[0];
+                _modes.readmode = INTEGER(_datamode)[1];
+                _modes.is_mixed = _modes.datamode != _modes.readmode;
+            }
+            else
+            {
+                _modes.datamode = INTEGER(_datamode)[0];
+                _modes.readmode = INTEGER(_datamode)[0];
+                _modes.is_mixed = false;
+            }
             SEXP _x = GET_SLOT(x, install("ops"));
             if ( _x != R_NilValue ) {
                 _length = LENGTH(_x);
@@ -230,6 +263,10 @@ class Ops {
             return _length;
         }
 
+        R_OP_MODES modes() {
+            return _modes;
+        }
+
         bool has_lhs(int i) {
             return lhs(i) != R_NilValue;
         }
@@ -265,6 +302,8 @@ class Ops {
         template<typename RType, int SType>
         RType * arg(int i);
 
+        // Arith
+
         template<typename T1, typename T2>
         void add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
 
@@ -289,12 +328,43 @@ class Ops {
         template<typename T1, typename T2>
         void log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
 
+        // Compare
+
+        template<typename T1, typename T2>
+        void eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        // Logic
+
+        template<typename T1, typename T2>
+        void AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        // Perform delayed operations
+
         template<typename T>
-        void do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t skip);
+        void do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t skip = 1);
 
     protected:
 
         int _length;
+        R_OP_MODES _modes;
         SEXP * _lhs;
         SEXP * _rhs;
         int * _op;
@@ -439,20 +509,66 @@ class Atoms {
             error("subscript not found in any atom");
         }
 
+        template<typename CType, typename RType, typename IType, int SType>
+        void read_delayed_atom(RType * ptr, CType * buffer, index_t offset, index_t count, size_t skip) {
+            if ( _ops.modes().is_mixed )
+            {
+                // mixed modes assumes we are doing a boolean delayed op
+                IType * tmp = (IType *) Calloc(count, IType);
+                for ( index_t i = 0; i < count; i++ )
+                    tmp[i] = coerce_cast<CType,IType>(buffer[i]);
+                _ops.do_ops<IType>(tmp, this, 0, count);
+                if ( SType == LGLSXP ) 
+                    for ( index_t i = 0; i < count; i++ ) {
+                        *ptr = coerce_logical(static_cast<RType>(tmp[i]));
+                        ptr += skip;
+                    }
+                else
+                    for ( index_t i = 0; i < count; i++ ) {
+                        *ptr = static_cast<RType>(tmp[i]);
+                        ptr += skip;
+                    }
+                Free(tmp);
+            }
+            else
+            {
+                RType * optr = ptr;
+                if ( SType == LGLSXP )
+                    for ( index_t i = 0; i < count; i++ ) {
+                        *ptr = coerce_logical(coerce_cast<CType,RType>(buffer[i]));
+                        ptr += skip;
+                    }
+                else
+                    for ( index_t i = 0; i < count; i++ ) {
+                        *ptr = coerce_cast<CType,RType>(buffer[i]);
+                        ptr += skip;
+                    }
+                _ops.do_ops<RType>(optr, this, offset, count, skip);
+            }
+        }
+
         template<typename CType, typename RType>
         index_t read_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
             index_t numRead;
             FILE * stream = _sources.require(source_id(which));
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
-            RType * optr = ptr;
             numRead = fread(tmp, sizeof(CType), count, stream);
-            for ( index_t i = 0; i < numRead; i++ ) {
-                *ptr = coerce_cast<CType,RType>(tmp[i]);
-                ptr += skip;
+            switch(_ops.modes().readmode) {
+                case R_RAW:
+                    read_delayed_atom<CType,RType,Rbyte,RAWSXP>(ptr, tmp, offset, numRead, skip);
+                    break;
+                case R_LOGICAL:
+                    read_delayed_atom<CType,RType,int,LGLSXP>(ptr, tmp, offset, numRead, skip);
+                    break;
+                case R_INTEGER:
+                    read_delayed_atom<CType,RType,int,INTSXP>(ptr, tmp, offset, numRead, skip);
+                    break;
+                case R_NUMERIC:
+                    read_delayed_atom<CType,RType,double,REALSXP>(ptr, tmp, offset, numRead, skip);
+                    break;
             }
             Free(tmp);
-            _ops.do_ops<RType>(optr, this, offset, count, skip);
             return numRead;
         }
 
@@ -769,29 +885,40 @@ class Matter
         template<typename RType, int SType>
         void writeMatrixElements(SEXP i, SEXP j, SEXP value);
 
-        template<typename RType, int SType>
+        template<typename T, typename RType, int SType>
         SEXP rmult(SEXP y);
 
-        template<typename RType, int SType>
+        template<typename T, typename RType, int SType>
         SEXP lmult(SEXP x);
 
+        template<typename T>
         SEXP sum(bool na_rm = false);
 
+        template<typename T>
         SEXP mean(bool na_rm = false);
 
+        template<typename T>
         SEXP var(bool na_rm = false);
 
+        template<typename T>
         SEXP colsums(bool na_rm = false);
 
+        template<typename T>
         SEXP rowsums(bool na_rm = false);
 
+        template<typename T>
         SEXP colmeans(bool na_rm = false);
 
+        template<typename T>
         SEXP rowmeans(bool na_rm = false);
 
+        template<typename T>
         SEXP colvar(bool na_rm = false);
 
+        template<typename T>
         SEXP rowvar(bool na_rm = false);
+
+        SEXP which();
 
     protected:
 
@@ -910,11 +1037,14 @@ class MatterIterator
         RType * _buffer;
 };
 
-double sum(MatterIterator<double> & x, bool na_rm = false);
+template<typename T>
+double sum(MatterIterator<T> & x, bool na_rm = false);
 
-double mean(MatterIterator<double> & x, bool na_rm = false);
+template<typename T>
+double mean(MatterIterator<T> & x, bool na_rm = false);
 
-double var(MatterIterator<double> & x, bool na_rm = false);
+template<typename T>
+double var(MatterIterator<T> & x, bool na_rm = false);
 
 //// Exported C functions
 //-----------------------
@@ -974,6 +1104,8 @@ extern "C" {
     SEXP rightMatrixMult(SEXP x, SEXP y);
 
     SEXP leftMatrixMult(SEXP x, SEXP y);
+
+    SEXP getWhich(SEXP x);
 
     SEXP countRuns(SEXP x);
 
