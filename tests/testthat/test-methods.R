@@ -3,6 +3,26 @@ require(matter)
 
 context("matter-methods")
 
+test_that("matrix multiplication", {
+
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10)
+
+	expect_equal(x %*% x, x %*% y)
+
+	expect_equal(x %*% x, y %*% x)
+
+	x <- matrix(1:100, nrow=10, ncol=10)
+
+	y <- matter_mat(x, nrow=10, ncol=10, rowMaj=TRUE)
+
+	expect_equal(x %*% x, x %*% y)
+
+	expect_equal(x %*% x, y %*% x)
+
+})
+
 test_that("summary statistics", {
 
 	x <- seq_len(100)

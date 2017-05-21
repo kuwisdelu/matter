@@ -15,6 +15,18 @@ prcomp_matter_mat <- function(x, n, retx, center, scale., ...) {
         	"  for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n",
         	"  to control that algorithm's convergence tolerance.")
     x <- scale(x, center=center, scale=scale.)
+    # mult <- function(x, y) {
+    #     if ( is.vector(x) )
+    #         x <- t(x)
+    #     if ( is.vector(y) )
+    #         y <- as.matrix(y)
+    #     if ( is.matter(x) ) {
+    #         .Call("C_rightMatrixMult", x, y, PACKAGE="matter")
+    #     } else {
+    #         .Call("C_leftMatrixMult", x, y, PACKAGE="matter")
+    #     }
+    # }
+    # sv <- irlba(x, nu=n, nv=n, fastpath=FALSE, mult=mult, ...)
     sv <- irlba(x, nu=n, nv=n, fastpath=FALSE, ...)
     ans <- list(sdev = sv$d/sqrt(max(1, nrow(x) - 1)), rotation = sv$v)
     colnames(ans$rotation) <- paste0("PC", seq(1, ncol(ans$rotation)))
