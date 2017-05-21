@@ -84,6 +84,18 @@ combine_rownames <- function(x, y) {
 	}
 }
 
+linearInd <- function(ind, .dim) {
+	if ( is.list(ind) ) {
+		ind <- expand.grid(ind)
+		apply(ind, 1, linearInd, .dim=.dim)
+	} else {
+		if ( any(ind <= 0 || ind > .dim) )
+			stop("subscript out of bounds")
+		mult <- c(1, cumprod(.dim[-length(.dim)]))
+		sum((ind - 1) * mult) + 1
+	}
+}
+
 is_ragged_array <- function(x) {
 	is(x, "matter_arr") && is.null(dim(x))
 }
@@ -159,7 +171,9 @@ make_datamode <- function(x, type=c("C", "R")) {
 			"raw",
 			"logical",
 			"integer",
-			"numeric"))
+			"numeric",
+			"character",
+			"list"))
 	if ( missing(x) )
 		return(factor(levels=levels))
 	if ( is.numeric(x) ) {
@@ -210,7 +224,9 @@ convert_datamode <- function(x, to=c("C", "R")) {
 			raw = "uchar",
 			logical = "int",
 			integer = "int",
-			numeric = "double")
+			numeric = "double",
+			character = "uchar",
+			list = stop("cannot convert data mode 'list' to C data type"))
 	}
 }
 
@@ -228,7 +244,9 @@ widest_datamode <- function(x) {
 			raw="raw",
 			logical="logical",
 			integer="integer",
-			numeric="numeric"), type="R")
+			numeric="numeric",
+			character="raw",
+			list=stop("'list' data mode not expected here")), type="R")
 	} else if ( all(x %in% levels(make_datamode(type="C"))) ) {
 		x <- max(as.integer(make_datamode(x, type="C")))
 		make_datamode(switch(x,

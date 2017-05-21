@@ -1,4 +1,21 @@
 
+CHANGES IN VERSION 1.3.2 [2017-5-15]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added class 'matter_list' for homogenous lists (ragged arrays)
+    o Added class 'matter_str' for on-disk strings
+    o Added class 'matter_df' for on-disk data frames
+
+CHANGES IN VERSION 1.3.1 [2017-4-27]
+-----------------------------------
+
+NEW FEATURES
+
+    o Updated base matter classes (matter_vec, matter_mat, matter_arr)
+        to support 'Arith' and 'Compare' group generics
+
 CHANGES IN VERSION 1.1.3 [2017-3-15]
 ---------------------------------
 

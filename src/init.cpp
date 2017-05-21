@@ -5,10 +5,14 @@ extern "C" {
 
     static const R_CallMethodDef callMethods[] = {
         {"C_createAtoms", (DL_FUNC) &createAtoms, 5},
-        {"C_getVector", (DL_FUNC) &getVector, 1},
-        {"C_setVector", (DL_FUNC) &setVector, 2},
-        {"C_getVectorElements", (DL_FUNC) &getVectorElements, 2},
-        {"C_setVectorElements", (DL_FUNC) &setVectorElements, 3},
+        {"C_getArray", (DL_FUNC) &getArray, 1},
+        {"C_setArray", (DL_FUNC) &setArray, 2},
+        {"C_getArrayElements", (DL_FUNC) &getArrayElements, 2},
+        {"C_setArrayElements", (DL_FUNC) &setArrayElements, 3},
+        {"C_getList", (DL_FUNC) &getList, 1},
+        {"C_setList", (DL_FUNC) &setList, 2},
+        {"C_getListElements", (DL_FUNC) &getListElements, 3},
+        {"C_setListElements", (DL_FUNC) &setListElements, 4},
         {"C_getMatrix", (DL_FUNC) &getMatrix, 1},
         {"C_setMatrix", (DL_FUNC) &setMatrix, 2},
         {"C_getMatrixRows", (DL_FUNC) &getMatrixRows, 2},

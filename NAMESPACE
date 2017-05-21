@@ -27,11 +27,30 @@ exportClasses(
 	"matter_vec",
 	"matter_mat",
 	"matter_matc",
-	"matter_matr")
+	"matter_matr",
+	"matter_arr",
+	"matter_list",
+	"matter_str",
+	"matter_df")
+
+export(
+	"drle",
+	"is.drle")
+
+export(
+	"matter",
+	"matter_vec",
+	"matter_mat",
+	"matter_arr",
+	"matter_list",
+	"matter_df",
+	"matter_str",
+	"is.matter")
 
 exportMethods(
 	"adata",
 	"atomdata",
+	"atomdata<-",
 	"datamode",
 	"datamode<-",
 	"paths",
@@ -45,6 +64,8 @@ exportMethods(
 	"%*%",
 	"[",
 	"[<-",
+	"$",
+	"$<-",
 	"c",
 	"cbind",
 	"rbind",
@@ -59,10 +80,6 @@ exportMethods(
 	"t",
 	"crossprod",
 	"tcrossprod")
-
-export(
-	"drle",
-	"is.drle")
 
 export(
 	"t.matter",
@@ -99,10 +116,5 @@ exportMethods("scale")
 exportMethods("bigglm")
 
 exportMethods("prcomp")
-
-export(
-	"matter",
-	"matter_vec",
-	"matter_mat")
 
 useDynLib("matter", .registration=TRUE)

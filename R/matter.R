@@ -2,13 +2,15 @@
 #### Define matter VIRTUAL class ####
 ## ----------------------------------
 
+setClassUnion("atoms_OR_list", c("atoms", "list"))
+setClassUnion("character_OR_NULL", c("character", "NULL"))
 setClassUnion("character_OR_NULL", c("character", "NULL"))
 setClassUnion("integer_OR_NULL", c("integer", "NULL"))
 setClassUnion("list_OR_NULL", c("list", "NULL"))
 
 setClass("matter",
 	slots = c(
-		data = "atoms",
+		data = "atoms_OR_list",
 		datamode = "factor",
 		paths = "character",
 		filemode = "character",
@@ -22,36 +24,33 @@ setClass("matter",
 	validity = function(object) {
 		errors <- NULL
 		if ( !is.null(object@paths) && any(!file.exists(object@paths)) )
-			errors <- c(errors, "file [", which(!file.exists(object@paths)), "] does not exist")
+			errors <- c(errors, paste0("file [", which(!file.exists(object@paths)), "] does not exist"))
 		C_readmodes <- c("rb", "rb+")
 		if ( length(object@filemode) != 1 || !object@filemode %in% C_readmodes )
-			errors <- c(errors, "'filemode' should be one of [",
-				paste(C_readmodes, collapse=", "), "]")
+			errors <- c(errors, paste0("'filemode' should be one of [",
+				paste(C_readmodes, collapse=", "), "]"))
 		R_datamodes <- levels(make_datamode(type="R"))
 		if ( !as.character(object@datamode) %in% R_datamodes )
-			errors <- c(errors, "'datamode' should be one of [",
-				paste(R_datamodes, collapse=", "), "]")
+			errors <- c(errors, paste0("'datamode' should be one of [",
+				paste(R_datamodes, collapse=", "), "]"))
 		if ( !object@chunksize > 0L )
 			errors <- c(errors, "chunksize must be positive")
-		if ( !is.null(object@dim) && prod(object@dim) != object@length )
-			errors <- c(errors, "dims [product ", prod(object@dim), "] ",
-				"do not match length of object [", object@length, "]")
 		if ( !is.null(object@names) && length(object@names) != object@length )
-			errors <- c(errors, "names [length ", length(object@names), "] ",
-				"do not match length of object [", object@length, "]")
+			errors <- c(errors, paste0("names [length ", length(object@names), "] ",
+				"do not match length of object [", object@length, "]"))
 		if ( !is.null(dimnames) && is.null(dim) )
 			errors <- c(errors, "'dimnames' applied to non-array")
 		if ( !is.null (object@dimnames) ) {
 			if ( is.null(object@dim) )
 				errors <- c(errors, "'dimnames' applied to non-array")
 			if ( length(object@dimnames) != length(object@dim) )
-				errors <- c(errors, "length of 'dimnames' [", length(object@dimnames), "] ",
-					"must match that of 'dims' [", length(object@dim), "]")
+				errors <- c(errors, paste0("length of 'dimnames' [", length(object@dimnames), "] ",
+					"must match that of 'dims' [", length(object@dim), "]"))
 			for ( i in seq_along(object@dimnames) ) {
 				dmn <- object@dimnames[[i]]
 				if ( !is.null(dmn) && length(dmn) != object@dim[i] )
-					errors <- c(errors, "length of 'dimnames' [", i, "] ",
-						"not equal to array extent")
+					errors <- c(errors, paste0("length of 'dimnames' [", i, "] ",
+						"not equal to array extent"))
 			}
 		}
 		if ( is.null(errors) ) TRUE else errors
@@ -71,19 +70,31 @@ matter <- function(...) {
 		uneq.extent <- FALSE
 	}
 	vec.args <- c("length", "names")
-	mat.args <- c("nrow", "ncol", "dimnames", "rowMaj")
+	mat.args <- c("nrow", "ncol", "rowMaj")
+	arr.args <- c("dim", "dimnames")
 	if ( any(vec.args %in% nm ) || is.vector(dots) || uneq.extent ) {
 		matter_vec(...)
 	} else if ( any(mat.args %in% nm ) || is.matrix(dots) ) {
 		matter_mat(...)
+	}  else if ( any(arr.args %in% nm ) || is.array(dots) ) {
+		matter_arr(...)
 	} else {
 		matter_vec(...)
 	}
 }
 
+is.matter <- function(x) {
+	is(x, "matter")
+}
+
 setMethod("adata", "matter", function(object) atomdata(object))
 
 setMethod("atomdata", "matter", function(object) object@data)
+
+setReplaceMethod("atomdata", "matter", function(object, value) {
+	object@data <- value
+	object
+})
 
 setMethod("show", "matter", function(object) {
 	object.memory <- object.size(object)
