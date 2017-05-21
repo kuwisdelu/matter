@@ -26,6 +26,18 @@ BiocStyle::latex()
 
 \Rpackage{matter} is designed for rapid prototyping of new statistical methods when working with larger-than-memory datasets on disk. Unlike related packages \Rpackage{bigmemory} \cite{bigmemory} and \Rpackage{ff} \cite{ff}, which also work with file-backed larger-than-memory datasets, \Rpackage{matter} aims to offer strict control over memory and maximum flexibility with on-disk data structures, so it can be easily adapted to domain-specific file formats, including user-customized file formats.
 
+The vignettes of this package are organized as follows:
+
+\itemize{
+  
+  \item ``Rapid prototyping with data on disk'': This is the main vignette describing \Rpackage{matter} and its general use, design, and extensibility. It walks through basic data manipulation, data structures, and demonstrates an example S4 class extending \Rpackage{matter}.
+
+  \item ``Extra examples 1 - Simulations and comparative benchmarks'': This supplementary vignette re-works the simulated statistical analysis examples from this vignette using \Rpackage{bigmemory} and \Rpackage{ff} and provides some basic benchmarks and comparisons of the three packages.
+
+  \item ``Extra examples 2 - 3D mass spectrometry imaging case study'': This supplementary vignette demonstrates using \Rpackage{matter} for principal components analysis on large experimental data, along with in-depth comparisons with \Rpackage{bigmemory} and \Rpackage{ff} on real data.
+
+}
+
 \section{Installation}
 
 \Rpackage{matter} can be installed from Bioconductor using the following commands in \R{}.
@@ -107,24 +119,15 @@ rbind(t(x), t(y))
 
 Note that this is equivalent to \verb|t(cbind(x, y))|.
 
-Below, we inspect the metadata associated with the different columns of \Robject{x} using the \verb|adata| method.
+Below, we inspect the metadata associated with the different columns of \Robject{x} using the \verb|atomdata| method.
 
 <<>>=
-adata(x)
+atomdata(x)
 @
 
-Note that each column has a byte offset and an extent (i.e., length) associated with it.
+This shows the ``atoms'' that compose the \Robject{matter} object. An atom in \Rpackage{matter} is a single contiguous segment of a file on disk. In this case, each atom corresponds to a different column. Note that each atom has a byte offset and an extent (i.e., length) associated with it.
 
-Now we show how to create a \Robject{matter\_mat} matrix for an pre-existing file. We will point the new matrix to the bottom half of \Robject{x}.
-
-<<>>=
-xsub <- matter_mat(offset=c(40, 120, 200, 280, 360),
-            extent=rep(5,5), paths=paths(x))
-x[6:10,]
-xsub[]
-@
-
-It is possible to build \Robject{matter} objects from nearly any possible combination of files and locations within files. It is even possible to build up a matrix from vectors, which we do below.
+Now we show how to create a \Robject{matter} object from a pre-existing file. We will first create vectors corresponding to the second column of \Robject{x} and third column of \Robject{y}.
 
 <<>>=
 x2 <- matter_vec(offset=80, extent=10, paths=paths(x))
@@ -133,7 +136,39 @@ cbind(x2, y3)[]
 cbind(x[,2], y[,3])
 @
 
-This is a quick and easy way to build a dataset from many files where each column of the dataset is stored in a separate file. Even if the resulting matrix would fit into memory, using \Rpackage{matter} can be a tidy, efficient way of reading complex binary data from multiple files into \R{}.
+We can even combine multiple on-disk vectors together before binding them all into a matrix.
+
+<<>>=
+z <- cbind(c(x2, y3), c(y3, x2))
+atomdata(z)
+z[]
+@
+
+This is a quick and easy way to build a dataset from many files, or even many segments of many files. Even if the resulting matrix would fit into memory, using \Rpackage{matter} can be a tidy, efficient way of reading complex binary data from multiple files into \R{}.
+
+Lastly, it is straightforward to coerce common base R types to their \Robject{matter} object equivalents using \verb|as.matter|. This includes raw, logical, integer, numeric, and character vectors, integer and numeric matrices, and data frames.
+
+<<>>=
+v1 <- 1:10
+v2 <- as.matter(v1)
+v2
+v2[]
+
+m1 <- diag(3)
+m2 <- as.matter(m1)
+m2
+m2[]
+
+s1 <- letters[1:10]
+s2 <- as.matter(s1)
+s2
+s2[]
+
+df1 <- data.frame(a=v1, b=s1, stringsAsFactors=FALSE)
+df2 <- as.matter(df1)
+df2
+df2[]
+@
 
 
 \section{Linear regression for on-disk datasets}
@@ -144,7 +179,7 @@ First, we simulate some data appropriate for linear regression.
 
 <<setup-bigglm>>=
 set.seed(81216)
-n <- 15e6
+n <- 1.5e7
 p <- 9
 
 b <- runif(p)
@@ -166,7 +201,7 @@ data
 head(data)
 @
 
-This creates a 1.2 GB dataset on disk, but less than 20 KB of metadata is stored in memory.
+This creates a 1.2 GB dataset on disk, but only about 12 KB of metadata is stored in memory.
 
 Now we calculate some statistical summaries using \Rpackage{matter}'s \Robject{apply} method for \Robject{matter\_mat} matrices.
 
@@ -176,87 +211,20 @@ apply(data, 2, mean)
 apply(data, 2, var)
 @
 
-We could also have used \Robject{colMeans} and \Robject{colVars}.
+We could also have used \Robject{colMeans} and \Robject{colVars}, which are specialized to be faster and more memory efficient.
 
 Now we fit the linear model to the data using the \Robject{bigglm} method for \Robject{matter\_mat} matrices. Note that it requires a formula, and (unfortunately) it does not allow \verb|y ~ .|, so all variables must be stated explicitly.
 
-%%%%%------- offline analysis --------%%%%%%
 
-% <<fit-bigglm-offline>>=
-% matter:::profile({
-%   fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
-%   bigglm.out <- bigglm(fm, data=data, chunksize=10000)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%     # 206.400       207.200       702.600       495.400        46.264 
-%     # 206.400       207.200       702.600       495.400        45.717
-%     # 206.400       207.200       702.600       495.400        44.197 
-%     # 206.400       207.200       702.600       495.400        45.988
-
-% data.m <- data[]
-% data.df <- as.data.frame(data.m)
-
-% rm(data.m)
-% gc()
-
-% matter:::profile({
-%   lm.out <- lm(fm, data=data.df)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    # 1406.500      5660.600      7100.900      1440.300        36.226 
-%      # 1406.500      5660.600      7100.900      1440.300        33.151
-%      # 1406.500      5660.600      7100.900      1440.300        31.838
-
-% matter:::profile({
-%   biglm.out <- bigglm(fm, data=data.df, chunksize=10000)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    # 1406.500      1410.700      2942.100      1531.400       154.417
-%    # 1406.500      1410.700      2942.100      1531.400       157.163
-%    # 1406.500      1410.700      2942.100      1531.400       158.186
-
-% rm(data.df)
-
-% require(biganalytics)
-% data.m <- data[]
-% data.bm <- as.big.matrix(data.m)
-
-% rm(data.m)
-% gc()
-
-% matter:::profile({
-%   biglm.bm.out <- biglm.big.matrix(fm, data=data.bm, chunksize=10000)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    # 211.100       211.600      1378.900      1167.300        20.848 
-%    # 211.100       211.600      1378.900      1167.300        21.267
-%    # 211.100       211.600      1378.900      1167.300        21.621 
-
-% require(ffbase)    
-% data.ff <- ff(vmode="double", dim=dim(data.m))
-% data.ff[] <- data.m
-% data.ff <- as.ffdf(data.ff)
-% colnames(data.ff) <- colnames(data)
-
-% rm(data)
-% rm(data.m)
-% gc()
-
-% matter:::profile({
-%   biglm.ff.out <- bigglm(fm, data=data.ff, chunksize=10000)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    #    209.700       218.700       647.400       428.700        57.182 
-%        # 209.700       218.700       647.400       428.700        59.032 
-%        # 209.70        218.70        647.40        428.70         58.52
-%        # 209.700       218.700       647.400       428.700        58.561
-%        # 209.70        218.70        647.40        428.70         58.41
-% @
-
-%%%%%------- online analysis --------%%%%%%
+<<eval=FALSE, echo=FALSE, results=hide>>=
+profmem({
+	fm <- as.formula(paste0("y ~ ", paste0(names(b), collapse=" + ")))
+	bigglm.out <- bigglm(fm, data=data, chunksize=10000)
+})
+@
 
 <<fit-bigglm, eval=FALSE>>=
-fm <- as.formula(paste0("y ~ ", paste(names(b), collapse=" + ")))
+fm <- as.formula(paste0("y ~ ", paste0(names(b), collapse=" + ")))
 bigglm.out <- bigglm(fm, data=data, chunksize=10000)
 @
 
@@ -266,7 +234,7 @@ summary(bigglm.out)
 cbind(coef(bigglm.out)[-1], b)
 @
 
-On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, fitting the linear model takes 41 seconds and uses an additional 257 MB of memory overhead. The max amount of memory used while fitting the model was only 499 MB, for the 1.2 GB dataset. This memory usage can be controlled further by using the \verb|chunksize| argument in \verb|bigglm| or by specifying a different \verb|chunksize| for the \Robject{matter} object.
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, fitting the linear model takes ~40 seconds and uses an additional ~400 MB of memory overhead. The max amount of memory used while fitting the model was only ~650 MB, for the 1.2 GB dataset. This memory usage can be controlled further by using the \verb|chunksize| argument in \verb|bigglm| or by specifying a different \verb|chunksize| for the \Robject{matter} object.
 
 
 \section{Principal components analysis for on-disk datasets}
@@ -281,7 +249,7 @@ First, we simulate some data appropriate for principal components analysis.
 
 <<setup-prcomp>>=
 set.seed(81216)
-n <- 15e5
+n <- 1.5e6
 p <- 100
 
 data <- matter_mat(nrow=n, ncol=p)
@@ -296,7 +264,7 @@ for ( i in 21:p )
 data
 @
 
-This again creates a 1.2 GB dataset on disk, but only 160 KB of metadata is stored in memory. More metadata is stored compared to the previous example, because the matrix has more columns, and it is stored as a column-major \Robject{matter\_matc} matrix with independent metadata for each column.
+This again creates a 1.2 GB dataset on disk, but only about 12 KB of metadata is stored in memory. More metadata is stored compared to the previous example, because the matrix has more columns, and it is stored as a column-major \Robject{matter\_matc} matrix with independent metadata for each column.
 
 Note that, in the simulated data, only the first twenty variables show systematic variation, with the first ten variables varying distinctly from the next ten variables.
 
@@ -315,109 +283,17 @@ Implicit scaling and centering is supported in \Rpackage{matter}, so the data ca
 
 Unlike the default \verb|prcomp| method for ordinary \R{} matrices, this version supports an argument \Robject{n} for specifying the number of principal components to calculate.
 
-%%%%%------- offline analysis --------%%%%%%
-
-% <<fit-prcomp-offline>>=
-% matter:::profile({
-%   prcomp.out <- prcomp(data, n=2, retx=FALSE, center=FALSE, scale.=FALSE)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    #     84.200        84.600      1004.800       920.200       224.628 
-%     # 84.200        84.600      1004.800       920.200       226.084 
-%      # 84.200        84.600      1004.800       920.200       244.885 
-%        # 84.200        84.600      1004.800       920.200       247.294 
-%         # 84.400        84.800      1005.000       920.200       237.696 
-
-% data.m <- data[]
-
-% matter:::profile({
-%   svd.out <- svd(data.m, nu=0, nv=2)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    #   1288.700      1288.700      3689.100      2400.400        68.158 
-%     # 1288.700      1288.700      3689.100      2400.400        67.937 
-%       # 1288.70       1288.70       3689.10       2400.40         67.53 
-%      # 1288.700      1288.700      3689.100      2400.400        84.922 
-%       # 1288.900      1288.900      3689.300      2400.400        73.907 
-
-% matter:::profile({
-%   irlba.out <- irlba(data.m, nu=0, nv=2, fastpath=FALSE)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    #   1300.900      1300.900      3546.400      2245.500        11.653
-%     # 1288.700      1300.700      3540.100      2239.400        12.085  
-%       # 1288.700      1300.700      3540.100      2239.400        11.855 
-%      # 1288.700      1300.700      3540.100      2239.400        13.295 
-%       # 1288.900      1300.900      3540.300      2239.400        12.294 
-
-% require(irlba)
-% require(bigalgebra)
-% data.bm <- as.big.matrix(data.m)
-
-% rm(data.m)
-% gc()
-
-% mult <- function(A, B, transpose=FALSE) {
-%     if ( is.null(dim(B)) )
-%       B <- as.matrix(B)
-%     if ( is.null(dim(A)) )
-%       A <- t(A)
-%     if ( transpose ) {
-%       cbind((t(B) %*% A)[])
-%     } else {
-%       cbind((A %*% B)[])
-%     }
-% }
-
-% matter:::profile({
-%   irlba.out <- irlba(data.bm, nu=0, nv=2, mult=mult)
-% })
-%    # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%    # 90.800       103.100      1926.100      1823.000        10.012 
-%    # 90.600       103.100      1926.200      1823.100        10.183
-%    # 90.600       103.100      1926.200      1823.100        10.737
-
-% rm(data.bm)
-
-% require(ffbase)
-% require(bootSVD)   
-% data.m <- data[]
-% data.ff <- ff(vmode="double", dim=dim(data.m))
-% data.ff[] <- data.m
-
-% rm(data.m)
-% gc()
-
-% mult <- function(A, B, transpose=FALSE) {
-%     if ( is.null(dim(B)) )
-%       B <- as.matrix(B)
-%     if ( is.null(dim(A)) )
-%       A <- t(A)
-%     if ( transpose ) {
-%       cbind(ffmatrixmult(t(B), A)[])
-%     } else {
-%       cbind(ffmatrixmult(A, B)[])
-%     }
-% }
-
-% matter:::profile({
-%   irlba.out <- irlba(data.ff, nu=0, nv=2, mult=mult)
-% })
-%   # start (MB)   finish (MB) max used (MB) overhead (MB)    time (sec) 
-%        # 89.200       102.200      1580.800      1478.600        83.821 
-%        # 89.200       102.200      1021.000       918.800        80.844
-%        # 89.600       102.300      1021.000       918.700        81.577
-%        # 89.200       102.200      1021.000       918.800        91.519
-%         # 89.200       102.200      1021.000       918.800        78.467
-% @
-
-%%%%%------- online analysis --------%%%%%%
+<<eval=FALSE, echo=FALSE, results=hide>>=
+profmem({
+	prcomp.out <- prcomp(data, n=2, center=FALSE, scale.=FALSE)
+})
+@
 
 <<fit-prcomp, eval=FALSE>>=
 prcomp.out <- prcomp(data, n=2, center=FALSE, scale.=FALSE)
 @
 
-On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, calculating the first two principal components takes roughly 2-4 minutes and uses an additional 337 MB of memory overhead. The max amount of memory used during the computation was only 484 MB, for the 1.2 GB dataset.
+On a 2012 retina MacBook Pro with 2.6 GHz Intel CPU, 16 GB RAM, and 500 GB SSD, calculating the first two principal components takes ~100 seconds and uses an additional ~450 MB of memory overhead. The max amount of memory used during the computation was only ~700 MB, for the 1.2 GB dataset.
 
 Now we plot the first two principal components.
 
@@ -462,17 +338,15 @@ plot(prcomp.out$rotation[,2], type='h', ylab="PC 2")
 As shown in the plots of the first and second principal components, the first PC shows that most of the variation in the data occurs in the first twenty variables, while the second PC distinguishes the first ten variables from the next ten variables.
 
 
-%%%%%------- save data ----------%%%%%%
-
-% <<save-data>>=
-% save(bigglm.out, prcomp.out, file="~/Documents/Developer/Projects/matter/data/matter_ex.rda")
-% @
+<<echo=FALSE, results=hide, eval=FALSE>>=
+save(bigglm.out, prcomp.out, file="~/Documents/Developer/Projects/matter/data/matter_ex.rda")
+@
 
 
 
 \section{Design and implementation}
 
-\Rpackage{matter} is designed with several goals in mind. Like the \textit{bigmemory} and \textit{ff} packages, it seeks to make statistical methods scalable to larger-than-memory datasets by utilizing data-on-disk. Unlike those packages, it seeks to make domain-specific file formats (such as Analyze 7.5 and imzML for MS imaging experiments) accessible from disk directly without additional file conversion. It seeks to have a minimal memory footprint, and require minimal developer effort to use, while maintaining computational efficiency wherever possible.
+The \Rpackage{matter} package is designed with several goals in mind. Like the \textit{bigmemory} and \textit{ff} packages, it seeks to make statistical methods scalable to larger-than-memory datasets by utilizing data-on-disk. Unlike those packages, it seeks to make domain-specific file formats (such as Analyze 7.5 and imzML for MS imaging experiments) accessible from disk directly without additional file conversion. It seeks to have a minimal memory footprint, and require minimal developer effort to use, while maintaining computational efficiency wherever possible.
 
 \subsection{S4 classes}
 
@@ -480,11 +354,13 @@ As shown in the plots of the first and second principal components, the first PC
 
 \subsubsection{\Robject{atoms}: contiguous sectors of data on disk}
 
-By analogy to \R{}'s notion of ``atomic'' vectors, the \Robject{atoms} class uses the notion of contiguous ``atomic'' sectors of disk. Each ``atom'' in an \Robject{atoms} object gives the location of one block of contiguous data on disk, as denoted by a file path, an byte offset from the beginning of the file, a data type, and the number of data elements (i.e., the length) of the atom. An \Robject{atoms} object may consist of many atoms from multiple files and multiple locations on disk, while ultimately representing a single vector or row or column of a matrix.
+By analogy to \R{}'s notion of ``atomic'' vectors, the \Robject{atoms} class uses the notion of contiguous ``atomic'' sectors of disk. Each ``atom'' in an \Robject{atoms} object gives the location of one block of contiguous data on disk, as denoted by a file path, an byte offset from the beginning of the file, a data type, and the number of data elements (i.e., the length) of the atom. An \Robject{atoms} object may consist of many atoms from multiple files and multiple locations on disk, while ultimately representing a single vector or row or column of a matrix. The ``atoms'' may be arranged into group, corresponding to rows or columns of a matrix, margins of an array, elements of a list, etc.
 
 Structure:
 \begin{itemize}
-\item \Robject{length}: the total cumulative length of all of the atoms
+\item \Robject{natoms}: the number of atoms
+\item \Robject{ngroups}: the number of groups
+\item \Robject{group\_id}: which group each atom belongs to
 \item \Robject{source\_id}: the ID's of the file paths where each atom is located
 \item \Robject{datamode}: the type of data (short, int, long, float, double) for each atom
 \item \Robject{offset}: each atom's byte offset from the beginning of the file
@@ -508,8 +384,9 @@ Structure:
 \item \Robject{chunksize}: how large the chunk sizes should be for calculations that operate on chunks of the dataset
 \item \Robject{length}: the total length of the dataset
 \item \Robject{dim}: the extent of each dimension (for a matrix)
-\item \Robject{names}: the names of the data elements (for a vector)
-\item \Robject{dimnames}: the names of the dimensions (for a matrix)
+\item \Robject{names}: the names of the data elements (e.g., for a vector)
+\item \Robject{dimnames}: the names of the dimensions (e.g., for a matrix)
+\item \Robject{ops}: delayed operations registered to the object
 \end{itemize}
 
 A \Robject{matter\_vec} vector contains a single \Robject{atoms} object that represents all of the atoms of the vector. The \Robject{matter\_mat} matrix class has two subtypes for column-major (\Robject{matter\_matc}) and row-major (\Robject{matter\_matr}) matrices. A column-major \Robject{matter\_matc} matrix has one \Robject{atoms} object for each column, while a row-major \Robject{matter\_matr} matrix has one \Robject{atoms} object for each row.
@@ -528,11 +405,97 @@ The \Robject{Atoms} C++ class is responsible for reading and writing the data on
 
 The \Robject{Matter} C++ class is responsible for transforming the data read by the \Robject{Atoms} class into a format appropriate for R. This may include re-arranging contiguous data that has been read sequentially into a different order, either due to the inherent organization of the dataset, or as requested by the user in R.
 
-\subsubsection{\Robject{MatterAccessor}: iterate over virtual disk objects}
+\subsubsection{\Robject{MatterIterator}: iterate over virtual disk objects}
 
-The \Robject{MatterAccessor} C++ class acts similarly to an iterator, and allows buffered iteration over a \Robject{Matter} object. It can either iterate over the whole dataset (for both vectors and matrices), or over a single column for column-major matrices, or over a single row for row-major matrices.
+The \Robject{MatterIterator} C++ class acts similarly to an iterator, and allows buffered iteration over a \Robject{Matter} object. It can either iterate over the whole dataset (for both vectors and matrices), or over a single column for column-major matrices, or over a single row for row-major matrices.
 
-A \Robject{MatterAccessor} object will load portions of the dataset (as many elements as the \Robject{chunksize} at once) into memory, and then free that portion of the data and load a new chunk, as necessary. This buffering is handled automatically by the class, and code can treat it as a regular iterator. This allows seamless and simple iteration over \Robject{Matter} objects while maintaining strict control over the memory footprint of the calculation.
+A \Robject{MatterIterator} object will load portions of the dataset (as many elements as the \Robject{chunksize} at once) into memory, and then free that portion of the data and load a new chunk, as necessary. This buffering is handled automatically by the class, and code can treat it as a regular iterator. This allows seamless and simple iteration over \Robject{Matter} objects while maintaining strict control over the memory footprint of the calculation.
+
+
+\section{Extending with new S4 classes}
+
+The \Rpackage{matter} package is intended to be extensible to any uncompressed, open-source format. For example, the \Rpackage{Cardinal} package uses \Rpackage{matter} to attach Analyze 7.5 and imzML datasets, which are popular open-source data formats in mass spectrometry imaging. The flexibility of \Rpackage{matter} in terms of specifying custom file formats with a high degree of control distinguishes it from other packages for working with large, on-disk datasets in R.
+
+In this section, we demonstrate how one could create a custom S4 class for genomics sequencing data.
+
+We begin by creating a small toy example of a FASTQ file with only two sample reads from a larger library \cite{SRR001666} and writing them to disk.
+
+<<fastq-setup>>=
+seqs <- c("@SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72",
+	"GGGTGATGGCCGCTGCCGATGGCGTCAAATCCCACCAAGTTACCCTTAACAACTTAAGGGTTTTCAAATAGA",
+	"+SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=72",
+	"IIIIIIIIIIIIIIIIIIIIIIIIIIIIII9IG9ICIIIIIIIIIIIIIIIIIIIIDIIIIIII>IIIIII/",
+	"@SRR001666.2 071112_SLXA-EAS1_s_7:5:1:801:338 length=72",
+	"GTTCAGGGATACGACGTTTGTATTTTAAGAATCTGAAGCAGAAGTCGATGATAATACGCGTCGTTTTATCAT",
+	"+SRR001666.2 071112_SLXA-EAS1_s_7:5:1:801:338 length=72",
+	"IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII6IBIIIIIIIIIIIIIIIIIIIIIIIGII>IIIII-I)8I")
+
+file <- tempfile()
+writeLines(seqs, file)
+@
+
+We create a new S4 class called \Robject{Fastq}, with slots for a sequence identifier, the raw sequence of letters, and the quality values for the sequence, all of which will be objects of the \Robject{matter\_str} class for on-disk strings.
+
+We also create generic functions and S4 methods to access these slots. Note that if we were creating this class for a package, it would be wiser to import the existing generic functions from packages \Rpackage{Biostrings} and \Rpackage{ShortRead}. For the purpose of demonstration, we define them here.
+
+<<fastq-class>>=
+setClass("Fastq", slots=c(
+	id = "matter_str",
+	sread = "matter_str",
+	quality = "matter_str"))
+
+setGeneric("id", function(x) standardGeneric("id"))
+setGeneric("sread", function(object, ...) standardGeneric("sread"))
+setGeneric("quality", function(object, ...) standardGeneric("quality"))
+
+setMethod("id", "Fastq", function(x) x@id)
+setMethod("sread", "Fastq", function(object) object@sread)
+setMethod("quality", "Fastq", function(object) object@quality)
+@
+
+Now we write a function for constructing the new class. First we attach the file as a flat \Robject{matter\_vec} raw byte vector, and calculate the byte offsets of the new lines in the file. This is done by calling \verb|which(raw == charToRaw('\n'))|, which requires parsing the whole vector to do the elementwise comparisons. Note that \Rpackage{matter} will automatically perform this operation in chunks in efficient C++ code. For a large dataset, this means that only \verb|chunksize(raw)| data elements are ever loaded into memory at once.
+
+<<fastq-constructor>>=
+attachFastq <- function(file) {
+	length <- file.info(file)$size
+	raw <- matter_vec(paths=file, length=length, datamode="raw")
+	newlines <- which(raw == charToRaw('\n')) # parses the file in chunks
+	if ( newlines[length(newlines)] == length )
+		newlines <- newlines[-length(newlines)]
+	byte_start <- c(0L, newlines)
+	byte_end <- c(newlines, length) - 1L # don't include the '\n'
+	line_offset <- byte_start
+	line_extent <- byte_end - byte_start
+	id <- matter_str(paths=file,
+		offset=1L + line_offset[c(TRUE,FALSE,FALSE,FALSE)], # skip the '@'
+		extent=line_extent[c(TRUE,FALSE,FALSE,FALSE)] - 1L) # adjust for '@'
+	sread <- matter_str(paths=file,
+		offset=line_offset[c(FALSE,TRUE,FALSE,FALSE)],
+		extent=line_extent[c(FALSE,TRUE,FALSE,FALSE)])
+	quality <- matter_str(paths=file,
+		offset=line_offset[c(FALSE,FALSE,FALSE,TRUE)],
+		extent=line_extent[c(FALSE,FALSE,FALSE,TRUE)])
+	new("Fastq", id=id, sread=sread, quality=quality)
+}
+@
+
+Now we can call our \verb|attachFastq| function to parse the file and create an object of our new class \Robject{Fastq}.
+
+<<fastq-demo>>=
+fq <- attachFastq(file)
+fq
+
+id(fq)[1]
+id(fq)[2]
+
+sread(fq)[1]
+sread(fq)[2]
+
+quality(fq)[1]
+quality(fq)[2]
+@
+
+Although this example used only a small toy data file, the same class and parsing function could be applied to much larger files. Very large files would take some time to parse and index the newlines, but the our \Robject{Fastq} class would remain memory-efficient.
 
 
 \section{Session info}

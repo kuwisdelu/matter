@@ -1,67 +1,36 @@
-\name{matter_mat-class}
+\name{matter_arr-class}
 \docType{class}
 
-\alias{class:matter_mat}
-\alias{matter_mat}
-\alias{matter_matc}
-\alias{matter_matr}
-\alias{matter_mat-class}
-\alias{matter_matc-class}
-\alias{matter_matr-class}
+\alias{class:matter_arr}
+\alias{matter_arr}
+\alias{matter_arrc}
+\alias{matter_arrr}
+\alias{matter_arr-class}
+\alias{matter_arrc-class}
+\alias{matter_arrr-class}
 
-\alias{[,matter_mat-method}
-\alias{[,matter_mat,ANY,ANY,logical-method}
-\alias{[,matter_mat,ANY,ANY,missing-method}
-\alias{[,matter_mat,ANY,missing,logical-method}
-\alias{[,matter_mat,ANY,missing,missing-method}
-\alias{[,matter_mat,missing,ANY,logical-method}
-\alias{[,matter_mat,missing,ANY,missing-method}
-\alias{[,matter_mat,missing,missing,missing-method}
-\alias{[<-,matter_mat-method}
-\alias{[<-,matter_mat,ANY,ANY,ANY-method}
-\alias{[<-,matter_mat,ANY,missing,ANY-method}
-\alias{[<-,matter_mat,missing,ANY,ANY-method}
-\alias{[<-,matter_mat,missing,missing,ANY-method}
+\alias{[,matter_arr-method}
+\alias{[,matter_arr,ANY,ANY,ANY-method}
+\alias{[<-,matter_arr-method}
+\alias{[<-,matter_arr,ANY,ANY,ANY-method}
 
-\alias{cbind,matter-method}
-\alias{rbind,matter-method}
-
-\alias{t.matter}
-\alias{t,matter_matc-method}
-\alias{t,matter_matr-method}
-
-\alias{\%*\%,matter,matter-method}
-\alias{\%*\%,matrix,matter_mat-method}
-\alias{\%*\%,matter_mat,matrix-method}
-\alias{\%*\%,matter_matc,numeric-method}
-\alias{\%*\%,matter_matr,numeric-method}
-\alias{\%*\%,numeric,matter_matc-method}
-\alias{\%*\%,numeric,matter_matr-method}
-
-\alias{crossprod,matter,ANY-method}
-\alias{crossprod,ANY,matter-method}
-\alias{tcrossprod,matter,ANY-method}
-\alias{tcrossprod,ANY,matter-method}
-
-\title{Matrices Stored on Disk}
+\title{Arrays Stored on Disk}
 
 \description{
-    The \code{matter_mat} class implements on-disk matrices.
+    The \code{matter_arr} class implements on-disk arrays.
 }
 
 \usage{
 ## Instance creation
-matter_mat(data, datamode = "double", paths = NULL,
+matter_arr(data, datamode = "double", paths = NULL,
             filemode = ifelse(is.null(paths), "rb+", "rb"),
-            offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-            extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
-            nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, \dots)
+            offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, \dots)
 
 ## Additional methods documented below
 }
 
 \arguments{
-        \item{data}{An optional data matrix which will be initially written to the data on disk if provided.}
+        \item{data}{An optional data vector which will be initially written to the data on disk if provided.}
 
         \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric').}
 
@@ -73,11 +42,7 @@ matter_mat(data, datamode = "double", paths = NULL,
 
         \item{extent}{A vector giving the length of the data for each file in 'paths', specifying the number of elements of size 'datamode' to be accessed from each file.}
 
-        \item{nrow}{An optional number giving the total number of rows.}
-
-        \item{ncol}{An optional number giving the total number of columns.}
-
-        \item{rowMaj}{Whether the data should be stored in row-major order (as opposed to column-major order) on disk. Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
+        \item{dim}{A vector giving the dimensions of the array.}
 
         \item{dimnames}{The names of the matrix dimensions.}
 
@@ -113,28 +78,18 @@ matter_mat(data, datamode = "double", paths = NULL,
 }
 
 \section{Creating Objects}{
-    \code{matter_mat} instances can be created through \code{matter_mat()} or \code{matter()}.
+    \code{matter_arr} instances can be created through \code{matter_arr()} or \code{matter()}.
 }
 
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the matrix.}
-
-        \item{\code{x \%*\% y}:}{Matrix multiplication. At least one matrix must be an in-memory R matrix (or vector).}
-
-        \item{\code{crossprod(x, y)}:}{Alias for t(x) \%*\% y.}
-
-        \item{\code{tcrossprod(x, y)}:}{Alias for x \%*\% t(y).}
-
-        \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine matrices by row or column.}
-
-        \item{\code{t(x)}:}{Transpose a matrix. This is a quick operation which only changes metadata and does not touch the on-disk data.}
+        \item{\code{x[...], x[...] <- value}:}{Get or set the elements of the array.}
     }
 }
 
 \value{
-    An object of class \code{\linkS4class{matter_mat}}.
+    An object of class \code{\linkS4class{matter_arr}}.
 }
 
 \author{Kylie A. Bemis}
@@ -144,7 +99,7 @@ matter_mat(data, datamode = "double", paths = NULL,
 }
 
 \examples{
-x <- matter_mat(1:100, nrow=10, ncol=10)
+x <- matter_arr(1:125, dim=c(5,5,5))
 x[]
 }
 

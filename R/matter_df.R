@@ -210,7 +210,7 @@ getDataFrameElements <- function(x, i, j, drop) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)	
-	y <- lapply(j, function(nm) atomdata(x)[[j]][i])
+	y <- lapply(j, function(nm) atomdata(x)[[nm]][i])
 	if ( drop && length(j) == 1 ) {
 		y[[1]]
 	} else {

@@ -59,27 +59,47 @@ setClass("matter",
 matter <- function(...) {
 	dots <- match.call(expand.dots=FALSE)$...
 	nm <- names(dots)
-	if ( "data" %in% nm ) {
+	if ( is.null(nm) || nchar(nm[[1]]) == 0 ) {
+		data <- eval(dots[[1]])
+	} else if ( "data" %in% nm ) {
 		data <- dots$data
 	} else {
-		data <- eval(dots[[1]])
+		data <- NULL
 	}
-	if ( "extent" %in% nm ) {
-		uneq.extent <- length(unique(eval(dots$extent))) > 1
+	if ( nargs() == 1 )
+		return(as.matter(data))
+	if ( is.null(data) || nargs() > 1 ) {
+		if ( "extent" %in% nm ) {
+			uneq.extent <- length(unique(eval(dots$extent))) > 1
+		} else {
+			uneq.extent <- FALSE
+		}
+		vec.args <- c("length", "names")
+		mat.args <- c("nrow", "ncol", "rowMaj")
+		arr.args <- c("dim", "dimnames")
+		if ( any(vec.args %in% nm ) || is.vector(dots) || uneq.extent ) {
+			matter_vec(...)
+		} else if ( any(mat.args %in% nm ) || is.matrix(dots) ) {
+			matter_mat(...)
+		}  else if ( any(arr.args %in% nm ) || is.array(dots) ) {
+			matter_arr(...)
+		} else {
+			matter_vec(...)
+		}
 	} else {
-		uneq.extent <- FALSE
-	}
-	vec.args <- c("length", "names")
-	mat.args <- c("nrow", "ncol", "rowMaj")
-	arr.args <- c("dim", "dimnames")
-	if ( any(vec.args %in% nm ) || is.vector(dots) || uneq.extent ) {
-		matter_vec(...)
-	} else if ( any(mat.args %in% nm ) || is.matrix(dots) ) {
-		matter_mat(...)
-	}  else if ( any(arr.args %in% nm ) || is.array(dots) ) {
-		matter_arr(...)
-	} else {
-		matter_vec(...)
+		if ( is.raw(data) || is.logical(data) || is.numeric(data) ) {
+			matter_vec(...)
+		} else if ( is.matrix(data) ) {
+			matter_mat(...)
+		} else if ( is.array(data) ) {
+			matter_arr(...)
+		} else if ( is.list(data) ) {
+			matter_list(...)
+		} else if ( is.character(data) ) {
+			matter_str(...)
+		} else if ( is.data.frame(data) ) {
+			matter_df(...)
+		}
 	}
 }
 

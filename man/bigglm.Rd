@@ -2,6 +2,7 @@
 \docType{methods}
 
 \alias{bigglm,formula,matter_mat-method}
+\alias{bigglm,formula,matter_df-method}
 
 \title{Using ``biglm'' with ``matter''}
 

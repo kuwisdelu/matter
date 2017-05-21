@@ -267,14 +267,20 @@ widest_datamode <- function(x) {
 
 # creates internal S3 class 'bytes'
 
+bytes <- function(x) {
+	class(x) <- "bytes"
+	x
+}
+
+# calculates disk used by a matter object
+
 disk_used <- function(x) {
 	if ( is.list(x) ) {
-		bytes <- sum(vapply(x, disk_used, numeric(1)))
+		size <- sum(vapply(x, disk_used, numeric(1)))
 	} else {
-		bytes <- sum(x@extent[] * sizeof(datamode(x)[]))
+		size <- sum(x@extent[] * sizeof(datamode(x)[]))
 	}
-	class(bytes) <- "bytes"
-	bytes
+	bytes(size)
 }
 
 # based on utils::format.object_size
@@ -302,15 +308,15 @@ print.bytes <- function (x, ..., units = "auto")  {
 }
 
 format.bytes <- function(x, units = "auto", ...) {
-	bytes <- print(x, units=units)
-	paste(bytes, names(bytes))
+	x <- print(x, units=units)
+	paste(x, names(x))
 }
 
 # based on pryr::mem_used and pryr::mem_change
 
 mem <- function(x, reset = FALSE) {
 	if ( !missing(x) ) {
-		mem <- structure(as.numeric(object.size(x)), class="bytes")
+		mem <- bytes(as.numeric(object.size(x)))
 		mem <- print(mem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
@@ -320,14 +326,14 @@ mem <- function(x, reset = FALSE) {
 	mem
 }
 
-profile <- function(expr, reset = FALSE) {
+profmem <- function(expr) {
 	start <- mem(reset = TRUE)
 	t.start <- proc.time()
 	expr <- substitute(expr)
 	eval(expr, parent.frame())
 	rm(expr)
 	t.end <- proc.time()
-	end <- mem()
+	end <- mem(reset = FALSE)
 	mem <- c(start[1], end[1], end[3], end[3] - end[1], t.end[3] - t.start[3])
 	names(mem) <- c("start (MB)", "finish (MB)",
 		"max used (MB)", "overhead (MB)", "time (sec)")

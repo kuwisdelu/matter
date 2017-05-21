@@ -1,0 +1,369 @@
+
+%\VignetteIndexEntry{matter: Extra examples 1 - Simulations and comparative benchmarks}
+%\VignetteKeyword{Infrastructure}
+
+\documentclass[a4paper]{article}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+<<eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
+\title{\Rpackage{matter}: Extra examples 1 - Simulations and comparative benchmarks}
+
+\author{Kylie A. Bemis}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+This vignette investigates comparisons in performance between packages \Rpackage{matter} and related packages \Rpackage{bigmemory} \cite{bigmemory} and \Rpackage{ff} \cite{ff}, which also provide infrastucture for working with larger-than-memory datasets in R.
+
+The examples demonstrated here are chosen because both linear regression and principal components analysis are statistical tasks common to many areas of bioinformatics.
+
+The use of simulated data allows us to explore performance in a situation where file format is not an issue.
+
+
+<<echo=FALSE, results=hide>>=
+options(width=72)
+@ 
+
+<<>>=
+library(matter)
+@
+
+<<echo=FALSE, results=hide>>=
+data(matter_sim)
+@
+
+\section{Linear regression}
+
+<<setup-lm-base, eval=FALSE>>=
+set.seed(81216)
+
+chunksize <- 10000
+
+n <- 1.5e7
+p <- 9
+
+b <- runif(p)
+names(b) <- paste0("x", 1:p)
+
+data <- data.frame(y=rnorm(n), check.rows=FALSE)
+
+for ( nm in names(b) ) {
+  xi <- rnorm(n)
+  data[[nm]] <- xi
+  data[["y"]] <- data[["y"]] + xi * b[nm]
+}
+
+fm <- as.formula(paste0("y ~ ", paste0(names(b), collapse=" + ")))
+
+lm.prof <- list()
+@
+
+\subsection{Using base R}
+
+<<lm-base, eval=FALSE>>=
+lm.prof[["base"]] <- profmem({
+
+	base.out <- lm(fm, data=data)
+
+})
+
+rm(base.out)
+gc()
+@
+
+<<>>=
+print(lm.prof[["base"]])
+@
+
+\subsection{Using \Robject{bigmemory}}
+
+<<setup-lm-bigmemory, eval=FALSE>>=
+library(bigmemory)
+library(biganalytics)
+
+backingfile <- "lm-ex.bin"
+backingpath <- tempdir()
+descriptorfile <- "lm-ex.desc"
+
+data.bm <- filebacked.big.matrix(nrow=n, ncol=p + 1,
+	backingfile=backingfile,
+	backingpath=backingpath,
+	descriptorfile=descriptorfile,
+	dimnames=list(NULL, c("y", names(b))),
+	type="double")
+
+for ( nm in names(data) )
+	data.bm[,nm] <- data[[nm]]
+
+rm(data)
+gc()
+@
+
+
+
+<<lm-bigmemory, eval=FALSE>>=
+lm.prof[["bigmemory"]] <- profmem({
+
+	bm.out <- biglm.big.matrix(fm, data=data.bm, chunksize=chunksize)
+
+})
+
+rm(bm.out)
+gc()
+@
+
+<<>>=
+print(lm.prof[["bigmemory"]])
+@
+
+\subsection{Using \Robject{ff}}
+
+<<setup-lm-ff, eval=FALSE>>=
+library(ff)
+library(ffbase)
+
+data.ff <- ff(filename=paste0(backingpath, "/", backingfile),
+	vmode="double", dim=c(n, p + 1),
+	dimnames=list(NULL, c("y", names(b))))
+
+data.ff <- as.ffdf(data.ff)
+@
+
+<<lm-ff, eval=FALSE>>=
+lm.prof[["ff"]] <- profmem({
+
+	ff.out <- bigglm(fm, data=data.ff, chunksize=chunksize)
+
+})
+
+rm(ff.out)
+gc()
+@
+
+<<>>=
+print(lm.prof[["ff"]])
+@
+
+\subsection{Using \Robject{matter}}
+
+<<setup-lm-matter, eval=FALSE>>=
+data.m <- matter(paths=paste0(backingpath, "/", backingfile),
+	datamode="double", nrow=n, ncol=p + 1,
+	dimnames=list(NULL, c("y", names(b))))
+@
+
+<<lm-matter, eval=FALSE>>=
+lm.prof[["matter"]] <- profmem({
+
+	m.out <- bigglm(fm, data=data.m, chunksize=chunksize)
+
+})
+
+rm(m.out)
+gc()
+@
+
+<<>>=
+print(lm.prof[["matter"]])
+@
+
+\section{Principal components analysis}
+
+<<setup-pca-base, eval=FALSE>>=
+library(irlba)
+
+set.seed(81216)
+n <- 1.5e6
+p <- 100
+
+data <- matrix(nrow=n, ncol=p)
+
+for ( i in 1:10 )
+  data[,i] <- (1:n)/n + rnorm(n)
+for ( i in 11:20 )
+  data[,i] <- (n:1)/n + rnorm(n)
+for ( i in 21:p )
+  data[,i] <- rnorm(n)
+
+pca.prof <- list()
+@
+
+This again creates a 1.2 GB dataset in memory.
+
+\subsection{Using base R}
+
+First, we demonstrate 
+
+<<pca-base, eval=FALSE>>=
+pca.prof[["base"]] <- profmem({
+
+	base.out <- svd(data, nu=0, nv=2)
+
+})
+
+rm(base.out)
+gc()
+@
+
+<<>>=
+print(pca.prof[["base"]])
+@
+
+\subsection{Using \Robject{bigmemory}}
+
+<<setup-pca-bigmemory, eval=FALSE>>=
+library(bigalgebra)
+
+backingfile <- "pca-ex.bin"
+backingpath <- tempdir()
+descriptorfile <- "pca-ex.desc"
+
+data.bm <- filebacked.big.matrix(nrow=n, ncol=p,
+	backingfile=backingfile,
+	backingpath=backingpath,
+	descriptorfile=descriptorfile,
+	type="double")
+
+for ( i in seq_len(ncol(data)) )
+	data.bm[,i] <- data[,i]
+
+rm(data)
+gc()
+
+mult.bm <- function(A, B) {
+	if ( is.vector(A) )
+		A <- t(A)
+	if ( is.vector(B) )
+		B <- as.matrix(B)
+	cbind((A %*% B)[])
+}
+@
+
+<<pca-bigmemory, eval=FALSE>>=
+pca.prof[["bigmemory"]] <- profmem({
+
+	bm.out <- irlba(data.bm, nu=0, nv=2, mult=mult.bm)
+
+})
+
+rm(bm.out)
+gc()
+@
+
+<<>>=
+print(pca.prof[["bigmemory"]])
+@
+
+
+\subsection{Using \Robject{ff}}
+
+<<setup-pca-ff, eval=FALSE>>=
+library(bootSVD)
+
+data.ff <- ff(filename=paste0(backingpath, "/", backingfile),
+	vmode="double", dim=c(n, p))
+
+mult.ff <- function(A, B) {
+	if ( is.vector(A) )
+		A <- t(A)
+	if ( is.vector(B) )
+		B <- as.matrix(B)
+	cbind(ffmatrixmult(A, B)[])
+}
+@
+
+<<pca-ff, eval=FALSE>>=
+pca.prof[["ff"]] <- profmem({
+
+	ff.out <- irlba(data.ff, nu=0, nv=2, mult=mult.ff)
+
+})
+
+rm(ff.out)
+gc()
+@
+
+<<>>=
+print(pca.prof[["ff"]])
+@
+
+\subsection{Using \Robject{matter}}
+
+<<setup-pca-matter, eval=FALSE>>=
+library(matter)
+
+data.m <- matter(paths=paste0(backingpath, "/", backingfile),
+	datamode="double", nrow=n, ncol=p)
+@
+
+<<pca-matter, eval=FALSE>>=
+pca.prof[["matter"]] <- profmem({
+
+	m.out <- irlba(data.m, nu=0, nv=2, fastpath=FALSE)
+
+})
+
+rm(m.out)
+gc()
+@
+
+<<>>=
+print(pca.prof[["matter"]])
+@
+
+
+<<echo=FALSE, results=hide, eval=FALSE>>=
+save(lm.prof, pca.prof, file="~/Documents/Developer/Projects/matter/data/matter_sim.rda")
+@
+
+\section{Summary}
+
+\begin{table*}[t!]
+\begin{center}
+\begin{tabular}{|l|l|l|r||l|l|l|r|}
+\hline
+\multicolumn{4}{|c||}{Linear regression} & \multicolumn{4}{c|}{Principle component analysis}\\
+\hline
+Method &			Mem. used & 	Mem. overhead & 	Time & Method &
+Mem. used & 	Mem. overhead & 	Time \\
+\hline
+R matrices + lm &		7 GB &		1.4 GB &			33 sec & 
+R matrices + svd &		3.9 GB &		2.4 GB &			66 sec \\
+bigmemory + biglm &		4.4 GB &		3.9 GB &			21 sec &
+bigmemory + irlba &		3.1 GB &		2.7 GB &			15 sec \\
+ff + biglm &			1.9 MB &		1.6 GB &			57 sec &
+ff + irlba &			1.8 GB &		1.4 GB &			130 sec \\
+matter + biglm &		1 GB &		660 MB &			47 sec &
+matter + irlba &		890 MB &			490 MB &			110 sec \\
+\hline
+\end{tabular}
+\caption{\small Comparative performance of \Rpackage{matter} for linear regression and calculation of the first two principal components on simulated datasets of 1.2 GB. Memory overhead is the maximum memory used during the execution minus the memory in use upon completion.}
+\label{table:sim} 
+\end{center}
+\end{table*}
+
+Table~\ref{table:sim} demonstrates that \Rpackage{matter} typically uses less memory than both \Rpackage{bigmemory} and \Rpackage{ff}. Additionally, it outperforms \Rpackage{ff} in speed. The reason for \Rpackage{bigmemory}'s superior speed is likely its use of \texttt{mmap} to map the on-disk data to virtual memory. This allows it to perform faster on datasets that can fit into available memory. However, this also uses more memory, because the much of the data ends up being loaded into memory. A comparison on real datasets that are much larger than memory (in the vignette ``Extra examples 2 - 3D mass spectrometry imaging case study'') demonstrate the \Rpackage{matter} can be faster than \Rpackage{bigmemory} on datasets too large to be fully loaded into memory.
+
+
+
+\section{Session info}
+
+<<results=tex, echo=FALSE>>=
+toLatex(sessionInfo())
+@
+
+% \bibliographystyle{unsrt}
+\bibliography{matter}
+
+\end{document}

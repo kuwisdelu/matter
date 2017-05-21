@@ -109,6 +109,12 @@ test_that("scale", {
 
 	expect_equivalent(scale(x), scale(y)[])
 
+	x <- t(x)
+
+	y <- t(y)
+
+	expect_equivalent(scale(x), scale(y)[])
+
 })
 
 test_that("bigglm", {
