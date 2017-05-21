@@ -19,6 +19,8 @@ importFrom("BiocGenerics",
 	"which")
 
 importFrom("utils",
+	"head",
+	"tail",
 	"object.size")
 
 exportClasses(
@@ -45,7 +47,8 @@ export(
 	"matter_list",
 	"matter_df",
 	"matter_str",
-	"is.matter")
+	"is.matter",
+	"as.matter")
 
 exportMethods(
 	"adata",
@@ -95,6 +98,8 @@ exportMethods(
 	"log10")
 
 exportMethods(
+	"head",
+	"tail",
 	"sum",
 	"mean",
 	"var",

@@ -84,6 +84,14 @@ setMethod("show", "matter_str", function(object) {
 	callNextMethod(object)
 })
 
+setAs("character", "matter_str",
+	function(from) matter_str(from, dim=nchar(from, type="bytes")))
+
+setAs("factor", "matter_str",
+	function(from) as(as.character(from), "matter_str"))
+
+as.matter_str <- function(x) as(x, "matter_str")
+
 setMethod("[",
 	c(x = "matter_str", i = "missing", j = "missing"),
 	function(x, ...) {

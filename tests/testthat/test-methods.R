@@ -1,4 +1,5 @@
 require(testthat)
+require(matter)
 
 context("matter-methods")
 
@@ -35,6 +36,36 @@ test_that("summary statistics", {
 	expect_equal(apply(x, 1, var), rowVars(y))
 
 	expect_equal(apply(x, 1, sd), rowSds(y))
+
+})
+
+test_that("delayed ops", {
+
+	x <- seq_len(10)
+
+	y <- matter_vec(x, length=10)
+
+	expect_equal(x + 1, (y + 1)[])
+
+	expect_equal(2 * x + 1, (2 * y + 1)[])
+
+	expect_equal(x / 2 - 1, (y / 2 - 1)[])
+
+	expect_equal(log(x), log(x)[])
+
+	expect_equal(exp(x), exp(x)[])
+
+	expect_equal(x > 5, (y > 5)[])
+
+	expect_equal(x >= 5, (y >= 5)[])
+
+	expect_equal(x < 5, (y < 5)[])
+
+	expect_equal(x <= 5, (y <= 5)[])
+
+	expect_equal(x != 5, (y != 5)[])
+
+	expect_equal(which(x == 5), which(y == 5))
 
 })
 
@@ -80,6 +111,14 @@ test_that("bigglm", {
 	fit.y <- bigglm(fm, data=y, chunksize=100)
 
 	expect_equal(coef(fit.x), coef(fit.y), tolerance=0.5)
+
+	x2 <- as.data.frame(x)
+
+	y2 <- as.matter(x2)
+
+	fit.y2 <- bigglm(fm, data=y2, chunksize=100)
+
+	expect_equal(coef(fit.x), coef(fit.y2), tolerance=0.5)
 
 })
 

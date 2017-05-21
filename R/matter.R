@@ -87,6 +87,21 @@ is.matter <- function(x) {
 	is(x, "matter")
 }
 
+as.matter <- function(x) {
+	switch(class(x),
+		raw = as.matter_vec(x),
+		logical = as.matter_vec(x),
+		integer = as.matter_vec(x),
+		numeric = as.matter_vec(x),
+		character = as.matter_str(x),
+		matrix = as.matter_mat(x),
+		array = as.matter_arr(x),
+		list = as.matter_list(x),
+		data.frame = as.matter_df(x),
+		stop(paste0("cannot coerce class '", class(x),
+			"' to a 'matter' object")))
+}
+
 setMethod("adata", "matter", function(object) atomdata(object))
 
 setMethod("atomdata", "matter", function(object) object@data)

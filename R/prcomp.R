@@ -1,15 +1,15 @@
 
-#### Linear regression for matter matrices ####
-## -------------------------------------------
+#### Principal components for matter matrices ####
+## -----------------------------------------------
 
 setMethod("prcomp", "matter_mat",
 	function(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, ...) {
-		prcomp_matter(x, n=n, retx=retx, center=center, scale.=scale., ...)
+		prcomp_matter_mat(x, n=n, retx=retx, center=center, scale.=scale., ...)
 })
 
 # based on code for prcomp_irlba from package:irlba
 
-prcomp_matter <- function(x, n, retx, center, scale., ...) {
+prcomp_matter_mat <- function(x, n, retx, center, scale., ...) {
     if ( "tol" %in% names(match.call(expand.dots=FALSE)$...) )
         warning("The 'tol' truncation argument from 'prcomp' is not supported\n",
         	"  for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n",

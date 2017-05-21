@@ -40,7 +40,7 @@ setClass("matter_df",
 
 matter_df <- function(..., row.names = NULL) {
 	data <- list(...)
-	if ( names(data) == NULL ) {
+	if ( is.null(names(data)) ) {
 		vars <- paste0("Var", seq_along(data))
 	} else {
 		vars <- make.unique(make.names(names(data)))
@@ -57,29 +57,81 @@ matter_df <- function(..., row.names = NULL) {
 		ops=NULL)
 }
 
-setMethod("show", "matter_df", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@length, " length> ",
-		"on-disk data frame", "\n", sep="")
+setMethod("head", "matter_df",
+	function(x, n = 6L, ...) {
+		stopifnot(length(n) == 1L)
+	    n <- if (n < 0L) 
+	        max(nrow(x) + n, 0L)
+	    else min(n, nrow(x))
+	    x[seq_len(n),,drop=FALSE]
 })
 
-setReplaceMethod("names", "matter", function(x, value) {
-	x <- callNextMethod(x)
-	x@dimnames[[2]] <- x@names
+setMethod("tail", "matter_df",
+	function(x, n = 6L, ...) {
+		stopifnot(length(n) == 1L)
+	    nrx <- nrow(x)
+	    n <- if (n < 0L) 
+	        max(nrx + n, 0L)
+	    else min(n, nrx)
+	    x[seq.int(to=nrx, length.out=n),,drop=FALSE]
+})
+
+setMethod("show", "matter_df", function(object) {
+	cat("An object of class '", class(object), "'\n", sep="")
+	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
+		"data frame", "\n", sep="")
+	m <- sum(sapply(atomdata(object), is.matter))
+	cat("    ", length(object) - m, " variables in-memory\n", sep="")
+	cat("    ",  m, " variables on-disk\n", sep="")
+	# n <- 6L
+	# print(head(object, n=n))
+	# if ( nrow(object) > n )
+	# 	cat("and ", nrow(object) - n, " more rows", "\n", sep="")
+})
+
+setAs("data.frame", "matter_df",
+	function(from) {
+		from <- lapply(from, function(x) {
+			if ( is.character(x) ) {
+				matter_str(x)
+			} else {
+				matter_vec(x)
+			}
+		})
+		do.call("matter_df", c(from, row.names=row.names(from)))
+})
+
+setAs("data.frame", "matter_df",
+	function(from) {
+		from <- lapply(from, as.matter)
+		do.call("matter_df", from)
+})
+
+as.matter_df <- function(x) as(x, "matter_df")
+
+setReplaceMethod("names", "matter_df", function(x, value) {
+	x@names <- value
+	if ( is.null(x@dimnames) ) {
+		x@dimnames <- list(NULL, value)
+	} else {
+		x@dimnames[[2]] <- value
+	}
 	if ( validObject(x) )
 		x
 })
 
-setReplaceMethod("dimnames", "matter", function(x, value) {
-	x <- callNextMethod(x)
-	x@names <- x@dimnames[[2]]
+setReplaceMethod("dimnames", "matter_df", function(x, value) {
+	x@names <- value[[2]]
+	x@dimnames <- value[[2]]
 	if ( validObject(x) )
 		x
 })
 
 getDataFrame <- function(x) {
 	y <- lapply(atomdata(x), "[")
-	data.frame(y, row.names=rownames(x))
+	data.frame(setNames(y, names(x)),
+		row.names=rownames(x),
+		stringsAsFactors=FALSE)
 }
 
 setDataFrame <- function(x, value) {
@@ -97,10 +149,12 @@ getDataFrameRows <- function(x, i, drop) {
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
 	y <- lapply(names(x), function(nm) atomdata(x)[[nm]][i])
-	if ( drop && length(j) == 1 ) {
+	if ( drop && ncol(x) == 1 ) {
 		y[[1]]
 	} else {
-		data.frame(y, row.names=rownames(x))
+		data.frame(setNames(y, names(x)),
+			row.names=rownames(x),
+			stringsAsFactors=FALSE)
 	}
 }
 
@@ -160,7 +214,9 @@ getDataFrameElements <- function(x, i, j, drop) {
 	if ( drop && length(j) == 1 ) {
 		y[[1]]
 	} else {
-		data.frame(y, row.names=rownames(x))
+		data.frame(setNames(y, names(x)[j]),
+			row.names=rownames(x),
+			stringsAsFactors=FALSE)
 	}
 }
 
@@ -187,11 +243,11 @@ setMethod("[",
 
 setMethod("[",
 	c(x = "matter_df", j = "missing"),
-	function(x, i, ..., drop = TRUE) getDataFrameColumns(x, i, drop))
+	function(x, i, ..., drop = TRUE) getDataFrameRows(x, i, drop))
 
 setMethod("[",
 	c(x = "matter_df", i = "missing"),
-	function(x, j, ..., drop = TRUE) getDataFrameRows(x, j, drop))
+	function(x, j, ..., drop = TRUE) getDataFrameColumns(x, j, drop))
 
 setMethod("[",
 	c(x = "matter_df"),

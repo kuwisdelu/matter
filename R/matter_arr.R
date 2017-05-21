@@ -81,6 +81,11 @@ setMethod("show", "matter_arr", function(object) {
 	callNextMethod(object)
 })
 
+setAs("array", "matter_arr",
+	function(from) matter_arr(from, datamode=typeof(from), dim=dim(from)))
+
+as.matter_arr <- function(x) as(x, "matter_arr")
+
 getArray <- function(x) {
 	y <- .Call("C_getArray", x, PACKAGE="matter")
 	dim(y) <- dim(x)
@@ -144,24 +149,43 @@ setArrayElements <- function(x, ind, value) {
 setMethod("[",
 	c(x = "matter_arr", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, j, ..., drop = TRUE) {
-		dots <- list(...)
-		if ( missing(i) && missing(j) && length(dots) == 0 )
+		narg <- nargs() - 1 - !missing(drop)
+		if ( missing(i) && missing(j) && narg == 1 ) {
 			return(getArray(x))
-		if ( missing(i) && length(dim(x)) >= 1 ) {
-			i <- seq_len(dim(x)[1])
-		} else if ( missing(i) ) {
-			stop("subscript out of bounds")
+		} else if ( narg != length(dim(x)) ) {
+			stop("incorrect number of dimensions")
 		}
-		if ( length(dim(x)) == 1 && missing(j) )
-			return(getArrayElements(x, list(ind)))
-		if ( missing(j) && length(dim(x)) >= 2 ) {
-			j <- seq_len(dim(x)[2])
-		} else if ( missing(j) ) {
-			stop("subscript out of bounds")
+		ind <- list()
+		call <- as.list(match.call(expand.dots=TRUE))[-c(1,2)]
+		if ( "i" %in% names(call) ) {
+			wh <- which(names(call) == "i")
+			ind[[1]] <- eval(call[[wh]])
+			call <- call[-wh]
+		} else if ( length(dim(x)) >= 1 ) {
+			ind[[1]] <- seq_len(dim(x)[1])
 		}
-		ind <- c(list(i), list(j), dots)
+		if ( "j" %in% names(call) ) {
+			wh <- which(names(call) == "j")
+			ind[[2]] <- eval(call[[wh]])
+			call <- call[-wh]
+		} else if ( length(dim(x)) >= 2 ) {
+			ind[[2]] <- seq_len(dim(x)[2])
+		}
+		ind <- c(ind, call)
 		if ( length(ind) != length(dim(x)) )
 			stop("incorrect number of dimensions")
+		names(ind) <- names(dim)
+		for ( k in seq_along(ind) ) {
+			if ( is.vector(ind[[k]]) ) {
+				next
+			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) == 0 ) {
+				ind[[k]] <- seq_len(dim(x)[k])
+			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) > 0 ) {
+				ind[[k]] <- eval(ind[[k]])
+			} else if ( is.call(ind[[k]]) ) {
+				ind[[k]] <- eval(ind[[k]])
+			}
+		}
 		getArrayElements(x, ind, drop)
 })
 
@@ -177,7 +201,7 @@ setReplaceMethod("[",
 			stop("subscript out of bounds")
 		}
 		if ( length(dim(x)) == 1 && missing(j) )
-			return(setArrayElements(x, list(ind), value))
+			return(setArrayElements(x, list(i), value))
 		if ( missing(j) && length(dim(x)) >= 2 ) {
 			j <- seq_len(dim(x)[2])
 		} else if ( missing(j) ) {

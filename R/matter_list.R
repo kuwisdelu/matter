@@ -37,6 +37,8 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 	}
 	if ( !is.list(data) )
 		data <- list(data)
+	if ( length(unique(sapply(data, class))) != 1 )
+		stop("elements of list data must be homogenous")
 	if ( length(dim) != length(extent) )
 		stop("length of dims [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
@@ -85,6 +87,12 @@ setMethod("show", "matter_list", function(object) {
 		"on-disk list", "\n", sep="")
 	callNextMethod(object)
 })
+
+setAs("list", "matter_list",
+	function(from) matter_list(from, datamode=typeof(from[[1]]),
+		dim=sapply(from, length)))
+
+as.matter_list <- function(x) as(x, "matter_list")
 
 getList <- function(x) {
 	y <- .Call("C_getList", x, PACKAGE="matter")
