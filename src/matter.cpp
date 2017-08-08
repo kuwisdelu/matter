@@ -4376,9 +4376,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.sum<int>(LOGICAL_VALUE(na_rm));
+                return mMat.sum<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.sum<int>(LOGICAL_VALUE(na_rm));
+                return mMat.sum<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.sum<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4390,9 +4390,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.mean<int>(LOGICAL_VALUE(na_rm));
+                return mMat.mean<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.mean<int>(LOGICAL_VALUE(na_rm));
+                return mMat.mean<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.mean<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4404,9 +4404,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.var<int>(LOGICAL_VALUE(na_rm));
+                return mMat.var<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.var<int>(LOGICAL_VALUE(na_rm));
+                return mMat.var<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.var<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4418,9 +4418,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.colsums<int>(LOGICAL_VALUE(na_rm));
+                return mMat.colsums<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.colsums<int>(LOGICAL_VALUE(na_rm));
+                return mMat.colsums<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.colsums<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4432,9 +4432,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.colmeans<int>(LOGICAL_VALUE(na_rm));
+                return mMat.colmeans<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.colmeans<int>(LOGICAL_VALUE(na_rm));
+                return mMat.colmeans<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.colmeans<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4446,9 +4446,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.colvar<int>(LOGICAL_VALUE(na_rm));
+                return mMat.colvar<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.colvar<int>(LOGICAL_VALUE(na_rm));
+                return mMat.colvar<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.colvar<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4460,9 +4460,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.rowsums<int>(LOGICAL_VALUE(na_rm));
+                return mMat.rowsums<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.rowsums<int>(LOGICAL_VALUE(na_rm));
+                return mMat.rowsums<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.rowsums<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4474,9 +4474,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.rowmeans<int>(LOGICAL_VALUE(na_rm));
+                return mMat.rowmeans<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.rowmeans<int>(LOGICAL_VALUE(na_rm));
+                return mMat.rowmeans<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.rowmeans<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4488,9 +4488,9 @@ extern "C" {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
             case R_LOGICAL:
-                return mMat.rowvar<int>(LOGICAL_VALUE(na_rm));
+                return mMat.rowvar<double>(LOGICAL_VALUE(na_rm));
             case R_INTEGER:
-                return mMat.rowvar<int>(LOGICAL_VALUE(na_rm));
+                return mMat.rowvar<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.rowvar<double>(LOGICAL_VALUE(na_rm));
             default:
@@ -4504,11 +4504,11 @@ extern "C" {
             case R_LOGICAL:
             case R_INTEGER:
                 if ( TYPEOF(y) == LGLSXP )
-                    return mMat.rmult<int,int,LGLSXP>(y);
+                    return mMat.rmult<double,int,LGLSXP>(y);
                 else if ( TYPEOF(y) == INTSXP )
-                    return mMat.rmult<int,int,INTSXP>(y);
+                    return mMat.rmult<double,int,INTSXP>(y);
                 else if ( TYPEOF(y) == REALSXP )
-                    return mMat.rmult<int,double,REALSXP>(y);
+                    return mMat.rmult<double,double,REALSXP>(y);
                 return R_NilValue;
             case R_NUMERIC:
                 if ( TYPEOF(y) == LGLSXP )
@@ -4529,11 +4529,11 @@ extern "C" {
             case R_LOGICAL:
             case R_INTEGER:
                 if ( TYPEOF(x) == LGLSXP )
-                    return mMat.lmult<int,int,LGLSXP>(x);
+                    return mMat.lmult<double,int,LGLSXP>(x);
                 else if ( TYPEOF(x) == INTSXP )
-                    return mMat.lmult<int,int,INTSXP>(x);
+                    return mMat.lmult<double,int,INTSXP>(x);
                 else if ( TYPEOF(x) == REALSXP )
-                    return mMat.lmult<int,double,REALSXP>(x);
+                    return mMat.lmult<double,double,REALSXP>(x);
                 return R_NilValue;
             case R_NUMERIC:
                 if ( TYPEOF(x) == LGLSXP )
