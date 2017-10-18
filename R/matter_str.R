@@ -28,7 +28,7 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 					extent = dim, dim = 0, names = NULL, ...)
 {
 	if ( !missing(data) ) {
-		if ( is.character(data) )
+		if ( !is.character(data) )
 			stop("data is not a string")
 		if ( missing(dim) )
 			dim <- nchar(data, type="bytes")
