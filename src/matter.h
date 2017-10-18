@@ -569,6 +569,8 @@ class Atoms {
                     break;
             }
             Free(tmp);
+            if ( numRead != count)
+                error("failed to read data elements");
             return numRead;
         }
 
@@ -586,6 +588,8 @@ class Atoms {
             }
             numWrote = fwrite(tmp, sizeof(CType), count, stream);
             Free(tmp);
+            if ( numWrote != count)
+                error("failed to write data elements");
             return numWrote;
         }
 
