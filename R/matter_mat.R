@@ -319,7 +319,7 @@ subsetMatterCols <- function(x, j) {
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,
-			length=x@dim[1] * length(j),
+			length=as.numeric(x@dim[1]) * as.numeric(length(j)),
 			dim=c(x@dim[1], length(j)),
 			names=NULL,
 			dimnames=if (!is.null(x@dimnames))
@@ -344,7 +344,7 @@ subsetMatterRows <- function(x, i) {
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,
-			length=length(i) * x@dim[2],
+			length=as.numeric(length(i)) * as.numeric(x@dim[2]),
 			dim=c(length(i), x@dim[2]),
 			names=NULL,
 			dimnames=if (!is.null(x@dimnames))

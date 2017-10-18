@@ -3,7 +3,6 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Fix subsetMatterMatrix for integer overflow in x@dim[1] * length(j)
 - Do vector recycling during assignment in C/C++ instead of R
 - Add Logic operators for 'matter_vec' class
 - Support more file creation options and better "rb" vs "rb+" defaults
