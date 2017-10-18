@@ -11,7 +11,7 @@
 BiocStyle::latex()
 @
 
-\title{\Rpackage{matter}: Extra examples 1 - Simulations and comparative benchmarks}
+\title{\Rpackage{matter}: Supplementary 1 - Simulations and comparative benchmarks}
 
 \author{Kylie A. Bemis}
 
@@ -342,7 +342,7 @@ R matrices + lm &		7 GB &		1.4 GB &			33 sec &
 R matrices + svd &		3.9 GB &		2.4 GB &			66 sec \\
 bigmemory + biglm &		4.4 GB &		3.9 GB &			21 sec &
 bigmemory + irlba &		3.1 GB &		2.7 GB &			15 sec \\
-ff + biglm &			1.9 MB &		1.6 GB &			57 sec &
+ff + biglm &			1.9 GB &		1.6 GB &			57 sec &
 ff + irlba &			1.8 GB &		1.4 GB &			130 sec \\
 matter + biglm &		1 GB &		660 MB &			47 sec &
 matter + irlba &		890 MB &			490 MB &			110 sec \\

@@ -11,7 +11,7 @@
 BiocStyle::latex()
 @
 
-\title{\Rpackage{matter}: Extra examples 2 - 3D mass spectrometry imaging case study}
+\title{\Rpackage{matter}: Supplementary 2 - 3D mass spectrometry imaging case study}
 
 \author{Kylie A. Bemis}
 

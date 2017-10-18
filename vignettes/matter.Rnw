@@ -32,9 +32,9 @@ The vignettes of this package are organized as follows:
   
   \item ``Rapid prototyping with data on disk'': This is the main vignette describing \Rpackage{matter} and its general use, design, and extensibility. It walks through basic data manipulation, data structures, and demonstrates an example S4 class extending \Rpackage{matter}.
 
-  \item ``Extra examples 1 - Simulations and comparative benchmarks'': This supplementary vignette re-works the simulated statistical analysis examples from this vignette using \Rpackage{bigmemory} and \Rpackage{ff} and provides some basic benchmarks and comparisons of the three packages.
+  \item ``Supplementary 1 - Simulations and comparative benchmarks'': This supplementary vignette re-works the simulated statistical analysis examples from this vignette using \Rpackage{bigmemory} and \Rpackage{ff} and provides some basic benchmarks and comparisons of the three packages.
 
-  \item ``Extra examples 2 - 3D mass spectrometry imaging case study'': This supplementary vignette demonstrates using \Rpackage{matter} for principal components analysis on large experimental data, along with in-depth comparisons with \Rpackage{bigmemory} and \Rpackage{ff} on real data.
+  \item ``Supplementary - 3D mass spectrometry imaging case study'': This supplementary vignette demonstrates using \Rpackage{matter} for principal components analysis on large experimental data, along with in-depth comparisons with \Rpackage{bigmemory} and \Rpackage{ff} on real data.
 
 }
 
@@ -94,7 +94,7 @@ apply(x, 2, var)
 
 One of the major advantages of the flexibility of \Rpackage{matter} is being able to treat data from multiple files as a single dataset. This is particularly useful if analysing data from a domain where each sample in an experiment generates large files, such as high-resolution, high-throughput mass spectrometry imaging.
 
-Below, we create a second matrix, and show its data is stored in a separate file. We then combine the matrices, and the result can be treated as a single matrix, despite originating from multiple files. Combinging the matrices does not create new data or change the existing data on disk.
+Below, we create a second matrix, and show its data is stored in a separate file. We then combine the matrices, and the result can be treated as a single matrix, despite originating from multiple files. Combining the matrices does not create new data or change the existing data on disk.
 
 <<>>=
 y <- matter_mat(data=51:100, nrow=10, ncol=5)
