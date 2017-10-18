@@ -1,5 +1,5 @@
 
-%\VignetteIndexEntry{matter: Extra examples 1 - Simulations and comparative benchmarks}
+%\VignetteIndexEntry{matter: Supplementary 1 - Simulations and comparative benchmarks}
 %\VignetteKeyword{Infrastructure}
 
 \documentclass[a4paper]{article}
@@ -353,7 +353,7 @@ matter + irlba &		890 MB &			490 MB &			110 sec \\
 \end{center}
 \end{table*}
 
-Table~\ref{table:sim} demonstrates that \Rpackage{matter} typically uses less memory than both \Rpackage{bigmemory} and \Rpackage{ff}. Additionally, it outperforms \Rpackage{ff} in speed. The reason for \Rpackage{bigmemory}'s superior speed is likely its use of \texttt{mmap} to map the on-disk data to virtual memory. This allows it to perform faster on datasets that can fit into available memory. However, this also uses more memory, because the much of the data ends up being loaded into memory. A comparison on real datasets that are much larger than memory (in the vignette ``Extra examples 2 - 3D mass spectrometry imaging case study'') demonstrate the \Rpackage{matter} can be faster than \Rpackage{bigmemory} on datasets too large to be fully loaded into memory.
+Table~\ref{table:sim} demonstrates that \Rpackage{matter} typically uses less memory than both \Rpackage{bigmemory} and \Rpackage{ff}. Additionally, it outperforms \Rpackage{ff} in speed. The reason for \Rpackage{bigmemory}'s superior speed is likely its use of \texttt{mmap} to map the on-disk data to virtual memory. This allows it to perform faster on datasets that can fit into available memory. However, this also uses more memory, because the much of the data ends up being loaded into memory. A comparison on real datasets that are much larger than memory (in the vignette ``Supplementary 2 - 3D mass spectrometry imaging case study'') demonstrate the \Rpackage{matter} can be faster than \Rpackage{bigmemory} on datasets too large to be fully loaded into memory.
 
 
 

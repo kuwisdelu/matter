@@ -1,5 +1,5 @@
 
-%\VignetteIndexEntry{matter: Extra examples 2 - 3D mass spectrometry imaging case study}
+%\VignetteIndexEntry{matter: Supplementary 2 - 3D mass spectrometry imaging case study}
 %\VignetteKeyword{Infrastructure, ImagingMassSpectrometry}
 
 \documentclass[a4paper]{article}
@@ -101,7 +101,7 @@ validObject(msi)
 We can plot 3D molecular ion images using the \Robject{image3D} method.
 
 <<eval=FALSE, echo=FALSE, results=hide>>=
-pdf("~/Documents/Developer/Projects/matter/inst/vignettesExtra/msi-img.pdf", height=4.5, width=6)
+pdf("~/Documents/Developer/Projects/matter/vignettes/msi-img.pdf", height=4.5, width=6)
 image3D(msi, ~ x * z * y, mz=262, theta=-55, contrast="suppress", layout=c(3,1))
 dev.off()
 @
@@ -122,11 +122,11 @@ fData(msi)[,c("PC1","PC2")] <- pca$loadings[["ncomp = 2"]]
 We plot the first three principal components.
 
 <<eval=FALSE, echo=FALSE, results=hide>>=
-pdf("~/Documents/Developer/Projects/matter/inst/vignettesExtra/msi-pc1.pdf", height=4.5, width=6)
+pdf("~/Documents/Developer/Projects/matter/vignettes/msi-pc1.pdf", height=4.5, width=6)
 image3D(msi, PC1 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
 dev.off()
 
-pdf("~/Documents/Developer/Projects/matter/inst/vignettesExtra/msi-pc2.pdf", height=4.5, width=6)
+pdf("~/Documents/Developer/Projects/matter/vignettes/msi-pc2.pdf", height=4.5, width=6)
 image3D(msi, PC2 ~ x * z * y, theta=-55, col.regions=risk.colors(100), layout=c(3,1))
 dev.off()
 @
@@ -369,7 +369,6 @@ In summary, \Rpackage{matter} often allows working with datasets without file co
 <<eval=FALSE>>=
 library(matter)
 datapath <- "~/Documents/Datasets/3D-MSI/"
-figpath <- "~/Documents/Developer/Projects/matter/inst/vignettesExtra/"
 @
 
 <<eval=FALSE>>=

@@ -60,14 +60,16 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, ...)
 {
 	if ( !missing(data) ) {
-		if ( !is.matrix(data) )
-			stop("data is not a matrix")
 		if ( missing(datamode) )
 			datamode <- typeof(data)
-		if ( missing(nrow) )
-			nrow <- nrow(data)
-		if ( missing(ncol) )
-			ncol <- ncol(data)
+		if ( missing(nrow) || missing(ncol) ) {
+			if ( !is.matrix(data) )
+				stop("data is not a matrix")
+			if ( missing(nrow) )
+				nrow <- nrow(data)
+			if ( missing(ncol) )
+				ncol <- ncol(data)
+		}
 	}
 	if ( nrow == 0 && ncol == 0 && all(extent == 0) ) {
 		if ( rowMaj ) {

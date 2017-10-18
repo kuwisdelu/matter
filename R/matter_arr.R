@@ -30,12 +30,15 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, ...)
 {
 	if ( !missing(data) ) {
-		if ( !is.array(data) )
-			stop("data is not an array")
 		if ( missing(datamode) )
 			datamode <- typeof(data)
-		if ( missing(dim) )
-			dim <- dim(data)
+		if ( missing(dim) ) {
+			if ( !is.array(data) ) {
+				stop("data is not an array")
+			} else {
+				dim <- dim(data)
+			}
+		}
 	}
 	if ( all(dim == 0) && all(extent == 0) )
 		return(new("matter_arr"))
