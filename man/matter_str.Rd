@@ -17,10 +17,10 @@
 \alias{[[,matter_str,ANY,missing-method}
 \alias{[[<-,matter_str,ANY,missing-method}
 
-\title{Homogenous Lists Stored on Disk}
+\title{Strings Stored on Disk}
 
 \description{
-    The \code{matter_str} class implements on-disk homogenous lists.
+    The \code{matter_str} class implements on-disk strings.
 }
 
 \usage{

@@ -3,11 +3,7 @@
 
 \alias{class:matter_arr}
 \alias{matter_arr}
-\alias{matter_arrc}
-\alias{matter_arrr}
 \alias{matter_arr-class}
-\alias{matter_arrc-class}
-\alias{matter_arrr-class}
 
 \alias{[,matter_arr-method}
 \alias{[,matter_arr,ANY,ANY,ANY-method}

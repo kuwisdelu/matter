@@ -84,7 +84,7 @@ matter <- function(...) {
 		}  else if ( any(arr.args %in% nm ) || is.array(dots) ) {
 			matter_arr(...)
 		} else {
-			matter_vec(...)
+			stop("couldn't guess data structure, use 'matter_' functions")
 		}
 	} else {
 		if ( is.raw(data) || is.logical(data) || is.numeric(data) ) {
