@@ -3,20 +3,20 @@
 #### Define atoms class ####
 ## -------------------------
 
-setClassUnion("integerORdrle", c("integer", "drle"))
-setClassUnion("numericORdrle", c("numeric", "drle"))
+setClassUnion("integer_OR_drle", c("integer", "drle"))
+setClassUnion("numeric_OR_drle", c("numeric", "drle"))
 
 setClass("atoms",
 	slots = c(
 		natoms = "integer",
 		ngroups = "integer",
-		group_id = "integerORdrle",
-		source_id = "integerORdrle",
-		datamode = "integerORdrle",
-		offset = "numericORdrle", # byte offset from start of file
-		extent = "numericORdrle", # number of elements
-		index_offset = "numericORdrle", # cumulative index of first element
-		index_extent = "numericORdrle"), # cumulative index of one-past-the-end
+		group_id = "integer_OR_drle",
+		source_id = "integer_OR_drle",
+		datamode = "integer_OR_drle",
+		offset = "numeric_OR_drle", # byte offset from start of file
+		extent = "numeric_OR_drle", # number of elements
+		index_offset = "numeric_OR_drle", # cumulative index of first element
+		index_extent = "numeric_OR_drle"), # cumulative index of one-past-the-end
 	prototype = c(
 		natoms = 1L,
 		ngroups = 1L,
