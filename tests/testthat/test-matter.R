@@ -41,7 +41,7 @@ test_that("matrix subsetting", {
 
 	x <- matrix(1:100, nrow=10, ncol=10)
 
-	y <- matter_mat(x, nrow=10, ncol=10)
+	y <- matter_mat(x)
 
 	expect_equal(x, y[])
 
@@ -64,7 +64,7 @@ test_that("array subsetting", {
 
 	x <- array(1:125, dim=c(5,5,5))
 
-	y <- matter_arr(x, dim=c(5,5,5))
+	y <- matter_arr(x)
 
 	expect_equal(x, y[])
 
@@ -98,7 +98,7 @@ test_that("list subsetting", {
 
 	x <- list(1:5, 6:10, 11:15)
 
-	y <- matter_list(x, dim=c(5,5,5))
+	y <- matter_list(x)
 
 	expect_equal(x, y[])
 
@@ -118,7 +118,7 @@ test_that("string subsetting", {
 
 	x <- c("neon", "genesis", "evangelion")
 
-	y <- matter_str(x, dim=nchar(x, type="bytes"))
+	y <- matter_str(x)
 
 	expect_equal(x, y[])
 
@@ -136,11 +136,11 @@ test_that("data frame subsetting", {
 
 	x <- seq_len(10)
 
-	x2 <- matter_vec(x, length=10)
+	x2 <- matter_vec(x)
 
 	y <- letters[1:10]
 
-	y2 <- matter_str(y, dim=nchar(y, type="bytes"))
+	y2 <- matter_str(y)
 
 	df1 <- data.frame(x=x, y=y, stringsAsFactors=FALSE)
 

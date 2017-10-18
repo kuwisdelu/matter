@@ -27,6 +27,12 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = dim, dim = 0, names = NULL, ...)
 {
+	if ( !missing(data) ) {
+		if ( is.character(data) )
+			stop("data is not a string")
+		if ( missing(dim) )
+			dim <- nchar(data, type="bytes")
+	}
 	if ( all(extent == 0) )
 		return(new("matter_str"))
 	if ( missing(data) ) {
@@ -81,8 +87,7 @@ setMethod("show", "matter_str", function(object) {
 	callNextMethod(object)
 })
 
-setAs("character", "matter_str",
-	function(from) matter_str(from, dim=nchar(from, type="bytes")))
+setAs("character", "matter_str", function(from) matter_str(from))
 
 setAs("factor", "matter_str",
 	function(from) as(as.character(from), "matter_str"))

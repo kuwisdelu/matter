@@ -28,6 +28,16 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = dim, dim = 0, names = NULL, dimnames = NULL, ...)
 {
+	if ( !missing(data) ) {
+		if ( !is.list(data) )
+			stop("data is not a list")
+		if ( length(unique(sapply(data, class))) != 1 )
+			stop("data elements must all have the same type")
+		if ( missing(datamode) )
+			datamode <- typeof(data[[1]])
+		if ( missing(dim) )
+			dim <- sapply(data, length)
+	}
 	if ( all(extent == 0) )
 		return(new("matter_list"))
 	if ( missing(data) ) {
@@ -85,9 +95,7 @@ setMethod("show", "matter_list", function(object) {
 	callNextMethod(object)
 })
 
-setAs("list", "matter_list",
-	function(from) matter_list(from, datamode=typeof(from[[1]]),
-		dim=sapply(from, length)))
+setAs("list", "matter_list", function(from) matter_list(from))
 
 as.matter_list <- function(x) as(x, "matter_list")
 

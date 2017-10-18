@@ -28,6 +28,12 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(is.null(paths), "rb+", "rb"),
 					offset = 0, extent = length, length = 0, names = NULL, ...)
 {
+	if ( !missing(data) ) {
+		if ( missing(datamode) )
+			datamode <- typeof(data)
+		if ( missing(length) )
+			length <- length(data)
+	}
 	if ( length == 0 && all(extent == 0) )
 		return(new("matter_vec"))
 	if ( length(offset) != length(extent) )
@@ -75,16 +81,16 @@ setMethod("show", "matter_vec", function(object) {
 })
 
 setAs("raw", "matter_vec",
-	function(from) matter_vec(from, datamode="raw", length=length(from)))
+	function(from) matter_vec(from, datamode="raw"))
 
 setAs("logical", "matter_vec",
-	function(from) matter_vec(from, datamode="logical", length=length(from)))
+	function(from) matter_vec(from, datamode="logical"))
 
 setAs("integer", "matter_vec",
-	function(from) matter_vec(from, datamode="integer", length=length(from)))
+	function(from) matter_vec(from, datamode="integer"))
 
 setAs("numeric", "matter_vec",
-	function(from) matter_vec(from, datamode="double", length=length(from)))
+	function(from) matter_vec(from, datamode="double"))
 
 as.matter_vec <- function(x) as(x, "matter_vec")
 

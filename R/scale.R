@@ -4,6 +4,8 @@
 
 setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
 {
+	if ( datamode(x) != "numeric" )
+		datamode(x) <- "numeric"
 	by_which_dim <- switch(class(x),
 		matter_matc = "by_each_group",
 		matter_matr = "by_group")

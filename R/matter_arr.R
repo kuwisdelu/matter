@@ -29,6 +29,14 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(is.null(paths), "rb+", "rb"),
 					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, ...)
 {
+	if ( !missing(data) ) {
+		if ( !is.array(data) )
+			stop("data is not an array")
+		if ( missing(datamode) )
+			datamode <- typeof(data)
+		if ( missing(dim) )
+			dim <- dim(data)
+	}
 	if ( all(dim == 0) && all(extent == 0) )
 		return(new("matter_arr"))
 	if ( length(offset) != length(extent) )
@@ -81,8 +89,7 @@ setMethod("show", "matter_arr", function(object) {
 	callNextMethod(object)
 })
 
-setAs("array", "matter_arr",
-	function(from) matter_arr(from, datamode=typeof(from), dim=dim(from)))
+setAs("array", "matter_arr", function(from) matter_arr(from))
 
 as.matter_arr <- function(x) as(x, "matter_arr")
 

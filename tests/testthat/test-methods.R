@@ -21,6 +21,22 @@ test_that("matrix multiplication", {
 
 	expect_equal(x %*% x, y %*% x)
 
+	x <- matrix(1:91, nrow=7, ncol=13)
+
+	y <- matter_mat(x, nrow=7, ncol=13)
+
+	expect_equal(x %*% t(x), x %*% t(y))
+
+	expect_equal(t(x) %*% x, t(y) %*% x)
+
+	x <- matrix(1:91, nrow=7, ncol=13)
+
+	y <- matter_mat(x, nrow=7, ncol=13, rowMaj=TRUE)
+
+	expect_equal(x %*% t(x), x %*% t(y))
+
+	expect_equal(t(x) %*% x, t(y) %*% x)
+
 })
 
 test_that("summary statistics", {
@@ -106,6 +122,18 @@ test_that("scale", {
 	x <- matrix(1:100, nrow=10, ncol=10)
 
 	y <- matter_mat(x, nrow=10, ncol=10)
+
+	expect_equivalent(scale(x), scale(y)[])
+
+	x <- t(x)
+
+	y <- t(y)
+
+	expect_equivalent(scale(x), scale(y)[])
+
+	x <- matrix(1:91, nrow=7, ncol=13)
+
+	y <- matter_mat(x, nrow=7, ncol=13)
 
 	expect_equivalent(scale(x), scale(y)[])
 

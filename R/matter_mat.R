@@ -59,6 +59,16 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 					extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
 					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, ...)
 {
+	if ( !missing(data) ) {
+		if ( !is.matrix(data) )
+			stop("data is not a matrix")
+		if ( missing(datamode) )
+			datamode <- typeof(data)
+		if ( missing(nrow) )
+			nrow <- nrow(data)
+		if ( missing(ncol) )
+			ncol <- ncol(data)
+	}
 	if ( nrow == 0 && ncol == 0 && all(extent == 0) ) {
 		if ( rowMaj ) {
 			return(new("matter_matr"))
@@ -140,18 +150,17 @@ setMethod("show", "matter_mat", function(object) {
 })
 
 setAs("matrix", "matter_mat",
-	function(from) matter_mat(from, datamode=typeof(from),
-		nrow=nrow(from), ncol=ncol(from)))
+	function(from) matter_mat(from, datamode=typeof(from)))
 
 as.matter_mat <- function(x) as(x, "matter_mat")
 
-setAs("raw", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+setAs("raw", "matter_mat", function(from) matter_mat(as.matrix(from)))
 
-setAs("logical", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+setAs("logical", "matter_mat", function(from) matter_mat(as.matrix(from)))
 
-setAs("integer", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+setAs("integer", "matter_mat", function(from) matter_mat(as.matrix(from)))
 
-setAs("numeric", "matter_mat", function(from) as.matter_mat(as.matrix(from)))
+setAs("numeric", "matter_mat", function(from) matter_mat(as.matrix(from)))
 
 getMatrix <- function(x) {
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
