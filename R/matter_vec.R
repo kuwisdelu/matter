@@ -28,14 +28,14 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
 					offset = 0, extent = length, length = 0, names = NULL, ...)
 {
-	if ( length == 0 && all(extent == 0) )
-		return(new("matter_vec"))
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
 			datamode <- typeof(data)
 		if ( missing(length) )
 			length <- length(data)
 	}
+	if ( length == 0 && all(extent == 0) )
+		return(new("matter_vec"))
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
@@ -43,7 +43,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		datamode <- rep(datamode, length.out=length(extent))
 	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
-	paths <- normalizePath(paths)
+	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
 			data <- 0

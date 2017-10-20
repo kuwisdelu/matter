@@ -12,7 +12,7 @@ Priority: High
 Priority: Medium
 - Sparse vectors/matrices (both in-memory and on-disk)
 - Add 'match' and '%in%' functions for 'matter_vec' class
-- Add wrappers for reading csv, tsv, tab-delimited, etc.
+- Add wrappers for reading csv, tsv, etc.
 - Add factor (datamode="integer") type
 
 Priority: Low

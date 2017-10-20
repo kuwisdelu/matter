@@ -28,8 +28,6 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = lengths, lengths = 0, names = NULL, dimnames = NULL, ...)
 {
-	if ( all(extent == 0) )
-		return(new("matter_list"))
 	if ( !missing(data) ) {
 		if ( !is.list(data) )
 			data <- list(data)
@@ -38,6 +36,8 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		if ( missing(lengths) )
 			lengths <- sapply(data, length)
 	}
+	if ( all(extent == 0) )
+		return(new("matter_list"))
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
@@ -45,7 +45,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		datamode <- rep(datamode, length.out=length(extent))
 	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
-	paths <- normalizePath(paths)
+	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
 			data <- rep(list(0), length(extent))
@@ -97,6 +97,8 @@ getList <- function(x) {
 }
 
 setList <- function(x, value) {
+	if ( length(value) != length(x) )
+		value <- rep(value, length.out=length(x))
 	for ( i in seq_along(value) ) {
 		if ( dim(x)[i] %% length(value[[i]]) != 0 )
 			warning("number of items to replace is not ",
@@ -236,6 +238,12 @@ setReplaceMethod("[[",
 	function(x, i, ..., value) setListElements(x, i, NULL, value))
 
 
-setMethod("lengths", "matter_list", function(object) object@dim)
+setMethod("lengths", "matter_list", function(x, use.names = TRUE) {
+	if ( use.names ) {
+		setNames(x@dim, x@names)
+	} else {
+		setNames(x@dim, NULL)
+	}
+})
 
 

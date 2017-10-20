@@ -59,13 +59,6 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 					extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
 					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, ...)
 {
-	if ( nrow == 0 && ncol == 0 && all(extent == 0) ) {
-		if ( rowMaj ) {
-			return(new("matter_matr"))
-		} else {
-			return(new("matter_matc"))
-		}
-	}
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
 			datamode <- typeof(data)
@@ -76,6 +69,13 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 				nrow <- nrow(data)
 			if ( missing(ncol) )
 				ncol <- ncol(data)
+		}
+	}
+	if ( nrow == 0 && ncol == 0 && all(extent == 0) ) {
+		if ( rowMaj ) {
+			return(new("matter_matr"))
+		} else {
+			return(new("matter_matc"))
 		}
 	}
 	if ( length(unique(extent)) > 1 )
@@ -105,7 +105,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	}
 	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
-	paths <- normalizePath(paths)
+	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
 			data <- 0

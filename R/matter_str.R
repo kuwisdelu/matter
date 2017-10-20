@@ -27,25 +27,23 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = nchar, nchar = 0, names = NULL, ...)
 {
-	if ( all(extent == 0) )
-		return(new("matter_str"))
 	if ( !missing(data) ) {
-		if ( missing(nchar) ) {
+		if ( missing(nchar) )
 			nchar <- nchar(data, type="bytes")
 		if ( !is.character(data) )
 			data <- as.character(data)
-		if ( any(sapply(data, nchar, type="bytes") != extent) )
-			stop("length of character strings (in bytes) must equal extents")
 	}
+	if ( all(extent == 0) )
+		return(new("matter_str"))
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
 	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
-	paths <- normalizePath(paths)
+	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
-			data <- list(" ", length(extent))
+			data <- rep(list(" "), length(extent))
 		filemode <- force(filemode)
 		result <- file.create(paths)
 		if ( !result )
@@ -97,7 +95,13 @@ setMethod("[",
 setReplaceMethod("[",
 	c(x = "matter_str", i = "missing", j = "missing"),
 	function(x, ..., value) {
-		value <- lapply(value, charToRaw)
+		if ( is.character(value) ) {
+			value <- lapply(value, charToRaw)
+		} else {
+			if ( !is.list(value) )
+				value <- list(value)
+			value <- lapply(value, as.raw)
+		}
 		setList(x, value)
 })
 
@@ -172,6 +176,14 @@ setReplaceMethod("[[",
 			value <- as.raw(value)
 		}
 		setListElements(x, i, NULL, value)
+})
+
+setMethod("lengths", "matter_str", function(x, use.names = TRUE) {
+	if ( use.names ) {
+		setNames(x@dim, x@names)
+	} else {
+		setNames(x@dim, NULL)
+	}
 })
 
 

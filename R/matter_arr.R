@@ -29,8 +29,6 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
 					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, ...)
 {
-	if ( all(dim == 0) && all(extent == 0) )
-		return(new("matter_arr"))
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
 			datamode <- typeof(data)
@@ -42,6 +40,8 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 			}
 		}
 	}
+	if ( all(dim == 0) && all(extent == 0) )
+		return(new("matter_arr"))
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
@@ -49,7 +49,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 		datamode <- rep(datamode, length.out=length(extent))
 	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
-	paths <- normalizePath(paths)
+	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
 			data <- 0
@@ -75,14 +75,8 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 		names=NULL,
 		dimnames=dimnames,
 		ops=NULL, ...)
-	if ( !missing(data) ) {
-		if ( prod(dim(x)) != length(data) ) {
-			stop(paste0("dims [product ", prod(dim(x)),
-				"] do not match the length of array [", length(x), "]"))
-		} else {
-			x[] <- data
-		}
-	}
+	if ( !missing(data) )
+		x[] <- data
 	x
 }
 

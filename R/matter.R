@@ -62,32 +62,22 @@ matter <- function(...) {
 	if ( is.null(nm) || nchar(nm[[1]]) == 0 ) {
 		data <- eval(dots[[1]])
 	} else if ( "data" %in% nm ) {
-		data <- dots$data
+		data <- eval(dots$data)
 	} else {
 		data <- NULL
 	}
 	if ( nargs() == 1 && !is.null(data) )
 		return(as.matter(data))
 	if ( is.null(data) || nargs() > 1 ) {
-		if ( "extent" %in% nm ) {
-			uneq.extent <- length(unique(eval(dots$extent))) > 1
-		} else {
-			uneq.extent <- FALSE
-		}
-		vec.args <- c("length", "names")
-		arr.args <- c("dim", "dimnames")
-		mat.args <- c("nrow", "ncol", "rowMaj")
-		list.args <- "lengths"
-		str.args <- "nchar"
-		if ( any(vec.args %in% nm ) || is.vector(dots) || uneq.extent ) {
+		if ( any(c("length", "names") %in% nm) ) {
 			matter_vec(...)
-		} else if ( any(arr.args %in% nm ) || is.array(dots) ) {
+		} else if ( any(c("dim", "dimnames") %in% nm) ) {
 			matter_arr(...)
-		} else if ( any(mat.args %in% nm ) || is.matrix(dots) ) {
+		} else if ( any(c("nrow", "ncol", "rowMaj") %in% nm) ) {
 			matter_mat(...)
-		} else if ( any(list.args %in% nm ) || is.list(dots) ) {
+		} else if ( any("lengths" %in% nm) ) {
 			matter_list(...)
-		} else if ( any(str.args %in% nm ) || is.character(dots) ) {
+		} else if ( any("nchar" %in% nm) ) {
 			matter_str(...)
 		} else {
 			stop("couldn't guess data structure, use 'matter_' functions")
@@ -105,6 +95,8 @@ matter <- function(...) {
 			matter_str(...)
 		} else if ( is.data.frame(data) ) {
 			matter_df(...)
+		} else {
+			stop("couldn't guess data structure, use 'matter_' functions")
 		}
 	}
 }
