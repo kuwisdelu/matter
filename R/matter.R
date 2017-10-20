@@ -68,22 +68,28 @@ matter <- function(...) {
 	}
 	if ( nargs() == 1 && !is.null(data) )
 		return(as.matter(data))
-	if ( is.null(data) || nargs() > 1 ) {
-		if ( any(c("length", "names") %in% nm) ) {
+	vec.args <- c("length", "names")
+	arr.args <- c("dim", "dimnames")
+	mat.args <- c("nrow", "ncol", "rowMaj")
+	list.args <- c("lengths")
+	char.args <- c("nchar")
+	known.args <- c(vec.args, arr.args, mat.args, list.args, char.args)
+	if ( any(nm %in% known.args) ) {
+		if ( any(vec.args %in% nm) ) {
 			matter_vec(...)
-		} else if ( any(c("dim", "dimnames") %in% nm) ) {
+		} else if ( any(arr.args %in% nm) ) {
 			matter_arr(...)
-		} else if ( any(c("nrow", "ncol", "rowMaj") %in% nm) ) {
+		} else if ( any(mat.args %in% nm) ) {
 			matter_mat(...)
-		} else if ( any("lengths" %in% nm) ) {
+		} else if ( any(list.args %in% nm) ) {
 			matter_list(...)
-		} else if ( any("nchar" %in% nm) ) {
+		} else if ( any(char.args %in% nm) ) {
 			matter_char(...)
 		} else {
 			stop("couldn't guess data structure, use 'matter_' functions")
 		}
-	} else {
-		if ( is.raw(data) || is.logical(data) || is.numeric(data) ) {
+	} else if ( !is.null(data) ) {
+		if ( is.raw(data) || is.logical(data) || is.integer(data) || is.numeric(data) ) {
 			matter_vec(...)
 		} else if ( is.array(data) ) {
 			matter_arr(...)
@@ -98,6 +104,8 @@ matter <- function(...) {
 		} else {
 			stop("couldn't guess data structure, use 'matter_' functions")
 		}
+	} else {
+		stop("couldn't guess data structure, use 'matter_' functions")
 	}
 }
 

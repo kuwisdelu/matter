@@ -51,6 +51,8 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
+	} else if ( !missing(data) ) {
+		warning("file already exists")
 	}
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=length(extent))
