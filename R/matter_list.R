@@ -31,8 +31,6 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 	if ( !missing(data) ) {
 		if ( !is.list(data) )
 			stop("data is not a list")
-		if ( length(unique(sapply(data, class))) != 1 )
-			stop("data elements must all have the same type")
 		if ( missing(datamode) )
 			datamode <- typeof(data[[1]])
 		if ( missing(dim) )
@@ -49,8 +47,6 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		data <- list(data)
 	if ( !missingdata && any(sapply(data, length) != extent) )
 		stop("length of data elements must equal extents")
-	if ( length(unique(sapply(data, class))) != 1 )
-		stop("elements of list data must be homogenous")
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
@@ -83,7 +79,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		names=names,
 		dimnames=dimnames,
 		ops=NULL, ...)
-	if ( !missingdata )
+	if ( !missing(data) )
 		x[] <- data
 	x
 }
@@ -109,14 +105,21 @@ getList <- function(x) {
 }
 
 setList <- function(x, value) {
-	if ( any(sapply(value, length) != dim(x)) )
-		stop("length of replacement elements must equal extents")
-	for ( i in seq_along(value) )
+	for ( i in seq_along(value) ) {
+		if ( dim(x)[i] %% length(value[[i]]) != 0 )
+			warning("number of items to replace is not ",
+				"a multiple of replacement length")
+		if ( length(value[[i]]) != 1 )
+			value[[i]] <- rep(value[[i]], length.out=dim(x)[i])
+	}
+	for ( i in seq_along(value) ) {
+		if ( is.character(value[[i]]) )
+			value[[i]] <- as.raw(value[[i]])
+	}
+	for ( i in seq_along(value) ) {
 		if ( is.logical(value[[i]]) )
 			value[[i]] <- as.integer(value[[i]])
-	for ( i in seq_along(value) )
-		if ( is.character(value[[i]]) )
-			value[[i]] <- as.double(value[[i]])
+	}
 	.Call("C_setList", x, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
@@ -156,7 +159,8 @@ setListElements <- function(x, i, j, value) {
 		if ( dim(x)[i] %% length(value) != 0 )
 			warning("number of items to replace is not ",
 				"a multiple of replacement length")
-		value <- rep(value, length.out=dim(x)[i])
+		if ( length(value) != 1 )
+			value <- rep(value, length.out=dim(x)[i])
 		if ( is.logical(value) )
 			value <- as.integer(value)
 		if ( is.character(value) )
@@ -170,7 +174,8 @@ setListElements <- function(x, i, j, value) {
 		if ( length(j) %% length(value) != 0 )
 			warning("number of items to replace is not ",
 				"a multiple of replacement length")
-		value <- rep(value, length.out=length(j))
+		if ( length(value) != 1 )
+			value <- rep(value, length.out=length(j))
 		if ( is.logical(value) )
 			value <- as.integer(value)
 		if ( is.character(value) )

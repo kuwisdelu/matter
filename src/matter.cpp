@@ -3149,7 +3149,10 @@ SEXP Matter :: readArray() {
 template<typename RType, int SType>
 void Matter :: writeArray(SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
-    data().write<RType>(pValue, 0, length());
+    if ( XLENGTH(value) == 1 )
+        data().write<RType>(pValue, 0, length(), 0);
+    else
+        data().write<RType>(pValue, 0, length());
 }
 
 template<typename RType, int SType>
@@ -3167,7 +3170,10 @@ template<typename RType, int SType>
 void Matter :: writeArrayElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     Rindex_t * pIndex = R_INDEX_PTR(i);
-    data().write_indices(pValue, pIndex, XLENGTH(i));
+    if ( XLENGTH(value) == 1 )
+        data().write_indices(pValue, pIndex, XLENGTH(i), 0);
+    else
+        data().write_indices(pValue, pIndex, XLENGTH(i));
 }
 
 //// Homogenous list methods implemented for class Matter
@@ -3190,7 +3196,7 @@ SEXP Matter :: readListElements(int i, SEXP j) {
     PROTECT(retVec = allocVector(SType, LENGTH(j)));
     RType * pRetVec = DataPtr<RType,SType>(retVec);
     data().set_group(i);
-    data().read_indices<RType>(pRetVec, R_INDEX_PTR(j), LENGTH(j));
+    data().read_indices<RType>(pRetVec, R_INDEX_PTR(j), XLENGTH(j));
     UNPROTECT(1);
     return retVec;
 }
@@ -3199,14 +3205,20 @@ template<typename RType, int SType>
 void Matter :: writeListElements(int i, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     data().set_group(i);
-    data().write(pValue, 0, dim(i));
+    if ( XLENGTH(value) == 1 )
+        data().write(pValue, 0, dim(i), 0);
+    else
+        data().write(pValue, 0, dim(i));
 }
 
 template<typename RType, int SType>
 void Matter :: writeListElements(int i, SEXP j, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     data().set_group(i);
-    data().write_indices(pValue, R_INDEX_PTR(j), LENGTH(j));
+    if ( XLENGTH(value) == 1 )
+        data().write_indices(pValue, R_INDEX_PTR(j), XLENGTH(j), 0);
+    else
+        data().write_indices(pValue, R_INDEX_PTR(j), XLENGTH(j));
 }
 
 
@@ -3247,13 +3259,19 @@ void Matter :: writeMatrix(SEXP value) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
                 data().set_group(col);
-                data().write<RType>(pValue + col * nrows, 0, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write<RType>(pValue, 0, nrows, 0);
+                else    
+                    data().write<RType>(pValue + col * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
                 data().set_group(row);
-                data().write<RType>(pValue + row, 0, ncols, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write<RType>(pValue, 0, ncols, 0);
+                else
+                    data().write<RType>(pValue + row, 0, ncols, nrows);
             }
             break;
         default:
@@ -3302,7 +3320,10 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
                 data().set_group(col);
-                data().write_indices(pValue + col * nrows, pRow, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write_indices(pValue, pRow, nrows, 0);
+                else
+                    data().write_indices(pValue + col * nrows, pRow, nrows);
             }
             break;
         case MATTER_MATR:
@@ -3311,7 +3332,10 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
                     continue;
                 index_t row = static_cast<index_t>(pRow[l]);
                 data().set_group(row);
-                data().write<RType>(pValue + l, 0, ncols, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write<RType>(pValue, 0, ncols, 0);
+                else
+                    data().write<RType>(pValue + l, 0, ncols, nrows);
             }
             break;
         default:
@@ -3363,13 +3387,19 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
                     continue;
                 index_t col = static_cast<index_t>(pCol[l]);
                 data().set_group(col);
-                data().write<RType>(pValue + l * nrows, 0, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write<RType>(pValue, 0, nrows, 0);
+                else
+                    data().write<RType>(pValue + l * nrows, 0, nrows);
             }
             break;
         case MATTER_MATR:
             for ( int row = 0; row < nrows; row++ ) {
                 data().set_group(row);
-                data().write_indices(pValue + row, pCol, ncols, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write_indices(pValue, pCol, ncols, 0);
+                else
+                    data().write_indices(pValue + row, pCol, ncols, nrows);
             }
             break;
         default:
@@ -3428,7 +3458,10 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                     continue;
                 index_t col = static_cast<index_t>(pCol[l]);
                 data().set_group(col);
-                data().write_indices(pValue + l * nrows, pRow, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write_indices(pValue, pRow, nrows, 0);
+                else
+                    data().write_indices(pValue + l * nrows, pRow, nrows);
             }
             break;
         case MATTER_MATR:
@@ -3437,7 +3470,10 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                     continue;
                 index_t row = static_cast<index_t>(pRow[l]);
                 data().set_group(row);
-                data().write_indices(pValue + l, pCol, ncols, nrows);
+                if ( XLENGTH(value) == 1 )
+                    data().write_indices(pValue, pCol, ncols, 0);
+                else
+                    data().write_indices(pValue + l, pCol, ncols, nrows);
             }
             break;
         default:

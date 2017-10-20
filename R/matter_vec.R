@@ -105,7 +105,8 @@ setVector <- function(x, value) {
 	if ( length(x) %% length(value) != 0 )
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
-	value <- rep(value, length.out=length(x)) # should do this in C++ code
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(x))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )
@@ -134,7 +135,8 @@ setVectorElements <- function(x, i, value) {
 	if ( length(i) %% length(value) != 0 )
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
-	value <- rep(value, length.out=length(i))
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(i))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )

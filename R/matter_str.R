@@ -75,7 +75,7 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 		names=names,
 		dimnames=NULL,
 		ops=NULL, ...)
-	if ( !missingdata )
+	if ( !missing(data) )
 		x[] <- data
 	x
 }

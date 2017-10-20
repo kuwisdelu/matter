@@ -66,7 +66,7 @@ matter <- function(...) {
 	} else {
 		data <- NULL
 	}
-	if ( nargs() == 1 )
+	if ( nargs() == 1 && !is.null(data) )
 		return(as.matter(data))
 	if ( is.null(data) || nargs() > 1 ) {
 		if ( "extent" %in% nm ) {

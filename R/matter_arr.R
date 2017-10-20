@@ -49,7 +49,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 		datamode <- rep(datamode, length.out=length(extent))
 	if ( is.null(paths) ) {
 		if ( missing(data) )
-			data <- 0
+			data <- NA
 		filemode <- force(filemode)
 		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
@@ -108,7 +108,8 @@ setArray <- function(x, value) {
 	if ( length(x) %% length(value) != 0 )
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
-	value <- rep(value, length.out=length(x)) # should do this in C++ code
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(x)) # should do this in C++ code
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )
@@ -146,7 +147,8 @@ setArrayElements <- function(x, ind, value) {
 	if ( length(x) %% length(value) != 0 )
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
-	value <- rep(value, length.out=length(i))
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(i))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )

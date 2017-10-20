@@ -177,7 +177,8 @@ setMatrix <- function(x, value) {
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
 	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
-	value <- rep(value, length.out=length(x)) # should do this in C++ code
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(x))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )
@@ -208,7 +209,8 @@ setMatrixRows <- function(x, i, value) {
 	if ( (length(i) * ncol(x)) %% length(value) != 0 )
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
-	value <- rep(value, length.out=length(i) * ncol(x))
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(i) * ncol(x))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )
@@ -239,11 +241,12 @@ setMatrixCols <- function(x, j, value) {
 	if ( (length(j) * nrow(x)) %% length(value) != 0 )
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(j) * nrow(x))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	value <- rep(value, length.out=length(j) * nrow(x))
 	.Call("C_setMatrixCols", x, j - 1, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
@@ -278,7 +281,8 @@ setMatrixElements <- function(x, i, j, value) {
 	if ( (length(i) * length(j)) %% length(value) != 0 )
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
-	value <- rep(value, length.out=length(i) * length(j))
+	if ( length(value) != 1 )
+		value <- rep(value, length.out=length(i) * length(j))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )
