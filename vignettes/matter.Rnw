@@ -440,9 +440,9 @@ We also create generic functions and S4 methods to access these slots. Note that
 
 <<fastq-class>>=
 setClass("Fastq", slots=c(
-	id = "matter_char",
-	sread = "matter_char",
-	quality = "matter_char"))
+	id = "matter_str",
+	sread = "matter_str",
+	quality = "matter_str"))
 
 setGeneric("id", function(x) standardGeneric("id"))
 setGeneric("sread", function(object, ...) standardGeneric("sread"))
@@ -466,13 +466,13 @@ attachFastq <- function(file) {
 	byte_end <- c(newlines, length) - 1L # don't include the '\n'
 	line_offset <- byte_start
 	line_extent <- byte_end - byte_start
-	id <- matter_char(paths=file,
+	id <- matter_str(paths=file,
 		offset=1L + line_offset[c(TRUE,FALSE,FALSE,FALSE)], # skip the '@'
 		extent=line_extent[c(TRUE,FALSE,FALSE,FALSE)] - 1L) # adjust for '@'
-	sread <- matter_char(paths=file,
+	sread <- matter_str(paths=file,
 		offset=line_offset[c(FALSE,TRUE,FALSE,FALSE)],
 		extent=line_extent[c(FALSE,TRUE,FALSE,FALSE)])
-	quality <- matter_char(paths=file,
+	quality <- matter_str(paths=file,
 		offset=line_offset[c(FALSE,FALSE,FALSE,TRUE)],
 		extent=line_extent[c(FALSE,FALSE,FALSE,TRUE)])
 	new("Fastq", id=id, sread=sread, quality=quality)

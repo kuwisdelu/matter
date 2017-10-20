@@ -84,7 +84,7 @@ matter <- function(...) {
 		} else if ( any(list.args %in% nm) ) {
 			matter_list(...)
 		} else if ( any(char.args %in% nm) ) {
-			matter_char(...)
+			matter_str(...)
 		} else {
 			stop("couldn't guess data structure, use 'matter_' functions")
 		}
@@ -98,7 +98,7 @@ matter <- function(...) {
 		} else if ( is.list(data) ) {
 			matter_list(...)
 		} else if ( is.character(data) ) {
-			matter_char(...)
+			matter_str(...)
 		} else if ( is.data.frame(data) ) {
 			matter_df(...)
 		} else {
@@ -119,7 +119,7 @@ as.matter <- function(x) {
 		logical = as.matter_vec(x),
 		integer = as.matter_vec(x),
 		numeric = as.matter_vec(x),
-		character = as.matter_char(x),
+		character = as.matter_str(x),
 		matrix = as.matter_mat(x),
 		array = as.matter_arr(x),
 		list = as.matter_list(x),

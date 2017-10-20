@@ -7,7 +7,6 @@ Priority: High
 - Change 'matter_list' to support heterogenous lists
 - Let dim<- switch between 'matter_vec' and 'matter_arr'
 - Add Logic operators for 'matter_vec' class
-- Support more file creation options and better "rb" vs "rb+" defaults
 
 Priority: Medium
 - Sparse vectors/matrices (both in-memory and on-disk)

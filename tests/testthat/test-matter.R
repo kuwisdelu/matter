@@ -118,7 +118,7 @@ test_that("string subsetting", {
 
 	x <- c("neon", "genesis", "evangelion")
 
-	y <- matter_char(x)
+	y <- matter_str(x)
 
 	expect_equal(x, y[])
 
@@ -140,7 +140,7 @@ test_that("data frame subsetting", {
 
 	y <- letters[1:10]
 
-	y2 <- matter_char(y)
+	y2 <- matter_str(y)
 
 	df1 <- data.frame(x=x, y=y, stringsAsFactors=FALSE)
 

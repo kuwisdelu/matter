@@ -2,7 +2,7 @@
 #### Define matter<str> class for string data ####
 ## -----------------------------------------------
 
-setClass("matter_char",
+setClass("matter_str",
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("raw", type="R"),
@@ -22,7 +22,7 @@ setClass("matter_char",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_char <- function(data, datamode = "raw", paths = NULL,
+matter_str <- function(data, datamode = "raw", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = nchar, nchar = 0, names = NULL, ...)
@@ -34,7 +34,7 @@ matter_char <- function(data, datamode = "raw", paths = NULL,
 			data <- as.character(data)
 	}
 	if ( all(extent == 0) )
-		return(new("matter_char"))
+		return(new("matter_str"))
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
@@ -53,7 +53,7 @@ matter_char <- function(data, datamode = "raw", paths = NULL,
 	}
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=length(extent))
-	x <- new("matter_char",
+	x <- new("matter_str",
 		data=atoms(
 			group_id=seq_along(extent),
 			source_id=as.integer(factor(paths)),
@@ -74,28 +74,28 @@ matter_char <- function(data, datamode = "raw", paths = NULL,
 	x
 }
 
-setMethod("show", "matter_char", function(object) {
+setMethod("show", "matter_str", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@length, " length> ",
 		"on-disk strings", "\n", sep="")
 	callNextMethod(object)
 })
 
-setAs("character", "matter_char", function(from) matter_char(from))
+setAs("character", "matter_str", function(from) matter_str(from))
 
-setAs("factor", "matter_char",
-	function(from) as(as.character(from), "matter_char"))
+setAs("factor", "matter_str",
+	function(from) as(as.character(from), "matter_str"))
 
-as.matter_char <- function(x) as(x, "matter_char")
+as.matter_str <- function(x) as(x, "matter_str")
 
 setMethod("[",
-	c(x = "matter_char", i = "missing", j = "missing"),
+	c(x = "matter_str", i = "missing", j = "missing"),
 	function(x, ...) {
 		sapply(getList(x), rawToChar)
 })
 
 setReplaceMethod("[",
-	c(x = "matter_char", i = "missing", j = "missing"),
+	c(x = "matter_str", i = "missing", j = "missing"),
 	function(x, ..., value) {
 		if ( is.character(value) ) {
 			value <- lapply(value, charToRaw)
@@ -108,7 +108,7 @@ setReplaceMethod("[",
 })
 
 setMethod("[",
-	c(x = "matter_char", i = "ANY", j = "missing"),
+	c(x = "matter_str", i = "ANY", j = "missing"),
 	function(x, i, ...) {
 		if ( is.logical(i) )
 			i <- logical2index(x, i)
@@ -128,7 +128,7 @@ setMethod("[",
 })
 
 setReplaceMethod("[",
-	c(x = "matter_char", i = "ANY", j = "missing"),
+	c(x = "matter_str", i = "ANY", j = "missing"),
 	function(x, i, ..., value) {
 		if ( is.character(value) ) {
 			value <- lapply(value, charToRaw)
@@ -143,14 +143,14 @@ setReplaceMethod("[",
 })
 
 setMethod("[",
-	c(x = "matter_char", i = "ANY", j = "ANY"),
+	c(x = "matter_str", i = "ANY", j = "ANY"),
 	function(x, i, j, ...) {
 		y <- getListElements(x, i, j)
 		sapply(y, rawToChar)
 })
 
 setReplaceMethod("[",
-	c(x = "matter_char", i = "ANY", j = "ANY"),
+	c(x = "matter_str", i = "ANY", j = "ANY"),
 	function(x, i, j, ..., value) {
 		if ( is.character(value) ) {
 			value <- lapply(value, charToRaw)
@@ -163,14 +163,14 @@ setReplaceMethod("[",
 })
 
 setMethod("[[",
-	c(x = "matter_char", i = "ANY", j = "missing"),
+	c(x = "matter_str", i = "ANY", j = "missing"),
 	function(x, i, ...) {
 		y <- getListElements(x, i)
 		rawToChar(y)
 })
 
 setReplaceMethod("[[",
-	c(x = "matter_char", i = "ANY", j = "missing"),
+	c(x = "matter_str", i = "ANY", j = "missing"),
 	function(x, i, ..., value) {
 		if ( is.character(value) ) {
 			value <- charToRaw(value)
@@ -180,7 +180,7 @@ setReplaceMethod("[[",
 		setListElements(x, i, NULL, value)
 })
 
-setMethod("lengths", "matter_char", function(x, use.names = TRUE) {
+setMethod("lengths", "matter_str", function(x, use.names = TRUE) {
 	if ( use.names ) {
 		setNames(x@dim, x@names)
 	} else {

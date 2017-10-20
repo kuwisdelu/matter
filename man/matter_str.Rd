@@ -1,31 +1,31 @@
-\name{matter_char-class}
+\name{matter_str-class}
 \docType{class}
 
-\alias{class:matter_char}
-\alias{matter_char}
-\alias{matter_char-class}
+\alias{class:matter_str}
+\alias{matter_str}
+\alias{matter_str-class}
 
-\alias{[,matter_char-method}
-\alias{[,matter_char,ANY,ANY,ANY-method}
-\alias{[,matter_char,ANY,missing,ANY-method}
-\alias{[,matter_char,missing,missing,ANY-method}
-\alias{[<-,matter_char-method}
-\alias{[<-,matter_char,ANY,ANY,ANY-method}
-\alias{[<-,matter_char,ANY,missing,ANY-method}
-\alias{[<-,matter_char,missing,missing,ANY-method}
+\alias{[,matter_str-method}
+\alias{[,matter_str,ANY,ANY,ANY-method}
+\alias{[,matter_str,ANY,missing,ANY-method}
+\alias{[,matter_str,missing,missing,ANY-method}
+\alias{[<-,matter_str-method}
+\alias{[<-,matter_str,ANY,ANY,ANY-method}
+\alias{[<-,matter_str,ANY,missing,ANY-method}
+\alias{[<-,matter_str,missing,missing,ANY-method}
 
-\alias{[[,matter_char,ANY,missing-method}
-\alias{[[<-,matter_char,ANY,missing-method}
+\alias{[[,matter_str,ANY,missing-method}
+\alias{[[<-,matter_str,ANY,missing-method}
 
 \title{Strings Stored on Disk}
 
 \description{
-    The \code{matter_char} class implements on-disk strings.
+    The \code{matter_str} class implements on-disk strings.
 }
 
 \usage{
 ## Instance creation
-matter_char(data, datamode = "raw", paths = NULL,
+matter_str(data, datamode = "raw", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
             offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
             extent = nchar, nchar = 0, names = NULL, \dots)
@@ -82,7 +82,7 @@ matter_char(data, datamode = "raw", paths = NULL,
 }
 
 \section{Creating Objects}{
-    \code{matter_char} instances can be created through \code{matter_char()} or \code{matter()}.
+    \code{matter_str} instances can be created through \code{matter_str()} or \code{matter()}.
 }
 
 \section{Methods}{
@@ -97,7 +97,7 @@ matter_char(data, datamode = "raw", paths = NULL,
 }
 
 \value{
-    An object of class \code{\linkS4class{matter_char}}.
+    An object of class \code{\linkS4class{matter_str}}.
 }
 
 \author{Kylie A. Bemis}
@@ -107,7 +107,7 @@ matter_char(data, datamode = "raw", paths = NULL,
 }
 
 \examples{
-x <- matter_char(c("hello", "world!"), dim=c(5,6))
+x <- matter_str(c("hello", "world!"), dim=c(5,6))
 x[]
 }
 
