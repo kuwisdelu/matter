@@ -1,34 +1,34 @@
-\name{matter_str-class}
+\name{matter_char-class}
 \docType{class}
 
-\alias{class:matter_str}
-\alias{matter_str}
-\alias{matter_str-class}
+\alias{class:matter_char}
+\alias{matter_char}
+\alias{matter_char-class}
 
-\alias{[,matter_str-method}
-\alias{[,matter_str,ANY,ANY,ANY-method}
-\alias{[,matter_str,ANY,missing,ANY-method}
-\alias{[,matter_str,missing,missing,ANY-method}
-\alias{[<-,matter_str-method}
-\alias{[<-,matter_str,ANY,ANY,ANY-method}
-\alias{[<-,matter_str,ANY,missing,ANY-method}
-\alias{[<-,matter_str,missing,missing,ANY-method}
+\alias{[,matter_char-method}
+\alias{[,matter_char,ANY,ANY,ANY-method}
+\alias{[,matter_char,ANY,missing,ANY-method}
+\alias{[,matter_char,missing,missing,ANY-method}
+\alias{[<-,matter_char-method}
+\alias{[<-,matter_char,ANY,ANY,ANY-method}
+\alias{[<-,matter_char,ANY,missing,ANY-method}
+\alias{[<-,matter_char,missing,missing,ANY-method}
 
-\alias{[[,matter_str,ANY,missing-method}
-\alias{[[<-,matter_str,ANY,missing-method}
+\alias{[[,matter_char,ANY,missing-method}
+\alias{[[<-,matter_char,ANY,missing-method}
 
 \title{Strings Stored on Disk}
 
 \description{
-    The \code{matter_str} class implements on-disk strings.
+    The \code{matter_char} class implements on-disk strings.
 }
 
 \usage{
 ## Instance creation
-matter_str(data, datamode = "raw", paths = NULL,
-            filemode = ifelse(is.null(paths), "rb+", "rb"),
+matter_char(data, datamode = "raw", paths = NULL,
+            filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
             offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-            extent = dim, dim = 0, names = NULL, \dots)
+            extent = nchar, nchar = 0, names = NULL, \dots)
 
 ## Additional methods documented below
 }
@@ -46,7 +46,7 @@ matter_str(data, datamode = "raw", paths = NULL,
 
         \item{extent}{A vector giving the length of the data for each file in 'paths', specifying the number of elements of size 'datamode' to be accessed from each file.}
 
-        \item{dim}{A vector giving the length of each element of the list.}
+        \item{nchar}{A vector giving the length of each element of the character vector.}
 
         \item{names}{The names of the data elements.}
 
@@ -82,20 +82,22 @@ matter_str(data, datamode = "raw", paths = NULL,
 }
 
 \section{Creating Objects}{
-    \code{matter_str} instances can be created through \code{matter_str()} or \code{matter()}.
+    \code{matter_char} instances can be created through \code{matter_char()} or \code{matter()}.
 }
 
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the elements of the homogenous list.}
+        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the string elements of the vector.}
 
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the homogenous list.}
+        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the string elements of the vector.}
+
+        \item{\code{lengths(x)}:}{Get the number of characters (in bytes) of all string elements in the vector.}
     }
 }
 
 \value{
-    An object of class \code{\linkS4class{matter_str}}.
+    An object of class \code{\linkS4class{matter_char}}.
 }
 
 \author{Kylie A. Bemis}
@@ -105,7 +107,7 @@ matter_str(data, datamode = "raw", paths = NULL,
 }
 
 \examples{
-x <- matter_str(c("hello", "world!"), dim=c(5,6))
+x <- matter_char(c("hello", "world!"), dim=c(5,6))
 x[]
 }
 

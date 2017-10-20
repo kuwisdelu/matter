@@ -93,7 +93,7 @@ setAs("data.frame", "matter_df",
 	function(from) {
 		from <- lapply(from, function(x) {
 			if ( is.character(x) ) {
-				matter_str(x)
+				matter_char(x)
 			} else {
 				matter_vec(x)
 			}

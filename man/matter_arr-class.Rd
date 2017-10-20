@@ -19,7 +19,7 @@
 \usage{
 ## Instance creation
 matter_arr(data, datamode = "double", paths = NULL,
-            filemode = ifelse(is.null(paths), "rb+", "rb"),
+            filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
             offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, \dots)
 
 ## Additional methods documented below

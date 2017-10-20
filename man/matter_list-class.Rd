@@ -26,9 +26,9 @@
 \usage{
 ## Instance creation
 matter_list(data, datamode = "double", paths = NULL,
-            filemode = ifelse(is.null(paths), "rb+", "rb"),
+            filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
             offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-            extent = dim, dim = 0, names = NULL, dimnames = NULL, \dots)
+            extent = lengths, lengths = 0, names = NULL, dimnames = NULL, \dots)
 
 ## Additional methods documented below
 }
@@ -46,7 +46,7 @@ matter_list(data, datamode = "double", paths = NULL,
 
         \item{extent}{A vector giving the length of the data for each file in 'paths', specifying the number of elements of size 'datamode' to be accessed from each file.}
 
-        \item{dim}{A vector giving the length of each element of the list.}
+        \item{lengths}{A vector giving the length of each element of the list.}
 
         \item{names}{The names of the data elements.}
 
@@ -93,6 +93,8 @@ matter_list(data, datamode = "double", paths = NULL,
         \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the elements of the homogenous list.}
 
         \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the homogenous list.}
+
+        \item{\code{lengths(x)}:}{Get the lengths of all elements in the list.}
     }
 }
 

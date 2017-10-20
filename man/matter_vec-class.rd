@@ -25,7 +25,7 @@
 \usage{
 ## Instance creation
 matter_vec(data, datamode = "double", paths = NULL,
-            filemode = ifelse(is.null(paths), "rb+", "rb"),
+            filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
             offset = 0, extent = length, length = 0L, names = NULL, \dots)
 
 ## Additional methods documented below

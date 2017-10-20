@@ -36,7 +36,7 @@ exportClasses(
 	"matter_matr",
 	"matter_arr",
 	"matter_list",
-	"matter_str",
+	"matter_char",
 	"matter_df")
 
 export(
@@ -50,7 +50,7 @@ export(
 	"matter_arr",
 	"matter_list",
 	"matter_df",
-	"matter_str",
+	"matter_char",
 	"is.matter",
 	"as.matter")
 

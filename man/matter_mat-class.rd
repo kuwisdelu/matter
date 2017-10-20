@@ -52,7 +52,7 @@
 \usage{
 ## Instance creation
 matter_mat(data, datamode = "double", paths = NULL,
-            filemode = ifelse(is.null(paths), "rb+", "rb"),
+            filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
             offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
             extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
             nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, \dots)
