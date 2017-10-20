@@ -25,32 +25,33 @@ setClass("matter_vec",
 	})
 
 matter_vec <- function(data, datamode = "double", paths = NULL,
-					filemode = ifelse(is.null(paths), "rb+", "rb"),
+					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
 					offset = 0, extent = length, length = 0, names = NULL, ...)
 {
+	if ( length == 0 && all(extent == 0) )
+		return(new("matter_vec"))
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
 			datamode <- typeof(data)
 		if ( missing(length) )
 			length <- length(data)
 	}
-	if ( length == 0 && all(extent == 0) )
-		return(new("matter_vec"))
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
 	if ( length(datamode) != length(extent) )
 		datamode <- rep(datamode, length.out=length(extent))
-	if ( is.null(paths) ) {
+	if ( is.null(paths) )
+		paths <- tempfile(fileext=".bin")
+	paths <- normalizePath(paths)
+	if ( !file.exists(paths) ) {
 		if ( missing(data) )
 			data <- 0
 		filemode <- force(filemode)
-		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
 	}
-	paths <- normalizePath(paths)
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=length(extent))
 	x <- new("matter_vec",

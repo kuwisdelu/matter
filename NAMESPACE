@@ -16,6 +16,7 @@ importFrom("BiocGenerics",
 	"colSums",
 	"rowMeans",
 	"rowSums",
+	"lengths",
 	"which")
 
 importFrom("stats",
@@ -75,6 +76,7 @@ exportMethods(
 	"c",
 	"cbind",
 	"rbind",
+	"lengths",
 	"length",
 	"length<-",
 	"dim",

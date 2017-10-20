@@ -54,11 +54,18 @@ setClass("matter_matr",
 		dimnames = NULL))
 
 matter_mat <- function(data, datamode = "double", paths = NULL,
-					filemode = ifelse(is.null(paths), "rb+", "rb"),
+					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
 					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, ...)
 {
+	if ( nrow == 0 && ncol == 0 && all(extent == 0) ) {
+		if ( rowMaj ) {
+			return(new("matter_matr"))
+		} else {
+			return(new("matter_matc"))
+		}
+	}
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
 			datamode <- typeof(data)
@@ -69,13 +76,6 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 				nrow <- nrow(data)
 			if ( missing(ncol) )
 				ncol <- ncol(data)
-		}
-	}
-	if ( nrow == 0 && ncol == 0 && all(extent == 0) ) {
-		if ( rowMaj ) {
-			return(new("matter_matr"))
-		} else {
-			return(new("matter_matc"))
 		}
 	}
 	if ( length(unique(extent)) > 1 )
@@ -103,16 +103,17 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 			noatoms <- TRUE
 		}
 	}
-	if ( is.null(paths) && prod(c(nrow, ncol)) > 0 ) {
-		if ( missing(data) )
-			data <- NA
-		filemode <- force(filemode)
+	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
+	paths <- normalizePath(paths)
+	if ( !file.exists(paths) ) {
+		if ( missing(data) )
+			data <- 0
+		filemode <- force(filemode)
 		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
 	}
-	paths <- normalizePath(paths)
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=max(length(extent), 1))
 	if ( noatoms ) {

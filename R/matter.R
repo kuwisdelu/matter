@@ -75,24 +75,30 @@ matter <- function(...) {
 			uneq.extent <- FALSE
 		}
 		vec.args <- c("length", "names")
-		mat.args <- c("nrow", "ncol", "rowMaj")
 		arr.args <- c("dim", "dimnames")
+		mat.args <- c("nrow", "ncol", "rowMaj")
+		list.args <- "lengths"
+		str.args <- "nchar"
 		if ( any(vec.args %in% nm ) || is.vector(dots) || uneq.extent ) {
 			matter_vec(...)
+		} else if ( any(arr.args %in% nm ) || is.array(dots) ) {
+			matter_arr(...)
 		} else if ( any(mat.args %in% nm ) || is.matrix(dots) ) {
 			matter_mat(...)
-		}  else if ( any(arr.args %in% nm ) || is.array(dots) ) {
-			matter_arr(...)
+		} else if ( any(list.args %in% nm ) || is.list(dots) ) {
+			matter_list(...)
+		} else if ( any(str.args %in% nm ) || is.character(dots) ) {
+			matter_str(...)
 		} else {
 			stop("couldn't guess data structure, use 'matter_' functions")
 		}
 	} else {
 		if ( is.raw(data) || is.logical(data) || is.numeric(data) ) {
 			matter_vec(...)
-		} else if ( is.matrix(data) ) {
-			matter_mat(...)
 		} else if ( is.array(data) ) {
 			matter_arr(...)
+		} else if ( is.matrix(data) ) {
+			matter_mat(...)
 		} else if ( is.list(data) ) {
 			matter_list(...)
 		} else if ( is.character(data) ) {

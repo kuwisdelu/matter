@@ -23,40 +23,34 @@ setClass("matter_str",
 	})
 
 matter_str <- function(data, datamode = "raw", paths = NULL,
-					filemode = ifelse(is.null(paths), "rb+", "rb"),
+					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-					extent = dim, dim = 0, names = NULL, ...)
+					extent = nchar, nchar = 0, names = NULL, ...)
 {
-	if ( !missing(data) ) {
-		if ( !is.character(data) )
-			stop("data is not a string")
-		if ( missing(dim) )
-			dim <- nchar(data, type="bytes")
-	}
 	if ( all(extent == 0) )
 		return(new("matter_str"))
-	if ( missing(data) ) {
-		missingdata <- TRUE
-	} else {
-		missingdata <- FALSE
+	if ( !missing(data) ) {
+		if ( missing(nchar) ) {
+			nchar <- nchar(data, type="bytes")
+		if ( !is.character(data) )
+			data <- as.character(data)
+		if ( any(sapply(data, nchar, type="bytes") != extent) )
+			stop("length of character strings (in bytes) must equal extents")
 	}
-	if ( !missingdata && !is.character(data) )
-		data <- as.character(data)
-	if ( !missingdata && any(sapply(data, nchar, type="bytes") != extent) )
-		stop("length of character strings (in bytes) must equal extents")
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
-	if ( is.null(paths) ) {
-		if ( missingdata )
-			data <- sapply(extent, raw)
-		filemode <- force(filemode)
+	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
+	paths <- normalizePath(paths)
+	if ( !file.exists(paths) ) {
+		if ( missing(data) )
+			data <- list(" ", length(extent))
+		filemode <- force(filemode)
 		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
 	}
-	paths <- normalizePath(paths)
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=length(extent))
 	x <- new("matter_str",

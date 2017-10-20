@@ -24,44 +24,36 @@ setClass("matter_list",
 	})
 
 matter_list <- function(data, datamode = "double", paths = NULL,
-					filemode = ifelse(is.null(paths), "rb+", "rb"),
+					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-					extent = dim, dim = 0, names = NULL, dimnames = NULL, ...)
+					extent = lengths, lengths = 0, names = NULL, dimnames = NULL, ...)
 {
-	if ( !missing(data) ) {
-		if ( !is.list(data) )
-			stop("data is not a list")
-		if ( missing(datamode) )
-			datamode <- typeof(data[[1]])
-		if ( missing(dim) )
-			dim <- sapply(data, length)
-	}
 	if ( all(extent == 0) )
 		return(new("matter_list"))
-	if ( missing(data) ) {
-		missingdata <- TRUE
-	} else {
-		missingdata <- FALSE
+	if ( !missing(data) ) {
+		if ( !is.list(data) )
+			data <- list(data)
+		if ( missing(datamode) )
+			datamode <- typeof(data[[1]])
+		if ( missing(lengths) )
+			lengths <- sapply(data, length)
 	}
-	if ( !missingdata && !is.list(data) )
-		data <- list(data)
-	if ( !missingdata && any(sapply(data, length) != extent) )
-		stop("length of data elements must equal extents")
 	if ( length(offset) != length(extent) )
 		stop("length of 'offset' [", length(offset), "] ",
 			"must equal length of 'extent' [", length(extent), "]")
 	if ( length(datamode) != length(extent) )
 		datamode <- rep(datamode, length.out=length(extent))
-	if ( is.null(paths) ) {
-		if ( missingdata )
+	if ( is.null(paths) )
+		paths <- tempfile(fileext=".bin")
+	paths <- normalizePath(paths)
+	if ( !file.exists(paths) ) {
+		if ( missing(data) )
 			data <- rep(list(0), length(extent))
 		filemode <- force(filemode)
-		paths <- tempfile(fileext=".bin")
 		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
 	}
-	paths <- normalizePath(paths)
 	if ( length(paths) != length(extent) )
 		paths <- rep(paths, length.out=length(extent))
 	x <- new("matter_list",
@@ -242,5 +234,8 @@ setMethod("[[",
 setReplaceMethod("[[",
 	c(x = "matter_list", i = "ANY", j = "missing"),
 	function(x, i, ..., value) setListElements(x, i, NULL, value))
+
+
+setMethod("lengths", "matter_list", function(object) object@dim)
 
 
