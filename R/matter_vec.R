@@ -46,7 +46,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
-			data <- 0
+			data <- vector(widest_datamode(datamode), length=1)
 		filemode <- force(filemode)
 		result <- file.create(paths)
 		if ( !result )
@@ -84,16 +84,16 @@ setMethod("show", "matter_vec", function(object) {
 })
 
 setAs("raw", "matter_vec",
-	function(from) matter_vec(from, datamode="raw"))
+	function(from) matter_vec(from, datamode="raw", names=names(from)))
 
 setAs("logical", "matter_vec",
-	function(from) matter_vec(from, datamode="logical"))
+	function(from) matter_vec(from, datamode="logical", names=names(from)))
 
 setAs("integer", "matter_vec",
-	function(from) matter_vec(from, datamode="integer"))
+	function(from) matter_vec(from, datamode="integer", names=names(from)))
 
 setAs("numeric", "matter_vec",
-	function(from) matter_vec(from, datamode="double"))
+	function(from) matter_vec(from, datamode="double", names=names(from)))
 
 as.matter_vec <- function(x) as(x, "matter_vec")
 
@@ -265,8 +265,8 @@ setMethod("Compare", c("matter_vec", "matter_vec"),
 	function(e1, e2) {
 		if ( length(e1) == length(e2) ) {
 			register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
 			e1
 		} else {
 			stop("on-disk vector lengths must match exactly for delayed operation")
@@ -277,8 +277,8 @@ setMethod("Compare", c("matter_vec", "raw"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
 			e1
 		}
 })
@@ -287,8 +287,8 @@ setMethod("Compare", c("raw", "matter_vec"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic)
-			if ( datamode(e2)[1] != "logical" )
-				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			if ( datamode(e2) != "logical" )
+				datamode(e2) <- "logical"
 			e2
 		}
 })
@@ -297,8 +297,8 @@ setMethod("Compare", c("matter_vec", "numeric"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- c("logical", as.character(datamode(e1)))
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
 			e1
 		}
 })
@@ -307,8 +307,8 @@ setMethod("Compare", c("numeric", "matter_vec"),
 	function(e1, e2) {
 		if ( check_comformable_lengths(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic)
-			if ( datamode(e2)[1] != "logical" )
-				datamode(e2) <- c("logical", as.character(datamode(e2)))
+			if ( datamode(e2) != "logical" )
+				datamode(e2) <- "logical"
 			e2
 		}
 })

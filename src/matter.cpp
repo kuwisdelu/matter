@@ -4163,7 +4163,7 @@ extern "C" {
         SEXP retVec;
         PROTECT(retVec = allocVector(VECSXP, mVec.length()));
         for ( int i = 0; i < mVec.length(); i++ ) {
-            switch(mVec.datamode()) {
+            switch(mVec.datamode(i)) {
                 case R_RAW:
                     SET_VECTOR_ELT(retVec, i, mVec.readListElements<Rbyte,RAWSXP>(i));
                     break;
@@ -4209,7 +4209,7 @@ extern "C" {
     SEXP getListElements(SEXP x, SEXP i, SEXP j) {
         Matter mVec(x);
         if ( j == R_NilValue ) {
-            switch(mVec.datamode()) {
+            switch(mVec.datamode(INTEGER_VALUE(i))) {
                 case R_RAW:
                     return mVec.readListElements<Rbyte,RAWSXP>(INTEGER_VALUE(i));
                 case R_LOGICAL:
@@ -4222,7 +4222,7 @@ extern "C" {
                     return R_NilValue;
             }
         } else {
-            switch(mVec.datamode()) {
+            switch(mVec.datamode(INTEGER_VALUE(i))) {
                 case R_RAW:
                     return mVec.readListElements<Rbyte,RAWSXP>(INTEGER_VALUE(i), j);
                 case R_LOGICAL:

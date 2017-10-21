@@ -75,7 +75,7 @@ test_that("summary statistics", {
 
 })
 
-test_that("delayed ops", {
+test_that("delayed ops 1", {
 
 	x <- seq_len(10)
 
@@ -102,6 +102,36 @@ test_that("delayed ops", {
 	expect_equal(x != 5, (y != 5)[])
 
 	expect_equal(which(x == 5), which(y == 5))
+
+}
+
+test_that("delayed ops 2", {
+
+	x <- seq_len(10) + 0.5
+
+	y <- matter_vec(x, length=10)
+
+	expect_equal(x + 1.1, (y + 1.1)[])
+
+	expect_equal(2.2 * x + 1.1, (2.2 * y + 1.1)[])
+
+	expect_equal(x / 2.2 - 1.1, (y / 2.2 - 1.1)[])
+
+	expect_equal(log(x), log(x)[])
+
+	expect_equal(exp(x), exp(x)[])
+
+	expect_equal(x > 5.5, (y > 5.5)[])
+
+	expect_equal(x >= 5.5, (y >= 5.5)[])
+
+	expect_equal(x < 5.5, (y < 5.5)[])
+
+	expect_equal(x <= 5.5, (y <= 5.5)[])
+
+	expect_equal(x != 5.5, (y != 5.5)[])
+
+	expect_equal(which(x == 5.5), which(y == 5.5))
 
 })
 

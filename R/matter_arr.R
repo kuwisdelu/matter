@@ -52,7 +52,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
-			data <- 0
+			data <- vector(widest_datamode(datamode), length=1)
 		filemode <- force(filemode)
 		result <- file.create(paths)
 		if ( !result )
@@ -89,7 +89,7 @@ setMethod("show", "matter_arr", function(object) {
 	callNextMethod(object)
 })
 
-setAs("array", "matter_arr", function(from) matter_arr(from))
+setAs("array", "matter_arr", function(from) matter_arr(from, dimnames=dimnames(from)))
 
 as.matter_arr <- function(x) as(x, "matter_arr")
 

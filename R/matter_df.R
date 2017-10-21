@@ -83,10 +83,10 @@ setMethod("show", "matter_df", function(object) {
 	m <- sum(sapply(atomdata(object), is.matter))
 	cat("    ", length(object) - m, " variables in-memory\n", sep="")
 	cat("    ",  m, " variables on-disk\n", sep="")
-	# n <- 6L
-	# print(head(object, n=n))
-	# if ( nrow(object) > n )
-	# 	cat("and ", nrow(object) - n, " more rows", "\n", sep="")
+	n <- 6L
+	print(head(object, n=n))
+	if ( nrow(object) > n )
+		cat("and ", nrow(object) - n, " more rows", "\n", sep="")
 })
 
 setAs("data.frame", "matter_df",

@@ -190,9 +190,8 @@ union R_ANY {
 };
 
 struct R_OP_MODES {
-    int datamode;     // the mode of the resulting R object
-    int readmode;     // intermediate mode before applying ops
-    bool is_mixed;  // whether they are the same
+    int * R_mode;     // the mode of the resulting R object
+    bool is_list;  // lists have multiple R-level datamodes
 };
 
 class Ops {
@@ -203,15 +202,13 @@ class Ops {
             SEXP _datamode = GET_SLOT(x, install("datamode"));
             if ( LENGTH(_datamode) > 1 )
             {
-                _modes.datamode = INTEGER(_datamode)[0];
-                _modes.readmode = INTEGER(_datamode)[1];
-                _modes.is_mixed = _modes.datamode != _modes.readmode;
+                _modes.R_mode = INTEGER(_datamode);
+                _modes.is_list = true;
             }
             else
             {
-                _modes.datamode = INTEGER(_datamode)[0];
-                _modes.readmode = INTEGER(_datamode)[0];
-                _modes.is_mixed = false;
+                _modes.R_mode = INTEGER(_datamode);
+                _modes.is_list = false;
             }
             SEXP _x = GET_SLOT(x, install("ops"));
             if ( _x != R_NilValue ) {
@@ -263,8 +260,19 @@ class Ops {
             return _length;
         }
 
-        R_OP_MODES modes() {
-            return _modes;
+        // R_OP_MODES modes() {
+        //     return _modes;
+        // }
+
+        int result_type() {
+            return _modes.R_mode[0];
+        }
+
+        int result_type(int i) {
+            if ( _modes.is_list )
+                return _modes.R_mode[i];
+            else
+                return _modes.R_mode[0];
         }
 
         bool has_lhs(int i) {
@@ -509,40 +517,37 @@ class Atoms {
             error("subscript not found in any atom");
         }
 
-        template<typename CType, typename RType, typename IType, int SType>
+        template<typename CType, typename RType, typename IType>
         void read_delayed_atom(RType * ptr, CType * buffer, index_t offset, index_t count, size_t skip) {
-            if ( _ops.modes().is_mixed )
+            if ( _ops.result_type(group()) == R_LOGICAL )
             {
-                // mixed modes assumes we are doing a boolean delayed op
-                IType * tmp = (IType *) Calloc(count, IType);
-                for ( index_t i = 0; i < count; i++ )
-                    tmp[i] = coerce_cast<CType,IType>(buffer[i]);
-                _ops.do_ops<IType>(tmp, this, 0, count);
-                if ( SType == LGLSXP ) 
-                    for ( index_t i = 0; i < count; i++ ) {
-                        *ptr = coerce_logical(static_cast<RType>(tmp[i]));
-                        ptr += skip;
-                    }
-                else
-                    for ( index_t i = 0; i < count; i++ ) {
-                        *ptr = static_cast<RType>(tmp[i]);
-                        ptr += skip;
-                    }
-                Free(tmp);
-            }
-            else
-            {
-                RType * optr = ptr;
-                if ( SType == LGLSXP )
+                if ( _ops.length() == 0 )
+                {
                     for ( index_t i = 0; i < count; i++ ) {
                         *ptr = coerce_logical(coerce_cast<CType,RType>(buffer[i]));
                         ptr += skip;
                     }
+                }
                 else
+                {
+                    IType * tmp = (IType *) Calloc(count, IType);
+                    for ( index_t i = 0; i < count; i++ )
+                        tmp[i] = coerce_cast<CType,IType>(buffer[i]);
+                    _ops.do_ops<IType>(tmp, this, 0, count);
                     for ( index_t i = 0; i < count; i++ ) {
-                        *ptr = coerce_cast<CType,RType>(buffer[i]);
+                        *ptr = static_cast<RType>(tmp[i]);
                         ptr += skip;
                     }
+                    Free(tmp);
+                }
+            }
+            else
+            {
+                RType * optr = ptr;
+                for ( index_t i = 0; i < count; i++ ) {
+                    *ptr = coerce_cast<CType,RType>(buffer[i]);
+                    ptr += skip;
+                }
                 _ops.do_ops<RType>(optr, this, offset, count, skip);
             }
         }
@@ -554,18 +559,22 @@ class Atoms {
             fseek(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
             numRead = fread(tmp, sizeof(CType), count, stream);
-            switch(_ops.modes().readmode) {
-                case R_RAW:
-                    read_delayed_atom<CType,RType,Rbyte,RAWSXP>(ptr, tmp, offset, numRead, skip);
+            switch(datamode(which)) {
+                case C_CHAR:
+                case C_UCHAR:
+                    read_delayed_atom<CType,RType,Rbyte>(ptr, tmp, offset, numRead, skip);
                     break;
-                case R_LOGICAL:
-                    read_delayed_atom<CType,RType,int,LGLSXP>(ptr, tmp, offset, numRead, skip);
+                case C_SHORT:
+                case C_USHORT:
+                case C_INT:
+                case C_UINT:
+                    read_delayed_atom<CType,RType,int>(ptr, tmp, offset, numRead, skip);
                     break;
-                case R_INTEGER:
-                    read_delayed_atom<CType,RType,int,INTSXP>(ptr, tmp, offset, numRead, skip);
-                    break;
-                case R_NUMERIC:
-                    read_delayed_atom<CType,RType,double,REALSXP>(ptr, tmp, offset, numRead, skip);
+                case C_LONG:
+                case C_ULONG:
+                case C_FLOAT:
+                case C_DOUBLE:
+                    read_delayed_atom<CType,RType,double>(ptr, tmp, offset, numRead, skip);
                     break;
             }
             Free(tmp);
@@ -780,12 +789,14 @@ class Matter
         Matter(SEXP x) : _sources(x), _ops(x)
         {
             _data = new Atoms(GET_SLOT(x, install("data")), _sources, _ops);
-            _datamode = INTEGER_VALUE(GET_SLOT(x, install("datamode")));
+            _datamode = INTEGER(GET_SLOT(x, install("datamode")));
             _chunksize = INTEGER_VALUE(GET_SLOT(x, install("chunksize")));
             _length = static_cast<index_t>(NUMERIC_VALUE(GET_SLOT(x, install("length"))));
             _dim = GET_SLOT(x, install("dim"));
             const char * classname = CHARACTER_VALUE(GET_CLASS(x));
-            if ( strcmp(classname, "matter_matc") == 0 )
+            if ( strcmp(classname, "matter_list") == 0 )
+                _S4class = MATTER_LIST;
+            else if ( strcmp(classname, "matter_matc") == 0 )
                 _S4class = MATTER_MATC;
             else if ( strcmp(classname, "matter_matr") == 0 )
                 _S4class = MATTER_MATR;
@@ -802,7 +813,14 @@ class Matter
         }
 
         int datamode() {
-            return _datamode;
+            return _datamode[0];
+        }
+
+        int datamode(int i) {
+            if ( S4class() == MATTER_LIST )
+                return _datamode[i];
+            else
+                return _datamode[0];
         }
 
         DataSources & sources() {
@@ -933,13 +951,13 @@ class Matter
     protected:
 
         Atoms * _data;     // EITHER "atoms" OR a *list* of "atoms"
-        int _datamode;  // 1 = integer, 2 = numeric
+        int * _datamode;  // 1 = raw, 2 = logical, 3 = integer, 4 = numeric
         DataSources _sources;
         Ops _ops;
         int _chunksize;
         index_t _length;
         SEXP _dim;
-        int _S4class;      // 1 = vector, 2 = col-matrix, 3 = row-matrix
+        int _S4class;      // 0 = any, 2 = col-matrix, 3 = row-matrix
         // Scaled _scaled;
 
 };

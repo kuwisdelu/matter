@@ -4,8 +4,8 @@ TODO for matter package
 
 Priority: High
 - Change "drop=NA" behavior to use "drop=FALSE"
-- Change 'matter_list' to support heterogenous lists
 - Let dim<- switch between 'matter_vec' and 'matter_arr'
+- Allow subsetting by atoms and by groups
 - Add Logic operators for 'matter_vec' class
 
 Priority: Medium

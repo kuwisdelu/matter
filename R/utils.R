@@ -2,6 +2,15 @@
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 
+paste_head <- function(x, n=6L, ...) {
+	if ( length(x) > n ) {
+		paste0(paste0(head(x, n=n), collapse=" "),
+			" [and ", length(x) - n, " more]", ...)
+	} else {
+		paste0(x)
+	}
+}
+
 logical2index <- function(x, i, margin) {
 	if ( missing(margin) ) {
 		len <- length(x)
@@ -172,7 +181,6 @@ make_datamode <- function(x, type=c("C", "R")) {
 			"logical",
 			"integer",
 			"numeric",
-			"character",
 			"list"))
 	if ( missing(x) )
 		return(factor(levels=levels))
@@ -209,8 +217,8 @@ make_datamode <- function(x, type=c("C", "R")) {
 convert_datamode <- function(x, to=c("C", "R")) {
 	if ( to == "R" ) {
 		vapply(as.character(x), switch, character(1),
-			char = "integer",
-			uchar = "integer",
+			char = "raw",
+			uchar = "raw",
 			short = "integer",
 			ushort = "integer",
 			int = "integer",
@@ -241,17 +249,16 @@ widest_datamode <- function(x) {
 	if ( all(x %in% levels(make_datamode(type="R"))) ) {
 		x <- max(as.integer(make_datamode(x, type="R")))
 		make_datamode(switch(x,
-			raw="raw",
-			logical="logical",
-			integer="integer",
-			numeric="numeric",
-			character="raw",
-			list=stop("'list' data mode not expected here")), type="R")
+			raw = "raw",
+			logical = "logical",
+			integer = "integer",
+			numeric = "numeric",
+			list = stop("data mode 'list' not expected here")), type="R")
 	} else if ( all(x %in% levels(make_datamode(type="C"))) ) {
 		x <- max(as.integer(make_datamode(x, type="C")))
 		make_datamode(switch(x,
-			char = "integer",
-			uchar = "integer",
+			char = "raw",
+			uchar = "raw",
 			short = "integer",
 			ushort = "integer",
 			int = "integer",

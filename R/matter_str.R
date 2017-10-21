@@ -57,11 +57,12 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 		data=atoms(
 			group_id=seq_along(extent),
 			source_id=as.integer(factor(paths)),
-			datamode=as.integer(rep(make_datamode("raw", type="C"),
-				length.out=length(extent))),
+			datamode=as.integer(
+				rep(make_datamode("raw", type="C"),
+					length.out=length(extent))),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
-		datamode=make_datamode(datamode[1], type="R"),
+		datamode=make_datamode("raw", type="R"),
 		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=length(extent),
@@ -81,7 +82,7 @@ setMethod("show", "matter_str", function(object) {
 	callNextMethod(object)
 })
 
-setAs("character", "matter_str", function(from) matter_str(from))
+setAs("character", "matter_str", function(from) matter_str(from, names=names(from)))
 
 setAs("factor", "matter_str",
 	function(from) as(as.character(from), "matter_str"))

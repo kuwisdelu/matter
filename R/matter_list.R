@@ -43,12 +43,14 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 			"must equal length of 'extent' [", length(extent), "]")
 	if ( length(datamode) != length(extent) )
 		datamode <- rep(datamode, length.out=length(extent))
+	R_datamode <- make_datamode(datamode, type="R")
+	C_datamode <- make_datamode(datamode, type="C")
 	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
 	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
-			data <- rep(list(0), length(extent))
+			data <- lapply(as.character(R_datamode), vector, length=1)
 		filemode <- force(filemode)
 		result <- file.create(paths)
 		if ( !result )
@@ -62,10 +64,10 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		data=atoms(
 			group_id=seq_along(extent),
 			source_id=as.integer(factor(paths)),
-			datamode=as.integer(make_datamode(datamode, type="C")),
+			datamode=as.integer(C_datamode),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
-		datamode=widest_datamode(datamode),
+		datamode=R_datamode,
 		paths=levels(factor(paths)),
 		filemode=filemode,
 		length=length(extent),
@@ -85,7 +87,7 @@ setMethod("show", "matter_list", function(object) {
 	callNextMethod(object)
 })
 
-setAs("list", "matter_list", function(from) matter_list(from))
+setAs("list", "matter_list", function(from) matter_list(from, names=names(from)))
 
 as.matter_list <- function(x) as(x, "matter_list")
 
@@ -100,21 +102,13 @@ getList <- function(x) {
 
 setList <- function(x, value) {
 	if ( length(value) != length(x) )
-		value <- rep(value, length.out=length(x))
+		stop("length of replacement is not equal to object length")
 	for ( i in seq_along(value) ) {
 		if ( dim(x)[i] %% length(value[[i]]) != 0 )
 			warning("number of items to replace is not ",
 				"a multiple of replacement length")
 		if ( length(value[[i]]) != 1 )
 			value[[i]] <- rep(value[[i]], length.out=dim(x)[i])
-	}
-	for ( i in seq_along(value) ) {
-		if ( is.character(value[[i]]) )
-			value[[i]] <- as.raw(value[[i]])
-	}
-	for ( i in seq_along(value) ) {
-		if ( is.logical(value[[i]]) )
-			value[[i]] <- as.integer(value[[i]])
 	}
 	.Call("C_setList", x, value, PACKAGE="matter")
 	if ( validObject(x) )
@@ -157,10 +151,6 @@ setListElements <- function(x, i, j, value) {
 				"a multiple of replacement length")
 		if ( length(value) != 1 )
 			value <- rep(value, length.out=dim(x)[i])
-		if ( is.logical(value) )
-			value <- as.integer(value)
-		if ( is.character(value) )
-			value <- as.double(value)
 		.Call("C_setListElements", x, i - 1, NULL, value, PACKAGE="matter")
 	} else {
 		if ( is.logical(j) )
@@ -172,10 +162,6 @@ setListElements <- function(x, i, j, value) {
 				"a multiple of replacement length")
 		if ( length(value) != 1 )
 			value <- rep(value, length.out=length(j))
-		if ( is.logical(value) )
-			value <- as.integer(value)
-		if ( is.character(value) )
-			value <- as.double(value)
 		.Call("C_setListElements", x, i - 1, j - 1, value, PACKAGE="matter")
 	}
 	if ( validObject(x) )

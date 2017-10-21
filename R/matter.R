@@ -30,8 +30,8 @@ setClass("matter",
 			errors <- c(errors, paste0("'filemode' should be one of [",
 				paste(C_readmodes, collapse=", "), "]"))
 		R_datamodes <- levels(make_datamode(type="R"))
-		if ( !as.character(object@datamode) %in% R_datamodes )
-			errors <- c(errors, paste0("'datamode' should be one of [",
+		if ( !all(levels(object@datamode) %in% R_datamodes) )
+			errors <- c(errors, paste0("'datamode' levels should be [",
 				paste(R_datamodes, collapse=", "), "]"))
 		if ( !object@chunksize > 0L )
 			errors <- c(errors, "chunksize must be positive")
@@ -141,7 +141,7 @@ setMethod("show", "matter", function(object) {
 	object.memory <- object.size(object)
 	class(object.memory) <- "bytes"
 	cat("    sources:", length(object@paths), "\n")
-	cat("    datamode:", paste(object@datamode), "\n")
+	cat("    datamode:", paste_head(object@datamode), "\n")
 	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
 	cat("    ", format(disk_used(object@data), units="auto"), " on-disk\n", sep="")
 })
