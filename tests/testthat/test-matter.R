@@ -96,7 +96,7 @@ test_that("array subsetting", {
 
 test_that("list subsetting", {
 
-	x <- list(1:5, 6:10, 11:15)
+	x <- list(c(TRUE, FALSE), 1:5, c(1.11, 2.22))
 
 	y <- matter_list(x)
 
@@ -106,9 +106,11 @@ test_that("list subsetting", {
 
 	expect_equal(x[[1]], y[[1]])
 
-	expect_equal(x[[1]][1:5], y[1,1:5])
+	expect_equal(x[[2]][1:5], y[2,1:5])
 
 	expect_equal(x[[2]][5:1], y[2,5:1])
+
+	expect_equal(x[[3]], y[[3]])
 
 	expect_equivalent(as.matter(x), y)
 

@@ -17,10 +17,10 @@
 \alias{[[,matter_list,ANY,missing-method}
 \alias{[[<-,matter_list,ANY,missing-method}
 
-\title{Homogenous Lists Stored on Disk}
+\title{Lists of Vectors Stored on Disk}
 
 \description{
-    The \code{matter_list} class implements on-disk homogenous lists.
+    The \code{matter_list} class implements on-disk lists.
 }
 
 \usage{
@@ -90,9 +90,9 @@ matter_list(data, datamode = "double", paths = NULL,
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the elements of the homogenous list.}
+        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the elements of the list.}
 
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the homogenous list.}
+        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the list.}
 
         \item{\code{lengths(x)}:}{Get the lengths of all elements in the list.}
     }
@@ -109,11 +109,11 @@ matter_list(data, datamode = "double", paths = NULL,
 }
 
 \examples{
-x <- matter_list(list(1:10, 1:100, 51:100), dim=c(10,100,50))
+x <- matter_list(list(c(TRUE,FALSE), 1:5, c(1.11, 2.22, 3.33)), lengths=c(2,5,3))
 x[]
 x[[1]]
-x[1,5]
-x[2,100]
+x[3,2]
+x[2,5]
 }
 
 \keyword{classes}

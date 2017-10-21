@@ -32,7 +32,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		if ( !is.list(data) )
 			data <- list(data)
 		if ( missing(datamode) )
-			datamode <- typeof(data[[1]])
+			datamode <- sapply(data, mode)
 		if ( missing(lengths) )
 			lengths <- sapply(data, length)
 	}

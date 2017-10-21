@@ -3176,8 +3176,8 @@ void Matter :: writeArrayElements(SEXP i, SEXP value) {
         data().write_indices(pValue, pIndex, XLENGTH(i));
 }
 
-//// Homogenous list methods implemented for class Matter
-//------------------------------------------------------
+//// List (ragged array) methods implemented for class Matter
+//------------------------------------------------------------
 
 template<typename RType, int SType>
 SEXP Matter :: readListElements(int i) {

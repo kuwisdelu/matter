@@ -107,7 +107,7 @@ matter_str(data, datamode = "raw", paths = NULL,
 }
 
 \examples{
-x <- matter_str(c("hello", "world!"), dim=c(5,6))
+x <- matter_str(c("hello", "world!"))
 x[]
 }
 
