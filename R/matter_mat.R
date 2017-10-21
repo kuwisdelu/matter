@@ -108,7 +108,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
-			data <- vector(widest_datamode(datamode), length=1)
+			data <- vector(as.character(widest_datamode(datamode)), length=1)
 		filemode <- force(filemode)
 		result <- file.create(paths)
 		if ( !result )

@@ -5,6 +5,8 @@
 \alias{matter_str}
 \alias{matter_str-class}
 
+\alias{lengths,matter_str-method}
+
 \alias{[,matter_str-method}
 \alias{[,matter_str,ANY,ANY,ANY-method}
 \alias{[,matter_str,ANY,missing,ANY-method}

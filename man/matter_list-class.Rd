@@ -5,6 +5,8 @@
 \alias{matter_list}
 \alias{matter_list-class}
 
+\alias{lengths,matter_list-method}
+
 \alias{[,matter_list-method}
 \alias{[,matter_list,ANY,ANY,ANY-method}
 \alias{[,matter_list,ANY,missing,ANY-method}

@@ -103,7 +103,7 @@ test_that("delayed ops 1", {
 
 	expect_equal(which(x == 5), which(y == 5))
 
-}
+})
 
 test_that("delayed ops 2", {
 

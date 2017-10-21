@@ -1,4 +1,15 @@
 
+CHANGES IN VERSION 1.3.6 [2017-10-20]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Lists (ragged arrays) may now be heterogenous (elements must still be vectors)
+    o More memory-efficient initialization of data on disk when length(data) is 1
+    o Files are now created by default in constructors if they do not already exist
+    o When coercing with 'as.matter', names and/or dimnames are now retained
+
+
 CHANGES IN VERSION 1.3.5 [2017-10-18]
 -----------------------------------
 
