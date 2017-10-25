@@ -14,7 +14,7 @@
 \alias{pca.prof}
 \alias{msi.prof}
 
-\title{Examples for ``matter'' package}
+\title{Example Data for ``matter'' Package}
 
 \description{
 	Example data for the ``matter'' package for use in vignettes.

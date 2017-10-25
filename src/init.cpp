@@ -1,9 +1,12 @@
 #include <R_ext/Rdynload.h>
+
+#include "bsearch.h"
 #include "matter.h"
 
 extern "C" {
 
     static const R_CallMethodDef callMethods[] = {
+        {"C_binarySearch", (DL_FUNC) &binarySearch, 6},
         {"C_createAtoms", (DL_FUNC) &createAtoms, 5},
         {"C_getArray", (DL_FUNC) &getArray, 1},
         {"C_setArray", (DL_FUNC) &setArray, 2},

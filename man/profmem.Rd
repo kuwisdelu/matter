@@ -47,5 +47,4 @@ mem(x)
 profmem(mean(x + 1))
 }
 
-\keyword{methods}
-\keyword{arith}
+\keyword{utilities}

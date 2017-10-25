@@ -127,6 +127,8 @@ exportMethods("bigglm")
 
 exportMethods("prcomp")
 
+export("bsearch")
+
 export("mem",
 	"profmem")
 

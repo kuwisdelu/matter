@@ -11,7 +11,7 @@ License: Artistic-2.0
 Depends: methods, stats, biglm
 Imports: BiocGenerics, irlba, utils
 Suggests: BiocStyle, testthat
-Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
+Collate: matterGenerics.R bsearch.R utils.R drle.R atoms.R matter.R
 	matter_vec.R matter_mat.R matter_arr.R matter_list.R matter_str.R
 	matter_df.R stats.R apply.R scale.R bigglm.R prcomp.R
 biocViews: Software, Infrastructure
