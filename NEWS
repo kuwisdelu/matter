@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 1.3.7 [2017-10-25]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed bug where default 'matter_df' chunksize was tiny
+    o Changed 'datamode' for 'matter_df' from 'list' to 'virtual'
+
 CHANGES IN VERSION 1.3.6 [2017-10-20]
 -----------------------------------
 

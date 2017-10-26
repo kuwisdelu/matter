@@ -5,10 +5,10 @@
 setClass("matter_df",
 	prototype = prototype(
 		data = list(),
-		datamode = make_datamode("list", type="R"),
+		datamode = make_datamode("virtual", type="R"),
 		paths = character(),
 		filemode = "rb",
-		chunksize = 1L,
+		chunksize = 1e6L,
 		length = 0,
 		dim = 0L,
 		names = NULL,
@@ -47,7 +47,7 @@ matter_df <- function(..., row.names = NULL) {
 	}
 	new("matter_df",
 		data=setNames(data, vars),
-		datamode=make_datamode("list", type="R"),
+		datamode=make_datamode("virtual", type="R"),
 		paths=character(),
 		filemode="rb",
 		length=length(data),
