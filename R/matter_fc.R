@@ -61,9 +61,7 @@ matter_fc <- function(data, datamode = "int", paths = NULL,
 		data=atoms(
 			group_id=rep.int(1L, length(extent)),
 			source_id=as.integer(factor(paths)),
-			datamode=as.integer(
-				rep(make_datamode("int", type="C"),
-					length.out=length(extent))),
+			datamode=as.integer(make_datamode(datamode, type="C")),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
 		datamode=make_datamode("integer", type="R"),

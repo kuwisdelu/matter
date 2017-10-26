@@ -1,45 +1,37 @@
-\name{matter_str-class}
+\name{matter_fc-class}
 \docType{class}
 
-\alias{class:matter_str}
-\alias{matter_str}
-\alias{matter_str-class}
+\alias{class:matter_fc}
+\alias{matter_fc}
+\alias{matter_fc-class}
 
-\alias{lengths,matter_str-method}
+\alias{[,matter_fc-method}
+\alias{[,matter_fc,ANY,missing,ANY-method}
+\alias{[,matter_fc,missing,missing,ANY-method}
+\alias{[<-,matter_fc-method}
+\alias{[<-,matter_fc,ANY,missing,ANY-method}
+\alias{[<-,matter_fc,missing,missing,ANY-method}
 
-\alias{[,matter_str-method}
-\alias{[,matter_str,ANY,ANY,ANY-method}
-\alias{[,matter_str,ANY,missing,ANY-method}
-\alias{[,matter_str,missing,missing,ANY-method}
-\alias{[<-,matter_str-method}
-\alias{[<-,matter_str,ANY,ANY,ANY-method}
-\alias{[<-,matter_str,ANY,missing,ANY-method}
-\alias{[<-,matter_str,missing,missing,ANY-method}
-
-\alias{[[,matter_str,ANY,missing-method}
-\alias{[[<-,matter_str,ANY,missing-method}
-
-\title{Strings Stored on Disk}
+\title{Factors Stored on Disk}
 
 \description{
-    The \code{matter_str} class implements on-disk strings.
+    The \code{matter_fc} class implements on-disk factors.
 }
 
 \usage{
 ## Instance creation
-matter_str(data, datamode = "uchar", paths = NULL,
+matter_fc(data, datamode = "int", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
-            offset = c(0, cumsum(sizeof("uchar") * extent)[-length(extent)]),
-            extent = nchar, nchar = 0, names = NULL,
-            encoding = "unknown", \dots)
+            offset = 0, extent = length, length = 0L, names = NULL,
+            levels = base::levels(as.factor(data)), \dots)
 
 ## Additional methods documented below
 }
 
 \arguments{
-        \item{data}{An optional character vector which will be initially written to the data on disk if provided.}
+        \item{data}{An optional data vector which will be initially written to the data on disk if provided.}
 
-        \item{datamode}{Must be "uchar" (or "raw") for strings.}
+        \item{datamode}{Must be an integral type for factors.}
 
         \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link[base]{tempfile}}.}
 
@@ -49,11 +41,11 @@ matter_str(data, datamode = "uchar", paths = NULL,
 
         \item{extent}{A vector giving the length of the data for each file in 'paths', specifying the number of elements of size 'datamode' to be accessed from each file.}
 
-        \item{nchar}{A vector giving the length of each element of the character vector.}
+        \item{length}{An optional number giving the total length of the data across all files, equal to the sum of 'extent'. This is ignored and calculated automatically if 'extent' is specified.}
 
         \item{names}{The names of the data elements.}
 
-        \item{encoding}{The character encoding to use (if known).}
+        \item{levels}{The levels of the factor.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }
@@ -80,7 +72,7 @@ matter_str(data, datamode = "uchar", paths = NULL,
 
         \item{\code{ops}:}{Delayed operations to be applied on atoms.}
 
-        \item{\code{encoding}:}{The character encoding of the strings.}
+        \item{\code{levels}:}{The levels of the factor.}
     }
 }
 
@@ -89,32 +81,31 @@ matter_str(data, datamode = "uchar", paths = NULL,
 }
 
 \section{Creating Objects}{
-    \code{matter_str} instances can be created through \code{matter_str()} or \code{matter()}.
+    \code{matter_fc} instances can be created through \code{matter_fc()} or \code{matter()}.
 }
 
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the string elements of the vector.}
+        \item{\code{x[i], x[i] <- value}:}{Get or set the elements of the factor.}
 
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the string elements of the vector.}
-
-        \item{\code{lengths(x)}:}{Get the number of characters (in bytes) of all string elements in the vector.}
+        \item{\code{levels(x), levels(x) <- value}:}{Get or set the levels of the factor.}
     }
 }
 
 \value{
-    An object of class \code{\linkS4class{matter_str}}.
+    An object of class \code{\linkS4class{matter_fc}}.
 }
 
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\linkS4class{matter}}
+    \code{\linkS4class{matter}},
+    \code{\linkS4class{matter_vec}}
 }
 
 \examples{
-x <- matter_str(c("hello", "world!"))
+x <- matter_fc(c("a", "a", "b"), levels=c("a", "b", "c"))
 x[]
 }
 
