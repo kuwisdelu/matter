@@ -1,6 +1,6 @@
 
-#### Fuzzy binary search that allows near-matches ####
-## ---------------------------------------------------
+#### Binary search that allows near-matches ####
+## ----------------------------------------------
 
 bsearch <- function(key, values, tol = 0, tol.ref = "none",
 					nomatch = NA_integer_, nearest = FALSE)
