@@ -3,6 +3,7 @@
 ## -----------------------------------------------
 
 setClass("matter_str",
+	slots = c(encoding = "character"),
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("raw", type="R"),
@@ -13,7 +14,8 @@ setClass("matter_str",
 		dim = 0,
 		names = NULL,
 		dimnames = NULL,
-		ops = NULL),
+		ops = NULL,
+		encoding = "unknown"),
 	contains = "matter",
 	validity = function(object) {
 		errors <- NULL
@@ -22,16 +24,22 @@ setClass("matter_str",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_str <- function(data, datamode = "raw", paths = NULL,
+matter_str <- function(data, datamode = "uchar", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
-					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-					extent = nchar, nchar = 0, names = NULL, ...)
+					offset = c(0, cumsum(sizeof("uchar") * extent)[-length(extent)]),
+					extent = nchar, nchar = 0, names = NULL,
+					encoding = "unknown", ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(nchar) )
 			nchar <- nchar(data, type="bytes")
 		if ( !is.character(data) )
 			data <- as.character(data)
+		if ( missing(encoding) ) {
+			encoding <- unique(Encoding(data))
+			if ( length(encoding) != 1 )
+				encoding <- "unknown"
+		}
 	}
 	if ( all(extent == 0) )
 		return(new("matter_str"))
@@ -69,7 +77,8 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 		dim=as.integer(extent),
 		names=names,
 		dimnames=NULL,
-		ops=NULL, ...)
+		ops=NULL,
+		encoding=encoding, ...)
 	if ( !missing(data) )
 		x[] <- data
 	x
@@ -80,6 +89,7 @@ setMethod("show", "matter_str", function(object) {
 	cat("  <", object@length, " length> ",
 		"on-disk strings", "\n", sep="")
 	callNextMethod(object)
+	cat("    encoding:", object@encoding, "\n")
 })
 
 setAs("character", "matter_str", function(from) matter_str(from, names=names(from)))
@@ -92,14 +102,14 @@ as.matter_str <- function(x) as(x, "matter_str")
 setMethod("[",
 	c(x = "matter_str", i = "missing", j = "missing"),
 	function(x, ...) {
-		sapply(getList(x), rawToChar)
+		sapply(getList(x), raw2char, encoding=x@encoding)
 })
 
 setReplaceMethod("[",
 	c(x = "matter_str", i = "missing", j = "missing"),
 	function(x, ..., value) {
 		if ( is.character(value) ) {
-			value <- lapply(value, charToRaw)
+			value <- lapply(value, char2raw)
 		} else {
 			if ( !is.list(value) )
 				value <- list(value)
@@ -132,7 +142,7 @@ setReplaceMethod("[",
 	c(x = "matter_str", i = "ANY", j = "missing"),
 	function(x, i, ..., value) {
 		if ( is.character(value) ) {
-			value <- lapply(value, charToRaw)
+			value <- lapply(value, char2raw)
 		} else {
 			if ( !is.list(value) )
 				value <- list(value)
@@ -147,14 +157,14 @@ setMethod("[",
 	c(x = "matter_str", i = "ANY", j = "ANY"),
 	function(x, i, j, ...) {
 		y <- getListElements(x, i, j)
-		sapply(y, rawToChar)
+		sapply(y, raw2char, encoding=x@encoding)
 })
 
 setReplaceMethod("[",
 	c(x = "matter_str", i = "ANY", j = "ANY"),
 	function(x, i, j, ..., value) {
 		if ( is.character(value) ) {
-			value <- lapply(value, charToRaw)
+			value <- lapply(value, char2raw)
 		} else {
 			if ( !is.list(value) )
 				value <- list(value)
@@ -167,14 +177,14 @@ setMethod("[[",
 	c(x = "matter_str", i = "ANY", j = "missing"),
 	function(x, i, ...) {
 		y <- getListElements(x, i)
-		rawToChar(y)
+		raw2char(y, encoding=x@encoding)
 })
 
 setReplaceMethod("[[",
 	c(x = "matter_str", i = "ANY", j = "missing"),
 	function(x, i, ..., value) {
 		if ( is.character(value) ) {
-			value <- charToRaw(value)
+			value <- char2raw(value)
 		} else {
 			value <- as.raw(value)
 		}

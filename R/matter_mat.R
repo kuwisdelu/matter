@@ -147,11 +147,11 @@ setMethod("show", "matter_mat", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
 		"on-disk matrix", "\n", sep="")
+	callNextMethod(object)
 	if ( !is.null(attr(object, "scaled:center")) )
 		cat("    scaled:center = TRUE\n")
 	if ( !is.null(attr(object, "scaled:scale")) )
 		cat("    scaled:scale = TRUE\n")
-	callNextMethod(object)
 })
 
 setAs("matrix", "matter_mat",
@@ -663,7 +663,7 @@ setMethod("Arith", c("numeric", "matter_matr"),
 setMethod("Compare", c("matter_matc", "matter_matc"),
 	function(e1, e2) {
 		if ( all(dim(e1) == dim(e2)) ) {
-			register_op(e1, NULL, e2, .Generic)
+			e1 <- register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1) != "logical" )
 				datamode(e1) <- "logical"
 			e1
@@ -675,7 +675,7 @@ setMethod("Compare", c("matter_matc", "matter_matc"),
 setMethod("Compare", c("matter_matr", "matter_matr"),
 	function(e1, e2) {
 		if ( all(dim(e1) == dim(e2)) ) {
-			register_op(e1, NULL, e2, .Generic)
+			e1 <- register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1) != "logical" )
 				datamode(e1) <- "logical"
 			e1

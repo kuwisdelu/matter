@@ -134,6 +134,24 @@ test_that("string subsetting", {
 
 })
 
+test_that("factor subsetting", {
+
+	x <- factor(c("neon", "genesis", "evangelion"))
+
+	y <- matter_fc(x)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1], y[1])
+
+	expect_equal(x[1:3], y[1:3])
+
+	expect_equal(x[3:1], y[3:1])
+
+	expect_equivalent(as.matter(x), y)
+
+})
+
 test_that("data frame subsetting", {
 
 	x <- seq_len(10)
@@ -144,9 +162,13 @@ test_that("data frame subsetting", {
 
 	y2 <- matter_str(y)
 
-	df1 <- data.frame(x=x, y=y, stringsAsFactors=FALSE)
+	z <- factor(letters[11:20])
 
-	df2 <- matter_df(x=x2, y=y2)
+	z2 <- matter_fc(z)
+
+	df1 <- data.frame(x=x, y=y, z=z, stringsAsFactors=FALSE)
+
+	df2 <- matter_df(x=x2, y=y2, z=z2)
 
 	expect_equal(df1, df2[])
 
@@ -154,7 +176,9 @@ test_that("data frame subsetting", {
 
 	expect_equal(df1[,"x"], df2[,"x"][])
 
-	expect_equal(df1[1:5,"x"], df2[1:5,"x"])
+	expect_equal(df1[,c("x","y")], df2[,c("x","y")][])
+
+	expect_equal(df1[1:5,c("x","y")], df2[1:5,c("x","y")])
 
 	expect_equal(df1$x, df2$x[])
 

@@ -3,16 +3,15 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Change "drop=NA" behavior to use "drop=FALSE"
-- Let dim<- switch between 'matter_vec' and 'matter_arr'
-- Allow subsetting by atoms and by groups
+- Change 'drop=NA' behavior to use 'drop=FALSE'
+- Let 'dim<-' switch between 'matter_vec' and 'matter_arr'
 - Add Logic operators for 'matter_vec' class
 
 Priority: Medium
 - Sparse vectors/matrices (both in-memory and on-disk)
 - Add 'match' and '%in%' functions for 'matter_vec' class
+- Add more data manipulation functions for 'matter_df'
 - Add wrappers for reading csv, tsv, etc.
-- Add factor (datamode="integer") type
 
 Priority: Low
 - Add support for different data sources via @datasources slot

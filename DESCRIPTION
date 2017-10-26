@@ -1,7 +1,7 @@
 Package: matter
 Type: Package
 Title: A framework for rapid prototyping with binary data on disk
-Version: 1.3.7
+Version: 1.3.8
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
@@ -11,8 +11,9 @@ License: Artistic-2.0
 Depends: methods, stats, biglm
 Imports: BiocGenerics, irlba, utils
 Suggests: BiocStyle, testthat
-Collate: matterGenerics.R bsearch.R utils.R drle.R atoms.R matter.R
-	matter_vec.R matter_mat.R matter_arr.R matter_list.R matter_str.R
-	matter_df.R stats.R apply.R scale.R bigglm.R prcomp.R
+Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
+	matter_vec.R matter_mat.R matter_arr.R matter_list.R
+	matter_str.R matter_fc.R matter_df.R
+	stats.R apply.R scale.R bigglm.R prcomp.R
 biocViews: Software, Infrastructure
 URL: https://github.com/kuwisdelu/matter
