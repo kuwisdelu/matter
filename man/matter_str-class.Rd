@@ -29,8 +29,9 @@
 ## Instance creation
 matter_str(data, datamode = "raw", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
-            offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-            extent = nchar, nchar = 0, names = NULL, \dots)
+            offset = c(0, cumsum(sizeof("raw") * extent)[-length(extent)]),
+            extent = nchar, nchar = 0, names = NULL,
+            encoding = "unknown", \dots)
 
 ## Additional methods documented below
 }
@@ -38,7 +39,7 @@ matter_str(data, datamode = "raw", paths = NULL,
 \arguments{
         \item{data}{An optional character vector which will be initially written to the data on disk if provided.}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric').}
+        \item{datamode}{Must be "raw" for strings.}
 
         \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link[base]{tempfile}}.}
 
@@ -51,6 +52,8 @@ matter_str(data, datamode = "raw", paths = NULL,
         \item{nchar}{A vector giving the length of each element of the character vector.}
 
         \item{names}{The names of the data elements.}
+
+        \item{encoding}{The character encoding to use (if known).}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }
@@ -76,6 +79,8 @@ matter_str(data, datamode = "raw", paths = NULL,
         \item{\code{dimnames}:}{Either 'NULL' or the names for the dimensions. If not 'NULL', then this should be a list of character vectors of the length given by 'dim' for each dimension. This is always 'NULL' for vectors.}
 
         \item{\code{ops}:}{Delayed operations to be applied on atoms.}
+
+        \item{\code{encoding}:}{The character encoding of the strings.}
     }
 }
 

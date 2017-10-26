@@ -49,6 +49,10 @@ sizeof <- function(type) {
 		double = 8)
 }
 
+make_levels <- function(x) {
+	sort(unique(as.character(x)))
+}
+
 combine_colnames <- function(x, y) {
 	if ( is.null(dimnames(x)[[2]]) && is.null(dimnames(y)[[2]]) ) {
 		colnames <- NULL
@@ -270,6 +274,18 @@ widest_datamode <- function(x) {
 	} else {
 		stop("unsupported data type")
 	}
+}
+
+# convert between 'raw' and 'character'
+
+raw2char <- function(x, multiple = FALSE, encoding = "unknown") {
+	y <- rawToChar(x, multiple=multiple)
+	Encoding(y) <- encoding
+	y
+}
+
+char2raw <- function(x) {
+	charToRaw(x)
 }
 
 # creates internal S3 class 'bytes'

@@ -1,4 +1,6 @@
 
+# statistical summaries
+
 setMethod("sum", "matter", function(x, na.rm = FALSE) {
 	ret <- .Call("C_getSum", x, na.rm, PACKAGE="matter")
 	names(ret) <- names(x)
