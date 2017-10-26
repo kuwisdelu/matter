@@ -106,7 +106,7 @@ as.matter_fc <- function(x) as(x, "matter_fc")
 setMethod("levels", "matter_fc", function(x) x@levels)
 
 setReplaceMethod("levels", "matter_fc",
-	function(x) {
+	function(x, value) {
 		x@levels <- value
 		x
 	})

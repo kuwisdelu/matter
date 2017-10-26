@@ -17,6 +17,10 @@
 \alias{Arith,matter_arr,numeric-method}
 \alias{Arith,numeric,matter_arr-method}
 
+\alias{Arith,matter_fc,numeric-method}
+\alias{Arith,numeric,matter_fc-method}
+\alias{Arith,matter_fc,matter_fc-method}
+
 \alias{Compare,matter_vec,raw-method}
 \alias{Compare,matter_vec,numeric-method}
 \alias{Compare,raw,matter_vec-method}
@@ -41,26 +45,39 @@
 \alias{Compare,numeric,matter_arr-method}
 \alias{Compare,matter_arr,matter_arr-method}
 
+\alias{Compare,matter_fc,numeric-method}
+\alias{Compare,matter_fc,character-method}
+\alias{Compare,matter_fc,factor-method}
+\alias{Compare,numeric,matter_fc-method}
+\alias{Compare,character,matter_fc-method}
+\alias{Compare,factor,matter_fc-method}
+\alias{Compare,matter_fc,matter_fc-method}
+
 \alias{exp,matter_vec-method}
 \alias{exp,matter_mat-method}
 \alias{exp,matter_arr-method}
+\alias{exp,matter_fc-method}
 
 \alias{log,matter_vec-method}
 \alias{log,matter_matc-method}
 \alias{log,matter_matr-method}
 \alias{log,matter_arr-method}
+\alias{log,matter_fc-method}
 \alias{log,matter_vec,numeric-method}
 \alias{log,matter_matc,numeric-method}
 \alias{log,matter_matr,numeric-method}
 \alias{log,matter_arr,numeric-method}
+\alias{log,matter_fc,numeric-method}
 
 \alias{log2,matter_vec-method}
 \alias{log2,matter_mat-method}
 \alias{log2,matter_arr-method}
+\alias{log2,matter_fc-method}
 
 \alias{log10,matter_vec-method}
 \alias{log10,matter_mat-method}
 \alias{log10,matter_arr-method}
+\alias{log10,matter_fc-method}
 
 
 \title{Delayed Operations on ``matter'' Objects}
