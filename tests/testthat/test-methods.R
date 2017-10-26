@@ -75,7 +75,7 @@ test_that("summary statistics", {
 
 })
 
-test_that("delayed ops 1", {
+test_that("delayed ops - integers", {
 
 	x <- seq_len(10)
 
@@ -105,7 +105,7 @@ test_that("delayed ops 1", {
 
 })
 
-test_that("delayed ops 2", {
+test_that("delayed ops - doubles", {
 
 	x <- seq_len(10) + 0.5
 
@@ -132,6 +132,32 @@ test_that("delayed ops 2", {
 	expect_equal(x != 5.5, (y != 5.5)[])
 
 	expect_equal(which(x == 5.5), which(y == 5.5))
+
+})
+
+test_that("delayed ops - factors", {
+
+	x <- letters[1:5]
+
+	y <- matter_fc(x)
+
+	expect_equal(x == "a", (y == "a")[])
+
+	expect_equal(x != "a", (y != "a")[])
+
+	expect_equal(x == x, (y == y)[])
+
+	expect_equal(x != x, (y != y)[])
+
+	expect_equal(x == x, (y == x)[])
+
+	expect_equal(x != x, (y != x)[])
+
+	expect_equal(x == factor(x), (y == factor(x))[])
+
+	expect_equal(x != factor(x), (y != factor(x))[])
+
+	expect_equal(which(x == "b"), which(y == "b"))
 
 })
 

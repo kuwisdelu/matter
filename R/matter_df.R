@@ -18,7 +18,7 @@ setClass("matter_df",
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@names) )
-			errors <- c(errors, "array must have non-NULL 'names'")
+			errors <- c(errors, "data frame must have non-NULL 'names'")
 		if ( object@length != length(object@data) )
 			errors <- c(errors, paste0("length of object [", object@length,
 				"] does not match length of data [", length(object@data), "]"))
@@ -40,20 +40,21 @@ setClass("matter_df",
 
 matter_df <- function(..., row.names = NULL) {
 	data <- list(...)
-	if ( is.null(names(data)) ) {
-		vars <- paste0("Var", seq_along(data))
-	} else {
-		vars <- make.unique(make.names(names(data)))
-	}
+	nm <- names(data)
+	if ( length(data) == 1 && is.list(data[[1]]) )
+		return(as.matter_df(data[[1]]))
+	if ( is.null(nm) || any(sapply(nm, nchar) == 0) )
+		stop("all arguments must be named")
+	nm <- make.unique(nm)
 	new("matter_df",
-		data=setNames(data, vars),
+		data=setNames(data, nm),
 		datamode=make_datamode("virtual", type="R"),
 		paths=character(),
 		filemode="rb",
 		length=length(data),
 		dim=c(length(data[[1]]), length(data)),
-		names=vars,
-		dimnames=list(row.names, vars),
+		names=nm,
+		dimnames=list(row.names, nm),
 		ops=NULL)
 }
 
@@ -89,19 +90,7 @@ setMethod("show", "matter_df", function(object) {
 		cat("and ", nrow(object) - n, " more rows", "\n", sep="")
 })
 
-setAs("data.frame", "matter_df",
-	function(from) {
-		from <- lapply(from, function(x) {
-			if ( is.character(x) ) {
-				matter_str(x)
-			} else {
-				matter_vec(x)
-			}
-		})
-		do.call("matter_df", c(from, row.names=row.names(from)))
-})
-
-setAs("data.frame", "matter_df",
+setAs("list", "matter_df", # also for data.frame
 	function(from) {
 		from <- lapply(from, as.matter)
 		do.call("matter_df", from)
@@ -131,6 +120,7 @@ getDataFrame <- function(x) {
 	y <- lapply(atomdata(x), "[")
 	data.frame(setNames(y, names(x)),
 		row.names=rownames(x),
+		check.names=FALSE,
 		stringsAsFactors=FALSE)
 }
 
@@ -154,6 +144,7 @@ getDataFrameRows <- function(x, i, drop) {
 	} else {
 		data.frame(setNames(y, names(x)),
 			row.names=rownames(x),
+			check.names=FALSE,
 			stringsAsFactors=FALSE)
 	}
 }
@@ -185,7 +176,7 @@ getDataFrameColumns <- function(x, j, drop) {
 			length=length(j),
 			dim=c(nrow(x), length(j)),
 			names=names(x)[j],
-			dimnames=c(rownames(x), names(x)[j]),
+			dimnames=list(rownames(x), names(x)[j]),
 			ops=NULL)
 	}
 }
@@ -194,7 +185,7 @@ setDataFrameColumns <- function(x, j, value) {
 	if ( is.logical(j) )
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
-		j <- dimnames2index(x, j, 2)	
+		j <- dimnames2index(x, j, 2)
 	for ( j2 in j )
 		atomdata(x)[[j2]][] <- value[[j2]]
 	if ( validObject(x) )
@@ -216,6 +207,7 @@ getDataFrameElements <- function(x, i, j, drop) {
 	} else {
 		data.frame(setNames(y, names(x)[j]),
 			row.names=rownames(x),
+			check.names=FALSE,
 			stringsAsFactors=FALSE)
 	}
 }

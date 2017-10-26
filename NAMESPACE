@@ -37,6 +37,7 @@ exportClasses(
 	"matter_arr",
 	"matter_list",
 	"matter_str",
+	"matter_fc",
 	"matter_df")
 
 export(
@@ -49,8 +50,9 @@ export(
 	"matter_mat",
 	"matter_arr",
 	"matter_list",
-	"matter_df",
 	"matter_str",
+	"matter_fc",
+	"matter_df",
 	"is.matter",
 	"as.matter")
 
@@ -85,6 +87,8 @@ exportMethods(
 	"names<-",
 	"dimnames",
 	"dimnames<-",
+	"levels",
+	"levels<-",
 	"t",
 	"crossprod",
 	"tcrossprod")

@@ -24,9 +24,9 @@ setClass("matter_str",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_str <- function(data, datamode = "raw", paths = NULL,
+matter_str <- function(data, datamode = "uchar", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
-					offset = c(0, cumsum(sizeof("raw") * extent)[-length(extent)]),
+					offset = c(0, cumsum(sizeof("uchar") * extent)[-length(extent)]),
 					extent = nchar, nchar = 0, names = NULL,
 					encoding = "unknown", ...)
 {
@@ -35,8 +35,11 @@ matter_str <- function(data, datamode = "raw", paths = NULL,
 			nchar <- nchar(data, type="bytes")
 		if ( !is.character(data) )
 			data <- as.character(data)
-		if ( missing(encoding) )
-			encoding <- Encoding(data)
+		if ( missing(encoding) ) {
+			encoding <- unique(Encoding(data))
+			if ( length(encoding) != 1 )
+				encoding <- "unknown"
+		}
 	}
 	if ( all(extent == 0) )
 		return(new("matter_str"))
@@ -85,8 +88,8 @@ setMethod("show", "matter_str", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@length, " length> ",
 		"on-disk strings", "\n", sep="")
-	cat("    encoding: ", object@encoding, "\n", sep="")
 	callNextMethod(object)
+	cat("    encoding:", object@encoding, "\n")
 })
 
 setAs("character", "matter_str", function(from) matter_str(from, names=names(from)))

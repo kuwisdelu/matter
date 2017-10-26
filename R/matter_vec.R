@@ -95,6 +95,12 @@ setAs("integer", "matter_vec",
 setAs("numeric", "matter_vec",
 	function(from) matter_vec(from, datamode="double", names=names(from)))
 
+setAs("character", "matter_vec",
+	function(from) matter_vec(as.numeric(from), datamode="double", names=names(from)))
+
+setAs("factor", "matter_vec",
+	function(from) matter_vec(as.integer(from), datamode="int", names=names(from)))
+
 as.matter_vec <- function(x) as(x, "matter_vec")
 
 getVector <- function(x) {
@@ -264,7 +270,7 @@ setMethod("Arith", c("numeric", "matter_vec"),
 setMethod("Compare", c("matter_vec", "matter_vec"),
 	function(e1, e2) {
 		if ( length(e1) == length(e2) ) {
-			register_op(e1, NULL, e2, .Generic)
+			e1 <- register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1) != "logical" )
 				datamode(e1) <- "logical"
 			e1

@@ -73,7 +73,9 @@ matter <- function(...) {
 	mat.args <- c("nrow", "ncol", "rowMaj")
 	list.args <- c("lengths")
 	char.args <- c("nchar")
-	known.args <- c(vec.args, arr.args, mat.args, list.args, char.args)
+	fc.args <- c("levels")
+	known.args <- c(vec.args, arr.args, mat.args,
+		list.args, char.args, fc.args)
 	if ( any(nm %in% known.args) ) {
 		if ( any(vec.args %in% nm) ) {
 			matter_vec(...)
@@ -85,6 +87,8 @@ matter <- function(...) {
 			matter_list(...)
 		} else if ( any(char.args %in% nm) ) {
 			matter_str(...)
+		} else if ( any(fc.args %in% nm) ) {
+			matter_fc(...)
 		} else {
 			stop("couldn't guess data structure, use 'matter_' functions")
 		}
@@ -99,6 +103,8 @@ matter <- function(...) {
 			matter_list(...)
 		} else if ( is.character(data) ) {
 			matter_str(...)
+		} else if ( is.factor(data) ) {
+			matter_fc(...)
 		} else if ( is.data.frame(data) ) {
 			matter_df(...)
 		} else {
@@ -120,6 +126,7 @@ as.matter <- function(x) {
 		integer = as.matter_vec(x),
 		numeric = as.matter_vec(x),
 		character = as.matter_str(x),
+		factor = as.matter_fc(x),
 		matrix = as.matter_mat(x),
 		array = as.matter_arr(x),
 		list = as.matter_list(x),

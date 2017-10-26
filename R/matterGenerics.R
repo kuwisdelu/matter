@@ -14,6 +14,9 @@ setGeneric("mean")
 setGeneric("apply", signature="X")
 setGeneric("scale", signature="x")
 
+setGeneric("levels")
+setGeneric("levels<-")
+
 t.matter <- function(x) t(x)
 
 mean.matter <- function(x, ...) mean(x, ...)
