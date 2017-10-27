@@ -2,7 +2,7 @@
 
 \alias{uuid}
 
-\title{Universally Unique Identifier}
+\title{Universally Unique Identifiers}
 
 \description{
     Generate a UUID.

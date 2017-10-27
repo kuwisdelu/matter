@@ -4,7 +4,7 @@
 \alias{checksum}
 \alias{checksum,matter-method}
 
-\title{Create checksums and hashes}
+\title{Calculate Checksums and Cryptographic Hashes}
 
 \description{
     This is a generic function for applying cryptographic hash functions and calculating checksums for arbitrary R objects.
