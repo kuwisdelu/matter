@@ -9,7 +9,7 @@ Description: Memory-efficient reading, writing, and manipulation of
         structured binary data on disk as vectors, matrices, and arrays.
 License: Artistic-2.0
 Depends: methods, stats, biglm
-Imports: BiocGenerics, irlba, utils
+Imports: BiocGenerics, digest, irlba, utils
 Suggests: BiocStyle, testthat
 Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
 	matter_vec.R matter_mat.R matter_arr.R matter_list.R

@@ -230,3 +230,17 @@ setMethod("which", "matter",
 		}
 })
 
+#### Checksum ####
+## ----------------
+
+setMethod("checksum", "matter",
+	function(x, algo=c("sha1", "md5"), ...)
+{
+	algo <- match.arg(algo)
+	hash <- sapply(paths(x), function(file) {
+		digest(file=file, algo=algo)
+	})
+	attr(hash, "algo") <- algo
+	hash
+})
+

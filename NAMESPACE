@@ -3,6 +3,9 @@ import("methods")
 
 import("biglm")
 
+importFrom("digest",
+	"digest")
+
 importFrom("irlba",
 	"irlba")
 
@@ -67,7 +70,8 @@ exportMethods(
 	"filemode",
 	"filemode<-",
 	"chunksize",
-	"chunksize<-")
+	"chunksize<-",
+	"checksum")
 
 exportMethods(
 	"%*%",
@@ -122,6 +126,11 @@ exportMethods(
 	"rowVars",
 	"rowSds",
 	"which")
+
+export(
+	"uuid",
+	"hex2raw",
+	"raw2hex")
 
 exportMethods("apply")
 

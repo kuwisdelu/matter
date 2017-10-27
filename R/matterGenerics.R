@@ -48,7 +48,7 @@ if ( !isGeneric("rowSds") )
 	setGeneric("rowSds", function(x, na.rm = FALSE) standardGeneric("rowSds"))
 
 #### Basic accessor, setter, and manipulation ####
-## -----------------------------------------------	
+## -----------------------------------------------
 
 setGeneric("adata", function(object) standardGeneric("adata"))
 setGeneric("atomdata", function(object) standardGeneric("atomdata"))
@@ -61,6 +61,11 @@ setGeneric("filemode", function(x) standardGeneric("filemode"))
 setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
 setGeneric("chunksize", function(x) standardGeneric("chunksize"))
 setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
+
+#### Additional generic functions for matter ####
+## ----------------------------------------------
+
+setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------

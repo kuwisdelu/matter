@@ -289,6 +289,9 @@ widest_datamode <- function(x) {
 	}
 }
 
+#### Utilities for working with raw bytes and memory ####
+## ------------------------------------------------------
+
 # convert between 'raw' and 'character'
 
 raw2char <- function(x, multiple = FALSE, encoding = "unknown") {
@@ -299,6 +302,54 @@ raw2char <- function(x, multiple = FALSE, encoding = "unknown") {
 
 char2raw <- function(x) {
 	charToRaw(x)
+}
+
+# convert between 'raw' and hexadecimal strings
+
+hex2raw <- function(x) {
+	x <- tolower(gsub("[^[:alnum:] ]", "", x))
+    sst <- strsplit(x, "")[[1]]
+    hex <- paste0(sst[c(TRUE, FALSE)], sst[c(FALSE, TRUE)])
+    codes <- factor(hex, levels=as.character(as.raw(0:255)))
+    as.raw(as.integer(codes) - 1L)
+}
+
+raw2hex <- function(x, uppercase = FALSE) {
+	hex <- paste0(as.character(x), collapse="")
+	if ( uppercase ) {
+		toupper(hex)
+	} else {
+		hex
+	}
+}
+
+# create a uuid
+
+uuid <- function(uppercase = FALSE) {
+	hex <- as.raw(0:255)
+	version <- hex[65:80] # 0100 xxxx (version 4)
+	variant <- hex[129:192] # 10xx xxxx (variant 1)
+	time_low <- sample(hex, 4)
+	time_hi <- sample(hex, 2)
+	time_hi_and_version <- c(sample(version, 1), sample(hex, 1))
+	clock_seq_hi_and_res <- sample(variant, 1)
+	clock_seq_low <- sample(hex, 1)
+	node <- sample(hex, 6)
+	bytes <- c(time_low, time_hi, time_hi_and_version,
+		clock_seq_hi_and_res, clock_seq_low, node)
+	string <- c(
+		paste0(as.character(time_low), collapse=""),
+		paste0(as.character(time_hi), collapse=""),
+		paste0(as.character(time_hi_and_version), collapse=""),
+		paste0(as.character(clock_seq_hi_and_res),
+			as.character(clock_seq_low), collapse=""),
+		paste0(as.character(node), collapse=""))
+	if ( uppercase ) {
+		string <- toupper(paste0(string, collapse="-"))
+	} else {
+		string <- paste0(string, collapse="-")
+	}
+	list(string=string, bytes=bytes)
 }
 
 # creates internal S3 class 'bytes'
