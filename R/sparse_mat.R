@@ -34,6 +34,10 @@ setClass("sparse_mat",
 			errors <- c(errors, "sparse matrix must have 'dim' of length 2")
 		if ( !all(lengths(object@data$keys) == lengths(object@data$values)) )
 			errors <- c(errors, "lengths of 'data$keys' must match lengths of 'data$values'")
+		# if ( is.unsorted(object@keys) )
+		# 	errors <- c(errors, "'keys' must be sorted in weakly increasing order")
+		# if ( anyDuplicated(object@keys) > 0 )
+		# 	errors <- c(errors, "'keys' must be unique")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -240,36 +244,49 @@ setReplaceMethod("tolerance", "sparse_mat", function(object, value) {
 	object
 })
 
-get_sparse_mat_compressed_vector <- function(x, i, keys) {
-	ikeys <- adata(x)$keys[[i]]
-	ivals <- adata(x)$values[[i]]
+get_sparse_mat_compressed_vector <- function(x, i, keys,
+	.keys = atomdata(x)$keys, .vals = atomdata(x)$values)
+{
+	ikeys <- .keys[[i]]
+	ivals <- .vals[[i]]
 	if ( is.null(keys) ) {
 		# assume keys are indexes
-		vmode <- as.character(datamode(x))
 		if ( is(x, "sparse_matc") ) {
-			vec <- vector(mode=vmode, length=dim(x)[1])
+			vec <- vector(mode=typeof(ivals), length=dim(x)[1])
 		} else if ( is(x, "sparse_matr") ) {
-			vec <- vector(mode=vmode, length=dim(x)[2])
+			vec <- vector(mode=typeof(ivals), length=dim(x)[2])
 		}
 		vec[ikeys] <- ivals
 	} else {
 		# keys must be matched
-		tol.type <- as.integer(attr(tolerance(x), "type"))
-		if ( tol.type == 1 ) { # absolute
-			index <- bsearch(key=ikeys, values=keys,
-				tol=tolerance(x), tol.ref="none")
-		} else if ( tol.type == 2 ) { # relative
-			index <- bsearch(key=ikeys, values=keys,
-				tol=tolerance(x), tol.ref="values")
+		dup.ok <- is.double(keys) && x@tolerance > 0
+		if ( length(keys) > length(ikeys) || dup.ok ) {
+			# multiple matches must be checked
+			tol.type <- as.integer(attr(x@tolerance, "type"))
+			if ( tol.type == 1 ) { # absolute
+				index <- bsearch_int(key=ikeys, values=keys,
+					tol=x@tolerance, tol.ref=1L) # 1 = 'none'
+			} else if ( tol.type == 2 ) { # relative
+				index <- bsearch_int(key=ikeys, values=keys,
+					tol=x@tolerance, tol.ref=3L) # 3 = 'values'
+			}
+			vec <- x@combiner(ivals, index, length(keys), default=0)
+		} else {
+			# assume single matches
+			index <- bsearch_int(key=keys, values=ikeys)
+			na <- is.na(index)
+			vec <- ivals[index]
+			vec[na] <- 0
 		}
-		vec <- x@combiner(ivals, index, length(keys), default=0)
 	}
 	vec
 }
 
-set_sparse_mat_compressed_vector <- function(x, i, keys, values) {
-	ikeys <- adata(x)$keys[[i]]
-	ivals <- adata(x)$values[[i]]
+set_sparse_mat_compressed_vector <- function(x, i, keys, values,
+	.keys = atomdata(x)$keys, .vals = atomdata(x)$values)
+{
+	ikeys <- .keys[[i]]
+	ivals <- .vals[[i]]
 	if ( is.null(keys) ) {
 		# assume keys are indexes
 		vmode <- as.character(datamode(x))
@@ -297,74 +314,132 @@ set_sparse_mat_compressed_vector <- function(x, i, keys, values) {
 }
 
 getSparseMatrixElements <- function(x, i, j, drop) {
-	if ( is.logical(i) )
-		i <- logical2index(x, i, 1)
-	if ( is.character(i) )
-		i <- dimnames2index(x, i, 1)
-	if ( is.logical(j) )
-		j <- logical2index(x, j, 2)
-	if ( is.character(j) )
-		j <- dimnames2index(x, j, 2)
+	if ( is.null(i) ) {
+		i <- 1:dim(x)[1]
+		all.i <- TRUE
+	} else {
+		if ( is.logical(i) )
+			i <- logical2index(x, i, 1)
+		if ( is.character(i) )
+			i <- dimnames2index(x, i, 1)
+		all.i <- FALSE
+		if ( any(i <= 0 | i > dim(x)[1]) )
+			stop("subscript out of bounds")
+	}
+	if ( is.null(j) ) {
+		j <- 1:dim(x)[2]
+		all.j <- TRUE
+	} else {
+		if ( is.logical(j) )
+			j <- logical2index(x, j, 2)
+		if ( is.character(j) )
+			j <- dimnames2index(x, j, 2)
+		all.j <- FALSE
+		if ( any(j <= 0 | j > dim(x)[2]) )
+			stop("subscript out of bounds")
+	}
 	y <- matrix(nrow=length(i), ncol=length(j))
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
+	sorted <- FALSE
 	if ( is.null(keys(x)) ) {
 		if ( rowMaj ) {
-			if ( allIndices(x, j, 2) ) {
+			if ( is.sorted(j) )
+				sorted <- TRUE
+			if ( all.j ) {
 				keys <- NULL
-			} else {
+			} else if ( sorted ) {
 				keys <- as.integer(j)
+			} else {
+				ord <- order(j)
+				keys <- as.integer(j)[ord]
 			}
 		} else {
-			if ( allIndices(x, i, 1) ) {
+			if ( is.sorted(i) )
+				sorted <- TRUE
+			if ( all.i ) {
 				keys <- NULL
-			} else {
+			} else if ( sorted ) {
 				keys <- as.integer(i)
+			} else {
+				ord <- order(i)
+				keys <- as.integer(i)[ord]
 			}
 		}
 	} else {
 		if ( rowMaj ) {
-			ord <- order(keys(x)[j])
-			keys <- keys(x)[j][ord]
+			if ( is.sorted(keys(x)[j]) ) {
+				sorted <- TRUE
+				keys <- keys(x)[j]
+			} else {
+				ord <- order(keys(x)[j])
+				keys <- keys(x)[j][ord]
+			}
 		} else {
-			ord <- order(keys(x)[i])
-			keys <- keys(x)[i][ord]
+			if ( is.sorted(keys(x)[i]) ) {
+				sorted <- TRUE
+				keys <- keys(x)[i]
+			} else {
+				ord <- order(keys(x)[i])
+				keys <- keys(x)[i][ord]
+			}
 		}
 	}
+	.keys <- atomdata(x)$keys
+	.vals <- atomdata(x)$values
+	n <- length(keys)
 	if ( rowMaj ) {
 		for ( ii in seq_along(i) ) {
-			tmp <- get_sparse_mat_compressed_vector(x, i[ii], keys)
-			if ( is.null(keys(x)) ) {
-				y[ii,] <- tmp
+			vec <- get_sparse_mat_compressed_vector(x, i[ii], keys,
+				.keys=.keys, .vals=.vals)
+			if ( sorted ) {
+				y[ii,] <- vec
 			} else {
-				y[ii,ord] <- tmp
+				y[ii,ord] <- vec
 			}
 		}
 	} else {
 		for ( jj in seq_along(j) ) {
-			tmp <- get_sparse_mat_compressed_vector(x, j[jj], keys)
-			if ( is.null(keys(x)) ) {
-				y[,jj] <- tmp
+			vec <- get_sparse_mat_compressed_vector(x, j[jj], keys,
+				.keys=.keys, .vals=.vals)
+			if ( sorted ) {
+				y[,jj] <- vec
 			} else {
-				y[ord,jj] <- tmp
+				y[ord,jj] <- vec
 			}
 		}
 	}
 	if ( !is.null(dimnames(x)) )
-		dimnames(y) <- dimnames(x)
+		dimnames(y) <- list(rownames(x)[i], colnames(x)[j])
 	if ( drop ) 
 		y <- drop(y)
 	y
 }
 
 setSparseMatrixElements <- function(x, i, j, value) {
-	if ( is.logical(i) )
-		i <- logical2index(x, i, 1)
-	if ( is.character(i) )
-		i <- dimnames2index(x, i, 1)
-	if ( is.logical(j) )
-		j <- logical2index(x, j, 2)
-	if ( is.character(j) )
-		j <- dimnames2index(x, j, 2)
+	if ( is.null(i) ) {
+		i <- 1:dim(x)[1]
+		all.i <- TRUE
+	} else {
+		if ( is.logical(i) )
+			i <- logical2index(x, i, 1)
+		if ( is.character(i) )
+			i <- dimnames2index(x, i, 1)
+		all.i <- FALSE
+		if ( any(i <= 0 | i > dim(x)[1]) )
+			stop("subscript out of bounds")
+	}
+	if ( is.null(j) ) {
+		j <- 1:dim(x)[2]
+		all.j <- TRUE
+	} else {
+		if ( is.logical(j) )
+			j <- logical2index(x, j, 2)
+		if ( is.character(j) )
+			j <- dimnames2index(x, j, 2)
+		all.j <- FALSE
+		if ( any(j <= 0 | j > dim(x)[2]) )
+			stop("subscript out of bounds")
+	}
 	if ( (length(i) * length(j)) %% length(value) != 0 )
 		stop("number of items to replace is not ",
 			"a multiple of replacement length")
@@ -376,7 +451,19 @@ setSparseMatrixElements <- function(x, i, j, value) {
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	dim(value) <- c(length(i), length(j))
 	if ( is.null(keys(x)) ) {
-		keys <- NULL
+		if ( rowMaj ) {
+			if ( all.i ) {
+				keys <- NULL
+			} else {
+				keys <- as.integer(j)
+			}
+		} else {
+			if ( all.j ) {
+				keys <- NULL
+			} else {
+				keys <- as.integer(i)
+			}
+		}
 	} else {
 		if ( rowMaj ) {
 			keys <- keys(x)[j]
@@ -384,48 +471,54 @@ setSparseMatrixElements <- function(x, i, j, value) {
 			keys <- keys(x)[i]
 		}
 	}
+	.keys <- atomdata(x)$keys
+	.vals <- atomdata(x)$values
 	if ( rowMaj ) {
 		for ( ii in seq_along(i) ) {
-			tmp <- set_sparse_mat_compressed_vector(
-				x, i[ii], keys=keys, values=value[ii,])
-			atomdata(x)$keys[[i[ii]]] <- tmp$keys
-			atomdata(x)$values[[i[ii]]] <- tmp$values
+			vec <- set_sparse_mat_compressed_vector(x, i[ii],
+				keys=keys, values=value[ii,],
+				.keys=.keys, .vals=.vals)
+			.keys[[i[ii]]] <- vec$keys
+			.vals[[i[ii]]] <- vec$values
 		}
 	} else {
 		for ( jj in seq_along(j) ) {
-			tmp <- set_sparse_mat_compressed_vector(
-				x, j[jj], keys=keys, values=value[,jj])
-			atomdata(x)$keys[[j[jj]]] <- tmp$keys
-			atomdata(x)$values[[j[jj]]] <- tmp$values
+			vec <- set_sparse_mat_compressed_vector(x, j[jj],
+				keys=keys, values=value[,jj],
+				.keys=.keys, .vals=.vals)
+			.keys[[j[jj]]] <- vec$keys
+			.vals[[j[jj]]] <- vec$values
 		}
 	}
-	x@length <- sum(lengths(atomdata(x)$values))
+	x@length <- sum(lengths(.vals))
+	atomdata(x)$keys <- .keys
+	atomdata(x)$values <- .vals
 	if ( validObject(x) )
 		invisible(x)
 }
 
 getSparseMatrixRows <- function(x, i, drop=TRUE) {
-	getSparseMatrixElements(x, i, 1:dim(x)[2], drop=drop)
+	getSparseMatrixElements(x, i, NULL, drop=drop)
 }
 
 setSparseMatrixRows <- function(x, i, value) {
-	setSparseMatrixElements(x, i, 1:dim(x)[2], value)
+	setSparseMatrixElements(x, i, NULL, value)
 }
 
 getSparseMatrixCols <- function(x, j, drop=TRUE) {
-	getSparseMatrixElements(x, 1:dim(x)[1], j, drop=drop)
+	getSparseMatrixElements(x, NULL, j, drop=drop)
 }
 
 setSparseMatrixCols <- function(x, j, value) {
-	getSparseMatrixElements(x, 1:dim(x)[1], j, value)
+	getSparseMatrixElements(x, NULL, j, value)
 }
 
 getSparseMatrix <- function(x) {
-	getSparseMatrixElements(x, 1:dim(x)[1], 1:dim(x)[2], drop=FALSE)
+	getSparseMatrixElements(x, NULL, NULL, drop=FALSE)
 }
 
 setSparseMatrix <- function(x, value) {
-	setSparseMatrixElements(x, 1:dim(x)[1], 1:dim(x)[2], value)
+	setSparseMatrixElements(x, NULL, NULL, value)
 }
 
 subsetSparseMatterMatrix <- function(x, i, j) {

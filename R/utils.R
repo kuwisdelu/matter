@@ -2,6 +2,8 @@
 #### Binary search that allows near-matches ####
 ## ----------------------------------------------
 
+# exported version that performs type checks
+
 bsearch <- function(key, values, tol = 0, tol.ref = "none",
 					nomatch = NA_integer_, nearest = FALSE)
 {
@@ -9,12 +11,21 @@ bsearch <- function(key, values, tol = 0, tol.ref = "none",
 		key <- as.double(key)
 	if ( is.double(key) && is.integer(values) )
 		values <- as.double(values)
-	if ( tol < 0 )
-		stop("'tol' must be non-negative")
 	tol.ref <- pmatch(tol.ref, c("none", "key", "values"), nomatch=1L)
 	.Call("C_binarySearch", key, values, tol,
 		tol.ref, nomatch, nearest, PACKAGE="matter")
 }
+
+# internal version that performs no checks (fast but unsafe)
+
+bsearch_int <- function(key, values, tol = 0, tol.ref = 1L,
+					nomatch = NA_integer_, nearest = FALSE)
+{
+	.Call("C_binarySearch", key, values, tol,
+		tol.ref, nomatch, nearest, PACKAGE="matter")
+}
+
+is.sorted <- function(x, ...) !is.unsorted(x, ...)
 
 #### Summarise vectors based on intger groupings ####
 ## --------------------------------------------------
@@ -29,10 +40,11 @@ groupSums <- function(x, group, ngroup, default=NA) {
 
 groupIds <- function(x, group, ngroup, default=NA) {
 	vals <- vector(mode=typeof(x), length=ngroup)
-	if ( anyDuplicated(group, incomparables=NA) )
+	if ( anyDuplicated(group, incomparables=NA) > 0 )
 		stop("duplicate key matches, can't resolve collision")
 	vals[] <- default
-	vals[na.omit(group)] <- x[!is.na(group)]
+	na_rm <- !is.na(group)
+	vals[group[na_rm]] <- x[na_rm]
 	vals
 }
 

@@ -47,11 +47,11 @@ sparse_mat(data, datamode = "double", keys = NULL,
 }
 
 \arguments{
-        \item{data}{Either a length-2 'list' with elements 'keys' and 'values' which provide the halves of the key-value pairs of the non-zero elements, or a data matrix that will be used to initialized the sparse matrix.}
+        \item{data}{Either a length-2 'list' with elements 'keys' and 'values' which provide the halves of the key-value pairs of the non-zero elements, or a data matrix that will be used to initialized the sparse matrix. If a list is given, all 'keys' elements must be \emph{sorted} in increasing order.}
 
         \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric').}
 
-        \item{keys}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'.}
+        \item{keys}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'. Must be \emph{unique} and \emph{sorted} in increasing order.}
 
         \item{nrow}{An optional number giving the total number of rows.}
 
@@ -90,7 +90,7 @@ sparse_mat(data, datamode = "double", keys = NULL,
 
         \item{\code{ops}:}{Delayed operations to be applied on atoms.}
 
-        \item{keys}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'.}
+        \item{keys}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'. Must be \emph{unique} and \emph{sorted} in increasing order.}
 
         \item{\code{tolerance}:}{For 'numeric' keys, the tolerance used for floating-point equality when determining key matches. An attribute 'type' gives whether 'absolute' or 'relative' differences should be used for the comparison.}
 

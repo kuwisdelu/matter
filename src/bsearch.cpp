@@ -156,12 +156,15 @@ SEXP map_binary_search<STRSXP>(SEXP key, SEXP values, double tol,
 	SEXP index;
 	PROTECT(index = NEW_INTEGER(num_keys));
 	int * pIndex = INTEGER(index);
-	const char * pKey;
+	SEXP pKey;
 	int n = LENGTH(values);
 	for ( int i = 0; i < num_keys; i++ ) {
-		pKey = CHAR(STRING_ELT(key, i));
-		pIndex[i] = binary_search<const char *>(pKey, values, 0, n,
-			tol, tol_ref, nomatch, nearest);
+		pKey = STRING_ELT(key, i);
+		if ( pKey == NA_STRING )
+			pIndex[i] = nomatch;
+		else
+			pIndex[i] = binary_search<const char *>(CHAR(pKey),
+				values, 0, n, tol, tol_ref, nomatch, nearest);
 		if ( pIndex[i] != nomatch )
 			pIndex[i] += 1; // adjust for R indexing from 1
 	}
@@ -180,8 +183,11 @@ SEXP map_binary_search<INTSXP>(SEXP key, SEXP values, double tol,
 	int * pKey = INTEGER(key);
 	int n = LENGTH(values);
 	for ( int i = 0; i < num_keys; i++ ) {
-		pIndex[i] = binary_search<int>(pKey[i], values, 0, n,
-			tol, tol_ref, nomatch, nearest);
+		if ( pKey[i] == NA_INTEGER )
+			pIndex[i] = nomatch;
+		else
+			pIndex[i] = binary_search<int>(pKey[i], values, 0, n,
+				tol, tol_ref, nomatch, nearest);
 		if ( pIndex[i] != nomatch )
 			pIndex[i] += 1; // adjust for R indexing from 1
 	}
@@ -200,8 +206,11 @@ SEXP map_binary_search<REALSXP>(SEXP key, SEXP values, double tol,
 	double * pKey = REAL(key);
 	int n = LENGTH(values);
 	for ( int i = 0; i < num_keys; i++ ) {
-		pIndex[i] = binary_search<double>(pKey[i], values, 0, n,
-			tol, tol_ref, nomatch, nearest);
+		if ( ISNA(pKey[i]) )
+			pIndex[i] = nomatch;
+		else
+			pIndex[i] = binary_search<double>(pKey[i], values, 0, n,
+				tol, tol_ref, nomatch, nearest);
 		if ( pIndex[i] != nomatch )
 			pIndex[i] += 1; // adjust for R indexing from 1
 	}
@@ -217,6 +226,8 @@ extern "C" {
 		if ( TYPEOF(key) != TYPEOF(values) )
 			error("'key' and 'values' must have the same type");
 		double _tol = NUMERIC_VALUE(tol);
+		if ( _tol < 0 )
+			error("'tol' must be non-negative");
 		int _tol_ref = INTEGER_VALUE(tol_ref);
 		int _nomatch = INTEGER_VALUE(nomatch);
 		bool _nearest = static_cast<bool>(LOGICAL_VALUE(nearest));
