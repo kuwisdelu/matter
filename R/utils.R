@@ -2,7 +2,7 @@
 #### Binary search that allows near-matches ####
 ## ----------------------------------------------
 
-# exported version that performs type checks
+# exported version with argument checking (safer, easier)
 
 bsearch <- function(key, values, tol = 0, tol.ref = "none",
 					nomatch = NA_integer_, nearest = FALSE)
@@ -16,7 +16,7 @@ bsearch <- function(key, values, tol = 0, tol.ref = "none",
 		tol.ref, nomatch, nearest, PACKAGE="matter")
 }
 
-# internal version that performs no checks (fast but unsafe)
+# faster internal version with no argument checking
 
 bsearch_int <- function(key, values, tol = 0, tol.ref = 1L,
 					nomatch = NA_integer_, nearest = FALSE)

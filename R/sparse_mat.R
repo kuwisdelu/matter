@@ -34,10 +34,6 @@ setClass("sparse_mat",
 			errors <- c(errors, "sparse matrix must have 'dim' of length 2")
 		if ( !all(lengths(object@data$keys) == lengths(object@data$values)) )
 			errors <- c(errors, "lengths of 'data$keys' must match lengths of 'data$values'")
-		# if ( is.unsorted(object@keys) )
-		# 	errors <- c(errors, "'keys' must be sorted in weakly increasing order")
-		# if ( anyDuplicated(object@keys) > 0 )
-		# 	errors <- c(errors, "'keys' must be unique")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -244,75 +240,6 @@ setReplaceMethod("tolerance", "sparse_mat", function(object, value) {
 	object
 })
 
-get_sparse_mat_compressed_vector <- function(x, i, keys,
-	.keys = atomdata(x)$keys, .vals = atomdata(x)$values)
-{
-	ikeys <- .keys[[i]]
-	ivals <- .vals[[i]]
-	if ( is.null(keys) ) {
-		# assume keys are indexes
-		if ( is(x, "sparse_matc") ) {
-			vec <- vector(mode=typeof(ivals), length=dim(x)[1])
-		} else if ( is(x, "sparse_matr") ) {
-			vec <- vector(mode=typeof(ivals), length=dim(x)[2])
-		}
-		vec[ikeys] <- ivals
-	} else {
-		# keys must be matched
-		dup.ok <- is.double(keys) && x@tolerance > 0
-		if ( length(keys) > length(ikeys) || dup.ok ) {
-			# multiple matches must be checked
-			tol.type <- as.integer(attr(x@tolerance, "type"))
-			if ( tol.type == 1 ) { # absolute
-				index <- bsearch_int(key=ikeys, values=keys,
-					tol=x@tolerance, tol.ref=1L) # 1 = 'none'
-			} else if ( tol.type == 2 ) { # relative
-				index <- bsearch_int(key=ikeys, values=keys,
-					tol=x@tolerance, tol.ref=3L) # 3 = 'values'
-			}
-			vec <- x@combiner(ivals, index, length(keys), default=0)
-		} else {
-			# assume single matches
-			index <- bsearch_int(key=keys, values=ikeys)
-			na <- is.na(index)
-			vec <- ivals[index]
-			vec[na] <- 0
-		}
-	}
-	vec
-}
-
-set_sparse_mat_compressed_vector <- function(x, i, keys, values,
-	.keys = atomdata(x)$keys, .vals = atomdata(x)$values)
-{
-	ikeys <- .keys[[i]]
-	ivals <- .vals[[i]]
-	if ( is.null(keys) ) {
-		# assume keys are indexes
-		vmode <- as.character(datamode(x))
-		if ( is(x, "sparse_matc") ) {
-			newkeys <- 1:dim(x)[1]
-		} else if ( is(x, "sparse_matr") ) {
-			newkeys <- 1:dim(x)[2]
-		}
-	} else {
-		# keys must be matched
-		if ( tolerance(x) > 0 )
-			warning("assigning with tolerance > 0, results may be unexpected")
-		newkeys <- keys
-	}
-	zero <- values == 0
-	nz <- !zero
-	remove <- ikeys %in% newkeys[zero]
-	newkeys <- newkeys[nz]
-	newvals <- values[nz]
-	keep <- !ikeys %in% newkeys
-	newkeys <- c(ikeys[keep & !remove], newkeys)
-	newvals <- c(ivals[keep & !remove], newvals)
-	o <- order(newkeys)
-	list(keys=newkeys[o], values=newvals[o])
-}
-
 getSparseMatrixElements <- function(x, i, j, drop) {
 	if ( is.null(i) ) {
 		i <- 1:dim(x)[1]
@@ -386,25 +313,84 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 	}
 	.keys <- atomdata(x)$keys
 	.vals <- atomdata(x)$values
-	n <- length(keys)
+	dup.ok <- is.double(keys) && x@tolerance > 0
+	tol.type <- as.integer(attr(x@tolerance, "type"))
 	if ( rowMaj ) {
 		for ( ii in seq_along(i) ) {
-			vec <- get_sparse_mat_compressed_vector(x, i[ii], keys,
-				.keys=.keys, .vals=.vals)
-			if ( sorted ) {
-				y[ii,] <- vec
+			if ( is.na(i[ii]) )
+				next
+			.ikeys <- .keys[[i[ii]]]
+			.ivals <- .vals[[i[ii]]]
+			if ( is.null(keys) ) {
+				if ( sorted ) {
+					y[ii,] <- 0
+					y[ii,] <- .ivals
+				} else {
+					y[ii,] <- 0
+					y[ii,ord] <- .ivals
+				}
+			} else if ( length(keys) > length(.ikeys) || dup.ok ) {
+				if ( tol.type == 1 ) { # absolute
+					index <- bsearch_int(key=.ikeys, values=keys,
+						tol=x@tolerance, tol.ref=1L) # 1 = 'none'
+				} else if ( tol.type == 2 ) { # relative
+					index <- bsearch_int(key=.ikeys, values=keys,
+						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
+				}
+				if ( sorted ) {
+					y[ii,] <- x@combiner(.ivals, index, length(keys), default=0)
+				} else {
+					y[ii,ord] <- x@combiner(.ivals, index, length(keys), default=0)
+				}
 			} else {
-				y[ii,ord] <- vec
+				index <- bsearch_int(key=keys, values=.ikeys)
+				zero <- is.na(index) & !is.na(keys)
+				if ( sorted ) {
+					y[ii,] <- .ivals[index]
+					y[ii,zero] <- 0
+				} else {
+					y[ii,ord] <- .jvals[index]
+					y[ii,ord[zero]] <- 0
+				}
 			}
 		}
 	} else {
 		for ( jj in seq_along(j) ) {
-			vec <- get_sparse_mat_compressed_vector(x, j[jj], keys,
-				.keys=.keys, .vals=.vals)
-			if ( sorted ) {
-				y[,jj] <- vec
+			if ( is.na(j[jj]) )
+				next
+			.jkeys <- .keys[[j[jj]]]
+			.jvals <- .vals[[j[jj]]]
+			if ( is.null(keys) ) {
+				if ( sorted ) {
+					y[,jj] <- 0
+					y[.jkeys,jj] <- .jvals
+				} else {
+					y[,jj] <- 0
+					y[ord,jj] <- .jvals[]
+				}
+			} else if ( length(keys) > length(.jkeys) || dup.ok ) {
+				if ( tol.type == 1 ) { # absolute
+					index <- bsearch_int(key=.jkeys, values=keys,
+						tol=x@tolerance, tol.ref=1L) # 1 = 'none'
+				} else if ( tol.type == 2 ) { # relative
+					index <- bsearch_int(key=.jkeys, values=keys,
+						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
+				}
+				if ( sorted ) {
+					y[,jj] <- x@combiner(.jvals, index, length(keys), default=0)
+				} else {
+					y[ord,jj] <- x@combiner(.jvals, index, length(keys), default=0)
+				}
 			} else {
-				y[ord,jj] <- vec
+				index <- bsearch_int(key=keys, values=.jkeys)
+				zero <- is.na(index) & !is.na(keys)
+				if ( sorted ) {
+					y[,jj] <- .jvals[index]
+					y[zero,jj] <- 0
+				} else {
+					y[ord,jj] <- .jvals[index]
+					y[ord[zero],jj] <- 0
+				}
 			}
 		}
 	}
@@ -473,21 +459,57 @@ setSparseMatrixElements <- function(x, i, j, value) {
 	}
 	.keys <- atomdata(x)$keys
 	.vals <- atomdata(x)$values
+	dup.ok <- is.double(keys) && x@tolerance > 0
+	if ( dup.ok )
+		warning("assigning with tolerance > 0, results may be unexpected")
 	if ( rowMaj ) {
 		for ( ii in seq_along(i) ) {
-			vec <- set_sparse_mat_compressed_vector(x, i[ii],
-				keys=keys, values=value[ii,],
-				.keys=.keys, .vals=.vals)
-			.keys[[i[ii]]] <- vec$keys
-			.vals[[i[ii]]] <- vec$values
+			if ( is.na(i[ii]) )
+				next
+			.ikeys <- .keys[[i[ii]]]
+			.ivals <- .vals[[i[ii]]]
+			if ( is.null(keys) ) {
+				newkeys <- 1:dim(x)[2]
+			} else {
+				newkeys <- keys
+			}
+			zero <- value[ii,] == 0
+			nz <- !zero
+			na <- is.na(newkeys)
+			remove <- .ikeys %in% newkeys[zero]
+			newkeys <- newkeys[nz & !na]
+			newvals <- value[ii,nz & !na]
+			keep <- !.ikeys %in% newkeys
+			na <- is.na(.ikeys)
+			newkeys <- c(.ikeys[keep & !remove], newkeys)
+			newvals <- c(.ivals[keep & !remove], newvals)
+			o <- order(newkeys)
+			.keys[[i[ii]]] <- newkeys[o]
+			.vals[[i[ii]]] <- newvals[o]
 		}
 	} else {
 		for ( jj in seq_along(j) ) {
-			vec <- set_sparse_mat_compressed_vector(x, j[jj],
-				keys=keys, values=value[,jj],
-				.keys=.keys, .vals=.vals)
-			.keys[[j[jj]]] <- vec$keys
-			.vals[[j[jj]]] <- vec$values
+			if ( is.na(j[jj]) )
+				next
+			.jkeys <- .keys[[j[jj]]]
+			.jvals <- .vals[[j[jj]]]
+			if ( is.null(keys) ) {
+				newkeys <- 1:dim(x)[1]
+			} else {
+				newkeys <- keys
+			}
+			zero <- value[,jj] == 0
+			nz <- !zero
+			na <- is.na(newkeys)
+			remove <- .jkeys %in% newkeys[zero]
+			newkeys <- newkeys[nz & !na]
+			newvals <- value[nz & !na,jj]
+			keep <- !.jkeys %in% newkeys
+			newkeys <- c(.jkeys[keep & !remove], newkeys)
+			newvals <- c(.jvals[keep & !remove], newvals)
+			o <- order(newkeys)
+			.keys[[j[jj]]] <- newkeys[o]
+			.vals[[j[jj]]] <- newvals[o]
 		}
 	}
 	x@length <- sum(lengths(.vals))
