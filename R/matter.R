@@ -53,6 +53,8 @@ setClass("matter",
 						"not equal to array extent"))
 			}
 		}
+		if ( is.list(object@data) && object@datamode != "virtual" )
+			stop("if 'data' is a 'list', 'datamode' must be 'virtual'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
