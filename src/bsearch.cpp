@@ -224,15 +224,12 @@ extern "C" {
             case STRSXP:
         		return map_binary_search<STRSXP>(key, values,
 					_tol, _tol_ref, _nomatch, _nearest);
-                break;
             case INTSXP:
         		return map_binary_search<INTSXP>(key, values,
 					_tol, _tol_ref, _nomatch, _nearest);
-                break;
             case REALSXP:
         		return map_binary_search<REALSXP>(key, values,
 					_tol, _tol_ref, _nomatch, _nearest);
-                break;
         }
         error("supported types are 'integer', 'numeric', or 'character'");
 	}

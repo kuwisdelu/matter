@@ -180,6 +180,13 @@ setMethod("combine", "matter_vec", function(x, y, ...) {
 	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
 		levels=paths))
 	data <- combine(x@data, y@data)
+	if ( is.null(names(x)) && is.null(names(y)) ) {
+		names <- NULL
+	} else {
+		if ( is.null(names(x)) ) names(x) <- character(length(x))
+		if ( is.null(names(y)) ) names(y) <- character(length(y))
+		names <- c(names(x), names(y))
+	}
 	new(class(x),
 		data=data,
 		datamode=widest_datamode(datamode(data)),
@@ -187,21 +194,9 @@ setMethod("combine", "matter_vec", function(x, y, ...) {
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=NULL,
-		names=NULL,
+		names=names,
 		dimnames=NULL,
 		ops=NULL)
-})
-
-setMethod("c", "matter_vec", function(x, ...)
-{
-	dots <- list(...)
-	if ( length(dots) == 0 ) {
-		x
-	} else if ( length(dots) == 1 ) {
-		combine(x, dots[[1]])
-	} else {
-		do.call(combine, list(x, ...))
-	}
 })
 
 setMethod("t", "matter_vec", function(x)

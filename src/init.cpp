@@ -40,6 +40,8 @@ extern "C" {
         {"C_createDRLE", (DL_FUNC) &createDRLE, 2},
         {"C_getDRLE", (DL_FUNC) &getDRLE, 1},
         {"C_getDRLEElements", (DL_FUNC) &getDRLEElements, 2},
+        {"C_groupMeans", (DL_FUNC) &groupMeans, 4},
+        {"C_groupSums", (DL_FUNC) &groupSums, 4},
         {NULL, NULL, 0}
     };
 

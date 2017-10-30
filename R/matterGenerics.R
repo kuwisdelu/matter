@@ -39,13 +39,13 @@ setGeneric("prcomp")
 # Do these conditionally in case user has generics from matrixStats package
 
 if ( !isGeneric("colVars") )
-	setGeneric("colVars", function(x, na.rm = FALSE) standardGeneric("colVars"))
+	setGeneric("colVars", function(x, ...) standardGeneric("colVars"))
 if ( !isGeneric("rowVars") )
-	setGeneric("rowVars", function(x, na.rm = FALSE) standardGeneric("rowVars"))
+	setGeneric("rowVars", function(x, ...) standardGeneric("rowVars"))
 if ( !isGeneric("colSds") )
-	setGeneric("colSds", function(x, na.rm = FALSE) standardGeneric("colSds"))
+	setGeneric("colSds", function(x, ...) standardGeneric("colSds"))
 if ( !isGeneric("rowSds") )
-	setGeneric("rowSds", function(x, na.rm = FALSE) standardGeneric("rowSds"))
+	setGeneric("rowSds", function(x, ...) standardGeneric("rowSds"))
 
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------
@@ -66,6 +66,14 @@ setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 ## ----------------------------------------------
 
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
+
+#### Additional generic functions for subclasses ####
+## --------------------------------------------------
+
+setGeneric("keys", function(object) standardGeneric("keys"))
+setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
+setGeneric("tolerance", function(object) standardGeneric("tolerance"))
+setGeneric("tolerance<-", function(object, value) standardGeneric("tolerance<-"))
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------

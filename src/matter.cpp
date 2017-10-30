@@ -632,6 +632,66 @@ double coerce_cast<float,double>(float x) {
         return static_cast<double>(x);
 }
 
+//// Grouped summaries
+//---------------------
+
+template<typename T>
+SEXP group_means(T * x, int * group, int ngroup, int length, double init)
+{
+    SEXP ret;
+    PROTECT(ret = NEW_NUMERIC(ngroup));
+    double * pRet = REAL(ret);
+    int * n = (int *) Calloc(ngroup, int);
+    for ( int g_i = 0; g_i < ngroup; g_i++ ) {
+        n[g_i] = 0;
+        pRet[g_i] = 0;
+    }
+    for ( int i = 0; i < length; i++ ) {
+        if ( group[i] != NA_INTEGER ) {
+            if ( group[i] <= 0 || group[i] > ngroup )
+                error("unexpected group id");
+            n[group[i] - 1]++;
+            pRet[group[i] - 1] += x[i];
+        }
+    }
+    for ( int g_i = 0; g_i < ngroup; g_i++ ) {
+        if ( n[g_i] != 0 )
+            pRet[g_i] /= n[g_i];
+        else
+            pRet[g_i] = init;
+    }
+    Free(n);
+    UNPROTECT(1);
+    return ret;
+}
+
+template<typename T>
+SEXP group_sums(T * x, int * group, int ngroup, int length, double init)
+{
+    SEXP ret;
+    PROTECT(ret = NEW_NUMERIC(ngroup));
+    double * pRet = REAL(ret);
+    int * n = (int *) Calloc(ngroup, int);
+    for ( int g_i = 0; g_i < ngroup; g_i++ ) {
+        n[g_i] = 0;
+        pRet[g_i] = 0;
+    }
+    for ( int i = 0; i < length; i++ ) {
+        if ( group[i] != NA_INTEGER ) {
+            if ( group[i] <= 0 || group[i] > ngroup )
+                error("unexpected group id");
+            n[group[i] - 1]++;
+            pRet[group[i] - 1] += x[i];
+        }
+    }
+    for ( int g_i = 0; g_i < ngroup; g_i++ )
+        if ( n[g_i] == 0 )
+            pRet[g_i] = init;
+    Free(n);
+    UNPROTECT(1);
+    return ret;
+}
+
 //// Delta run length encoding 
 //-----------------------------
 
@@ -4644,6 +4704,32 @@ extern "C" {
             return dVec.readVectorElements(i);
         }
         return R_NilValue;
+    }
+
+    SEXP groupMeans(SEXP x, SEXP group, SEXP ngroup, SEXP init)
+    {
+        switch(TYPEOF(x)) {
+            case INTSXP:
+                return group_means<int>(INTEGER(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+            case REALSXP:
+                return group_means<double>(REAL(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+        }
+        error("supported types are 'integer' or 'numeric'");
+    }
+
+    SEXP groupSums(SEXP x, SEXP group, SEXP ngroup, SEXP init)
+    {
+        switch(TYPEOF(x)) {
+            case INTSXP:
+                return group_sums<int>(INTEGER(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+            case REALSXP:
+                return group_sums<double>(REAL(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+        }
+        error("supported types are 'integer' or 'numeric'");
     }
 
 }

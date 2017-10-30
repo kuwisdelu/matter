@@ -218,6 +218,58 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 #### Additional methods ####
 ## ------------------------
 
+setMethod("c", "matter", function(x, ...)
+{
+	if ( !inherits(x, c("matter_vec", "matter_str", "matter_list")) )
+		warning("attempting to combine unsupported 'matter' class: ", class(x))
+	dots <- list(...)
+	if ( length(dots) == 0 ) {
+		x
+	} else if ( length(dots) == 1 ) {
+		combine(x, dots[[1]])
+	} else {
+		do.call(combine, list(x, ...))
+	}
+})
+
+setMethod("cbind", "matter", function(..., deparse.level=1)
+{
+	dots <- list(...)
+	for ( i in seq_along(dots) )
+		dots[[i]] <- switch(class(dots[[i]]),
+			matter_vec=t(t(dots[[i]])),
+			matter_matc=dots[[i]],
+			matter_matr=stop("cannot 'cbind' row-major matrices"),
+			sparse_matc=dots[[i]],
+			sparse_matr=stop("cannot 'cbind' compressed-row sparse matrices"),
+			returnWithWarning(dots[[i]],
+				"attempting to 'cbind' unsupported 'matter' class: ", dots[[i]]))
+	if ( length(dots) == 1 ) {
+		dots[[1]]
+	} else {
+		do.call(combine, dots)
+	}
+})
+
+setMethod("rbind", "matter", function(..., deparse.level=1)
+{
+	dots <- list(...)
+	for ( i in seq_along(dots) )
+		dots[[i]] <- switch(class(dots[[i]]),
+			matter_vec=t(dots[[i]]),
+			matter_matc=stop("cannot 'rbind' column-major matrices"),
+			matter_matr=dots[[i]],
+			sparse_matc=stop("cannot 'rbind' compressed-column sparse matrices"),
+			sparse_matr=dots[[i]],
+			returnWithWarning(dots[[i]],
+				"attempting to 'rbind' unsupported 'matter' class: ", dots[[i]]))
+	if ( length(dots) == 1 ) {
+		dots[[1]]
+	} else {
+		do.call(combine, dots)
+	}
+})
+
 setMethod("which", "matter",
 	function(x, arr.ind = FALSE, useNames = TRUE, ...) {
 		if ( datamode(x)[1] != "logical" )

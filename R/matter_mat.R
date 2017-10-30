@@ -168,7 +168,6 @@ setAs("integer", "matter_mat", function(from) matter_mat(as.matrix(from)))
 setAs("numeric", "matter_mat", function(from) matter_mat(as.matrix(from)))
 
 getMatrix <- function(x) {
-	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
 	y <- .Call("C_getMatrix", x, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- dimnames(x)
@@ -179,7 +178,6 @@ setMatrix <- function(x, value) {
 	if ( length(x) %% length(value) != 0 )
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
-	rowMaj <- switch(class(x), matter_matr=TRUE, matter_matc=FALSE)
 	if ( length(value) != 1 )
 		value <- rep(value, length.out=length(x))
 	if ( is.logical(value) )
@@ -457,21 +455,6 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		ops=NULL)
 })
 
-setMethod("cbind", "matter", function(..., deparse.level=1)
-{
-	dots <- list(...)
-	for ( i in seq_along(dots) )
-		dots[[i]] <- switch(class(dots[[i]]),
-			matter_vec=t(t(dots[[i]])),
-			matter_matc=dots[[i]],
-			matter_matr=stop("cannot 'cbind' row-major matrices"))
-	if ( length(dots) == 1 ) {
-		dots[[1]]
-	} else {
-		do.call(combine, dots)
-	}
-})
-
 setMethod("combine", "matter_matr", function(x, y, ...) {
 	if ( is(y, "matter_vec") )
 		y <- t(y)
@@ -496,21 +479,6 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 		names=NULL,
 		dimnames=combine_rownames(x,y),
 		ops=NULL)
-})
-
-setMethod("rbind", "matter", function(..., deparse.level=1)
-{
-	dots <- list(...)
-	for ( i in seq_along(dots) )
-		dots[[i]] <- switch(class(dots[[i]]),
-			matter_vec=t(dots[[i]]),
-			matter_matc=stop("cannot 'rbind' column-major matrices"),
-			matter_matr=dots[[i]])
-	if ( length(dots) == 1 ) {
-		dots[[1]]
-	} else {
-		do.call(combine, dots)
-	}
 })
 
 setMethod("t", "matter_matc", function(x)

@@ -55,7 +55,7 @@
 \title{Vectors, Matrices, and Arrays Stored on Disk}
 
 \description{
-    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary on-disk data structures, and working with them as vectors, matrices, and arrays.
+    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary on-disk data structures, and working with them as vectors, matrices, arrays, lists, and data frames.
 }
 
 \usage{
@@ -141,7 +141,12 @@ as.matter(x)
 
 \seealso{
     \code{\linkS4class{matter_vec}},
-    \code{\linkS4class{matter_mat}}
+    \code{\linkS4class{matter_mat}},
+    \code{\linkS4class{matter_arr}},
+    \code{\linkS4class{matter_list}},
+    \code{\linkS4class{matter_fc}},
+    \code{\linkS4class{matter_str}},
+    \code{\linkS4class{matter_df}}
 }
 
 \examples{

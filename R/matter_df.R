@@ -87,7 +87,7 @@ setMethod("show", "matter_df", function(object) {
 	n <- 6L
 	print(head(object, n=n))
 	if ( nrow(object) > n )
-		cat("and ", nrow(object) - n, " more rows", "\n", sep="")
+		cat("[and ", nrow(object) - n, " more rows]", "\n", sep="")
 })
 
 setAs("list", "matter_df", # also for data.frame

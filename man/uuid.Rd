@@ -1,6 +1,8 @@
 \name{uuid}
 
 \alias{uuid}
+\alias{raw2hex}
+\alias{hex2raw}
 
 \title{Universally Unique Identifiers}
 

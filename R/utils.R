@@ -16,8 +16,40 @@ bsearch <- function(key, values, tol = 0, tol.ref = "none",
 		tol.ref, nomatch, nearest, PACKAGE="matter")
 }
 
+#### Summarise vectors based on intger groupings ####
+## --------------------------------------------------
+
+groupMeans <- function(x, group, ngroup, default=NA) {
+	.Call("C_groupMeans", x, group, ngroup, default, PACKAGE="matter")
+}
+
+groupSums <- function(x, group, ngroup, default=NA) {
+	.Call("C_groupSums", x, group, ngroup, default, PACKAGE="matter")
+}
+
+groupIds <- function(x, group, ngroup, default=NA) {
+	vals <- vector(mode=typeof(x), length=ngroup)
+	if ( anyDuplicated(group, incomparables=NA) )
+		stop("duplicate key matches, can't resolve collision")
+	vals[] <- default
+	vals[na.omit(group)] <- x[!is.na(group)]
+	vals
+}
+
+groupCombiner <- function(fun) {
+	function(x, group, ngroup, default=NA) {
+		group <- factor(group, levels=seq_len(ngroup))
+		as.vector(tapply(x, group, fun, default=default))
+	}
+}
+
 #### Miscellaneous utility functions ####
 ## --------------------------------------
+
+returnWithWarning <- function(x, ...) {
+	warning(...)
+	x
+}
 
 paste_head <- function(x, n=6L, ...) {
 	if ( length(x) > n ) {

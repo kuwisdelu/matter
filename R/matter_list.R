@@ -32,7 +32,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		if ( !is.list(data) )
 			data <- list(data)
 		if ( missing(datamode) )
-			datamode <- sapply(data, mode)
+			datamode <- sapply(data, class)
 		if ( missing(lengths) )
 			lengths <- sapply(data, length)
 	}
@@ -225,6 +225,34 @@ setReplaceMethod("[[",
 	c(x = "matter_list", i = "ANY", j = "missing"),
 	function(x, i, ..., value) setListElements(x, i, NULL, value))
 
+setMethod("combine", "matter_list", function(x, y, ...) {
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	paths <- levels(factor(c(x@paths, y@paths)))
+	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
+		levels=paths))
+	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
+		levels=paths))
+	y@data@group_id <- y@data@group_id[] + max(x@data@group_id[])
+	data <- combine(x@data, y@data)
+	if ( is.null(names(x)) && is.null(names(y)) ) {
+		names <- NULL
+	} else {
+		if ( is.null(names(x)) ) names(x) <- character(length(x))
+		if ( is.null(names(y)) ) names(y) <- character(length(y))
+		names <- c(names(x), names(y))
+	}
+	new(class(x),
+		data=data,
+		datamode=make_datamode(c(x@datamode, y@datamode), type="R"),
+		paths=paths,
+		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		length=x@length + y@length,
+		dim=c(x@dim, y@dim),
+		names=names,
+		dimnames=NULL,
+		ops=NULL)
+})
 
 setMethod("lengths", "matter_list", function(x, use.names = TRUE) {
 	if ( use.names ) {

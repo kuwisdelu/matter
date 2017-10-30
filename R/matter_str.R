@@ -191,6 +191,35 @@ setReplaceMethod("[[",
 		setListElements(x, i, NULL, value)
 })
 
+setMethod("combine", "matter_str", function(x, y, ...) {
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	paths <- levels(factor(c(x@paths, y@paths)))
+	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
+		levels=paths))
+	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
+		levels=paths))
+	y@data@group_id <- y@data@group_id[] + max(x@data@group_id[])
+	data <- combine(x@data, y@data)
+	if ( is.null(names(x)) && is.null(names(y)) ) {
+		names <- NULL
+	} else {
+		if ( is.null(names(x)) ) names(x) <- character(length(x))
+		if ( is.null(names(y)) ) names(y) <- character(length(y))
+		names <- c(names(x), names(y))
+	}
+	new(class(x),
+		data=data,
+		datamode=make_datamode("raw", type="R"),
+		paths=paths,
+		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		length=x@length + y@length,
+		dim=c(x@dim, y@dim),
+		names=names,
+		dimnames=NULL,
+		ops=NULL)
+})
+
 setMethod("lengths", "matter_str", function(x, use.names = TRUE) {
 	if ( use.names ) {
 		setNames(x@dim, x@names)

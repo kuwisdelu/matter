@@ -9,6 +9,10 @@ importFrom("digest",
 importFrom("irlba",
 	"irlba")
 
+importFrom("stats",
+	"setNames",
+	"na.omit")
+
 importFrom("BiocGenerics",
 	"sd",
 	"var",
@@ -21,9 +25,6 @@ importFrom("BiocGenerics",
 	"rowSums",
 	"lengths",
 	"which")
-
-importFrom("stats",
-	"setNames")
 
 importFrom("utils",
 	"head",
@@ -41,7 +42,10 @@ exportClasses(
 	"matter_list",
 	"matter_str",
 	"matter_fc",
-	"matter_df")
+	"matter_df",
+	"sparse_mat",
+	"sparse_matc",
+	"sparse_matr")
 
 export(
 	"drle",
@@ -56,6 +60,7 @@ export(
 	"matter_str",
 	"matter_fc",
 	"matter_df",
+	"sparse_mat",
 	"is.matter",
 	"as.matter")
 
@@ -70,8 +75,15 @@ exportMethods(
 	"filemode",
 	"filemode<-",
 	"chunksize",
-	"chunksize<-",
-	"checksum")
+	"chunksize<-")
+
+exportMethods("checksum")
+
+exportMethods(
+	"keys",
+	"keys<-",
+	"tolerance",
+	"tolerance<-")
 
 exportMethods(
 	"%*%",
