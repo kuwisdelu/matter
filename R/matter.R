@@ -156,20 +156,52 @@ setMethod("show", "matter", function(object) {
 setMethod("datamode", "matter", function(x) x@datamode)
 
 setReplaceMethod("datamode", "matter", function(x, value) {
+	if ( x@datamode == "virtual" )
+		stop("can't change 'datamode' of object with mode 'virtual'")
 	x@datamode <- make_datamode(value, type="R")
 	x
 })
 
-setMethod("paths", "matter", function(x) x@paths)
+setMethod("paths", "matter", function(x) {
+	if ( x@datamode == "virtual" ) {
+		paths <- sapply(x@data, function(data) {
+			if ( is.matter(data) ) {
+				paths(data)
+			} else {
+				as.character(NA)
+			}
+		})
+		c(na.omit(unique(paths)))
+	} else {
+		x@paths
+	}
+})
 
 setReplaceMethod("paths", "matter", function(x, value) {
+	if ( x@datamode == "virtual" )
+		stop("can't change 'paths' of object with mode 'virtual'")
 	x@paths <- value
 	x
 })
 
-setMethod("filemode", "matter", function(x) x@filemode)
+setMethod("filemode", "matter", function(x) {
+	if ( x@datamode == "virtual" ) {
+		filemode <- sapply(x@data, function(data) {
+			if ( is.matter(data) ) {
+				filemode(data)
+			} else {
+				as.character(NA)
+			}
+		})
+		c(na.omit(unique(filemode)))
+	} else {
+		x@filemode
+	}
+})
 
 setReplaceMethod("filemode", "matter", function(x, value) {
+	if ( x@datamode == "virtual" )
+		stop("can't change 'filemode' of object with mode 'virtual'")
 	x@filemode <- value
 	x
 })

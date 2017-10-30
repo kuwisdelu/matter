@@ -28,6 +28,10 @@
 	Because \code{FUN} must be executed by the interpreter in the appropriate R environment, the full row or column will be loaded into memory. The \code{chunksize} of \code{X} is ignored. For summary statistics, functions like \code{\link[matter]{colMeans,matter_mat-method}} and \code{\link[matter]{rowMeans,matter_mat-method}} offer greater control over memory pressure.
 }
 
+\section{Warning}{
+    Applying a function over the rows of a \code{\linkS4class{matter_matc}} (column-major) matrix or over the columns of a \code{\linkS4class{matter_matr}} (row-major) matrix may be very slow.
+}
+
 \value{
 	See \code{\link[base]{apply}} for details.
 }

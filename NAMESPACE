@@ -10,7 +10,8 @@ importFrom("irlba",
 	"irlba")
 
 importFrom("stats",
-	"setNames")
+	"setNames",
+	"na.omit")
 
 importFrom("BiocGenerics",
 	"sd",
