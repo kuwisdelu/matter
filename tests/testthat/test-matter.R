@@ -187,3 +187,39 @@ test_that("data frame subsetting", {
 	expect_equivalent(as.matter(df1)[], df2[])
 
 })
+
+test_that("sparse matrix subsetting", {
+
+	x <- matrix(rbinom(100, 1, 0.2), nrow=10, ncol=10)
+
+	y <- sparse_mat(x, keys=1:10 + (1:10) * 0.11)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,1], y[1,1])
+
+	expect_equal(x[1:10,1:10], y[1:10,1:10])
+
+	expect_equal(x[10:1,10:1], y[10:1,10:1])
+
+	keys(y) <- keys(y) + 0.001
+
+	tolerance(y) <- c(absolute=0.025)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,1], y[1,1])
+
+	expect_equal(x[1:10,1:10], y[1:10,1:10])
+
+	expect_equal(x[10:1,10:1], y[10:1,10:1])
+
+})

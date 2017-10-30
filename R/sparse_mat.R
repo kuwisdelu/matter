@@ -308,7 +308,19 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 	y <- matrix(nrow=length(i), ncol=length(j))
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	if ( is.null(keys(x)) ) {
-		keys <- NULL
+		if ( rowMaj ) {
+			if ( allIndices(x, j, 2) ) {
+				keys <- NULL
+			} else {
+				keys <- as.integer(j)
+			}
+		} else {
+			if ( allIndices(x, i, 1) ) {
+				keys <- NULL
+			} else {
+				keys <- as.integer(i)
+			}
+		}
 	} else {
 		if ( rowMaj ) {
 			ord <- order(keys(x)[j])
@@ -321,7 +333,7 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 	if ( rowMaj ) {
 		for ( ii in seq_along(i) ) {
 			tmp <- get_sparse_mat_compressed_vector(x, i[ii], keys)
-			if ( is.null(keys) ) {
+			if ( is.null(keys(x)) ) {
 				y[ii,] <- tmp
 			} else {
 				y[ii,ord] <- tmp
@@ -330,7 +342,7 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 	} else {
 		for ( jj in seq_along(j) ) {
 			tmp <- get_sparse_mat_compressed_vector(x, j[jj], keys)
-			if ( is.null(keys) ) {
+			if ( is.null(keys(x)) ) {
 				y[,jj] <- tmp
 			} else {
 				y[ord,jj] <- tmp
@@ -393,11 +405,11 @@ setSparseMatrixElements <- function(x, i, j, value) {
 }
 
 getSparseMatrixRows <- function(x, i, drop=TRUE) {
-	getSparseMatrixElements(x, i, 1:dim(x)[1], drop=drop)
+	getSparseMatrixElements(x, i, 1:dim(x)[2], drop=drop)
 }
 
 setSparseMatrixRows <- function(x, i, value) {
-	setSparseMatrixElements(x, i, 1:dim(x)[1], value)
+	setSparseMatrixElements(x, i, 1:dim(x)[2], value)
 }
 
 getSparseMatrixCols <- function(x, j, drop=TRUE) {
