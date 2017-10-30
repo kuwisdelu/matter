@@ -11,6 +11,7 @@ Priority: High
 Priority: Medium
 - Add 'match' and '%in%' functions for 'matter_vec' class
 - Add more data manipulation functions for 'matter_df'
+- Add delayed ops and matrix multiplication for 'sparse_mat'
 - Add wrappers for reading csv, tsv, etc.
 
 Priority: Low
