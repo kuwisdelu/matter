@@ -277,7 +277,7 @@ make_datamode <- function(x, type=c("C", "R")) {
 
 convert_datamode <- function(x, to=c("C", "R")) {
 	if ( to == "R" ) {
-		vapply(as.character(x), switch, character(1),
+		x <- vapply(as.character(x), switch, character(1),
 			char = "raw",
 			uchar = "raw",
 			short = "integer",
@@ -289,7 +289,7 @@ convert_datamode <- function(x, to=c("C", "R")) {
 			float = "numeric",
 			double = "numeric")
 	} else {
-		vapply(as.character(x), switch, character(1),
+		x <- vapply(as.character(x), switch, character(1),
 			raw = "uchar",
 			logical = "int",
 			integer = "int",
@@ -297,6 +297,8 @@ convert_datamode <- function(x, to=c("C", "R")) {
 			character = "uchar",
 			virtual = stop("cannot convert data mode 'virtual' to C data type"))
 	}
+	names(x) <- NULL
+	x
 }
 
 # --> R

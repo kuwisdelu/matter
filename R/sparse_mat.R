@@ -34,6 +34,8 @@ setClass("sparse_mat",
 			errors <- c(errors, "sparse matrix must have 'dim' of length 2")
 		if ( !all(lengths(object@data$keys) == lengths(object@data$values)) )
 			errors <- c(errors, "lengths of 'data$keys' must match lengths of 'data$values'")
+		if ( !object@datamode %in% c("integer", "numeric") )
+			errors <- c(errors, "'datamode' must be 'integer' or 'numeric'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -265,7 +267,8 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 		if ( any(j <= 0 | j > dim(x)[2]) )
 			stop("subscript out of bounds")
 	}
-	y <- matrix(nrow=length(i), ncol=length(j))
+	init <- as(NA, as.character(datamode(x)))
+	y <- matrix(init, nrow=length(i), ncol=length(j))
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	sorted <- FALSE
 	if ( is.null(keys(x)) ) {
