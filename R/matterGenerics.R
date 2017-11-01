@@ -53,6 +53,7 @@ if ( !isGeneric("rowSds") )
 setGeneric("adata", function(object) standardGeneric("adata"))
 setGeneric("atomdata", function(object) standardGeneric("atomdata"))
 setGeneric("atomdata<-", function(object, value) standardGeneric("atomdata<-"))
+
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
 setGeneric("paths", function(x) standardGeneric("paths"))

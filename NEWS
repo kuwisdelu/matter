@@ -1,4 +1,17 @@
 
+CHANGES IN VERSION 1.5.1 [2017-11-1]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'sparse_mat' class for sparse matrics (potentially
+        on-disk) with subclasses 'sparse_matc' for CSC matrices
+        and 'sparse_matr' for CSR matrices
+    o Added 'bsearch' function for fast binary searches
+    o Added 'uuid' function for generating UUIDs as both 'raw' and
+        and 'character' vectors
+    o Added a 'checksum' method for doing sha1 and md5 checksums
+        of all files associated with a 'matter' object
 
 CHANGES IN VERSION 1.3.8 [2017-10-26]
 -----------------------------------
@@ -29,10 +42,14 @@ CHANGES IN VERSION 1.3.6 [2017-10-20]
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
-    o Lists (ragged arrays) may now be heterogenous (elements must still be vectors)
-    o More memory-efficient initialization of data on disk when length(data) is 1
-    o Files are now created by default in constructors if they do not already exist
-    o When coercing with 'as.matter', names and/or dimnames are now retained
+    o Lists (ragged arrays) may now be heterogenous (elements
+        must still be vectors)
+    o More memory-efficient initialization of data on disk
+        when length(data) is 1
+    o Files are now created by default in constructors if
+        they do not already exist
+    o When coercing with 'as.matter', names and/or dimnames
+        are now retained
 
 
 CHANGES IN VERSION 1.3.5 [2017-10-18]
