@@ -168,6 +168,8 @@ setListElements <- function(x, i, j, value) {
 		invisible(x)	
 }
 
+# x[i] subsetting
+
 setMethod("[",
 	c(x = "matter_list", i = "missing", j = "missing"),
 	function(x, ...) getList(x))
@@ -209,6 +211,8 @@ setReplaceMethod("[",
 		x
 })
 
+# x[i,j] subsetting
+
 setMethod("[",
 	c(x = "matter_list", i = "ANY", j = "ANY"),
 	function(x, i, j, ...) getListElements(x, i, j))
@@ -217,6 +221,8 @@ setReplaceMethod("[",
 	c(x = "matter_list", i = "ANY", j = "ANY"),
 	function(x, i, j, ..., value) setListElements(x, i, j, value))
 
+# x[[i]] subsetting
+
 setMethod("[[",
 	c(x = "matter_list", i = "ANY", j = "missing"),
 	function(x, i, ...) getListElements(x, i))
@@ -224,6 +230,8 @@ setMethod("[[",
 setReplaceMethod("[[",
 	c(x = "matter_list", i = "ANY", j = "missing"),
 	function(x, i, ..., value) setListElements(x, i, NULL, value))
+
+# additional methods
 
 setMethod("combine", "matter_list", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )

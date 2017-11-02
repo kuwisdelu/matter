@@ -629,50 +629,32 @@ subsetSparseMatterRows <- function(x, i) {
 # sparse matrix getter methods
 
 setMethod("[",
-	c(x = "sparse_mat", i = "missing", j = "missing", drop = "missing"),
-	function(x, ...) getSparseMatrix(x))
+	c(x = "sparse_mat", i = "missing", j = "missing"),
+	function(x, ..., drop) getSparseMatrix(x))
 
 setMethod("[",
-	c(x = "sparse_mat", j = "missing", drop = "missing"),
-	function(x, i, ...) getSparseMatrixRows(x, i, drop))
+	c(x = "sparse_mat", j = "missing"),
+	function(x, i, ..., drop) getSparseMatrixRows(x, i, drop))
 
 setMethod("[",
-	c(x = "sparse_mat", i = "missing", drop = "missing"),
-	function(x, j, ...) getSparseMatrixCols(x, j, drop))
+	c(x = "sparse_mat", i = "missing"),
+	function(x, j, ..., drop) getSparseMatrixCols(x, j, drop))
 
 setMethod("[",
-	c(x = "sparse_mat", drop = "missing"),
-	function(x, i, j, ...) getSparseMatrixElements(x, i, j, drop))
+	c(x = "sparse_mat"),
+	function(x, i, j, ..., drop) getSparseMatrixElements(x, i, j, drop))
 
 setMethod("[",
-	c(x = "sparse_mat", j = "missing", drop = "logical"),
-	function(x, i, ..., drop) {
-		if ( is.na(drop) ) {
-			subsetSparseMatterRows(x, i)
-		} else {
-			getSparseMatrixRows(x, i, drop)
-		}
-})
+	c(x = "sparse_mat", j = "missing", drop = "NULL"),
+	function(x, i, ..., drop) subsetSparseMatterRows(x, i))
 
 setMethod("[",
-	c(x = "sparse_mat", i = "missing", drop = "logical"),
-	function(x, j, ..., drop) {
-		if ( is.na(drop) ) {
-			subsetSparseMatterCols(x, j)
-		} else {
-			getSparseMatrixCols(x, j, drop)
-		}
-})
+	c(x = "sparse_mat", i = "missing", drop = "NULL"),
+	function(x, j, ..., drop) subsetSparseMatterCols(x, j))
 
 setMethod("[",
-	c(x = "sparse_mat", drop = "logical"),
-	function(x, i, j, ..., drop) {
-		if ( is.na(drop) ) {
-			subsetSparseMatterMatrix(x, i, j)
-		} else {
-			getSparseMatrixElements(x, i, j, drop)
-		}
-})
+	c(x = "sparse_mat", drop = "NULL"),
+	function(x, i, j, ..., drop) subsetSparseMatterMatrix(x, i, j))
 
 # sparse matrix setter methods
 

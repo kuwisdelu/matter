@@ -94,7 +94,7 @@ matter_list(data, datamode = "double", paths = NULL,
     \describe{
         \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the elements of the list.}
 
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the list.}
+        \item{\code{x[i, j], x[i, j] <- value}:}{Get or set the \code{j} elements of the \code{i}th element of the list.}
 
         \item{\code{lengths(x)}:}{Get the lengths of all elements in the list.}
     }

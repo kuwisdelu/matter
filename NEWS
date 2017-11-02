@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 1.5.2 [2017-11-2]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Use 'drop=NULL' from now on instead of 'drop=NA'
+        to do endomorphic subsetting of matter matrices
+
 CHANGES IN VERSION 1.5.1 [2017-11-1]
 -----------------------------------
 

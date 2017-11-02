@@ -88,7 +88,7 @@ matter_df(\dots, row.names = NULL)
 
         \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the data columns.}
 
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the data frame.}
+        \item{\code{x[i, j, ..., drop], x[i, j] <- value}:}{Get or set the elements of the data frame.}
     }
 }
 

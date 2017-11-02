@@ -364,50 +364,32 @@ subsetMatterRows <- function(x, i) {
 # matrix getter methods
 
 setMethod("[",
-	c(x = "matter_mat", i = "missing", j = "missing", drop = "missing"),
-	function(x, ...) getMatrix(x))
+	c(x = "matter_mat", i = "missing", j = "missing"),
+	function(x, ..., drop) getMatrix(x))
 
 setMethod("[",
-	c(x = "matter_mat", j = "missing", drop = "missing"),
-	function(x, i, ...) getMatrixRows(x, i, drop))
+	c(x = "matter_mat", j = "missing"),
+	function(x, i, ..., drop) getMatrixRows(x, i, drop))
 
 setMethod("[",
-	c(x = "matter_mat", i = "missing", drop = "missing"),
-	function(x, j, ...) getMatrixCols(x, j, drop))
+	c(x = "matter_mat", i = "missing"),
+	function(x, j, ..., drop) getMatrixCols(x, j, drop))
 
 setMethod("[",
-	c(x = "matter_mat", drop = "missing"),
-	function(x, i, j, ...) getMatrixElements(x, i, j, drop))
+	c(x = "matter_mat"),
+	function(x, i, j, ..., drop) getMatrixElements(x, i, j, drop))
 
 setMethod("[",
-	c(x = "matter_mat", j = "missing", drop = "logical"),
-	function(x, i, ..., drop) {
-		if ( is.na(drop) ) {
-			subsetMatterRows(x, i)
-		} else {
-			getMatrixRows(x, i, drop)
-		}
-})
+	c(x = "matter_mat", j = "missing", drop = "NULL"),
+	function(x, i, ..., drop) subsetMatterRows(x, i))
 
 setMethod("[",
-	c(x = "matter_mat", i = "missing", drop = "logical"),
-	function(x, j, ..., drop) {
-		if ( is.na(drop) ) {
-			subsetMatterCols(x, j)
-		} else {
-			getMatrixCols(x, j, drop)
-		}
-})
+	c(x = "matter_mat", i = "missing", drop = "NULL"),
+	function(x, j, ..., drop) subsetMatterCols(x, j))
 
 setMethod("[",
-	c(x = "matter_mat", drop = "logical"),
-	function(x, i, j, ..., drop) {
-		if ( is.na(drop) ) {
-			subsetMatterMatrix(x, i, j)
-		} else {
-			getMatrixElements(x, i, j, drop)
-		}
-})
+	c(x = "matter_mat", drop = "NULL"),
+	function(x, i, j, ..., drop) subsetMatterMatrix(x, i, j))
 
 # matrix setter methods
 

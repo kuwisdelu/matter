@@ -10,13 +10,13 @@
 \alias{matter_matr-class}
 
 \alias{[,matter_mat-method}
-\alias{[,matter_mat,ANY,ANY,logical-method}
-\alias{[,matter_mat,ANY,ANY,missing-method}
-\alias{[,matter_mat,ANY,missing,logical-method}
-\alias{[,matter_mat,ANY,missing,missing-method}
-\alias{[,matter_mat,missing,ANY,logical-method}
-\alias{[,matter_mat,missing,ANY,missing-method}
-\alias{[,matter_mat,missing,missing,missing-method}
+\alias{[,matter_mat,ANY,ANY,ANY-method}
+\alias{[,matter_mat,ANY,ANY,NULL-method}
+\alias{[,matter_mat,ANY,missing,ANY-method}
+\alias{[,matter_mat,ANY,missing,NULL-method}
+\alias{[,matter_mat,missing,ANY,ANY-method}
+\alias{[,matter_mat,missing,ANY,NULL-method}
+\alias{[,matter_mat,missing,missing,ANY-method}
 \alias{[<-,matter_mat-method}
 \alias{[<-,matter_mat,ANY,ANY,ANY-method}
 \alias{[<-,matter_mat,ANY,missing,ANY-method}
@@ -119,7 +119,7 @@ matter_mat(data, datamode = "double", paths = NULL,
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the matrix.}
+        \item{\code{x[i, j, ..., drop], x[i, j] <- value}:}{Get or set the elements of the matrix. Use \code{drop = NULL} to return a subset of the same class as the object.}
 
         \item{\code{x \%*\% y}:}{Matrix multiplication. At least one matrix must be an in-memory R matrix (or vector).}
 

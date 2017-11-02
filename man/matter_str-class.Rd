@@ -97,7 +97,7 @@ matter_str(data, datamode = "uchar", paths = NULL,
     \describe{
         \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the string elements of the vector.}
 
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the string elements of the vector.}
+        \item{\code{x[i, j], x[i, j] <- value}:}{Get or set \code{j} characters the \code{i}th string element of the vector.}
 
         \item{\code{lengths(x)}:}{Get the number of characters (in bytes) of all string elements in the vector.}
     }

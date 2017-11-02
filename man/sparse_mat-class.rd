@@ -15,13 +15,13 @@
 \alias{tolerance<-,sparse_mat-method}
 
 \alias{[,sparse_mat-method}
-\alias{[,sparse_mat,ANY,ANY,logical-method}
-\alias{[,sparse_mat,ANY,ANY,missing-method}
-\alias{[,sparse_mat,ANY,missing,logical-method}
-\alias{[,sparse_mat,ANY,missing,missing-method}
-\alias{[,sparse_mat,missing,ANY,logical-method}
-\alias{[,sparse_mat,missing,ANY,missing-method}
-\alias{[,sparse_mat,missing,missing,missing-method}
+\alias{[,sparse_mat,ANY,ANY,ANY-method}
+\alias{[,sparse_mat,ANY,ANY,NULL-method}
+\alias{[,sparse_mat,ANY,missing,ANY-method}
+\alias{[,sparse_mat,ANY,missing,NULL-method}
+\alias{[,sparse_mat,missing,ANY,ANY-method}
+\alias{[,sparse_mat,missing,ANY,NULL-method}
+\alias{[,sparse_mat,missing,missing,ANY-method}
 \alias{[<-,sparse_mat-method}
 \alias{[<-,sparse_mat,ANY,ANY,ANY-method}
 \alias{[<-,sparse_mat,ANY,missing,ANY-method}
@@ -115,7 +115,7 @@ sparse_mat(data, datamode = "double", keys = NULL,
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[i,j], x[i,j] <- value}:}{Get or set the elements of the sparse matrix.}
+        \item{\code{x[i, j, ..., drop], x[i, j] <- value}:}{Get or set the elements of the sparse matrix. Use \code{drop = NULL} to return a subset of the same class as the object.}
 
         \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine sparse matrices by row or column.}
 
