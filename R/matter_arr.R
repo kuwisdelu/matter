@@ -3,6 +3,7 @@
 ## -------------------------------------------------------
 
 setClass("matter_arr",
+	slot = c(atoms = "atoms"),
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),

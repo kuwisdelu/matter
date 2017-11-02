@@ -3,6 +3,7 @@
 ## ---------------------------------------------------------
 
 setClass("matter_list",
+	slot = c(atoms = "atoms"),
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
@@ -182,7 +183,7 @@ setMethod("[",
 		if ( is.character(i) )
 			i <- names2index(x, i)
 		new(class(x),
-			data=atomdata(x)[i],
+			data=atomdata(x)[,i],
 			datamode=datamode(x),
 			paths=paths(x),
 			filemode=filemode(x),

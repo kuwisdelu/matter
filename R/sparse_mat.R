@@ -8,10 +8,10 @@ setClassUnion("valid_key_type",
 
 setClass("sparse_mat",
 	slots = c(
+		atoms = "list",
 		keys = "valid_key_type",
 		tolerance = "numeric",
 		combiner = "function"),
-	contains = c("matter", "VIRTUAL"),
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("numeric", type="R"),
@@ -26,6 +26,7 @@ setClass("sparse_mat",
 		keys = NULL,
 		tolerance = 0,
 		combiner = groupIds),
+	contains = c("matter", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )

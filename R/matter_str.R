@@ -3,7 +3,9 @@
 ## -----------------------------------------------
 
 setClass("matter_str",
-	slots = c(encoding = "character"),
+	slots = c(
+		atoms = "atoms",
+		encoding = "character"),
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("raw", type="R"),
@@ -126,7 +128,7 @@ setMethod("[",
 		if ( is.character(i) )
 			i <- names2index(x, i)
 		y <- new(class(x),
-			data=atomdata(x)[i],
+			data=atomdata(x)[,i],
 			datamode=datamode(x),
 			paths=paths(x),
 			filemode=filemode(x),

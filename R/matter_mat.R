@@ -3,7 +3,7 @@
 ## --------------------------------------------------------
 
 setClass("matter_mat",
-	contains = c("matter", "VIRTUAL"),
+	slot = c(atoms = "atoms"),
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
@@ -15,6 +15,7 @@ setClass("matter_mat",
 		names = NULL,
 		dimnames = NULL,
 		ops = NULL),
+	contains = c("matter", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )
@@ -322,7 +323,7 @@ subsetMatterCols <- function(x, j) {
 		warning("dropping delayed operations")
 	x <- switch(class(x),
 		matter_matc=new("matter_matc",
-			data=x@data[j],
+			data=x@data[,j],
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,
@@ -347,7 +348,7 @@ subsetMatterRows <- function(x, i) {
 	x <- switch(class(x),
 		matter_matc=stop("cannot subset column-major matrix by rows"),
 		matter_matr=new("matter_matr",
-			data=x@data[i],
+			data=x@data[,i],
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,

@@ -93,23 +93,37 @@ setMethod("combine", "atoms", function(x, y, ...) {
 		extent=combine(x@extent, y@extent))
 })
 
-setMethod("[", "atoms",
+setMethod("[", c(x="atoms", j="missing"),
 	function(x, i, ...) {
-		groups <- x@group_id[]
-		i2 <- lapply(i, function(g) which(groups == g))
-		i <- unlist(i2)
-		atoms(group_id=rep.int(seq_len(length(i2)), sapply(i2, length)),
+		atoms(group_id=x@group_id[i],
 			source_id=x@source_id[i],
 			datamode=x@datamode[i],
 			offset=x@offset[i],
 			extent=x@extent[i])
 })
 
+setMethod("[", c(x="atoms", i="missing"),
+	function(x, i, ...) {
+		groups <- x@group_id[]
+		j2 <- lapply(j, function(g) which(groups == g))
+		j <- unlist(j2)
+		atoms(group_id=rep.int(seq_len(length(j2)), sapply(j2, length)),
+			source_id=x@source_id[j],
+			datamode=x@datamode[j],
+			offset=x@offset[j],
+			extent=x@extent[j])
+})
+
+setMethod("[", c(x="atoms"),
+	function(x, i, j, ...) {
+		x[i,][,j]
+})
+
 setMethod("[[", "atoms",
 	function(x, i, ...) {
 		if ( length(i) > 1 )
 			stop("attempt to select more than one element")
-		x[i]
+		x[,i]
 })
 
 setMethod("c", "atoms", function(x, ..., recursive=FALSE)
