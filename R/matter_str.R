@@ -4,7 +4,7 @@
 
 setClass("matter_str",
 	slots = c(
-		atoms = "atoms",
+		data = "atoms",
 		encoding = "character"),
 	prototype = prototype(
 		data = new("atoms"),

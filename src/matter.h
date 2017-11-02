@@ -621,7 +621,8 @@ class Atoms {
                 error("subscript out of bounds");
             while ( numRead < count && offset < totLength ) {
                 int i = find_atom(offset);
-                index_t n = toRead < extent(i) ? toRead : extent(i);
+                index_t maxReadable = index_extent(i) - offset;
+                index_t n = toRead <= maxReadable ? toRead : maxReadable;
                 switch(datamode(i)) {
                     case C_CHAR:
                         n = read_atom<char,RType>(ptr, i, offset, n, skip);
@@ -674,7 +675,8 @@ class Atoms {
                 error("subscript out of bounds");
             while ( numWrote < count && offset < totLength ) {
                 int i = find_atom(offset);
-                index_t n = toWrite < extent(i) ? toWrite : extent(i);
+                index_t maxWritable = index_extent(i) - offset;
+                index_t n = toWrite < maxWritable ? toWrite : maxWritable;
                 switch(datamode(i)) {
                     case C_CHAR:
                         n = write_atom<char,RType>(ptr, i, offset, n, skip);
@@ -719,7 +721,7 @@ class Atoms {
 
         template<typename RType>
         index_t read_indices(RType * ptr, Rindex_t * pindex, long length, size_t skip = 1) {
-            index_t numRead;
+            index_t numRead = 0;
             for ( long i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
                     ptr[skip * i] = DataNA<RType>();
@@ -729,12 +731,12 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_t count = nx + 1;
                     index_t offset = static_cast<index_t>(pindex[i]);
-                    numRead = read<RType>(ptr + (skip * i), offset, count, skip);
+                    numRead += read<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
                     index_t count = (-nx) + 1;
                     index_t offset = static_cast<index_t>(pindex[i + (-nx)]);
-                    numRead = read<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
+                    numRead += read<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);
             }
@@ -743,7 +745,7 @@ class Atoms {
 
         template<typename RType>
         index_t write_indices(RType * ptr, Rindex_t * pindex, long length, size_t skip = 1) {
-            index_t numWrote;
+            index_t numWrote = 0;
             for ( long i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
                     continue;
@@ -752,12 +754,12 @@ class Atoms {
                 if ( nx >= 0 ) {
                     index_t count = nx + 1;
                     index_t offset = static_cast<index_t>(pindex[i]);
-                    numWrote = write<RType>(ptr + (skip * i), offset, count, skip);
+                    numWrote += write<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
                     index_t count = (-nx) + 1;
                     index_t offset = static_cast<index_t>(pindex[i + (-nx)]);
-                    numWrote = write<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
+                    numWrote += write<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);
             }

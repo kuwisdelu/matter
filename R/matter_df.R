@@ -3,7 +3,7 @@
 ## --------------------------------------------------------------
 
 setClass("matter_df",
-	slot = c(atoms = "list"),
+	slot = c(data = "list"),
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),

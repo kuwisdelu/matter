@@ -8,7 +8,7 @@ setClassUnion("valid_key_type",
 
 setClass("sparse_mat",
 	slots = c(
-		atoms = "list",
+		data = "list",
 		keys = "valid_key_type",
 		tolerance = "numeric",
 		combiner = "function"),

@@ -3,7 +3,7 @@
 ## --------------------------------------------------------
 
 setClass("matter_vec",
-	slot = c(atoms= "atoms"),
+	slot = c(data= "atoms"),
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),

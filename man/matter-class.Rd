@@ -40,6 +40,8 @@
 \alias{dimnames,matter-method}
 \alias{dimnames<-,matter,ANY-method}
 
+\alias{[,atoms,ANY,missing,ANY-method}
+\alias{[,atoms,missing,ANY,ANY-method}
 \alias{[,atoms,ANY,ANY,ANY-method}
 \alias{[[,atoms-method}
 \alias{[[,atoms,ANY,ANY-method}
