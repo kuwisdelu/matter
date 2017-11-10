@@ -194,6 +194,8 @@ as_sparse_mat_tolerance <- function(tolerance) {
 	tol
 }
 
+setMethod("type_for_display", "sparse_mat", function(x) "sparse matrix")
+
 setMethod("show", "sparse_mat", function(object) {
 	keys.memory <- bytes(object.size(adata(object)$keys))
 	values.memory <- bytes(object.size(adata(object)$values))
@@ -216,7 +218,7 @@ setMethod("show", "sparse_mat", function(object) {
 	object.memory <- bytes(object.size(object))
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		"sparse matrix", "\n", sep="")
+		type_for_display(object), "\n", sep="")
 	cat("    keys:", keys.summary, "\n")
 	cat("    values:", values.summary, "\n")
 	cat("    ", length(object), " non-zero elements\n", sep="")

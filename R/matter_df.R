@@ -78,10 +78,12 @@ setMethod("tail", "matter_df",
 	    x[seq.int(to=nrx, length.out=n),,drop=FALSE]
 })
 
+setMethod("type_for_display", "matter_df", function(x) "data frame")
+
 setMethod("show", "matter_df", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		"data frame", "\n", sep="")
+		type_for_display(object), "\n", sep="")
 	m <- sum(sapply(atomdata(object), is.matter))
 	cat("    ", length(object) - m, " variables in-memory\n", sep="")
 	cat("    ",  m, " variables on-disk\n", sep="")

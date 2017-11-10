@@ -151,12 +151,29 @@ subset_atoms_by_index_offset <- function(x, i) {
 		extent=y$extent)
 }
 
-drop_groups <- function(x) {
+drop_groups_from_atoms <- function(x) {
 	atoms(group_id=rep(1L, x@natoms),
 		source_id=x@source_id,
 		datamode=x@datamode,
 		offset=x@offset,
 		extent=x@extent)
+}
+
+merge_atoms_with_sources <- function(x, y, x.paths, y.paths, new.groups = FALSE) {
+	if ( new.groups )
+		y@group_id <- y@group_id[] + max(x@group_id[])
+	if ( !missing(x.paths) && !missing(y.paths) ) {
+		paths <- levels(factor(c(x.paths, y.paths)))
+		x@source_id <- as.integer(factor(x.paths[x@source_id[]],
+			levels=paths))
+		y@source_id <- as.integer(factor(y.paths[y@source_id[]],
+			levels=paths))
+	}
+	atoms(group_id=combine(x@group_id, y@group_id),
+		source_id=combine(x@source_id, y@source_id),
+		datamode=combine(x@datamode, y@datamode),
+		offset=combine(x@offset, y@offset),
+		extent=combine(x@extent, y@extent))
 }
 
 setMethod("dim", "atoms", function(x) c(x@natoms, x@ngroups))
@@ -165,13 +182,8 @@ setMethod("length", "atoms", function(x) x@ngroups)
 
 setMethod("datamode", "atoms", function(x) x@datamode)
 
-setMethod("combine", "atoms", function(x, y, ...) {
-	atoms(group_id=combine(x@group_id, y@group_id),
-		source_id=combine(x@source_id, y@source_id),
-		datamode=combine(x@datamode, y@datamode),
-		offset=combine(x@offset, y@offset),
-		extent=combine(x@extent, y@extent))
-})
+setMethod("combine", "atoms", function(x, y, ...)
+	merge_atoms_with_sources(x, y, new.groups=FALSE))
 
 setMethod("[", c(x="atoms", j="missing"),
 	function(x, i, ...) {

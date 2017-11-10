@@ -86,10 +86,12 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 	x
 }
 
+setMethod("type_for_display", "matter_str", function(x) "strings")
+
 setMethod("show", "matter_str", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@length, " length> ",
-		"on-disk strings", "\n", sep="")
+		"on-disk ", type_for_display(object), "\n", sep="")
 	callNextMethod(object)
 	cat("    encoding:", object@encoding, "\n")
 })
@@ -182,13 +184,8 @@ setReplaceMethod("[",
 setMethod("combine", "matter_str", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
-	paths <- levels(factor(c(x@paths, y@paths)))
-	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
-		levels=paths))
-	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
-		levels=paths))
-	y@data@group_id <- y@data@group_id[] + max(x@data@group_id[])
-	data <- combine(x@data, y@data)
+	data <- merge_atoms_with_sources(x@data, y@data,
+		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
 	if ( is.null(names(x)) && is.null(names(y)) ) {
 		names <- NULL
 	} else {
@@ -199,7 +196,7 @@ setMethod("combine", "matter_str", function(x, y, ...) {
 	new(class(x),
 		data=data,
 		datamode=make_datamode("raw", type="R"),
-		paths=paths,
+		paths=levels(factor(c(x@paths, y@paths))),
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=c(x@dim, y@dim),

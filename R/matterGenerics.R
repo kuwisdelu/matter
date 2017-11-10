@@ -51,7 +51,6 @@ setGeneric("rowSds", function(x, ...) standardGeneric("rowSds"))
 setGeneric("adata", function(object) standardGeneric("adata"))
 setGeneric("atomdata", function(object) standardGeneric("atomdata"))
 setGeneric("atomdata<-", function(object, value) standardGeneric("atomdata<-"))
-
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
 setGeneric("paths", function(x) standardGeneric("paths"))
@@ -64,7 +63,11 @@ setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 #### Additional generic functions for matter ####
 ## ----------------------------------------------
 
+setGeneric("type_for_display", function(x) standardGeneric("type_for_display"))
+setGeneric("combine_by_cols", function(x, y, ...) standardGeneric("combine_by_cols"))
+setGeneric("combine_by_rows", function(x, y, ...) standardGeneric("combine_by_rows"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
+setGeneric("chunker", function(x, ...) standardGeneric("chunker"))
 
 #### Additional generic functions for subclasses ####
 ## --------------------------------------------------

@@ -144,10 +144,12 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
+setMethod("type_for_display", "matter_mat", function(x) "matrix")
+
 setMethod("show", "matter_mat", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		"on-disk matrix", "\n", sep="")
+		"on-disk ", type_for_display(object), "\n", sep="")
 	callNextMethod(object)
 	if ( !is.null(attr(object, "scaled:center")) )
 		cat("    scaled:center = TRUE\n")
@@ -439,17 +441,12 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		stop("number of rows of column-major matrices must match")
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
-	paths <- levels(factor(c(x@paths, y@paths)))
-	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
-		levels=paths))
-	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
-		levels=paths))
-	y@data@group_id <- y@data@group_id[] + max(x@data@group_id[])
-	data <- combine(x@data, y@data)
+	data <- merge_atoms_with_sources(x@data, y@data,
+		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
 	new(class(x),
 		data=data,
 		datamode=widest_datamode(datamode(data)),
-		paths=paths,
+		paths=levels(factor(c(x@paths, y@paths))),
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
@@ -465,17 +462,12 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 		stop("number of columns of row-major matrices must match")
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
-	paths <- levels(factor(c(x@paths, y@paths)))
-	x@data@source_id <- as.integer(factor(x@paths[x@data@source_id[]],
-		levels=paths))
-	y@data@source_id <- as.integer(factor(y@paths[y@data@source_id[]],
-		levels=paths))
-	y@data@group_id <- y@data@group_id[] + max(x@data@group_id[])
-	data <- combine(x@data, y@data)
+	data <- merge_atoms_with_sources(x@data, y@data,
+		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
 	new(class(x),
 		data=data,
 		datamode=widest_datamode(datamode(data)),
-		paths=paths,
+		paths=levels(factor(c(x@paths, y@paths))),
 		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
 		length=x@length + y@length,
 		dim=c(x@dim[1] + y@dim[1], x@dim[2]),

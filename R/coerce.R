@@ -50,7 +50,7 @@ setAs("matter_mat", "matter_vec", function(from) {
 	if ( !is.null(from@ops) )
 		warning("dropping delayed operations")
 	new("matter_vec",
-		data=drop_groups(from@data),
+		data=drop_groups_from_atoms(from@data),
 		datamode=from@datamode,
 		paths=from@paths,
 		filemode=from@filemode,
@@ -82,7 +82,7 @@ setAs("matter_list", "matter_vec", function(from) {
 	if ( !is.null(from@ops) )
 		warning("dropping delayed operations")
 	new("matter_vec",
-		data=drop_groups(from@data),
+		data=drop_groups_from_atoms(from@data),
 		datamode=from@datamode,
 		paths=from@paths,
 		filemode=from@filemode,
