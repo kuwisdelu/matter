@@ -3,8 +3,10 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Allow endomorphic subsetting for all 'matter' objects
-- Need to allow appending to 'matter' objects (like lists)
+- Create 'matter_vt' class for datamode="virtual" matter objects
+- Create 'virtual_mat' for binding 'matter_mat' with R matrices
+- Add biglm() method for 'matter_mat' and 'matter_df'
+- Add arguments to combine(atoms, atoms) to improve encapsulation
 - Let 'dim<-' switch between 'matter_vec' and 'matter_arr'
 - Add Logic operators for 'matter_vec' class
 

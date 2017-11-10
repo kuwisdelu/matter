@@ -156,14 +156,14 @@ setMethod("show", "matter", function(object) {
 setMethod("datamode", "matter", function(x) x@datamode)
 
 setReplaceMethod("datamode", "matter", function(x, value) {
-	if ( x@datamode == "virtual" )
+	if ( x@datamode[1] == "virtual" )
 		stop("can't change 'datamode' of object with mode 'virtual'")
 	x@datamode <- make_datamode(value, type="R")
 	x
 })
 
 setMethod("paths", "matter", function(x) {
-	if ( x@datamode == "virtual" ) {
+	if ( x@datamode[1] == "virtual" ) {
 		paths <- sapply(x@data, function(data) {
 			if ( is.matter(data) ) {
 				paths(data)
@@ -178,14 +178,14 @@ setMethod("paths", "matter", function(x) {
 })
 
 setReplaceMethod("paths", "matter", function(x, value) {
-	if ( x@datamode == "virtual" )
+	if ( x@datamode[1] == "virtual" )
 		stop("can't change 'paths' of object with mode 'virtual'")
 	x@paths <- value
 	x
 })
 
 setMethod("filemode", "matter", function(x) {
-	if ( x@datamode == "virtual" ) {
+	if ( x@datamode[1] == "virtual" ) {
 		filemode <- sapply(x@data, function(data) {
 			if ( is.matter(data) ) {
 				filemode(data)
@@ -200,7 +200,7 @@ setMethod("filemode", "matter", function(x) {
 })
 
 setReplaceMethod("filemode", "matter", function(x, value) {
-	if ( x@datamode == "virtual" )
+	if ( x@datamode[1] == "virtual" )
 		stop("can't change 'filemode' of object with mode 'virtual'")
 	x@filemode <- value
 	x
@@ -224,6 +224,10 @@ setMethod("dim", "matter", function(x) x@dim)
 setReplaceMethod("dim", "matter", function(x, value) {
 	if ( !is.null(value) )
 		value <- as.integer(value)
+	if ( !is.null(x@names) )
+		x@names <- NULL
+	if ( !is.null(x@dimnames) )
+		x@dimnames <- NULL
 	x@dim <- value
 	if ( validObject(x) )
 		x
@@ -269,7 +273,7 @@ setMethod("cbind", "matter", function(..., deparse.level=1)
 	dots <- list(...)
 	for ( i in seq_along(dots) )
 		dots[[i]] <- switch(class(dots[[i]]),
-			matter_vec=t(t(dots[[i]])),
+			matter_vec=as(dots[[i]], "matter_mat"),
 			matter_matc=dots[[i]],
 			matter_matr=stop("cannot 'cbind' row-major matrices"),
 			sparse_matc=dots[[i]],

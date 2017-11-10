@@ -1,6 +1,6 @@
 
-#### Define matter<list> class for homogenous list data ####
-## ---------------------------------------------------------
+#### Define matter<list> class for list data ####
+## ----------------------------------------------
 
 setClass("matter_list",
 	slot = c(data = "atoms"),
@@ -92,6 +92,10 @@ setAs("list", "matter_list", function(from) matter_list(from, names=names(from))
 
 as.matter_list <- function(x) as(x, "matter_list")
 
+setAs("matter_list", "list", function(from) from[])
+
+setMethod("as.list", "matter_list", function(x) as(x, "list"))
+
 getList <- function(x) {
 	y <- .Call("C_getList", x, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )
@@ -117,31 +121,29 @@ setList <- function(x, value) {
 }
 
 getListElements <- function(x, i, j, drop) {
-	if ( length(i) != 1 )
-		stop("attempt to select more than one element in list")
 	if ( is.logical(i) )
 		i <- logical2index(x, i)
 	if ( is.character(i) )
 		i <- names2index(x, i)
 	if ( missing(j) || is.null(j) ) {
 		y <- .Call("C_getListElements", x, i - 1, NULL, PACKAGE="matter")
+		if ( !is.null(dimnames(x)) )
+			y <- mapply(setNames, y, dimnames(x)[i])
 	} else {
+		if ( length(i) != 1 )
+			stop("attempt to select more than one element in list")
 		if ( is.logical(j) )
 			j <- logical2index(x, j, i)
 		if ( is.character(j) )
 			j <- dimnames2index(x, j, i)
 		y <- .Call("C_getListElements", x, i - 1, j - 1, PACKAGE="matter")
+		if ( !is.null(dimnames(x)) )
+			y <- setNames(y, dimnames(x)[i][j])
 	}
-	if ( !is.null(dimnames(x)) )
-		y <- mapply(setNames, y, dimnames(x)[i])
-	if ( !is.null(names(x)) )
-		names(y) <- names(x)[i]
 	y	
 }
 
 setListElements <- function(x, i, j, value) {
-	if ( length(i) != 1 )
-		stop("attempt to select more than one element in list")
 	if ( is.logical(i) )
 		i <- logical2index(x, i)
 	if ( is.character(i) )
@@ -154,6 +156,8 @@ setListElements <- function(x, i, j, value) {
 			value <- rep(value, length.out=dim(x)[i])
 		.Call("C_setListElements", x, i - 1, NULL, value, PACKAGE="matter")
 	} else {
+		if ( length(i) != 1 )
+			stop("attempt to select more than one element in list")
 		if ( is.logical(j) )
 			j <- logical2index(x, j, i)
 		if ( is.character(j) )
@@ -169,30 +173,54 @@ setListElements <- function(x, i, j, value) {
 		invisible(x)	
 }
 
-# x[i] subsetting
+subList <- function(x, i) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i)
+	if ( is.character(i) )
+		i <- names2index(x, i)
+	new(class(x),
+		data=atomdata(x)[,i],
+		datamode=datamode(x),
+		paths=paths(x),
+		filemode=filemode(x),
+		length=length(i),
+		dim=dim(x)[i],
+		names=names(x)[i],
+		dimnames=dimnames(x)[i],
+		ops=NULL)
+}
+
+subListElements <- function(x, i, j) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i)
+	if ( is.character(i) )
+		i <- names2index(x, i)
+	if ( missing(j) || is.null(j) ) {
+		subList(x, i)
+	} else {
+		if ( is.logical(j) )
+			j <- logical2index(x, j, i)
+		if ( is.character(j) )
+			j <- dimnames2index(x, j, i)
+		y <- subList(x, i)
+		new(class(y),
+			data=subset_atoms_by_index_offset(y@data, j),
+			datamode=datamode(y),
+			paths=paths(y),
+			filemode=filemode(y),
+			length=1,
+			dim=length(j),
+			names=names(y),
+			dimnames=dimnames(y)[j],
+			ops=NULL)
+	}	
+}
+
+# x[] subsetting
 
 setMethod("[",
 	c(x = "matter_list", i = "missing", j = "missing"),
 	function(x, ...) getList(x))
-
-setMethod("[",
-	c(x = "matter_list", i = "ANY", j = "missing"),
-	function(x, i, ...) {
-		if ( is.logical(i) )
-			i <- logical2index(x, i)
-		if ( is.character(i) )
-			i <- names2index(x, i)
-		new(class(x),
-			data=atomdata(x)[,i],
-			datamode=datamode(x),
-			paths=paths(x),
-			filemode=filemode(x),
-			length=length(i),
-			dim=dim(x)[i],
-			names=names(x)[i],
-			dimnames=dimnames(x)[i],
-			ops=NULL)
-})
 
 setReplaceMethod("[",
 	c(x = "matter_list", i = "missing", j = "missing"),
@@ -201,6 +229,16 @@ setReplaceMethod("[",
 			value <- list(value)
 		setList(x, value)
 })
+
+# x[i] subsetting
+
+setMethod("[",
+	c(x = "matter_list", i = "ANY", j = "missing"),
+	function(x, i, ...)	getList(subList(x, i)))
+
+setMethod("[",
+	c(x = "matter_list", i = "ANY", j = "missing", drop = "NULL"),
+	function(x, i, ..., drop) subList(x, i))
 
 setReplaceMethod("[",
 	c(x = "matter_list", i = "ANY", j = "missing"),
@@ -218,6 +256,10 @@ setMethod("[",
 	c(x = "matter_list", i = "ANY", j = "ANY"),
 	function(x, i, j, ...) getListElements(x, i, j))
 
+setMethod("[",
+	c(x = "matter_list", i = "ANY", j = "ANY", drop = "NULL"),
+	function(x, i, j, ..., drop) subListElements(x, i, j))
+
 setReplaceMethod("[",
 	c(x = "matter_list", i = "ANY", j = "ANY"),
 	function(x, i, j, ..., value) setListElements(x, i, j, value))
@@ -231,6 +273,16 @@ setMethod("[[",
 setReplaceMethod("[[",
 	c(x = "matter_list", i = "ANY", j = "missing"),
 	function(x, i, ..., value) setListElements(x, i, NULL, value))
+
+# x$name subsetting
+
+setMethod("$",
+	c(x = "matter_list"),
+	function(x, name) getListElements(x, name))
+
+setReplaceMethod("$",
+	c(x = "matter_list"),
+	function(x, name, value) setListElements(x, name, NULL, value))
 
 # additional methods
 

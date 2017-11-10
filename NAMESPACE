@@ -14,15 +14,20 @@ importFrom("stats",
 	"na.omit")
 
 importFrom("BiocGenerics",
+	"as.data.frame",
+	"as.list",
+	"as.vector",
+	"mean",
 	"sd",
 	"var",
-	"combine",
-	"cbind",
-	"rbind",
 	"colMeans",
 	"colSums",
 	"rowMeans",
 	"rowSums",
+	"t",
+	"combine",
+	"cbind",
+	"rbind",
 	"lengths",
 	"which")
 
@@ -63,6 +68,13 @@ export(
 	"sparse_mat",
 	"is.matter",
 	"as.matter")
+
+exportMethods(
+	"as.vector",
+	"as.matrix",
+	"as.array",
+	"as.list",
+	"as.data.frame")
 
 exportMethods(
 	"adata",

@@ -60,6 +60,20 @@ atoms <- function(group_id = 1L, source_id = as.integer(NA),
 					offset = numeric(1), extent = numeric(1),
 					..., compress = TRUE, cr_threshold = 3)
 {
+	n <- max(length(group_id), length(source_id),
+		length(datamode), length(offset), length(extent))
+	if ( length(group_id) < n )
+		group_id <- rep(group_id[], length.out=n)
+	if ( length(source_id) < n )
+		source_id <- rep(source_id[], length.out=n)
+	if ( length(datamode) < n )
+		datamode <- rep(datamode[], length.out=n)
+	if ( length(offset) < n )
+		offset <- rep(offset[], length.out=n)
+	if ( length(extent) < n )
+		extent <- rep(extent[], length.out=n)
+	if ( !(is.integer(datamode) || is.drle(datamode)) )
+		datamode <- as.integer(datamode)
 	if ( is.unsorted(group_id[]) ) {
 		o <- order(group_id[])
 		group_id <- group_id[o]
@@ -68,7 +82,8 @@ atoms <- function(group_id = 1L, source_id = as.integer(NA),
 		offset <- offset[o]
 		extent <- extent[o]
 	}
-	x <- .Call("C_createAtoms", group_id, source_id, datamode, offset, extent, PACKAGE="matter")
+	x <- .Call("C_createAtoms", group_id, source_id,
+		datamode, offset, extent, PACKAGE="matter")
 	if ( compress && x@natoms > 1 ) {
 		x@group_id <- drle(x@group_id, cr_threshold=cr_threshold)
 		x@source_id <- drle(x@source_id, cr_threshold=cr_threshold)
@@ -80,6 +95,71 @@ atoms <- function(group_id = 1L, source_id = as.integer(NA),
 	}
 	x
 }
+
+subset_atoms_by_index_offset <- function(x, i) {
+	if ( anyNA(i) )
+		stop("NAs not allowed when subsetting atoms")
+	il <- as.list(drle(i))
+	io <- x@index_offset[] + 1
+	ie <- x@index_extent[]
+	y <- mapply(function(val, len, del) {
+		if ( del == 1 ) {
+			lo <- val
+			hi <- val + (len - 1) * del
+			wh <- lo <= ie & io <= hi
+			if ( !any(wh) )
+				stop("subscript out of bounds")
+			new_io <- pmax(lo, io[wh])
+			new_ie <- pmin(hi, ie[wh])
+			datamode <- x@datamode[wh]
+			byte_offset <- (new_io - io[wh]) * sizeof(datamode)
+			offset <- x@offset[wh] + byte_offset
+			extent <- new_ie - new_io + 1
+			data.frame(
+				group_id=x@group_id[wh],
+				source_id=x@source_id[wh],
+				datamode=datamode,
+				offset=offset,
+				extent=extent)
+		} else {
+			ii <- seq(from=val, by=del, length.out=len)
+			yi <- lapply(ii, function(k) {
+				wh <- io <= k & k <= ie
+				if ( !any(wh) )
+					stop("subscript out of bounds")
+				new_io <- pmax(k, io[wh])
+				datamode <- x@datamode[wh]
+				byte_offset <- (new_io - io[wh]) * sizeof(datamode)
+				offset <- x@offset[wh] + byte_offset
+				extent <- rep(1, length.out=sum(wh))
+				data.frame(
+					group_id=x@group_id[wh],
+					source_id=x@source_id[wh],
+					datamode=datamode,
+					offset=offset,
+					extent=extent)
+			})
+			do.call("rbind", yi)
+		}
+	}, il$values, il$lengths, il$deltas, SIMPLIFY=FALSE)
+	y <- do.call("rbind", y)
+	atoms(
+		group_id=y$group_id,
+		source_id=y$source_id,
+		datamode=y$datamode,
+		offset=y$offset,
+		extent=y$extent)
+}
+
+drop_groups <- function(x) {
+	atoms(group_id=rep(1L, x@natoms),
+		source_id=x@source_id,
+		datamode=x@datamode,
+		offset=x@offset,
+		extent=x@extent)
+}
+
+setMethod("dim", "atoms", function(x) c(x@natoms, x@ngroups))
 
 setMethod("length", "atoms", function(x) x@ngroups)
 
@@ -95,6 +175,8 @@ setMethod("combine", "atoms", function(x, y, ...) {
 
 setMethod("[", c(x="atoms", j="missing"),
 	function(x, i, ...) {
+		if ( anyNA(i) )
+			stop("NAs not allowed when subsetting atoms")
 		atoms(group_id=x@group_id[i],
 			source_id=x@source_id[i],
 			datamode=x@datamode[i],
@@ -103,11 +185,17 @@ setMethod("[", c(x="atoms", j="missing"),
 })
 
 setMethod("[", c(x="atoms", i="missing"),
-	function(x, i, ...) {
+	function(x, j, ...) {
+		if ( anyNA(j) )
+			stop("NAs not allowed when subsetting atoms")
 		groups <- x@group_id[]
 		j2 <- lapply(j, function(g) which(groups == g))
 		j <- unlist(j2)
-		atoms(group_id=rep.int(seq_len(length(j2)), sapply(j2, length)),
+		g <- seq_len(length(j2))
+		times <- lengths(j2)
+		if ( any(times == 0) )
+			stop("subscript out of bounds")
+		atoms(group_id=rep.int(g, times),
 			source_id=x@source_id[j],
 			datamode=x@datamode[j],
 			offset=x@offset[j],

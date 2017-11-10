@@ -104,6 +104,22 @@ setAs("factor", "matter_vec",
 
 as.matter_vec <- function(x) as(x, "matter_vec")
 
+setAs("matter_vec", "vector", function(from) from[])
+
+setMethod("as.vector", "matter_vec", function(x) as(x, "vector"))
+
+setMethod("as.matrix", "matter_vec", function(x) as(x, "matter_mat")[])
+
+setMethod("as.array", "matter_vec", function(x) as(x, "matter_arr")[])
+
+setReplaceMethod("dim", "matter_vec", function(x, value) {
+	if ( is.null(value) ) {
+		x
+	} else {
+		callNextMethod(as(x, "matter_arr"), value)
+	}
+})
+
 getVector <- function(x) {
 	y <- .Call("C_getArray", x, PACKAGE="matter")
 	if ( !is.null(names(x)) )
@@ -156,17 +172,40 @@ setVectorElements <- function(x, i, value) {
 		invisible(x)	
 }
 
+subVector <- function(x, i) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i)
+	if ( is.character(i) )
+		i <- names2index(x, i)
+	if ( !is.null(x@ops) )
+		warning("dropping delayed operations")
+	new(class(x),
+		data=subset_atoms_by_index_offset(x@data, i),
+		datamode=x@datamode,
+		paths=x@paths,
+		chunksize=x@chunksize,
+		length=as.numeric(length(i)),
+		dim=NULL,
+		names=if ( !is.null(x@names) ) x@names[i] else NULL,
+		dimnames=NULL,
+		ops=NULL)
+}
+
 setMethod("[",
 	c(x = "matter_vec", i = "missing", j = "missing"),
 	function(x, ...) getVector(x))
 
-setReplaceMethod("[",
-	c(x = "matter_vec", i = "missing", j = "missing"),
-	function(x, ..., value) setVector(x, value))
-
 setMethod("[",
 	c(x = "matter_vec", i = "ANY", j = "missing"),
 	function(x, i, ...) getVectorElements(x, i))
+
+setMethod("[",
+	c(x = "matter_vec", i = "ANY", j = "missing", drop = "NULL"),
+	function(x, i, ..., drop) subVector(x, i))
+
+setReplaceMethod("[",
+	c(x = "matter_vec", i = "missing", j = "missing"),
+	function(x, ..., value) setVector(x, value))
 
 setReplaceMethod("[",
 	c(x = "matter_vec", i = "ANY", j = "missing"),
@@ -200,17 +239,7 @@ setMethod("combine", "matter_vec", function(x, y, ...) {
 		ops=NULL)
 })
 
-setMethod("t", "matter_vec", function(x)
-{
-	class(x) <- "matter_matr"
-	x@data <- x@data
-	x@dim <- c(1L, as.integer(x@length))
-	if ( !is.null(x@names) )
-		x@dimnames <- list(NULL, x@names)
-	x@names <- NULL
-	if ( validObject(x) )
-		x
-})
+setMethod("t", "matter_vec", function(x) t(as(x, "matter_mat")))
 
 #### Delayed operations on 'matter_vec' ####
 ## ----------------------------------------

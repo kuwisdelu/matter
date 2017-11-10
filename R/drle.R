@@ -2,19 +2,19 @@
 #### Define drle class ####
 ## -------------------------
 
+setClassUnion("integer_OR_numeric", c("integer", "numeric"))
+
 setClass("drle",
 	slots = c(
-		values = "vector",
+		values = "integer_OR_numeric",
 		lengths = "integer",
-		deltas = "vector"),
+		deltas = "integer_OR_numeric"),
 	prototype = prototype(
-		values = integer(0),
-		lengths= integer(0),
-		deltas = integer(0)),
+		values = integer(),
+		lengths= integer(),
+		deltas = integer()),
 	validity = function(object) {
 		errors <- NULL
-		if ( !(is.integer(object@values) || is.numeric(object@values)) )
-			errors <- c(errors, "only 'integer' and 'numeric' are supported for 'values'")
 		if ( typeof(object@values) != typeof(object@deltas) )
 			errors <- c(errors, "'values' and 'deltas' must be of the same type")
 		lens <- c(length(object@values), length(object@lengths), length(object@deltas))
@@ -62,6 +62,15 @@ getDRLEElements <- function(x, i) {
 	}
 	y
 }
+
+setAs("drle", "list", function(from)
+	list(values=from@values, lengths=from@lengths, deltas=from@deltas))
+
+setAs("drle", "vector", function(from) from[])
+
+setMethod("as.list", "drle", function(x) as(x, "list"))
+
+setMethod("as.vector", "drle", function(x) as(x, "vector"))
 
 setMethod("[",
 	c(x = "drle", i = "missing", j = "missing", drop = "missing"),

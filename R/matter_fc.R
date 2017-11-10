@@ -117,6 +117,20 @@ setMethod("[",
 		factor(levels(x)[getVector(x)], levels=levels(x))
 	})
 
+setMethod("[",
+	c(x = "matter_fc", i = "ANY", j = "missing"),
+	function(x, i, ...) {
+		factor(levels(x)[getVectorElements(x, i)], levels=levels(x))
+	})
+
+setMethod("[",
+	c(x = "matter_fc", i = "ANY", j = "missing", drop = "NULL"),
+	function(x, i, ..., drop) {
+		y <- subVector(x, i)
+		levels(y) <- levels(x)
+		y
+	})
+
 setReplaceMethod("[",
 	c(x = "matter_fc", i = "missing", j = "missing"),
 	function(x, ..., value) {
@@ -126,12 +140,6 @@ setReplaceMethod("[",
 		if ( any(is.na(value)) )
 			warning("invalid factor level, NA generated")
 		setVector(x, value)
-	})
-
-setMethod("[",
-	c(x = "matter_fc", i = "ANY", j = "missing"),
-	function(x, i, ...) {
-		factor(levels(x)[getVectorElements(x, i)], levels=levels(x))
 	})
 
 setReplaceMethod("[",

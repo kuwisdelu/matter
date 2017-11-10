@@ -2,15 +2,19 @@
 #### Define new generics from base R ####
 ## -------------------------------------
 
-setGeneric("t")
-setGeneric("sum")
-setGeneric("mean")
+# setGeneric("t") # Use BiocGenerics
+# setGeneric("sum") # Use BiocGenerics
+# setGeneric("mean") # Use BiocGenerics
 # setGeneric("var", signature="x") # Use BiocGenerics
 # setGeneric("sd", signature="x") # Use BiocGenerics
 # setGeneric("colSums", signature="x") # Use BiocGenerics
 # setGeneric("rowSums", signature="x") # Use BiocGenerics
 # setGeneric("colMeans", signature="x") # Use BiocGenerics
 # setGeneric("rowMeans", signature="x") # Use BiocGenerics
+
+setGeneric("as.matrix")
+setGeneric("as.array")
+
 setGeneric("apply", signature="X")
 setGeneric("scale", signature="x")
 
@@ -36,16 +40,10 @@ setGeneric("prcomp")
 #### Define new generics for summary stats ####
 ## --------------------------------------------
 
-# Do these conditionally in case user has generics from matrixStats package
-
-if ( !isGeneric("colVars") )
-	setGeneric("colVars", function(x, ...) standardGeneric("colVars"))
-if ( !isGeneric("rowVars") )
-	setGeneric("rowVars", function(x, ...) standardGeneric("rowVars"))
-if ( !isGeneric("colSds") )
-	setGeneric("colSds", function(x, ...) standardGeneric("colSds"))
-if ( !isGeneric("rowSds") )
-	setGeneric("rowSds", function(x, ...) standardGeneric("rowSds"))
+setGeneric("colVars", function(x, ...) standardGeneric("colVars"))
+setGeneric("rowVars", function(x, ...) standardGeneric("rowVars"))
+setGeneric("colSds", function(x, ...) standardGeneric("colSds"))
+setGeneric("rowSds", function(x, ...) standardGeneric("rowSds"))
 
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------

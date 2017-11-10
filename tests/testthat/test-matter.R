@@ -96,21 +96,25 @@ test_that("array subsetting", {
 
 test_that("list subsetting", {
 
-	x <- list(c(TRUE, FALSE), 1:5, c(1.11, 2.22))
+	x <- list(a=c(TRUE, FALSE), b=1:5, c=c(1.11, 2.22))
 
-	y <- matter_list(x)
+	y <- matter_list(x, names=names(x))
 
 	expect_equal(x, y[])
 
-	expect_equal(x[1], y[1][])
+	expect_equal(x[1], y[1])
 
 	expect_equal(x[[1]], y[[1]])
+
+	expect_equal(x[1:2], y[1:2])
 
 	expect_equal(x[[2]][1:5], y[2,1:5])
 
 	expect_equal(x[[2]][5:1], y[2,5:1])
 
 	expect_equal(x[[3]], y[[3]])
+
+	expect_equal(x$b, y$b)
 
 	expect_equivalent(as.matter(x), y)
 
@@ -174,15 +178,13 @@ test_that("data frame subsetting", {
 
 	expect_equal(df1[1:5,], df2[1:5,])
 
-	expect_equal(df1[,"x"], df2[,"x"][])
+	expect_equal(df1[,"x"], df2[,"x"])
 
-	expect_equal(df1[,c("x","y")], df2[,c("x","y")][])
+	expect_equal(df1[,c("x","y")], df2[,c("x","y")])
 
 	expect_equal(df1[1:5,c("x","y")], df2[1:5,c("x","y")])
 
-	expect_equal(df1$x, df2$x[])
-
-	expect_equal(df1$y[1:5], df2$y[1:5])
+	expect_equal(df1$x, df2$x)
 
 	expect_equivalent(as.matter(df1)[], df2[])
 

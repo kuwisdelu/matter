@@ -73,7 +73,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=filemode,
-		length=prod(dim),
+		length=as.numeric(prod(dim)),
 		dim=as.integer(dim),
 		names=NULL,
 		dimnames=dimnames,
@@ -93,6 +93,20 @@ setMethod("show", "matter_arr", function(object) {
 setAs("array", "matter_arr", function(from) matter_arr(from, dimnames=dimnames(from)))
 
 as.matter_arr <- function(x) as(x, "matter_arr")
+
+setAs("matter_arr", "array", function(from) from[])
+
+setMethod("as.array", "matter_arr", function(x) as(x, "array"))
+
+setMethod("as.vector", "matter_arr", function(x) as(x, "matter_vec")[])
+
+setReplaceMethod("dim", "matter_vec", function(x, value) {
+	if ( is.null(value) ) {
+		as(x, "matter_vec")
+	} else {
+		callNextMethod()
+	}
+})
 
 getArray <- function(x) {
 	y <- .Call("C_getArray", x, PACKAGE="matter")

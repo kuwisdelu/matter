@@ -99,6 +99,10 @@ setAs("list", "matter_df", # also for data.frame
 
 as.matter_df <- function(x) as(x, "matter_df")
 
+setAs("matter_df", "data.frame", function(from) from[])
+
+setMethod("as.data.frame", "matter_df", function(x) as(x, "data.frame"))
+
 setReplaceMethod("names", "matter_df", function(x, value) {
 	x@names <- value
 	if ( is.null(x@dimnames) ) {
@@ -134,17 +138,17 @@ setDataFrame <- function(x, value) {
 		invisible(x)
 }
 
-getDataFrameRows <- function(x, i, drop) {
+getDataFrameRows <- function(x, i, drop=TRUE) {
 	if ( is.logical(i) )
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
 	y <- lapply(names(x), function(nm) atomdata(x)[[nm]][i])
-	if ( drop && ncol(x) == 1 ) {
+	if ( drop && length(y) == 1 ) {
 		y[[1]]
 	} else {
 		data.frame(setNames(y, names(x)),
-			row.names=rownames(x),
+			row.names=rownames(x)[i],
 			check.names=FALSE,
 			stringsAsFactors=FALSE)
 	}
@@ -161,24 +165,19 @@ setDataFrameRows <- function(x, i, value) {
 		invisible(x)
 }
 
-getDataFrameColumns <- function(x, j, drop) {
+getDataFrameColumns <- function(x, j, drop=TRUE) {
 	if ( is.logical(j) )
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)	
-	if ( drop && length(j) == 1 ) {
-		atomdata(x)[[j]]
+	y <- lapply(j, function(jj) atomdata(x)[[jj]][])
+	if ( drop && length(y) == 1 ) {
+		y[[1]]
 	} else {
-		new("matter_df",
-			data=atomdata(x)[j],
-			datamode=datamode(x),
-			paths=paths(x),
-			filemode=filemode(x),
-			length=length(j),
-			dim=c(nrow(x), length(j)),
-			names=names(x)[j],
-			dimnames=list(rownames(x), names(x)[j]),
-			ops=NULL)
+		data.frame(setNames(y, names(x)[j]),
+			row.names=rownames(x),
+			check.names=FALSE,
+			stringsAsFactors=FALSE)
 	}
 }
 
@@ -193,7 +192,7 @@ setDataFrameColumns <- function(x, j, value) {
 		invisible(x)
 }
 
-getDataFrameElements <- function(x, i, j, drop) {
+getDataFrameElements <- function(x, i, j, drop=TRUE) {
 	if ( is.logical(i) )
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
@@ -202,12 +201,12 @@ getDataFrameElements <- function(x, i, j, drop) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)	
-	y <- lapply(j, function(nm) atomdata(x)[[nm]][i])
+	y <- lapply(j, function(jj) atomdata(x)[[jj]][i])
 	if ( drop && length(j) == 1 ) {
 		y[[1]]
 	} else {
 		data.frame(setNames(y, names(x)[j]),
-			row.names=rownames(x),
+			row.names=rownames(x)[i],
 			check.names=FALSE,
 			stringsAsFactors=FALSE)
 	}
@@ -228,33 +227,69 @@ setDataFrameElements <- function(x, i, j, value) {
 		invisible(x)
 }
 
-# data frame getter methods
+subDataFrameRows <- function(x, i) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i, 1)
+	if ( is.character(i) )
+		i <- dimnames2index(x, i, 1)
+	y <- lapply(names(x), function(nm) atomdata(x)[[nm]][i,drop=NULL])
+	new("matter_df",
+		data=setNames(y, names(x)),
+		datamode=datamode(x),
+		paths=paths(x),
+		filemode=filemode(x),
+		length=length(x),
+		dim=c(length(i), ncol(x)),
+		names=names(x),
+		dimnames=list(rownames(x)[i], names(x)),
+		ops=NULL)
+}
+
+subDataFrameColumns <- function(x, j) {
+	if ( is.logical(j) )
+		j <- logical2index(x, j, 2)
+	if ( is.character(j) )
+		j <- dimnames2index(x, j, 2)
+	y <- atomdata(x)[j]
+	new("matter_df",
+		data=setNames(y, names(x)[j]),
+		datamode=datamode(x),
+		paths=paths(x),
+		filemode=filemode(x),
+		length=length(j),
+		dim=c(nrow(x), length(j)),
+		names=names(x)[j],
+		dimnames=list(rownames(x), names(x)[j]),
+		ops=NULL)
+}
+
+subDataFrameElements <- function(x, i, j) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i, 1)
+	if ( is.character(i) )
+		i <- dimnames2index(x, i, 1)
+	if ( is.logical(j) )
+		j <- logical2index(x, j, 2)
+	if ( is.character(j) )
+		j <- dimnames2index(x, j, 2)	
+	y <- lapply(j, function(jj) atomdata(x)[[jj]][i,drop=NULL])
+	new("matter_df",
+		data=setNames(y, names(x)[j]),
+		datamode=datamode(x),
+		paths=paths(x),
+		filemode=filemode(x),
+		length=length(j),
+		dim=c(length(i), length(j)),
+		names=names(x)[j],
+		dimnames=list(rownames(x)[i], names(x)[j]),
+		ops=NULL)
+}
+
+# x[] subsetting
 
 setMethod("[",
 	c(x = "matter_df", i = "missing", j = "missing"),
 	function(x, ...) getDataFrame(x))
-
-setMethod("[",
-	c(x = "matter_df", j = "missing"),
-	function(x, i, ..., drop = TRUE) getDataFrameRows(x, i, drop))
-
-setMethod("[",
-	c(x = "matter_df", i = "missing"),
-	function(x, j, ..., drop = TRUE) getDataFrameColumns(x, j, drop))
-
-setMethod("[",
-	c(x = "matter_df"),
-	function(x, i, j, ..., drop = TRUE) getDataFrameElements(x, i, j, drop))
-
-setMethod("[[",
-	c(x = "matter_df", j = "missing"),
-	function(x, i, ...) getDataFrameColumns(x, i, drop=TRUE))
-
-setMethod("$",
-	c(x = "matter_df"),
-	function(x, name) getDataFrameColumns(x, name, drop=TRUE))
-
-# data frame setter methods
 
 setReplaceMethod("[",
 	c(x = "matter_df", i = "missing", j = "missing"),
@@ -264,6 +299,16 @@ setReplaceMethod("[",
 		setDataFrame(x)
 })
 
+# x[i,] subsetting
+
+setMethod("[",
+	c(x = "matter_df", j = "missing"),
+	function(x, i, ..., drop) getDataFrameRows(x, i, drop))
+
+setMethod("[",
+	c(x = "matter_df", j = "missing", drop = "NULL"),
+	function(x, i, ..., drop) subDataFrameRows(x, i))
+
 setReplaceMethod("[",
 	c(x = "matter_df", j = "missing"),
 	function(x, i, ..., value) {
@@ -271,6 +316,16 @@ setReplaceMethod("[",
 			value <- list(value)
 		setDataFrameRows(x, i, value)
 })
+
+# x[,j] subsetting
+
+setMethod("[",
+	c(x = "matter_df", i = "missing"),
+	function(x, j, ..., drop) getDataFrameColumns(x, j, drop))
+
+setMethod("[",
+	c(x = "matter_df", i = "missing", drop = "NULL"),
+	function(x, j, ..., drop) subDataFrameColumns(x, j))
 
 setReplaceMethod("[",
 	c(x = "matter_df", i = "missing"),
@@ -280,6 +335,16 @@ setReplaceMethod("[",
 		setDataFrameColumns(x, j, value)
 })
 
+# x[i,j] subsetting
+
+setMethod("[",
+	c(x = "matter_df"),
+	function(x, i, j, ..., drop) getDataFrameElements(x, i, j, drop))
+
+setMethod("[",
+	c(x = "matter_df", drop = "NULL"),
+	function(x, i, j, ..., drop) subDataFrameElements(x, i, j))
+
 setReplaceMethod("[",
 	c(x = "matter_df"),
 	function(x, i, j, ..., value) {
@@ -288,6 +353,12 @@ setReplaceMethod("[",
 		setDataFrameElements(x, i, j, value)
 })
 
+# x[[i]] subsetting
+
+setMethod("[[",
+	c(x = "matter_df", j = "missing"),
+	function(x, i, ...) getDataFrameColumns(x, i, drop=TRUE))
+
 setReplaceMethod("[[",
 	c(x = "matter_df", j = "missing"),
 	function(x, i, ..., value) {
@@ -295,6 +366,12 @@ setReplaceMethod("[[",
 		if ( validObject(x) )
 			x
 })
+
+# x$name subsetting
+
+setMethod("$",
+	c(x = "matter_df"),
+	function(x, name) getDataFrameColumns(x, name, drop=TRUE))
 
 setReplaceMethod("$",
 	c(x = "matter_df"),

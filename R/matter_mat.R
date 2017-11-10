@@ -155,11 +155,6 @@ setMethod("show", "matter_mat", function(object) {
 		cat("    scaled:scale = TRUE\n")
 })
 
-setAs("matrix", "matter_mat",
-	function(from) matter_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
-
-as.matter_mat <- function(x) as(x, "matter_mat")
-
 setAs("raw", "matter_mat", function(from) matter_mat(as.matrix(from)))
 
 setAs("logical", "matter_mat", function(from) matter_mat(as.matrix(from)))
@@ -167,6 +162,15 @@ setAs("logical", "matter_mat", function(from) matter_mat(as.matrix(from)))
 setAs("integer", "matter_mat", function(from) matter_mat(as.matrix(from)))
 
 setAs("numeric", "matter_mat", function(from) matter_mat(as.matrix(from)))
+
+setAs("matrix", "matter_mat",
+	function(from) matter_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
+
+as.matter_mat <- function(x) as(x, "matter_mat")
+
+setAs("matter_mat", "matrix", function(from) from[])
+
+setMethod("as.matrix", "matter_mat", function(x) as(x, "matrix"))
 
 getMatrix <- function(x) {
 	y <- .Call("C_getMatrix", x, PACKAGE="matter")
@@ -294,7 +298,7 @@ setMatrixElements <- function(x, i, j, value) {
 		invisible(x)
 }
 
-subsetMatterMatrix <- function(x, i, j) {
+subMatrix <- function(x, i, j) {
 	if ( is.logical(i) )
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
@@ -304,17 +308,13 @@ subsetMatterMatrix <- function(x, i, j) {
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
 	if ( is(x, "matter_matc") ) {
-		if ( !allIndices(x, i, 1) )
-			stop("cannot subset column-major matrix as S4 by row")
-		subsetMatterCols(x, j)
+		subMatrixRows(subMatrixCols(x, j), i)
 	} else if ( is(x, "matter_matr") ) {
-		if ( !allIndices(x, j, 2) )
-			stop("cannot subset row-major matrix as S4 by column")
-		subsetMatterRows(x, i)
+		subMatrixCols(subMatrixRows(x, i), j)
 	}
 }
 
-subsetMatterCols <- function(x, j) {
+subMatrixCols <- function(x, j) {
 	if ( is.logical(j) )
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
@@ -333,12 +333,22 @@ subsetMatterCols <- function(x, j) {
 			dimnames=if (!is.null(x@dimnames))
 				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
 			ops=NULL),
-		matter_matr=stop("cannot subset row-major matrix by columns"))
+		matter_matr=new("matter_matr",
+			data=subset_atoms_by_index_offset(x@data, j),
+			datamode=x@datamode,
+			paths=x@paths,
+			chunksize=x@chunksize,
+			length=as.numeric(x@dim[1]) * as.numeric(length(j)),
+			dim=c(x@dim[1], length(j)),
+			names=NULL,
+			dimnames=if (!is.null(x@dimnames))
+				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
+			ops=NULL))
 	if ( validObject(x) )
 		invisible(x)
 }
 
-subsetMatterRows <- function(x, i) {
+subMatrixRows <- function(x, i) {
 	if ( is.logical(i) )
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
@@ -346,7 +356,17 @@ subsetMatterRows <- function(x, i) {
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
 	x <- switch(class(x),
-		matter_matc=stop("cannot subset column-major matrix by rows"),
+		matter_matc=new("matter_matc",
+			data=subset_atoms_by_index_offset(x@data, i),
+			datamode=x@datamode,
+			paths=x@paths,
+			chunksize=x@chunksize,
+			length=as.numeric(length(i)) * as.numeric(x@dim[2]),
+			dim=c(length(i), x@dim[2]),
+			names=NULL,
+			dimnames=if (!is.null(x@dimnames))
+				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
+			ops=NULL),
 		matter_matr=new("matter_matr",
 			data=x@data[,i],
 			datamode=x@datamode,
@@ -382,15 +402,15 @@ setMethod("[",
 
 setMethod("[",
 	c(x = "matter_mat", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subsetMatterRows(x, i))
+	function(x, i, ..., drop) subMatrixRows(x, i))
 
 setMethod("[",
 	c(x = "matter_mat", i = "missing", drop = "NULL"),
-	function(x, j, ..., drop) subsetMatterCols(x, j))
+	function(x, j, ..., drop) subMatrixCols(x, j))
 
 setMethod("[",
 	c(x = "matter_mat", drop = "NULL"),
-	function(x, i, j, ..., drop) subsetMatterMatrix(x, i, j))
+	function(x, i, j, ..., drop) subMatrix(x, i, j))
 
 # matrix setter methods
 
@@ -414,7 +434,7 @@ setReplaceMethod("[",
 
 setMethod("combine", "matter_matc", function(x, y, ...) {
 	if ( is(y, "matter_vec") )
-		y <- t(t(y))
+		y <- as(y, "matter_mat")
 	if ( nrow(x) != nrow(y) )
 		stop("number of rows of column-major matrices must match")
 	if ( !is.null(x@ops) || !is.null(y@ops) )

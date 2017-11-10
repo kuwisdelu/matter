@@ -144,7 +144,7 @@ sparse_mat <- function(data, datamode = "double", keys = NULL,
 		datamode=make_datamode(datamode, type="R"),
 		paths=character(),
 		filemode="rb",
-		length=sum(lengths(adata()$values)),
+		length=as.numeric(sum(lengths(adata()$values))),
 		dim=as.integer(c(nrow, ncol)),
 		names=NULL,
 		dimnames=dimnames,
@@ -273,16 +273,17 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	sorted <- FALSE
 	if ( is.null(keys(x)) ) {
+		keytype <- typeof(atomdata(x)$keys[[1]])
 		if ( rowMaj ) {
 			if ( is.sorted(j) )
 				sorted <- TRUE
 			if ( all.j ) {
 				keys <- NULL
 			} else if ( sorted ) {
-				keys <- as.integer(j)
+				keys <- as.vector(j, mode=keytype)
 			} else {
 				ord <- order(j)
-				keys <- as.integer(j)[ord]
+				keys <- as.vector(j[ord], mode=keytype)
 			}
 		} else {
 			if ( is.sorted(i) )
@@ -290,10 +291,10 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 			if ( all.i ) {
 				keys <- NULL
 			} else if ( sorted ) {
-				keys <- as.integer(i)
+				keys <- as.vector(i, mode=keytype)
 			} else {
 				ord <- order(i)
-				keys <- as.integer(i)[ord]
+				keys <- as.vector(i[ord], mode=keytype)
 			}
 		}
 	} else {
@@ -441,17 +442,18 @@ setSparseMatrixElements <- function(x, i, j, value) {
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	dim(value) <- c(length(i), length(j))
 	if ( is.null(keys(x)) ) {
+		keytype <- typeof(atomdata(x)$keys[[1]])
 		if ( rowMaj ) {
 			if ( all.i ) {
 				keys <- NULL
 			} else {
-				keys <- as.integer(j)
+				keys <- as.vector(j, mode=keytype)
 			}
 		} else {
 			if ( all.j ) {
 				keys <- NULL
 			} else {
-				keys <- as.integer(i)
+				keys <- as.vector(i, mode=keytype)
 			}
 		}
 	} else {
@@ -516,7 +518,7 @@ setSparseMatrixElements <- function(x, i, j, value) {
 			.vals[[j[jj]]] <- newvals[o]
 		}
 	}
-	x@length <- sum(lengths(.vals))
+	x@length <- as.numeric(sum(lengths(.vals)))
 	atomdata(x)$keys <- .keys
 	atomdata(x)$values <- .vals
 	if ( validObject(x) )
@@ -547,7 +549,7 @@ setSparseMatrix <- function(x, value) {
 	setSparseMatrixElements(x, NULL, NULL, value)
 }
 
-subsetSparseMatterMatrix <- function(x, i, j) {
+subSparseMatrix <- function(x, i, j) {
 	if ( is.logical(i) )
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
@@ -557,33 +559,26 @@ subsetSparseMatterMatrix <- function(x, i, j) {
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
 	if ( is(x, "sparse_matc") ) {
-		if ( !allIndices(x, i, 1) )
-			stop("cannot subset compressed-column sparse matrix as S4 by row")
-		subsetSparseMatterCols(x, j)
+		subSparseMatrixRows(subSparseMatrixCols(x, j), i)
 	} else if ( is(x, "sparse_matr") ) {
-		if ( !allIndices(x, j, 2) )
-			stop("cannot subset compressed-row sparse matrix as S4 by column")
-		subsetSparseMatterRows(x, i)
+		subSparseMatrixCols(subSparseMatrixRows(x, i), j)
 	}
 }
 
-subsetSparseMatterCols <- function(x, j) {
+subSparseMatrixCols <- function(x, j) {
 	if ( is.logical(j) )
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
-	data <- list(
-		keys=x@data$keys[j],
-		values=x@data$values[j])
 	x <- switch(class(x),
 		sparse_matc=new("sparse_matc",
-			data=data,
+			data=list(keys=x@data$keys[j], values=x@data$values[j]),
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,
-			length=sum(lengths(data$values)),
+			length=as.numeric(sum(lengths(x@data$values[j]))),
 			dim=c(x@dim[1], length(j)),
 			names=NULL,
 			dimnames=if (!is.null(x@dimnames))
@@ -592,29 +587,54 @@ subsetSparseMatterCols <- function(x, j) {
 			keys=x@keys,
 			tolerance=x@tolerance,
 			combiner=x@combiner),
-		sparse_matr=stop("cannot subset compressed-row sparse matrix by columns"))
+		sparse_matr=new("sparse_matr",
+			data=data,
+			datamode=x@datamode,
+			paths=x@paths,
+			chunksize=x@chunksize,
+			length=x@length,
+			dim=c(x@dim[1], length(j)),
+			names=NULL,
+			dimnames=if (!is.null(x@dimnames))
+				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
+			ops=NULL,
+			keys=if ( !is.null(x@keys) )
+				x@keys[j] else as.vector(j, mode=typeof(x@data$keys[[1]])),
+			tolerance=x@tolerance,
+			combiner=x@combiner))
 	if ( validObject(x) )
 		invisible(x)
 }
 
-subsetSparseMatterRows <- function(x, i) {
+subSparseMatrixRows <- function(x, i) {
 	if ( is.logical(i) )
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
-	data <- list(
-		keys=x@data$keys[i],
-		values=x@data$values[i])
 	x <- switch(class(x),
-		sparse_matc=stop("cannot subset compressed-column sparse matrix by rows"),
-		sparse_matr=new("sparse_matr",
-			data=data,
+		sparse_matc=new("sparse_matc",
+			data=x@data,
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,
-			length=sum(lengths(data$values)),
+			length=x@length,
+			dim=c(length(i), x@dim[2]),
+			names=NULL,
+			dimnames=if (!is.null(x@dimnames))
+				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
+			ops=NULL,
+			keys=if ( !is.null(x@keys) )
+				x@keys[i] else as.vector(i, mode=typeof(x@data$keys[[1]])),
+			tolerance=x@tolerance,
+			combiner=x@combiner),
+		sparse_matr=new("sparse_matr",
+			data=list(keys=x@data$keys[i], values=x@data$values[i]),
+			datamode=x@datamode,
+			paths=x@paths,
+			chunksize=x@chunksize,
+			length=as.numeric(sum(lengths(x@data$values[i]))),
 			dim=c(length(i), x@dim[2]),
 			names=NULL,
 			dimnames=if (!is.null(x@dimnames))
@@ -647,15 +667,15 @@ setMethod("[",
 
 setMethod("[",
 	c(x = "sparse_mat", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subsetSparseMatterRows(x, i))
+	function(x, i, ..., drop) subSparseMatrixRows(x, i))
 
 setMethod("[",
 	c(x = "sparse_mat", i = "missing", drop = "NULL"),
-	function(x, j, ..., drop) subsetSparseMatterCols(x, j))
+	function(x, j, ..., drop) subSparseMatrixCols(x, j))
 
 setMethod("[",
 	c(x = "sparse_mat", drop = "NULL"),
-	function(x, i, j, ..., drop) subsetSparseMatterMatrix(x, i, j))
+	function(x, i, j, ..., drop) subSparseMatrix(x, i, j))
 
 # sparse matrix setter methods
 

@@ -101,6 +101,12 @@ setAs("factor", "matter_str",
 
 as.matter_str <- function(x) as(x, "matter_str")
 
+setAs("matter_str", "vector", function(from) from[])
+
+setMethod("as.vector", "matter_str", function(x) as(x, "vector"))
+
+# x[] subsetting
+
 setMethod("[",
 	c(x = "matter_str", i = "missing", j = "missing"),
 	function(x, ...) {
@@ -120,25 +126,15 @@ setReplaceMethod("[",
 		setList(x, value)
 })
 
+# x[i] subsetting
+
 setMethod("[",
 	c(x = "matter_str", i = "ANY", j = "missing"),
-	function(x, i, ...) {
-		if ( is.logical(i) )
-			i <- logical2index(x, i)
-		if ( is.character(i) )
-			i <- names2index(x, i)
-		y <- new(class(x),
-			data=atomdata(x)[,i],
-			datamode=datamode(x),
-			paths=paths(x),
-			filemode=filemode(x),
-			length=length(i),
-			dim=dim(x)[i],
-			names=names(x)[i],
-			dimnames=dimnames(x)[i],
-			ops=NULL)
-		y[]
-})
+	function(x, i, ...) subList(x, i)[])
+
+setMethod("[",
+	c(x = "matter_str", i = "ANY", j = "missing", drop = "NULL"),
+	function(x, i, ..., drop) subList(x, i))
 
 setReplaceMethod("[",
 	c(x = "matter_str", i = "ANY", j = "missing"),
@@ -155,12 +151,18 @@ setReplaceMethod("[",
 		x
 })
 
+# x[i,j] subsetting
+
 setMethod("[",
 	c(x = "matter_str", i = "ANY", j = "ANY"),
 	function(x, i, j, ...) {
 		y <- getListElements(x, i, j)
 		sapply(y, raw2char, encoding=x@encoding)
 })
+
+setMethod("[",
+	c(x = "matter_str", i = "ANY", j = "ANY", drop = "NULL"),
+	function(x, i, j, ..., drop) subListElements(x, i, j))
 
 setReplaceMethod("[",
 	c(x = "matter_str", i = "ANY", j = "ANY"),
@@ -175,23 +177,7 @@ setReplaceMethod("[",
 		setListElements(x, i, j, value)
 })
 
-setMethod("[[",
-	c(x = "matter_str", i = "ANY", j = "missing"),
-	function(x, i, ...) {
-		y <- getListElements(x, i)
-		raw2char(y, encoding=x@encoding)
-})
-
-setReplaceMethod("[[",
-	c(x = "matter_str", i = "ANY", j = "missing"),
-	function(x, i, ..., value) {
-		if ( is.character(value) ) {
-			value <- char2raw(value)
-		} else {
-			value <- as.raw(value)
-		}
-		setListElements(x, i, NULL, value)
-})
+# additional methods
 
 setMethod("combine", "matter_str", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )
