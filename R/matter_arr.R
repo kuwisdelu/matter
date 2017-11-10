@@ -100,7 +100,7 @@ setMethod("as.array", "matter_arr", function(x) as(x, "array"))
 
 setMethod("as.vector", "matter_arr", function(x) as(x, "matter_vec")[])
 
-setReplaceMethod("dim", "matter_vec", function(x, value) {
+setReplaceMethod("dim", "matter_arr", function(x, value) {
 	if ( is.null(value) ) {
 		as(x, "matter_vec")
 	} else {

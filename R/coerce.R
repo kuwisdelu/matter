@@ -32,7 +32,7 @@ setAs("matter_vec", "matter_arr", function(from) {
 setAs("matter_vec", "matter_list", function(from) {
 	if ( !is.null(from@ops) )
 		warning("dropping delayed operations")
-	new("matter_arr",
+	new("matter_list",
 		data=from@data,
 		datamode=from@datamode,
 		paths=from@paths,
