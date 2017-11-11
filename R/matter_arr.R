@@ -83,8 +83,6 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("type_for_display", "matter_arr", function(x) "array")
-
 setMethod("describe_for_display", "matter_arr", function(x) "on-disk array")
 
 setMethod("show", "matter_arr", function(object) {

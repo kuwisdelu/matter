@@ -116,8 +116,6 @@ matter <- function(...) {
 	}
 }
 
-setMethod("type_for_display", "ANY", function(x) class(x))
-
 setMethod("describe_for_display", "ANY", function(x) class(x))
 
 is.matter <- function(x) {
@@ -155,7 +153,7 @@ setMethod("show", "matter", function(object) {
 	cat("    sources:", length(object@paths), "\n")
 	cat("    datamode:", paste_head(object@datamode), "\n")
 	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
-	cat("    ", format(disk_used(object@data), units="auto"), " on-disk\n", sep="")
+	cat("    ", format(disk_used(object), units="auto"), " on-disk\n", sep="")
 })
 
 setMethod("datamode", "matter", function(x) x@datamode)

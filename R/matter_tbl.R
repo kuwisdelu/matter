@@ -16,8 +16,6 @@ setClass("matter_tbl",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setMethod("type_for_display", "matter_tbl", function(x) "table")
-
 setMethod("describe_for_display", "matter_tbl", function(x) "data table")
 
 print_tabular_data <- function(x, classinfo, n = 6L, ...) {

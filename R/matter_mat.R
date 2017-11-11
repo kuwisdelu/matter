@@ -138,8 +138,6 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("type_for_display", "matter_mat", function(x) "matrix")
-
 setMethod("describe_for_display", "matter_mat", function(x) "on-disk matrix")
 
 setMethod("show", "matter_mat", function(object) {

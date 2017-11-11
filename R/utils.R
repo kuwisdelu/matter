@@ -63,12 +63,12 @@ returnWithWarning <- function(x, ...) {
 	x
 }
 
-paste_head <- function(x, n=6L, ...) {
+paste_head <- function(x, n=6L, collapse=" ") {
 	if ( length(x) > n ) {
-		paste0(paste0(head(x, n=n), collapse=" "),
-			" [and ", length(x) - n, " more]", ...)
+		paste0(paste0(head(x, n=n), collapse=collapse),
+			" [and ", length(x) - n, " more]")
 	} else {
-		paste0(x)
+		paste0(x, collapse=collapse)
 	}
 }
 
@@ -110,7 +110,17 @@ sizeof <- function(type) {
 		double = 8)
 }
 
-combine_colnames <- function(x, y) {
+do_recursive <- function(fun, args) {
+	if ( length(args) > 2 ) {
+		fun(x, do_recursive(fun, args[-1]))
+	} else {
+		fun(args[[1]], args[[2]])
+	}
+}
+
+combine_colnames <- function(x, y, ...) {
+	if ( length(list(...)) > 0 )
+		y <- combine_colnames(y, ...)
 	if ( is.null(dimnames(x)[[2]]) && is.null(dimnames(y)[[2]]) ) {
 		colnames <- NULL
 	} else if ( is.null(dimnames(x)[[2]]) ) {
@@ -132,7 +142,9 @@ combine_colnames <- function(x, y) {
 	}
 }
 
-combine_rownames <- function(x, y) {
+combine_rownames <- function(x, y, ...) {
+	if ( length(list(...)) > 0 )
+		y <- combine_rownames(y, ...)
 	if ( is.null(dimnames(x)[[1]]) && is.null(dimnames(y)[[1]]) ) {
 		rownames <- NULL
 	} else if ( is.null(dimnames(x)[[1]]) ) {

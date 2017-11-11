@@ -81,8 +81,6 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("type_for_display", "matter_list", function(x) "list")
-
 setMethod("describe_for_display", "matter_list", function(x) "on-disk list")
 
 setMethod("show", "matter_list", function(object) {

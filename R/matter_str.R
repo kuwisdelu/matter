@@ -86,8 +86,6 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 	x
 }
 
-setMethod("type_for_display", "matter_str", function(x) "string")
-
 setMethod("describe_for_display", "matter_str", function(x) "on-disk string")
 
 setMethod("show", "matter_str", function(object) {

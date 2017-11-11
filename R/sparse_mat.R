@@ -12,6 +12,7 @@ setClass("sparse_mat",
 		tolerance = "numeric",
 		combiner = "function"),
 	prototype = prototype(
+		datamode = make_datamode(c("virtual", "numeric"), type="R"),
 		dim = c(0L,0L),
 		dimnames = NULL,
 		keys = NULL,
@@ -34,7 +35,7 @@ setClass("sparse_mat",
 setClass("sparse_matc",
 	prototype = prototype(
 		data = list(),
-		datamode = make_datamode("virtual", type="R"),
+		datamode = make_datamode(c("virtual", "numeric"), type="R"),
 		paths = character(),
 		filemode = "",
 		chunksize = 1e6L,
@@ -53,13 +54,15 @@ setClass("sparse_matc",
 			errors <- c(errors, "length of 'data$values'  must match number of columns")
 		if ( !is.null(object@keys) && object@dim[1] != length(object@keys) )
 			errors <- c(errors, "length of 'keys' must match number of rows")
+		if ( !object@datamode[2] %in% c("logical", "integer", "numeric") )
+			errors <- c(errors, "'datamode[2]' must be 'logical', 'integer', or 'numeric'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
 setClass("sparse_matr",
 	prototype = prototype(
 		data = list(),
-		datamode = make_datamode("virtual", type="R"),
+		datamode = make_datamode(c("virtual", "numeric"), type="R"),
 		paths = character(),
 		filemode = "",
 		chunksize = 1e6L,
@@ -81,11 +84,13 @@ setClass("sparse_matr",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-sparse_mat <- function(data, nrow = 0, ncol = 0, rowMaj = FALSE,
-					dimnames = NULL, keys = NULL, tolerance = c(abs=0),
-					combiner = "identity", ...) {
+sparse_mat <- function(data, datamode = "double", nrow = 0, ncol = 0,
+					rowMaj = FALSE, dimnames = NULL, keys = NULL,
+					tolerance = c(abs=0), combiner = "identity", ...) {
 	if ( !missing(data) ) {
 		if ( is.matrix(data) ) {
+			if ( missing(datamode) )
+				datamode <- typeof(data)
 			if ( missing(nrow) )
 				nrow <- nrow(data)
 			if ( missing(ncol) )
@@ -108,6 +113,7 @@ sparse_mat <- function(data, nrow = 0, ncol = 0, rowMaj = FALSE,
 			}
 		}
 	}
+	datamode <- as.character(make_datamode(datamode, type="R"))
 	if ( rowMaj ) {
 		mclass <- "sparse_matr"
 		if ( missing(ncol) && !missing(keys) )
@@ -129,7 +135,7 @@ sparse_mat <- function(data, nrow = 0, ncol = 0, rowMaj = FALSE,
 	}
 	x <- new(mclass,
 		data=adata(),
-		datamode=make_datamode("virtual", type="R"),
+		datamode=make_datamode(c("virtual", datamode), type="R"),
 		paths=character(),
 		filemode="",
 		length=as.numeric(sum(lengths(adata()$values))),
@@ -182,35 +188,20 @@ as_sparse_mat_tolerance <- function(tolerance) {
 	tol
 }
 
-setMethod("type_for_display", "sparse_mat", function(x) "matrix")
-
 setMethod("describe_for_display", "sparse_mat", function(x) "sparse matrix")
 
 setMethod("show", "sparse_mat", function(object) {
-	keys.memory <- bytes(object.size(adata(object)$keys))
-	values.memory <- bytes(object.size(adata(object)$values))
-	if ( is.matter(atomdata(object)$keys) ) {
-		keys.disk <- disk_used(adata(adata(object)$keys))
-		keys.summary <- paste0(format(keys.memory), " in-memory (",
-			format(keys.disk), " on-disk)")
-	} else {
-		keys.disk <- bytes(0)
-		keys.summary <- paste0(format(keys.memory), " in-memory")
-	}
-	if ( is.matter(atomdata(object)$values) ) {
-		values.disk <- disk_used(adata(adata(object)$values))
-		values.summary <- paste0(format(values.memory), " in-memory (",
-			format(values.disk), " on-disk)")
-	} else {
-		values.disk <- bytes(0)
-		values.summary <- paste0(format(values.memory), " in-memory")
-	}
-	object.memory <- bytes(object.size(object))
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
 		describe_for_display(object), "\n", sep="")
-	cat("    keys:", keys.summary, "\n")
-	cat("    values:", values.summary, "\n")
+	memnames <- names(object@data)[!sapply(object@data, is.matter)]
+	disknames <- names(object@data)[sapply(object@data, is.matter)]
+	object.memory <- bytes(object.size(object))
+	cat("    datamode:", paste0(object@datamode[2]), "\n")
+	cat("    ", format(object.memory, units="auto"), " in-memory: ",
+		paste_head(memnames, collapse=", "), "\n", sep="")
+	cat("    ", format(disk_used(object), units="auto"), " on-disk: ",
+		paste_head(disknames, collapse=", "), "\n", sep="")
 	cat("    ", length(object), " non-zero elements\n", sep="")
 	cat("    ", round(length(object) / prod(dim(object)), 2) * 100,
 		"% density\n", sep="")
@@ -219,6 +210,23 @@ setMethod("show", "sparse_mat", function(object) {
 	if ( !is.null(attr(object, "scaled:scale")) )
 		cat("    scaled:scale = TRUE\n")
 })
+
+setReplaceMethod("datamode", "sparse_mat", function(x, value) {
+	value <- as.character(make_datamode(value, type="R"))
+	if ( value[1] != "virtual" )
+		x@datamode <- make_datamode(c("virtual", value), type="R")
+	x
+})
+
+setAs("matrix", "sparse_mat",
+	function(from) sparse_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
+
+setAs("array", "sparse_mat",
+	function(from) sparse_mat(as.matrix(from), datamode=typeof(from), dimnames=dimnames(from)))
+
+as.sparse <- function(x) as(x, "sparse_mat")
+
+is.sparse <- function(x) is(x, "sparse_mat")
 
 setMethod("keys", "sparse_mat", function(object) object@keys)
 
@@ -260,7 +268,10 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 		if ( any(j <= 0 | j > dim(x)[2]) )
 			stop("subscript out of bounds")
 	}
-	y <- matrix(NA_real_, nrow=length(i), ncol=length(j))
+	vmode <- as.character(x@datamode[2])
+	zero <- as.vector(0, mode=vmode)
+	init <- as.vector(NA, mode=vmode)
+	y <- matrix(init, nrow=length(i), ncol=length(j))
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	sorted <- FALSE
 	if ( is.null(keys(x)) ) {
@@ -319,11 +330,11 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 			.jvals <- .vals[[i[ii]]]
 			if ( is.null(keys) ) {
 				if ( sorted ) {
-					y[ii,] <- 0
-					y[ii,.jkeys] <- .jvals
+					y[ii,] <- zero
+					y[ii,.jkeys] <- as.vector(.jvals, mode=vmode)
 				} else {
-					y[ii,] <- 0
-					y[ii,ord] <- .jvals
+					y[ii,] <- zero
+					y[ii,ord] <- as.vector(.jvals, mode=vmode)
 				}
 			} else if ( length(keys) > length(.jkeys) || dup.ok ) {
 				if ( tol.type == 1 ) { # absolute
@@ -334,19 +345,21 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
 				}
 				if ( sorted ) {
-					y[ii,] <- x@combiner(.jvals, index, length(keys), default=0)
+					y[ii,] <- as.vector(x@combiner(.jvals, index,
+						length(keys), default=zero), mode=vmode)
 				} else {
-					y[ii,ord] <- x@combiner(.jvals, index, length(keys), default=0)
+					y[ii,ord] <- as.vector(x@combiner(.jvals, index,
+						length(keys), default=zero), mode=vmode)
 				}
 			} else {
 				index <- bsearch_int(key=keys, values=.jkeys)
-				zero <- is.na(index) & !is.na(keys)
+				zwh <- is.na(index) & !is.na(keys)
 				if ( sorted ) {
-					y[ii,] <- .jvals[index]
-					y[ii,zero] <- 0
+					y[ii,] <- as.vector(.jvals[index], mode=vmode)
+					y[ii,zwh] <- zero
 				} else {
-					y[ii,ord] <- .jvals[index]
-					y[ii,ord[zero]] <- 0
+					y[ii,ord] <- as.vector(.jvals[index], mode=vmode)
+					y[ii,ord[zwh]] <- zero
 				}
 			}
 		}
@@ -358,11 +371,11 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 			.ivals <- .vals[[j[jj]]]
 			if ( is.null(keys) ) {
 				if ( sorted ) {
-					y[,jj] <- 0
-					y[.ikeys,jj] <- .ivals
+					y[,jj] <- zero
+					y[.ikeys,jj] <- as.vector(.ivals, mode=vmode)
 				} else {
-					y[,jj] <- 0
-					y[ord,jj] <- .ivals[]
+					y[,jj] <- zero
+					y[ord,jj] <- as.vector(.ivals[], mode=vmode)
 				}
 			} else if ( length(keys) > length(.ikeys) || dup.ok ) {
 				if ( tol.type == 1 ) { # absolute
@@ -373,19 +386,21 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
 				}
 				if ( sorted ) {
-					y[,jj] <- x@combiner(.ivals, index, length(keys), default=0)
+					y[,jj] <- as.vector(x@combiner(.ivals, index,
+						length(keys), default=zero), mode=vmode)
 				} else {
-					y[ord,jj] <- x@combiner(.ivals, index, length(keys), default=0)
+					y[ord,jj] <- as.vector(x@combiner(.ivals, index,
+						length(keys), default=zero), mode=vmode)
 				}
 			} else {
 				index <- bsearch_int(key=keys, values=.ikeys)
-				zero <- is.na(index) & !is.na(keys)
+				zwh <- is.na(index) & !is.na(keys)
 				if ( sorted ) {
-					y[,jj] <- .ivals[index]
-					y[zero,jj] <- 0
+					y[,jj] <- as.vector(.ivals[index], mode=vmode)
+					y[zwh,jj] <- zero
 				} else {
-					y[ord,jj] <- .ivals[index]
-					y[ord[zero],jj] <- 0
+					y[ord,jj] <- as.vector(.ivals[index], mode=vmode)
+					y[ord[zwh],jj] <- zero
 				}
 			}
 		}
@@ -432,6 +447,8 @@ setSparseMatrixElements <- function(x, i, j, value) {
 		value <- as.double(value)
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	dim(value) <- c(length(i), length(j))
+	vmode <- as.character(x@datamode[2])
+	zero <- as.vector(0, mode=vmode)
 	if ( is.null(keys(x)) ) {
 		keymode <- typeof(atomdata(x)$keys[[1]])
 		if ( rowMaj ) {
@@ -441,6 +458,7 @@ setSparseMatrixElements <- function(x, i, j, value) {
 				keys <- as.vector(j, mode=keymode)
 			}
 		} else {
+
 			if ( all.j ) {
 				keys <- NULL
 			} else {
@@ -470,10 +488,10 @@ setSparseMatrixElements <- function(x, i, j, value) {
 			} else {
 				newkeys <- keys
 			}
-			zero <- value[ii,] == 0
-			nz <- !zero
+			zwh <- value[ii,] == zero
+			nz <- !zwh
 			na <- is.na(newkeys)
-			remove <- .jkeys %in% newkeys[zero]
+			remove <- .jkeys %in% newkeys[zwh]
 			newkeys <- newkeys[nz & !na]
 			newvals <- value[ii,nz & !na]
 			keep <- !.jkeys %in% newkeys
@@ -494,10 +512,10 @@ setSparseMatrixElements <- function(x, i, j, value) {
 			} else {
 				newkeys <- keys
 			}
-			zero <- value[,jj] == 0
-			nz <- !zero
+			zwh <- value[,jj] == zero
+			nz <- !zwh
 			na <- is.na(newkeys)
-			remove <- .ikeys %in% newkeys[zero]
+			remove <- .ikeys %in% newkeys[zwh]
 			newkeys <- newkeys[nz & !na]
 			newvals <- value[nz & !na,jj]
 			keep <- !.ikeys %in% newkeys

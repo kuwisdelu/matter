@@ -77,8 +77,6 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("type_for_display", "matter_vec", function(x) paste0(datamode(x)))
-
 setMethod("describe_for_display", "matter_vec", function(x) "on-disk vector")
 
 setMethod("show", "matter_vec", function(object) {

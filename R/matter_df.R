@@ -56,8 +56,6 @@ matter_df <- function(..., row.names = NULL) {
 		ops=NULL)
 }
 
-setMethod("type_for_display", "matter_df", function(x) "table")
-
 setMethod("describe_for_display", "matter_df", function(x) "data frame")
 
 setMethod("show", "matter_df", function(object) {
@@ -65,8 +63,12 @@ setMethod("show", "matter_df", function(object) {
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
 		describe_for_display(object), "\n", sep="")
 	m <- sum(sapply(atomdata(object), is.matter))
-	cat("    ", length(object) - m, " variables in-memory\n", sep="")
-	cat("    ",  m, " variables on-disk\n", sep="")
+	object.memory <- bytes(object.size(object))
+	cat("    ", format(object.memory, units="auto"), " in-memory: ",
+		length(object) - m, " variables\n", sep="")
+	cat("    ", format(disk_used(object), units="auto"), " on-disk: ",
+		m, " variables\n", sep="")
+	cat("\n")
 	classinfo <- sapply(atomdata(object), function(x)
 		paste0("<", class(x)[1], ">"), USE.NAMES=FALSE)
 	print_tabular_data(object, classinfo)

@@ -71,7 +71,11 @@ export(
 	"sparse_mat",
 	"virtual_mat",
 	"is.matter",
-	"as.matter")
+	"as.matter",
+	"is.sparse",
+	"as.sparse",
+	"is.virtual",
+	"as.virtual")
 
 exportMethods(
 	"as.vector",
@@ -172,7 +176,9 @@ exportMethods("prcomp")
 
 export("bsearch")
 
-export("mem",
+export(
+	"disk_used",
+	"mem",
 	"profmem")
 
 useDynLib("matter", .registration=TRUE)

@@ -43,7 +43,7 @@ drle <- function(x, cr_threshold = 0)
 		out
 }
 
-is.drle <- function(x) class(x) == "drle"
+is.drle <- function(x) is(x, "drle")
 
 getDRLE <- function(x) {
 	.Call("C_getDRLE", x, PACKAGE="matter")

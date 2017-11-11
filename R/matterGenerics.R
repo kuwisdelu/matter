@@ -72,7 +72,6 @@ setGeneric("tolerance<-", function(object, value) standardGeneric("tolerance<-")
 #### Internal generic functions for matter ####
 ## ----------------------------------------------
 
-setGeneric("type_for_display", function(x) standardGeneric("type_for_display"))
 setGeneric("describe_for_display", function(x) standardGeneric("describe_for_display"))
 setGeneric("combine_by_cols", function(x, y, ...) standardGeneric("combine_by_cols"))
 setGeneric("combine_by_rows", function(x, y, ...) standardGeneric("combine_by_rows"))
