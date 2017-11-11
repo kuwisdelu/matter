@@ -7,7 +7,7 @@ setClass("matter_df",
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),
 		paths = character(),
-		filemode = character(),
+		filemode = "",
 		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L, 0L),
@@ -20,6 +20,8 @@ setClass("matter_df",
 		if ( object@length != length(object@data) )
 			errors <- c(errors, paste0("length of object [", object@length,
 				"] does not match length of data [", length(object@data), "]"))
+		if ( is.null(names(object@data)) && object@length > 0 )
+			errors <- c(errors, "elements of 'data' must be named")
 		if ( any(names(object@data) != object@names) )
 			errors <- c(errors, "'names' must match names of data columns")
 		lens <- sapply(object@data, length)
@@ -46,7 +48,7 @@ matter_df <- function(..., row.names = NULL) {
 		data=setNames(data, nm),
 		datamode=make_datamode("virtual", type="R"),
 		paths=character(),
-		filemode="rb",
+		filemode="",
 		length=length(data),
 		dim=c(length(data[[1]]), length(data)),
 		names=nm,

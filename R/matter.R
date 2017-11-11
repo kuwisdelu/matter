@@ -26,12 +26,10 @@ setClass("matter",
 		if ( !is.null(object@paths) && any(!file.exists(object@paths)) )
 			errors <- c(errors, paste0("file [", which(!file.exists(object@paths)), "] does not exist"))
 		C_filemodes <- c("r", "w", "b", "a", "+")
-		object_filemodes <- substring(object@filemode, 1:nchar(object@filemode), 1:nchar(object@filemode))
+		object_filemodes <- raw2char(char2raw(object@filemode), multiple=TRUE)
 		if ( length(object@filemode) != 1 || !all(object_filemodes %in% C_filemodes) )
 			errors <- c(errors, paste0("'filemode' should include only [",
 				paste(C_filemodes, collapse=", "), "]"))
-		if ( !"b" %in% object_filemodes )
-			errors <- c(errors, paste0("'filemode' must be binary"))
 		R_datamodes <- levels(make_datamode(type="R"))
 		if ( !all(levels(object@datamode) %in% R_datamodes) )
 			errors <- c(errors, paste0("'datamode' levels should be [",

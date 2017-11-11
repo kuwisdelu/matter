@@ -3,7 +3,6 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Create 'matter_vt' class for datamode="virtual" matter objects
 - Create 'virtual_mat' for binding 'matter_mat' with R matrices
 - Add 'combine_by_rows' and 'combine_by_cols' methods
 - Add biglm() method for 'matter_mat' and 'matter_df'

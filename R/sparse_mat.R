@@ -24,18 +24,19 @@ setClass("sparse_mat",
 			errors <- c(errors, "sparse matrix must have non-NULL 'dim'")
 		if ( length(object@dim) != 2 )
 			errors <- c(errors, "sparse matrix must have 'dim' of length 2")
+		if ( !all(c("keys", "values") %in% names(object@data)) )
+			errors <- c(errors, "'data' must include elements named 'keys' and 'values'")
 		if ( !all(lengths(object@data$keys) == lengths(object@data$values)) )
 			errors <- c(errors, "lengths of 'data$keys' must match lengths of 'data$values'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
 setClass("sparse_matc",
-	contains = "sparse_mat",
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),
 		paths = character(),
-		filemode = character(),
+		filemode = "",
 		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
@@ -45,6 +46,7 @@ setClass("sparse_matc",
 		keys = NULL,
 		tolerance = 0,
 		combiner = groupIds),
+	contains = "sparse_mat",
 	validity = function(object) {
 		errors <- NULL
 		if ( object@dim[2] != length(object@data$values) )
@@ -55,12 +57,11 @@ setClass("sparse_matc",
 	})
 
 setClass("sparse_matr",
-	contains = "sparse_mat",
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),
 		paths = character(),
-		filemode = character(),
+		filemode = "",
 		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
@@ -70,6 +71,7 @@ setClass("sparse_matr",
 		keys = NULL,
 		tolerance = 0,
 		combiner = groupIds),
+	contains = "sparse_mat",
 	validity = function(object) {
 		errors <- NULL
 		if ( object@dim[1] != length(object@data$values) )
@@ -129,7 +131,7 @@ sparse_mat <- function(data, nrow = 0, ncol = 0, rowMaj = FALSE,
 		data=adata(),
 		datamode=make_datamode("virtual", type="R"),
 		paths=character(),
-		filemode="rb",
+		filemode="",
 		length=as.numeric(sum(lengths(adata()$values))),
 		dim=as.integer(c(nrow, ncol)),
 		names=NULL,
@@ -233,7 +235,7 @@ setReplaceMethod("tolerance", "sparse_mat", function(object, value) {
 	object
 })
 
-getSparseMatrixElements <- function(x, i, j, drop) {
+getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 	if ( is.null(i) ) {
 		i <- 1:dim(x)[1]
 		all.i <- TRUE
@@ -313,34 +315,34 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 		for ( ii in seq_along(i) ) {
 			if ( is.na(i[ii]) )
 				next
-			.ikeys <- .keys[[i[ii]]]
-			.ivals <- .vals[[i[ii]]]
+			.jkeys <- .keys[[i[ii]]]
+			.jvals <- .vals[[i[ii]]]
 			if ( is.null(keys) ) {
 				if ( sorted ) {
 					y[ii,] <- 0
-					y[ii,] <- .ivals
+					y[ii,.jkeys] <- .jvals
 				} else {
 					y[ii,] <- 0
-					y[ii,ord] <- .ivals
+					y[ii,ord] <- .jvals
 				}
-			} else if ( length(keys) > length(.ikeys) || dup.ok ) {
+			} else if ( length(keys) > length(.jkeys) || dup.ok ) {
 				if ( tol.type == 1 ) { # absolute
-					index <- bsearch_int(key=.ikeys, values=keys,
+					index <- bsearch_int(key=.jkeys, values=keys,
 						tol=x@tolerance, tol.ref=1L) # 1 = 'none'
 				} else if ( tol.type == 2 ) { # relative
-					index <- bsearch_int(key=.ikeys, values=keys,
+					index <- bsearch_int(key=.jkeys, values=keys,
 						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
 				}
 				if ( sorted ) {
-					y[ii,] <- x@combiner(.ivals, index, length(keys), default=0)
+					y[ii,] <- x@combiner(.jvals, index, length(keys), default=0)
 				} else {
-					y[ii,ord] <- x@combiner(.ivals, index, length(keys), default=0)
+					y[ii,ord] <- x@combiner(.jvals, index, length(keys), default=0)
 				}
 			} else {
-				index <- bsearch_int(key=keys, values=.ikeys)
+				index <- bsearch_int(key=keys, values=.jkeys)
 				zero <- is.na(index) & !is.na(keys)
 				if ( sorted ) {
-					y[ii,] <- .ivals[index]
+					y[ii,] <- .jvals[index]
 					y[ii,zero] <- 0
 				} else {
 					y[ii,ord] <- .jvals[index]
@@ -352,37 +354,37 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 		for ( jj in seq_along(j) ) {
 			if ( is.na(j[jj]) )
 				next
-			.jkeys <- .keys[[j[jj]]]
-			.jvals <- .vals[[j[jj]]]
+			.ikeys <- .keys[[j[jj]]]
+			.ivals <- .vals[[j[jj]]]
 			if ( is.null(keys) ) {
 				if ( sorted ) {
 					y[,jj] <- 0
-					y[.jkeys,jj] <- .jvals
+					y[.ikeys,jj] <- .ivals
 				} else {
 					y[,jj] <- 0
-					y[ord,jj] <- .jvals[]
+					y[ord,jj] <- .ivals[]
 				}
-			} else if ( length(keys) > length(.jkeys) || dup.ok ) {
+			} else if ( length(keys) > length(.ikeys) || dup.ok ) {
 				if ( tol.type == 1 ) { # absolute
-					index <- bsearch_int(key=.jkeys, values=keys,
+					index <- bsearch_int(key=.ikeys, values=keys,
 						tol=x@tolerance, tol.ref=1L) # 1 = 'none'
 				} else if ( tol.type == 2 ) { # relative
-					index <- bsearch_int(key=.jkeys, values=keys,
+					index <- bsearch_int(key=.ikeys, values=keys,
 						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
 				}
 				if ( sorted ) {
-					y[,jj] <- x@combiner(.jvals, index, length(keys), default=0)
+					y[,jj] <- x@combiner(.ivals, index, length(keys), default=0)
 				} else {
-					y[ord,jj] <- x@combiner(.jvals, index, length(keys), default=0)
+					y[ord,jj] <- x@combiner(.ivals, index, length(keys), default=0)
 				}
 			} else {
-				index <- bsearch_int(key=keys, values=.jkeys)
+				index <- bsearch_int(key=keys, values=.ikeys)
 				zero <- is.na(index) & !is.na(keys)
 				if ( sorted ) {
-					y[,jj] <- .jvals[index]
+					y[,jj] <- .ivals[index]
 					y[zero,jj] <- 0
 				} else {
-					y[ord,jj] <- .jvals[index]
+					y[ord,jj] <- .ivals[index]
 					y[ord[zero],jj] <- 0
 				}
 			}
@@ -461,8 +463,8 @@ setSparseMatrixElements <- function(x, i, j, value) {
 		for ( ii in seq_along(i) ) {
 			if ( is.na(i[ii]) )
 				next
-			.ikeys <- .keys[[i[ii]]]
-			.ivals <- .vals[[i[ii]]]
+			.jkeys <- .keys[[i[ii]]]
+			.jvals <- .vals[[i[ii]]]
 			if ( is.null(keys) ) {
 				newkeys <- 1:dim(x)[2]
 			} else {
@@ -471,13 +473,12 @@ setSparseMatrixElements <- function(x, i, j, value) {
 			zero <- value[ii,] == 0
 			nz <- !zero
 			na <- is.na(newkeys)
-			remove <- .ikeys %in% newkeys[zero]
+			remove <- .jkeys %in% newkeys[zero]
 			newkeys <- newkeys[nz & !na]
 			newvals <- value[ii,nz & !na]
-			keep <- !.ikeys %in% newkeys
-			na <- is.na(.ikeys)
-			newkeys <- c(.ikeys[keep & !remove], newkeys)
-			newvals <- c(.ivals[keep & !remove], newvals)
+			keep <- !.jkeys %in% newkeys
+			newkeys <- c(.jkeys[keep & !remove], newkeys)
+			newvals <- c(.jvals[keep & !remove], newvals)
 			o <- order(newkeys)
 			.keys[[i[ii]]] <- newkeys[o]
 			.vals[[i[ii]]] <- newvals[o]
@@ -486,8 +487,8 @@ setSparseMatrixElements <- function(x, i, j, value) {
 		for ( jj in seq_along(j) ) {
 			if ( is.na(j[jj]) )
 				next
-			.jkeys <- .keys[[j[jj]]]
-			.jvals <- .vals[[j[jj]]]
+			.ikeys <- .keys[[j[jj]]]
+			.ivals <- .vals[[j[jj]]]
 			if ( is.null(keys) ) {
 				newkeys <- 1:dim(x)[1]
 			} else {
@@ -496,12 +497,12 @@ setSparseMatrixElements <- function(x, i, j, value) {
 			zero <- value[,jj] == 0
 			nz <- !zero
 			na <- is.na(newkeys)
-			remove <- .jkeys %in% newkeys[zero]
+			remove <- .ikeys %in% newkeys[zero]
 			newkeys <- newkeys[nz & !na]
 			newvals <- value[nz & !na,jj]
-			keep <- !.jkeys %in% newkeys
-			newkeys <- c(.jkeys[keep & !remove], newkeys)
-			newvals <- c(.jvals[keep & !remove], newvals)
+			keep <- !.ikeys %in% newkeys
+			newkeys <- c(.ikeys[keep & !remove], newkeys)
+			newvals <- c(.ivals[keep & !remove], newvals)
 			o <- order(newkeys)
 			.keys[[j[jj]]] <- newkeys[o]
 			.vals[[j[jj]]] <- newvals[o]
@@ -539,14 +540,6 @@ setSparseMatrix <- function(x, value) {
 }
 
 subSparseMatrix <- function(x, i, j) {
-	if ( is.logical(i) )
-		i <- logical2index(x, i, 1)
-	if ( is.character(i) )
-		i <- dimnames2index(x, i, 1)
-	if ( is.logical(j) )
-		j <- logical2index(x, j, 2)
-	if ( is.character(j) )
-		j <- dimnames2index(x, j, 2)
 	if ( is(x, "sparse_matc") ) {
 		subSparseMatrixRows(subSparseMatrixCols(x, j), i)
 	} else if ( is(x, "sparse_matr") ) {

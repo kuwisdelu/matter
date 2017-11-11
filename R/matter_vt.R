@@ -8,17 +8,22 @@ setClass("matter_vt",
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),
-		filemode = character(),
+		filemode = "",
 		dim = 0L,
 		dimnames = NULL),
 	validity = function(object) {
 		errors <- NULL
 		if ( !"virtual" %in% object@datamode )
 			errors <- c(errors, "'datamode' must include 'virtual'")
-		if ( is.null(names(object@data)) && object@length > 0 )
-			errors <- c(errors, "elements of 'data' must be named")
 		if ( is.null(errors) ) TRUE else errors
 	})
+
+setMethod("show", "matter_vt", function(object) {
+	object.memory <- object.size(object)
+	class(object.memory) <- "bytes"
+	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
+	cat("    ", format(disk_used(object), units="auto"), " on-disk\n", sep="")
+})
 
 setReplaceMethod("datamode", "matter_vt", function(x, value) {
 	x@data <- lapply(x@data, function(a) {
