@@ -86,12 +86,14 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 	x
 }
 
-setMethod("type_for_display", "matter_str", function(x) "strings")
+setMethod("type_for_display", "matter_str", function(x) "string")
+
+setMethod("describe_for_display", "matter_str", function(x) "on-disk string")
 
 setMethod("show", "matter_str", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@length, " length> ",
-		"on-disk ", type_for_display(object), "\n", sep="")
+		describe_for_display(object), "\n", sep="")
 	callNextMethod(object)
 	cat("    encoding:", object@encoding, "\n")
 })
@@ -197,7 +199,7 @@ setMethod("combine", "matter_str", function(x, y, ...) {
 		data=data,
 		datamode=make_datamode("raw", type="R"),
 		paths=levels(factor(c(x@paths, y@paths))),
-		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
 		length=x@length + y@length,
 		dim=c(x@dim, y@dim),
 		names=names,

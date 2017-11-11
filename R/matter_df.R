@@ -1,32 +1,27 @@
 
-#### Define matter<data-frame> class for creating data frames ####
+#### Define matter<data frame> class for creating data frames ####
 ## --------------------------------------------------------------
 
 setClass("matter_df",
-	slot = c(data = "list"),
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),
 		paths = character(),
-		filemode = "rb",
+		filemode = character(),
 		chunksize = 1e6L,
 		length = 0,
-		dim = 0L,
-		names = NULL,
-		dimnames = NULL,
+		dim = c(0L, 0L),
+		names = character(),
+		dimnames = list(NULL, character()),
 		ops = NULL),
-	contains = "matter",
+	contains = c("matter_vt", "matter_tbl"),
 	validity = function(object) {
 		errors <- NULL
-		if ( is.null(object@names) )
-			errors <- c(errors, "data frame must have non-NULL 'names'")
 		if ( object@length != length(object@data) )
 			errors <- c(errors, paste0("length of object [", object@length,
 				"] does not match length of data [", length(object@data), "]"))
 		if ( any(names(object@data) != object@names) )
 			errors <- c(errors, "'names' must match names of data columns")
-		if ( any(object@names != object@dimnames[[2]]) )
-			errors <- c(errors, "'names' and column names do not match")
 		lens <- sapply(object@data, length)
 		neq <- which(lens != object@dim[1])
 		if ( length(neq) > 0 ) {
@@ -59,38 +54,20 @@ matter_df <- function(..., row.names = NULL) {
 		ops=NULL)
 }
 
-setMethod("head", "matter_df",
-	function(x, n = 6L, ...) {
-		stopifnot(length(n) == 1L)
-	    n <- if (n < 0L) 
-	        max(nrow(x) + n, 0L)
-	    else min(n, nrow(x))
-	    x[seq_len(n),,drop=FALSE]
-})
+setMethod("type_for_display", "matter_df", function(x) "table")
 
-setMethod("tail", "matter_df",
-	function(x, n = 6L, ...) {
-		stopifnot(length(n) == 1L)
-	    nrx <- nrow(x)
-	    n <- if (n < 0L) 
-	        max(nrx + n, 0L)
-	    else min(n, nrx)
-	    x[seq.int(to=nrx, length.out=n),,drop=FALSE]
-})
-
-setMethod("type_for_display", "matter_df", function(x) "data frame")
+setMethod("describe_for_display", "matter_df", function(x) "data frame")
 
 setMethod("show", "matter_df", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		type_for_display(object), "\n", sep="")
+		describe_for_display(object), "\n", sep="")
 	m <- sum(sapply(atomdata(object), is.matter))
 	cat("    ", length(object) - m, " variables in-memory\n", sep="")
 	cat("    ",  m, " variables on-disk\n", sep="")
-	n <- 6L
-	print(head(object, n=n))
-	if ( nrow(object) > n )
-		cat("[and ", nrow(object) - n, " more rows]", "\n", sep="")
+	classinfo <- sapply(atomdata(object), function(x)
+		paste0("<", class(x)[1], ">"), USE.NAMES=FALSE)
+	print_tabular_data(object, classinfo)
 })
 
 setAs("list", "matter_df", # also for data.frame
@@ -104,24 +81,6 @@ as.matter_df <- function(x) as(x, "matter_df")
 setAs("matter_df", "data.frame", function(from) from[])
 
 setMethod("as.data.frame", "matter_df", function(x) as(x, "data.frame"))
-
-setReplaceMethod("names", "matter_df", function(x, value) {
-	x@names <- value
-	if ( is.null(x@dimnames) ) {
-		x@dimnames <- list(NULL, value)
-	} else {
-		x@dimnames[[2]] <- value
-	}
-	if ( validObject(x) )
-		x
-})
-
-setReplaceMethod("dimnames", "matter_df", function(x, value) {
-	x@names <- value[[2]]
-	x@dimnames <- value[[2]]
-	if ( validObject(x) )
-		x
-})
 
 getDataFrame <- function(x) {
 	y <- lapply(atomdata(x), "[")

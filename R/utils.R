@@ -408,10 +408,16 @@ bytes <- function(x) {
 # calculates disk used by a matter object
 
 disk_used <- function(x) {
-	if ( is.list(x) ) {
-		size <- sum(vapply(x, disk_used, numeric(1)))
-	} else {
+	if ( is(x, "atoms") ) {
 		size <- sum(x@extent[] * sizeof(datamode(x)[]))
+	} else if ( is.matter(x) ) {
+		if ( is(adata(x), "atoms") ) {
+			size <- disk_used(adata(x))
+		} else {
+			size <- sum(vapply(adata(x), disk_used, numeric(1)))
+		}
+	} else {
+		size <- 0
 	}
 	bytes(size)
 }

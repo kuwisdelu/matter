@@ -85,10 +85,12 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 
 setMethod("type_for_display", "matter_arr", function(x) "array")
 
+setMethod("describe_for_display", "matter_arr", function(x) "on-disk array")
+
 setMethod("show", "matter_arr", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", paste0(object@dim, collapse=" x "), " dim> ",
-		"on-disk ", type_for_display(object), "\n", sep="")
+		describe_for_display(object), "\n", sep="")
 	callNextMethod(object)
 })
 

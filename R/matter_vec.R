@@ -77,12 +77,14 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("type_for_display", "matter_vec", function(x) "vector")
+setMethod("type_for_display", "matter_vec", function(x) paste0(datamode(x)))
+
+setMethod("describe_for_display", "matter_vec", function(x) "on-disk vector")
 
 setMethod("show", "matter_vec", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@length, " length> ",
-		"on-disk ", type_for_display(object), "\n", sep="")
+		describe_for_display(object), "\n", sep="")
 	callNextMethod(object)
 })
 
@@ -229,7 +231,7 @@ setMethod("combine", "matter_vec", function(x, y, ...) {
 		data=data,
 		datamode=widest_datamode(datamode(data)),
 		paths=levels(factor(c(x@paths, y@paths))),
-		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
 		length=x@length + y@length,
 		dim=NULL,
 		names=names,

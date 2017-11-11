@@ -5,16 +5,10 @@
 setClass("matter_mat",
 	slot = c(data = "atoms"),
 	prototype = prototype(
-		data = new("atoms"),
-		datamode = make_datamode("numeric", type="R"),
-		paths = character(),
-		filemode = "rb",
-		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
 		names = NULL,
-		dimnames = NULL,
-		ops = NULL),
+		dimnames = NULL),
 	contains = c("matter", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
@@ -146,10 +140,12 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 
 setMethod("type_for_display", "matter_mat", function(x) "matrix")
 
+setMethod("describe_for_display", "matter_mat", function(x) "on-disk matrix")
+
 setMethod("show", "matter_mat", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		"on-disk ", type_for_display(object), "\n", sep="")
+		describe_for_display(object), "\n", sep="")
 	callNextMethod(object)
 	if ( !is.null(attr(object, "scaled:center")) )
 		cat("    scaled:center = TRUE\n")
@@ -447,7 +443,7 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		data=data,
 		datamode=widest_datamode(datamode(data)),
 		paths=levels(factor(c(x@paths, y@paths))),
-		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
 		length=x@length + y@length,
 		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
 		names=NULL,
@@ -468,7 +464,7 @@ setMethod("combine", "matter_matr", function(x, y, ...) {
 		data=data,
 		datamode=widest_datamode(datamode(data)),
 		paths=levels(factor(c(x@paths, y@paths))),
-		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
 		length=x@length + y@length,
 		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
 		names=NULL,

@@ -8,25 +8,16 @@ setClassUnion("valid_key_type",
 
 setClass("sparse_mat",
 	slots = c(
-		data = "list",
 		keys = "valid_key_type",
 		tolerance = "numeric",
 		combiner = "function"),
 	prototype = prototype(
-		data = list(),
-		datamode = make_datamode("numeric", type="R"),
-		paths = character(),
-		filemode = "rb",
-		chunksize = 1e6L,
-		length = 0,
 		dim = c(0L,0L),
-		names = NULL,
 		dimnames = NULL,
-		ops = NULL,
 		keys = NULL,
 		tolerance = 0,
 		combiner = groupIds),
-	contains = c("matter", "VIRTUAL"),
+	contains = c("matter_vt", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )
@@ -35,8 +26,6 @@ setClass("sparse_mat",
 			errors <- c(errors, "sparse matrix must have 'dim' of length 2")
 		if ( !all(lengths(object@data$keys) == lengths(object@data$values)) )
 			errors <- c(errors, "lengths of 'data$keys' must match lengths of 'data$values'")
-		if ( !object@datamode %in% c("integer", "numeric") )
-			errors <- c(errors, "'datamode' must be 'integer' or 'numeric'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -44,9 +33,9 @@ setClass("sparse_matc",
 	contains = "sparse_mat",
 	prototype = prototype(
 		data = list(),
-		datamode = make_datamode("numeric", type="R"),
+		datamode = make_datamode("virtual", type="R"),
 		paths = character(),
-		filemode = "rb",
+		filemode = character(),
 		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
@@ -69,9 +58,9 @@ setClass("sparse_matr",
 	contains = "sparse_mat",
 	prototype = prototype(
 		data = list(),
-		datamode = make_datamode("numeric", type="R"),
+		datamode = make_datamode("virtual", type="R"),
 		paths = character(),
-		filemode = "rb",
+		filemode = character(),
 		chunksize = 1e6L,
 		length = 0,
 		dim = c(0L,0L),
@@ -90,13 +79,11 @@ setClass("sparse_matr",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-sparse_mat <- function(data, datamode = "double", keys = NULL,
-					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL,
-					tolerance = c(absolute=0), combiner = "identity", ...) {
+sparse_mat <- function(data, nrow = 0, ncol = 0, rowMaj = FALSE,
+					dimnames = NULL, keys = NULL, tolerance = c(abs=0),
+					combiner = "identity", ...) {
 	if ( !missing(data) ) {
 		if ( is.matrix(data) ) {
-			if ( missing(datamode) )
-				datamode <- typeof(data)
 			if ( missing(nrow) )
 				nrow <- nrow(data)
 			if ( missing(ncol) )
@@ -129,19 +116,18 @@ sparse_mat <- function(data, datamode = "double", keys = NULL,
 			nrow <- length(keys)
 	}
 	keymode <- if ( is.null(keys) ) "integer" else typeof(keys)
-	vmode <- as.character(make_datamode(datamode, type="R"))
 	if ( missing(data) || !is.list(data) ) {
 		adata <- function() {
 			n <- if ( rowMaj ) nrow else ncol
 			list(keys=rep(list(vector(keymode, 0)), n),
-				values=rep(list(vector(vmode, 0)), n))
+				values=rep(list(vector("numeric", 0)), n))
 		}
 	} else {
 		adata <- function() data
 	}
 	x <- new(mclass,
 		data=adata(),
-		datamode=make_datamode(datamode, type="R"),
+		datamode=make_datamode("virtual", type="R"),
 		paths=character(),
 		filemode="rb",
 		length=as.numeric(sum(lengths(adata()$values))),
@@ -194,7 +180,9 @@ as_sparse_mat_tolerance <- function(tolerance) {
 	tol
 }
 
-setMethod("type_for_display", "sparse_mat", function(x) "sparse matrix")
+setMethod("type_for_display", "sparse_mat", function(x) "matrix")
+
+setMethod("describe_for_display", "sparse_mat", function(x) "sparse matrix")
 
 setMethod("show", "sparse_mat", function(object) {
 	keys.memory <- bytes(object.size(adata(object)$keys))
@@ -218,7 +206,7 @@ setMethod("show", "sparse_mat", function(object) {
 	object.memory <- bytes(object.size(object))
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		type_for_display(object), "\n", sep="")
+		describe_for_display(object), "\n", sep="")
 	cat("    keys:", keys.summary, "\n")
 	cat("    values:", values.summary, "\n")
 	cat("    ", length(object), " non-zero elements\n", sep="")
@@ -270,22 +258,21 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 		if ( any(j <= 0 | j > dim(x)[2]) )
 			stop("subscript out of bounds")
 	}
-	init <- as(NA, as.character(datamode(x)))
-	y <- matrix(init, nrow=length(i), ncol=length(j))
+	y <- matrix(NA_real_, nrow=length(i), ncol=length(j))
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	sorted <- FALSE
 	if ( is.null(keys(x)) ) {
-		keytype <- typeof(atomdata(x)$keys[[1]])
+		keymode <- typeof(atomdata(x)$keys[[1]])
 		if ( rowMaj ) {
 			if ( is.sorted(j) )
 				sorted <- TRUE
 			if ( all.j ) {
 				keys <- NULL
 			} else if ( sorted ) {
-				keys <- as.vector(j, mode=keytype)
+				keys <- as.vector(j, mode=keymode)
 			} else {
 				ord <- order(j)
-				keys <- as.vector(j[ord], mode=keytype)
+				keys <- as.vector(j[ord], mode=keymode)
 			}
 		} else {
 			if ( is.sorted(i) )
@@ -293,10 +280,10 @@ getSparseMatrixElements <- function(x, i, j, drop) {
 			if ( all.i ) {
 				keys <- NULL
 			} else if ( sorted ) {
-				keys <- as.vector(i, mode=keytype)
+				keys <- as.vector(i, mode=keymode)
 			} else {
 				ord <- order(i)
-				keys <- as.vector(i[ord], mode=keytype)
+				keys <- as.vector(i[ord], mode=keymode)
 			}
 		}
 	} else {
@@ -444,18 +431,18 @@ setSparseMatrixElements <- function(x, i, j, value) {
 	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
 	dim(value) <- c(length(i), length(j))
 	if ( is.null(keys(x)) ) {
-		keytype <- typeof(atomdata(x)$keys[[1]])
+		keymode <- typeof(atomdata(x)$keys[[1]])
 		if ( rowMaj ) {
 			if ( all.i ) {
 				keys <- NULL
 			} else {
-				keys <- as.vector(j, mode=keytype)
+				keys <- as.vector(j, mode=keymode)
 			}
 		} else {
 			if ( all.j ) {
 				keys <- NULL
 			} else {
-				keys <- as.vector(i, mode=keytype)
+				keys <- as.vector(i, mode=keymode)
 			}
 		}
 	} else {

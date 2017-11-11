@@ -2,16 +2,6 @@
 #### Define new generics from base R ####
 ## -------------------------------------
 
-# setGeneric("t") # Use BiocGenerics
-# setGeneric("sum") # Use BiocGenerics
-# setGeneric("mean") # Use BiocGenerics
-# setGeneric("var", signature="x") # Use BiocGenerics
-# setGeneric("sd", signature="x") # Use BiocGenerics
-# setGeneric("colSums", signature="x") # Use BiocGenerics
-# setGeneric("rowSums", signature="x") # Use BiocGenerics
-# setGeneric("colMeans", signature="x") # Use BiocGenerics
-# setGeneric("rowMeans", signature="x") # Use BiocGenerics
-
 setGeneric("as.matrix")
 setGeneric("as.array")
 
@@ -20,6 +10,9 @@ setGeneric("scale", signature="x")
 
 setGeneric("levels")
 setGeneric("levels<-")
+
+setGeneric("Encoding")
+setGeneric("Encoding<-")
 
 t.matter <- function(x) t(x)
 
@@ -57,15 +50,14 @@ setGeneric("paths", function(x) standardGeneric("paths"))
 setGeneric("paths<-", function(x, value) standardGeneric("paths<-"))
 setGeneric("filemode", function(x) standardGeneric("filemode"))
 setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
+setGeneric("readonly", function(x) standardGeneric("readonly"))
+setGeneric("readonly<-", function(x, value) standardGeneric("readonly<-"))
 setGeneric("chunksize", function(x) standardGeneric("chunksize"))
 setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 
 #### Additional generic functions for matter ####
 ## ----------------------------------------------
 
-setGeneric("type_for_display", function(x) standardGeneric("type_for_display"))
-setGeneric("combine_by_cols", function(x, y, ...) standardGeneric("combine_by_cols"))
-setGeneric("combine_by_rows", function(x, y, ...) standardGeneric("combine_by_rows"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
 setGeneric("chunker", function(x, ...) standardGeneric("chunker"))
 
@@ -76,6 +68,14 @@ setGeneric("keys", function(object) standardGeneric("keys"))
 setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 setGeneric("tolerance", function(object) standardGeneric("tolerance"))
 setGeneric("tolerance<-", function(object, value) standardGeneric("tolerance<-"))
+
+#### Internal generic functions for matter ####
+## ----------------------------------------------
+
+setGeneric("type_for_display", function(x) standardGeneric("type_for_display"))
+setGeneric("describe_for_display", function(x) standardGeneric("describe_for_display"))
+setGeneric("combine_by_cols", function(x, y, ...) standardGeneric("combine_by_cols"))
+setGeneric("combine_by_rows", function(x, y, ...) standardGeneric("combine_by_rows"))
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------

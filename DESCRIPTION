@@ -14,7 +14,8 @@ Imports: BiocGenerics, digest, irlba, utils
 Suggests: BiocStyle, testthat
 Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
 	matter_vec.R matter_mat.R matter_arr.R matter_list.R
-	matter_str.R matter_fc.R matter_df.R sparse_mat.R
-	coerce.R stats.R apply.R scale.R bigglm.R prcomp.R
+	matter_str.R matter_fc.R matter_tbl.R matter_vt.R
+	matter_df.R sparse_mat.R coerce.R stats.R
+	apply.R scale.R bigglm.R prcomp.R
 biocViews: Software, Infrastructure
 URL: https://github.com/kuwisdelu/matter

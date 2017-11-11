@@ -25,10 +25,13 @@ setClass("matter",
 		errors <- NULL
 		if ( !is.null(object@paths) && any(!file.exists(object@paths)) )
 			errors <- c(errors, paste0("file [", which(!file.exists(object@paths)), "] does not exist"))
-		C_readmodes <- c("rb", "rb+")
-		if ( length(object@filemode) != 1 || !object@filemode %in% C_readmodes )
-			errors <- c(errors, paste0("'filemode' should be one of [",
-				paste(C_readmodes, collapse=", "), "]"))
+		C_filemodes <- c("r", "w", "b", "a", "+")
+		object_filemodes <- substring(object@filemode, 1:nchar(object@filemode), 1:nchar(object@filemode))
+		if ( length(object@filemode) != 1 || !all(object_filemodes %in% C_filemodes) )
+			errors <- c(errors, paste0("'filemode' should include only [",
+				paste(C_filemodes, collapse=", "), "]"))
+		if ( !"b" %in% object_filemodes )
+			errors <- c(errors, paste0("'filemode' must be binary"))
 		R_datamodes <- levels(make_datamode(type="R"))
 		if ( !all(levels(object@datamode) %in% R_datamodes) )
 			errors <- c(errors, paste0("'datamode' levels should be [",
@@ -115,6 +118,10 @@ matter <- function(...) {
 	}
 }
 
+setMethod("type_for_display", "ANY", function(x) class(x))
+
+setMethod("describe_for_display", "ANY", function(x) class(x))
+
 is.matter <- function(x) {
 	is(x, "matter")
 }
@@ -156,53 +163,42 @@ setMethod("show", "matter", function(object) {
 setMethod("datamode", "matter", function(x) x@datamode)
 
 setReplaceMethod("datamode", "matter", function(x, value) {
-	if ( x@datamode[1] == "virtual" )
-		stop("can't change 'datamode' of object with mode 'virtual'")
 	x@datamode <- make_datamode(value, type="R")
 	x
 })
 
-setMethod("paths", "matter", function(x) {
-	if ( x@datamode[1] == "virtual" ) {
-		paths <- sapply(x@data, function(data) {
-			if ( is.matter(data) ) {
-				paths(data)
-			} else {
-				as.character(NA)
-			}
-		})
-		c(na.omit(unique(paths)))
-	} else {
-		x@paths
-	}
-})
+setMethod("paths", "matter", function(x) x@paths)
 
 setReplaceMethod("paths", "matter", function(x, value) {
-	if ( x@datamode[1] == "virtual" )
-		stop("can't change 'paths' of object with mode 'virtual'")
 	x@paths <- value
 	x
 })
 
-setMethod("filemode", "matter", function(x) {
-	if ( x@datamode[1] == "virtual" ) {
-		filemode <- sapply(x@data, function(data) {
-			if ( is.matter(data) ) {
-				filemode(data)
-			} else {
-				as.character(NA)
-			}
-		})
-		c(na.omit(unique(filemode)))
+setMethod("filemode", "matter", function(x) x@filemode)
+
+setReplaceMethod("filemode", "matter", function(x, value) {
+	x@filemode <- value
+	x
+})
+
+setMethod("readonly", "matter", function(x) {
+	fmodes <- substring(x@filemode,
+		1:nchar(x@filemode), 1:nchar(x@filemode))
+	if ( length(fmodes) == 0 ) {
+		NA
+	} else if ( any(c("+", "w", "a") %in% fmodes) ) {
+		FALSE
 	} else {
-		x@filemode
+		TRUE
 	}
 })
 
-setReplaceMethod("filemode", "matter", function(x, value) {
-	if ( x@datamode[1] == "virtual" )
-		stop("can't change 'filemode' of object with mode 'virtual'")
-	x@filemode <- value
+setReplaceMethod("readonly", "matter", function(x, value) {
+	if ( isTRUE(value) ) {
+		x@filemode <- "rb"	
+	} else {
+		x@filemode <- "rb+"	
+	}
 	x
 })
 

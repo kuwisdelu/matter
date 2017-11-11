@@ -83,10 +83,12 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 
 setMethod("type_for_display", "matter_list", function(x) "list")
 
+setMethod("describe_for_display", "matter_list", function(x) "on-disk list")
+
 setMethod("show", "matter_list", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
 	cat("  <", object@length, " length> ",
-		"on-disk ", type_for_display(object), "\n", sep="")
+		describe_for_display(object), "\n", sep="")
 	callNextMethod(object)
 })
 
@@ -304,7 +306,7 @@ setMethod("combine", "matter_list", function(x, y, ...) {
 		data=data,
 		datamode=make_datamode(c(x@datamode, y@datamode), type="R"),
 		paths=levels(factor(c(x@paths, y@paths))),
-		filemode=ifelse(all(c(x@filemode, y@filemode) == "rb+"), "rb+", "rb"),
+		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
 		length=x@length + y@length,
 		dim=c(x@dim, y@dim),
 		names=names,
