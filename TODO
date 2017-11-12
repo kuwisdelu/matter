@@ -14,5 +14,4 @@ Priority: Medium
 
 Priority: Low
 - Add support for different data sources via @datasources slot
-- Add 'readonly' parameter to constructors and as an accessor method
 - Smart caching of frequently-accessed parts of data
