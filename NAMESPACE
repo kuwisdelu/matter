@@ -177,7 +177,6 @@ exportMethods("prcomp")
 export("bsearch")
 
 export(
-	"disk_used",
 	"mem",
 	"profmem")
 

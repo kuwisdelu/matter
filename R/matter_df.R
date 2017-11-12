@@ -64,9 +64,9 @@ setMethod("show", "matter_df", function(object) {
 		describe_for_display(object), "\n", sep="")
 	m <- sum(sapply(atomdata(object), is.matter))
 	object.memory <- bytes(object.size(object))
-	cat("    ", format(object.memory, units="auto"), " in-memory: ",
+	cat("    ", format(object.memory, units="auto"), " real memory: ",
 		length(object) - m, " variables\n", sep="")
-	cat("    ", format(disk_used(object), units="auto"), " on-disk: ",
+	cat("    ", format(disk_used(object), units="auto"), " virtual memory: ",
 		m, " variables\n", sep="")
 	cat("\n")
 	classinfo <- sapply(atomdata(object), function(x)

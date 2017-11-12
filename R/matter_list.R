@@ -81,7 +81,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_list", function(x) "on-disk list")
+setMethod("describe_for_display", "matter_list", function(x) "list")
 
 setMethod("show", "matter_list", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
@@ -291,7 +291,7 @@ setReplaceMethod("$",
 setMethod("combine", "matter_list", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
-	data <- merge_atoms_with_sources(x@data, y@data,
+	data <- combine_atoms(x@data, y@data,
 		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
 	if ( is.null(names(x)) && is.null(names(y)) ) {
 		names <- NULL

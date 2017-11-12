@@ -152,8 +152,8 @@ setMethod("show", "matter", function(object) {
 	class(object.memory) <- "bytes"
 	cat("    sources:", length(object@paths), "\n")
 	cat("    datamode:", paste_head(object@datamode), "\n")
-	cat("    ", format(object.memory, units="auto"), " in-memory\n", sep="")
-	cat("    ", format(disk_used(object), units="auto"), " on-disk\n", sep="")
+	cat("    ", format(object.memory, units="auto"), " real memory\n", sep="")
+	cat("    ", format(disk_used(object), units="auto"), " virtual memory\n", sep="")
 })
 
 setMethod("datamode", "matter", function(x) x@datamode)
@@ -248,53 +248,31 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 
 setMethod("c", "matter", function(x, ...)
 {
-	if ( !inherits(x, c("matter_vec", "matter_str", "matter_list")) )
-		warning("attempting to combine unsupported 'matter' class: ", class(x))
 	dots <- list(...)
-	if ( length(dots) == 0 ) {
-		x
-	} else if ( length(dots) == 1 ) {
-		combine(x, dots[[1]])
+	if ( length(dots) > 0 ) {
+		combine(x, ...)
 	} else {
-		do.call(combine, list(x, ...))
+		x
 	}
 })
 
 setMethod("cbind", "matter", function(..., deparse.level=1)
 {
 	dots <- list(...)
-	for ( i in seq_along(dots) )
-		dots[[i]] <- switch(class(dots[[i]]),
-			matter_vec=as(dots[[i]], "matter_mat"),
-			matter_matc=dots[[i]],
-			matter_matr=stop("cannot 'cbind' row-major matrices"),
-			sparse_matc=dots[[i]],
-			sparse_matr=stop("cannot 'cbind' compressed-row sparse matrices"),
-			returnWithWarning(dots[[i]],
-				"attempting to 'cbind' unsupported 'matter' class: ", dots[[i]]))
-	if ( length(dots) == 1 ) {
-		dots[[1]]
+	if ( length(dots) > 1 ) {
+		combine_by_cols(...)
 	} else {
-		do.call(combine, dots)
+		dots[[1]]
 	}
 })
 
 setMethod("rbind", "matter", function(..., deparse.level=1)
 {
 	dots <- list(...)
-	for ( i in seq_along(dots) )
-		dots[[i]] <- switch(class(dots[[i]]),
-			matter_vec=t(dots[[i]]),
-			matter_matc=stop("cannot 'rbind' column-major matrices"),
-			matter_matr=dots[[i]],
-			sparse_matc=stop("cannot 'rbind' compressed-column sparse matrices"),
-			sparse_matr=dots[[i]],
-			returnWithWarning(dots[[i]],
-				"attempting to 'rbind' unsupported 'matter' class: ", dots[[i]]))
-	if ( length(dots) == 1 ) {
-		dots[[1]]
+	if ( length(dots) > 1 ) {
+		combine_by_rows(...)
 	} else {
-		do.call(combine, dots)
+		dots[[1]]
 	}
 })
 

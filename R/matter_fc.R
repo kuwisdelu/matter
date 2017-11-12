@@ -78,7 +78,7 @@ matter_fc <- function(data, datamode = "int", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_fc", function(x) "on-disk factor")
+setMethod("describe_for_display", "matter_fc", function(x) "factor")
 
 setMethod("show", "matter_fc", function(object) {
 	callNextMethod(object)

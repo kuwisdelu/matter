@@ -83,7 +83,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_arr", function(x) "on-disk array")
+setMethod("describe_for_display", "matter_arr", function(x) "array")
 
 setMethod("show", "matter_arr", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
@@ -252,7 +252,7 @@ setMethod("Arith", c("matter_arr", "matter_arr"),
 		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
-			stop("on-disk array dims must match exactly for delayed operation")
+			stop("array dims must match exactly for delayed operation")
 		}
 })
 
@@ -290,7 +290,7 @@ setMethod("Compare", c("matter_arr", "matter_arr"),
 				datamode(e1) <- c("logical", as.character(datamode(e1)))
 			e1
 		} else {
-			stop("on-disk array dims must match exactly for delayed operation")
+			stop("array dims must match exactly for delayed operation")
 		}
 })
 

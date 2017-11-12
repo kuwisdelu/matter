@@ -138,7 +138,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_mat", function(x) "on-disk matrix")
+setMethod("describe_for_display", "matter_mat", function(x) "matrix")
 
 setMethod("show", "matter_mat", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
@@ -426,16 +426,69 @@ setReplaceMethod("[",
 	c(x = "matter_mat"),
 	function(x, i, j, ..., value) setMatrixElements(x, i, j, value))
 
-# matrix manipulation
+# combine by rows
 
-setMethod("combine", "matter_matc", function(x, y, ...) {
-	if ( is(y, "matter_vec") )
-		y <- as(y, "matter_mat")
-	if ( nrow(x) != nrow(y) )
-		stop("number of rows of column-major matrices must match")
+setMethod("combine_by_rows", c("matter_matc", "matter_matc"),
+	function(x, y, ...)
+{
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of matrices must match")
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
-	data <- merge_atoms_with_sources(x@data, y@data,
+	data <- combine_atoms(x@data, y@data,
+		x.paths=x@paths, y.paths=y@paths, new.groups=FALSE)
+	new(class(x),
+		data=data,
+		datamode=widest_datamode(datamode(data)),
+		paths=levels(factor(c(x@paths, y@paths))),
+		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
+		length=x@length + y@length,
+		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+		names=NULL,
+		dimnames=combine_rownames(x,y),
+		ops=NULL)
+})
+
+setMethod("combine_by_rows", c("matter_matr", "matter_matr"),
+	function(x, y, ...)
+{
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	data <- combine_atoms(x@data, y@data,
+		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
+	new(class(x),
+		data=data,
+		datamode=widest_datamode(datamode(data)),
+		paths=levels(factor(c(x@paths, y@paths))),
+		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
+		length=x@length + y@length,
+		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+		names=NULL,
+		dimnames=combine_rownames(x,y),
+		ops=NULL)
+})
+
+setMethod("combine_by_rows", c("matter_vec", "matter_mat"),
+	function(x, y, ...)	combine_by_rows(t(x), y))
+
+setMethod("combine_by_rows", c("matter_mat", "matter_vec"),
+	function(x, y, ...)	combine_by_rows(x, t(y)))
+
+setMethod("combine_by_rows", c("matter_vec", "matter_vec"),
+	function(x, y, ...)	combine_by_rows(t(x), t(y)))
+
+# combine by cols
+
+setMethod("combine_by_cols", c("matter_matc", "matter_matc"),
+	function(x, y, ...)
+{
+	if ( nrow(x) != nrow(y) )
+		stop("number of rows of matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	data <- combine_atoms(x@data, y@data,
 		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
 	new(class(x),
 		data=data,
@@ -449,26 +502,37 @@ setMethod("combine", "matter_matc", function(x, y, ...) {
 		ops=NULL)
 })
 
-setMethod("combine", "matter_matr", function(x, y, ...) {
-	if ( is(y, "matter_vec") )
-		y <- t(y)
-	if ( ncol(x) != ncol(y) )
-		stop("number of columns of row-major matrices must match")
+setMethod("combine_by_cols", c("matter_matr", "matter_matr"),
+	function(x, y, ...)
+{
+	if ( nrow(x) != nrow(y) )
+		stop("number of rows of matrices must match")
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
-	data <- merge_atoms_with_sources(x@data, y@data,
-		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
+	data <- combine_atoms(x@data, y@data,
+		x.paths=x@paths, y.paths=y@paths, new.groups=FALSE)
 	new(class(x),
 		data=data,
 		datamode=widest_datamode(datamode(data)),
 		paths=levels(factor(c(x@paths, y@paths))),
 		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
 		length=x@length + y@length,
-		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
 		names=NULL,
-		dimnames=combine_rownames(x,y),
+		dimnames=combine_colnames(x,y),
 		ops=NULL)
 })
+
+setMethod("combine_by_cols", c("matter_vec", "matter_mat"),
+	function(x, y, ...)	combine_by_cols(as(x, "matter_mat"), y))
+
+setMethod("combine_by_cols", c("matter_mat", "matter_vec"),
+	function(x, y, ...)	combine_by_cols(x, as(y, "matter_mat")))
+
+setMethod("combine_by_cols", c("matter_vec", "matter_vec"),
+	function(x, y, ...)	combine_by_cols(as(y, "matter_mat"), as(y, "matter_mat")))
+
+# transpose
 
 setMethod("t", "matter_matc", function(x)
 {
@@ -552,7 +616,7 @@ setMethod("Arith", c("matter_matc", "matter_matc"),
 		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
-			stop("on-disk matrix dimensions must match exactly for delayed operation")
+			stop("matrix dimensions must match exactly for delayed operation")
 		}
 })
 
@@ -563,7 +627,7 @@ setMethod("Arith", c("matter_matr", "matter_matr"),
 		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
-			stop("on-disk matrix dimensions must match exactly for delayed operation")
+			stop("matrix dimensions must match exactly for delayed operation")
 		}
 })
 
@@ -625,7 +689,7 @@ setMethod("Compare", c("matter_matc", "matter_matc"),
 				datamode(e1) <- "logical"
 			e1
 		} else {
-			stop("on-disk matrix dimensions must match exactly for delayed operation")
+			stop("matrix dimensions must match exactly for delayed operation")
 		}
 })
 
@@ -637,7 +701,7 @@ setMethod("Compare", c("matter_matr", "matter_matr"),
 				datamode(e1) <- "logical"
 			e1
 		} else {
-			stop("on-disk matrix dimensions must match exactly for delayed operation")
+			stop("matrix dimensions must match exactly for delayed operation")
 		}
 })
 

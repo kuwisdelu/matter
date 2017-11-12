@@ -281,4 +281,167 @@ setMethod("[",
 	c(x = "virtual_mat", drop = "NULL"),
 	function(x, i, j, ..., drop) subVirtualMatrix(x, i, j))
 
+# combine by rows
+
+setMethod("combine_by_rows", c("virtual_matr", "virtual_matr"),
+	function(x, y, ...)
+{
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	xi <- x@index
+	yi <- y@index
+	comformable_cols <- is.null(xi[[2]]) && is.null(yi[[2]])
+	is_transposed <- x@transpose || y@transpose
+	if ( comformable_cols && !is_transposed ) {
+		if ( is.null(xi[[1]]) && is.null(yi[[1]]) ) {
+			index <- NULL
+		} else {
+			if ( is.null(xi[[1]]) )
+				xi[[1]] <- seq_len(nrow(x))
+			if ( is.null(yi[[1]]) ) {
+				yi[[1]] <- seq_len(nrow(y)) + nrow(x)
+			} else {
+				yi[[1]] <- yi[[1]] + nrow(x)
+			}
+			index <- list(c(xi[[1]], yi[[1]]), NULL)
+		}
+		new(class(x),
+			data=c(x@data, y@data),
+			datamode=x@datamode,
+			paths=x@paths,
+			filemode=x@filemode,
+			length=x@length + y@length,
+			dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+			names=NULL,
+			dimnames=combine_rownames(x,y),
+			ops=NULL,
+			index=index,
+			transpose=FALSE)
+	} else {
+		callNextMethod()
+	}
+})
+
+setMethod("combine_by_rows", c("virtual_mat", "virtual_mat"),
+	function(x, y, ...)
+{
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	new("virtual_matr",
+		data=list(x, y),
+		datamode=x@datamode,
+		paths=x@paths,
+		filemode=x@filemode,
+		length=x@length + y@length,
+		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+		names=NULL,
+		dimnames=combine_rownames(x,y),
+		ops=NULL,
+		index=NULL,
+		transpose=FALSE)
+})
+
+setMethod("combine_by_rows", c("virtual_mat", "ANY"),
+	function(x, y, ...) combine_by_rows_virtual(x, y))
+
+setMethod("combine_by_rows", c("ANY", "virtual_mat"),
+	function(x, y, ...) combine_by_rows_virtual(x, y))
+
+# setMethod("combine_by_rows", c("matter", "matter"),
+# 	function(x, y, ...) combine_by_rows_virtual(x, y))
+
+combine_by_rows_virtual <- function(x, y) {
+	if ( is.null(dim(x)) || is.null(dim(y)) )
+		stop("'x' and 'y' must be matrices")
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of matrices must match")
+	virtual_mat(list(x,y), rowMaj=TRUE,
+		dimnames=combine_rownames(x,y))
+}
+
+# combine by cols
+
+setMethod("combine_by_cols", c("virtual_matc", "virtual_matc"),
+	function(x, y, ...)
+{
+	if ( nrow(x) != nrow(y) )
+		stop("number of rows of matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	xi <- x@index
+	yi <- y@index
+	comformable_rows <- is.null(xi[[1]]) && is.null(yi[[1]])
+	is_transposed <- x@transpose || y@transpose
+	if ( comformable_rows && !is_transposed ) {
+		if ( is.null(xi[[2]]) && is.null(yi[[2]]) ) {
+			index <- NULL
+		} else {
+			if ( is.null(xi[[2]]) )
+				xi[[2]] <- seq_len(ncol(x))
+			if ( is.null(yi[[2]]) ) {
+				yi[[2]] <- seq_len(ncol(y)) + ncol(x)
+			} else {
+				yi[[2]] <- yi[[2]] + ncol(x)
+			}
+			index <- list(NULL, c(xi[[2]], yi[[2]]))
+		}
+		new(class(x),
+			data=c(x@data, y@data),
+			datamode=x@datamode,
+			paths=x@paths,
+			filemode=x@filemode,
+			length=x@length + y@length,
+			dim=c(x@dim[1], x@dim[2] + y@dim[2]),
+			names=NULL,
+			dimnames=combine_colnames(x,y),
+			ops=NULL,
+			index=index,
+			transpose=FALSE)
+	} else {
+		callNextMethod()
+	}
+})
+
+setMethod("combine_by_cols", c("virtual_mat", "virtual_mat"),
+	function(x, y, ...)
+{
+	if ( nrow(x) != nrow(y) )
+		stop("number of rows of matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	new("virtual_matc",
+		data=list(x, y),
+		datamode=x@datamode,
+		paths=x@paths,
+		filemode=x@filemode,
+		length=x@length + y@length,
+		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
+		names=NULL,
+		dimnames=combine_colnames(x,y),
+		ops=NULL,
+		index=NULL,
+		transpose=FALSE)
+})
+
+setMethod("combine_by_cols", c("virtual_mat", "ANY"),
+	function(x, y, ...) combine_by_cols_virtual(x, y))
+
+setMethod("combine_by_cols", c("ANY", "virtual_mat"),
+	function(x, y, ...) combine_by_cols_virtual(x, y))
+
+# setMethod("combine_by_cols", c("matter", "matter"),
+# 	function(x, y, ...) combine_by_cols_virtual(x, y))
+
+combine_by_cols_virtual <- function(x, y) {
+	if ( is.null(dim(x)) || is.null(dim(y)) )
+		stop("'x' and 'y' must be matrices")
+	if ( nrow(x) != nrow(y) )
+		stop("number of rows of matrices must match")
+	virtual_mat(list(x,y), rowMaj=FALSE,
+		dimnames=combine_colnames(x,y))
+}
 

@@ -198,9 +198,9 @@ setMethod("show", "sparse_mat", function(object) {
 	disknames <- names(object@data)[sapply(object@data, is.matter)]
 	object.memory <- bytes(object.size(object))
 	cat("    datamode:", paste0(object@datamode[2]), "\n")
-	cat("    ", format(object.memory, units="auto"), " in-memory: ",
+	cat("    ", format(object.memory, units="auto"), " real memory: ",
 		paste_head(memnames, collapse=", "), "\n", sep="")
-	cat("    ", format(disk_used(object), units="auto"), " on-disk: ",
+	cat("    ", format(disk_used(object), units="auto"), " virtual memory: ",
 		paste_head(disknames, collapse=", "), "\n", sep="")
 	cat("    ", length(object), " non-zero elements\n", sep="")
 	cat("    ", round(length(object) / prod(dim(object)), 2) * 100,
@@ -696,11 +696,37 @@ setReplaceMethod("[",
 	function(x, i, j, ..., value) setSparseMatrixElements(x, i, j, value))
 
 
-# matrix manipulation
+# combine by rows
 
-setMethod("combine", c("sparse_matc", "sparse_matc"), function(x, y, ...) {
+setMethod("combine_by_rows", c("sparse_matr", "sparse_matr"), function(x, y, ...) {
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of sparse matrices must match")
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	if ( !all(x@keys == y@keys) )
+		warning("'keys' do not match, results may be unexpected")
+	keys <- c(x@data$keys, y@data$keys)
+	values <- c(x@data$values, y@data$values)
+	new(class(x),
+		data=list(keys=keys, values=values),
+		datamode=x@datamode,
+		paths=character(),
+		filemode="rb",
+		length=x@length + y@length,
+		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+		names=NULL,
+		dimnames=combine_rownames(x,y),
+		ops=NULL,
+		keys=x@keys,
+		tolerance=x@tolerance,
+		combiner=x@combiner)
+})
+
+# combine by cols
+
+setMethod("combine_by_cols", c("sparse_matc", "sparse_matc"), function(x, y, ...) {
 	if ( nrow(x) != nrow(y) )
-		stop("number of rows of compressed-column sparse matrices must match")
+		stop("number of rows of sparse matrices must match")
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
 	if ( !all(x@keys == y@keys) )
@@ -722,29 +748,7 @@ setMethod("combine", c("sparse_matc", "sparse_matc"), function(x, y, ...) {
 		combiner=x@combiner)
 })
 
-setMethod("combine", c("sparse_matr", "sparse_matr"), function(x, y, ...) {
-	if ( ncol(x) != ncol(y) )
-		stop("number of columns of compressed-row sparse matrices must match")
-	if ( !is.null(x@ops) || !is.null(y@ops) )
-		warning("dropping delayed operations")
-	if ( !all(x@keys == y@keys) )
-		warning("'keys' do not match, results may be unexpected")
-	keys <- c(x@data$keys, y@data$keys)
-	values <- c(x@data$values, y@data$values)
-	new(class(x),
-		data=list(keys=keys, values=values),
-		datamode=x@datamode,
-		paths=character(),
-		filemode="rb",
-		length=x@length + y@length,
-		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
-		names=NULL,
-		dimnames=combine_rownames(x,y),
-		ops=NULL,
-		keys=x@keys,
-		tolerance=x@tolerance,
-		combiner=x@combiner)
-})
+# transpose
 
 setMethod("t", "sparse_matc", function(x)
 {

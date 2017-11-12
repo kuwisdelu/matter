@@ -159,7 +159,7 @@ drop_groups_from_atoms <- function(x) {
 		extent=x@extent)
 }
 
-merge_atoms_with_sources <- function(x, y, x.paths, y.paths, new.groups = FALSE) {
+combine_atoms <- function(x, y, x.paths, y.paths, new.groups = FALSE) {
 	if ( new.groups )
 		y@group_id <- y@group_id[] + max(x@group_id[])
 	if ( !missing(x.paths) && !missing(y.paths) ) {
@@ -183,7 +183,7 @@ setMethod("length", "atoms", function(x) x@ngroups)
 setMethod("datamode", "atoms", function(x) x@datamode)
 
 setMethod("combine", "atoms", function(x, y, ...)
-	merge_atoms_with_sources(x, y, new.groups=FALSE))
+	combine_atoms(x, y, new.groups=FALSE))
 
 setMethod("[", c(x="atoms", j="missing"),
 	function(x, i, ...) {

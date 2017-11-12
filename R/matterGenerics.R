@@ -73,8 +73,22 @@ setGeneric("tolerance<-", function(object, value) standardGeneric("tolerance<-")
 ## ----------------------------------------------
 
 setGeneric("describe_for_display", function(x) standardGeneric("describe_for_display"))
-setGeneric("combine_by_cols", function(x, y, ...) standardGeneric("combine_by_cols"))
-setGeneric("combine_by_rows", function(x, y, ...) standardGeneric("combine_by_rows"))
+
+setGeneric("combine_by_cols", function(x, y, ...) {
+	if ( length(list(...)) > 0L ) {
+		combine_by_cols(x, do.call(combine_by_cols, list(y, ...)))
+	} else {
+		standardGeneric("combine_by_cols")
+	}
+})
+
+setGeneric("combine_by_rows", function(x, y, ...) {
+	if ( length(list(...)) > 0L ) {
+		combine_by_cols(x, do.call(combine_by_rows, list(y, ...)))
+	} else {
+		standardGeneric("combine_by_rows")
+	}
+})
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------

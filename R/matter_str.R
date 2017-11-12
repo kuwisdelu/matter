@@ -86,7 +86,7 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_str", function(x) "on-disk string")
+setMethod("describe_for_display", "matter_str", function(x) "string")
 
 setMethod("show", "matter_str", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")
@@ -184,7 +184,7 @@ setReplaceMethod("[",
 setMethod("combine", "matter_str", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )
 		warning("dropping delayed operations")
-	data <- merge_atoms_with_sources(x@data, y@data,
+	data <- combine_atoms(x@data, y@data,
 		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
 	if ( is.null(names(x)) && is.null(names(y)) ) {
 		names <- NULL
