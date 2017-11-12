@@ -1,11 +1,26 @@
 
-CHANGES IN VERSION 1.5.2 [2017-11-2]
+CHANGES IN VERSION 1.5.2 [2017-11-12]
 -----------------------------------
+
+NEW FEATURES
+
+    o All 'matter' subclasses now support endomorphic
+        subsetting via 'drop=NULL' wherever appropriate
+    o Setting the 'dim' slot via 'dim<-' now switches
+        the class between 'matter_vec' and 'matter_arr'
+    o Added 'virtual_mat' class for virtual matrices
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Use 'drop=NULL' from now on instead of 'drop=NA'
         to do endomorphic subsetting of matter matrices
+    o Added 'matter_vt' virtual class for matter objects
+        which may exist both on-disk and in-memory
+    o Added 'matter_tbl' virtual class for data tables
+
+BUG FIXES
+
+    o Fixed read/write bug when subsetting across atoms
 
 CHANGES IN VERSION 1.5.1 [2017-11-1]
 -----------------------------------
