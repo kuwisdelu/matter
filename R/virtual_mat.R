@@ -123,15 +123,21 @@ setReplaceMethod("datamode", "virtual_mat", function(x, value) {
 	x
 })
 
+setAs("ANY", "virtual_matc",
+	function(from) virtual_mat(from, dimnames=dimnames(from), rowMaj=FALSE))
+
+setAs("ANY", "virtual_matr",
+	function(from) virtual_mat(from, dimnames=dimnames(from), rowMaj=TRUE))
+
 setAs("matrix", "virtual_mat",
 	function(from) virtual_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
 
 setAs("array", "virtual_mat",
 	function(from) virtual_mat(as.matrix(from), datamode=typeof(from), dimnames=dimnames(from)))
 
-as.virtual <- function(x) as(x, "virtual_mat")
+as.virtual <- function(x, ...) as(x, "virtual_mat")
 
-is.virtual <- function(x) is(x, "virtual_mat")
+is.virtual <- function(x, ...) is(x, "virtual_mat")
 
 getVirtualMatrixElements <- function(x, i, j, drop=TRUE) {
 	if ( is.null(i) ) {
@@ -168,24 +174,40 @@ getVirtualMatrixElements <- function(x, i, j, drop=TRUE) {
 			cols <- x@index[[2]][j]
 		}
 	}
+	nrow <- length(rows)
+	ncol <- length(cols)
+	if ( x@transpose ) {
+		t.rows <- rows
+		t.cols <- cols
+		rows <- t.cols
+		cols <- t.rows
+	}
 	vmode <- as.character(x@datamode[2])
 	init <- as.vector(NA, mode=vmode)
-	y <- matrix(init, nrow=length(rows), ncol=length(cols))
+	y <- matrix(init, nrow=nrow, ncol=ncol)
 	if ( is(x, "virtual_matc") ) {
 		colranges <- c(0, cumsum(sapply(x@data, ncol)))
 		wh <- findInterval(cols, colranges, left.open=TRUE)
-		for ( j in seq_along(cols) ) {
-			e <- wh[j]
-			vals <- x@data[[e]][rows, cols[j] - colranges[e]]
-			y[,j] <- as.vector(vals, mode=vmode)
+		for ( jj in seq_along(cols) ) {
+			e <- wh[jj]
+			vals <- x@data[[e]][rows, cols[jj] - colranges[e]]
+			if ( x@transpose ) {
+				y[jj,] <- as.vector(vals, mode=vmode)
+			} else {
+				y[,jj] <- as.vector(vals, mode=vmode)
+			}
 		}
 	} else if ( is(x, "virtual_matr") ) {
 		rowranges <- c(0, cumsum(sapply(x@data, nrow)))
 		wh <- findInterval(rows, rowranges, left.open=TRUE)
-		for ( i in seq_along(rows) ) {
-			e <- wh[i]
-			vals <- x@data[[e]][rows[i] - rowranges[e], cols]
-			y[i,] <- as.vector(vals, mode=vmode)
+		for ( ii in seq_along(rows) ) {
+			e <- wh[ii]
+			vals <- x@data[[e]][rows[ii] - rowranges[e], cols]
+			if ( x@transpose ) {
+				y[,ii] <- as.vector(vals, mode=vmode)
+			} else {
+				y[ii,] <- as.vector(vals, mode=vmode)
+			}
 		}
 	}
 	if ( !is.null(dimnames(x)) )
@@ -346,22 +368,16 @@ setMethod("combine_by_rows", c("virtual_mat", "virtual_mat"),
 })
 
 setMethod("combine_by_rows", c("virtual_mat", "ANY"),
-	function(x, y, ...) combine_by_rows_virtual(x, y))
+	function(x, y, ...) combine_by_rows(x, as(y, "virtual_matr")))
 
 setMethod("combine_by_rows", c("ANY", "virtual_mat"),
-	function(x, y, ...) combine_by_rows_virtual(x, y))
+	function(x, y, ...) combine_by_rows(as(x, "virtual_matr"), y))
 
-# setMethod("combine_by_rows", c("matter", "matter"),
-# 	function(x, y, ...) combine_by_rows_virtual(x, y))
-
-combine_by_rows_virtual <- function(x, y) {
-	if ( is.null(dim(x)) || is.null(dim(y)) )
-		stop("'x' and 'y' must be matrices")
-	if ( ncol(x) != ncol(y) )
-		stop("number of columns of matrices must match")
-	virtual_mat(list(x,y), rowMaj=TRUE,
-		dimnames=combine_rownames(x,y))
-}
+setMethod("combine_by_rows", c("matter", "matter"),
+	function(x, y, ...)
+{
+	combine_by_rows(as(x, "virtual_matr"), as(y, "virtual_matr"))
+})
 
 # combine by cols
 
@@ -428,20 +444,26 @@ setMethod("combine_by_cols", c("virtual_mat", "virtual_mat"),
 })
 
 setMethod("combine_by_cols", c("virtual_mat", "ANY"),
-	function(x, y, ...) combine_by_cols_virtual(x, y))
+	function(x, y, ...) combine_by_cols(x, as(y, "virtual_matc")))
 
 setMethod("combine_by_cols", c("ANY", "virtual_mat"),
-	function(x, y, ...) combine_by_cols_virtual(x, y))
+	function(x, y, ...) combine_by_cols(as(x, "virtual_matc"), y))
 
-# setMethod("combine_by_cols", c("matter", "matter"),
-# 	function(x, y, ...) combine_by_cols_virtual(x, y))
+setMethod("combine_by_cols", c("matter", "matter"),
+	function(x, y, ...)
+{
+	combine_by_cols(as(x, "virtual_matc"), as(y, "virtual_matc"))
+})
 
-combine_by_cols_virtual <- function(x, y) {
-	if ( is.null(dim(x)) || is.null(dim(y)) )
-		stop("'x' and 'y' must be matrices")
-	if ( nrow(x) != nrow(y) )
-		stop("number of rows of matrices must match")
-	virtual_mat(list(x,y), rowMaj=FALSE,
-		dimnames=combine_colnames(x,y))
-}
+# transpose
+
+setMethod("t", "virtual_mat", function(x)
+{
+	x@dim <- rev(x@dim)
+	x@dimnames <- rev(x@dimnames)
+	x@index <- rev(x@index)
+	x@transpose <- !x@transpose
+	if ( validObject(x) )
+		x
+})
 

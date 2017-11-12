@@ -225,3 +225,39 @@ test_that("sparse matrix subsetting", {
 	expect_equal(x[10:1,10:1], y[10:1,10:1])
 
 })
+
+test_that("virtual matrix subsetting", {
+
+	x <- matrix(runif(50), nrow=5, ncol=10)
+
+	y <- virtual_mat(x)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,1], y[1,1])
+
+	expect_equal(x[1:5,1:10], y[1:5,1:10])
+
+	expect_equal(x[5:1,10:1], y[5:1,10:1])
+
+	x <- rbind(cbind(x, x), cbind(x, x))
+
+	y <- rbind(cbind(y, y), cbind(y, y))
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,1], y[1,1])
+
+	expect_equal(x[1:5,1:10], y[1:5,1:10])
+
+	expect_equal(x[5:1,10:1], y[5:1,10:1])
+
+})

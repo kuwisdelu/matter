@@ -14,14 +14,6 @@ setGeneric("levels<-")
 setGeneric("Encoding")
 setGeneric("Encoding<-")
 
-t.matter <- function(x) t(x)
-
-mean.matter <- function(x, ...) mean(x, ...)
-
-scale.matter <- function(x, center = TRUE, scale = TRUE) {
-	scale(x, center = center, scale = scale)
-}
-
 setGeneric("crossprod", signature=c("x", "y"))
 setGeneric("tcrossprod", signature=c("x", "y"))
 
@@ -84,7 +76,7 @@ setGeneric("combine_by_cols", function(x, y, ...) {
 
 setGeneric("combine_by_rows", function(x, y, ...) {
 	if ( length(list(...)) > 0L ) {
-		combine_by_cols(x, do.call(combine_by_rows, list(y, ...)))
+		combine_by_rows(x, do.call(combine_by_rows, list(y, ...)))
 	} else {
 		standardGeneric("combine_by_rows")
 	}

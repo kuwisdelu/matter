@@ -224,9 +224,9 @@ setAs("matrix", "sparse_mat",
 setAs("array", "sparse_mat",
 	function(from) sparse_mat(as.matrix(from), datamode=typeof(from), dimnames=dimnames(from)))
 
-as.sparse <- function(x) as(x, "sparse_mat")
+as.sparse <- function(x, ...) as(x, "sparse_mat")
 
-is.sparse <- function(x) is(x, "sparse_mat")
+is.sparse <- function(x, ...) is(x, "sparse_mat")
 
 setMethod("keys", "sparse_mat", function(object) object@keys)
 

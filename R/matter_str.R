@@ -107,6 +107,14 @@ setAs("matter_str", "vector", function(from) from[])
 
 setMethod("as.vector", "matter_str", function(x) as(x, "vector"))
 
+setMethod("Encoding", "matter_str", function(x) x@encoding)
+
+setReplaceMethod("Encoding", "matter_str",
+	function(x, value) {
+		x@encoding <- value
+		x
+	})
+
 # x[] subsetting
 
 setMethod("[",

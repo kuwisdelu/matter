@@ -122,7 +122,7 @@ is.matter <- function(x) {
 	is(x, "matter")
 }
 
-as.matter <- function(x) {
+as.matter <- function(x, ...) {
 	switch(class(x),
 		raw = as.matter_vec(x),
 		logical = as.matter_vec(x),

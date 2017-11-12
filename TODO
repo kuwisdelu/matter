@@ -3,7 +3,7 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Add 'combine_by_rows' and 'combine_by_cols' methods
+- Add wrappers for reading csv, tsv, etc.
 - Add biglm() method for 'matter_mat' and 'matter_df'
 - Add Logic operators for 'matter_vec' class
 
@@ -11,7 +11,6 @@ Priority: Medium
 - Add 'match' and '%in%' functions for 'matter_vec' class
 - Add more data manipulation functions for 'matter_df'
 - Add delayed ops and matrix multiplication for 'sparse_mat'
-- Add wrappers for reading csv, tsv, etc.
 
 Priority: Low
 - Add support for different data sources via @datasources slot

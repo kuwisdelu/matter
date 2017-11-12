@@ -131,11 +131,6 @@ exportMethods(
 	"crossprod",
 	"tcrossprod")
 
-export(
-	"t.matter",
-	"mean.matter",
-	"scale.matter")
-
 exportMethods(
 	"Arith",
 	"Compare",
