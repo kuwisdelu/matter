@@ -112,7 +112,7 @@ sizeof <- function(type) {
 
 do_recursive <- function(fun, args) {
 	if ( length(args) > 2 ) {
-		fun(x, do_recursive(fun, args[-1]))
+		fun(args[[1]], do_recursive(fun, args[-1]))
 	} else {
 		fun(args[[1]], args[[2]])
 	}

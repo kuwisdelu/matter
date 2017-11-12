@@ -10,6 +10,11 @@
 \alias{[<-,matter_arr-method}
 \alias{[<-,matter_arr,ANY,ANY,ANY-method}
 
+\alias{dim<-,matter_arr-method}
+
+\alias{as.vector,matter_arr-method}
+\alias{as.array,matter_arr-method}
+
 \title{Arrays Stored on Disk}
 
 \description{

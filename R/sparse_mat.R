@@ -226,7 +226,7 @@ setAs("array", "sparse_mat",
 
 as.sparse <- function(x, ...) as(x, "sparse_mat")
 
-is.sparse <- function(x, ...) is(x, "sparse_mat")
+is.sparse <- function(x) is(x, "sparse_mat")
 
 setMethod("keys", "sparse_mat", function(object) object@keys)
 
@@ -588,7 +588,7 @@ subSparseMatrixCols <- function(x, j) {
 			tolerance=x@tolerance,
 			combiner=x@combiner),
 		sparse_matr=new("sparse_matr",
-			data=data,
+			data=x@data,
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,

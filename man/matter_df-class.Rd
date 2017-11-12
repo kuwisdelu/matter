@@ -5,15 +5,16 @@
 \alias{matter_df}
 \alias{matter_df-class}
 
-\alias{names<-,matter_df-method}
-\alias{names<-,matter_df,ANY-method}
-\alias{dimnames<-,matter_df-method}
-\alias{dimnames<-,matter_df,ANY-method}
+\alias{names<-,matter_tbl-method}
+\alias{dimnames<-,matter_tbl,ANY-method}
 
 \alias{[,matter_df-method}
 \alias{[,matter_df,ANY,ANY,ANY-method}
+\alias{[,matter_df,ANY,ANY,NULL-method}
 \alias{[,matter_df,ANY,missing,ANY-method}
+\alias{[,matter_df,ANY,missing,NULL-method}
 \alias{[,matter_df,missing,ANY,ANY-method}
+\alias{[,matter_df,missing,ANY,NULL-method}
 \alias{[,matter_df,missing,missing,ANY-method}
 \alias{[<-,matter_df-method}
 \alias{[<-,matter_df,ANY,ANY,ANY-method}
@@ -27,8 +28,10 @@
 \alias{$,matter_df-method}
 \alias{$<-,matter_df-method}
 
-\alias{head,matter_df-method}
-\alias{tail,matter_df-method}
+\alias{head,matter_tbl-method}
+\alias{tail,matter_tbl-method}
+
+\alias{as.data.frame,matter_df-method}
 
 \title{Data Frames Stored on Disk}
 

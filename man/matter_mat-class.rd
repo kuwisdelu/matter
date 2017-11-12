@@ -43,6 +43,8 @@
 \alias{tcrossprod,matter,ANY-method}
 \alias{tcrossprod,ANY,matter-method}
 
+\alias{as.matrix,matter_mat-method}
+
 \title{Matrices Stored on Disk}
 
 \description{

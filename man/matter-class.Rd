@@ -17,22 +17,32 @@
 \alias{datamode<-,atoms-method}
 \alias{datamode,matter-method}
 \alias{datamode<-,matter-method}
+\alias{datamode<-,matter_vt-method}
 \alias{paths}
 \alias{paths<-}
 \alias{paths,matter-method}
 \alias{paths<-,matter-method}
+\alias{paths<-,matter_vt-method}
 \alias{filemode}
 \alias{filemode<-}
 \alias{filemode,matter-method}
 \alias{filemode<-,matter-method}
+\alias{filemode<-,matter_vt-method}
+\alias{readonly}
+\alias{readonly<-}
+\alias{readonly,matter-method}
+\alias{readonly<-,matter-method}
+\alias{readonly<-,matter_vt-method}
 \alias{chunksize}
 \alias{chunksize<-}
 \alias{chunksize,matter-method}
 \alias{chunksize<-,matter-method}
+\alias{chunksize<-,matter_vt-method}
 
 \alias{length,atoms-method}
 \alias{length,matter-method}
 \alias{length<-,matter-method}
+\alias{dim,atoms-method}
 \alias{dim,matter-method}
 \alias{dim<-,matter-method}
 \alias{names,matter-method}
@@ -68,7 +78,7 @@ matter(\dots)
 is.matter(x)
 
 # Coerce an object to a matter object
-as.matter(x)
+as.matter(x, \dots)
 
 ## Additional methods documented below
 }
@@ -119,6 +129,8 @@ as.matter(x)
         \item{\code{paths(x), paths(x) <- value}:}{Get or set 'paths'.}
 
         \item{\code{filemode(x), filemode(x) <- value}:}{Get or set 'filemode'.}
+
+        \item{\code{readonly(x), readonly(x) <- value}:}{A shortcut for getting or setting 'filemode'.}
 
         \item{\code{chunksize(x), chunksize(x) <- value}:}{Get or set 'filemode'.}
     }

@@ -7,6 +7,7 @@
 
 \alias{[,matter_fc-method}
 \alias{[,matter_fc,ANY,missing,ANY-method}
+\alias{[,matter_fc,ANY,missing,NULL-method}
 \alias{[,matter_fc,missing,missing,ANY-method}
 \alias{[<-,matter_fc-method}
 \alias{[<-,matter_fc,ANY,missing,ANY-method}
@@ -80,7 +81,8 @@ matter_fc(data, datamode = "int", paths = NULL,
 }
 
 \section{Extends}{
-   \code{\linkS4class{matter}}
+   \code{\linkS4class{matter}},
+   \code{\linkS4class{matter_vec}}
 }
 
 \section{Creating Objects}{

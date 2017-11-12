@@ -10,6 +10,9 @@
 \alias{c,drle-method}
 \alias{length,drle-method}
 
+\alias{as.vector,drle-method}
+\alias{as.list,drle-method}
+
 \alias{is.drle}
 
 \title{Delta Run Length Encoding}

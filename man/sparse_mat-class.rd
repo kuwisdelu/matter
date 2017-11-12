@@ -13,6 +13,7 @@
 \alias{keys<-,sparse_mat-method}
 \alias{tolerance,sparse_mat-method}
 \alias{tolerance<-,sparse_mat-method}
+\alias{datamode<-,sparse_mat-method}
 
 \alias{[,sparse_mat-method}
 \alias{[,sparse_mat,ANY,ANY,ANY-method}
@@ -31,6 +32,9 @@
 \alias{t,sparse_matc-method}
 \alias{t,sparse_matr-method}
 
+\alias{is.sparse}
+\alias{as.sparse}
+
 \title{Sparse Matrices}
 
 \description{
@@ -39,9 +43,15 @@
 
 \usage{
 ## Instance creation
-sparse_mat(data, datamode = "double", keys = NULL,
-            nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL,
-            tolerance = c(absolute=0), combiner = "identity", \dots)
+sparse_mat(data, datamode = "double", nrow = 0, ncol = 0,
+            rowMaj = FALSE, dimnames = NULL, keys = NULL,
+            tolerance = c(abs=0), combiner = "identity", \dots)
+
+# Check if an object is a sparse matrix
+is.sparse(x)
+
+# Coerce an object to a sparse matrix
+as.sparse(x, \dots)
 
 ## Additional methods documented below
 }
@@ -49,13 +59,13 @@ sparse_mat(data, datamode = "double", keys = NULL,
 \arguments{
         \item{data}{Either a length-2 'list' with elements 'keys' and 'values' which provide the halves of the key-value pairs of the non-zero elements, or a data matrix that will be used to initialized the sparse matrix. If a list is given, all 'keys' elements must be \emph{sorted} in increasing order.}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric').}
-
-        \item{keys}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'.}
+        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are R numeric and logical types ('logical', 'integer', 'numeric') and their C equivalents.}
 
         \item{nrow}{An optional number giving the total number of rows.}
 
         \item{ncol}{An optional number giving the total number of columns.}
+
+        \item{keys}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'.}
 
         \item{rowMaj}{Whether the data should be stored using compressed-sparse-row (CSR) representation (as opposed to compressed-sparse-column (CSC) representation). Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
 
@@ -64,6 +74,8 @@ sparse_mat(data, datamode = "double", keys = NULL,
         \item{tolerance}{For 'numeric' keys, the tolerance used for floating-point equality when determining key matches. The vector should be named. Use 'absolute' to use absolute differences, and 'relative' to use relative differences.}
 
         \item{combiner}{In the case of collisions when matching keys, how the row- or column-vectors should be combined. Acceptable values are "identity", "sum", and "mean". A user-specified function may also be provided. Using "identity" means collisions result in an error. Using "sum" or "mean" results in binning all matches.}
+
+        \item{x}{An object to check if it is a sparse matrix or coerce to a sparse matrix.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

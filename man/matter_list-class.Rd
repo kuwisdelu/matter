@@ -9,7 +9,9 @@
 
 \alias{[,matter_list-method}
 \alias{[,matter_list,ANY,ANY,ANY-method}
+\alias{[,matter_list,ANY,ANY,NULL-method}
 \alias{[,matter_list,ANY,missing,ANY-method}
+\alias{[,matter_list,ANY,missing,NULL-method}
 \alias{[,matter_list,missing,missing,ANY-method}
 \alias{[<-,matter_list-method}
 \alias{[<-,matter_list,ANY,ANY,ANY-method}
@@ -18,6 +20,11 @@
 
 \alias{[[,matter_list,ANY,missing-method}
 \alias{[[<-,matter_list,ANY,missing-method}
+
+\alias{$,matter_list-method}
+\alias{$<-,matter_list-method}
+
+\alias{as.list,matter_list-method}
 
 \title{Lists of Vectors Stored on Disk}
 

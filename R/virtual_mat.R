@@ -137,7 +137,7 @@ setAs("array", "virtual_mat",
 
 as.virtual <- function(x, ...) as(x, "virtual_mat")
 
-is.virtual <- function(x, ...) is(x, "virtual_mat")
+is.virtual <- function(x) is(x, "virtual_mat")
 
 getVirtualMatrixElements <- function(x, i, j, drop=TRUE) {
 	if ( is.null(i) ) {

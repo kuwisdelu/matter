@@ -51,7 +51,6 @@ setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 ## ----------------------------------------------
 
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
-setGeneric("chunker", function(x, ...) standardGeneric("chunker"))
 
 #### Additional generic functions for subclasses ####
 ## --------------------------------------------------

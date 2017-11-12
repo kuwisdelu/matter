@@ -9,7 +9,9 @@
 
 \alias{[,matter_str-method}
 \alias{[,matter_str,ANY,ANY,ANY-method}
+\alias{[,matter_str,ANY,ANY,NULL-method}
 \alias{[,matter_str,ANY,missing,ANY-method}
+\alias{[,matter_str,ANY,missing,NULL-method}
 \alias{[,matter_str,missing,missing,ANY-method}
 \alias{[<-,matter_str-method}
 \alias{[<-,matter_str,ANY,ANY,ANY-method}
@@ -18,6 +20,8 @@
 
 \alias{[[,matter_str,ANY,missing-method}
 \alias{[[<-,matter_str,ANY,missing-method}
+
+\alias{as.vector,matter_str-method}
 
 \title{Strings Stored on Disk}
 

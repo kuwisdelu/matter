@@ -7,6 +7,7 @@
 
 \alias{[,matter_vec-method}
 \alias{[,matter_vec,ANY,missing,ANY-method}
+\alias{[,matter_vec,ANY,missing,NULL-method}
 \alias{[,matter_vec,missing,missing,ANY-method}
 \alias{[<-,matter_vec-method}
 \alias{[<-,matter_vec,ANY,missing,ANY-method}
@@ -15,6 +16,12 @@
 \alias{c,matter_vec-method}
 
 \alias{t,matter_vec-method}
+
+\alias{dim<-,matter_vec-method}
+
+\alias{as.vector,matter_vec-method}
+\alias{as.matrix,matter_vec-method}
+\alias{as.array,matter_vec-method}
 
 \title{Vectors Stored on Disk}
 
