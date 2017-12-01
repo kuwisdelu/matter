@@ -83,7 +83,7 @@ setAs("matter_list", "matter_vec", function(from) {
 		warning("dropping delayed operations")
 	new("matter_vec",
 		data=drop_groups_from_atoms(from@data),
-		datamode=from@datamode,
+		datamode=widest_datamode(from@datamode),
 		paths=from@paths,
 		filemode=from@filemode,
 		length=as.numeric(sum(from@dim)),
