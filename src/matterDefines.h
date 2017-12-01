@@ -19,6 +19,21 @@ typedef double Rindex_t;
 
 #define R_INDEX_PTR(x) REAL(x)
 
+// pair of numerics
+
+struct pair_int {
+	int first;
+	int second;
+};
+
+struct pair_double {
+	double first;
+	double second;
+};
+
+typedef struct pair_int pair_int;
+typedef struct pair_double pair_double;
+
 // S4 class codes
 
 #define MATTER_ANY 0

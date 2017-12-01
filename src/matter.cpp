@@ -3545,6 +3545,45 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
 //--------------------------------------------------
 
 template<typename T>
+pair_double range(MatterIterator<T> & x, bool na_rm) {
+    pair_double retVal;
+    retVal.first = R_DOUBLE_MAX;
+    retVal.second = R_DOUBLE_MIN;
+    while ( x ) {
+        if ( R_FINITE(*x) || R_INFINITE(*x) )
+        {
+            if ( *x < retVal.first )
+                retVal.first = *x;
+            if ( *x > retVal.second )
+                retVal.second = *x;
+        }
+        else if ( !na_rm )
+        {
+            retVal.first = *x;
+            retVal.second = *x;
+            return retVal;
+        }
+        ++x;
+    }
+    return retVal;
+}
+
+template<typename T>
+double prod(MatterIterator<T> & x, bool na_rm) {
+    double retVal = 1;
+    while ( x ) {
+        if ( R_FINITE(*x) )
+        {
+            retVal *= *x;
+        }
+        else if ( !na_rm || R_INFINITE(*x) )
+            return *x;
+        ++x;
+    }
+    return retVal;
+}
+
+template<typename T>
 double sum(MatterIterator<T> & x, bool na_rm) {
     double retVal = 0;
     while ( x ) {
@@ -3610,8 +3649,56 @@ double var(MatterIterator<T> & x, bool na_rm) {
         return s_new / (n - 1);
 }
 
+template<typename T>
+int any(MatterIterator<T> & x, bool na_rm) {
+    int retVal = 0;
+    while ( x ) {
+        if ( *x == NA_LOGICAL )
+            retVal = *x;
+        else if ( *x == 1 )
+            return *x;
+        ++x;
+    }
+    return retVal;
+}
+
+template<typename T>
+int all(MatterIterator<T> & x, bool na_rm) {
+    int retVal = 1;
+    while ( x ) {
+        if ( *x == NA_LOGICAL )
+            retVal = *x;
+        else if ( *x == 0 )
+            return *x;
+        ++x;
+    }
+    return retVal;
+}
+
 //// Statistical methods implemented for class Matter
 //---------------------------------------------------
+
+template<typename T>
+SEXP Matter :: range(bool na_rm) {
+    SEXP retVal;
+    PROTECT(retVal = NEW_NUMERIC(2));
+    MatterIterator<T> x(*this);
+    pair_double tmp = ::range<T>(x, na_rm);
+    REAL(retVal)[0] = tmp.first;
+    REAL(retVal)[1] = tmp.second;
+    UNPROTECT(1);
+    return retVal;
+}
+
+template<typename T>
+SEXP Matter :: prod(bool na_rm) {
+    SEXP retVal;
+    PROTECT(retVal = NEW_NUMERIC(1));
+    MatterIterator<T> x(*this);
+    *REAL(retVal) = ::prod<T>(x, na_rm);
+    UNPROTECT(1);
+    return retVal;
+}
 
 template<typename T>
 SEXP Matter :: sum(bool na_rm) {
@@ -3639,6 +3726,26 @@ SEXP Matter :: var(bool na_rm) {
     PROTECT(retVal = NEW_NUMERIC(1));
     MatterIterator<T> x(*this);
     *REAL(retVal) = ::var<T>(x, na_rm);
+    UNPROTECT(1);
+    return retVal;
+}
+
+template<typename T>
+SEXP Matter :: any(bool na_rm) {
+    SEXP retVal;
+    PROTECT(retVal = NEW_LOGICAL(1));
+    MatterIterator<T> x(*this);
+    *LOGICAL(retVal) = ::any<T>(x, na_rm);
+    UNPROTECT(1);
+    return retVal;
+}
+
+template<typename T>
+SEXP Matter :: all(bool na_rm) {
+    SEXP retVal;
+    PROTECT(retVal = NEW_LOGICAL(1));
+    MatterIterator<T> x(*this);
+    *LOGICAL(retVal) = ::all<T>(x, na_rm);
     UNPROTECT(1);
     return retVal;
 }
@@ -4468,6 +4575,34 @@ extern "C" {
         }
     }
 
+    SEXP getRange(SEXP x, SEXP na_rm) {
+        Matter mMat(x);
+        switch ( mMat.datamode() ) {
+            case R_LOGICAL:
+                return mMat.range<double>(LOGICAL_VALUE(na_rm));
+            case R_INTEGER:
+                return mMat.range<double>(LOGICAL_VALUE(na_rm));
+            case R_NUMERIC:
+                return mMat.range<double>(LOGICAL_VALUE(na_rm));
+            default:
+                return R_NilValue;
+        }
+    }
+
+    SEXP getProd(SEXP x, SEXP na_rm) {
+        Matter mMat(x);
+        switch ( mMat.datamode() ) {
+            case R_LOGICAL:
+                return mMat.prod<double>(LOGICAL_VALUE(na_rm));
+            case R_INTEGER:
+                return mMat.prod<double>(LOGICAL_VALUE(na_rm));
+            case R_NUMERIC:
+                return mMat.prod<double>(LOGICAL_VALUE(na_rm));
+            default:
+                return R_NilValue;
+        }
+    }
+
     SEXP getSum(SEXP x, SEXP na_rm) {
         Matter mMat(x);
         switch ( mMat.datamode() ) {
@@ -4505,6 +4640,34 @@ extern "C" {
                 return mMat.var<double>(LOGICAL_VALUE(na_rm));
             case R_NUMERIC:
                 return mMat.var<double>(LOGICAL_VALUE(na_rm));
+            default:
+                return R_NilValue;
+        }
+    }
+
+    SEXP getAny(SEXP x, SEXP na_rm) {
+        Matter mMat(x);
+        switch ( mMat.datamode() ) {
+            case R_LOGICAL:
+                return mMat.any<int>(LOGICAL_VALUE(na_rm));
+            case R_INTEGER:
+                return mMat.any<int>(LOGICAL_VALUE(na_rm));
+            case R_NUMERIC:
+                return mMat.any<int>(LOGICAL_VALUE(na_rm));
+            default:
+                return R_NilValue;
+        }
+    }
+
+    SEXP getAll(SEXP x, SEXP na_rm) {
+        Matter mMat(x);
+        switch ( mMat.datamode() ) {
+            case R_LOGICAL:
+                return mMat.all<int>(LOGICAL_VALUE(na_rm));
+            case R_INTEGER:
+                return mMat.all<int>(LOGICAL_VALUE(na_rm));
+            case R_NUMERIC:
+                return mMat.all<int>(LOGICAL_VALUE(na_rm));
             default:
                 return R_NilValue;
         }

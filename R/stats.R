@@ -1,27 +1,55 @@
 
 # statistical summaries
 
+setMethod("range", "matter", function(x, na.rm = FALSE) {
+	ret <- .Call("C_getRange", x, na.rm, PACKAGE="matter")
+	ret
+})
+
+setMethod("min", "matter", function(x, na.rm = FALSE) {
+	ret <- .Call("C_getRange", x, na.rm, PACKAGE="matter")
+	ret <- ret[1]
+	ret
+})
+
+setMethod("max", "matter", function(x, na.rm = FALSE) {
+	ret <- .Call("C_getRange", x, na.rm, PACKAGE="matter")
+	ret <- ret[2]
+	ret
+})
+
+setMethod("prod", "matter", function(x, na.rm = FALSE) {
+	ret <- .Call("C_getProd", x, na.rm, PACKAGE="matter")
+	ret
+})
+
 setMethod("sum", "matter", function(x, na.rm = FALSE) {
 	ret <- .Call("C_getSum", x, na.rm, PACKAGE="matter")
-	names(ret) <- names(x)
 	ret
 })
 
 setMethod("mean", "matter", function(x, na.rm = FALSE) {
 	ret <- .Call("C_getMean", x, na.rm, PACKAGE="matter")
-	names(ret) <- names(x)
 	ret
 })
 
 setMethod("var", "matter", function(x, na.rm = FALSE) {
 	ret <- .Call("C_getVar", x, na.rm, PACKAGE="matter")
-	names(ret) <- names(x)
 	ret
 })
 
 setMethod("sd", "matter", function(x, na.rm = FALSE) {
 	ret <- sqrt(.Call("C_getVar", x, na.rm, PACKAGE="matter"))
-	names(ret) <- names(x)
+	ret
+})
+
+setMethod("any", "matter", function(x, na.rm = FALSE) {
+	ret <- .Call("C_getAny", x, na.rm, PACKAGE="matter")
+	ret
+})
+
+setMethod("all", "matter", function(x, na.rm = FALSE) {
+	ret <- .Call("C_getAll", x, na.rm, PACKAGE="matter")
 	ret
 })
 

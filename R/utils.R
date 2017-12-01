@@ -4,8 +4,6 @@
 
 .onLoad <- function(libname, pkgname) {
 	options(matter.cast.warning = TRUE)
-	options(matter.default.chunksize = 1e6L)
-	options(matter.default.datamode = "double")
 }
 
 #### Binary search that allows near-matches ####

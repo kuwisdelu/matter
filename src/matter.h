@@ -931,6 +931,12 @@ class Matter
         SEXP lmult(SEXP x);
 
         template<typename T>
+        SEXP range(bool na_rm = false);
+
+        template<typename T>
+        SEXP prod(bool na_rm = false);
+
+        template<typename T>
         SEXP sum(bool na_rm = false);
 
         template<typename T>
@@ -938,6 +944,12 @@ class Matter
 
         template<typename T>
         SEXP var(bool na_rm = false);
+
+        template<typename T>
+        SEXP any(bool na_rm = false);
+
+        template<typename T>
+        SEXP all(bool na_rm = false);
 
         template<typename T>
         SEXP colsums(bool na_rm = false);
@@ -1071,6 +1083,12 @@ class MatterIterator
 };
 
 template<typename T>
+pair_double range(MatterIterator<T> & x, bool na_rm = false);
+
+template<typename T>
+double prod(MatterIterator<T> & x, bool na_rm = false);
+
+template<typename T>
 double sum(MatterIterator<T> & x, bool na_rm = false);
 
 template<typename T>
@@ -1078,6 +1096,13 @@ double mean(MatterIterator<T> & x, bool na_rm = false);
 
 template<typename T>
 double var(MatterIterator<T> & x, bool na_rm = false);
+
+template<typename T>
+int any(MatterIterator<T> & x, bool na_rm = false);
+
+template<typename T>
+int all(MatterIterator<T> & x, bool na_rm = false);
+
 
 //// Exported C functions
 //-----------------------
@@ -1124,11 +1149,19 @@ extern "C" {
 
     void setMatrixElements(SEXP x, SEXP i, SEXP j, SEXP value);
 
+    SEXP getRange(SEXP x, SEXP na_rm);
+
+    SEXP getProd(SEXP x, SEXP na_rm);
+
     SEXP getSum(SEXP x, SEXP na_rm);
 
     SEXP getMean(SEXP x, SEXP na_rm);
 
     SEXP getVar(SEXP x, SEXP na_rm);
+
+    SEXP getAny(SEXP x, SEXP na_rm);
+
+    SEXP getAll(SEXP x, SEXP na_rm);
 
     SEXP getColSums(SEXP x, SEXP na_rm);
 

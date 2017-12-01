@@ -2,16 +2,19 @@
 \docType{methods}
 
 \alias{mean}
-\alias{sum}
 \alias{sd}
 \alias{var}
 
-\alias{mean.matter}
-
-\alias{mean,matter-method}
+\alias{range,matter-method}
+\alias{min,matter-method}
+\alias{max,matter-method}
+\alias{prod,matter-method}
 \alias{sum,matter-method}
+\alias{mean,matter-method}
 \alias{sd,matter-method}
 \alias{var,matter-method}
+\alias{any,matter-method}
+\alias{all,matter-method}
 
 \alias{colSds}
 \alias{colVars}
@@ -34,10 +37,16 @@
 }
 
 \usage{
+\S4method{range}{matter}(x, na.rm)
+\S4method{min}{matter}(x, na.rm)
+\S4method{max}{matter}(x, na.rm)
+\S4method{prod}{matter}(x, na.rm)
 \S4method{mean}{matter}(x, na.rm)
 \S4method{sum}{matter}(x, na.rm)
 \S4method{sd}{matter}(x, na.rm)
 \S4method{var}{matter}(x, na.rm)
+\S4method{any}{matter}(x, na.rm)
+\S4method{all}{matter}(x, na.rm)
 \S4method{colMeans}{matter_mat}(x, na.rm)
 \S4method{colSums}{matter_mat}(x, na.rm)
 \S4method{colSds}{matter_mat}(x, na.rm)
@@ -61,11 +70,11 @@
 
     The efficiency of these methods is entirely dependent on the \code{chunksize} of \code{x}. Larger chunks will yield faster calculations, but greater memory usage. The row and column summary methods may be more or less efficient than the equivalent call to \code{\link[matter]{apply}}, depending on the chunk size.
 
-    Varsiance and standard deviation are calculated using a running sum of squares formula which can be calculated iteratively and is accurate for large floating-point datasets (see reference).
+    Variance and standard deviation are calculated using a running sum of squares formula which can be calculated iteratively and is accurate for large floating-point datasets (see reference).
 }
 
 \value{
-    For \code{mean}, \code{sum}, \code{sd}, and \code{var}, a single number. For the column summaries, a vector of length equal to the number of columns of the matrix. For the row summaries, a vector of length equal to the number of rows of the matrix.
+    For \code{mean}, \code{sd}, and \code{var}, a single number. For the column summaries, a vector of length equal to the number of columns of the matrix. For the row summaries, a vector of length equal to the number of rows of the matrix.
 }
 
 \author{Kylie A. Bemis}
