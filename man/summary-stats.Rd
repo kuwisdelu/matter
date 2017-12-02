@@ -1,6 +1,8 @@
 \name{summary-stats}
 \docType{methods}
 
+\alias{Summary}
+
 \alias{mean}
 \alias{sd}
 \alias{var}

@@ -249,6 +249,8 @@ test_that("bigglm", {
 
 	y <- matter_mat(x, nrow=100, ncol=10)
 
+	chunksize(y) <- 100
+
 	colnames(x) <- c(paste0("x", 1:9), "y")
 
 	colnames(y) <- c(paste0("x", 1:9), "y")
@@ -256,19 +258,27 @@ test_that("bigglm", {
 	fm <- paste0("y ~ ", paste0(paste0("x", 1:9), collapse=" + "))
 	fm <- as.formula(fm)
 
-	fit.x <- glm(fm, data=as.data.frame(x))
+	fit.x <- lm(fm, data=as.data.frame(x))
 
-	fit.y <- bigglm(fm, data=y, chunksize=100)
+	gfit.x <- glm(fm, data=as.data.frame(x))
 
-	expect_equal(coef(fit.x), coef(fit.y), tolerance=0.5)
+	gfit.y <- bigglm(fm, data=y)
+
+	expect_equal(coef(gfit.x), coef(gfit.y), tolerance=0.5)
 
 	x2 <- as.data.frame(x)
 
 	y2 <- as.matter(x2)
 
-	fit.y2 <- bigglm(fm, data=y2, chunksize=100)
+	chunksize(y2) <- 100
+
+	fit.y2 <- biglm(fm, data=y2)
 
 	expect_equal(coef(fit.x), coef(fit.y2), tolerance=0.5)
+
+	gfit.y2 <- bigglm(fm, data=y2)
+
+	expect_equal(coef(gfit.x), coef(gfit.y2), tolerance=0.5)
 
 })
 

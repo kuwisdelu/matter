@@ -6,6 +6,15 @@
 //// Low-level utility functions
 //-------------------------------
 
+MATTER_OPTIONS matter_options;
+
+void set_matter_options() {
+    SEXP e, result;
+    PROTECT(e = lang2(install("getOption"), mkString("matter.cast.warning")));
+    PROTECT(result = eval(e, R_GlobalEnv));
+    matter_options.cast_warning = LOGICAL_VALUE(result);
+    UNPROTECT(2);
+}
 
 bool is_R_NA(Rbyte x) {
     return false;
@@ -78,7 +87,8 @@ int coerce_cast<double,int>(double x) {
             warning("value is out of range for type 'int', element will be set to NA");
         return NA_INTEGER;
     }
-    warning("casting from 'double' to 'int', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'int', precision may be lost");
     return static_cast<int>(x);
 }
 
@@ -125,7 +135,8 @@ char coerce_cast<double,char>(double x) {
             warning("value is out of range for type 'char', element will be set to NA");
         return NA_CHAR;
     }
-    warning("casting from 'double' to 'char', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'char', precision may be lost");
     return static_cast<char>(x);
 }
 
@@ -154,7 +165,8 @@ unsigned char coerce_cast<double,unsigned char>(double x) {
             warning("value is out of range for type 'unsigned char', element will be set to 0");
         return 0;
     }
-    warning("casting from 'double' to 'unsigned char', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'unsigned char', precision may be lost");
     return static_cast<unsigned char>(x);
 }
 
@@ -184,7 +196,8 @@ short coerce_cast<double,short>(double x) {
             warning("value is out of range for type 'short', element will be set to NA");
         return NA_SHORT;
     }
-    warning("casting from 'double' to 'short', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'short', precision may be lost");
     return static_cast<short>(x);
 }
 
@@ -219,7 +232,8 @@ unsigned short coerce_cast<double,unsigned short>(double x) {
             warning("value is out of range for type 'unsigned short', element will be set to 0");
         return 0;
     }
-    warning("casting from 'double' to 'unsigned short', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'unsigned short', precision may be lost");
     return static_cast<unsigned short>(x);
 }
 
@@ -254,7 +268,8 @@ unsigned int coerce_cast<double,unsigned int>(double x) {
             warning("value is out of range for type 'unsigned int', element will be set to 0");
         return 0;
     }
-    warning("casting from 'double' to 'unsigned int', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'unsigned int', precision may be lost");
     return static_cast<unsigned int>(x);
 }
 
@@ -281,7 +296,8 @@ long coerce_cast<double,long>(double x) {
             warning("value is out of range for type 'long', element will be set to NA");
         return NA_LONG;
     }
-    warning("casting from 'double' to 'long', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'long', precision may be lost");
     return static_cast<long>(x);
 }
 
@@ -316,7 +332,8 @@ unsigned long coerce_cast<double,unsigned long>(double x) {
             warning("value is out of range for type 'long', element will be set to 0");
         return 0;
     }
-    warning("casting from 'double' to 'unsigned long', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'unsigned long', precision may be lost");
     return static_cast<unsigned long>(x);
 }
 
@@ -343,7 +360,8 @@ float coerce_cast<double,float>(double x) {
             warning("value is out of range for type 'float' and will be set to NA");
         return static_cast<float>(NA_REAL);
     }
-    warning("casting from 'double' to 'float', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'double' to 'float', precision may be lost");
     return static_cast<float>(x);
 }
 
@@ -432,7 +450,8 @@ Rbyte coerce_cast<float,Rbyte>(float x) {
     }
     else
     {
-        warning("casting from 'float' to 'unsigned char', precision may be lost");
+        if ( matter_options.cast_warning )
+            warning("casting from 'float' to 'unsigned char', precision may be lost");
         return static_cast<Rbyte>(x);
     }
 }
@@ -574,7 +593,8 @@ int coerce_cast<unsigned long,int>(unsigned long x) {
 
 template<>
 int coerce_cast<float,int>(float x) {
-    warning("casting from 'float' to 'int', precision may be lost");
+    if ( matter_options.cast_warning )
+        warning("casting from 'float' to 'int', precision may be lost");
     if ( std::isnan(x) )
         return NA_INTEGER;
     else

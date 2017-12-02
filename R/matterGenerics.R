@@ -22,6 +22,11 @@ setGeneric("tcrossprod", signature=c("x", "y"))
 
 setGeneric("prcomp")
 
+#### Define new generics from biglm ####
+## -------------------------------------
+
+setGeneric("biglm", signature=c("formula", "data"))
+
 #### Define new generics for summary stats ####
 ## --------------------------------------------
 

@@ -1,16 +1,23 @@
 \name{bigglm}
 \docType{methods}
 
-\alias{bigglm,formula,matter_mat-method}
+\alias{biglm}
+\alias{biglm,formula,matter_df-method}
+\alias{bigglm}
 \alias{bigglm,formula,matter_df-method}
+\alias{bigglm,formula,matter_mat-method}
 
 \title{Using ``biglm'' with ``matter''}
 
 \description{
-    This method allows \code{\linkS4class{matter_mat}} matrices to be used with the \code{\link[biglm]{bigglm}} function from the ``biglm'' package.
+    This method allows \code{\linkS4class{matter_mat}} matrices to be used with the \code{\link[biglm]{biglm}} and \code{\link[biglm]{bigglm}} function from the ``biglm'' package.
 }
 
 \usage{
+\S4method{biglm}{formula,matter_df}(formula, data, weights = NULL, sandwich = FALSE)
+
+\S4method{bigglm}{formula,matter_df}(formula, data, \dots, chunksize = NULL)
+
 \S4method{bigglm}{formula,matter_mat}(formula, data, \dots, chunksize = NULL, fc = NULL)
 }
 
@@ -18,6 +25,10 @@
     \item{formula}{A model \code{formula}.}
 
     \item{data}{A \code{\linkS4class{matter}} matrix with column names.}
+
+    \item{weights}{A one-sided, single-term formula specifying weights.}
+
+    \item{sandwich}{If \code{TRUE}, compute the Huber/White sandwich covariance matrix (uses \code{p^4} memory rather than \code{p^2}).}
 
     \item{chunksize}{An integer giving the maximum number of rows to process at a time. If left \code{NULL}, this will be calculated by dividing the \code{chunksize} of \code{data} by the number of variables in the formula.}
 

@@ -26,6 +26,8 @@ class Matter;
 //// Low-level utility functions
 //----------------------------------
 
+void set_matter_options();
+
 bool is_R_NA(Rbyte x);
 
 bool is_R_NA(int x);
@@ -813,6 +815,7 @@ class Matter
                 _S4class = MATTER_MATR;
             else
                 _S4class = MATTER_ANY;
+            set_matter_options();
         }
 
         ~Matter() {

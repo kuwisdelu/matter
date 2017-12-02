@@ -31,8 +31,11 @@ struct pair_double {
 	double second;
 };
 
-typedef struct pair_int pair_int;
-typedef struct pair_double pair_double;
+// Matter options
+
+struct MATTER_OPTIONS {
+	bool cast_warning;
+};
 
 // S4 class codes
 

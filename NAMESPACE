@@ -10,6 +10,7 @@ importFrom("irlba",
 	"irlba")
 
 importFrom("stats",
+	"update",
 	"setNames",
 	"na.omit")
 
@@ -167,11 +168,19 @@ export(
 	"hex2raw",
 	"raw2hex")
 
+export(
+	"sizeof",
+	"make_datamode",
+	"convert_datamode",
+	"widest_datamode")
+
 exportMethods("apply")
 
 exportMethods("scale")
 
-exportMethods("bigglm")
+exportMethods(
+	"biglm",
+	"bigglm")
 
 exportMethods("prcomp")
 

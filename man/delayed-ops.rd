@@ -1,6 +1,9 @@
 \name{delayed-ops}
 \docType{methods}
 
+\alias{Arith}
+\alias{Compare}
+
 \alias{Arith,matter_vec,numeric-method}
 \alias{Arith,numeric,matter_vec-method}
 \alias{Arith,matter_vec,matter_vec-method}
