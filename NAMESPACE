@@ -76,7 +76,8 @@ export(
 	"is.sparse",
 	"as.sparse",
 	"is.virtual",
-	"as.virtual")
+	"as.virtual",
+	"struct")
 
 exportMethods(
 	"as.vector",

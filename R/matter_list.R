@@ -81,6 +81,22 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
+struct <- function(..., filename = NULL, filemode = "rb+", offset = 0) {
+	args <- list(...)
+	if ( any(lengths(args) != 1) )
+		stop("all arguments must be length 1")
+	if ( any(sapply(args, function(a) is.null(names(a)))) )
+		stop("all arguments must be a named scalar")
+	if ( !is.null(filename) && length(filename) != 1 )
+		stop("'filename' must be length 1")
+	names <- names(args)
+	types <- sapply(args, names, USE.NAMES=FALSE)
+	lens <- as.integer(unlist(args))
+	offset <- offset + c(0, cumsum(sizeof(types) * lens)[-length(lens)])
+	matter_list(paths=filename, datamode=types, offset=offset,
+		lengths=lens, names=names, filemode=filemode)
+}
+
 setMethod("describe_for_display", "matter_list", function(x) "list")
 
 setMethod("show", "matter_list", function(object) {
