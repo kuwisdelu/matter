@@ -13,6 +13,8 @@
 \alias{keys<-,sparse_mat-method}
 \alias{tolerance,sparse_mat-method}
 \alias{tolerance<-,sparse_mat-method}
+\alias{combiner,sparse_mat-method}
+\alias{combiner<-,sparse_mat-method}
 \alias{datamode<-,sparse_mat-method}
 
 \alias{[,sparse_mat-method}
@@ -73,7 +75,7 @@ as.sparse(x, \dots)
 
         \item{tolerance}{For 'numeric' keys, the tolerance used for floating-point equality when determining key matches. The vector should be named. Use 'absolute' to use absolute differences, and 'relative' to use relative differences.}
 
-        \item{combiner}{In the case of collisions when matching keys, how the row- or column-vectors should be combined. Acceptable values are "identity", "sum", and "mean". A user-specified function may also be provided. Using "identity" means collisions result in an error. Using "sum" or "mean" results in binning all matches.}
+        \item{combiner}{In the case of collisions when matching keys, how the row- or column-vectors should be combined. Acceptable values are "identity", "min", "max", "sum", and "mean". A user-specified function may also be provided. Using "identity" means collisions result in an error. Using "sum" or "mean" results in binning all matches.}
 
         \item{x}{An object to check if it is a sparse matrix or coerce to a sparse matrix.}
 

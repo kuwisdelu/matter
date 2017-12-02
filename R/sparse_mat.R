@@ -162,6 +162,12 @@ as_sparse_mat_combiner <- function(combiner) {
 		} else if ( combiner == "sum" ) {
 			fun <- groupSums
 			attr(fun, "name") <- "sum"
+		} else if ( combiner == "min" ) {
+			fun <- groupMins
+			attr(fun, "name") <- "min"
+		} else if ( combiner == "max" ) {
+			fun <- groupMaxs
+			attr(fun, "name") <- "max"
 		} else {
 			fun <- groupCombiner(match.fun(combiner))
 			attr(fun, "name") <- combiner
@@ -240,6 +246,13 @@ setMethod("tolerance", "sparse_mat", function(object) object@tolerance)
 
 setReplaceMethod("tolerance", "sparse_mat", function(object, value) {
 	object@tolerance <- as_sparse_mat_tolerance(value)
+	object
+})
+
+setMethod("combiner", "sparse_mat", function(object) object@combiner)
+
+setReplaceMethod("combiner", "sparse_mat", function(object, value) {
+	object@combiner <- as_sparse_mat_combiner(value)
 	object
 })
 

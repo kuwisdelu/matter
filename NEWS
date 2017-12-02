@@ -8,13 +8,17 @@ NEW FEATURES
         'min', 'max', 'prod', 'any', and 'all' methods
     o Added options(matter.cast.warning=FALSE) for
         turning off C type coercion warnings
-    o Added 'biglm' method for 'matter_df' data frames
     o Exported low-level utilities 'sizeof', 'make_datamode',
         'convert_datamode', and 'widest_datamode'
+    o Added 'combiner' generic function and method for
+        setting/getting the 'combiner' for 'sparse_mat'
+    o Added 'min' and 'max' combiner functions for
+        'sparse_mat' matrices with tolerance > 0
+    o Added 'biglm' method for 'matter_df' data frames
 
 BUG FIXES
 
-    o Fixed bug when coercing matter_list to matter_vec
+    o Fixed bug when coercing 'matter_list' to 'matter_vec'
 
 CHANGES IN VERSION 1.5.2 [2017-11-12]
 -----------------------------------

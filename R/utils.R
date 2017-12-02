@@ -45,6 +45,14 @@ groupSums <- function(x, group, ngroup, default=NA) {
 	.Call("C_groupSums", x, group, ngroup, default, PACKAGE="matter")
 }
 
+groupMins <- function(x, group, ngroup, default=NA) {
+	.Call("C_groupMins", x, group, ngroup, default, PACKAGE="matter")
+}
+
+groupMaxs <- function(x, group, ngroup, default=NA) {
+	.Call("C_groupMaxs", x, group, ngroup, default, PACKAGE="matter")
+}
+
 groupIds <- function(x, group, ngroup, default=NA) {
 	vals <- vector(mode=typeof(x), length=ngroup)
 	if ( anyDuplicated(group, incomparables=NA) > 0 )

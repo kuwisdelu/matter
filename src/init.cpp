@@ -46,6 +46,8 @@ extern "C" {
         {"C_getDRLEElements", (DL_FUNC) &getDRLEElements, 2},
         {"C_groupMeans", (DL_FUNC) &groupMeans, 4},
         {"C_groupSums", (DL_FUNC) &groupSums, 4},
+        {"C_groupMins", (DL_FUNC) &groupMins, 4},
+        {"C_groupMaxs", (DL_FUNC) &groupMaxs, 4},
         {NULL, NULL, 0}
     };
 

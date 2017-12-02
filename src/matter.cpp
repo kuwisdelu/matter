@@ -712,6 +712,62 @@ SEXP group_sums(T * x, int * group, int ngroup, int length, double init)
     return ret;
 }
 
+template<typename T>
+SEXP group_mins(T * x, int * group, int ngroup, int length, double init)
+{
+    SEXP ret;
+    PROTECT(ret = NEW_NUMERIC(ngroup));
+    double * pRet = REAL(ret);
+    int * n = (int *) Calloc(ngroup, int);
+    for ( int g_i = 0; g_i < ngroup; g_i++ ) {
+        n[g_i] = 0;
+        pRet[g_i] = R_DOUBLE_MAX;
+    }
+    for ( int i = 0; i < length; i++ ) {
+        if ( group[i] != NA_INTEGER ) {
+            if ( group[i] <= 0 || group[i] > ngroup )
+                error("unexpected group id");
+            n[group[i] - 1]++;
+            if ( x[i] < pRet[group[i] - 1] )
+                pRet[group[i] - 1] = x[i];
+        }
+    }
+    for ( int g_i = 0; g_i < ngroup; g_i++ )
+        if ( n[g_i] == 0 )
+            pRet[g_i] = init;
+    Free(n);
+    UNPROTECT(1);
+    return ret;
+}
+
+template<typename T>
+SEXP group_maxs(T * x, int * group, int ngroup, int length, double init)
+{
+    SEXP ret;
+    PROTECT(ret = NEW_NUMERIC(ngroup));
+    double * pRet = REAL(ret);
+    int * n = (int *) Calloc(ngroup, int);
+    for ( int g_i = 0; g_i < ngroup; g_i++ ) {
+        n[g_i] = 0;
+        pRet[g_i] = R_DOUBLE_MIN;
+    }
+    for ( int i = 0; i < length; i++ ) {
+        if ( group[i] != NA_INTEGER ) {
+            if ( group[i] <= 0 || group[i] > ngroup )
+                error("unexpected group id");
+            n[group[i] - 1]++;
+            if ( x[i] > pRet[group[i] - 1] )
+                pRet[group[i] - 1] = x[i];
+        }
+    }
+    for ( int g_i = 0; g_i < ngroup; g_i++ )
+        if ( n[g_i] == 0 )
+            pRet[g_i] = init;
+    Free(n);
+    UNPROTECT(1);
+    return ret;
+}
+
 //// Delta run length encoding 
 //-----------------------------
 
@@ -4910,6 +4966,32 @@ extern "C" {
                     INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
             case REALSXP:
                 return group_sums<double>(REAL(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+        }
+        error("supported types are 'integer' or 'numeric'");
+    }
+
+    SEXP groupMins(SEXP x, SEXP group, SEXP ngroup, SEXP init)
+    {
+        switch(TYPEOF(x)) {
+            case INTSXP:
+                return group_mins<int>(INTEGER(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+            case REALSXP:
+                return group_mins<double>(REAL(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+        }
+        error("supported types are 'integer' or 'numeric'");
+    }
+
+    SEXP groupMaxs(SEXP x, SEXP group, SEXP ngroup, SEXP init)
+    {
+        switch(TYPEOF(x)) {
+            case INTSXP:
+                return group_maxs<int>(INTEGER(x), INTEGER(group),
+                    INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
+            case REALSXP:
+                return group_maxs<double>(REAL(x), INTEGER(group),
                     INTEGER_VALUE(ngroup), LENGTH(x), NUMERIC_VALUE(init));
         }
         error("supported types are 'integer' or 'numeric'");

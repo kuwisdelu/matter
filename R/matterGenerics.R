@@ -64,6 +64,8 @@ setGeneric("keys", function(object) standardGeneric("keys"))
 setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 setGeneric("tolerance", function(object) standardGeneric("tolerance"))
 setGeneric("tolerance<-", function(object, value) standardGeneric("tolerance<-"))
+setGeneric("combiner", function(object) standardGeneric("combiner"))
+setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
 
 #### Internal generic functions for matter ####
 ## ----------------------------------------------

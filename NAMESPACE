@@ -106,7 +106,9 @@ exportMethods(
 	"keys",
 	"keys<-",
 	"tolerance",
-	"tolerance<-")
+	"tolerance<-",
+	"combiner",
+	"combiner<-")
 
 exportMethods(
 	"%*%",

@@ -69,6 +69,12 @@ SEXP group_means(T * x, int * group, int ngroup, int length, double init);
 template<typename T>
 SEXP group_sums(T * x, int * group, int ngroup, int length, double init);
 
+template<typename T>
+SEXP group_maxs(T * x, int * group, int ngroup, int length, double init);
+
+template<typename T>
+SEXP group_mins(T * x, int * group, int ngroup, int length, double init);
+
 //// Delta run length encoding 
 //-----------------------------
 
@@ -1195,6 +1201,10 @@ extern "C" {
     SEXP groupMeans(SEXP x, SEXP group, SEXP ngroup, SEXP init);
 
     SEXP groupSums(SEXP x, SEXP group, SEXP ngroup, SEXP init);
+
+    SEXP groupMins(SEXP x, SEXP group, SEXP ngroup, SEXP init);
+
+    SEXP groupMaxs(SEXP x, SEXP group, SEXP ngroup, SEXP init);
 
 }
 

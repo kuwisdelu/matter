@@ -224,6 +224,40 @@ test_that("sparse matrix subsetting", {
 
 	expect_equal(x[10:1,10:1], y[10:1,10:1])
 
+	keys <- list(c(1, 1.11), c(2, 2.22), c(3, 3.33))
+
+	values <- list(c(1, 100), c(1, 100), c(1, 100))
+
+	init <- list(keys=keys, values=values)
+
+	x <- diag(3)
+
+	x2 <- 100 * x
+
+	y <- sparse_mat(init, keys=c(1, 2, 3), nrow=3, ncol=3)
+
+	expect_equal(x, y[])
+
+	tolerance(y) <- c(absolute=0.5)
+
+	expect_error(y[])
+
+	combiner(y) <- "mean"
+
+	expect_equal((x + x2) / 2, y[])
+
+	combiner(y) <- "sum"
+
+	expect_equal(x + x2, y[])
+
+	combiner(y) <- "min"
+
+	expect_equal(x, y[])
+
+	combiner(y) <- "max"
+
+	expect_equal(x2, y[])
+
 })
 
 test_that("virtual matrix subsetting", {
