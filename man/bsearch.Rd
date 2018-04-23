@@ -40,9 +40,9 @@ bsearch(key, values, tol = 0, tol.ref = "none",
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\link[base]{match}},
-    \code{\link[base]{pmatch}},
-    \code{\link[base]{findInterval}}
+    \code{\link{match}},
+    \code{\link{pmatch}},
+    \code{\link{findInterval}}
 }
 
 \examples{

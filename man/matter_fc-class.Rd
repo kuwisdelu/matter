@@ -37,7 +37,7 @@ matter_fc(data, datamode = "int", paths = NULL,
 
         \item{datamode}{Must be an integral type for factors.}
 
-        \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link[base]{tempfile}}.}
+        \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
         \item{filemode}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
 
