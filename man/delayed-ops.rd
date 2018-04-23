@@ -108,9 +108,9 @@
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\link[methods]{Arith}},
-    \code{\link[methods]{Compare}},
-    \code{\link[methods]{Math}}
+    \code{\link{Arith}},
+    \code{\link{Compare}},
+    \code{\link{Math}}
 }
 
 \examples{

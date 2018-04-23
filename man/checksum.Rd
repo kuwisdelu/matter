@@ -25,7 +25,7 @@ checksum(x, \dots)
 }
 
 \details{
-	The method for \code{\link[matter]{matter}} objects calculates checksums of each of the files in the object's \code{paths}.
+	The method for \code{\linkS4class{matter}} objects calculates checksums of each of the files in the object's \code{paths}.
 }
 
 \value{
@@ -35,7 +35,7 @@ checksum(x, \dots)
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\link[digest]{digest}}
+    \code{\link{digest}}
 }
 
 \examples{

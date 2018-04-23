@@ -4,7 +4,6 @@
 
 setClassUnion("atoms_OR_list", c("atoms", "list"))
 setClassUnion("character_OR_NULL", c("character", "NULL"))
-setClassUnion("character_OR_NULL", c("character", "NULL"))
 setClassUnion("integer_OR_NULL", c("integer", "NULL"))
 setClassUnion("list_OR_NULL", c("list", "NULL"))
 

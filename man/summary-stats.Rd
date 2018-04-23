@@ -70,7 +70,7 @@
 
     For row and column summaries on matrices, the iteration scheme is dependent on the layout of the data. Column-major matrices will always be iterated over by column, and row-major matrices will always be iterated over by row. Row statistics on column-major matrices and column statistics on row-major matrices are calculated iteratively.
 
-    The efficiency of these methods is entirely dependent on the \code{chunksize} of \code{x}. Larger chunks will yield faster calculations, but greater memory usage. The row and column summary methods may be more or less efficient than the equivalent call to \code{\link[matter]{apply}}, depending on the chunk size.
+    The efficiency of these methods is entirely dependent on the \code{chunksize} of \code{x}. Larger chunks will yield faster calculations, but greater memory usage. The row and column summary methods may be more or less efficient than the equivalent call to \code{\link{apply}}, depending on the chunk size.
 
     Variance and standard deviation are calculated using a running sum of squares formula which can be calculated iteratively and is accurate for large floating-point datasets (see reference).
 }
@@ -86,10 +86,7 @@
 }
 
 \seealso{
-    \code{\link[base]{colSums}},
-    \code{\link[base]{colMeans}},
-    \code{\link[base]{rowSums}},
-    \code{\link[base]{rowMeans}}
+    \code{\link[base]{colSums}}
 }
 
 \examples{

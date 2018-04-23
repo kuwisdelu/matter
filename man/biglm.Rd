@@ -1,4 +1,4 @@
-\name{bigglm}
+\name{biglm}
 \docType{methods}
 
 \alias{biglm}
