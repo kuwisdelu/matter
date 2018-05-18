@@ -45,7 +45,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	if ( is.null(paths) )
 		paths <- tempfile(fileext=".bin")
 	paths <- normalizePath(paths, mustWork=FALSE)
-	if ( !file.exists(paths) ) {
+	if ( !all(file.exists(paths)) ) {
 		if ( missing(data) )
 			data <- vector(as.character(widest_datamode(datamode)), length=1)
 		filemode <- force(filemode)
