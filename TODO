@@ -3,6 +3,7 @@ TODO for matter package
 -------------------------
 
 Priority: High
+- Update mem() to reflect new gc() format
 - Add wrappers for reading csv, tsv, etc.
 - Add (parallelized) lapply and sapply for matter objects
 

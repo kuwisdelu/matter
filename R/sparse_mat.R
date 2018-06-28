@@ -209,7 +209,7 @@ setMethod("show", "sparse_mat", function(object) {
 	cat("    ", format(disk_used(object), units="auto"), " virtual memory: ",
 		paste_head(disknames, collapse=", "), "\n", sep="")
 	cat("    ", length(object), " non-zero elements\n", sep="")
-	cat("    ", round(length(object) / prod(dim(object)), 2) * 100,
+	cat("    ", round(length(object) / prod(dim(object)), 4) * 100,
 		"% density\n", sep="")
 	if ( !is.null(attr(object, "scaled:center")) )
 		cat("    scaled:center = TRUE\n")
