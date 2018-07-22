@@ -1,4 +1,16 @@
 
+CHANGES IN VERSION 1.7.2 [2018-7-22]
+-----------------------------------
+
+NEW FEATURES
+
+    o Updated installation instructions for BiocManager
+    o Setting 'sparse_mat' keys also updated nrows/ncols
+
+BUG FIXES
+
+    o Fixed mem() to reflect R >= 3.5 gc() function
+
 CHANGES IN VERSION 1.7.1 [2018-5-18]
 -----------------------------------
 
