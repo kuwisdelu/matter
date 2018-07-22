@@ -486,7 +486,7 @@ mem <- function(x, reset = FALSE) {
 		mem <- print(mem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
-		mem <- round(colSums(gc(reset=reset)[,c(1,3,5)] * cell.size) / 1000^2, 1)
+		mem <- round(colSums(gc(reset=reset)[,c(1,3,6)] * cell.size) / 1000^2, 1)
 		names(mem) <- c("used (MB)", "gc trigger (MB)", "max used (MB)")
 	}
 	mem

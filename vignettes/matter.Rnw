@@ -43,8 +43,8 @@ The vignettes of this package are organized as follows:
 \Rpackage{matter} can be installed from Bioconductor using the following commands in \R{}.
 
 <<eval=FALSE>>=
-source("https://bioconductor.org/biocLite.R")
-biocLite("matter")
+install.packages("BiocManager")
+BiocManager::install("matter")
 @
 
 \section{Basic use and data manipulation}
