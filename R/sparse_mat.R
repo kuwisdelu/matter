@@ -242,6 +242,30 @@ setReplaceMethod("keys", "sparse_mat", function(object, value) {
 		object
 })
 
+setReplaceMethod("keys", "sparse_matc", function(object, value) {
+	if ( length(value) != nrow(object) ) {
+		message("nrows changed from ", nrow(object), " to ", length(value))
+		object@dim[1L] <- length(value)
+		if ( !is.null(object@dimnames[[1L]]) ) {
+			warning("rownames were dropped")
+			object@dimnames[[1L]] <- NULL
+		}
+	}
+	callNextMethod(object, value=value)
+})
+
+setReplaceMethod("keys", "sparse_matr", function(object, value) {
+	if ( length(value) != nrow(object) ) {
+		message("ncols changed from ", ncol(object), " to ", length(value))
+		object@dim[2L] <- length(value)
+		if ( !is.null(object@dimnames[[2L]])) {
+			warning("colnames were dropped")
+			object@dimnames[[2L]] <- NULL
+		}
+	}
+	callNextMethod(object, value=value)
+})
+
 setMethod("tolerance", "sparse_mat", function(object) object@tolerance)
 
 setReplaceMethod("tolerance", "sparse_mat", function(object, value) {
