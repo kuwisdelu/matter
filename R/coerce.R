@@ -61,6 +61,22 @@ setAs("matter_mat", "matter_vec", function(from) {
 		ops=NULL)
 })
 
+setAs("matter_mat", "matter_list", function(from) {
+	if ( !is.null(from@ops) )
+		warning("dropping delayed operations")
+	new("matter_list",
+		data=from@data,
+		datamode=rep(from@datamode, length(from@data)),
+		paths=from@paths,
+		filemode=from@filemode,
+		length=length(from@data),
+		dim=rep(as.integer(prod(from@dim) / length(from@data)),
+			length(from@data)),
+		names=NULL,
+		dimnames=NULL,
+		ops=NULL)
+})
+
 # matter_arr
 
 setAs("matter_arr", "matter_vec", function(from) {
