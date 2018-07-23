@@ -52,7 +52,7 @@ is.drle(x)
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[i]}:}{Get or set elements of the uncompressed vector.}
+        \item{\code{x[i]}:}{Get the elements of the uncompressed vector.}
 
         \item{\code{length(x)}:}{Get the length of the uncompressed vector.}
 

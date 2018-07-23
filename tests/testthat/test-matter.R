@@ -295,3 +295,21 @@ test_that("virtual matrix subsetting", {
 	expect_equal(x[5:1,10:1], y[5:1,10:1])
 
 })
+
+test_that("virtual replicated vectors", {
+
+	init <- list(1:10, 11:20, 21:30)
+
+	x <- rep(init, 100)
+
+	y <- rep_vt(init, 100)
+
+	expect_equal(x[1], y[1])
+
+	expect_equal(x[1:10], y[1:10])
+
+	expect_equal(x[[5]], y[[5]])
+
+	expect_equal(length(x), length(y))
+
+})

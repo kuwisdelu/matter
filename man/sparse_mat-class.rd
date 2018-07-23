@@ -11,6 +11,8 @@
 
 \alias{keys,sparse_mat-method}
 \alias{keys<-,sparse_mat-method}
+\alias{keys<-,sparse_matc-method}
+\alias{keys<-,sparse_matr-method}
 \alias{tolerance,sparse_mat-method}
 \alias{tolerance<-,sparse_mat-method}
 \alias{combiner,sparse_mat-method}
