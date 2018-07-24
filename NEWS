@@ -1,11 +1,17 @@
 
+CHANGES IN VERSION 1.7.5 [2018-7-23]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'as.matrix' methods for 'sparse_mat' and 'virtual_mat'
+
 CHANGES IN VERSION 1.7.4 [2018-7-23]
 -----------------------------------
 
 NEW FEATURES
 
     o Added coercion from 'matter_mat' to 'matter_list'
-
 
 CHANGES IN VERSION 1.7.3 [2018-7-23]
 -----------------------------------

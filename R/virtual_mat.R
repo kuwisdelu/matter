@@ -139,6 +139,10 @@ as.virtual <- function(x, ...) as(x, "virtual_mat")
 
 is.virtual <- function(x) is(x, "virtual_mat")
 
+setAs("virtual_mat", "matrix", function(from) from[])
+
+setMethod("as.matrix", "virtual_mat", function(x) as(x, "matrix"))
+
 getVirtualMatrixElements <- function(x, i, j, drop=TRUE) {
 	if ( is.null(i) ) {
 		if ( is.null(x@index[[1]]) ) {

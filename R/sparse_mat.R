@@ -234,6 +234,10 @@ as.sparse <- function(x, ...) as(x, "sparse_mat")
 
 is.sparse <- function(x) is(x, "sparse_mat")
 
+setAs("sparse_mat", "matrix", function(from) from[])
+
+setMethod("as.matrix", "sparse_mat", function(x) as(x, "matrix"))
+
 setMethod("keys", "sparse_mat", function(object) object@keys)
 
 setReplaceMethod("keys", "sparse_mat", function(object, value) {
