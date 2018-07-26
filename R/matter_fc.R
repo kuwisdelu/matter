@@ -52,7 +52,7 @@ matter_fc <- function(data, datamode = "int", paths = NULL,
 		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
-	} else if ( !missing(data) ) {
+	} else if ( !missing(data) && missing(filemode) ) {
 		warning("file already exists")
 	}
 	if ( length(paths) != length(extent) )

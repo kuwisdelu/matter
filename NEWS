@@ -1,4 +1,27 @@
 
+CHANGES IN VERSION 1.7.6 [2018-7-24]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'apply' methods for 'sparse_mat' and 'virtual_mat'
+    o Added 'vm_used' function to exported internal utilities
+    o Can infer length of 'matter_vec' from paths when missing
+    o Can coerce 'matter_list' to 'matter_matc' or 'matter_matr'
+        if all elements of the list are the same length
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Initializing a matter object with data to an existing file
+        no longer results in a warning if 'filemode' is supplied
+
+BUG FIXES
+
+    o Fixed bug where subsetting 'sparse_mat' objects
+        would pull 'matter_list' key-value pairs into memory
+    o Subsetting 'sparse_mat' objects with out-of-bounds
+        subscripts when 'drop=NULL' is now an error
+
 CHANGES IN VERSION 1.7.5 [2018-7-23]
 -----------------------------------
 

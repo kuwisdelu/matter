@@ -22,7 +22,7 @@ setMethod("show", "matter_vt", function(object) {
 	object.memory <- object.size(object)
 	class(object.memory) <- "bytes"
 	cat("    ", format(object.memory, units="auto"), " real memory\n", sep="")
-	cat("    ", format(disk_used(object), units="auto"), " virtual memory\n", sep="")
+	cat("    ", format(vm_used(object), units="auto"), " virtual memory\n", sep="")
 })
 
 setReplaceMethod("datamode", "matter_vt", function(x, value) {

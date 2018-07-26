@@ -95,8 +95,6 @@ setAs("matter_arr", "matter_vec", function(from) {
 # matter_list
 
 setAs("matter_list", "matter_vec", function(from) {
-	if ( !is.null(from@ops) )
-		warning("dropping delayed operations")
 	new("matter_vec",
 		data=drop_groups_from_atoms(from@data),
 		datamode=widest_datamode(from@datamode),
@@ -108,4 +106,35 @@ setAs("matter_list", "matter_vec", function(from) {
 		dimnames=NULL,
 		ops=NULL)
 })
+
+setAs("matter_list", "matter_matc", function(from) {
+	if ( length(unique(from@dim)) != 1L )
+		stop("all elements must be the same length")
+	new("matter_matc",
+		data=from@data,
+		datamode=widest_datamode(from@datamode),
+		paths=from@paths,
+		filemode=from@filemode,
+		length=as.numeric(sum(from@dim)),
+		dim=c(from@dim[1L], from@length),
+		names=NULL,
+		dimnames=if ( !is.null(from@names) ) list(NULL, from@names) else NULL,
+		ops=NULL)
+})
+
+setAs("matter_list", "matter_matr", function(from) {
+	if ( length(unique(from@dim)) != 1L )
+		stop("all elements must be the same length")
+	new("matter_matr",
+		data=from@data,
+		datamode=widest_datamode(from@datamode),
+		paths=from@paths,
+		filemode=from@filemode,
+		length=as.numeric(sum(from@dim)),
+		dim=c(from@length, from@dim[1L]),
+		names=NULL,
+		dimnames=if ( !is.null(from@names) ) list(from@names, NULL) else NULL,
+		ops=NULL)
+})
+
 

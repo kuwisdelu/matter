@@ -173,11 +173,15 @@ export(
 	"hex2raw",
 	"raw2hex")
 
+S3method("print", "bytes")
+S3method("format", "bytes")
+
 export(
 	"sizeof",
 	"make_datamode",
 	"convert_datamode",
-	"widest_datamode")
+	"widest_datamode",
+	"vm_used")
 
 exportMethods("apply")
 

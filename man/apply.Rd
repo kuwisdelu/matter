@@ -3,15 +3,21 @@
 
 \alias{apply}
 \alias{apply,matter_mat-method}
+\alias{apply,sparse_mat-method}
+\alias{apply,virtual_mat-method}
 
 \title{Apply Functions Over ``matter'' Matrices}
 
 \description{
-    An implementation of \code{\link[base]{apply}} for \code{\linkS4class{matter_mat}} matrices.
+    An implementation of \code{\link[base]{apply}} for \code{\linkS4class{matter_mat}}, \code{\linkS4class{sparse_mat}} and \code{\linkS4class{virtual_mat}} matrices.
 }
 
 \usage{
 \S4method{apply}{matter_mat}(X, MARGIN, FUN, \dots)
+
+\S4method{apply}{sparse_mat}(X, MARGIN, FUN, \dots)
+
+\S4method{apply}{virtual_mat}(X, MARGIN, FUN, \dots)
 }
 
 \arguments{
@@ -29,7 +35,7 @@
 }
 
 \section{Warning}{
-    Applying a function over the rows of a \code{\linkS4class{matter_matc}} (column-major) matrix or over the columns of a \code{\linkS4class{matter_matr}} (row-major) matrix may be very slow.
+    Applying a function over the rows of a column-major matrix (e.g., \code{\linkS4class{matter_matc}}) or over the columns of a row-major matrix (e.g., \code{\linkS4class{matter_matr}}) may be very slow.
 }
 
 \value{

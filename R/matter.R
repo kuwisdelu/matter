@@ -152,7 +152,7 @@ setMethod("show", "matter", function(object) {
 	cat("    sources:", length(object@paths), "\n")
 	cat("    datamode:", paste_head(object@datamode), "\n")
 	cat("    ", format(object.memory, units="auto"), " real memory\n", sep="")
-	cat("    ", format(disk_used(object), units="auto"), " virtual memory\n", sep="")
+	cat("    ", format(vm_used(object), units="auto"), " virtual memory\n", sep="")
 })
 
 setMethod("datamode", "matter", function(x) x@datamode)

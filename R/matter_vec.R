@@ -34,6 +34,8 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 			datamode <- typeof(data)
 		if ( missing(length) )
 			length <- length(data)
+	} else if ( missing(length) && length(datamode) == 1L ) {
+		length <- floor(sum(file.size(paths)) / sizeof(datamode))
 	}
 	if ( length == 0 && all(extent == 0) )
 		return(new("matter_vec"))
@@ -52,7 +54,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		result <- file.create(paths)
 		if ( !result )
 			stop("error creating file")
-	} else if ( !missing(data) ) {
+	} else if ( !missing(data) && missing(filemode) ) {
 		warning("file already exists")
 	}
 	if ( length(paths) != length(extent) )

@@ -20,6 +20,7 @@
 \alias{make_datamode}
 \alias{convert_datamode}
 \alias{widest_datamode}
+\alias{vm_used}
 
 \title{Internal Utilities for ``matter'' Package}
 

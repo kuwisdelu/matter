@@ -7,6 +7,16 @@ setMethod("apply", "matter_mat",
 		apply_matter(X, MARGIN, FUN, ...)
 })
 
+setMethod("apply", "sparse_mat",
+	function(X, MARGIN, FUN, ...) {
+		apply_matter(X, MARGIN, FUN, ...)
+})
+
+setMethod("apply", "virtual_mat",
+	function(X, MARGIN, FUN, ...) {
+		apply_matter(X, MARGIN, FUN, ...)
+})
+
 # based on code from package:base and package:biganalytics
 
 apply_matter <- function(X, MARGIN, FUN, ...)

@@ -432,16 +432,16 @@ bytes <- function(x) {
 	x
 }
 
-# calculates disk used by a matter object
+# calculates vm used by a matter object
 
-disk_used <- function(x) {
+vm_used <- function(x) {
 	if ( is(x, "atoms") ) {
 		size <- sum(x@extent[] * sizeof(datamode(x)[]))
 	} else if ( is.matter(x) ) {
 		if ( is(adata(x), "atoms") ) {
-			size <- disk_used(adata(x))
+			size <- vm_used(adata(x))
 		} else {
-			size <- sum(vapply(adata(x), disk_used, numeric(1)))
+			size <- sum(vapply(adata(x), vm_used, numeric(1)))
 		}
 	} else {
 		size <- 0
@@ -451,8 +451,8 @@ disk_used <- function(x) {
 
 # based on utils::format.object_size
 
-print.bytes <- function (x, ..., units = "auto")  {
-    units <- match.arg(units, c("auto",
+fmt_bytes <- function(x, units = "auto") {
+	units <- match.arg(units, c("auto",
 				"B", "KB", "MB", "GB", "TB", "PB"))
     if (units == "auto")
         units <- if (x >= 1000^4) 
@@ -464,7 +464,7 @@ print.bytes <- function (x, ..., units = "auto")  {
         else if (x >= 1000) 
             "KB"
         else "B"
-    switch(units, 
+    switch(units,
     	B = c("bytes"=x),
     	KB = c("KB"=round(x/1000, 1L)),
     	MB = c("MB"=round(x/1000^2, 1L)), 
@@ -473,8 +473,12 @@ print.bytes <- function (x, ..., units = "auto")  {
         PB = c("PB"=round(x/1000^5, 1L)))
 }
 
+print.bytes <- function (x, units = "auto", ...)  {
+	print(fmt_bytes(x, units=units))
+}
+
 format.bytes <- function(x, units = "auto", ...) {
-	x <- print(x, units=units)
+	x <- fmt_bytes(x, units=units)
 	paste(x, names(x))
 }
 

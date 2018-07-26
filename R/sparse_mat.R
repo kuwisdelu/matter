@@ -206,7 +206,7 @@ setMethod("show", "sparse_mat", function(object) {
 	cat("    datamode:", paste0(object@datamode[2]), "\n")
 	cat("    ", format(object.memory, units="auto"), " real memory: ",
 		paste_head(memnames, collapse=", "), "\n", sep="")
-	cat("    ", format(disk_used(object), units="auto"), " virtual memory: ",
+	cat("    ", format(vm_used(object), units="auto"), " virtual memory: ",
 		paste_head(disknames, collapse=", "), "\n", sep="")
 	cat("    ", length(object), " non-zero elements\n", sep="")
 	cat("    ", round(length(object) / prod(dim(object)), 4) * 100,
@@ -611,11 +611,14 @@ subSparseMatrixCols <- function(x, j) {
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
+	if ( any( j < 1L | j > ncol(x)) )
+		stop("subscript out of bounds")
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
 	x <- switch(class(x),
 		sparse_matc=new("sparse_matc",
-			data=list(keys=x@data$keys[j], values=x@data$values[j]),
+			data=list(keys=x@data$keys[j,drop=NULL],
+				values=x@data$values[j,drop=NULL]),
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,
@@ -652,6 +655,8 @@ subSparseMatrixRows <- function(x, i) {
 		i <- logical2index(x, i, 1)
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
+	if ( any( i < 1L | i > nrow(x)) )
+		stop("subscript out of bounds")
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
 	x <- switch(class(x),
@@ -671,7 +676,8 @@ subSparseMatrixRows <- function(x, i) {
 			tolerance=x@tolerance,
 			combiner=x@combiner),
 		sparse_matr=new("sparse_matr",
-			data=list(keys=x@data$keys[i], values=x@data$values[i]),
+			data=list(keys=x@data$keys[i,drop=NULL],
+				values=x@data$values[i,drop=NULL]),
 			datamode=x@datamode,
 			paths=x@paths,
 			chunksize=x@chunksize,
