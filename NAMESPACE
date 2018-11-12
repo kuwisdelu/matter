@@ -29,7 +29,6 @@ importFrom("BiocGenerics",
 	"combine",
 	"cbind",
 	"rbind",
-	"lengths",
 	"which")
 
 importFrom("utils",

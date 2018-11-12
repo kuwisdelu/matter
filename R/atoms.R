@@ -176,6 +176,20 @@ combine_atoms <- function(x, y, x.paths, y.paths, new.groups = FALSE) {
 		extent=combine(x@extent, y@extent))
 }
 
+setMethod("as.data.frame", "atoms", function(x, ...){
+	adata <- data.frame(
+		group_id=x@group_id[],
+		source_id=x@source_id[],
+		datamode=make_datamode(x@datamode[], type="C"),
+		offset=x@offset[],
+		extent=x@extent[],
+		index_offset=x@index_offset[],
+		index_extent=x@index_extent[])	
+})
+
+setMethod("as.list", "atoms", function(x, ...)
+	as.list(as.data.frame(x, ...)))
+
 setMethod("dim", "atoms", function(x) c(x@natoms, x@ngroups))
 
 setMethod("length", "atoms", function(x) x@ngroups)
@@ -239,13 +253,10 @@ setMethod("c", "atoms", function(x, ..., recursive=FALSE)
 })
 
 setMethod("show", "atoms", function(object) {
-	print(data.frame(
-		group_id=object@group_id[],
-		source_id=object@source_id[],
-		datamode=make_datamode(object@datamode[], type="C"),
-		offset=object@offset[],
-		extent=object@extent[],
-		index_offset=object@index_offset[],
-		index_extent=object@index_extent[]))
+	n <- 10L
+	adata <- as.data.frame(object)
+	print(head(adata, n=n))
+	if ( nrow(adata) > n )
+		cat("and", nrow(adata) - n, "more atoms\n")
 })
 

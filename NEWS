@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.9.1 [2018-11-12]
+-----------------------------------
+
+BUG FIXES
+
+    o Removed BiocGenerics 'lengths' from NAMESPACE
+
 CHANGES IN VERSION 1.7.6 [2018-7-24]
 -----------------------------------
 

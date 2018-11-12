@@ -39,6 +39,9 @@
 \alias{chunksize<-,matter-method}
 \alias{chunksize<-,matter_vt-method}
 
+\alias{as.data.frame,atoms-method}
+\alias{as.list,atoms-method}
+
 \alias{length,atoms-method}
 \alias{length,matter-method}
 \alias{length<-,matter-method}
