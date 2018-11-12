@@ -172,8 +172,8 @@ export(
 	"hex2raw",
 	"raw2hex")
 
-S3method("print", "bytes")
-S3method("format", "bytes")
+S3method("print", "nbytes")
+S3method("format", "nbytes")
 
 export(
 	"sizeof",

@@ -202,7 +202,7 @@ setMethod("show", "sparse_mat", function(object) {
 		describe_for_display(object), "\n", sep="")
 	memnames <- names(object@data)[!sapply(object@data, is.matter)]
 	disknames <- names(object@data)[sapply(object@data, is.matter)]
-	object.memory <- bytes(object.size(object))
+	object.memory <- nbytes(object.size(object))
 	cat("    datamode:", paste0(object@datamode[2]), "\n")
 	cat("    ", format(object.memory, units="auto"), " real memory: ",
 		paste_head(memnames, collapse=", "), "\n", sep="")

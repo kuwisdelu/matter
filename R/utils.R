@@ -425,10 +425,10 @@ uuid <- function(uppercase = FALSE) {
 	list(string=string, bytes=bytes)
 }
 
-# creates internal S3 class 'bytes'
+# creates internal S3 class 'nbytes'
 
-bytes <- function(x) {
-	class(x) <- "bytes"
+nbytes <- function(x) {
+	class(x) <- "nbytes"
 	x
 }
 
@@ -446,12 +446,12 @@ vm_used <- function(x) {
 	} else {
 		size <- 0
 	}
-	bytes(size)
+	nbytes(size)
 }
 
 # based on utils::format.object_size
 
-fmt_bytes <- function(x, units = "auto") {
+fmt_nbytes <- function(x, units = "auto") {
 	units <- match.arg(units, c("auto",
 				"B", "KB", "MB", "GB", "TB", "PB"))
     if (units == "auto")
@@ -473,12 +473,12 @@ fmt_bytes <- function(x, units = "auto") {
         PB = c("PB"=round(x/1000^5, 1L)))
 }
 
-print.bytes <- function (x, units = "auto", ...)  {
-	print(fmt_bytes(x, units=units))
+print.nbytes <- function (x, units = "auto", ...)  {
+	print(fmt_nbytes(x, units=units))
 }
 
-format.bytes <- function(x, units = "auto", ...) {
-	x <- fmt_bytes(x, units=units)
+format.nbytes <- function(x, units = "auto", ...) {
+	x <- fmt_nbytes(x, units=units)
 	paste(x, names(x))
 }
 
@@ -486,7 +486,7 @@ format.bytes <- function(x, units = "auto", ...) {
 
 mem <- function(x, reset = FALSE) {
 	if ( !missing(x) ) {
-		mem <- bytes(as.numeric(object.size(x)))
+		mem <- nbytes(as.numeric(object.size(x)))
 		mem <- print(mem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)

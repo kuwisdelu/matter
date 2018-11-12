@@ -20,7 +20,7 @@ setClass("matter_vt",
 
 setMethod("show", "matter_vt", function(object) {
 	object.memory <- object.size(object)
-	class(object.memory) <- "bytes"
+	class(object.memory) <- "nbytes"
 	cat("    ", format(object.memory, units="auto"), " real memory\n", sep="")
 	cat("    ", format(vm_used(object), units="auto"), " virtual memory\n", sep="")
 })
