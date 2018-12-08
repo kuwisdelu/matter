@@ -148,7 +148,7 @@ setReplaceMethod("atomdata", "matter", function(object, value) {
 
 setMethod("show", "matter", function(object) {
 	object.memory <- object.size(object)
-	class(object.memory) <- "nbytes"
+	class(object.memory) <- "num_bytes"
 	cat("    sources:", length(object@paths), "\n")
 	cat("    datamode:", paste_head(object@datamode), "\n")
 	cat("    ", format(object.memory, units="auto"), " real memory\n", sep="")

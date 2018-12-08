@@ -33,10 +33,8 @@
 \alias{\%*\%,matter,matter-method}
 \alias{\%*\%,matrix,matter_mat-method}
 \alias{\%*\%,matter_mat,matrix-method}
-\alias{\%*\%,matter_matc,numeric-method}
-\alias{\%*\%,matter_matr,numeric-method}
-\alias{\%*\%,numeric,matter_matc-method}
-\alias{\%*\%,numeric,matter_matr-method}
+\alias{\%*\%,matter,numeric-method}
+\alias{\%*\%,numeric,matter-method}
 
 \alias{crossprod,matter,ANY-method}
 \alias{crossprod,ANY,matter-method}

@@ -1,10 +1,18 @@
 
+CHANGES IN VERSION 1.9.3 [2018-12-8]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added matrix multiplication for 'sparse_mat' matrices
+    o Added matrix multiplication for 'virtual_mat' matrices
+
 CHANGES IN VERSION 1.9.2 [2018-11-12]
 -----------------------------------
 
 BUG FIXES
 
-    o Renamed internal class 'bytes' to 'nbytes' due to Rcpp
+    o Renamed internal class 'bytes' to 'num_bytes' due to Rcpp
 
 CHANGES IN VERSION 1.9.1 [2018-11-12]
 -----------------------------------

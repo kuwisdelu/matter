@@ -36,6 +36,11 @@
 \alias{t,sparse_matc-method}
 \alias{t,sparse_matr-method}
 
+\alias{\%*\%,matrix,sparse_matc-method}
+\alias{\%*\%,matrix,sparse_matr-method}
+\alias{\%*\%,sparse_matc,matrix-method}
+\alias{\%*\%,sparse_matr,matrix-method}
+
 \alias{as.matrix,sparse_mat-method}
 
 \alias{is.sparse}

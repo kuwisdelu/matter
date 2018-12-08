@@ -202,7 +202,7 @@ setMethod("show", "sparse_mat", function(object) {
 		describe_for_display(object), "\n", sep="")
 	memnames <- names(object@data)[!sapply(object@data, is.matter)]
 	disknames <- names(object@data)[sapply(object@data, is.matter)]
-	object.memory <- nbytes(object.size(object))
+	object.memory <- num_bytes(object.size(object))
 	cat("    datamode:", paste0(object@datamode[2]), "\n")
 	cat("    ", format(object.memory, units="auto"), " real memory: ",
 		paste_head(memnames, collapse=", "), "\n", sep="")
@@ -815,3 +815,27 @@ setMethod("t", "sparse_matr", function(x)
 		x
 })
 
+#### Matrix multiplication for sparse matter objects ####
+## ------------------------------------------------------
+
+# matrix x matrix
+
+setMethod("%*%", c("sparse_matc", "matrix"), function(x, y)
+{
+	rightMatrixMult(x, y, useOuter=TRUE)
+})
+
+setMethod("%*%", c("sparse_matr", "matrix"), function(x, y)
+{
+	rightMatrixMult(x, y, useOuter=FALSE)
+})
+
+setMethod("%*%", c("matrix", "sparse_matc"), function(x, y)
+{
+	leftMatrixMult(x, y, useOuter=FALSE)
+})
+
+setMethod("%*%", c("matrix", "sparse_matr"), function(x, y)
+{
+	leftMatrixMult(x, y, useOuter=TRUE)
+})

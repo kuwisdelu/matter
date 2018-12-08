@@ -557,15 +557,11 @@ setMethod("t", "matter_matr", function(x)
 
 # matrix x vector
 
-setMethod("%*%", c("matter_matc", "numeric"), function(x, y) { x %*% as.matrix(y) })
-
-setMethod("%*%", c("matter_matr", "numeric"), function(x, y) { x %*% as.matrix(y) })
+setMethod("%*%", c("matter", "numeric"), function(x, y) { x %*% as.matrix(y) })
 
 # vector x matrix
 
-setMethod("%*%", c("numeric", "matter_matc"), function(x, y) { t(x) %*% y })
-
-setMethod("%*%", c("numeric", "matter_matr"), function(x, y) { t(x) %*% y })
+setMethod("%*%", c("numeric", "matter"), function(x, y) { t(x) %*% y })
 
 # matrix x matrix
 
@@ -581,7 +577,7 @@ setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 
 setMethod("%*%", c("matter", "matter"), function(x, y)
 {
-	stop("at least one matrix must be in memory")
+	stop("at least one matrix must be dense and in memory")
 })
 
 # aliases for crossprod and tcrossprod

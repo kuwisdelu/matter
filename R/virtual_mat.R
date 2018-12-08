@@ -471,3 +471,51 @@ setMethod("t", "virtual_mat", function(x)
 		x
 })
 
+#### Matrix multiplication for virtual matter objects ####
+## ------------------------------------------------------
+
+rightMatrixMult <- function(x, y, useOuter = FALSE) {
+	ret <- matrix(0, nrow=nrow(x), ncol=ncol(y))
+	if ( useOuter ) {
+		for ( i in 1:ncol(x) )
+			ret <- ret + outer(x[,i], y[i,])
+	} else {
+		for ( i in 1:nrow(x) )
+			ret[i,] <- x[i,,drop=FALSE] %*% y
+	}
+	ret
+}
+
+leftMatrixMult <- function(x, y, useOuter = FALSE) {
+	ret <- matrix(0, nrow=nrow(x), ncol=ncol(y))
+	if ( useOuter ) {
+		for ( i in 1:nrow(y) )
+			ret <- ret + outer(x[,i], y[i,])
+	} else {
+		for ( i in 1:ncol(y) )
+			ret[,i] <- x %*% y[,i,drop=FALSE]
+	}
+	ret
+}
+
+# matrix x matrix
+
+setMethod("%*%", c("virtual_matc", "matrix"), function(x, y)
+{
+	rightMatrixMult(x, y, useOuter=TRUE)
+})
+
+setMethod("%*%", c("virtual_matr", "matrix"), function(x, y)
+{
+	rightMatrixMult(x, y, useOuter=FALSE)
+})
+
+setMethod("%*%", c("matrix", "virtual_matc"), function(x, y)
+{
+	leftMatrixMult(x, y, useOuter=FALSE)
+})
+
+setMethod("%*%", c("matrix", "virtual_matr"), function(x, y)
+{
+	leftMatrixMult(x, y, useOuter=TRUE)
+})

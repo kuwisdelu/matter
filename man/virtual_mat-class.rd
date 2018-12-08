@@ -22,6 +22,11 @@
 
 \alias{t,virtual_mat-method}
 
+\alias{\%*\%,matrix,virtual_matc-method}
+\alias{\%*\%,matrix,virtual_matr-method}
+\alias{\%*\%,virtual_matc,matrix-method}
+\alias{\%*\%,virtual_matr,matrix-method}
+
 \alias{as.matrix,virtual_mat-method}
 
 \alias{is.virtual}
