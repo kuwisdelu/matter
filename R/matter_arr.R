@@ -247,8 +247,6 @@ setReplaceMethod("[",
 
 setMethod("Arith", c("matter_arr", "matter_arr"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
@@ -258,8 +256,6 @@ setMethod("Arith", c("matter_arr", "matter_arr"),
 
 setMethod("Arith", c("matter_arr", "numeric"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( check_comformable_lengths(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1)[1] != "numeric" && typeof(e2) == "double" )
@@ -270,8 +266,6 @@ setMethod("Arith", c("matter_arr", "numeric"),
 
 setMethod("Arith", c("numeric", "matter_arr"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( check_comformable_lengths(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic)
 			if ( datamode(e2)[1] != "numeric" && typeof(e1) == "double" )

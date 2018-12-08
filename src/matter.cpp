@@ -46,6 +46,20 @@ int coerce_logical(double x) {
         return (x == 0 ? 0 : 1);
 }
 
+template<typename T1, typename T2, typename T3>
+T3 coerce_mod(T1 x, T2 y) {
+    double numer = static_cast<double>(x);
+    double denom = static_cast<double>(y);
+    return static_cast<T3>(fmod(numer, denom));
+}
+
+template<typename T1, typename T2, typename T3>
+T3 coerce_idiv(T1 x, T2 y) {
+    double numer = static_cast<double>(x);
+    double denom = static_cast<double>(y);
+    return static_cast<T3>(floor(numer / denom));
+}
+
 template<typename T>
 T coerce_pow(T base, T exponent) {
     double b = static_cast<double>(base);
@@ -1639,7 +1653,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 if ( is_R_NA(*x) || is_R_NA(tmp) )
                     *x = DataNA<T1>();
                 else
-                    *x = tmp / (*x);
+                    *x = static_cast<double>(tmp) / (*x);
                 x += skip;
             }
             return;
@@ -1654,7 +1668,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x = tmp / (*x);
+                            *x = static_cast<double>(tmp) / (*x);
                         x += skip;
                     }
                 }
@@ -1665,7 +1679,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x = tmp / (*x);
+                            *x = static_cast<double>(tmp) / (*x);
                         x += skip;
                     }
                 }
@@ -1676,7 +1690,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x = tmp / (*x);
+                            *x = static_cast<double>(tmp) / (*x);
                         x += skip;
                     }
                 }
@@ -1690,7 +1704,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x = tmp / (*x);
+                            *x = static_cast<double>(tmp) / (*x);
                         x += skip;
                     }
                 }
@@ -1701,7 +1715,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x = tmp / (*x);
+                            *x = static_cast<double>(tmp) / (*x);
                         x += skip;
                     }
                 }
@@ -1712,7 +1726,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x = tmp / (*x);
+                            *x = static_cast<double>(tmp) / (*x);
                         x += skip;
                     }
                 }
@@ -1727,7 +1741,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 if ( is_R_NA(*x) || is_R_NA(tmp) )
                     *x = DataNA<T1>();
                 else
-                    *x /= tmp;
+                    *x /= static_cast<double>(tmp);
                 x += skip;
             }
             return;
@@ -1742,7 +1756,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x /= tmp;
+                            *x /= static_cast<double>(tmp);
                         x += skip;
                     }
                 }
@@ -1753,7 +1767,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x /= tmp;
+                            *x /= static_cast<double>(tmp);
                         x += skip;
                     }
                 }
@@ -1764,7 +1778,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x /= tmp;
+                            *x /= static_cast<double>(tmp);
                         x += skip;
                     }
                 }
@@ -1778,7 +1792,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x /= tmp;
+                            *x /= static_cast<double>(tmp);
                         x += skip;
                     }
                 }
@@ -1789,7 +1803,7 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x /= tmp;
+                            *x /= static_cast<double>(tmp);
                         x += skip;
                     }
                 }
@@ -1800,7 +1814,371 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                         if ( is_R_NA(*x) || is_R_NA(tmp) )
                             *x = DataNA<T1>();
                         else
-                            *x /= tmp;
+                            *x /= static_cast<double>(tmp);
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
+}
+
+template<typename T1, typename T2>
+void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    T2 tmp;
+    if ( has_lhs(i) )
+    {
+        if ( ylen == 1 ) {
+            tmp = y[0];
+            for ( index_t k = 0; k < count; k++ ) {
+                if ( is_R_NA(*x) || is_R_NA(tmp) )
+                    *x = DataNA<T1>();
+                else
+                    *x = coerce_mod<T2,T1,T1>(tmp, *x);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[offset + k];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[atm->group()];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group()))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
+    else
+    {
+        if ( ylen == 1 ) {
+            tmp = y[0];
+            for ( index_t k = 0; k < count; k++ ) {
+                if ( is_R_NA(*x) || is_R_NA(tmp) )
+                    *x = DataNA<T1>();
+                else
+                    *x = coerce_mod<T1,T2,T1>(*x, tmp);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[offset + k];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[atm->group()];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group()))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_mod<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
+}
+
+template<typename T1, typename T2>
+void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    T2 tmp;
+    if ( has_lhs(i) )
+    {
+        if ( ylen == 1 ) {
+            tmp = y[0];
+            for ( index_t k = 0; k < count; k++ ) {
+                if ( is_R_NA(*x) || is_R_NA(tmp) )
+                    *x = DataNA<T1>();
+                else
+                    *x = coerce_idiv<T2,T1,T1>(tmp, *x);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[offset + k];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[atm->group()];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group()))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T2,T1,T1>(tmp, *x);
+                        x += skip;
+                    }
+                }
+                break;
+        }
+    }
+    else
+    {
+        if ( ylen == 1 ) {
+            tmp = y[0];
+            for ( index_t k = 0; k < count; k++ ) {
+                if ( is_R_NA(*x) || is_R_NA(tmp) )
+                    *x = DataNA<T1>();
+                else
+                    *x = coerce_idiv<T1,T2,T1>(*x, tmp);
+                x += skip;
+            }
+            return;
+        }
+        switch(where(i)) {
+            case BY_GROUP:
+                xlen = atm->max_extent();
+                if ( ylen == xlen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[offset + k];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                break;
+            case BY_EACH_GROUP:
+                xlen = atm->length();
+                if ( xlen == ylen )
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[atm->group()];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group()))];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T1,T2,T1>(*x, tmp);
+                        x += skip;
+                    }
+                }
+                else
+                {
+                    for ( index_t k = 0; k < count; k++ ) {
+                        tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
+                        if ( is_R_NA(*x) || is_R_NA(tmp) )
+                            *x = DataNA<T1>();
+                        else
+                            *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                         x += skip;
                     }
                 }
@@ -3109,6 +3487,40 @@ void Ops :: do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t ski
                         break;
                     case S4SXP:
                         exp<T,T>(x, y, i, atm, 0, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
+                break;
+            case OP_MOD:
+                switch(type(i)) {
+                    case INTSXP:
+                        mod<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        mod<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case S4SXP:
+                        mod<T,T>(x, y, i, atm, 0, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
+                break;
+            case OP_IDIV:
+                switch(type(i)) {
+                    case INTSXP:
+                        idiv<T,int>(x, arg<int,INTSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case REALSXP:
+                        idiv<T,double>(x, arg<double,REALSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case S4SXP:
+                        idiv<T,T>(x, y, i, atm, 0, count, skip);
                         break;
                     default:
                         error("non-numeric argument to binary operator");

@@ -46,6 +46,12 @@ T coerce_pow(T base, T exponent);
 template<typename T>
 T coerce_exp(T x);
 
+template<typename T1, typename T2>
+T1 coerce_mod(T1 x, T2 y);
+
+template<typename T1, typename T2>
+T1 coerce_idiv(T1 x, T2 y);
+
 template<typename T>
 T coerce_log(T x);
 
@@ -340,6 +346,12 @@ class Ops {
 
         template<typename T1, typename T2>
         void div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
+
+        template<typename T1, typename T2>
+        void idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip);
 
         template<typename T>
         void exp(T * x, int i, Atoms * atm, index_t offset, index_t count, size_t skip);

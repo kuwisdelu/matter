@@ -607,8 +607,6 @@ check_comformable_dims <- function(x, y, margin = 1) {
 
 setMethod("Arith", c("matter_matc", "matter_matc"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
@@ -618,8 +616,6 @@ setMethod("Arith", c("matter_matc", "matter_matc"),
 
 setMethod("Arith", c("matter_matr", "matter_matr"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
@@ -629,8 +625,6 @@ setMethod("Arith", c("matter_matr", "matter_matr"),
 
 setMethod("Arith", c("matter_matc", "numeric"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( check_comformable_dims(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic, "by_group")
 			if ( datamode(e1)[1] != "numeric" && typeof(e2) == "double" )
@@ -641,8 +635,6 @@ setMethod("Arith", c("matter_matc", "numeric"),
 
 setMethod("Arith", c("matter_matr", "numeric"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( check_comformable_dims(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic, "by_each_group")
 			if ( datamode(e1)[1] != "numeric" && typeof(e2) == "double" )
@@ -653,8 +645,6 @@ setMethod("Arith", c("matter_matr", "numeric"),
 
 setMethod("Arith", c("numeric", "matter_matc"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( check_comformable_dims(e1, e2) )  {
 			e2 <- register_op(e2, e1, NULL, .Generic, "by_group")
 			if ( datamode(e2)[1] != "numeric" && typeof(e1) == "double" )
@@ -665,8 +655,6 @@ setMethod("Arith", c("numeric", "matter_matc"),
 
 setMethod("Arith", c("numeric", "matter_matr"),
 	function(e1, e2) {
-		if ( .Generic %in% c("%%", "%/%") )
-			stop("unsupported delayed operation type")
 		if ( check_comformable_dims(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic, "by_each_group")
 			if ( datamode(e2)[1] != "numeric" && typeof(e1) == "double" )
