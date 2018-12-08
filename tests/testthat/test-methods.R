@@ -200,6 +200,10 @@ test_that("delayed ops - integers", {
 
 	expect_equal(x / 2 - 1, (y / 2 - 1)[])
 
+	expect_equal(x %% 2, (y %% 2)[])
+
+	expect_equal(x %/% 2, (y %/% 2)[])
+
 	expect_equal(log(x), log(x)[])
 
 	expect_equal(exp(x), exp(x)[])
@@ -229,6 +233,10 @@ test_that("delayed ops - doubles", {
 	expect_equal(2.2 * x + 1.1, (2.2 * y + 1.1)[])
 
 	expect_equal(x / 2.2 - 1.1, (y / 2.2 - 1.1)[])
+
+	expect_equal(x %% 2.2, (y %% 2.2)[])
+
+	expect_equal(x %/% 2.2, (y %/% 2.2)[])
 
 	expect_equal(log(x), log(x)[])
 
