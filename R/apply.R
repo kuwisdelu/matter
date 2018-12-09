@@ -3,23 +3,62 @@
 ## -------------------------------------------
 
 setMethod("apply", "matter_mat",
-	function(X, MARGIN, FUN, ...) {
-		apply_matter(X, MARGIN, FUN, ...)
+	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
+		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "sparse_mat",
-	function(X, MARGIN, FUN, ...) {
-		apply_matter(X, MARGIN, FUN, ...)
+	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
+		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "virtual_mat",
-	function(X, MARGIN, FUN, ...) {
-		apply_matter(X, MARGIN, FUN, ...)
+	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
+		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
 })
 
-# based on code from package:base and package:biganalytics
+#### List-Apply functions over matter matrices ####
+## -------------------------------------------
 
-apply_matter <- function(X, MARGIN, FUN, ...)
+setMethod("lapply", "matter_list",
+	function(X, FUN, ..., BPPARAM = bpparam())
+	{
+		lapply_matter(X, FUN, ..., SIMPLIFY=FALSE,
+			USE.NAMES=TRUE, BPPARAM=BPPARAM)
+	}
+)
+
+setMethod("sapply", "matter_list",
+	function(X, FUN, ..., BPPARAM = bpparam(),
+		simplify = TRUE, USE.NAMES = TRUE)
+	{
+		lapply_matter(X, FUN, ..., SIMPLIFY=simplify,
+			USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
+	}
+)
+
+# lapply and sapply
+
+lapply_matter <- function(X, FUN, ..., SIMPLIFY, USE.NAMES, BPPARAM)
+{
+	FUN <- match.fun(FUN)
+	len <- length(X)
+	ans <- bplapply(1:len, function(i) FUN(X[[i]], ...), ...,
+		BPPARAM=BPPARAM)
+	if ( USE.NAMES && !is.null(names(X)) )
+		names(ans) <- names(X)
+	if ( USE.NAMES && is.character(X) && is.null(names(ans)) )
+		names(ans) <- X
+	if ( !isFALSE(SIMPLIFY) && length(ans) ) {
+		simplify2array(ans, higher = (SIMPLIFY == "array"))
+	} else {
+		ans
+	}
+}
+
+# apply based on base::apply and biganalytics::apply
+
+apply_matter <- function(X, MARGIN, FUN, ..., BPPARAM)
 {
 	if ( length(MARGIN) > 1 ) 
 		stop("dim(MARGIN) > 1 not supported for 'matter' objects")
@@ -27,20 +66,12 @@ apply_matter <- function(X, MARGIN, FUN, ...)
 	dn.ans <- dimnames(X)[MARGIN]
 	if ( MARGIN == 1 ) {
 		d2 <- nrow(X)
-		ans <- vector("list", nrow(X))
-		for ( i in 1:d2 ) {
-			tmp <- FUN(X[i,], ...)
-			if (!is.null(tmp))
-				ans[[i]] <- tmp
-		}
+		ans <- bplapply(1:d2, function(i) FUN(X[i,], ...), ...,
+			BPPARAM=BPPARAM)
 	} else if ( MARGIN == 2 ) {
 		d2 <- ncol(X)
-		ans <- vector("list", ncol(X))
-		for (i in 1:d2) {
-			tmp <- FUN(X[,i], ...)
-			if (!is.null(tmp))
-				ans[[i]] <- tmp
-		}
+		ans <- bplapply(1:d2, function(i) FUN(X[,i], ...), ...,
+			BPPARAM=BPPARAM)
 	} else {
 		stop("only MARGIN = 1 or 2 supported for 'matter' objects")
 	}

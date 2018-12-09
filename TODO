@@ -3,8 +3,6 @@ TODO for matter package
 -------------------------
 
 Priority: High
-- Fix divide by 0 error in delayed operations on integers
-- Add %% and %/% operators and & and | operators
 - Add 'match' and '%in%' functions for 'matter_vec' class
 - Add (parallelized) lapply and sapply for matter objects
 

@@ -1,4 +1,20 @@
 
+CHANGES IN VERSION 1.9.4 [2018-12-8]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added %% and %/% delayed operations from Arith group
+    o Added & and | delayed operations from Logic group
+    o All Ops group generics now supported as delayed operations
+    o Added 'lapply' and 'sapply' functions for 'matter_list'
+    o Support for BiocParallel in 'apply', 'lapply', and 'sapply'
+
+BUG FIXES
+
+    o Fix floating point exception error when dividing by
+        integer 0L in delayed division operations
+
 CHANGES IN VERSION 1.9.3 [2018-12-8]
 -----------------------------------
 

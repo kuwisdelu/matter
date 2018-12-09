@@ -13,25 +13,27 @@
 }
 
 \usage{
-\S4method{apply}{matter_mat}(X, MARGIN, FUN, \dots)
+\S4method{apply}{matter_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam())
 
-\S4method{apply}{sparse_mat}(X, MARGIN, FUN, \dots)
+\S4method{apply}{sparse_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam())
 
-\S4method{apply}{virtual_mat}(X, MARGIN, FUN, \dots)
+\S4method{apply}{virtual_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam())
 }
 
 \arguments{
-    \item{X}{A \code{\linkS4class{matter_mat}} object.}
+    \item{X}{A \code{\linkS4class{matter}} matrix-like object.}
     
     \item{MARGIN}{Must be 1 or 2 for \code{\linkS4class{matter_mat}} matrices, where `1' indicates rows and `2' indicates columns. The dimension names can also be used if \code{X} has \code{dimnames} set.}
 
     \item{FUN}{The function to be applied.}
 
     \item{\dots}{Additional arguments to be passed to \code{FUN}.}
+
+    \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 }
 
 \details{
-	Because \code{FUN} must be executed by the interpreter in the appropriate R environment, the full row or column will be loaded into memory. The \code{chunksize} of \code{X} is ignored. For summary statistics, functions like \code{\link{colMeans}} and \code{\link{rowMeans}} offer greater control over memory pressure.
+	Because \code{FUN} must be executed by the interpreter in the appropriate R environment, the full row or column will be loaded into memory. The \code{chunksize} of \code{X} is ignored. For summary statistics, functions like \code{\link{colMeans}} and \code{\link{rowMeans}} offer greater control over memory pressure. When performed in parallel, the \code{matter} metadata is serialized to each R session, so all workers must be able to access the data via the same \code{paths()}.
 }
 
 \section{Warning}{
@@ -49,6 +51,8 @@
 }
 
 \examples{
+register(SerialParam())
+
 x <- matter(1:100, nrow=10, ncol=10)
 
 apply(x, 2, summary)

@@ -338,6 +338,46 @@ setMethod("Compare", c("numeric", "matter_vec"),
 		}
 })
 
+# Logic
+
+setMethod("Logic", c("matter_vec", "matter_vec"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" || datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( length(e1) == length(e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		} else {
+			stop("on-disk vector lengths must match exactly for delayed operation")
+		}
+})
+
+setMethod("Logic", c("matter_vec", "logical"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		}
+})
+
+setMethod("Logic", c("logical", "matter_vec"),
+	function(e1, e2) {
+		if ( datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic)
+			if ( datamode(e2) != "logical" )
+				datamode(e2) <- "logical"
+			e2
+		}
+})
+
 # Math
 
 setMethod("exp", "matter_vec",

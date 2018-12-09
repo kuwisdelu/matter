@@ -281,7 +281,7 @@ setMethod("Compare", c("matter_arr", "matter_arr"),
 		if ( all(dim(e1) == dim(e2)) ) {
 			register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- c("logical", as.character(datamode(e1)))
+				datamode(e1) <- "logical"
 			e1
 		} else {
 			stop("array dims must match exactly for delayed operation")
@@ -293,7 +293,7 @@ setMethod("Compare", c("matter_arr", "raw"),
 		if ( check_comformable_lengths(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- c("logical", as.character(datamode(e1)))
+				datamode(e1) <- "logical"
 			e1
 		}
 })
@@ -303,7 +303,7 @@ setMethod("Compare", c("raw", "matter_arr"),
 		if ( check_comformable_lengths(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic)
 			if ( datamode(e2)[1] != "logical" )
-				datamode(e2) <- c("logical", as.character(datamode(e2)))
+				datamode(e2) <- "logical"
 			e2
 		}
 })
@@ -313,7 +313,7 @@ setMethod("Compare", c("matter_arr", "numeric"),
 		if ( check_comformable_lengths(e1, e2) ) {
 			e1 <- register_op(e1, NULL, e2, .Generic)
 			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- c("logical", as.character(datamode(e1)))
+				datamode(e1) <- "logical"
 			e1
 		}
 })
@@ -323,7 +323,47 @@ setMethod("Compare", c("numeric", "matter_arr"),
 		if ( check_comformable_lengths(e1, e2) ) {
 			e2 <- register_op(e2, e1, NULL, .Generic)
 			if ( datamode(e2)[1] != "logical" )
-				datamode(e2) <- c("logical", as.character(datamode(e2)))
+				datamode(e2) <- "logical"
+			e2
+		}
+})
+
+# Logic
+
+setMethod("Logic", c("matter_arr", "matter_arr"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" || datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( all(dim(e1) == dim(e2)) ) {
+			register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		} else {
+			stop("array dims must match exactly for delayed operation")
+		}
+})
+
+setMethod("Logic", c("matter_arr", "logical"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		}
+})
+
+setMethod("Logic", c("logical", "matter_arr"),
+	function(e1, e2) {
+		if ( datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic)
+			if ( datamode(e2)[1] != "logical" )
+				datamode(e2) <- "logical"
 			e2
 		}
 })

@@ -3389,6 +3389,188 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
     }
 }
 
+template<typename T1, typename T2>
+void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    T2 tmp;
+    if ( ylen == 1 ) {
+        tmp = y[0];
+        for ( index_t k = 0; k < count; k++ ) {
+            if ( is_R_NA(*x) || is_R_NA(tmp) )
+                *x = DataNA<T1>();
+            else
+                *x = (*x && tmp);
+            x += skip;
+        }
+        return;
+    }
+    switch(where(i)) {
+        case BY_GROUP:
+            xlen = atm->max_extent();
+            if ( ylen == xlen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[offset + k];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x && tmp);
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[((atm->group() * xlen) + (offset + k))];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x && tmp);
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x && tmp);
+                    x += skip;
+                }
+            }
+            break;
+        case BY_EACH_GROUP:
+            xlen = atm->length();
+            if ( xlen == ylen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[atm->group()];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x && tmp);
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[(((offset + k) * xlen + atm->group()))];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x && tmp);
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x && tmp);
+                    x += skip;
+                }
+            }
+            break;
+    }
+}
+
+template<typename T1, typename T2>
+void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count, size_t skip) {
+    index_t xlen, ylen = arglength(i);
+    T2 tmp;
+    if ( ylen == 1 ) {
+        tmp = y[0];
+        for ( index_t k = 0; k < count; k++ ) {
+            if ( is_R_NA(*x) || is_R_NA(tmp) )
+                *x = DataNA<T1>();
+            else
+                *x = (*x || tmp);
+            x += skip;
+        }
+        return;
+    }
+    switch(where(i)) {
+        case BY_GROUP:
+            xlen = atm->max_extent();
+            if ( ylen == xlen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[offset + k];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x || tmp);
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->length() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[((atm->group() * xlen) + (offset + k))];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x || tmp);
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x || tmp);
+                    x += skip;
+                }
+            }
+            break;
+        case BY_EACH_GROUP:
+            xlen = atm->length();
+            if ( xlen == ylen )
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[atm->group()];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x || tmp);
+                    x += skip;
+                }
+            }
+            else if ( ylen == xlen * atm->max_extent() ) // assumes equal group sizes
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[(((offset + k) * xlen + atm->group()))];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x || tmp);
+                    x += skip;
+                }
+            }
+            else
+            {
+                for ( index_t k = 0; k < count; k++ ) {
+                    tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
+                    if ( is_R_NA(*x) || is_R_NA(tmp) )
+                        *x = DataNA<T1>();
+                    else
+                        *x = (*x || tmp);
+                    x += skip;
+                }
+            }
+            break;
+    }
+}
+
 template<typename T>
 void Ops :: do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t skip) {
     for ( int i = 0; i < length(); i++ )
@@ -3648,6 +3830,33 @@ void Ops :: do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t ski
                         break;
                     case S4SXP:
                         le<T,T>(x, y, i, atm, 0, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
+                break;
+            // Logic
+            case OP_AND:
+                switch(type(i)) {
+                    case LGLSXP:
+                        AND<T,int>(x, arg<int,LGLSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case S4SXP:
+                        AND<T,T>(x, y, i, atm, 0, count, skip);
+                        break;
+                    default:
+                        error("non-numeric argument to binary operator");
+                }
+                break;
+            case OP_OR:
+                switch(type(i)) {
+                    case LGLSXP:
+                        OR<T,int>(x, arg<int,LGLSXP>(i),
+                            i, atm, offset, count, skip);
+                        break;
+                    case S4SXP:
+                        OR<T,T>(x, y, i, atm, 0, count, skip);
                         break;
                     default:
                         error("non-numeric argument to binary operator");

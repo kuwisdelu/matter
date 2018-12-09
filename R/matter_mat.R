@@ -769,6 +769,84 @@ setMethod("Compare", c("numeric", "matter_matr"),
 		}
 })
 
+## Logic
+
+setMethod("Logic", c("matter_matc", "matter_matc"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" || datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( all(dim(e1) == dim(e2)) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		} else {
+			stop("matrix dimensions must match exactly for delayed operation")
+		}
+})
+
+setMethod("Logic", c("matter_matr", "matter_matr"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" || datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( all(dim(e1) == dim(e2)) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic)
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		} else {
+			stop("matrix dimensions must match exactly for delayed operation")
+		}
+})
+
+setMethod("Logic", c("matter_matc", "logical"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_group")
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		}
+})
+
+setMethod("Logic", c("matter_matr", "logical"),
+	function(e1, e2) {
+		if ( datamode(e1) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e1 <- register_op(e1, NULL, e2, .Generic, "by_each_group")
+			if ( datamode(e1) != "logical" )
+				datamode(e1) <- "logical"
+			e1
+		}
+})
+
+setMethod("Logic", c("logical", "matter_matc"),
+	function(e1, e2) {
+		if ( datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_group")
+			if ( datamode(e2) != "logical" )
+				datamode(e2) <- "logical"
+			e2
+		}
+})
+
+setMethod("Logic", c("logical", "matter_matr"),
+	function(e1, e2) {
+		if ( datamode(e2) != "logical" )
+			warning("datamode is not logical")
+		if ( check_comformable_lengths(e1, e2) ) {
+			e2 <- register_op(e2, e1, NULL, .Generic, "by_each_group")
+			if ( datamode(e2) != "logical" )
+				datamode(e2) <- "logical"
+			e2
+		}
+})
+
 ## Math
 
 setMethod("exp", "matter_mat",

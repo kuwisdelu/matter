@@ -218,6 +218,10 @@ test_that("delayed ops - integers", {
 
 	expect_equal(x != 5, (y != 5)[])
 
+	expect_equal(x > 2 & x < 8, (y > 2 & y < 8)[])
+
+	expect_equal(x > 2 | x < 8, (y > 2 | y < 8)[])
+
 	expect_equal(which(x == 5), which(y == 5))
 
 })
@@ -252,6 +256,10 @@ test_that("delayed ops - doubles", {
 
 	expect_equal(x != 5.5, (y != 5.5)[])
 
+	expect_equal(x > 2 & x < 8, (y > 2 & y < 8)[])
+
+	expect_equal(x > 2 | x < 8, (y > 2 | y < 8)[])
+
 	expect_equal(which(x == 5.5), which(y == 5.5))
 
 })
@@ -284,6 +292,8 @@ test_that("delayed ops - factors", {
 
 test_that("apply", {
 
+	register(SerialParam())
+
 	x <- matrix(1:100, nrow=10, ncol=10)
 
 	y <- matter_mat(x, nrow=10, ncol=10)
@@ -291,6 +301,14 @@ test_that("apply", {
 	expect_equal(apply(x, 1, sum), apply(y, 1, sum))
 
 	expect_equal(apply(x, 2, sum), apply(y, 2, sum))
+
+	x <- list(a=1:10, b=11:20, c=21:30)
+
+	y <- matter_list(x, names=names(x))
+
+	expect_equal(lapply(x, sum), lapply(y, sum))
+
+	expect_equal(sapply(x, sum), sapply(y, sum))
 
 })
 

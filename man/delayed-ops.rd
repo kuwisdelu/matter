@@ -56,6 +56,22 @@
 \alias{Compare,factor,matter_fc-method}
 \alias{Compare,matter_fc,matter_fc-method}
 
+\alias{Logic,matter_vec,logical-method}
+\alias{Logic,logical,matter_vec-method}
+\alias{Logic,matter_vec,matter_vec-method}
+
+\alias{Logic,logical,matter_matc-method}
+\alias{Logic,matter_matc,logical-method}
+\alias{Logic,matter_matc,matter_matc-method}
+
+\alias{Logic,logical,matter_matr-method}
+\alias{Logic,matter_matr,logical-method}
+\alias{Logic,matter_matr,matter_matr-method}
+
+\alias{Logic,matter_arr,logical-method}
+\alias{Logic,logical,matter_arr-method}
+\alias{Logic,matter_arr,matter_arr-method}
+
 \alias{exp,matter_vec-method}
 \alias{exp,matter_mat-method}
 \alias{exp,matter_arr-method}
