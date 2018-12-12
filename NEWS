@@ -37,6 +37,13 @@ BUG FIXES
 
     o Removed BiocGenerics 'lengths' from NAMESPACE
 
+CHANGES IN VERSION 1.8.1 [2018-12-11]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed bug causing large files to read incorrectly on Windows
+
 CHANGES IN VERSION 1.7.6 [2018-7-24]
 -----------------------------------
 
