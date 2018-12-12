@@ -14,7 +14,7 @@ extern "C"
 
 // index types
 
-typedef long index_t;
+typedef ptrdiff_t index_t;
 typedef double Rindex_t;
 
 #define R_INDEX_PTR(x) REAL(x)
