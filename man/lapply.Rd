@@ -9,7 +9,7 @@
 \title{Apply Functions Over ``matter'' Lists}
 
 \description{
-    An implementation of \code{\link[base]{lapply}} and \code{\link[base]{sapply}} for \code{\linkS4class{matter_list}} objects.
+    An implementation of \code{\link[base]{lapply}} and \code{sapply} for \code{\linkS4class{matter_list}} objects.
 }
 
 \usage{
