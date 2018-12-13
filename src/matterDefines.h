@@ -16,11 +16,11 @@ extern "C"
 
 // check operating system
 
-#ifdef _WIN64
-	#define FSEEK(stream, offset, origin) fseeko64(stream, offset, origin)
-#else
-	#define FSEEK(stream, offset, origin) fseek(stream, offset, origin)
-#endif
+// #ifdef _WIN64
+// 	#define FSEEK(stream, offset, origin) fseeko64(stream, offset, origin)
+// #else
+// 	#define FSEEK(stream, offset, origin) fseek(stream, offset, origin)
+// #endif
 
 // index types
 
