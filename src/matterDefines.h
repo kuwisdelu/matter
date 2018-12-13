@@ -2,8 +2,8 @@
 #ifndef MATTER_DEFINES
 #define MATTER_DEFINES
 
-#include <climits>
-#include <cstdint>
+#include <limits.h>
+#include <stdint.h>
 
 #define R_NO_REMAP
 
