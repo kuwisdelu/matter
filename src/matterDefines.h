@@ -12,6 +12,14 @@ extern "C"
 
 #define R_INFINITE(x) (!R_FINITE(x) && !ISNA(x) && !ISNAN(x))
 
+// check operating system
+
+#ifdef _WIN64
+	#define FSEEK(stream, offset, origin) fseeko64(stream, offset, origin)
+#else
+	#define FSEEK(stream, offset, origin) fseek(stream, offset, origin)
+#endif
+
 // index types
 
 typedef ptrdiff_t index_t;

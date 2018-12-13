@@ -585,7 +585,7 @@ class Atoms {
         index_t read_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
             index_t numRead;
             FILE * stream = _sources.require(source_id(which));
-            fseek(stream, byte_offset(which, offset), SEEK_SET);
+            FSEEK(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
             numRead = fread(tmp, sizeof(CType), count, stream);
             switch(datamode(which)) {
@@ -618,7 +618,7 @@ class Atoms {
             if ( _ops.length() > 0 )
                 error("assignment not supported with delayed operations");
             FILE * stream = _sources.require(source_id(which));
-            fseek(stream, byte_offset(which, offset), SEEK_SET);
+            FSEEK(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
             for ( index_t i = 0; i < count; i++ ) {
                 tmp[i] = coerce_cast<RType,CType>(*ptr);
