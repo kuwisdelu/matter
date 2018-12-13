@@ -167,6 +167,7 @@ class DataSources {
             if ( LENGTH(_paths) == 0 )
                 Rf_error("empty 'paths'");
             _length = LENGTH(_paths);
+            _cur = 0;
             _streams = (FILE **) Calloc(_length, FILE*);
             for ( int i = 0; i < _length; i++ )
                 _streams[i] = NULL;
@@ -180,22 +181,35 @@ class DataSources {
             Free(_streams);
         }
 
-        FILE * require(int source_id) {
+        int seek(int source_id, size_t offset = 0, int origin = SEEK_SET)
+        {
             if ( source_id == NA_INTEGER )
                 Rf_error("missing 'source_id'");
-            if ( _streams[source_id] == NULL ) {
-                const char * filename = CHAR(Rf_asChar(STRING_ELT(_paths, source_id)));
-                _streams[source_id] = fopen(filename, CHAR(Rf_asChar(_filemode)));
-                if ( _streams[source_id] == NULL )
+            _cur = source_id;
+            if ( _streams[_cur] == NULL ) {
+                const char * filename = CHAR(Rf_asChar(STRING_ELT(_paths, _cur)));
+                _streams[_cur] = fopen(filename, CHAR(Rf_asChar(_filemode)));
+                if ( _streams[_cur] == NULL )
                   Rf_error("could not open file '%s'", filename);
             }
-            return _streams[source_id];
+            return FSEEK(_streams[_cur], offset, origin);
+        }
+
+        size_t read(void * ptr, size_t size, size_t count)
+        {
+            return fread(ptr, size, count, _streams[_cur]);
+        }
+
+        size_t write(void * ptr, size_t size, size_t count)
+        {
+            return fwrite(ptr, size, count, _streams[_cur]);
         }
 
     protected:
 
         SEXP _paths;
         SEXP _filemode;
+        int _cur;
         FILE ** _streams;
         int _length;
 
@@ -584,10 +598,9 @@ class Atoms {
         template<typename CType, typename RType>
         index_t read_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
             index_t numRead;
-            FILE * stream = _sources.require(source_id(which));
-            FSEEK(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
-            numRead = fread(tmp, sizeof(CType), count, stream);
+            _sources.seek(source_id(which), byte_offset(which, offset));
+            numRead = _sources.read(tmp, sizeof(CType), count);
             switch(datamode(which)) {
                 case C_CHAR:
                 case C_UCHAR:
@@ -617,14 +630,13 @@ class Atoms {
             index_t numWrote;
             if ( _ops.length() > 0 )
                 Rf_error("assignment not supported with delayed operations");
-            FILE * stream = _sources.require(source_id(which));
-            FSEEK(stream, byte_offset(which, offset), SEEK_SET);
             CType * tmp = (CType *) Calloc(count, CType);
             for ( index_t i = 0; i < count; i++ ) {
                 tmp[i] = coerce_cast<RType,CType>(*ptr);
                 ptr += skip;
             }
-            numWrote = fwrite(tmp, sizeof(CType), count, stream);
+            _sources.seek(source_id(which), byte_offset(which, offset));
+            numWrote = _sources.write(tmp, sizeof(CType), count);
             Free(tmp);
             if ( numWrote != count)
                 Rf_error("failed to write data elements");
