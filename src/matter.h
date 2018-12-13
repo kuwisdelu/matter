@@ -9,8 +9,11 @@
 #include "utils.h"
 #include "matterDefines.h"
 
-#include <R.h>
-#include <Rinternals.h>
+#include <ios>
+#include <fstream>
+
+using std::ios;
+using std::fstream;
 
 #define within_bounds(x, a, b) ((a) <= (x) && (x) < (b))
 #define out_of_bounds(x, a, b) ((x) < (a) && (b) <= (x))
@@ -156,6 +159,67 @@ int VectorOrDRLE<double,REALSXP> :: find(double value);
 //// DataSources class
 //---------------------
 
+// class DataSources {
+
+//     public:
+
+//         DataSources(SEXP x)
+//         {
+//             _paths = R_do_slot(x, Rf_install("paths"));
+//             _filemode = R_do_slot(x, Rf_install("filemode"));
+//             if ( LENGTH(_paths) == 0 )
+//                 Rf_error("empty 'paths'");
+//             _length = LENGTH(_paths);
+//             _current = 0;
+//             _streams = (FILE **) Calloc(_length, FILE*);
+//             for ( int i = 0; i < _length; i++ )
+//                 _streams[i] = NULL;
+//         }
+
+//         ~DataSources()
+//         {
+//             for ( int i = 0; i < _length; i++ )
+//                 if ( _streams[i] != NULL )
+//                     fclose(_streams[i]);
+//             Free(_streams);
+//         }
+
+//         int seek(int source_id, size_t offset = 0, int origin = SEEK_SET)
+//         {
+//             if ( source_id == NA_INTEGER )
+//                 Rf_error("missing 'source_id'");
+//             _current = source_id;
+//             if ( _streams[_current] == NULL ) {
+//                 const char * filename = CHAR(Rf_asChar(STRING_ELT(_paths, _current)));
+//                 _streams[_current] = fopen(filename, CHAR(Rf_asChar(_filemode)));
+//                 if ( _streams[_current] == NULL )
+//                   Rf_error("could not open file '%s'", filename);
+//             }
+//             return FSEEK(_streams[_current], offset, origin);
+//         }
+
+//         bool read(void * ptr, size_t size, size_t count)
+//         {
+//             int numRead = fread(ptr, size, count, _streams[_current]);
+//             return numRead == count;
+//         }
+
+//         bool write(void * ptr, size_t size, size_t count)
+//         {
+//             int numWrote = fwrite(ptr, size, count, _streams[_current]);
+//             return numWrote == count;
+//         }
+
+//     protected:
+
+//         SEXP _paths;
+//         SEXP _filemode;
+//         int _current;
+//         FILE ** _streams;
+//         int _length;
+
+// };
+
 class DataSources {
 
     public:
@@ -167,8 +231,8 @@ class DataSources {
             if ( LENGTH(_paths) == 0 )
                 Rf_error("empty 'paths'");
             _length = LENGTH(_paths);
-            _cur = 0;
-            _streams = (FILE **) Calloc(_length, FILE*);
+            _current = 0;
+            _streams = (fstream **) Calloc(_length, fstream*);
             for ( int i = 0; i < _length; i++ )
                 _streams[i] = NULL;
         }
@@ -176,41 +240,58 @@ class DataSources {
         ~DataSources()
         {
             for ( int i = 0; i < _length; i++ )
-                if ( _streams[i] != NULL )
-                    fclose(_streams[i]);
+                if ( _streams[i] != NULL ) {
+                    _streams[i]->close();
+                    delete _streams[i];
+                }
             Free(_streams);
         }
 
-        int seek(int source_id, size_t offset = 0, int origin = SEEK_SET)
+        fstream * select(int source_id)
         {
             if ( source_id == NA_INTEGER )
                 Rf_error("missing 'source_id'");
-            _cur = source_id;
-            if ( _streams[_cur] == NULL ) {
-                const char * filename = CHAR(Rf_asChar(STRING_ELT(_paths, _cur)));
-                _streams[_cur] = fopen(filename, CHAR(Rf_asChar(_filemode)));
-                if ( _streams[_cur] == NULL )
+            _current = source_id;
+            if ( _streams[_current] == NULL ) {
+                const char * filename = CHAR(Rf_asChar(STRING_ELT(_paths, _current)));
+                _streams[_current] = new fstream();
+                _streams[_current]->open(filename, fstream::in | fstream::out | fstream::binary);
+                if ( !_streams[_current]->is_open() )
                   Rf_error("could not open file '%s'", filename);
             }
-            return FSEEK(_streams[_cur], offset, origin);
+            return _streams[_current];
         }
 
-        size_t read(void * ptr, size_t size, size_t count)
+        void rseek(int source_id, size_t offset = 0)
         {
-            return fread(ptr, size, count, _streams[_cur]);
+            select(source_id)->seekg(offset, ios::beg);
         }
 
-        size_t write(void * ptr, size_t size, size_t count)
+        void wseek(int source_id, size_t offset = 0)
         {
-            return fwrite(ptr, size, count, _streams[_cur]);
+            select(source_id)->seekp(offset, ios::beg);
+        }
+
+        bool read(void * ptr, size_t size, size_t count)
+        {
+            fstream * stream = _streams[_current];
+            stream->read(reinterpret_cast<char*>(ptr), size * count);
+            return !stream->fail();
+        }
+
+        bool write(void * ptr, size_t size, size_t count)
+        {
+            fstream * stream = _streams[_current];
+            stream->write(reinterpret_cast<char*>(ptr), size * count);
+            return !stream->fail();
         }
 
     protected:
 
         SEXP _paths;
         SEXP _filemode;
-        int _cur;
-        FILE ** _streams;
+        int _current;
+        fstream ** _streams;
         int _length;
 
 };
@@ -597,37 +678,37 @@ class Atoms {
 
         template<typename CType, typename RType>
         index_t read_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
-            index_t numRead;
+            bool stream_ok;
             CType * tmp = (CType *) Calloc(count, CType);
-            _sources.seek(source_id(which), byte_offset(which, offset));
-            numRead = _sources.read(tmp, sizeof(CType), count);
+            _sources.rseek(source_id(which), byte_offset(which, offset));
+            stream_ok = _sources.read(tmp, sizeof(CType), count);
+            if ( !stream_ok )
+                Rf_error("failed to read data elements");
             switch(datamode(which)) {
                 case C_CHAR:
                 case C_UCHAR:
-                    read_delayed_atom<CType,RType,Rbyte>(ptr, tmp, offset, numRead, skip);
+                    read_delayed_atom<CType,RType,Rbyte>(ptr, tmp, offset, count, skip);
                     break;
                 case C_SHORT:
                 case C_USHORT:
                 case C_INT:
                 case C_UINT:
-                    read_delayed_atom<CType,RType,int>(ptr, tmp, offset, numRead, skip);
+                    read_delayed_atom<CType,RType,int>(ptr, tmp, offset, count, skip);
                     break;
                 case C_LONG:
                 case C_ULONG:
                 case C_FLOAT:
                 case C_DOUBLE:
-                    read_delayed_atom<CType,RType,double>(ptr, tmp, offset, numRead, skip);
+                    read_delayed_atom<CType,RType,double>(ptr, tmp, offset, count, skip);
                     break;
             }
             Free(tmp);
-            if ( numRead != count)
-                Rf_error("failed to read data elements");
-            return numRead;
+            return count;
         }
 
         template<typename CType, typename RType>
         index_t write_atom(RType * ptr, int which, index_t offset, index_t count, size_t skip = 1) {
-            index_t numWrote;
+            bool stream_ok;
             if ( _ops.length() > 0 )
                 Rf_error("assignment not supported with delayed operations");
             CType * tmp = (CType *) Calloc(count, CType);
@@ -635,12 +716,12 @@ class Atoms {
                 tmp[i] = coerce_cast<RType,CType>(*ptr);
                 ptr += skip;
             }
-            _sources.seek(source_id(which), byte_offset(which, offset));
-            numWrote = _sources.write(tmp, sizeof(CType), count);
+            _sources.wseek(source_id(which), byte_offset(which, offset));
+            stream_ok = _sources.write(tmp, sizeof(CType), count);
             Free(tmp);
-            if ( numWrote != count)
+            if ( !stream_ok )
                 Rf_error("failed to write data elements");
-            return numWrote;
+            return count;
         }
 
         template<typename RType>
