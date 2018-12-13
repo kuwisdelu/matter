@@ -2,12 +2,14 @@
 #ifndef MATTER_DEFINES
 #define MATTER_DEFINES
 
-#include <limits.h>
-#include <stdint.h>
+#include <climits>
+#include <cstdint>
+
+#define R_NO_REMAP
 
 extern "C"
 {
-  #include <Rdefines.h>
+  #include <Rinternals.h>
 }
 
 #define R_INFINITE(x) (!R_FINITE(x) && !ISNA(x) && !ISNAN(x))

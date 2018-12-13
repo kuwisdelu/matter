@@ -154,7 +154,7 @@ SEXP map_binary_search<STRSXP>(SEXP key, SEXP values, double tol,
 {
 	int num_keys = LENGTH(key);
 	SEXP index;
-	PROTECT(index = NEW_INTEGER(num_keys));
+	PROTECT(index = Rf_allocVector(INTSXP, num_keys));
 	int * pIndex = INTEGER(index);
 	SEXP pKey;
 	int n = LENGTH(values);
@@ -178,7 +178,7 @@ SEXP map_binary_search<INTSXP>(SEXP key, SEXP values, double tol,
 {
 	int num_keys = LENGTH(key);
 	SEXP index;
-	PROTECT(index = NEW_INTEGER(num_keys));
+	PROTECT(index = Rf_allocVector(INTSXP, num_keys));
 	int * pIndex = INTEGER(index);
 	int * pKey = INTEGER(key);
 	int n = LENGTH(values);
@@ -201,7 +201,7 @@ SEXP map_binary_search<REALSXP>(SEXP key, SEXP values, double tol,
 {
 	int num_keys = LENGTH(key);
 	SEXP index;
-	PROTECT(index = NEW_INTEGER(num_keys));
+	PROTECT(index = Rf_allocVector(INTSXP, num_keys));
 	int * pIndex = INTEGER(index);
 	double * pKey = REAL(key);
 	int n = LENGTH(values);
@@ -224,13 +224,13 @@ extern "C" {
 		SEXP tol_ref, SEXP nomatch, SEXP nearest)
 	{
 		if ( TYPEOF(key) != TYPEOF(values) )
-			error("'key' and 'values' must have the same type");
-		double _tol = NUMERIC_VALUE(tol);
+			Rf_error("'key' and 'values' must have the same type");
+		double _tol = Rf_asReal(tol);
 		if ( _tol < 0 )
-			error("'tol' must be non-negative");
-		int _tol_ref = INTEGER_VALUE(tol_ref);
-		int _nomatch = INTEGER_VALUE(nomatch);
-		bool _nearest = static_cast<bool>(LOGICAL_VALUE(nearest));
+			Rf_error("'tol' must be non-negative");
+		int _tol_ref = Rf_asInteger(tol_ref);
+		int _nomatch = Rf_asInteger(nomatch);
+		bool _nearest = static_cast<bool>(Rf_asLogical(nearest));
 		switch(TYPEOF(key)) {
             case STRSXP:
         		return map_binary_search<STRSXP>(key, values,
@@ -242,7 +242,7 @@ extern "C" {
         		return map_binary_search<REALSXP>(key, values,
 					_tol, _tol_ref, _nomatch, _nearest);
         }
-        error("supported types are 'integer', 'numeric', or 'character'");
+        Rf_error("supported types are 'integer', 'numeric', or 'character'");
 	}
 
 }

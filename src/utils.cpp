@@ -45,14 +45,14 @@ double * DataPtr<double,REALSXP>(SEXP x)
 template<>
 Rbyte DataNA<Rbyte>()
 {
-	error("NAs unsupported for type 'Rbyte'");
+	Rf_error("NAs unsupported for type 'Rbyte'");
 	return 0;
 }
 
 template<>
 bool DataNA<bool>()
 {
-	error("NAs unsupported for type 'bool'");
+	Rf_error("NAs unsupported for type 'bool'");
 	return 0;
 }
 
