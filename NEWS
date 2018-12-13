@@ -37,6 +37,13 @@ BUG FIXES
 
     o Removed BiocGenerics 'lengths' from NAMESPACE
 
+CHANGES IN VERSION 1.8.2 [2018-12-13]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed large file offset bug on Windows (again)
+
 CHANGES IN VERSION 1.8.1 [2018-12-11]
 -----------------------------------
 

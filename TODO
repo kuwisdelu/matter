@@ -3,6 +3,7 @@ TODO for matter package
 -------------------------
 
 Priority: High
+- Switch from fseek to fstream for file reading/writing?
 - Add 'match' and '%in%' functions for 'matter_vec' class
 - Add (parallelized) lapply and sapply for matter objects
 
