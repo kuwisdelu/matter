@@ -16,6 +16,9 @@
 \alias{pca.prof}
 \alias{msi.prof}
 
+\alias{make_filemode}
+\alias{common_filemode}
+
 \alias{sizeof}
 \alias{make_datamode}
 \alias{convert_datamode}

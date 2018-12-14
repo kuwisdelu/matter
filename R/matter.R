@@ -12,7 +12,7 @@ setClass("matter",
 		data = "atoms_OR_list",
 		datamode = "factor",
 		paths = "character",
-		filemode = "character",
+		filemode = "factor",
 		chunksize = "integer",
 		length = "numeric",
 		dim = "integer_OR_NULL",
@@ -24,11 +24,11 @@ setClass("matter",
 		errors <- NULL
 		if ( !is.null(object@paths) && any(!file.exists(object@paths)) )
 			errors <- c(errors, paste0("file [", which(!file.exists(object@paths)), "] does not exist"))
-		C_filemodes <- c("r", "w", "b", "a", "+")
-		object_filemodes <- raw2char(char2raw(object@filemode), multiple=TRUE)
-		if ( length(object@filemode) != 1 || !all(object_filemodes %in% C_filemodes) )
+		IO_filemodes <- levels(make_filemode())
+		object_filemodes <- object@filemode[!is.na(object@filemode)]
+		if ( length(object@filemode) != 1 || !all(object_filemodes %in% IO_filemodes) )
 			errors <- c(errors, paste0("'filemode' should include only [",
-				paste(C_filemodes, collapse=", "), "]"))
+				paste(IO_filemodes, collapse=", "), "]"))
 		R_datamodes <- levels(make_datamode(type="R"))
 		if ( !all(levels(object@datamode) %in% R_datamodes) )
 			errors <- c(errors, paste0("'datamode' levels should be [",
@@ -165,34 +165,24 @@ setReplaceMethod("datamode", "matter", function(x, value) {
 setMethod("paths", "matter", function(x) x@paths)
 
 setReplaceMethod("paths", "matter", function(x, value) {
-	x@paths <- value
+	x@paths <- normalizePath(value, mustWork=FALSE)
 	x
 })
 
 setMethod("filemode", "matter", function(x) x@filemode)
 
 setReplaceMethod("filemode", "matter", function(x, value) {
-	x@filemode <- value
+	x@filemode <- make_filemode(value)
 	x
 })
 
-setMethod("readonly", "matter", function(x) {
-	fmodes <- substring(x@filemode,
-		1:nchar(x@filemode), 1:nchar(x@filemode))
-	if ( length(fmodes) == 0 ) {
-		NA
-	} else if ( any(c("+", "w", "a") %in% fmodes) ) {
-		FALSE
-	} else {
-		TRUE
-	}
-})
+setMethod("readonly", "matter", function(x) x@filemode == "r")
 
 setReplaceMethod("readonly", "matter", function(x, value) {
 	if ( isTRUE(value) ) {
-		x@filemode <- "rb"	
+		x@filemode <- make_filemode("r")
 	} else {
-		x@filemode <- "rb+"	
+		x@filemode <- make_filemode("rw")
 	}
 	x
 })

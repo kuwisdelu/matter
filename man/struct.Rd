@@ -9,7 +9,7 @@
 }
 
 \usage{
-struct(\dots, filename = NULL, filemode = "rb+", offset = 0)
+struct(\dots, filename = NULL, filemode = "rw", offset = 0)
 }
 
 \arguments{

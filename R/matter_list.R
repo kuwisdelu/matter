@@ -8,7 +8,7 @@ setClass("matter_list",
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
-		filemode = "rb",
+		filemode = make_filemode("r"),
 		chunksize = 1e6L,
 		length = 0,
 		dim = 0,
@@ -25,7 +25,7 @@ setClass("matter_list",
 	})
 
 matter_list <- function(data, datamode = "double", paths = NULL,
-					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
+					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = lengths, lengths = 0, names = NULL, dimnames = NULL, ...)
 {
@@ -70,7 +70,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 			extent=as.numeric(extent)),
 		datamode=R_datamode,
 		paths=levels(factor(paths)),
-		filemode=filemode,
+		filemode=make_filemode(filemode),
 		length=length(extent),
 		dim=as.integer(extent),
 		names=names,
@@ -81,7 +81,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-struct <- function(..., filename = NULL, filemode = "rb+", offset = 0) {
+struct <- function(..., filename = NULL, filemode = "rw", offset = 0) {
 	args <- list(...)
 	if ( any(lengths(args) != 1) )
 		stop("all arguments must be length 1")
@@ -320,7 +320,7 @@ setMethod("combine", "matter_list", function(x, y, ...) {
 		data=data,
 		datamode=make_datamode(c(x@datamode, y@datamode), type="R"),
 		paths=levels(factor(c(x@paths, y@paths))),
-		filemode=if ( readonly(x) || readonly(y) ) "rb" else "rb+",
+		filemode=common_filemode(x@filemode, y@filemode),
 		length=x@length + y@length,
 		dim=c(x@dim, y@dim),
 		names=names,

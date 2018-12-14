@@ -8,7 +8,7 @@ setClass("matter_vt",
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),
-		filemode = "",
+		filemode = make_filemode(),
 		dim = 0L,
 		dimnames = NULL),
 	validity = function(object) {

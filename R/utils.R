@@ -239,10 +239,36 @@ register_op <- function(x, lhs, rhs, op,
 	op <- make_op(op)
 	where <- match.arg(where)
 	where <- switch(where,
-		by_group=1, by_each_group=2)
+		by_group=1L, by_each_group=2L)
 	op <- list(lhs=lhs, rhs=rhs, op=op, where=where)
 	x@ops <- c(x@ops, list(op))
 	x
+}
+
+#### File read/write mode functions and utilities ####
+## ---------------------------------------------------
+
+make_filemode <- function(x) {
+	levels <- c("r", "w", "rw")
+	if ( missing(x) )
+		return(factor(NA_character_, levels=levels))
+	if ( !is.numeric(x) )
+		x <- as.character(x)
+	switch(x,
+		"r" = factor("r", levels=levels),
+		"w" = factor("w", levels=levels),
+		"rw" = factor("rw", levels=levels),
+		stop("unsupported I/O mode"))
+}
+
+common_filemode <- function(x, y) {
+	if ( x == "rw" && y == "rw" ) {
+		make_filemode("rw")
+	} else if ( x %in% c("w", "rw") && y %in% c("w", "rw") ) {
+		make_filemode("w")
+	} else {
+		make_filemode("r")
+	}
 }
 
 #### Define data types and utility functions for them ####
@@ -368,13 +394,13 @@ widest_datamode <- function(x) {
 # convert between 'raw' and 'character'
 
 raw2char <- function(x, multiple = FALSE, encoding = "unknown") {
-	y <- rawToChar(x, multiple=multiple)
+	y <- rawToChar(as.raw(x), multiple=multiple)
 	Encoding(y) <- encoding
 	y
 }
 
 char2raw <- function(x) {
-	charToRaw(x)
+	charToRaw(as.character(x))
 }
 
 # convert between 'raw' and hexadecimal strings

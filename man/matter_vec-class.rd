@@ -32,7 +32,7 @@
 \usage{
 ## Instance creation
 matter_vec(data, datamode = "double", paths = NULL,
-            filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
+            filemode = ifelse(all(file.exists(paths)), "r", "rw"),
             offset = 0, extent = length, length = 0L, names = NULL, \dots)
 
 ## Additional methods documented below
@@ -45,7 +45,7 @@ matter_vec(data, datamode = "double", paths = NULL,
 
         \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
-        \item{filemode}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
+        \item{filemode}{The read/write mode of the files where the data are stored. This should be 'r' for read-only access, or 'rw' for read/write access.}
 
         \item{offset}{A vector giving the offsets in number of bytes from the beginning of each file in 'paths', specifying the start of the data to be accessed for each file.}
 
@@ -66,7 +66,7 @@ matter_vec(data, datamode = "double", paths = NULL,
 
         \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
-        \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'rb' for read-only access, or 'rb+' for read/write access.}
+        \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'r' for read-only access, or 'rw' for read/write access.}
 
         \item{\code{chunksize}:}{The maximum number of elements which should be loaded into memory at once. Used by methods implementing summary statistics and linear algebra. Ignored when explicitly subsetting the dataset.}
 

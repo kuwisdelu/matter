@@ -159,67 +159,6 @@ int VectorOrDRLE<double,REALSXP> :: find(double value);
 //// DataSources class
 //---------------------
 
-// class DataSources {
-
-//     public:
-
-//         DataSources(SEXP x)
-//         {
-//             _paths = R_do_slot(x, Rf_install("paths"));
-//             _filemode = R_do_slot(x, Rf_install("filemode"));
-//             if ( LENGTH(_paths) == 0 )
-//                 Rf_error("empty 'paths'");
-//             _length = LENGTH(_paths);
-//             _current = 0;
-//             _streams = (FILE **) Calloc(_length, FILE*);
-//             for ( int i = 0; i < _length; i++ )
-//                 _streams[i] = NULL;
-//         }
-
-//         ~DataSources()
-//         {
-//             for ( int i = 0; i < _length; i++ )
-//                 if ( _streams[i] != NULL )
-//                     fclose(_streams[i]);
-//             Free(_streams);
-//         }
-
-//         int seek(int source_id, size_t offset = 0, int origin = SEEK_SET)
-//         {
-//             if ( source_id == NA_INTEGER )
-//                 Rf_error("missing 'source_id'");
-//             _current = source_id;
-//             if ( _streams[_current] == NULL ) {
-//                 const char * filename = CHAR(Rf_asChar(STRING_ELT(_paths, _current)));
-//                 _streams[_current] = fopen(filename, CHAR(Rf_asChar(_filemode)));
-//                 if ( _streams[_current] == NULL )
-//                   Rf_error("could not open file '%s'", filename);
-//             }
-//             return FSEEK(_streams[_current], offset, origin);
-//         }
-
-//         bool read(void * ptr, size_t size, size_t count)
-//         {
-//             int numRead = fread(ptr, size, count, _streams[_current]);
-//             return numRead == count;
-//         }
-
-//         bool write(void * ptr, size_t size, size_t count)
-//         {
-//             int numWrote = fwrite(ptr, size, count, _streams[_current]);
-//             return numWrote == count;
-//         }
-
-//     protected:
-
-//         SEXP _paths;
-//         SEXP _filemode;
-//         int _current;
-//         FILE ** _streams;
-//         int _length;
-
-// };
-
 class DataSources {
 
     public:
@@ -227,7 +166,18 @@ class DataSources {
         DataSources(SEXP x)
         {
             _paths = R_do_slot(x, Rf_install("paths"));
-            _filemode = R_do_slot(x, Rf_install("filemode"));
+            _filemode = Rf_asInteger(R_do_slot(x, Rf_install("filemode")));
+            switch (_filemode) {
+                case READ_ONLY:
+                    _openmode = ios::in | ios::binary;
+                    break;
+                case WRITE_ONLY:
+                case READ_WRITE:
+                    _openmode = ios::in | ios::out | ios::binary;
+                    break;
+                default:
+                    Rf_error("unrecognized 'filemode'");
+            }
             if ( LENGTH(_paths) == 0 )
                 Rf_error("empty 'paths'");
             _length = LENGTH(_paths);
@@ -255,7 +205,7 @@ class DataSources {
             if ( _streams[_current] == NULL ) {
                 const char * filename = CHAR(Rf_asChar(STRING_ELT(_paths, _current)));
                 _streams[_current] = new fstream();
-                _streams[_current]->open(filename, fstream::in | fstream::out | fstream::binary);
+                _streams[_current]->open(filename, _openmode);
                 if ( !_streams[_current]->is_open() )
                   Rf_error("could not open file '%s'", filename);
             }
@@ -274,6 +224,8 @@ class DataSources {
 
         bool read(void * ptr, size_t size, size_t count)
         {
+            if ( _filemode == WRITE_ONLY )
+                Rf_error("'filemode' is write only");
             fstream * stream = _streams[_current];
             stream->read(reinterpret_cast<char*>(ptr), size * count);
             return !stream->fail();
@@ -281,6 +233,8 @@ class DataSources {
 
         bool write(void * ptr, size_t size, size_t count)
         {
+            if ( _filemode == READ_ONLY )
+                Rf_error("'filemode' is read only");
             fstream * stream = _streams[_current];
             stream->write(reinterpret_cast<char*>(ptr), size * count);
             return !stream->fail();
@@ -289,9 +243,10 @@ class DataSources {
     protected:
 
         SEXP _paths;
-        SEXP _filemode;
-        int _current;
+        int _filemode;
+        ios::openmode _openmode;
         fstream ** _streams;
+        int _current;
         int _length;
 
 };

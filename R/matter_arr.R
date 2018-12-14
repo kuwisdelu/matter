@@ -8,7 +8,7 @@ setClass("matter_arr",
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
 		paths = character(),
-		filemode = "rb",
+		filemode = make_filemode("r"),
 		chunksize = 1e6L,
 		length = 0,
 		dim = 0L,
@@ -27,7 +27,7 @@ setClass("matter_arr",
 	})
 
 matter_arr <- function(data, datamode = "double", paths = NULL,
-					filemode = ifelse(all(file.exists(paths)), "rb", "rb+"),
+					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
 					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, ...)
 {
 	if ( !missing(data) ) {
@@ -72,7 +72,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 			extent=as.numeric(extent)),
 		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
-		filemode=filemode,
+		filemode=make_filemode(filemode),
 		length=as.numeric(prod(dim)),
 		dim=as.integer(dim),
 		names=NULL,

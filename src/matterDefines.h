@@ -14,14 +14,6 @@ extern "C"
 
 #define R_INFINITE(x) (!R_FINITE(x) && !ISNA(x) && !ISNAN(x))
 
-// check operating system
-
-// #ifdef _WIN64
-// 	#define FSEEK(stream, offset, origin) fseeko64(stream, offset, origin)
-// #else
-// 	#define FSEEK(stream, offset, origin) fseek(stream, offset, origin)
-// #endif
-
 // index types
 
 typedef ptrdiff_t index_t;
@@ -53,6 +45,12 @@ struct MATTER_OPTIONS {
 #define MATTER_MATC 1
 #define MATTER_MATR 2
 #define MATTER_LIST 3
+
+// File I/O modes (must match factor levels)
+
+#define READ_ONLY		1
+#define WRITE_ONLY		2
+#define READ_WRITE		3
 
 // R-level datamodes (must match factor levels)
 
@@ -94,7 +92,7 @@ struct MATTER_OPTIONS {
 #define OP_OR			15	// |
 #define OP_LOG			16	// log 	lhs = base, rhs = x
 
-// Delayed operation WHERE codes
+// Delayed operation WHERE codes (must match register_op)
 
 #define BY_GROUP				1
 #define BY_EACH_GROUP			2
@@ -116,7 +114,7 @@ struct MATTER_OPTIONS {
 #define R_DOUBLE_MIN R_NegInf
 #define R_DOUBLE_MAX R_PosInf
 
-// Data type limits (NOT matching definitions in bigmemory)
+// Data type limits (do NOT match definitions in bigmemory)
 
 #define R_UCHAR_MAX UCHAR_MAX
 #define R_USHORT_MAX USHRT_MAX
