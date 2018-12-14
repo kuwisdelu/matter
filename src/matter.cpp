@@ -338,7 +338,7 @@ uint64_t coerce_cast<int32_t,uint64_t>(int32_t x) {
 
 template<>
 uint64_t coerce_cast<double,uint64_t>(double x) {
-    if ( !R_FINITE(x) )
+    if ( x < 0 || !R_FINITE(x) )
     {
         if ( ISNA(x) )
             Rf_warning("NAs not supported for type 'ulong', element will be set to 0");
