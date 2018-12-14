@@ -28,7 +28,7 @@
 }
 
 \value{
-	A \code{\linkS4class{matter_mat}} object with the appropriate `scaled:center' and `scaled:scale' attributes set. No data on disk is changed, but the scaling will be applied any time the data is read. This includes but is not limited to loading data elements via subsetting, summary statistics methods, and matrix multiplication.
+	A \code{\linkS4class{matter_mat}} object with the appropriate `scaled:center' and `scaled:scale' attributes set. No data in virtual memory is changed, but the scaling will be applied any time the data is read. This includes but is not limited to loading data elements via subsetting, summary statistics methods, and matrix multiplication.
 }
 
 \author{Kylie A. Bemis}

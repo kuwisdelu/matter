@@ -26,10 +26,10 @@
 
 \alias{as.list,matter_list-method}
 
-\title{Lists of Vectors Stored on Disk}
+\title{Out-of-Memory Lists of Vectors}
 
 \description{
-    The \code{matter_list} class implements on-disk lists.
+    The \code{matter_list} class implements out-of-memory lists.
 }
 
 \usage{
@@ -43,9 +43,9 @@ matter_list(data, datamode = "double", paths = NULL,
 }
 
 \arguments{
-        \item{data}{An optional data list which will be initially written to the data on disk if provided.}
+        \item{data}{An optional data list which will be initially written to the data in virtual memory if provided.}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric').}
+        \item{datamode}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric'). See \code{?datatypes} for details.}
 
         \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
@@ -66,9 +66,9 @@ matter_list(data, datamode = "double", paths = NULL,
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
+        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
 
-        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of length one with value 'integer' or 'numeric'.}
+        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
 
         \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 

@@ -23,10 +23,10 @@
 \alias{as.matrix,matter_vec-method}
 \alias{as.array,matter_vec-method}
 
-\title{Vectors Stored on Disk}
+\title{Out-of-Memory Vectors}
 
 \description{
-    The \code{matter_vec} class implements on-disk vectors.
+    The \code{matter_vec} class implements out-of-memory vectors.
 }
 
 \usage{
@@ -39,9 +39,9 @@ matter_vec(data, datamode = "double", paths = NULL,
 }
 
 \arguments{
-        \item{data}{An optional data vector which will be initially written to the data on disk if provided.}
+        \item{data}{An optional data vector which will be initially written to the data in virtual memory if provided.}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric').}
+        \item{datamode}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric'). See \code{?datatypes} for details.}
 
         \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
@@ -60,9 +60,9 @@ matter_vec(data, datamode = "double", paths = NULL,
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
+        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
 
-        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of length one with value 'integer' or 'numeric'.}
+        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
 
         \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
@@ -97,7 +97,7 @@ matter_vec(data, datamode = "double", paths = NULL,
 
         \item{\code{c(x, ...)}:}{Combine vectors.}
 
-        \item{\code{t(x)}:}{Transpose a vector (to a row matrix). This is a quick operation which only changes metadata and does not touch the on-disk data.}
+        \item{\code{t(x)}:}{Transpose a vector (to a row matrix). This is a quick operation which only changes metadata and does not touch the out-of-memory data.}
     }
 }
 

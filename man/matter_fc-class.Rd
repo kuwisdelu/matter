@@ -16,10 +16,10 @@
 \alias{levels,matter_fc-method}
 \alias{levels<-,matter_fc-method}
 
-\title{Factors Stored on Disk}
+\title{Out-of-Memory Factors}
 
 \description{
-    The \code{matter_fc} class implements on-disk factors.
+    The \code{matter_fc} class implements out-of-memory factors.
 }
 
 \usage{
@@ -33,7 +33,7 @@ matter_fc(data, datamode = "int", paths = NULL,
 }
 
 \arguments{
-        \item{data}{An optional data vector which will be initially written to the data on disk if provided.}
+        \item{data}{An optional data vector which will be initially written to the data in virtual memory if provided.}
 
         \item{datamode}{Must be an integral type for factors.}
 
@@ -56,9 +56,9 @@ matter_fc(data, datamode = "int", paths = NULL,
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
+        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
 
-        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of length one with value 'integer' or 'numeric'.}
+        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
 
         \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 

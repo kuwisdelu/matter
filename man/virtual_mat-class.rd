@@ -55,7 +55,7 @@ as.virtual(x, \dots)
 \arguments{
         \item{data}{A list of matrices to combine.}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are R numeric and logical types ('logical', 'integer', 'numeric') and their C equivalents.}
+        \item{datamode}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are R numeric and logical types ('logical', 'integer', 'numeric') and their C equivalents.}
 
         \item{rowMaj}{Whether the matrices in \code{data} are combined by row (\code{TRUE}) or by column (\code{FALSE}.}
 
@@ -70,7 +70,7 @@ as.virtual(x, \dots)
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
+        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
 
         \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
 

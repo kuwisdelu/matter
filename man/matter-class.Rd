@@ -67,10 +67,10 @@
 \alias{is.matter}
 \alias{as.matter}
 
-\title{Vectors, Matrices, and Arrays Stored on Disk}
+\title{Vectors, Matrices, and Arrays Stored in Virtual Memory}
 
 \description{
-    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary on-disk data structures, and working with them as vectors, matrices, arrays, lists, and data frames.
+    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary virtual memory data structures, and working with them as vectors, matrices, arrays, lists, and data frames.
 }
 
 \usage{
@@ -94,9 +94,9 @@ as.matter(x, \dots)
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
+        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within files.}
 
-        \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
+        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
 
         \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 

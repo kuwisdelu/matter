@@ -23,10 +23,10 @@
 
 \alias{as.vector,matter_str-method}
 
-\title{Strings Stored on Disk}
+\title{Out-of-Memory Strings}
 
 \description{
-    The \code{matter_str} class implements on-disk strings.
+    The \code{matter_str} class implements out-of-memory strings.
 }
 
 \usage{
@@ -41,7 +41,7 @@ matter_str(data, datamode = "uchar", paths = NULL,
 }
 
 \arguments{
-        \item{data}{An optional character vector which will be initially written to the data on disk if provided.}
+        \item{data}{An optional character vector which will be initially written to the data in virtual memory if provided.}
 
         \item{datamode}{Must be "uchar" (or "raw") for strings.}
 
@@ -64,9 +64,9 @@ matter_str(data, datamode = "uchar", paths = NULL,
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
+        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
 
-        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of length one with value 'integer' or 'numeric'.}
+        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
 
         \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 

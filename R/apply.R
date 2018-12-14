@@ -23,7 +23,7 @@ setMethod("apply", "virtual_mat",
 setMethod("lapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam())
 	{
-		lapply_matter(X, FUN, ..., SIMPLIFY=FALSE,
+		sapply_matter(X, FUN, ..., SIMPLIFY=FALSE,
 			USE.NAMES=TRUE, BPPARAM=BPPARAM)
 	}
 )
@@ -32,14 +32,14 @@ setMethod("sapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam(),
 		simplify = TRUE, USE.NAMES = TRUE)
 	{
-		lapply_matter(X, FUN, ..., SIMPLIFY=simplify,
+		sapply_matter(X, FUN, ..., SIMPLIFY=simplify,
 			USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
 	}
 )
 
 # lapply and sapply
 
-lapply_matter <- function(X, FUN, ..., SIMPLIFY, USE.NAMES, BPPARAM)
+sapply_matter <- function(X, FUN, ..., SIMPLIFY, USE.NAMES, BPPARAM)
 {
 	FUN <- match.fun(FUN)
 	len <- length(X)

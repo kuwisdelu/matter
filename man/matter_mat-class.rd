@@ -43,10 +43,10 @@
 
 \alias{as.matrix,matter_mat-method}
 
-\title{Matrices Stored on Disk}
+\title{Out-of-Memory Matrices}
 
 \description{
-    The \code{matter_mat} class implements on-disk matrices.
+    The \code{matter_mat} class implements out-of-memory matrices.
 }
 
 \usage{
@@ -61,9 +61,9 @@ matter_mat(data, datamode = "double", paths = NULL,
 }
 
 \arguments{
-        \item{data}{An optional data matrix which will be initially written to the data on disk if provided.}
+        \item{data}{An optional data matrix which will be initially written to the data in virtual memory if provided.}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data on disk. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric').}
+        \item{datamode}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric'). See \code{?datatypes} for details.}
 
         \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
@@ -77,7 +77,7 @@ matter_mat(data, datamode = "double", paths = NULL,
 
         \item{ncol}{An optional number giving the total number of columns.}
 
-        \item{rowMaj}{Whether the data should be stored in row-major order (as opposed to column-major order) on disk. Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
+        \item{rowMaj}{Whether the data should be stored in row-major order (as opposed to column-major order) in virtual memory. Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
 
         \item{dimnames}{The names of the matrix dimensions.}
 
@@ -86,9 +86,9 @@ matter_mat(data, datamode = "double", paths = NULL,
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data on disk and within the files.}
+        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
 
-        \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
+        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
 
         \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
 
@@ -129,7 +129,7 @@ matter_mat(data, datamode = "double", paths = NULL,
 
         \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine matrices by row or column.}
 
-        \item{\code{t(x)}:}{Transpose a matrix. This is a quick operation which only changes metadata and does not touch the on-disk data.}
+        \item{\code{t(x)}:}{Transpose a matrix. This is a quick operation which only changes metadata and does not touch the out-of-memory data.}
     }
 }
 

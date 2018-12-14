@@ -2,10 +2,10 @@
 
 \alias{struct}
 
-\title{C-Style Structs Stored on Disk}
+\title{C-Style Structs Stored in Virtual Memory}
 
 \description{
-    This is a convenience function for creating and reading C-style structs in a single file stored on disk.
+    This is a convenience function for creating and reading C-style structs in a single file stored in virtual memory.
 }
 
 \usage{
