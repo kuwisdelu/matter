@@ -12,16 +12,8 @@
 \alias{[,matter_mat-method}
 \alias{[,matter_mat,ANY,ANY,ANY-method}
 \alias{[,matter_mat,ANY,ANY,NULL-method}
-\alias{[,matter_mat,ANY,missing,ANY-method}
-\alias{[,matter_mat,ANY,missing,NULL-method}
-\alias{[,matter_mat,missing,ANY,ANY-method}
-\alias{[,matter_mat,missing,ANY,NULL-method}
-\alias{[,matter_mat,missing,missing,ANY-method}
 \alias{[<-,matter_mat-method}
 \alias{[<-,matter_mat,ANY,ANY,ANY-method}
-\alias{[<-,matter_mat,ANY,missing,ANY-method}
-\alias{[<-,matter_mat,missing,ANY,ANY-method}
-\alias{[<-,matter_mat,missing,missing,ANY-method}
 
 \alias{cbind,matter-method}
 \alias{rbind,matter-method}

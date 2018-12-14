@@ -381,50 +381,89 @@ subMatrixRows <- function(x, i) {
 # matrix getter methods
 
 setMethod("[",
-	c(x = "matter_mat", i = "missing", j = "missing"),
-	function(x, ..., drop) getMatrix(x))
+	c(x = "matter_mat", i = "ANY", j = "ANY", drop = "ANY"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 ) {
+			# linear indexing
+			y <- as(x, "matter_vec")
+			if ( is(x, "matter_matc") ) {
+				return(y[i])
+			} else if ( is(x, "matter_matr") ) {
+				return(y[rowMajInd(i, dim(x))])
+			}
+		}
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			getMatrixElements(x, i, j, drop)
+		} else if ( !missing(i) ) {
+			getMatrixRows(x, i, drop)
+		} else if ( !missing(j) ) {
+			getMatrixCols(x, j, drop)
+		} else {
+			getMatrix(x)
+		}
+	})
 
 setMethod("[",
-	c(x = "matter_mat", j = "missing"),
-	function(x, i, ..., drop) getMatrixRows(x, i, drop))
-
-setMethod("[",
-	c(x = "matter_mat", i = "missing"),
-	function(x, j, ..., drop) getMatrixCols(x, j, drop))
-
-setMethod("[",
-	c(x = "matter_mat"),
-	function(x, i, j, ..., drop) getMatrixElements(x, i, j, drop))
-
-setMethod("[",
-	c(x = "matter_mat", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subMatrixRows(x, i))
-
-setMethod("[",
-	c(x = "matter_mat", i = "missing", drop = "NULL"),
-	function(x, j, ..., drop) subMatrixCols(x, j))
-
-setMethod("[",
-	c(x = "matter_mat", drop = "NULL"),
-	function(x, i, j, ..., drop) subMatrix(x, i, j))
+	c(x = "matter_mat", i = "ANY", j = "ANY", drop = "NULL"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 ) {
+			# linear indexing
+			y <- as(x, "matter_vec")
+			if ( is(x, "matter_matc") ) {
+				return(y[i,drop=NULL])
+			} else if ( is(x, "matter_matr") ) {
+				return(y[rowMajInd(i, dim(x)), drop=NULL])
+			} else {
+				stop("unrecognized 'matter_mat' class")
+			}
+		}
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			subMatrix(x, i, j)
+		} else if ( !missing(i) ) {
+			subMatrixRows(x, i)
+		} else if ( !missing(j) ) {
+			subMatrixCols(x, j)
+		} else {
+			x
+		}
+	})
 
 # matrix setter methods
 
 setReplaceMethod("[",
-	c(x = "matter_mat", i = "missing", j = "missing"),
-	function(x, ..., value) setMatrix(x, value))
-
-setReplaceMethod("[",
-	c(x = "matter_mat", j = "missing"),
-	function(x, i, ..., value) setMatrixRows(x, i, value))
-
-setReplaceMethod("[",
-	c(x = "matter_mat", i = "missing"),
-	function(x, j, ..., value) setMatrixCols(x, j, value))
-
-setReplaceMethod("[",
-	c(x = "matter_mat"),
-	function(x, i, j, ..., value) setMatrixElements(x, i, j, value))
+	c(x = "matter_mat", i = "ANY", j = "ANY", value = "ANY"),
+	function(x, i, j, ..., value) {
+		narg <- nargs() - 2
+		if ( !missing(i) && narg == 1 ) {
+			# linear indexing
+			y <- as(x, "matter_vec")
+			if ( is(x, "matter_matc") ) {
+				y[i] <- value
+			} else if ( is(x, "matter_matr") ) {
+				y[rowMajInd(i, dim(x))] <- value
+			} else {
+				stop("unrecognized 'matter_mat' class")
+			}
+			return(x)
+		}
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			setMatrixElements(x, i, j, value)
+		} else if ( !missing(i) ) {
+			setMatrixRows(x, i, value)
+		} else if ( !missing(j) ) {
+			setMatrixCols(x, j, value)
+		} else {
+			setMatrix(x, value)
+		}
+	})
 
 # combine by rows
 

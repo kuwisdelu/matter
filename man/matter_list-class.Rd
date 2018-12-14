@@ -8,18 +8,13 @@
 \alias{lengths,matter_list-method}
 
 \alias{[,matter_list-method}
-\alias{[,matter_list,ANY,ANY,ANY-method}
-\alias{[,matter_list,ANY,ANY,NULL-method}
 \alias{[,matter_list,ANY,missing,ANY-method}
 \alias{[,matter_list,ANY,missing,NULL-method}
-\alias{[,matter_list,missing,missing,ANY-method}
 \alias{[<-,matter_list-method}
-\alias{[<-,matter_list,ANY,ANY,ANY-method}
 \alias{[<-,matter_list,ANY,missing,ANY-method}
-\alias{[<-,matter_list,missing,missing,ANY-method}
 
-\alias{[[,matter_list,ANY,missing-method}
-\alias{[[<-,matter_list,ANY,missing-method}
+\alias{[[,matter_list,ANY,ANY-method}
+\alias{[[<-,matter_list,ANY,ANY-method}
 
 \alias{$,matter_list-method}
 \alias{$<-,matter_list-method}
@@ -99,9 +94,11 @@ matter_list(data, datamode = "double", paths = NULL,
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the elements of the list.}
+        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set a single element of the list.}
 
-        \item{\code{x[i, j], x[i, j] <- value}:}{Get or set the \code{j} elements of the \code{i}th element of the list.}
+        \item{\code{x[[i, j]]}:}{Get the \code{j}th sub-elements of the \code{i}th element of the list.}
+
+        \item{\code{x[i], x[i] <- value}:}{Get or set the \code{i}th elements of the list.}
 
         \item{\code{lengths(x)}:}{Get the lengths of all elements in the list.}
     }
@@ -120,9 +117,11 @@ matter_list(data, datamode = "double", paths = NULL,
 \examples{
 x <- matter_list(list(c(TRUE,FALSE), 1:5, c(1.11, 2.22, 3.33)), lengths=c(2,5,3))
 x[]
+x[1]
 x[[1]]
-x[3,2]
-x[2,5]
+
+x[[3,1]]
+x[[2,1:3]]
 }
 
 \keyword{classes}

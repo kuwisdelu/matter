@@ -697,51 +697,63 @@ subSparseMatrixRows <- function(x, i) {
 # sparse matrix getter methods
 
 setMethod("[",
-	c(x = "sparse_mat", i = "missing", j = "missing"),
-	function(x, ..., drop) getSparseMatrix(x))
+	c(x = "sparse_mat", i = "ANY", j = "ANY", drop = "ANY"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 )
+			stop("linear indexing not supported")
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			getSparseMatrixElements(x, i, j, drop)
+		} else if ( !missing(i) ) {
+			getSparseMatrixRows(x, i, drop)
+		} else if ( !missing(j) ) {
+			getSparseMatrixCols(x, j, drop)
+		} else {
+			getSparseMatrix(x)
+		}
+	})
 
 setMethod("[",
-	c(x = "sparse_mat", j = "missing"),
-	function(x, i, ..., drop) getSparseMatrixRows(x, i, drop))
-
-setMethod("[",
-	c(x = "sparse_mat", i = "missing"),
-	function(x, j, ..., drop) getSparseMatrixCols(x, j, drop))
-
-setMethod("[",
-	c(x = "sparse_mat"),
-	function(x, i, j, ..., drop) getSparseMatrixElements(x, i, j, drop))
-
-setMethod("[",
-	c(x = "sparse_mat", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subSparseMatrixRows(x, i))
-
-setMethod("[",
-	c(x = "sparse_mat", i = "missing", drop = "NULL"),
-	function(x, j, ..., drop) subSparseMatrixCols(x, j))
-
-setMethod("[",
-	c(x = "sparse_mat", drop = "NULL"),
-	function(x, i, j, ..., drop) subSparseMatrix(x, i, j))
+	c(x = "sparse_mat", i = "ANY", j = "ANY", drop = "NULL"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 )
+			stop("linear indexing not supported")
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			subSparseMatrix(x, i, j)
+		} else if ( !missing(i) ) {
+			subSparseMatrixRows(x, i)
+		} else if ( !missing(j) ) {
+			subSparseMatrixCols(x, j)
+		} else {
+			x
+		}
+	})
 
 # sparse matrix setter methods
 
 setReplaceMethod("[",
-	c(x = "sparse_mat", i = "missing", j = "missing"),
-	function(x, ..., value) setSparseMatrix(x, value))
-
-setReplaceMethod("[",
-	c(x = "sparse_mat", j = "missing"),
-	function(x, i, ..., value) setSparseMatrixRows(x, i, value))
-
-setReplaceMethod("[",
-	c(x = "sparse_mat", i = "missing"),
-	function(x, j, ..., value) setSparseMatrixCols(x, j, value))
-
-setReplaceMethod("[",
-	c(x = "sparse_mat"),
-	function(x, i, j, ..., value) setSparseMatrixElements(x, i, j, value))
-
+	c(x = "sparse_mat", i = "ANY", j = "ANY", value = "ANY"),
+	function(x, i, j, ..., value) {
+		narg <- nargs() - 2
+		if ( !missing(i) && narg == 1 )
+			stop("linear indexing not supported")
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			setSparseMatrixElements(x, i, j, value)
+		} else if ( !missing(i) ) {
+			setSparseMatrixRows(x, i, value)
+		} else if ( !missing(j) ) {
+			setSparseMatrixCols(x, j, value)
+		} else {
+			setSparseMatrix(x, value)
+		}
+	})
 
 # combine by rows
 

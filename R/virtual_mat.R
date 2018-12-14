@@ -280,32 +280,42 @@ subVirtualMatrixCols <- function(x, j) {
 }
 
 setMethod("[",
-	c(x = "virtual_mat", i = "missing", j = "missing"),
-	function(x, ..., drop) getVirtualMatrix(x))
+	c(x = "virtual_mat", i = "ANY", j = "ANY", drop = "ANY"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 )
+			stop("linear indexing not supported")
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			getVirtualMatrixElements(x, i, j, drop)
+		} else if ( !missing(i) ) {
+			getVirtualMatrixRows(x, i, drop)
+		} else if ( !missing(j) ) {
+			getVirtualMatrixCols(x, j, drop)
+		} else {
+			getVirtualMatrix(x)
+		}
+	})
 
 setMethod("[",
-	c(x = "virtual_mat", j = "missing"),
-	function(x, i, ..., drop) getVirtualMatrixRows(x, i, drop))
-
-setMethod("[",
-	c(x = "virtual_mat", i = "missing"),
-	function(x, j, ..., drop) getVirtualMatrixCols(x, j, drop))
-
-setMethod("[",
-	c(x = "virtual_mat"),
-	function(x, i, j, ..., drop) getVirtualMatrixElements(x, i, j, drop))
-
-setMethod("[",
-	c(x = "virtual_mat", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subVirtualMatrixRows(x, i))
-
-setMethod("[",
-	c(x = "virtual_mat", i = "missing", drop = "NULL"),
-	function(x, j, ..., drop) subVirtualMatrixCols(x, j))
-
-setMethod("[",
-	c(x = "virtual_mat", drop = "NULL"),
-	function(x, i, j, ..., drop) subVirtualMatrix(x, i, j))
+	c(x = "virtual_mat", i = "ANY", j = "ANY", drop = "NULL"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 )
+			stop("linear indexing not supported")
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			subVirtualMatrix(x, i, j)
+		} else if ( !missing(i) ) {
+			subVirtualMatrixRows(x, i)
+		} else if ( !missing(j) ) {
+			subVirtualMatrixCols(x, j)
+		} else {
+			x
+		}
+	})
 
 # combine by rows
 

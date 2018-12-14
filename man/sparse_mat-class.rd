@@ -22,16 +22,8 @@
 \alias{[,sparse_mat-method}
 \alias{[,sparse_mat,ANY,ANY,ANY-method}
 \alias{[,sparse_mat,ANY,ANY,NULL-method}
-\alias{[,sparse_mat,ANY,missing,ANY-method}
-\alias{[,sparse_mat,ANY,missing,NULL-method}
-\alias{[,sparse_mat,missing,ANY,ANY-method}
-\alias{[,sparse_mat,missing,ANY,NULL-method}
-\alias{[,sparse_mat,missing,missing,ANY-method}
 \alias{[<-,sparse_mat-method}
 \alias{[<-,sparse_mat,ANY,ANY,ANY-method}
-\alias{[<-,sparse_mat,ANY,missing,ANY-method}
-\alias{[<-,sparse_mat,missing,ANY,ANY-method}
-\alias{[<-,sparse_mat,missing,missing,ANY-method}
 
 \alias{t,sparse_matc-method}
 \alias{t,sparse_matr-method}

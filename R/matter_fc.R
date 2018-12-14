@@ -114,45 +114,45 @@ setReplaceMethod("levels", "matter_fc",
 	})
 
 setMethod("[",
-	c(x = "matter_fc", i = "missing", j = "missing"),
-	function(x, ...) {
-		factor(levels(x)[getVector(x)], levels=levels(x))
-	})
-
-setMethod("[",
-	c(x = "matter_fc", i = "ANY", j = "missing"),
+	c(x = "matter_fc", i = "ANY", j = "missing", drop = "ANY"),
 	function(x, i, ...) {
-		factor(levels(x)[getVectorElements(x, i)], levels=levels(x))
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) ) {
+			y <- getVectorElements(x, i)
+		} else {
+			y <- getVector(x)
+		}
+		factor(levels(x)[y], levels=levels(x))
 	})
 
 setMethod("[",
 	c(x = "matter_fc", i = "ANY", j = "missing", drop = "NULL"),
 	function(x, i, ..., drop) {
-		y <- subVector(x, i)
-		levels(y) <- levels(x)
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) ) {
+			y <- subVector(x, i)
+			levels(y) <- levels(x)
+		}
 		y
 	})
 
 setReplaceMethod("[",
-	c(x = "matter_fc", i = "missing", j = "missing"),
-	function(x, ..., value) {
-		if ( !is.character(value) )
-			value <- as.character(value)
-		value <- match(value, levels(x))
-		if ( any(is.na(value)) )
-			warning("invalid factor level, NA generated")
-		setVector(x, value)
-	})
-
-setReplaceMethod("[",
-	c(x = "matter_fc", i = "ANY", j = "missing"),
+	c(x = "matter_fc", i = "ANY", j = "missing", value = "ANY"),
 	function(x, i, ..., value) {
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
 		if ( !is.character(value) )
 			value <- as.character(value)
 		value <- match(value, levels(x))
 		if ( any(is.na(value)) )
 			warning("invalid factor level, NA generated")
-		setVectorElements(x, i, value)
+		if ( !missing(i) ) {
+			setVectorElements(x, i, value)
+		} else {
+			setVector(x, value)
+		}
 	})
 
 setMethod("combine", "matter_fc", function(x, y, ...) {

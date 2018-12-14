@@ -11,16 +11,8 @@
 \alias{[,matter_df-method}
 \alias{[,matter_df,ANY,ANY,ANY-method}
 \alias{[,matter_df,ANY,ANY,NULL-method}
-\alias{[,matter_df,ANY,missing,ANY-method}
-\alias{[,matter_df,ANY,missing,NULL-method}
-\alias{[,matter_df,missing,ANY,ANY-method}
-\alias{[,matter_df,missing,ANY,NULL-method}
-\alias{[,matter_df,missing,missing,ANY-method}
 \alias{[<-,matter_df-method}
 \alias{[<-,matter_df,ANY,ANY,ANY-method}
-\alias{[<-,matter_df,ANY,missing,ANY-method}
-\alias{[<-,matter_df,missing,ANY,ANY-method}
-\alias{[<-,matter_df,missing,missing,ANY-method}
 
 \alias{[[,matter_df,ANY,missing-method}
 \alias{[[<-,matter_df,ANY,missing-method}
@@ -37,6 +29,10 @@
 
 \description{
     The \code{matter_df} class implements out-of-memory data frames.
+
+    The columns may be \code{matter} objects or ordinary R objects. If they are ordinary R objects, those columns remain in memory. Columns that should be stored out-of-memory should be manually coerced to \code{matter} objects, if they are not already. 
+
+    Calling \code{as.matter()} on an ordinary R \code{data.frame} will do this automatically.
 }
 
 \usage{
@@ -87,9 +83,11 @@ matter_df(\dots, row.names = NULL)
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x$name, x$name <- value}:}{Get or set the data columns.}
+        \item{\code{x$name, x$name <- value}:}{Get or set a single column.}
 
-        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the data columns.}
+        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set a single column.}
+
+        \item{\code{x[i], x[i] <- value}:}{Get or set multiple columns.}
 
         \item{\code{x[i, j, ..., drop], x[i, j] <- value}:}{Get or set the elements of the data frame.}
     }
@@ -106,14 +104,15 @@ matter_df(\dots, row.names = NULL)
 }
 
 \examples{
-x <- matter_df(a=as.matter(1:10), b=as.matter(1:10))
+x <- matter_df(a=as.matter(1:10), b=11:20, c=as.matter(letters[1:10]))
 x[]
-x[[1]]
-x[["a"]]
-x[,"a"]
-x[1:5,c("a","b")]
-x$a
-x$a[1:10]
+x[1:2]
+x[[2]]
+x[["c"]]
+x[,"c"]
+x[1:5,c("a","c")]
+x$c
+x$c[1:5]
 }
 
 \keyword{classes}

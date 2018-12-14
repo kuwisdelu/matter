@@ -196,24 +196,40 @@ subVector <- function(x, i) {
 }
 
 setMethod("[",
-	c(x = "matter_vec", i = "missing", j = "missing"),
-	function(x, ...) getVector(x))
-
-setMethod("[",
-	c(x = "matter_vec", i = "ANY", j = "missing"),
-	function(x, i, ...) getVectorElements(x, i))
+	c(x = "matter_vec", i = "ANY", j = "missing", drop = "ANY"),
+	function(x, i, ..., drop) {
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) ) {
+			getVectorElements(x, i)
+		} else {
+			getVector(x)
+		}
+	})
 
 setMethod("[",
 	c(x = "matter_vec", i = "ANY", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subVector(x, i))
+	function(x, i, ..., drop) {
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) ) {
+			subVector(x, i)
+		} else {
+			x
+		}
+	})
 
 setReplaceMethod("[",
-	c(x = "matter_vec", i = "missing", j = "missing"),
-	function(x, ..., value) setVector(x, value))
-
-setReplaceMethod("[",
-	c(x = "matter_vec", i = "ANY", j = "missing"),
-	function(x, i, ..., value) setVectorElements(x, i, value))
+	c(x = "matter_vec", i = "ANY", j = "missing", value = "ANY"),
+	function(x, i, ..., value) {
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) ) {
+			setVectorElements(x, i, value)
+		} else {
+			setVector(x, value)
+		}
+	})
 
 setMethod("combine", "matter_vec", function(x, y, ...) {
 	if ( !is.null(x@ops) || !is.null(y@ops) )
@@ -260,7 +276,7 @@ setMethod("Arith", c("matter_vec", "matter_vec"),
 		if ( length(e1) == length(e2) ) {
 			register_op(e1, NULL, e2, .Generic)
 		} else {
-			stop("on-disk vector lengths must match exactly for delayed operation")
+			stop("vector lengths must match exactly for delayed operation")
 		}
 })
 
@@ -294,7 +310,7 @@ setMethod("Compare", c("matter_vec", "matter_vec"),
 				datamode(e1) <- "logical"
 			e1
 		} else {
-			stop("on-disk vector lengths must match exactly for delayed operation")
+			stop("vector lengths must match exactly for delayed operation")
 		}
 })
 
@@ -350,7 +366,7 @@ setMethod("Logic", c("matter_vec", "matter_vec"),
 				datamode(e1) <- "logical"
 			e1
 		} else {
-			stop("on-disk vector lengths must match exactly for delayed operation")
+			stop("vector lengths must match exactly for delayed operation")
 		}
 })
 

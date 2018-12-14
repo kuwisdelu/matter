@@ -894,7 +894,12 @@ class Matter
 
         int datamode(int i) {
             if ( S4class() == MATTER_LIST )
-                return _datamode[i];
+            {
+                if ( 0 <= i && i < length() )
+                    return _datamode[i];
+                else
+                    return R_LIST; // will return NULL
+            }
             else
                 return _datamode[0];
         }

@@ -96,11 +96,25 @@ logical2index <- function(x, i, margin) {
 	as.numeric(which(rep(i, length.out=len)))
 }
 
-names2index <- function(x, i)
-	as.numeric(match(i, names(x)))
+names2index <- function(x, i, exact) {
+	if ( missing(exact) )
+		exact <- TRUE
+	if ( exact ) {
+		as.numeric(match(i, names(x)))
+	} else {
+		as.numeric(pmatch(i, names(x)))
+	}
+}
 
-dimnames2index <- function(x, i, margin)
-	as.numeric(match(i, dimnames(x)[[margin]]))
+dimnames2index <- function(x, i, margin, exact) {
+	if ( missing(exact) )
+		exact <- TRUE
+	if ( exact ) {
+		as.numeric(match(i, dimnames(x)[[margin]]))
+	} else {
+		as.numeric(pmatch(i, dimnames(x)[[margin]]))
+	}
+}
 
 allIndices <- function(x, i, margin) {
 	if ( missing(margin) ) {
@@ -181,6 +195,7 @@ combine_rownames <- function(x, y, ...) {
 	}
 }
 
+# convert array indices to linear indices
 linearInd <- function(ind, .dim) {
 	if ( is.list(ind) ) {
 		ind <- expand.grid(ind)
@@ -193,8 +208,17 @@ linearInd <- function(ind, .dim) {
 	}
 }
 
-is_ragged_array <- function(x) {
-	is(x, "matter_arr") && is.null(dim(x))
+# convert linear indices to matrix indices
+matrixInd <- function(ind, .dim) {
+	i <- as.integer(ind - 1L) %% .dim[1]
+	j <- as.integer(ind - 1L) %/% .dim[1]	
+	list(i=i + 1L, j=j + 1L)
+}
+
+# convert linear indices to row-major indices
+rowMajInd <- function(ind, .dim) {
+	ind <- matrixInd(ind, .dim)
+	.dim[2] * (ind$i - 1L) + ind$j
 }
 
 #### Define allowed delayed operation types ####

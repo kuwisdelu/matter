@@ -130,7 +130,7 @@ setDataFrameRows <- function(x, i, value) {
 		invisible(x)
 }
 
-getDataFrameColumns <- function(x, j, drop=TRUE) {
+getDataFrameCols <- function(x, j, drop=TRUE) {
 	if ( is.logical(j) )
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
@@ -146,7 +146,7 @@ getDataFrameColumns <- function(x, j, drop=TRUE) {
 	}
 }
 
-setDataFrameColumns <- function(x, j, value) {
+setDataFrameCols <- function(x, j, value) {
 	if ( is.logical(j) )
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
@@ -210,7 +210,7 @@ subDataFrameRows <- function(x, i) {
 		ops=NULL)
 }
 
-subDataFrameColumns <- function(x, j) {
+subDataFrameCols <- function(x, j) {
 	if ( is.logical(j) )
 		j <- logical2index(x, j, 2)
 	if ( is.character(j) )
@@ -250,79 +250,80 @@ subDataFrameElements <- function(x, i, j) {
 		ops=NULL)
 }
 
-# x[] subsetting
+# data frame getter methods
 
 setMethod("[",
-	c(x = "matter_df", i = "missing", j = "missing"),
-	function(x, ...) getDataFrame(x))
+	c(x = "matter_df", i = "ANY", j = "ANY", drop = "ANY"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 ) {
+			# linear indexing
+			return(subDataFrameCols(x, i))
+		}
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			getDataFrameElements(x, i, j, drop)
+		} else if ( !missing(i) ) {
+			getDataFrameRows(x, i, drop)
+		} else if ( !missing(j) ) {
+			getDataFrameCols(x, j, drop)
+		} else {
+			getDataFrame(x)
+		}
+	})
+
+setMethod("[",
+	c(x = "matter_df", i = "ANY", j = "ANY", drop = "NULL"),
+	function(x, i, j, ..., drop) {
+		narg <- nargs() - 1 - !missing(drop)
+		if ( !missing(i) && narg == 1 ) {
+			# linear indexing
+			return(subDataFrameCols(x, i))
+		}
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			subDataFrameElements(x, i, j)
+		} else if ( !missing(i) ) {
+			subDataFrameRows(x, i)
+		} else if ( !missing(j) ) {
+			subDataFrameCols(x, j)
+		} else {
+			x
+		}
+	})
+
+# data frame setter methods
 
 setReplaceMethod("[",
-	c(x = "matter_df", i = "missing", j = "missing"),
-	function(x, ..., value) {
-		if ( !is.list(value) )
-			value <- list(value)
-		setDataFrame(x)
-})
-
-# x[i,] subsetting
-
-setMethod("[",
-	c(x = "matter_df", j = "missing"),
-	function(x, i, ..., drop) getDataFrameRows(x, i, drop))
-
-setMethod("[",
-	c(x = "matter_df", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subDataFrameRows(x, i))
-
-setReplaceMethod("[",
-	c(x = "matter_df", j = "missing"),
-	function(x, i, ..., value) {
-		if ( !is.list(value) )
-			value <- list(value)
-		setDataFrameRows(x, i, value)
-})
-
-# x[,j] subsetting
-
-setMethod("[",
-	c(x = "matter_df", i = "missing"),
-	function(x, j, ..., drop) getDataFrameColumns(x, j, drop))
-
-setMethod("[",
-	c(x = "matter_df", i = "missing", drop = "NULL"),
-	function(x, j, ..., drop) subDataFrameColumns(x, j))
-
-setReplaceMethod("[",
-	c(x = "matter_df", i = "missing"),
-	function(x, j, ..., value) {
-		if ( !is.list(value) )
-			value <- list(value)
-		setDataFrameColumns(x, j, value)
-})
-
-# x[i,j] subsetting
-
-setMethod("[",
-	c(x = "matter_df"),
-	function(x, i, j, ..., drop) getDataFrameElements(x, i, j, drop))
-
-setMethod("[",
-	c(x = "matter_df", drop = "NULL"),
-	function(x, i, j, ..., drop) subDataFrameElements(x, i, j))
-
-setReplaceMethod("[",
-	c(x = "matter_df"),
+	c(x = "matter_df", i = "ANY", j = "ANY", value = "ANY"),
 	function(x, i, j, ..., value) {
+		narg <- nargs() - 2
 		if ( !is.list(value) )
 			value <- list(value)
-		setDataFrameElements(x, i, j, value)
-})
+		if ( !missing(i) && narg == 1 ) {
+			# linear indexing
+			return(setDataFrameCols(x, i, value))
+		}
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			setDataFrameElements(x, i, j, value)
+		} else if ( !missing(i) ) {
+			setDataFrameRows(x, i, value)
+		} else if ( !missing(j) ) {
+			setDataFrameCols(x, j, value)
+		} else {
+			setDataFrame(x, value)
+		}
+	})
 
 # x[[i]] subsetting
 
 setMethod("[[",
 	c(x = "matter_df", j = "missing"),
-	function(x, i, ...) getDataFrameColumns(x, i, drop=TRUE))
+	function(x, i, ...) atomdata(x)[[i]])
 
 setReplaceMethod("[[",
 	c(x = "matter_df", j = "missing"),
@@ -336,7 +337,7 @@ setReplaceMethod("[[",
 
 setMethod("$",
 	c(x = "matter_df"),
-	function(x, name) getDataFrameColumns(x, name, drop=TRUE))
+	function(x, name) atomdata(x)[[name, exact=FALSE]])
 
 setReplaceMethod("$",
 	c(x = "matter_df"),

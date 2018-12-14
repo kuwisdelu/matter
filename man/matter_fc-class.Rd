@@ -8,10 +8,8 @@
 \alias{[,matter_fc-method}
 \alias{[,matter_fc,ANY,missing,ANY-method}
 \alias{[,matter_fc,ANY,missing,NULL-method}
-\alias{[,matter_fc,missing,missing,ANY-method}
 \alias{[<-,matter_fc-method}
 \alias{[<-,matter_fc,ANY,missing,ANY-method}
-\alias{[<-,matter_fc,missing,missing,ANY-method}
 
 \alias{levels,matter_fc-method}
 \alias{levels<-,matter_fc-method}

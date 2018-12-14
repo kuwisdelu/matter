@@ -108,9 +108,9 @@ test_that("list subsetting", {
 
 	expect_equal(x[1:2], y[1:2])
 
-	expect_equal(x[[2]][1:5], y[2,1:5])
+	expect_equal(x[[2]][1:5], y[[2,1:5]])
 
-	expect_equal(x[[2]][5:1], y[2,5:1])
+	expect_equal(x[[2]][5:1], y[[2,5:1]])
 
 	expect_equal(x[[3]], y[[3]])
 
@@ -184,7 +184,7 @@ test_that("data frame subsetting", {
 
 	expect_equal(df1[1:5,c("x","y")], df2[1:5,c("x","y")])
 
-	expect_equal(df1$x, df2$x)
+	expect_equal(df1$x, df2$x[])
 
 	expect_equivalent(as.matter(df1)[], df2[])
 

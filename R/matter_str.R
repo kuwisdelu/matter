@@ -115,77 +115,40 @@ setReplaceMethod("Encoding", "matter_str",
 		x
 	})
 
-# x[] subsetting
+# subsetting
 
 setMethod("[",
-	c(x = "matter_str", i = "missing", j = "missing"),
-	function(x, ...) {
-		sapply(getList(x), raw2char, encoding=x@encoding)
-})
-
-setReplaceMethod("[",
-	c(x = "matter_str", i = "missing", j = "missing"),
-	function(x, ..., value) {
-		if ( is.character(value) ) {
-			value <- lapply(value, char2raw)
+	c(x = "matter_str", i = "ANY", j = "missing", drop = "ANY"),
+	function(x, i, ..., drop) {
+		if ( !missing(i) ) {
+			subList(x, i)[]
 		} else {
-			if ( !is.list(value) )
-				value <- list(value)
-			value <- lapply(value, as.raw)
+			sapply(getList(x), raw2char, encoding=x@encoding)
 		}
-		setList(x, value)
-})
-
-# x[i] subsetting
-
-setMethod("[",
-	c(x = "matter_str", i = "ANY", j = "missing"),
-	function(x, i, ...) subList(x, i)[])
+	})
 
 setMethod("[",
 	c(x = "matter_str", i = "ANY", j = "missing", drop = "NULL"),
 	function(x, i, ..., drop) subList(x, i))
 
 setReplaceMethod("[",
-	c(x = "matter_str", i = "ANY", j = "missing"),
+	c(x = "matter_str", i = "ANY", j = "missing", value = "ANY"),
 	function(x, i, ..., value) {
-		if ( is.character(value) ) {
+		if ( is.character(value) || is.factor(value) ) {
 			value <- lapply(value, char2raw)
 		} else {
 			if ( !is.list(value) )
 				value <- list(value)
 			value <- lapply(value, as.raw)
 		}
-		for ( k in seq_along(i) )
-			x <- setListElements(x, i[k], NULL, value[[k]])
-		x
-})
-
-# x[i,j] subsetting
-
-setMethod("[",
-	c(x = "matter_str", i = "ANY", j = "ANY"),
-	function(x, i, j, ...) {
-		y <- getListElements(x, i, j)
-		sapply(y, raw2char, encoding=x@encoding)
-})
-
-setMethod("[",
-	c(x = "matter_str", i = "ANY", j = "ANY", drop = "NULL"),
-	function(x, i, j, ..., drop) subListElements(x, i, j))
-
-setReplaceMethod("[",
-	c(x = "matter_str", i = "ANY", j = "ANY"),
-	function(x, i, j, ..., value) {
-		if ( is.character(value) ) {
-			value <- lapply(value, char2raw)
+		if ( !missing(i) ) {
+			for ( k in seq_along(i) )
+				x <- setListElements(x, i[k], NULL, value[[k]])
+			x
 		} else {
-			if ( !is.list(value) )
-				value <- list(value)
-			value <- lapply(value, as.raw)
+			setList(x, value)
 		}
-		setListElements(x, i, j, value)
-})
+	})
 
 # additional methods
 

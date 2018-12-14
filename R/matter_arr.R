@@ -175,14 +175,19 @@ setArrayElements <- function(x, ind, value) {
 setMethod("[",
 	c(x = "matter_arr", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, j, ..., drop = TRUE) {
+		if ( !missing(drop) && is.null(drop) )
+			stop("endomorphic subsetting not supported")
 		narg <- nargs() - 1 - !missing(drop)
 		if ( missing(i) && missing(j) && narg == 1 ) {
 			return(getArray(x))
-		} else if ( narg != length(dim(x)) ) {
+		} else if ( !missing(i) && narg == 1 ) {
+			return(as(x, "matter_vec")[i])
+		} else if ( narg > 1 && narg != length(dim(x)) ) {
 			stop("incorrect number of dimensions")
 		}
 		ind <- list()
 		call <- as.list(match.call(expand.dots=TRUE))[-c(1,2)]
+		call$drop <- NULL
 		if ( "i" %in% names(call) ) {
 			wh <- which(names(call) == "i")
 			ind[[1]] <- eval(call[[wh]])
@@ -198,8 +203,6 @@ setMethod("[",
 			ind[[2]] <- seq_len(dim(x)[2])
 		}
 		ind <- c(ind, call)
-		if ( length(ind) != length(dim(x)) )
-			stop("incorrect number of dimensions")
 		names(ind) <- names(dim)
 		for ( k in seq_along(ind) ) {
 			if ( is.vector(ind[[k]]) ) {
@@ -212,13 +215,30 @@ setMethod("[",
 				ind[[k]] <- eval(ind[[k]])
 			}
 		}
-		getArrayElements(x, ind, drop)
+		dims <- sapply(ind, length)
+		if ( any( dims == 0) ) {
+			y <- array(vector(mode=as.character(datamode(x))), dim=dims)
+			if ( !is.null(dimnames(x)) )
+				dimnames(y) <- mapply(function(dnm, i)
+					dnm[i], dimnames(x), ind)
+			y
+		} else {
+			getArrayElements(x, ind, drop)
+		}
 })
 
 setReplaceMethod("[",
-	c(x = "matter_arr", i = "ANY", j = "ANY"),
+	c(x = "matter_arr", i = "ANY", j = "ANY", value = "ANY"),
 	function(x, i, j, ..., value) {
-		dots <- list(...)
+		dots <- match.call(expand.dots=FALSE)$...
+		narg <- nargs() - 2
+		if ( !missing(i) && narg == 1 ) {
+			y <- as(x, "matter_vec")
+			y[i] <- value
+			return(x)
+		}
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
 		if ( missing(i) && missing(j) && length(dots) == 0 )
 			return(setArray(x, value))
 		if ( missing(i) && length(dim(x)) >= 1 ) {
@@ -234,9 +254,23 @@ setReplaceMethod("[",
 			stop("subscript out of bounds")
 		}
 		ind <- c(list(i), list(j), dots)
-		if ( length(ind) != length(dim(x)) )
-			stop("incorrect number of dimensions")
-		setArrayElements(x, ind, value)
+		for ( k in seq_along(ind) ) {
+			if ( is.vector(ind[[k]]) ) {
+				next
+			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) == 0 ) {
+				ind[[k]] <- seq_len(dim(x)[k])
+			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) > 0 ) {
+				ind[[k]] <- eval(ind[[k]])
+			} else if ( is.call(ind[[k]]) ) {
+				ind[[k]] <- eval(ind[[k]])
+			}
+		}
+		dims <- sapply(ind, length)
+		if ( any( dims == 0L) ) {
+			x
+		} else {
+			setArrayElements(x, ind, value)
+		}
 })
 
 

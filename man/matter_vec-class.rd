@@ -8,10 +8,8 @@
 \alias{[,matter_vec-method}
 \alias{[,matter_vec,ANY,missing,ANY-method}
 \alias{[,matter_vec,ANY,missing,NULL-method}
-\alias{[,matter_vec,missing,missing,ANY-method}
 \alias{[<-,matter_vec-method}
 \alias{[<-,matter_vec,ANY,missing,ANY-method}
-\alias{[<-,matter_vec,missing,missing,ANY-method}
 
 \alias{c,matter_vec-method}
 

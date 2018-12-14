@@ -8,18 +8,10 @@
 \alias{lengths,matter_str-method}
 
 \alias{[,matter_str-method}
-\alias{[,matter_str,ANY,ANY,ANY-method}
-\alias{[,matter_str,ANY,ANY,NULL-method}
 \alias{[,matter_str,ANY,missing,ANY-method}
 \alias{[,matter_str,ANY,missing,NULL-method}
-\alias{[,matter_str,missing,missing,ANY-method}
 \alias{[<-,matter_str-method}
-\alias{[<-,matter_str,ANY,ANY,ANY-method}
 \alias{[<-,matter_str,ANY,missing,ANY-method}
-\alias{[<-,matter_str,missing,missing,ANY-method}
-
-\alias{[[,matter_str,ANY,missing-method}
-\alias{[[<-,matter_str,ANY,missing-method}
 
 \alias{as.vector,matter_str-method}
 
@@ -99,9 +91,7 @@ matter_str(data, datamode = "uchar", paths = NULL,
 \section{Methods}{
     Standard generic methods:
     \describe{
-        \item{\code{x[[i]], x[[i]] <- value}:}{Get or set the string elements of the vector.}
-
-        \item{\code{x[i, j], x[i, j] <- value}:}{Get or set \code{j} characters the \code{i}th string element of the vector.}
+        \item{\code{x[i], x[i] <- value}:}{Get or set the string elements of the vector.}
 
         \item{\code{lengths(x)}:}{Get the number of characters (in bytes) of all string elements in the vector.}
     }
