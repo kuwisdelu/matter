@@ -2,6 +2,8 @@
 #ifndef MATTER_DEFINES
 #define MATTER_DEFINES
 
+#define __STDC_LIMIT_MACROS
+
 #include <limits.h>
 #include <stdint.h>
 
