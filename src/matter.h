@@ -87,7 +87,7 @@ SEXP group_mins(T * x, int * group, int ngroup, int length, double init);
 //// Delta run length encoding 
 //-----------------------------
 
-index_t count_consecutive(double * pindex, long i, long length);
+index_t count_consecutive(double * pindex, size_t i, size_t length);
 
 template<typename T>
 T run_delta(T * values, int i, int n);
@@ -333,10 +333,6 @@ class Ops {
             return _length;
         }
 
-        // R_OP_MODES modes() {
-        //     return _modes;
-        // }
-
         int result_type() {
             return _modes.R_mode[0];
         }
@@ -566,15 +562,15 @@ class Atoms {
                     break;
                 case C_SHORT:
                 case C_USHORT:
-                    elt_offset = sizeof(short) * (offset - index_offset(i));
+                    elt_offset = sizeof(int16_t) * (offset - index_offset(i));
                     break;
                 case C_INT:
                 case C_UINT:
-                    elt_offset = sizeof(int) * (offset - index_offset(i));
+                    elt_offset = sizeof(int32_t) * (offset - index_offset(i));
                     break;
                 case C_LONG:
                 case C_ULONG:
-                    elt_offset = sizeof(long) * (offset - index_offset(i));
+                    elt_offset = sizeof(int64_t) * (offset - index_offset(i));
                     break;
                 case C_FLOAT:
                     elt_offset = sizeof(float) * (offset - index_offset(i));
@@ -699,22 +695,22 @@ class Atoms {
                         n = read_atom<unsigned char,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_SHORT:
-                        n = read_atom<short,RType>(ptr, i, offset, n, skip);
+                        n = read_atom<int16_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_USHORT:
-                        n = read_atom<unsigned short,RType>(ptr, i, offset, n, skip);
+                        n = read_atom<uint16_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_INT:
-                        n = read_atom<int,RType>(ptr, i, offset, n, skip);
+                        n = read_atom<int32_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_UINT:
-                        n = read_atom<unsigned int,RType>(ptr, i, offset, n, skip);
+                        n = read_atom<uint32_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_LONG:
-                        n = read_atom<long,RType>(ptr, i, offset, n, skip);
+                        n = read_atom<int64_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_ULONG:
-                        n = read_atom<unsigned long,RType>(ptr, i, offset, n, skip);
+                        n = read_atom<uint64_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_FLOAT:
                         n = read_atom<float,RType>(ptr, i, offset, n, skip);
@@ -753,22 +749,22 @@ class Atoms {
                         n = write_atom<unsigned char,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_SHORT:
-                        n = write_atom<short,RType>(ptr, i, offset, n, skip);
+                        n = write_atom<int16_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_USHORT:
-                        n = write_atom<unsigned short,RType>(ptr, i, offset, n, skip);
+                        n = write_atom<uint16_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_INT:
-                        n = write_atom<int,RType>(ptr, i, offset, n, skip);
+                        n = write_atom<int32_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_UINT:
-                        n = write_atom<unsigned int,RType>(ptr, i, offset, n, skip);
+                        n = write_atom<uint32_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_LONG:
-                        n = write_atom<long,RType>(ptr, i, offset, n, skip);
+                        n = write_atom<int64_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_ULONG:
-                        n = write_atom<unsigned long,RType>(ptr, i, offset, n, skip);
+                        n = write_atom<uint64_t,RType>(ptr, i, offset, n, skip);
                         break;
                     case C_FLOAT:
                         n = write_atom<float,RType>(ptr, i, offset, n, skip);
@@ -788,9 +784,9 @@ class Atoms {
         }
 
         template<typename RType>
-        index_t read_indices(RType * ptr, Rindex_t * pindex, long length, size_t skip = 1) {
+        index_t read_indices(RType * ptr, Rindex_t * pindex, size_t length, size_t skip = 1) {
             index_t numRead = 0;
-            for ( long i = 0; i < length; i++ ) {
+            for ( size_t i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
                     ptr[skip * i] = DataNA<RType>();
                     continue;
@@ -812,9 +808,9 @@ class Atoms {
         }
 
         template<typename RType>
-        index_t write_indices(RType * ptr, Rindex_t * pindex, long length, size_t skip = 1) {
+        index_t write_indices(RType * ptr, Rindex_t * pindex, size_t length, size_t skip = 1) {
             index_t numWrote = 0;
-            for ( long i = 0; i < length; i++ ) {
+            for ( size_t i = 0; i < length; i++ ) {
                 if ( ISNA(pindex[i]) ) {
                     continue;
                 }

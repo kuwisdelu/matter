@@ -101,28 +101,29 @@ struct MATTER_OPTIONS {
 
 #define NULL_INDEX -99
 
-// Data type limits (matching definitions in bigmemory)
+// Data type limits
 
 #define NA_CHAR CHAR_MIN
-#define NA_SHORT SHRT_MIN
 #define R_CHAR_MIN (1+CHAR_MIN)
 #define R_CHAR_MAX CHAR_MAX
-#define R_SHORT_MIN (1+SHRT_MIN)
-#define R_SHORT_MAX SHRT_MAX
-#define R_INT_MIN (1+INT_MIN)
-#define R_INT_MAX INT_MAX
+
+#define NA_SHORT INT16_MIN
+#define R_SHORT_MIN (1+INT16_MIN)
+#define R_SHORT_MAX INT16_MAX
+
+#define R_INT_MIN (1+INT32_MIN)
+#define R_INT_MAX INT32_MAX
+
 #define R_DOUBLE_MIN R_NegInf
 #define R_DOUBLE_MAX R_PosInf
 
-// Data type limits (do NOT match definitions in bigmemory)
-
 #define R_UCHAR_MAX UCHAR_MAX
-#define R_USHORT_MAX USHRT_MAX
-#define R_UINT_MAX UINT_MAX
-#define R_ULONG_MAX ULONG_MAX
+#define R_USHORT_MAX UINT16_MAX
+#define R_UINT_MAX UINT32_MAX
+#define R_ULONG_MAX UINT64_MAX
 
-#define NA_LONG LONG_MIN
-#define R_LONG_MIN (1+LONG_MIN)
-#define R_LONG_MAX LONG_MAX
+#define NA_LONG INT64_MIN
+#define R_LONG_MIN (1+INT64_MIN)
+#define R_LONG_MAX INT64_MAX
 
 #endif
