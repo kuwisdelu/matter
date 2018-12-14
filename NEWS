@@ -1,4 +1,23 @@
 
+CHANGES IN VERSION 1.9.5 [2018-12-14]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Updated documentation with `matter-datatypes`,
+        size of data types are now explicitly defined
+    o Changed 'filemode' slot to be a factor with
+        levels c('r', 'w', 'rw') instead of a string
+    o Data access now uses C++ fstream instead of C
+
+BUG FIXES
+
+    o On Windows, accessing data elements in large files
+        with byte offets larger than MAX_INT now works
+    o On Windows, data modes of 'long' and 'ulong' are
+        now correctly 64-bit integer types
+    o Assignment of negative values now checked for 'ulong'
+
 CHANGES IN VERSION 1.9.4 [2018-12-8]
 -----------------------------------
 
