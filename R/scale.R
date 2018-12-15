@@ -6,9 +6,13 @@ setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
 {
 	if ( datamode(x) != "numeric" )
 		datamode(x) <- "numeric"
-	by_which_dim <- switch(class(x),
-		matter_matc = "by_each_group",
-		matter_matr = "by_group")
+	if ( is(x, "matter_matc") ) {
+		by_which_dim <- "by_each_group"
+	} else if ( is(x, "matter_matr") ) {
+		by_which_dim <- "by_group"
+	} else {
+		stop("unrecognized 'matter_mat' subclass")
+	}
 	if ( is.logical(center) ) {
 		if ( center ) {
 			center <- colMeans(x, na.rm=TRUE)

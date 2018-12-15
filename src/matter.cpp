@@ -970,7 +970,7 @@ SEXP makeDRLE<double>(SEXP x, SEXP nruns) {
 }
 
 template<typename RType, int SType>
-SEXP VectorOrDRLE<RType,SType> :: readVector() {
+SEXP VectorOrDRLE<RType,SType> :: extract() {
     SEXP retVec;
     int nout = length();
     PROTECT(retVec = Rf_allocVector(SType, nout));
@@ -991,7 +991,7 @@ SEXP VectorOrDRLE<RType,SType> :: readVector() {
 }
 
 template<typename RType, int SType>
-SEXP VectorOrDRLE<RType,SType> :: readVectorElements(SEXP i) {
+SEXP VectorOrDRLE<RType,SType> :: extractElements(SEXP i) {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, LENGTH(i)));
     RType * pRetVec = DataPtr<RType,SType>(retVec);
@@ -3821,7 +3821,7 @@ void Ops :: do_ops(T * x, Atoms * atm, index_t offset, index_t count, size_t ski
 //--------------------------------------------------------
 
 template<typename RType, int SType>
-SEXP Matter :: readArray() {
+SEXP Matter :: readVector() {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, length()));
     RType * pRetVec = DataPtr<RType,SType>(retVec);
@@ -3831,7 +3831,7 @@ SEXP Matter :: readArray() {
 }
 
 template<typename RType, int SType>
-void Matter :: writeArray(SEXP value) {
+void Matter :: writeVector(SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     if ( XLENGTH(value) == 1 )
         data().write<RType>(pValue, 0, length(), 0);
@@ -3840,7 +3840,7 @@ void Matter :: writeArray(SEXP value) {
 }
 
 template<typename RType, int SType>
-SEXP Matter :: readArrayElements(SEXP i) {
+SEXP Matter :: readVectorElements(SEXP i) {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, XLENGTH(i)));
     RType * pRetVec = DataPtr<RType,SType>(retVec);
@@ -3851,7 +3851,7 @@ SEXP Matter :: readArrayElements(SEXP i) {
 }
 
 template<typename RType, int SType>
-void Matter :: writeArrayElements(SEXP i, SEXP value) {
+void Matter :: writeVectorElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     Rindex_t * pIndex = R_INDEX_PTR(i);
     if ( XLENGTH(value) == 1 )
@@ -3929,7 +3929,7 @@ SEXP Matter :: readMatrix() {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -3959,7 +3959,7 @@ void Matter :: writeMatrix(SEXP value) {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
 }
 
@@ -3989,7 +3989,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -4023,7 +4023,7 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
 }
 
@@ -4053,7 +4053,7 @@ SEXP Matter :: readMatrixCols(SEXP j) {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -4087,7 +4087,7 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
 }
 
@@ -4123,7 +4123,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
     UNPROTECT(1);
     return retMat;
@@ -4161,7 +4161,7 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
             }
             break;
         default:
-            Rf_error("unrecognized matrix subclass");
+            Rf_error("unrecognized 'matter_mat' subclass");
     }
 }
 
@@ -4881,70 +4881,70 @@ extern "C" {
         return retObj;
     }
 
-    SEXP getArray(SEXP x) {
+    SEXP getVector(SEXP x) {
         Matter mVec(x);
         switch(mVec.datamode()) {
             case R_RAW:
-                return mVec.readArray<Rbyte,RAWSXP>();
+                return mVec.readVector<Rbyte,RAWSXP>();
             case R_LOGICAL:
-                return mVec.readArray<int,LGLSXP>();
+                return mVec.readVector<int,LGLSXP>();
             case R_INTEGER:
-                return mVec.readArray<int,INTSXP>();
+                return mVec.readVector<int,INTSXP>();
             case R_NUMERIC:
-                return mVec.readArray<double,REALSXP>();
+                return mVec.readVector<double,REALSXP>();
             default:
                 return R_NilValue;
         }
     }
 
-    void setArray(SEXP x, SEXP value) {
+    void setVector(SEXP x, SEXP value) {
         Matter mVec(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mVec.writeArray<Rbyte,RAWSXP>(value);
+                mVec.writeVector<Rbyte,RAWSXP>(value);
                 break;
             case LGLSXP:
-                mVec.writeArray<int,LGLSXP>(value);
+                mVec.writeVector<int,LGLSXP>(value);
                 break;
             case INTSXP:
-                mVec.writeArray<int,INTSXP>(value);
+                mVec.writeVector<int,INTSXP>(value);
                 break;
             case REALSXP:
-                mVec.writeArray<double,REALSXP>(value);
+                mVec.writeVector<double,REALSXP>(value);
                 break;
         }
     }
 
-    SEXP getArrayElements(SEXP x, SEXP i) {
+    SEXP getVectorElements(SEXP x, SEXP i) {
         Matter mVec(x);
         switch(mVec.datamode()) {
             case R_RAW:
-                return mVec.readArrayElements<Rbyte,RAWSXP>(i);
+                return mVec.readVectorElements<Rbyte,RAWSXP>(i);
             case R_LOGICAL:
-                return mVec.readArrayElements<int,LGLSXP>(i);
+                return mVec.readVectorElements<int,LGLSXP>(i);
             case R_INTEGER:
-                return mVec.readArrayElements<int,INTSXP>(i);
+                return mVec.readVectorElements<int,INTSXP>(i);
             case R_NUMERIC:
-                return mVec.readArrayElements<double,REALSXP>(i);
+                return mVec.readVectorElements<double,REALSXP>(i);
             default:
                 return R_NilValue;
         }
     }
 
-    void setArrayElements(SEXP x, SEXP i, SEXP value) {
+    void setVectorElements(SEXP x, SEXP i, SEXP value) {
         Matter mVec(x);
         switch(TYPEOF(value)) {
             case RAWSXP:
-                mVec.writeArrayElements<Rbyte,RAWSXP>(i, value);
+                mVec.writeVectorElements<Rbyte,RAWSXP>(i, value);
                 break;
             case LGLSXP:
-                mVec.writeArrayElements<int,LGLSXP>(i, value);
+                mVec.writeVectorElements<int,LGLSXP>(i, value);
                 break;
             case INTSXP:
-                mVec.writeArrayElements<int,INTSXP>(i, value);
+                mVec.writeVectorElements<int,INTSXP>(i, value);
                 break;
             case REALSXP:
-                mVec.writeArrayElements<double,REALSXP>(i, value);
+                mVec.writeVectorElements<double,REALSXP>(i, value);
                 break;
         }
     }
@@ -5468,12 +5468,12 @@ extern "C" {
         if ( TYPEOF(values) == INTSXP )
         {
             VectorOrDRLE<int,INTSXP> dVec(x);
-            return dVec.readVector();
+            return dVec.extract();
         }
         else if ( TYPEOF(values) == REALSXP )
         {
             VectorOrDRLE<double,REALSXP> dVec(x);
-            return dVec.readVector();
+            return dVec.extract();
         }
         return R_NilValue;
     }
@@ -5483,12 +5483,12 @@ extern "C" {
         if ( TYPEOF(values) == INTSXP )
         {
             VectorOrDRLE<int,INTSXP> dVec(x);
-            return dVec.readVectorElements(i);
+            return dVec.extractElements(i);
         }
         else if ( TYPEOF(values) == REALSXP )
         {
             VectorOrDRLE<double,REALSXP> dVec(x);
-            return dVec.readVectorElements(i);
+            return dVec.extractElements(i);
         }
         return R_NilValue;
     }

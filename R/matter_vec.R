@@ -125,7 +125,7 @@ setReplaceMethod("dim", "matter_vec", function(x, value) {
 })
 
 getVector <- function(x) {
-	y <- .Call("C_getArray", x, PACKAGE="matter")
+	y <- .Call("C_getVector", x, PACKAGE="matter")
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)
 	y
@@ -141,7 +141,7 @@ setVector <- function(x, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setArray", x, value, PACKAGE="matter")
+	.Call("C_setVector", x, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -151,7 +151,7 @@ getVectorElements <- function(x, i) {
 		i <- logical2index(x, i)
 	if ( is.character(i) )
 		i <- names2index(x, i)
-	y <- .Call("C_getArrayElements", x, i - 1, PACKAGE="matter")
+	y <- .Call("C_getVectorElements", x, i - 1, PACKAGE="matter")
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)[i]
 	y	
@@ -171,7 +171,7 @@ setVectorElements <- function(x, i, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setArrayElements", x, i - 1, value, PACKAGE="matter")
+	.Call("C_setVectorElements", x, i - 1, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)	
 }

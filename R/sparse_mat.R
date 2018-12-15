@@ -313,7 +313,13 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 	zero <- as.vector(0, mode=vmode)
 	init <- as.vector(NA, mode=vmode)
 	y <- matrix(init, nrow=length(i), ncol=length(j))
-	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
+	if ( is(x, "sparse_matc") ) {
+		rowMaj <- FALSE
+	} else if ( is(x, "sparse_matr") ) {
+		rowMaj <- TRUE
+	} else {
+		stop("unrecognized 'sparse_mat' subclass")
+	}
 	sorted <- FALSE
 	if ( is.null(keys(x)) ) {
 		keymode <- typeof(atomdata(x)$keys[[1]])
@@ -486,7 +492,13 @@ setSparseMatrixElements <- function(x, i, j, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	rowMaj <- switch(class(x), sparse_matr=TRUE, sparse_matc=FALSE)
+	if ( is(x, "sparse_matc") ) {
+		rowMaj <- FALSE
+	} else if ( is(x, "sparse_matr") ) {
+		rowMaj <- TRUE
+	} else {
+		stop("unrecognized 'sparse_mat' subclass")
+	}
 	dim(value) <- c(length(i), length(j))
 	vmode <- as.character(x@datamode[2])
 	zero <- as.vector(0, mode=vmode)
@@ -615,37 +627,41 @@ subSparseMatrixCols <- function(x, j) {
 		stop("subscript out of bounds")
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
-	x <- switch(class(x),
-		sparse_matc=new("sparse_matc",
-			data=list(keys=x@data$keys[j,drop=NULL],
-				values=x@data$values[j,drop=NULL]),
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=as.numeric(sum(lengths(x@data$values[j]))),
-			dim=c(x@dim[1], length(j)),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
-			ops=NULL,
-			keys=x@keys,
-			tolerance=x@tolerance,
-			combiner=x@combiner),
-		sparse_matr=new("sparse_matr",
-			data=x@data,
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=x@length,
-			dim=c(x@dim[1], length(j)),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
-			ops=NULL,
-			keys=if ( !is.null(x@keys) )
-				x@keys[j] else as.vector(j, mode=typeof(x@data$keys[[1]])),
-			tolerance=x@tolerance,
-			combiner=x@combiner))
+	x <- if ( is(x, "sparse_matc") ) {
+			new(class(x),
+				data=list(keys=x@data$keys[j,drop=NULL],
+					values=x@data$values[j,drop=NULL]),
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=as.numeric(sum(lengths(x@data$values[j]))),
+				dim=c(x@dim[1], length(j)),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
+				ops=NULL,
+				keys=x@keys,
+				tolerance=x@tolerance,
+				combiner=x@combiner)
+		} else if ( is(x, "sparse_matc") ) {
+			new(class(x),
+				data=x@data,
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=x@length,
+				dim=c(x@dim[1], length(j)),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
+				ops=NULL,
+				keys=if ( !is.null(x@keys) )
+					x@keys[j] else as.vector(j, mode=typeof(x@data$keys[[1]])),
+				tolerance=x@tolerance,
+				combiner=x@combiner)
+		} else {
+			stop("unrecognized 'sparse_mat' subclass")
+		}
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -659,37 +675,41 @@ subSparseMatrixRows <- function(x, i) {
 		stop("subscript out of bounds")
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
-	x <- switch(class(x),
-		sparse_matc=new("sparse_matc",
-			data=x@data,
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=x@length,
-			dim=c(length(i), x@dim[2]),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
-			ops=NULL,
-			keys=if ( !is.null(x@keys) )
-				x@keys[i] else as.vector(i, mode=typeof(x@data$keys[[1]])),
-			tolerance=x@tolerance,
-			combiner=x@combiner),
-		sparse_matr=new("sparse_matr",
-			data=list(keys=x@data$keys[i,drop=NULL],
-				values=x@data$values[i,drop=NULL]),
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=as.numeric(sum(lengths(x@data$values[i]))),
-			dim=c(length(i), x@dim[2]),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
-			ops=NULL,
-			keys=x@keys,
-			tolerance=x@tolerance,
-			combiner=x@combiner))
+	x <- if ( is(x, "sparse_matc") ) {
+			new(class(x),
+				data=x@data,
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=x@length,
+				dim=c(length(i), x@dim[2]),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
+				ops=NULL,
+				keys=if ( !is.null(x@keys) )
+					x@keys[i] else as.vector(i, mode=typeof(x@data$keys[[1]])),
+				tolerance=x@tolerance,
+				combiner=x@combiner)
+		} else if ( is(x, "sparse_matr") ) {
+			new(class(x),
+				data=list(keys=x@data$keys[i,drop=NULL],
+					values=x@data$values[i,drop=NULL]),
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=as.numeric(sum(lengths(x@data$values[i]))),
+				dim=c(length(i), x@dim[2]),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
+				ops=NULL,
+				keys=x@keys,
+				tolerance=x@tolerance,
+				combiner=x@combiner)
+		} else {
+			stop("unrecognized 'sparse_mat' subclass")
+		}
 	if ( validObject(x) )
 		invisible(x)
 }

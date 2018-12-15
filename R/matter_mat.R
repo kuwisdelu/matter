@@ -317,29 +317,33 @@ subMatrixCols <- function(x, j) {
 		j <- dimnames2index(x, j, 2)
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
-	x <- switch(class(x),
-		matter_matc=new("matter_matc",
-			data=x@data[,j],
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=as.numeric(x@dim[1]) * as.numeric(length(j)),
-			dim=c(x@dim[1], length(j)),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
-			ops=NULL),
-		matter_matr=new("matter_matr",
-			data=subset_atoms_by_index_offset(x@data, j),
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=as.numeric(x@dim[1]) * as.numeric(length(j)),
-			dim=c(x@dim[1], length(j)),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
-			ops=NULL))
+	x <- if ( is(x, "matter_matc") ) {
+			new(class(x),
+				data=x@data[,j],
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=as.numeric(x@dim[1]) * as.numeric(length(j)),
+				dim=c(x@dim[1], length(j)),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
+				ops=NULL)
+		} else if ( is(x, "matter_matr") ) {
+			new(class(x),
+				data=subset_atoms_by_index_offset(x@data, j),
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=as.numeric(x@dim[1]) * as.numeric(length(j)),
+				dim=c(x@dim[1], length(j)),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]], x@dimnames[[2]][j]) else NULL,
+				ops=NULL)
+		} else {
+			stop("unrecognized 'matter_mat' subclass")
+		}
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -351,29 +355,33 @@ subMatrixRows <- function(x, i) {
 		i <- dimnames2index(x, i, 1)
 	if ( !is.null(x@ops) )
 		warning("dropping delayed operations")
-	x <- switch(class(x),
-		matter_matc=new("matter_matc",
-			data=subset_atoms_by_index_offset(x@data, i),
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=as.numeric(length(i)) * as.numeric(x@dim[2]),
-			dim=c(length(i), x@dim[2]),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
-			ops=NULL),
-		matter_matr=new("matter_matr",
-			data=x@data[,i],
-			datamode=x@datamode,
-			paths=x@paths,
-			chunksize=x@chunksize,
-			length=as.numeric(length(i)) * as.numeric(x@dim[2]),
-			dim=c(length(i), x@dim[2]),
-			names=NULL,
-			dimnames=if (!is.null(x@dimnames))
-				c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
-			ops=NULL))
+	x <- if ( is(x, "matter_matc") ) {
+			new(class(x),
+				data=subset_atoms_by_index_offset(x@data, i),
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=as.numeric(length(i)) * as.numeric(x@dim[2]),
+				dim=c(length(i), x@dim[2]),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
+				ops=NULL)
+		} else if ( is(x, "matter_matc") ) {
+			new(class(x),
+				data=x@data[,i],
+				datamode=x@datamode,
+				paths=x@paths,
+				chunksize=x@chunksize,
+				length=as.numeric(length(i)) * as.numeric(x@dim[2]),
+				dim=c(length(i), x@dim[2]),
+				names=NULL,
+				dimnames=if (!is.null(x@dimnames))
+					c(x@dimnames[[1]][i], x@dimnames[[2]]) else NULL,
+				ops=NULL)
+		} else {
+			stop("unrecognized 'matter_mat' subclass")
+		}
 	if ( validObject(x) )
 		invisible(x)
 }

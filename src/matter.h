@@ -128,9 +128,9 @@ class VectorOrDRLE {
 
         ~VectorOrDRLE(){}
 
-        SEXP readVector();
+        SEXP extract();
 
-        SEXP readVectorElements(SEXP i);
+        SEXP extractElements(SEXP i);
 
         int length();
 
@@ -868,15 +868,22 @@ class Matter
             _chunksize = Rf_asInteger(R_do_slot(x, Rf_install("chunksize")));
             _length = static_cast<index_t>(Rf_asReal(R_do_slot(x, Rf_install("length"))));
             _dim = R_do_slot(x, Rf_install("dim"));
-            const char * classname = CHAR(Rf_asChar(Rf_getAttrib(x, R_ClassSymbol)));
-            if ( strcmp(classname, "matter_list") == 0 )
-                _S4class = MATTER_LIST;
-            else if ( strcmp(classname, "matter_matc") == 0 )
-                _S4class = MATTER_MATC;
-            else if ( strcmp(classname, "matter_matr") == 0 )
-                _S4class = MATTER_MATR;
-            else
-                _S4class = MATTER_ANY;
+            const char * classes[] = { "matter_matc", "matter_matr", "matter_list", "" };
+            int classmatch = R_check_class_etc(x, classes);
+            switch (classmatch) {
+                case 0:
+                    _S4class = MATTER_MATC;
+                    break;
+                case 1:
+                    _S4class = MATTER_MATR;
+                    break;
+                case 2:
+                    _S4class = MATTER_LIST;
+                    break;
+                default:
+                    _S4class = MATTER_ANY;
+                    break;
+            }
             set_matter_options();
         }
 
@@ -947,16 +954,16 @@ class Matter
         }
 
         template<typename RType, int SType>
-        SEXP readArray();
+        SEXP readVector();
 
         template<typename RType, int SType>
-        void writeArray(SEXP value);
+        void writeVector(SEXP value);
 
         template<typename RType, int SType>
-        SEXP readArrayElements(SEXP i);
+        SEXP readVectorElements(SEXP i);
 
         template<typename RType, int SType>
-        void writeArrayElements(SEXP i, SEXP value);
+        void writeVectorElements(SEXP i, SEXP value);
 
         template<typename RType, int SType>
         SEXP readListElements(int i);
@@ -1187,13 +1194,13 @@ extern "C" {
         SEXP extent
     );
 
-    SEXP getArray(SEXP x);
+    SEXP getVector(SEXP x);
 
-    void setArray(SEXP x, SEXP value);
+    void setVector(SEXP x, SEXP value);
 
-    SEXP getArrayElements(SEXP x, SEXP i);
+    SEXP getVectorElements(SEXP x, SEXP i);
 
-    void setArrayElements(SEXP x, SEXP i, SEXP value);
+    void setVectorElements(SEXP x, SEXP i, SEXP value);
 
     SEXP getList(SEXP x);
 

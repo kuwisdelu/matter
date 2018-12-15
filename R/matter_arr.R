@@ -111,7 +111,7 @@ setReplaceMethod("dim", "matter_arr", function(x, value) {
 })
 
 getArray <- function(x) {
-	y <- .Call("C_getArray", x, PACKAGE="matter")
+	y <- .Call("C_getVector", x, PACKAGE="matter")
 	dim(y) <- dim(x)
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- dimnames(x)
@@ -128,7 +128,7 @@ setArray <- function(x, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setArray", x, value, PACKAGE="matter")
+	.Call("C_setVector", x, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)
 }
@@ -141,7 +141,7 @@ getArrayElements <- function(x, ind, drop) {
 		if ( is.character(ind[i]) )
 			ind[i] <- names2index(x, ind[i])
 	i <- linearInd(ind, dim(x))
-	y <- .Call("C_getArrayElements", x, i - 1, PACKAGE="matter")
+	y <- .Call("C_getVectorElements", x, i - 1, PACKAGE="matter")
 	dim(y) <- sapply(ind, length)
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- mapply(function(dnm, i) dnm[i], dimnames(x), ind)
@@ -167,7 +167,7 @@ setArrayElements <- function(x, ind, value) {
 		value <- as.integer(value)
 	if ( is.character(value) )
 		value <- as.double(value)
-	.Call("C_setArrayElements", x, i - 1, value, PACKAGE="matter")
+	.Call("C_setVectorElements", x, i - 1, value, PACKAGE="matter")
 	if ( validObject(x) )
 		invisible(x)	
 }

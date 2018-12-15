@@ -198,7 +198,7 @@ subDataFrameRows <- function(x, i) {
 	if ( is.character(i) )
 		i <- dimnames2index(x, i, 1)
 	y <- lapply(names(x), function(nm) atomdata(x)[[nm]][i,drop=NULL])
-	new("matter_df",
+	new(class(x),
 		data=setNames(y, names(x)),
 		datamode=datamode(x),
 		paths=paths(x),
@@ -216,7 +216,7 @@ subDataFrameCols <- function(x, j) {
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)
 	y <- atomdata(x)[j]
-	new("matter_df",
+	new(class(x),
 		data=setNames(y, names(x)[j]),
 		datamode=datamode(x),
 		paths=paths(x),
@@ -238,7 +238,7 @@ subDataFrameElements <- function(x, i, j) {
 	if ( is.character(j) )
 		j <- dimnames2index(x, j, 2)	
 	y <- lapply(j, function(jj) atomdata(x)[[jj]][i,drop=NULL])
-	new("matter_df",
+	new(class(x),
 		data=setNames(y, names(x)[j]),
 		datamode=datamode(x),
 		paths=paths(x),

@@ -1,4 +1,19 @@
 
+CHANGES IN VERSION 1.9.6 [2018-12-14]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Subsetting matter matrices, arrays, and data frames
+        now checks for the correct number of dimensions
+    o Linear indexing support for 'matter_mat' and 'matter_arr'
+
+BUG FIXES
+
+    o Class checks now use R_check_slot_etc() in C so subclasses
+        of 'matter' objects should inherit correct behavior
+    o Fixed other indexing issues in subsetting + assignment
+
 CHANGES IN VERSION 1.9.5 [2018-12-14]
 -----------------------------------
 

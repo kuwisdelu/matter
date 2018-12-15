@@ -98,7 +98,7 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 			y@deltas[1] <- vector(1, mode=typeof(y@deltas))
 		}
 	}
-	new("drle",
+	new(class(x),
 		values=c(x@values, y@values),
 		lengths=c(x@lengths, y@lengths),
 		deltas=c(x@deltas, y@deltas))
