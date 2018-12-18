@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.9.8 [2018-12-18]
+-----------------------------------
+
+BUG FIXES
+
+    o Check for NULL dimensions in 'matter_arr' subsetting
+
 CHANGES IN VERSION 1.9.7 [2018-12-18]
 -----------------------------------
 

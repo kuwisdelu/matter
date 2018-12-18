@@ -190,14 +190,20 @@ setMethod("[",
 		call$drop <- NULL
 		if ( "i" %in% names(call) ) {
 			wh <- which(names(call) == "i")
-			ind[[1]] <- eval(call[[wh]])
+			i <- eval(call[[wh]])
+			if ( is.null(i) )
+				i <- integer(0)
+			ind[[1]] <- i
 			call <- call[-wh]
 		} else if ( length(dim(x)) >= 1 ) {
 			ind[[1]] <- seq_len(dim(x)[1])
 		}
 		if ( "j" %in% names(call) ) {
 			wh <- which(names(call) == "j")
-			ind[[2]] <- eval(call[[wh]])
+			j <- eval(call[[wh]])
+			if ( is.null(j) )
+				j <- integer(0)
+			ind[[2]] <- j
 			call <- call[-wh]
 		} else if ( length(dim(x)) >= 2 ) {
 			ind[[2]] <- seq_len(dim(x)[2])
@@ -207,6 +213,8 @@ setMethod("[",
 		for ( k in seq_along(ind) ) {
 			if ( is.vector(ind[[k]]) ) {
 				next
+			} else if ( is.null(ind[[k]])) {
+				ind[[k]] <- integer(0)
 			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) == 0 ) {
 				ind[[k]] <- seq_len(dim(x)[k])
 			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) > 0 ) {
@@ -257,6 +265,8 @@ setReplaceMethod("[",
 		for ( k in seq_along(ind) ) {
 			if ( is.vector(ind[[k]]) ) {
 				next
+			} else if ( is.null(ind[[k]])) {
+				ind[[k]] <- integer(0)
 			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) == 0 ) {
 				ind[[k]] <- seq_len(dim(x)[k])
 			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) > 0 ) {
