@@ -29,6 +29,7 @@ setClass("atoms",
 		index_offset = numeric(1)),
 	validity = function(object) {
 		errors <- NULL
+		group_id <- object@group_id[]
 		lens <- c(group_id=length(object@group_id),
 			source_id=length(object@source_id),
 			datamode=length(object@datamode),
@@ -46,12 +47,20 @@ setClass("atoms",
 				"must all be equal")
 		if ( object@natoms != unique(lens) )
 			errors <- c(errors, "'natoms' not equal to the number of elements")
-		if ( object@ngroups != max(object@group_id[]) )
+		if ( object@ngroups != max(group_id) )
 			errors <- c(errors, "'ngroups' not equal to the number of groups")
-		if ( is.unsorted(object@group_id[]) || any(object@group_id[] <= 0) )
+		if ( is.unsorted(group_id) || any(group_id <= 0) )
 			errors <- c(errors, "'group_id' must be positive and increasing")
 		if ( object@index_offset[1] != 0 )
 			errors <- c(errors, "'index_offset' must begin at 0")
+		if ( object@offset[object@natoms] < 0 )
+			errors <- c(errors, "'offset' contains negative indices")
+		if ( object@extent[object@natoms] < 0 )
+			errors <- c(errors, "'extent' contains negative indices")
+		if ( object@index_offset[object@natoms] < 0 )
+			errors <- c(errors, "'index_offset' contains negative indices")
+		if ( object@index_extent[object@natoms] < 0 )
+			errors <- c(errors, "'index_extent' contains negative indices")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -93,7 +102,8 @@ atoms <- function(group_id = 1L, source_id = as.integer(NA),
 		x@index_offset <- drle(x@index_offset, cr_threshold=cr_threshold)
 		x@index_extent <- drle(x@index_extent, cr_threshold=cr_threshold)
 	}
-	x
+	if ( validObject(x) )
+		x
 }
 
 subset_atoms_by_index_offset <- function(x, i) {

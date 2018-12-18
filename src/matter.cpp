@@ -4838,7 +4838,6 @@ extern "C" {
         SEXP offset,
         SEXP extent)
     {
-
         SEXP natoms, ngroups, index_offset, index_extent;
         double * pIndexOffset, * pIndexExtent;
         VectorOrDRLE<int,INTSXP> vGroupID(group_id);
@@ -4850,18 +4849,18 @@ extern "C" {
         PROTECT(index_extent = Rf_allocVector(REALSXP, n));
         pIndexOffset = REAL(index_offset);
         pIndexExtent = REAL(index_extent);
-        int ext, gid, g_cur = 0, g_n = 0, cum_sum = 0;
+        int gid, g_cur = 0, g_n = 0;
+        index_t cum_index = 0;
         for ( int i = 0; i < n; i++ ) {
             gid = vGroupID[i];
-            ext = vExtent[i];
             if ( gid != g_cur ) {
                 g_cur = gid;
-                cum_sum = 0;
+                cum_index = 0;
                 g_n++;
             }
-            pIndexOffset[i] = cum_sum;
-            cum_sum += ext;
-            pIndexExtent[i] = cum_sum;
+            pIndexOffset[i] = static_cast<double>(cum_index);
+            cum_index += static_cast<index_t>(vExtent[i]);
+            pIndexExtent[i] = static_cast<double>(cum_index);
         }
         INTEGER(natoms)[0] = n;
         INTEGER(ngroups)[0] = g_n;
