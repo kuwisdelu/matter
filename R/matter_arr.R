@@ -83,7 +83,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_arr", function(x) "array")
+setMethod("describe_for_display", "matter_arr", function(x) "out-of-memory array")
 
 setMethod("show", "matter_arr", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")

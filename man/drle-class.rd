@@ -23,7 +23,7 @@
 
 \usage{
 ## Instance creation
-drle(x, cr_threshold = 0)
+drle(x, cr_threshold = 0, delta = TRUE)
 
 is.drle(x)
 ## Additional methods documented below
@@ -33,6 +33,8 @@ is.drle(x)
     \item{x}{An integer or numeric vector to convert to delta run length encoding for \code{drle()}; an object to test if it is of class \code{drle} for \code{is.drle()}.}
 
     \item{cr_threshold}{The compression ratio threshold to use when converting a vector to delta run length encoding. The default (0) always converts the object to \code{drle}. Values of \code{cr_threshold} < 1 correspond to compressing even when the output will be larger than the input (by a certain ratio). For values > 1, compression will only take place when the output is (approximately) at least \code{cr_threshold} times smaller.}
+
+    \item{delta}{Should non-zero deltas be considered by the encoding? (Default \code{TRUE}.) If \code{FALSE}, then ordinary run-length-encoding is used.}
 }
 
 \section{Slots}{
@@ -67,7 +69,7 @@ is.drle(x)
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{[base]{rle}}
+    \code{\link{rle}}
 }
 
 \examples{

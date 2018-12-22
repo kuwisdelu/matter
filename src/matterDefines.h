@@ -60,7 +60,9 @@ struct MATTER_OPTIONS {
 #define R_LOGICAL		2
 #define R_INTEGER       3
 #define R_NUMERIC       4
-#define R_LIST       	5
+#define R_CHARACTER    	5
+#define R_LIST       	6
+#define R_VIRTUAL      	7
 
 // C-level datamodes (must match factor levels)
 

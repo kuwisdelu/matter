@@ -96,10 +96,10 @@ template<typename T>
 int run_length(T * values, int i, int n, T delta);
 
 template<typename T>
-int count_runs(T * values, int n);
+int count_runs(T * values, int n, bool delta);
 
 template<typename T>
-SEXP makeDRLE(SEXP x, SEXP nruns);
+SEXP makeDRLE(SEXP x, SEXP nruns, bool delta);
 
 template<typename RType, int SType>
 class VectorOrDRLE {
@@ -128,9 +128,9 @@ class VectorOrDRLE {
 
         ~VectorOrDRLE(){}
 
-        SEXP extract();
+        SEXP decode();
 
-        SEXP extractElements(SEXP i);
+        SEXP decodeElements(SEXP i);
 
         int length();
 
@@ -1258,9 +1258,9 @@ extern "C" {
 
     SEXP getWhich(SEXP x);
 
-    SEXP countRuns(SEXP x);
+    SEXP countRuns(SEXP x, SEXP delta);
 
-    SEXP createDRLE(SEXP x, SEXP nruns);
+    SEXP createDRLE(SEXP x, SEXP nruns, SEXP delta);
 
     SEXP getDRLE(SEXP x);
 

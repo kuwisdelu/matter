@@ -138,7 +138,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_mat", function(x) "matrix")
+setMethod("describe_for_display", "matter_mat", function(x) "out-of-memory matrix")
 
 setMethod("show", "matter_mat", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")

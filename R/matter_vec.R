@@ -79,7 +79,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_vec", function(x) "vector")
+setMethod("describe_for_display", "matter_vec", function(x) "out-of-memory vector")
 
 setMethod("show", "matter_vec", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")

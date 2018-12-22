@@ -25,8 +25,6 @@ setClass("virtual_mat",
 		if ( prod(object@dim) != object@length )
 			errors <- c(errors, paste0("dims [product ", prod(object@dim),
 				"] do not match the length of array [", object@length, "]"))
-		if ( !object@datamode[2] %in% c("logical", "integer", "numeric") )
-			errors <- c(errors, "'datamode[2]' must be 'logical', 'integer', or 'numeric'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -287,6 +285,10 @@ setMethod("[",
 			stop("linear indexing not supported")
 		if ( narg > 1 && narg != length(dim(x)) )
 			stop("incorrect number of dimensions")
+		if ( !missing(i) && is.null(i) )
+			i <- integer(0)
+		if ( !missing(j) && is.null(j) )
+			j <- integer(0)
 		if ( !missing(i) && !missing(j) ) {
 			getVirtualMatrixElements(x, i, j, drop)
 		} else if ( !missing(i) ) {
@@ -306,6 +308,10 @@ setMethod("[",
 			stop("linear indexing not supported")
 		if ( narg > 1 && narg != length(dim(x)) )
 			stop("incorrect number of dimensions")
+		if ( !missing(i) && is.null(i) )
+			i <- integer(0)
+		if ( !missing(j) && is.null(j) )
+			j <- integer(0)
 		if ( !missing(i) && !missing(j) ) {
 			subVirtualMatrix(x, i, j)
 		} else if ( !missing(i) ) {

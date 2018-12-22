@@ -86,7 +86,7 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_str", function(x) "string")
+setMethod("describe_for_display", "matter_str", function(x) "out-of-memory string")
 
 setMethod("show", "matter_str", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")

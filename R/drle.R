@@ -25,23 +25,36 @@ setClass("drle",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-drle <- function(x, cr_threshold = 0)
+drle <- function(x, cr_threshold = 0, delta = TRUE)
 {
 	if ( is.drle(x) )
 		return(x)
 	if ( !(is.integer(x) || is.numeric(x)) )
 		stop("'x' must be an 'integer' or 'numeric' vector")
-	nruns <- .Call("C_countRuns", x, PACKAGE="matter")
+	delta <- as.logical(delta)
+	nruns <- .Call("C_countRuns", x, delta, PACKAGE="matter")
 	comp_size <- nruns * (sizeof("integer") + 2 * sizeof(typeof(x)))
 	uncomp_size <- length(x) * sizeof(typeof(x))
 	if ( uncomp_size / comp_size > cr_threshold ) {
-		out <- .Call("C_createDRLE", x, nruns, PACKAGE="matter")
+		out <- .Call("C_createDRLE", x, nruns, delta, PACKAGE="matter")
 	} else {
 		out <- x
 	}
 	if ( validObject(out) )
 		out
 }
+
+setMethod("describe_for_display", "drle", function(x) "compressed vector")
+
+setMethod("show", "drle", function(object) {
+	cat("An object of class '", class(object), "'\n", sep="")
+	cat("  <", length(object), " length> ",
+		describe_for_display(object), "\n", sep="")
+	print(data.frame(
+		values=object@values,
+		lengths=object@lengths,
+		deltas=object@deltas))
+})
 
 is.drle <- function(x) is(x, "drle")
 
@@ -120,12 +133,5 @@ setMethod("c", "drle", function(x, ..., recursive=FALSE)
 	} else {
 		do.call(combine, list(x, ...))
 	}
-})
-
-setMethod("show", "drle", function(object) {
-	print(data.frame(
-		values=object@values,
-		lengths=object@lengths,
-		deltas=object@deltas))
 })
 

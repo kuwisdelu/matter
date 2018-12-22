@@ -319,6 +319,8 @@ make_datamode <- function(x, type=c("C", "R")) {
 			"logical",
 			"integer",
 			"numeric",
+			"character",
+			"list",
 			"virtual"))
 	if ( missing(x) )
 		return(factor(levels=levels))
@@ -372,6 +374,7 @@ convert_datamode <- function(x, to=c("C", "R")) {
 			integer = "int",
 			numeric = "double",
 			character = "uchar",
+			list = stop("cannot convert data mode 'list' to C data type"),
 			virtual = stop("cannot convert data mode 'virtual' to C data type"))
 	}
 	names(x) <- NULL
@@ -393,7 +396,10 @@ widest_datamode <- function(x) {
 			logical = "logical",
 			integer = "integer",
 			numeric = "numeric",
-			virtual = stop("data mode 'virtual' not expected here")), type="R")
+			character = stop("data mode 'character' not expected here"),
+			list = stop("data mode 'list' not expected here"),
+			virtual = stop("data mode 'virtual' not expected here")),
+		type="R")
 	} else if ( all(x %in% levels(make_datamode(type="C"))) ) {
 		x <- max(as.integer(make_datamode(x, type="C")))
 		make_datamode(switch(x,

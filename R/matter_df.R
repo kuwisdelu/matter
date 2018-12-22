@@ -56,7 +56,7 @@ matter_df <- function(..., row.names = NULL) {
 		ops=NULL)
 }
 
-setMethod("describe_for_display", "matter_df", function(x) "data frame")
+setMethod("describe_for_display", "matter_df", function(x) "out-of-memory data frame")
 
 setMethod("show", "matter_df", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")

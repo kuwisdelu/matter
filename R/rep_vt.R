@@ -18,6 +18,11 @@ rep_vt <- function(x, times, length.out = length(x) * times)
 		out
 }
 
+setMethod("show", "rep_vt", function(object) {
+	cat("An object of class '", class(object), "'\n", sep="")
+	print(list(data=object@data, length=object@length))
+})
+
 setAs("rep_vt", "list", function(from) as.list(from[]))
 
 setAs("rep_vt", "vector", function(from) from[])
@@ -51,8 +56,4 @@ setMethod("[[",
 	})
 
 setMethod("length", "rep_vt", function(x) x@length)
-
-setMethod("show", "rep_vt", function(object) {
-	print(list(data=object@data, length=object@length))
-})
 

@@ -16,7 +16,7 @@ setClass("matter_tbl",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setMethod("describe_for_display", "matter_tbl", function(x) "data table")
+setMethod("describe_for_display", "matter_tbl", function(x) "out-of-memory data table")
 
 print_tabular_data <- function(x, classinfo, n = 6L, ...) {
 	tbl <- head(x, n=n)

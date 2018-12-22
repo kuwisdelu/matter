@@ -791,12 +791,15 @@ int run_length<double>(double * values, int i, int n, double delta) {
 }
 
 template<>
-int count_runs<int>(int * values, int n) {
+int count_runs<int>(int * values, int n, bool delta) {
     int delta1, delta2, length1, length2, i = 0, nruns = 0;
     while ( i < n ) {
-        delta1 = run_delta<int>(values, i, n);
+        if ( delta )
+            delta1 = run_delta<int>(values, i, n);
+        else
+            delta1 = 0;
         length1 = run_length<int>(values, i, n, delta1);
-        if ( length1 == 2 ) {
+        if ( delta && length1 == 2 ) {
             delta2 = run_delta<int>(values, i + 1, n);
             length2 = run_length<int>(values, i + 1, n, delta2);
             if ( length2 > 2 ) {
@@ -821,13 +824,16 @@ int count_runs<int>(int * values, int n) {
 }
 
 template<>
-int count_runs<double>(double * values, int n) {
+int count_runs<double>(double * values, int n, bool delta) {
     double delta1, delta2;
     int length1, length2, i = 0, nruns = 0;
     while ( i < n ) {
-        delta1 = run_delta<double>(values, i, n);
+        if ( delta )
+            delta1 = run_delta<double>(values, i, n);
+        else
+            delta1 = 0;
         length1 = run_length<double>(values, i, n, delta1);
-        if ( length1 == 2 ) {
+        if ( delta && length1 == 2 ) {
             delta2 = run_delta<double>(values, i + 1, n);
             length2 = run_length<double>(values, i + 1, n, delta2);
             if ( length2 > 2 ) {
@@ -852,7 +858,7 @@ int count_runs<double>(double * values, int n) {
 }
 
 template<>
-SEXP makeDRLE<int>(SEXP x, SEXP nruns) {
+SEXP makeDRLE<int>(SEXP x, SEXP nruns, bool delta) {
     SEXP retVals, retLengths, retDeltas;
     int * pX, * pRetVals, * pRetLengths, * pRetDeltas;
     PROTECT(retVals = Rf_allocVector(INTSXP, Rf_asInteger(nruns)));
@@ -864,9 +870,12 @@ SEXP makeDRLE<int>(SEXP x, SEXP nruns) {
     pRetDeltas = INTEGER(retDeltas);
     int delta1, delta2, length1, length2, i = 0, nrun = 0, n = LENGTH(x);
     while ( i < n ) {
-        delta1 = run_delta<int>(pX, i, n);
+        if ( delta )
+            delta1 = run_delta<int>(pX, i, n);
+        else
+            delta1 = 0;
         length1 = run_length<int>(pX, i, n, delta1);
-        if ( length1 == 2 ) {
+        if ( delta && length1 == 2 ) {
             delta2 = run_delta<int>(pX, i + 1, n);
             length2 = run_length<int>(pX, i + 1, n, delta2);
             if ( length2 > 2 ) {
@@ -910,7 +919,7 @@ SEXP makeDRLE<int>(SEXP x, SEXP nruns) {
 }
 
 template<>
-SEXP makeDRLE<double>(SEXP x, SEXP nruns) {
+SEXP makeDRLE<double>(SEXP x, SEXP nruns, bool delta) {
     SEXP retVals, retLengths, retDeltas;
     double * pX, * pRetVals, * pRetDeltas;
     int * pRetLengths;
@@ -924,9 +933,12 @@ SEXP makeDRLE<double>(SEXP x, SEXP nruns) {
     double delta1, delta2;
     int length1, length2, i = 0, nrun = 0, n = LENGTH(x);
     while ( i < n ) {
-        delta1 = run_delta<double>(pX, i, n);
+        if ( delta )
+            delta1 = run_delta<double>(pX, i, n);
+        else
+            delta1 = 0;
         length1 = run_length<double>(pX, i, n, delta1);
-        if ( length1 == 2 ) {
+        if ( delta && length1 == 2 ) {
             delta2 = run_delta<double>(pX, i + 1, n);
             length2 = run_length<double>(pX, i + 1, n, delta2);
             if ( length2 > 2 ) {
@@ -970,7 +982,7 @@ SEXP makeDRLE<double>(SEXP x, SEXP nruns) {
 }
 
 template<typename RType, int SType>
-SEXP VectorOrDRLE<RType,SType> :: extract() {
+SEXP VectorOrDRLE<RType,SType> :: decode() {
     SEXP retVec;
     int nout = length();
     PROTECT(retVec = Rf_allocVector(SType, nout));
@@ -991,7 +1003,7 @@ SEXP VectorOrDRLE<RType,SType> :: extract() {
 }
 
 template<typename RType, int SType>
-SEXP VectorOrDRLE<RType,SType> :: extractElements(SEXP i) {
+SEXP VectorOrDRLE<RType,SType> :: decodeElements(SEXP i) {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, LENGTH(i)));
     RType * pRetVec = DataPtr<RType,SType>(retVec);
@@ -5435,29 +5447,31 @@ extern "C" {
         return mVec.which();
     }
 
-    SEXP countRuns(SEXP x) {
+    SEXP countRuns(SEXP x, SEXP delta) {
         SEXP ret;
         PROTECT(ret = Rf_allocVector(INTSXP, 1));
         if ( TYPEOF(x) == INTSXP )
         {
-            INTEGER(ret)[0] = count_runs<int>(INTEGER(x), LENGTH(x));
+            INTEGER(ret)[0] = count_runs<int>(INTEGER(x),
+                LENGTH(x), Rf_asLogical(delta));
         }
         else if ( TYPEOF(x) == REALSXP )
         {
-            INTEGER(ret)[0] = count_runs<double>(REAL(x), LENGTH(x));
+            INTEGER(ret)[0] = count_runs<double>(REAL(x),
+                LENGTH(x), Rf_asLogical(delta));
         }
         UNPROTECT(1);
         return ret;
     }
 
-    SEXP createDRLE(SEXP x, SEXP nruns) {
+    SEXP createDRLE(SEXP x, SEXP nruns, SEXP delta) {
         if ( TYPEOF(x) == INTSXP )
         {
-            return makeDRLE<int>(x, nruns);
+            return makeDRLE<int>(x, nruns, Rf_asLogical(delta));
         }
         else if ( TYPEOF(x) == REALSXP )
         {
-            return makeDRLE<double>(x, nruns);;
+            return makeDRLE<double>(x, nruns, Rf_asLogical(delta));;
         }
         return R_NilValue;
     }
@@ -5467,12 +5481,12 @@ extern "C" {
         if ( TYPEOF(values) == INTSXP )
         {
             VectorOrDRLE<int,INTSXP> dVec(x);
-            return dVec.extract();
+            return dVec.decode();
         }
         else if ( TYPEOF(values) == REALSXP )
         {
             VectorOrDRLE<double,REALSXP> dVec(x);
-            return dVec.extract();
+            return dVec.decode();
         }
         return R_NilValue;
     }
@@ -5482,12 +5496,12 @@ extern "C" {
         if ( TYPEOF(values) == INTSXP )
         {
             VectorOrDRLE<int,INTSXP> dVec(x);
-            return dVec.extractElements(i);
+            return dVec.decodeElements(i);
         }
         else if ( TYPEOF(values) == REALSXP )
         {
             VectorOrDRLE<double,REALSXP> dVec(x);
-            return dVec.extractElements(i);
+            return dVec.decodeElements(i);
         }
         return R_NilValue;
     }

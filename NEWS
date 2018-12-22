@@ -1,4 +1,14 @@
 
+CHANGES IN VERSION 1.9.9 [2018-12-22]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Constructor for 'drle' now allows forcing delta = 0
+    o Updated display descriptions in 'show' methods
+    o Check for NULL dimensions when subsetting
+        'virtual_mat' and 'sparse_mat' classes
+
 CHANGES IN VERSION 1.9.8 [2018-12-18]
 -----------------------------------
 

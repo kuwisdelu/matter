@@ -97,7 +97,7 @@ struct <- function(..., filename = NULL, filemode = "rw", offset = 0) {
 		lengths=lens, names=names, filemode=filemode)
 }
 
-setMethod("describe_for_display", "matter_list", function(x) "list")
+setMethod("describe_for_display", "matter_list", function(x) "out-of-memory list")
 
 setMethod("show", "matter_list", function(object) {
 	cat("An object of class '", class(object), "'\n", sep="")

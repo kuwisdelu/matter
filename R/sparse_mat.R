@@ -724,6 +724,10 @@ setMethod("[",
 			stop("linear indexing not supported")
 		if ( narg > 1 && narg != length(dim(x)) )
 			stop("incorrect number of dimensions")
+		if ( !missing(i) && is.null(i) )
+			i <- integer(0)
+		if ( !missing(j) && is.null(j) )
+			j <- integer(0)
 		if ( !missing(i) && !missing(j) ) {
 			getSparseMatrixElements(x, i, j, drop)
 		} else if ( !missing(i) ) {
@@ -743,6 +747,10 @@ setMethod("[",
 			stop("linear indexing not supported")
 		if ( narg > 1 && narg != length(dim(x)) )
 			stop("incorrect number of dimensions")
+		if ( !missing(i) && is.null(i) )
+			i <- integer(0)
+		if ( !missing(j) && is.null(j) )
+			j <- integer(0)
 		if ( !missing(i) && !missing(j) ) {
 			subSparseMatrix(x, i, j)
 		} else if ( !missing(i) ) {
