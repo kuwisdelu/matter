@@ -31,7 +31,10 @@ setReplaceMethod("datamode", "matter_vt", function(x, value) {
 			datamode(a) <- value
 		a
 	})
-	x
+	if ( value[1] != "virtual" )
+		x@datamode <- make_datamode(c("virtual", value), type="R")
+	if ( validObject(x) )
+		x
 })
 
 setReplaceMethod("paths", "matter_vt", function(x, value) {

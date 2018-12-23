@@ -35,7 +35,7 @@
 \title{Virtual Matrices}
 
 \description{
-    The \code{virtual_mat} class implements virtual matrices, which may hold any matrix objects. It is provided primarily to allow combining of \code{matter} matrix classes that could not be combined otherwise.
+    The \code{virtual_mat} class implements virtual matrices, which may hold any matrix-like objects. It is provided primarily to allow combining of \code{matter} matrix classes that could not be combined otherwise.
 }
 
 \usage{
@@ -53,7 +53,7 @@ as.virtual(x, \dots)
 }
 
 \arguments{
-        \item{data}{A list of matrices to combine.}
+        \item{data}{A list of matrices or vectors to combine.}
 
         \item{datamode}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are R numeric and logical types ('logical', 'integer', 'numeric') and their C equivalents.}
 
@@ -70,7 +70,7 @@ as.virtual(x, \dots)
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
+        \item{\code{data}:}{A list of the original matrices or row/column-vectors.}
 
         \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
 

@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.9.10 [2018-12-22]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Vectors can be used as 'virtual_mat' rows/columns now
+
 CHANGES IN VERSION 1.9.9 [2018-12-22]
 -----------------------------------
 

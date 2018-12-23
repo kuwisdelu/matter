@@ -85,7 +85,7 @@ as.sparse(x, \dots)
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
+        \item{\code{data}:}{A length-2 'list' with elements 'keys' and 'values' which provide the halves of the key-value pairs of the non-zero elements.}
 
         \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
 

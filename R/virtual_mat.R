@@ -20,8 +20,6 @@ setClass("virtual_mat",
 			errors <- c(errors, "virtual matrix must have non-NULL 'dim'")
 		if ( length(object@dim) != 2 )
 			errors <- c(errors, "virtual matrix must have 'dim' of length 2")
-		if ( any(lengths(lapply(object@data, dim)) != 2) )
-			errors <- c(errors, "elements of 'data' must have 'dim' of length 2")
 		if ( prod(object@dim) != object@length )
 			errors <- c(errors, paste0("dims [product ", prod(object@dim),
 				"] do not match the length of array [", object@length, "]"))
@@ -45,8 +43,13 @@ setClass("virtual_matc",
 	contains = "virtual_mat",
 	validity = function(object) {
 		errors <- NULL
-		if ( length(unique(sapply(object@data, nrow))) != 1 )
-			errors <- c(errors, "elements of 'data' must have the same number of rows")
+		if ( is.null(dim(object@data[[1]])) ) {
+			if ( length(unique(sapply(object@data, length))) != 1 )
+				errors <- c(errors, "elements of 'data' must have the same length")
+		} else {
+			if ( length(unique(sapply(object@data, nrow))) != 1 )
+				errors <- c(errors, "elements of 'data' must have the same number of rows")
+		}
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -67,8 +70,13 @@ setClass("virtual_matr",
 	contains = "virtual_mat",
 	validity = function(object) {
 		errors <- NULL
-		if ( length(unique(sapply(object@data, ncol))) != 1 )
-			errors <- c(errors, "elements of 'data' must have the same number of columns")
+		if ( is.null(dim(object@data[[1]])) ) {
+			if ( length(unique(sapply(object@data, length))) != 1 )
+				errors <- c(errors, "elements of 'data' must have the same length")
+		} else {
+			if ( length(unique(sapply(object@data, ncol))) != 1 )
+				errors <- c(errors, "elements of 'data' must have the same number of columns")
+		}
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -76,19 +84,37 @@ virtual_mat <- function(data, datamode = "double", rowMaj = FALSE,
 						dimnames = NULL, index = NULL, ...) {
 	if ( !is.list(data) )
 		data <- list(data)
+	if ( missing(datamode) ) {
+		if ( is.atomic(data[[1]]) )
+			datamode <- typeof(data[[1]])
+		if ( is.matter(data[[1]]) )
+			datamode <- datamode(data[[1]])
+	}
 	datamode <- as.character(make_datamode(datamode, type="R"))
 	if ( rowMaj ) {
 		mclass <- "virtual_matr"
-		nrow <- sum(sapply(data, nrow))
-		ncol <- ncol(data[[1]])
+		if ( !is.null(dim(data[[1]])) ) {
+			nrow <- sum(sapply(data, nrow))
+			ncol <- ncol(data[[1]])
+		} else {
+			nrow <- length(data)
+			ncol <- length(data[[1]])
+		}
 	} else {
 		mclass <- "virtual_matc"
-		nrow <- nrow(data[[1]])
-		ncol <- sum(sapply(data, ncol))
+		if ( !is.null(dim(data[[1]])) ) {
+			nrow <- nrow(data[[1]])
+			ncol <- sum(sapply(data, ncol))
+		} else {
+			nrow <- length(data[[1]])
+			ncol <- length(data)
+		}
 	}
+	if ( datamode[1] != "virtual" )
+		datamode <- make_datamode(c("virtual", datamode), type="R")
 	x <- new(mclass,
 		data=data,
-		datamode=make_datamode(c("virtual", datamode), type="R"),
+		datamode=datamode,
 		paths=character(),
 		filemode=make_filemode(),
 		length=as.numeric(prod(c(nrow, ncol))),
@@ -96,7 +122,7 @@ virtual_mat <- function(data, datamode = "double", rowMaj = FALSE,
 		names=NULL,
 		dimnames=dimnames,
 		ops=NULL,
-		index=NULL)
+		index=index)
 	x
 }
 
@@ -112,13 +138,6 @@ setMethod("show", "virtual_mat", function(object) {
 		cat("    scaled:center = TRUE\n")
 	if ( !is.null(attr(object, "scaled:scale")) )
 		cat("    scaled:scale = TRUE\n")
-})
-
-setReplaceMethod("datamode", "virtual_mat", function(x, value) {
-	value <- as.character(make_datamode(value, type="R"))
-	if ( value[1] != "virtual" )
-		x@datamode <- make_datamode(c("virtual", value), type="R")
-	x
 })
 
 setAs("ANY", "virtual_matc",
@@ -188,11 +207,17 @@ getVirtualMatrixElements <- function(x, i, j, drop=TRUE) {
 	init <- as.vector(NA, mode=vmode)
 	y <- matrix(init, nrow=nrow, ncol=ncol)
 	if ( is(x, "virtual_matc") ) {
-		colranges <- c(0, cumsum(sapply(x@data, ncol)))
-		wh <- findInterval(cols, colranges, left.open=TRUE)
+		if ( !is.null(dim(x@data[[1]])) ) {
+			colranges <- c(0, cumsum(sapply(x@data, ncol)))
+			wh <- findInterval(cols, colranges, left.open=TRUE)
+		}
 		for ( jj in seq_along(cols) ) {
-			e <- wh[jj]
-			vals <- x@data[[e]][rows, cols[jj] - colranges[e]]
+			if ( !is.null(dim(x@data[[1]])) ) {
+				e <- wh[jj]
+				vals <- x@data[[e]][rows, cols[jj] - colranges[e]]
+			} else {
+				vals <- x@data[[cols[jj]]][rows]
+			}
 			if ( x@transpose ) {
 				y[jj,] <- as.vector(vals, mode=vmode)
 			} else {
@@ -200,11 +225,17 @@ getVirtualMatrixElements <- function(x, i, j, drop=TRUE) {
 			}
 		}
 	} else if ( is(x, "virtual_matr") ) {
-		rowranges <- c(0, cumsum(sapply(x@data, nrow)))
-		wh <- findInterval(rows, rowranges, left.open=TRUE)
+		if ( !is.null(dim(x@data[[1]])) ) {
+			rowranges <- c(0, cumsum(sapply(x@data, nrow)))
+			wh <- findInterval(rows, rowranges, left.open=TRUE)
+		}
 		for ( ii in seq_along(rows) ) {
-			e <- wh[ii]
-			vals <- x@data[[e]][rows[ii] - rowranges[e], cols]
+			if ( !is.null(dim(x@data[[1]])) ) {
+				e <- wh[ii]
+				vals <- x@data[[e]][rows[ii] - rowranges[e], cols]
+			} else {
+				vals <- x@data[[rows[ii]]][cols]
+			}
 			if ( x@transpose ) {
 				y[,ii] <- as.vector(vals, mode=vmode)
 			} else {

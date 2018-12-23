@@ -217,13 +217,6 @@ setMethod("show", "sparse_mat", function(object) {
 		cat("    scaled:scale = TRUE\n")
 })
 
-setReplaceMethod("datamode", "sparse_mat", function(x, value) {
-	value <- as.character(make_datamode(value, type="R"))
-	if ( value[1] != "virtual" )
-		x@datamode <- make_datamode(c("virtual", value), type="R")
-	x
-})
-
 setAs("matrix", "sparse_mat",
 	function(from) sparse_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
 
