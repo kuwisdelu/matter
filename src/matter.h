@@ -593,7 +593,7 @@ class Atoms {
         }
 
         template<typename CType, typename RType, typename IType>
-        void read_delayed_atom(RType * ptr, CType * buffer, index_t offset, index_t count, size_t skip) {
+        void apply_delayed_ops(RType * ptr, CType * buffer, index_t offset, index_t count, size_t skip) {
             if ( _ops.result_type(group()) == R_LOGICAL )
             {
                 if ( _ops.length() == 0 )
@@ -638,19 +638,19 @@ class Atoms {
             switch(datamode(which)) {
                 case C_CHAR:
                 case C_UCHAR:
-                    read_delayed_atom<CType,RType,Rbyte>(ptr, tmp, offset, count, skip);
+                    apply_delayed_ops<CType,RType,Rbyte>(ptr, tmp, offset, count, skip);
                     break;
                 case C_SHORT:
                 case C_USHORT:
                 case C_INT:
                 case C_UINT:
-                    read_delayed_atom<CType,RType,int>(ptr, tmp, offset, count, skip);
+                    apply_delayed_ops<CType,RType,int>(ptr, tmp, offset, count, skip);
                     break;
                 case C_LONG:
                 case C_ULONG:
                 case C_FLOAT:
                 case C_DOUBLE:
-                    read_delayed_atom<CType,RType,double>(ptr, tmp, offset, count, skip);
+                    apply_delayed_ops<CType,RType,double>(ptr, tmp, offset, count, skip);
                     break;
             }
             Free(tmp);
@@ -932,14 +932,14 @@ class Matter
         }
 
         int nrows() {
-            if ( dimlength() == 2 )
+            if ( dimlength() >= 1 )
                 return dim(0);
             else
                 return 0;
         }
 
         int ncols() {
-            if ( dimlength() == 2 )
+            if ( dimlength() >= 2 )
                 return dim(1);
             else
                 return 0;
