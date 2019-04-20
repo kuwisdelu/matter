@@ -38,14 +38,13 @@
 }
 
 \value{
-	See \code{\link[base]{lapply}} and \code{\link[base]{sapply}} for details.
+	See \code{\link[base]{lapply}} for details.
 }
 
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\link[base]{lapply}},
-    \code{\link[base]{sapply}}
+    \code{\link[base]{lapply}}
 }
 
 \examples{
