@@ -2,7 +2,7 @@
 # streaming statistical summaries
 
 s_range <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_range(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -17,7 +17,7 @@ s_range <- function(x, ..., na.rm = FALSE) {
 }
 
 s_min <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_min(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -32,7 +32,7 @@ s_min <- function(x, ..., na.rm = FALSE) {
 }
 
 s_max <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_max(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -47,7 +47,7 @@ s_max <- function(x, ..., na.rm = FALSE) {
 }
 
 s_prod <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_prod(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -62,7 +62,7 @@ s_prod <- function(x, ..., na.rm = FALSE) {
 }
 
 s_sum <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_sum(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -77,7 +77,7 @@ s_sum <- function(x, ..., na.rm = FALSE) {
 }
 
 s_mean <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_mean(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -92,7 +92,7 @@ s_mean <- function(x, ..., na.rm = FALSE) {
 }
 
 s_var <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_var(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -108,7 +108,7 @@ s_var <- function(x, ..., na.rm = FALSE) {
 }
 
 s_sd <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_sd(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -124,7 +124,7 @@ s_sd <- function(x, ..., na.rm = FALSE) {
 }
 
 s_any <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_any(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -139,7 +139,7 @@ s_any <- function(x, ..., na.rm = FALSE) {
 }
 
 s_all <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 1L ) {
+	if ( length(list(...)) > 0L ) {
 		x <- s_all(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -304,7 +304,7 @@ stat_c.stream_sd <- function(x, y, ...) {
 	m <- (nx * mx + ny * my) / (nx + ny)
 	if ( nx == 1 && ny > 1 )
 		return(stat_c(y, x))
-	if ( nx >= 1 || ny == 1 ) {
+	if ( nx >= 1 && ny == 1 ) {
 		if ( nx == 1 ) {
 			ss1 <- 0
 		} else {
