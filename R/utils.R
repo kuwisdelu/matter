@@ -73,6 +73,15 @@ groupCombiner <- function(fun) {
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 
+check_compatible_classes <- function(x, y) {
+	if ( !inherits(y, class(x)) ) {
+		stop("incompatible classes: ",
+			class(x)[1L], ", ", class(y)[1L])
+	} else {
+		TRUE
+	}
+}
+
 returnWithWarning <- function(x, ...) {
 	warning(...)
 	x
