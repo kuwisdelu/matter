@@ -13,6 +13,8 @@
 \alias{[<-,matter_str-method}
 \alias{[<-,matter_str,ANY,missing,ANY-method}
 
+\alias{combine,matter_str,ANY-method}
+
 \alias{as.vector,matter_str-method}
 
 \title{Out-of-Memory Strings}

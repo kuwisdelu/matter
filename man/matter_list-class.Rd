@@ -19,6 +19,8 @@
 \alias{$,matter_list-method}
 \alias{$<-,matter_list-method}
 
+\alias{combine,matter_list,ANY-method}
+
 \alias{as.list,matter_list-method}
 
 \title{Out-of-Memory Lists of Vectors}

@@ -86,7 +86,7 @@
 }
 
 \seealso{
-    \code{\link[base]{colSums}}
+    \code{\link[matter]{stream_stat}}
 }
 
 \examples{

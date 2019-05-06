@@ -12,6 +12,7 @@
 \alias{[<-,matter_vec,ANY,missing,ANY-method}
 
 \alias{c,matter_vec-method}
+\alias{combine,matter_vec,ANY-method}
 
 \alias{t,matter_vec-method}
 

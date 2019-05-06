@@ -10,6 +10,10 @@
 \alias{c,drle-method}
 \alias{length,drle-method}
 
+\alias{combine,drle,drle-method}
+\alias{combine,drle,numeric-method}
+\alias{combine,numeric,drle-method}
+
 \alias{as.vector,drle-method}
 \alias{as.list,drle-method}
 

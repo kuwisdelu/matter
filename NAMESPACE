@@ -123,6 +123,7 @@ exportMethods(
 	"$",
 	"$<-",
 	"c",
+	"combine",
 	"cbind",
 	"rbind",
 	"lengths",
@@ -171,6 +172,33 @@ exportMethods(
 	"rowVars",
 	"rowSds",
 	"which")
+
+export(
+	"s_range",
+	"s_min",
+	"s_max",
+	"s_prod",
+	"s_sum",
+	"s_mean",
+	"s_var",
+	"s_sd",
+	"s_any",
+	"s_all",
+	"stat_c")
+
+S3method("stat_c", "stream_range")
+S3method("stat_c", "stream_min")
+S3method("stat_c", "stream_max")
+S3method("stat_c", "stream_prod")
+S3method("stat_c", "stream_sum")
+S3method("stat_c", "stream_mean")
+S3method("stat_c", "stream_var")
+S3method("stat_c", "stream_sd")
+S3method("stat_c", "stream_any")
+S3method("stat_c", "stream_all")
+
+S3method("print", "stream_stat")
+S3method("nobs", "stream_stat")
 
 export(
 	"uuid",

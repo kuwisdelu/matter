@@ -91,6 +91,6 @@ setGeneric("combine_by_rows", function(x, y, ...) {
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------
 
-setMethod("combine", c("numeric", "numeric"),
+setMethod("combine", c("ANY", "ANY"),
 	function(x, y, ...) c(x, y))
 

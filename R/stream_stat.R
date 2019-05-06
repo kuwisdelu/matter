@@ -1,11 +1,10 @@
 
 # streaming statistical summaries
 
-s_range <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_range <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_range(x, na.rm=na.rm)
-		y <- s_range(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(range(x, na.rm=na.rm),
@@ -17,27 +16,25 @@ s_range <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_min <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_min <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_min(x, na.rm=na.rm)
-		y <- s_min(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(min(x, na.rm=na.rm),
 			class=c("stream_min", "stream_stat"),
 			na.rm=na.rm,
 			nobs=length(x))
-	else {
+	} else {
 		x
 	}
 }
 
-s_max <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_max <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_max(x, na.rm=na.rm)
-		y <- s_max(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(max(x, na.rm=na.rm),
@@ -49,11 +46,10 @@ s_max <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_prod <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_prod <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_prod(x, na.rm=na.rm)
-		y <- s_prod(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(prod(x, na.rm=na.rm),
@@ -65,11 +61,10 @@ s_prod <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_sum <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_sum <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_sum(x, na.rm=na.rm)
-		y <- s_sum(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(sum(x, na.rm=na.rm),
@@ -81,11 +76,10 @@ s_sum <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_mean <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_mean <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_mean(x, na.rm=na.rm)
-		y <- s_mean(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(mean(x, na.rm=na.rm),
@@ -97,11 +91,10 @@ s_mean <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_var <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_var <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_var(x, na.rm=na.rm)
-		y <- s_var(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(var(x, na.rm=na.rm),
@@ -114,11 +107,10 @@ s_var <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_sd <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_sd <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_sd(x, na.rm=na.rm)
-		y <- s_sd(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(sd(x, na.rm=na.rm),
@@ -131,11 +123,10 @@ s_sd <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_any <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_any <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_any(x, na.rm=na.rm)
-		y <- s_any(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(any(x, na.rm=na.rm),
@@ -147,11 +138,10 @@ s_any <- function(x, y = NULL, na.rm = FALSE) {
 	}
 }
 
-s_all <- function(x, y = NULL, na.rm = FALSE) {
-	if ( !is.null(y) ) {
+s_all <- function(x, ..., na.rm = FALSE) {
+	if ( length(list(...)) > 1L ) {
 		x <- s_all(x, na.rm=na.rm)
-		y <- s_all(y, na.rm=na.rm)
-		return(stat_c(x, y))
+		return(stat_c(x, ...))
 	}
 	if ( !is.stream_stat(x) ) {
 		structure(all(x, na.rm=na.rm),
@@ -212,7 +202,7 @@ stat_c <- function(x, y, ...) {
 	}
 }
 
-setMethod("combine", c("stream_stat", "stream_stat"),
+setMethod("combine", "stream_stat",
 	function(x, y, ...) stat_c(x, y, ...))
 
 stream_stat_attr <- function(value, x, y) {
@@ -224,42 +214,50 @@ stream_stat_attr <- function(value, x, y) {
 
 # combine statistics
 
-stat_c.stream_range <- function(x, y) {
+stat_c.default <- function(x, y, ...) {
+	if ( is.stream_stat(y) ) {
+		stat_c(y, x)
+	} else {
+		c(x, y)
+	}
+}
+
+stat_c.stream_range <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_range(y, na.rm=na_rm(x))
 	val <- range(c(x, y), na.rm=FALSE)
 	stream_stat_attr(val, x, y)
 }
 
-stat_c.stream_min <- function(x, y) {
+stat_c.stream_min <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_min(y, na.rm=na_rm(x))
 	val <- min(c(x, y), na.rm=FALSE)
 	stream_stat_attr(val, x, y)
 }
 
-stat_c.stream_max <- function(x, y) {
+stat_c.stream_max <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_max(y, na.rm=na_rm(x))
 	val <- max(c(x, y), na.rm=FALSE)
 	stream_stat_attr(val, x, y)
 }
 
-stat_c.stream_prod <- function(x, y) {
+stat_c.stream_prod <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_prod(y, na.rm=na_rm(x))
 	val <- prod(c(x, y), na.rm=FALSE)
 	stream_stat_attr(val, x, y)
 }
 
-stat_c.stream_sum <- function(x, y) {
+stat_c.stream_sum <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_sum(y, na.rm=na_rm(x))
 	val <- sum(c(x, y), na.rm=FALSE)
 	stream_stat_attr(val, x, y)
 }
 
-stat_c.stream_mean <- function(x, y) {
+stat_c.stream_mean <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_mean(y, na.rm=na_rm(x))
 	nx <- nobs(x)
@@ -268,7 +266,7 @@ stat_c.stream_mean <- function(x, y) {
 	stream_stat_attr(val, x, y)
 }
 
-stat_c.stream_var <- function(x, y) {
+stat_c.stream_var <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_var(y, na.rm=na_rm(x))
 	nx <- nobs(x)
@@ -296,7 +294,7 @@ stat_c.stream_var <- function(x, y) {
 	ret
 }
 
-stat_c.stream_sd <- function(x, y) {
+stat_c.stream_sd <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_sd(y, na.rm=na_rm(x))
 	nx <- nobs(x)
@@ -324,14 +322,14 @@ stat_c.stream_sd <- function(x, y) {
 	ret
 }
 
-stat_c.stream_any <- function(x, y) {
+stat_c.stream_any <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_any(y, na.rm=na_rm(x))
 	val <- any(c(x, y), na.rm=FALSE)
 	stream_stat_attr(val, x, y)
 }
 
-stat_c.stream_all <- function(x, y) {
+stat_c.stream_all <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_all(y, na.rm=na_rm(x))
 	val <- all(c(x, y), na.rm=FALSE)

@@ -11,6 +11,8 @@
 \alias{[<-,matter_fc-method}
 \alias{[<-,matter_fc,ANY,missing,ANY-method}
 
+\alias{combine,matter_fc,ANY-method}
+
 \alias{levels,matter_fc-method}
 \alias{levels<-,matter_fc-method}
 

@@ -59,6 +59,8 @@
 \alias{[[,atoms-method}
 \alias{[[,atoms,ANY,ANY-method}
 
+\alias{combine,atoms,ANY-method}
+
 \alias{c,atoms-method}
 \alias{c,matter-method}
 

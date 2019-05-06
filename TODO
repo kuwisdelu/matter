@@ -3,7 +3,7 @@ TODO for matter package
 -------------------------
 
 - Default to endomorphic subsetting of lists and data frames
-- Add "stream_stat" class for streaming statistics
+- Add block-apply and block-lapply for matter objects
 - Add more data manipulation functions for 'matter_df'
 - Add wrappers for reading/manipulating csv, tsv, etc. (?)
 - Add 'match' and '%in%' functions for 'matter_vec' class
