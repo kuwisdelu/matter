@@ -1,7 +1,7 @@
 require(testthat)
 require(matter)
 
-context("matter-class")
+context("matter-classes")
 
 test_that("delta run length encoding", {
 

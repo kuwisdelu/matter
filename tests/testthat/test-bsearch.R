@@ -1,7 +1,7 @@
 require(testthat)
 require(matter)
 
-context("matter-misc")
+context("bsearch")
 
 test_that("binary search - integers", {
 
