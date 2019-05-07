@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 1.11.1 [2019-5-7]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'stream_stat' class for streaming statistics
+        with functions s_mean(), s_var(), s_sd(), etc.
+
 CHANGES IN VERSION 1.9.11 [2019-4-19]
 -----------------------------------
 
