@@ -43,8 +43,7 @@ sapply_matter <- function(X, FUN, ..., SIMPLIFY, USE.NAMES, BPPARAM)
 {
 	FUN <- match.fun(FUN)
 	len <- length(X)
-	ans <- bplapply(1:len, function(i) FUN(X[[i]], ...), ...,
-		BPPARAM=BPPARAM)
+	ans <- bplapply(1:len, function(i) FUN(X[[i]], ...), BPPARAM=BPPARAM)
 	if ( USE.NAMES && !is.null(names(X)) )
 		names(ans) <- names(X)
 	if ( USE.NAMES && is.character(X) && is.null(names(ans)) )
@@ -66,12 +65,10 @@ apply_matter <- function(X, MARGIN, FUN, ..., BPPARAM)
 	dn.ans <- dimnames(X)[MARGIN]
 	if ( MARGIN == 1 ) {
 		d2 <- nrow(X)
-		ans <- bplapply(1:d2, function(i) FUN(X[i,], ...), ...,
-			BPPARAM=BPPARAM)
+		ans <- bplapply(1:d2, function(i) FUN(X[i,], ...), BPPARAM=BPPARAM)
 	} else if ( MARGIN == 2 ) {
 		d2 <- ncol(X)
-		ans <- bplapply(1:d2, function(i) FUN(X[,i], ...), ...,
-			BPPARAM=BPPARAM)
+		ans <- bplapply(1:d2, function(i) FUN(X[,i], ...), BPPARAM=BPPARAM)
 	} else {
 		stop("only MARGIN = 1 or 2 supported for 'matter' objects")
 	}
