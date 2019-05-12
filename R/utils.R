@@ -552,7 +552,6 @@ format.num_bytes <- function(x, units = "auto", ...) {
 mem <- function(x, reset = FALSE) {
 	if ( !missing(x) ) {
 		mem <- num_bytes(as.numeric(object.size(x)))
-		mem <- print(mem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
 		mem <- round(colSums(gc(reset=reset)[,c(1,3,6)] * cell.size) / 1000^2, 1)
