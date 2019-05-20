@@ -77,5 +77,21 @@ test_that("streaming statistics", {
 
 	expect_equal(all(xy > 50), as.logical(stat_c(s_x, s_y)))
 
+	x[1] <- NA; y[1:5] <- NA
+
+	xy <- c(x, y)
+
+	expect_true(is.na(s_mean(x)))
+
+	expect_true(is.na(s_mean(y)))
+
+	s_x <- s_mean(x, na.rm=TRUE); s_y <- s_mean(y, na.rm=TRUE)
+
+	expect_equal(mean(xy, na.rm=TRUE), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- s_var(x, na.rm=TRUE); s_y <- s_var(y, na.rm=TRUE)
+
+	expect_equal(var(xy, na.rm=TRUE), as.numeric(stat_c(s_x, s_y)))
+
 })
 

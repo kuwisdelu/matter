@@ -10,7 +10,7 @@ s_range <- function(x, ..., na.rm = FALSE) {
 		structure(range(x, na.rm=na.rm),
 			class=c("stream_range", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -25,7 +25,7 @@ s_min <- function(x, ..., na.rm = FALSE) {
 		structure(min(x, na.rm=na.rm),
 			class=c("stream_min", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -40,7 +40,7 @@ s_max <- function(x, ..., na.rm = FALSE) {
 		structure(max(x, na.rm=na.rm),
 			class=c("stream_max", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -55,7 +55,7 @@ s_prod <- function(x, ..., na.rm = FALSE) {
 		structure(prod(x, na.rm=na.rm),
 			class=c("stream_prod", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -70,7 +70,7 @@ s_sum <- function(x, ..., na.rm = FALSE) {
 		structure(sum(x, na.rm=na.rm),
 			class=c("stream_sum", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -85,7 +85,7 @@ s_mean <- function(x, ..., na.rm = FALSE) {
 		structure(mean(x, na.rm=na.rm),
 			class=c("stream_mean", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -101,7 +101,7 @@ s_var <- function(x, ..., na.rm = FALSE) {
 			class=c("stream_var", "stream_stat"),
 			mean=mean(x, na.rm=na.rm),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -117,7 +117,7 @@ s_sd <- function(x, ..., na.rm = FALSE) {
 			class=c("stream_sd", "stream_stat"),
 			mean=mean(x, na.rm=na.rm),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -132,7 +132,7 @@ s_any <- function(x, ..., na.rm = FALSE) {
 		structure(any(x, na.rm=na.rm),
 			class=c("stream_any", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
@@ -147,11 +147,22 @@ s_all <- function(x, ..., na.rm = FALSE) {
 		structure(all(x, na.rm=na.rm),
 			class=c("stream_all", "stream_stat"),
 			na.rm=na.rm,
-			nobs=length(x))
+			nobs=na_length(x, na.rm))
 	} else {
 		x
 	}
 }
+
+# length function
+
+na_length <- function(x, na.rm = FALSE) {
+	if ( na.rm ) {
+		sum(!is.na(x))
+	} else {
+		length(x)
+	}
+}
+
 
 # register for S4 methods
 
