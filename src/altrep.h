@@ -137,7 +137,7 @@ static void init_MatterAlt_integer(DllInfo * info)
 
 static void init_MatterAlt_real(DllInfo * info)
 {
-	R_altrep_class_t cls = R_make_altinteger_class("MatterAlt_real", "matter", info);
+	R_altrep_class_t cls = R_make_altreal_class("MatterAlt_real", "matter", info);
 	MatterAlt_real = cls;
 
 	// override ALTREP methods

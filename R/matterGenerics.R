@@ -55,6 +55,7 @@ setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 #### Additional generic functions for matter ####
 ## ----------------------------------------------
 
+setGeneric("as.altrep", function(x, ...) standardGeneric("as.altrep"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
 
 #### Additional generic functions for subclasses ####
