@@ -2,6 +2,7 @@
 
 #include "bsearch.h"
 #include "matter.h"
+#include "altrep.h"
 
 extern "C" {
 
@@ -48,11 +49,14 @@ extern "C" {
         {"C_groupSums", (DL_FUNC) &groupSums, 4},
         {"C_groupMins", (DL_FUNC) &groupMins, 4},
         {"C_groupMaxs", (DL_FUNC) &groupMaxs, 4},
+        {"C_makeMatterAltrep", (DL_FUNC) &makeMatterAltrep, 1},
         {NULL, NULL, 0}
     };
 
     void R_init_matter(DllInfo * info)
     {
+        init_MatterAlt_integer(info);
+        init_MatterAlt_real(info);
         R_registerRoutines(info, NULL, callMethods, NULL, NULL);
     }
 
