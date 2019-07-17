@@ -85,6 +85,7 @@ export(
 	"struct")
 
 exportMethods(
+	"as.altrep",
 	"as.vector",
 	"as.matrix",
 	"as.array",

@@ -16,6 +16,8 @@ extern "C"
 
 #define R_INFINITE(x) (!R_FINITE(x) && !ISNA(x) && !ISNAN(x))
 
+#define MATTER_PKG "matter"
+
 // index types
 
 typedef ptrdiff_t index_t;
