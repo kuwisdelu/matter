@@ -73,16 +73,6 @@ groupCombiner <- function(fun) {
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 
-copy_mostattributes <- function(x, y) {
-	if ( !is.null(names(x)) )
-		names(y) <- names(x)
-	if ( !is.null(dim(x)) )
-		dim(y) <- dim(x)
-	if ( !is.null(dimnames(x)) )
-		dimnames(y) <- dimnames(x)
-	y
-}
-
 check_compatible_classes <- function(x, y) {
 	if ( !inherits(y, class(x)) ) {
 		stop("incompatible classes: ",

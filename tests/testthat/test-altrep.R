@@ -15,8 +15,6 @@ test_that("altrep raw", {
 
 	expect_equal(head(x), head(z))
 
-	expect_equal(sum(x), sum(z))
-
 	s <- serialize(z, NULL)
 
 	u <- unserialize(s)
@@ -126,6 +124,21 @@ test_that("altrep array", {
 	expect_equal(head(x), head(u))
 
 	expect_equal(dim(x), dim(u))
+
+})
+
+
+test_that("factor subsetting", {
+
+	x <- factor(c("neon", "genesis", "evangelion"))
+
+	y <- matter_fc(x)
+
+	z <- matter:::as.altrep(y)
+
+	expect_equal(head(x), head(z))
+
+	expect_equal(levels(x), levels(z))
 
 })
 

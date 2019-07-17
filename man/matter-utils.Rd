@@ -19,6 +19,12 @@
 \alias{make_filemode}
 \alias{common_filemode}
 
+\alias{as.altrep}
+\alias{as.altrep,matter_vec}
+\alias{as.altrep,matter_mat}
+\alias{as.altrep,matter_arr}
+\alias{as.altrep,matter_fc}
+
 \alias{sizeof}
 \alias{make_datamode}
 \alias{convert_datamode}
