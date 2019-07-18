@@ -25,6 +25,8 @@ extern "C" {
         {"C_setMatrixCols", (DL_FUNC) &setMatrixCols, 3},
         {"C_getMatrixElements", (DL_FUNC) &getMatrixElements, 3},
         {"C_setMatrixElements", (DL_FUNC) &setMatrixElements, 4},
+        {"C_getString", (DL_FUNC) &getString, 1},
+        {"C_getStringElements", (DL_FUNC) &getStringElements, 2},
         {"C_getRange", (DL_FUNC) &getRange, 2},
         {"C_getProd", (DL_FUNC) &getProd, 2},
         {"C_getSum", (DL_FUNC) &getSum, 2},
@@ -59,6 +61,7 @@ extern "C" {
         init_MatterAlt_logical(info);
         init_MatterAlt_integer(info);
         init_MatterAlt_real(info);
+        init_MatterAlt_string(info);
         R_registerRoutines(info, NULL, callMethods, NULL, NULL);
     }
 

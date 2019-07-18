@@ -69,6 +69,13 @@ void fillNA(RType * ptr, size_t count, size_t skip = 1) {
     }
 }
 
+//// Raw string encoding
+//-----------------------
+
+SEXP raw_to_char(Rbyte * x, int length);
+
+SEXP raw_to_char(SEXP x);
+
 //// Grouped summaries
 //---------------------
 
@@ -868,7 +875,7 @@ class Matter
             _chunksize = Rf_asInteger(R_do_slot(x, Rf_install("chunksize")));
             _length = static_cast<index_t>(Rf_asReal(R_do_slot(x, Rf_install("length"))));
             _dim = R_do_slot(x, Rf_install("dim"));
-            const char * classes[] = { "matter_matc", "matter_matr", "matter_list", "" };
+            const char * classes[] = { "matter_matc", "matter_matr", "matter_list", "matter_str", "" };
             int classmatch = R_check_class_etc(x, classes);
             switch (classmatch) {
                 case 0:
@@ -879,6 +886,9 @@ class Matter
                     break;
                 case 2:
                     _S4class = MATTER_LIST;
+                    break;
+                case 3:
+                    _S4class = MATTER_STR;
                     break;
                 default:
                     _S4class = MATTER_ANY;
@@ -1225,6 +1235,10 @@ extern "C" {
     SEXP getMatrixElements(SEXP x, SEXP i, SEXP j);
 
     void setMatrixElements(SEXP x, SEXP i, SEXP j, SEXP value);
+
+    SEXP getString(SEXP x);
+
+    SEXP getStringElements(SEXP x, SEXP i);
 
     SEXP getRange(SEXP x, SEXP na_rm);
 

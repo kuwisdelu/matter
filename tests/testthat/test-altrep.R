@@ -83,6 +83,24 @@ test_that("altrep real", {
 
 })
 
+test_that("altrep string", {
+
+	x <- c("hello", "world!")
+
+	y <- matter_str(x)
+
+	z <- matter:::as.altrep(y)
+
+	expect_equal(head(x), head(z))
+
+	s <- serialize(z, NULL)
+
+	u <- unserialize(s)
+
+	expect_equal(head(x), head(u))
+
+})
+
 test_that("altrep matrix", {
 
 	x <- matrix(1:100, nrow=10, ncol=10)

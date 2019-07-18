@@ -17,6 +17,7 @@ static R_altrep_class_t MatterAlt_raw;
 static R_altrep_class_t MatterAlt_logical;
 static R_altrep_class_t MatterAlt_integer;
 static R_altrep_class_t MatterAlt_real;
+static R_altrep_class_t MatterAlt_string;
 
 /* Matter-backed ALTREP objects
 
@@ -44,6 +45,9 @@ static SEXP makeMatterAltrep(SEXP x)
             break;
         case R_NUMERIC:
             cls = MatterAlt_real;
+            break;
+        case R_CHARACTER:
+            cls = MatterAlt_string;
             break;
         default:
             Rf_error("ALTREP not supported for this matter datamode");
@@ -90,7 +94,11 @@ struct MatterAlt {
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			SEXP data;
-			PROTECT(data = getVector(R_altrep_data1(x)));
+			Matter mVec(R_altrep_data1(x));
+			if ( mVec.S4class() == MATTER_STR )
+				PROTECT(data = getString(R_altrep_data1(x)));
+			else
+				PROTECT(data = getVector(R_altrep_data1(x)));
 			R_set_altrep_data2(x, data);
 			UNPROTECT(1);
 		}
@@ -167,6 +175,13 @@ struct MatterAlt {
 	{
 		Matter mVec(R_altrep_data1(x));
 		return mVec.data().read<double>(buffer, i, size);
+	}
+
+	// ALTSTRING methods
+
+	static SEXP string_Elt(SEXP x, R_xlen_t i)
+	{
+		return STRING_ELT(getStringElements(R_altrep_data1(x), Rf_ScalarReal(i)), 0);
 	}
 
 };
@@ -255,6 +270,27 @@ static void init_MatterAlt_real(DllInfo * info)
 	// overrid ALTREAL methods
 	R_set_altreal_Elt_method(cls, MatterAlt::real_Elt);
 	R_set_altreal_Get_region_method(cls, MatterAlt::real_Get_region);
+}
+
+// String
+
+static void init_MatterAlt_string(DllInfo * info)
+{
+	R_altrep_class_t cls = R_make_altstring_class("MatterAlt_string", MATTER_PKG, info);
+	MatterAlt_string = cls;
+
+	// override ALTREP methods
+	R_set_altrep_Serialized_state_method(cls, MatterAlt::Serialized_state);
+	R_set_altrep_Unserialize_method(cls, MatterAlt::Unserialize);
+	R_set_altrep_Length_method(cls, MatterAlt::Length);
+	R_set_altrep_Inspect_method(cls, MatterAlt::Inspect);
+
+	// override ALTVEC methods
+	R_set_altvec_Dataptr_method(cls, MatterAlt::Dataptr);
+	R_set_altvec_Dataptr_or_null_method(cls, MatterAlt::Dataptr_or_null);
+
+	// overrid ALTREAL methods
+	R_set_altstring_Elt_method(cls, MatterAlt::string_Elt);
 }
 
 #endif

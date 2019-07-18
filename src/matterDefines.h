@@ -49,6 +49,7 @@ struct MATTER_OPTIONS {
 #define MATTER_MATC 1
 #define MATTER_MATR 2
 #define MATTER_LIST 3
+#define MATTER_STR  4
 
 // File I/O modes (must match factor levels)
 

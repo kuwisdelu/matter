@@ -2,7 +2,7 @@
 # create matter-backed ALTREP objects
 
 as_ALTREP <- function(x) {
-	.Call("C_makeMatterAltrep", x)
+	.Call("C_makeMatterAltrep", x, PACKAGE="matter")
 }
 
 copy_primitives <- function(x, y) {
@@ -47,4 +47,12 @@ setMethod("as.altrep", "matter_fc", function(x, ...)
 {
 	y <- as_ALTREP(as(x, "matter_vec"))
 	wrap_structure(y, class="factor", levels=levels(x))
+})
+
+setMethod("as.altrep", "matter_str", function(x, ...)
+{
+	y <- as_ALTREP(x)
+	if ( !is.null(names(x)) )
+		names(y) <- names(x)
+	y
 })

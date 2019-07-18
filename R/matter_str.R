@@ -8,7 +8,7 @@ setClass("matter_str",
 		encoding = "character"),
 	prototype = prototype(
 		data = new("atoms"),
-		datamode = make_datamode("raw", type="R"),
+		datamode = make_datamode("character", type="R"),
 		paths = character(),
 		filemode = make_filemode("r"),
 		chunksize = 1e6L,
@@ -21,8 +21,8 @@ setClass("matter_str",
 	contains = "matter",
 	validity = function(object) {
 		errors <- NULL
-		if ( object@datamode != "raw" )
-			errors <- c(errors, "'datamode' must be 'raw'")
+		if ( object@datamode != "character" )
+			errors <- c(errors, "'datamode' must be 'character'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -33,8 +33,10 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 					encoding = "unknown", ...)
 {
 	if ( !missing(data) ) {
-		if ( missing(nchar) )
+		if ( missing(nchar) ) {
 			nchar <- nchar(data, type="bytes")
+			nchar[is.na(nchar)] <- length(char2raw(NA_character_))
+		}
 		if ( !is.character(data) )
 			data <- as.character(data)
 		if ( missing(encoding) ) {
@@ -68,11 +70,11 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 			group_id=seq_along(extent),
 			source_id=as.integer(factor(paths)),
 			datamode=as.integer(
-				rep(make_datamode("raw", type="C"),
+				rep(make_datamode("character", type="C"),
 					length.out=length(extent))),
 			offset=as.numeric(offset),
 			extent=as.numeric(extent)),
-		datamode=make_datamode("raw", type="R"),
+		datamode=make_datamode("character", type="R"),
 		paths=levels(factor(paths)),
 		filemode=make_filemode(filemode),
 		length=length(extent),
@@ -117,19 +119,44 @@ setReplaceMethod("Encoding", "matter_str",
 
 # subsetting
 
+getString <- function(x) {
+	y <- .Call("C_getString", x, PACKAGE="matter")
+	if ( !is.null(names(x)) )
+		names(y) <- names(x)
+	Encoding(y) <- x@encoding
+	y
+}
+
+getStringElements <- function(x, i, j, exact) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i)
+	if ( is.character(i) )
+		i <- names2index(x, i, exact)
+	y <- .Call("C_getStringElements", x, i - 1, PACKAGE="matter")
+	if ( !is.null(names(x)) )
+		names(y) <- names(x)
+	Encoding(y) <- x@encoding
+	y	
+}
+
 setMethod("[",
 	c(x = "matter_str", i = "ANY", j = "missing", drop = "ANY"),
 	function(x, i, ..., drop) {
 		if ( !missing(i) ) {
-			subList(x, i)[]
+			getStringElements(x, i)
 		} else {
-			sapply(getList(x), raw2char, encoding=x@encoding)
+			getString(x)
 		}
 	})
 
 setMethod("[",
 	c(x = "matter_str", i = "ANY", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) subList(x, i))
+	function(x, i, ..., drop) {
+		y <- subList(x, i)
+		y@encoding <- x@encoding
+		if ( validObject(y) )
+			y
+	})
 
 setReplaceMethod("[",
 	c(x = "matter_str", i = "ANY", j = "missing", value = "ANY"),
@@ -166,7 +193,7 @@ setMethod("combine", "matter_str", function(x, y, ...) {
 	}
 	new(class(x),
 		data=data,
-		datamode=make_datamode("raw", type="R"),
+		datamode=make_datamode("character", type="R"),
 		paths=levels(factor(c(x@paths, y@paths))),
 		filemode=common_filemode(x@filemode, y@filemode),
 		length=x@length + y@length,

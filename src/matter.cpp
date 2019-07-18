@@ -16,6 +16,19 @@ void set_matter_options() {
     UNPROTECT(2);
 }
 
+SEXP raw_to_char(Rbyte * x, int length) {
+    int i, j, nchar;
+    for ( i = 0, j = -1; i < length; i++ )
+        if ( x[i] )
+            j = i;
+    nchar = j + 1;
+    return Rf_mkCharLenCE((const char *) x, nchar, CE_NATIVE);
+}
+
+SEXP raw_to_char(SEXP x) {
+    return raw_to_char(RAW(x), XLENGTH(x));
+}
+
 bool is_R_NA(Rbyte x) {
     return false;
 }
@@ -4978,6 +4991,9 @@ extern "C" {
                 case R_NUMERIC:
                     SET_VECTOR_ELT(retVec, i, mVec.readListElements<double,REALSXP>(i));
                     break;
+                case R_CHARACTER:
+                    SET_VECTOR_ELT(retVec, i, mVec.readListElements<Rbyte,RAWSXP>(i));
+                    break;
                 default:
                     SET_VECTOR_ELT(retVec, i, R_NilValue);
                     break;
@@ -5020,6 +5036,8 @@ extern "C" {
                     return mVec.readListElements<int,INTSXP>(Rf_asInteger(i));
                 case R_NUMERIC:
                     return mVec.readListElements<double,REALSXP>(Rf_asInteger(i));
+                case R_CHARACTER:
+                    return mVec.readListElements<Rbyte,RAWSXP>(Rf_asInteger(i));
                 default:
                     return R_NilValue;
             }
@@ -5033,6 +5051,8 @@ extern "C" {
                     return mVec.readListElements<int,INTSXP>(Rf_asInteger(i), j);
                 case R_NUMERIC:
                     return mVec.readListElements<double,REALSXP>(Rf_asInteger(i), j);
+                case R_CHARACTER:
+                    return mVec.readListElements<Rbyte,RAWSXP>(Rf_asInteger(i));
                 default:
                     return R_NilValue;
             }
@@ -5072,6 +5092,32 @@ extern "C" {
                     break;
             }
         }
+    }
+
+    SEXP getString(SEXP x) {
+        Matter mVec(x);
+        SEXP retVec;
+        PROTECT(retVec = Rf_allocVector(STRSXP, mVec.length()));
+        for ( int i = 0; i < mVec.length(); i++ )
+            SET_STRING_ELT(retVec, i, raw_to_char(mVec.readListElements<Rbyte,RAWSXP>(i)));
+        UNPROTECT(1);
+        return retVec;
+    }
+
+    SEXP getStringElements(SEXP x, SEXP i) {
+        Matter mVec(x);
+        SEXP retVec;
+        Rindex_t * ii = R_INDEX_PTR(i);
+        PROTECT(retVec = Rf_allocVector(STRSXP, XLENGTH(i)));
+        for ( int j = 0; j < XLENGTH(i); j++ ) {
+            int k = static_cast<int>(ii[j]);
+            if ( ISNA(ii[j]) )
+                SET_STRING_ELT(retVec, j, NA_STRING);
+            else
+                SET_STRING_ELT(retVec, j, raw_to_char(mVec.readListElements<Rbyte,RAWSXP>(k)));
+        }
+        UNPROTECT(1);
+        return retVec;   
     }
 
     SEXP getMatrix(SEXP x) {
