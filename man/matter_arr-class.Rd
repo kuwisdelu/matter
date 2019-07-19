@@ -13,7 +13,12 @@
 \alias{dim<-,matter_arr-method}
 
 \alias{as.vector,matter_arr-method}
+\alias{as.raw,matter_arr-method}
+\alias{as.logical,matter_arr-method}
+\alias{as.integer,matter_arr-method}
+\alias{as.numeric,matter_arr-method}
 \alias{as.array,matter_arr-method}
+\alias{as.matrix,matter_arr-method}
 
 \title{Out-of-Memory Arrays}
 

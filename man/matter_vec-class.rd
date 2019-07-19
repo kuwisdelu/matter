@@ -19,6 +19,11 @@
 \alias{dim<-,matter_vec-method}
 
 \alias{as.vector,matter_vec-method}
+\alias{as.raw,matter_vec-method}
+\alias{as.logical,matter_vec-method}
+\alias{as.integer,matter_vec-method}
+\alias{as.numeric,matter_vec-method}
+\alias{as.character,matter_vec-method}
 \alias{as.matrix,matter_vec-method}
 \alias{as.array,matter_vec-method}
 

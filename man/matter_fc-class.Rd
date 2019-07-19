@@ -16,6 +16,8 @@
 \alias{levels,matter_fc-method}
 \alias{levels<-,matter_fc-method}
 
+\alias{as.factor,matter_fc-method}
+
 \title{Out-of-Memory Factors}
 
 \description{

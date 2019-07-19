@@ -46,7 +46,11 @@ setMethod("as.altrep", "matter_arr",
 	})
 
 setMethod("as.altrep", "matter_str",
-	function(x, ...) as_ALTREP(x))
+	function(x, ...)
+	{
+		attr <- list(names=names(x))
+		as_ALTREP(x, attr=attr)
+	})
 
 setMethod("as.altrep", "matter_fc",
 	function(x, ...)

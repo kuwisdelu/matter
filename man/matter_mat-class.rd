@@ -34,6 +34,11 @@
 \alias{tcrossprod,ANY,matter-method}
 
 \alias{as.matrix,matter_mat-method}
+\alias{as.vector,matter_mat-method}
+\alias{as.raw,matter_mat-method}
+\alias{as.logical,matter_mat-method}
+\alias{as.integer,matter_mat-method}
+\alias{as.numeric,matter_mat-method}
 
 \title{Out-of-Memory Matrices}
 

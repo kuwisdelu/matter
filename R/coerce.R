@@ -16,7 +16,7 @@ setAs("matter_vec", "vector", function(from) as_native(from))
 
 setMethod("as.vector", "matter_vec",
 	function(x, mode = "any") {
-		switch(mode,
+		switch(tolower(mode),
 			any=as_native(x),
 			raw=as.raw(x),
 			logical=as.logical(x),
@@ -24,7 +24,6 @@ setMethod("as.vector", "matter_vec",
 			double=as.double(x),
 			numeric=as.numeric(x),
 			altrep=as_native(x, ALTREP=TRUE),
-			ALTREP=as_native(x, ALTREP=TRUE),
 			stop("unsupported vector mode: '", mode, "'"))
 	})
 
@@ -48,14 +47,6 @@ setMethod("as.integer", "matter_vec",
 	function(x, ...)
 	{
 		datamode(x) <- "integer"
-		names(x) <- NULL
-		as_native(x, ...)
-	})
-
-setMethod("as.double", "matter_vec",
-	function(x, ...)
-	{
-		datamode(x) <- "numeric"
 		names(x) <- NULL
 		as_native(x, ...)
 	})
@@ -140,8 +131,6 @@ setMethod("as.integer", "matter_mat", function(x, ...) as.integer(as(x, "matter_
 
 setMethod("as.numeric", "matter_mat", function(x, ...) as.numeric(as(x, "matter_vec"), ...))
 
-setMethod("as.double", "matter_mat", function(x, ...) as.double(as(x, "matter_vec"), ...))
-
 setAs("matter_mat", "matter_arr", function(from) {
 	to <- as(as(from, "matter_vec"), "matter_arr")
 	dim(to) <- dim(from)
@@ -196,8 +185,6 @@ setMethod("as.logical", "matter_arr", function(x, ...) as.logical(as(x, "matter_
 setMethod("as.integer", "matter_arr", function(x, ...) as.integer(as(x, "matter_vec"), ...))
 
 setMethod("as.numeric", "matter_arr", function(x, ...) as.numeric(as(x, "matter_vec"), ...))
-
-setMethod("as.double", "matter_arr", function(x, ...) as.double(as(x, "matter_vec"), ...))
 
 setAs("matter_arr", "matter_vec", function(from) {
 	new("matter_vec",
