@@ -39,6 +39,4 @@
 }
 
 \keyword{utilities}
-\keyword{classes}
-\keyword{methods}
-\keyword{datasets}
+\keyword{internal}
