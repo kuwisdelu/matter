@@ -43,13 +43,14 @@ struct MATTER_OPTIONS {
 	bool cast_warning;
 };
 
-// S4 class codes
+// S4 class codes (only defined here; safe to change)
 
-#define MATTER_ANY 0
-#define MATTER_MATC 1
-#define MATTER_MATR 2
-#define MATTER_LIST 3
-#define MATTER_STR  4
+#define MATTER_ANY  0
+#define MATTER_VEC  1
+#define MATTER_MATC 2
+#define MATTER_MATR 3
+#define MATTER_LIST 4
+#define MATTER_STR  5
 
 // File I/O modes (must match factor levels)
 

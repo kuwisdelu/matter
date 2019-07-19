@@ -16,14 +16,15 @@
 \alias{pca.prof}
 \alias{msi.prof}
 
+\alias{as.altrep}
+\alias{as.altrep,matter_vec-method}
+\alias{as.altrep,matter_mat-method}
+\alias{as.altrep,matter_arr-method}
+\alias{as.altrep,matter_fc-method}
+\alias{as.altrep,matter_str-method}
+
 \alias{make_filemode}
 \alias{common_filemode}
-
-\alias{as.altrep}
-\alias{as.altrep,matter_vec}
-\alias{as.altrep,matter_mat}
-\alias{as.altrep,matter_arr}
-\alias{as.altrep,matter_fc}
 
 \alias{sizeof}
 \alias{make_datamode}

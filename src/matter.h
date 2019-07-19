@@ -875,19 +875,25 @@ class Matter
             _chunksize = Rf_asInteger(R_do_slot(x, Rf_install("chunksize")));
             _length = static_cast<index_t>(Rf_asReal(R_do_slot(x, Rf_install("length"))));
             _dim = R_do_slot(x, Rf_install("dim"));
-            const char * classes[] = { "matter_matc", "matter_matr", "matter_list", "matter_str", "" };
+            _dimnames = R_do_slot(x, Rf_install("dimnames"));
+            _names = R_do_slot(x, Rf_install("names"));
+            const char * classes[] = { "matter_vec", "matter_matc", "matter_matr",
+                                        "matter_list", "matter_str", "" };
             int classmatch = R_check_class_etc(x, classes);
             switch (classmatch) {
                 case 0:
-                    _S4class = MATTER_MATC;
+                    _S4class = MATTER_VEC;
                     break;
                 case 1:
-                    _S4class = MATTER_MATR;
+                    _S4class = MATTER_MATC;
                     break;
                 case 2:
-                    _S4class = MATTER_LIST;
+                    _S4class = MATTER_MATR;
                     break;
                 case 3:
+                    _S4class = MATTER_LIST;
+                    break;
+                case 4:
                     _S4class = MATTER_STR;
                     break;
                 default:
@@ -933,12 +939,24 @@ class Matter
             return _length;
         }
 
+        SEXP dim() {
+            return _dim;
+        }
+
         int dim(int i) {
             return INTEGER(_dim)[i];
         }
 
         int dimlength() {
             return LENGTH(_dim);
+        }
+
+        SEXP dimnames() {
+            return _dimnames;
+        }
+
+        SEXP names() {
+            return _names;
         }
 
         int nrows() {
@@ -1067,6 +1085,8 @@ class Matter
         int _chunksize;
         index_t _length;
         SEXP _dim;
+        SEXP _dimnames;
+        SEXP _names;
         int _S4class;      // 0 = any, 2 = col-matrix, 3 = row-matrix
         // Scaled _scaled;
 

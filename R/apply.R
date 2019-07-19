@@ -17,13 +17,13 @@ setMethod("apply", "virtual_mat",
 		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
 })
 
-#### List-Apply functions over matter matrices ####
+#### List-Apply functions over matter lists ####
 ## -------------------------------------------
 
 setMethod("lapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam())
 	{
-		sapply_matter(X, FUN, ..., SIMPLIFY=FALSE,
+		mapfun_matter(X, FUN, ..., SIMPLIFY=FALSE,
 			USE.NAMES=TRUE, BPPARAM=BPPARAM)
 	}
 )
@@ -32,14 +32,14 @@ setMethod("sapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam(),
 		simplify = TRUE, USE.NAMES = TRUE)
 	{
-		sapply_matter(X, FUN, ..., SIMPLIFY=simplify,
+		mapfun_matter(X, FUN, ..., SIMPLIFY=simplify,
 			USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
 	}
 )
 
 # lapply and sapply
 
-sapply_matter <- function(X, FUN, ..., SIMPLIFY, USE.NAMES, BPPARAM)
+mapfun_matter <- function(X, FUN, ..., SIMPLIFY, USE.NAMES, BPPARAM)
 {
 	FUN <- match.fun(FUN)
 	len <- length(X)

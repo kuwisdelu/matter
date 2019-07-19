@@ -90,6 +90,7 @@ exportMethods(
 	"as.matrix",
 	"as.array",
 	"as.list",
+	"as.factor",
 	"as.data.frame")
 
 exportMethods(

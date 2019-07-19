@@ -4,6 +4,10 @@
 
 .onLoad <- function(libname, pkgname) {
 	options(matter.cast.warning = TRUE)
+	options(matter.show.head = TRUE)
+	options(matter.show.head.n = 6L)
+	options(matter.coerce.altrep = TRUE)
+	options(matter.wrap.altrep = TRUE)
 }
 
 #### Binary search that allows near-matches ####

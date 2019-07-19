@@ -164,10 +164,6 @@ setAs("matrix", "matter_mat",
 
 as.matter_mat <- function(x) as(x, "matter_mat")
 
-setAs("matter_mat", "matrix", function(from) from[])
-
-setMethod("as.matrix", "matter_mat", function(x) as(x, "matrix"))
-
 getMatrix <- function(x) {
 	y <- .Call("C_getMatrix", x, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )

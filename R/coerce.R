@@ -1,7 +1,85 @@
 
-# coerce between matter subclasses
+# coerce between matter subclasses and to base R types
 
-# matter_vec
+as_native <- function(x, ALTREP = getOption("matter.coerce.altrep"))
+{
+	if ( ALTREP ) {
+		as.altrep(x)
+	} else {
+		x[]
+	}
+}
+
+#### matter_vec ####
+
+setAs("matter_vec", "vector", function(from) as_native(from))
+
+setMethod("as.vector", "matter_vec",
+	function(x, mode = "any") {
+		switch(mode,
+			any=as_native(x),
+			raw=as.raw(x),
+			logical=as.logical(x),
+			integer=as.integer(x),
+			double=as.double(x),
+			numeric=as.numeric(x),
+			altrep=as_native(x, ALTREP=TRUE),
+			ALTREP=as_native(x, ALTREP=TRUE),
+			stop("unsupported vector mode: '", mode, "'"))
+	})
+
+setMethod("as.raw", "matter_vec",
+	function(x)
+	{
+		datamode(x) <- "raw"
+		names(x) <- NULL
+		as_native(x)
+	})
+
+setMethod("as.logical", "matter_vec",
+	function(x, ...)
+	{
+		datamode(x) <- "logical"
+		names(x) <- NULL
+		as_native(x, ...)
+	})
+
+setMethod("as.integer", "matter_vec",
+	function(x, ...)
+	{
+		datamode(x) <- "integer"
+		names(x) <- NULL
+		as_native(x, ...)
+	})
+
+setMethod("as.double", "matter_vec",
+	function(x, ...)
+	{
+		datamode(x) <- "numeric"
+		names(x) <- NULL
+		as_native(x, ...)
+	})
+
+setMethod("as.numeric", "matter_vec",
+	function(x, ...)
+	{
+		datamode(x) <- "numeric"
+		names(x) <- NULL
+		as_native(x, ...)
+	})
+
+setMethod("as.character", "matter_vec",
+	function(x, ...)
+	{
+		names(x) <- NULL
+		as.character(as_native(x, ...))
+	})
+
+setMethod("as.matrix", "matter_vec",
+	function(x, ...) as.matrix(as(x, "matter_mat"), ...))
+
+setMethod("as.array", "matter_vec",
+	function(x, ...) as.array(as(x, "matter_arr"), ...))
 
 setAs("matter_vec", "matter_mat", function(from) {
 	new("matter_matc",
@@ -44,7 +122,31 @@ setAs("matter_vec", "matter_list", function(from) {
 		ops=NULL)
 })
 
-# matter_mat
+#### matter_mat ####
+
+setAs("matter_mat", "matrix", function(from) as_native(from))
+
+setMethod("as.matrix", "matter_mat", function(x, ...) as_native(x, ...))
+
+setMethod("as.array", "matter_arr", function(x, ...) as_native(as(x, "matter_arr"), ...))
+
+setMethod("as.vector", "matter_mat", function(x, mode = "any") as.vector(as(x, "matter_vec"), mode=mode))
+
+setMethod("as.raw", "matter_mat", function(x) as.raw(as(x, "matter_vec")))
+
+setMethod("as.logical", "matter_mat", function(x, ...) as.logical(as(x, "matter_vec"), ...))
+
+setMethod("as.integer", "matter_mat", function(x, ...) as.integer(as(x, "matter_vec"), ...))
+
+setMethod("as.numeric", "matter_mat", function(x, ...) as.numeric(as(x, "matter_vec"), ...))
+
+setMethod("as.double", "matter_mat", function(x, ...) as.double(as(x, "matter_vec"), ...))
+
+setAs("matter_mat", "matter_arr", function(from) {
+	to <- as(as(from, "matter_vec"), "matter_arr")
+	dim(to) <- dim(from)
+	to
+})
 
 setAs("matter_mat", "matter_vec", function(from) {
 	if ( !is.null(from@ops) )
@@ -77,7 +179,25 @@ setAs("matter_mat", "matter_list", function(from) {
 		ops=NULL)
 })
 
-# matter_arr
+#### matter_arr ####
+
+setAs("matter_arr", "array", function(from) as_native(from))
+
+setMethod("as.array", "matter_arr", function(x, ...) as_native(x, ...))
+
+setMethod("as.matrix", "matter_arr", function(x, ...) as_native(x, ...))
+
+setMethod("as.vector", "matter_arr", function(x, mode = "any") as.vector(as(x, "matter_vec"), mode=mode))
+
+setMethod("as.raw", "matter_arr", function(x) as.raw(as(x, "matter_vec")))
+
+setMethod("as.logical", "matter_arr", function(x, ...) as.logical(as(x, "matter_vec"), ...))
+
+setMethod("as.integer", "matter_arr", function(x, ...) as.integer(as(x, "matter_vec"), ...))
+
+setMethod("as.numeric", "matter_arr", function(x, ...) as.numeric(as(x, "matter_vec"), ...))
+
+setMethod("as.double", "matter_arr", function(x, ...) as.double(as(x, "matter_vec"), ...))
 
 setAs("matter_arr", "matter_vec", function(from) {
 	new("matter_vec",
@@ -92,7 +212,19 @@ setAs("matter_arr", "matter_vec", function(from) {
 		ops=from@ops)
 })
 
-# matter_list
+#### matter_str ####
+
+setAs("matter_str", "character", function(from) as_native(from))
+
+setMethod("as.character", "matter_str", function(x, ...) as_native(x, ...))
+
+#### matter_fc ####
+
+setAs("matter_fc", "factor", function(from) as_native(from))
+
+setMethod("as.factor", "matter_fc", function(x) as_native(x))
+
+#### matter_list ####
 
 setAs("matter_list", "matter_vec", function(from) {
 	new("matter_vec",

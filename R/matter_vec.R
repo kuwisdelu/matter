@@ -108,14 +108,6 @@ setAs("factor", "matter_vec",
 
 as.matter_vec <- function(x) as(x, "matter_vec")
 
-setAs("matter_vec", "vector", function(from) from[])
-
-setMethod("as.vector", "matter_vec", function(x) as(x, "vector"))
-
-setMethod("as.matrix", "matter_vec", function(x) as(x, "matter_mat")[])
-
-setMethod("as.array", "matter_vec", function(x) as(x, "matter_arr")[])
-
 setReplaceMethod("dim", "matter_vec", function(x, value) {
 	if ( is.null(value) ) {
 		x

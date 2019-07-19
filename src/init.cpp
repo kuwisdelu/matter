@@ -51,7 +51,7 @@ extern "C" {
         {"C_groupSums", (DL_FUNC) &groupSums, 4},
         {"C_groupMins", (DL_FUNC) &groupMins, 4},
         {"C_groupMaxs", (DL_FUNC) &groupMaxs, 4},
-        {"C_makeMatterAltrep", (DL_FUNC) &makeMatterAltrep, 1},
+        {"C_makeMatterAltrep", (DL_FUNC) &makeMatterAltrep, 6},
         {NULL, NULL, 0}
     };
 

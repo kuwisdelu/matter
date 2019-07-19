@@ -26,13 +26,15 @@ static R_altrep_class_t MatterAlt_string;
 
 */
 
-static SEXP makeMatterAltrep(SEXP x)
+static SEXP makeMatterAltrep(SEXP x, SEXP attr, SEXP nm, SEXP dm, SEXP dnm, SEXP wrap)
 {
 	R_altrep_class_t cls;
 	if ( MAYBE_REFERENCED(x) )
 		x = Rf_duplicate(x);
 	PROTECT(x);
 	Matter mVec(x);
+	if ( mVec.S4class() != MATTER_VEC && mVec.S4class() != MATTER_STR )
+    	Rf_error("ALTREP not supported for this matter object");
     switch(mVec.datamode()) {
     	case R_RAW:
             cls = MatterAlt_raw;
@@ -54,7 +56,31 @@ static SEXP makeMatterAltrep(SEXP x)
     }
     SEXP ret = R_new_altrep(cls, x, R_NilValue);
     MARK_NOT_MUTABLE(ret);
-    UNPROTECT(1);
+    Rboolean has_attr = FALSE, has_special = FALSE; 
+    if ( attr != R_NilValue && XLENGTH(attr) > 0 )
+    	has_attr = TRUE;
+    if ( nm != R_NilValue || dm != R_NilValue || dnm != R_NilValue )
+    	has_special = TRUE;
+    if ( has_attr || has_special || Rf_asLogical(wrap) )
+    	ret = R_tryWrap(ret);
+    PROTECT(ret);
+    if ( nm != R_NilValue )
+    	Rf_setAttrib(ret, R_NamesSymbol, nm);
+    if ( dm != R_NilValue )
+    	Rf_setAttrib(ret, R_DimSymbol, dm);
+    if ( dnm != R_NilValue )
+    	Rf_setAttrib(ret, R_DimNamesSymbol, dnm);
+    if ( has_attr )
+    {
+    	SEXP tags = Rf_getAttrib(attr, R_NamesSymbol);
+    	for ( int i = 0; i < XLENGTH(attr); i++ )
+    	{
+    		SEXP ikey = STRING_ELT(tags, i);
+    		SEXP ival = VECTOR_ELT(attr, i);
+    		Rf_setAttrib(ret, Rf_install(CHAR(ikey)), ival);
+    	}
+    }
+    UNPROTECT(2);
 	return ret;
 }
 
@@ -69,7 +95,8 @@ struct MatterAlt {
 
 	static SEXP Unserialize(SEXP cls, SEXP state)
 	{
-		return makeMatterAltrep(state);
+		return makeMatterAltrep(state, R_NilValue, R_NilValue,
+			R_NilValue, R_NilValue, Rf_ScalarLogical(FALSE));
 	}
 
 	static R_xlen_t Length(SEXP x)
