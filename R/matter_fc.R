@@ -78,11 +78,15 @@ matter_fc <- function(data, datamode = "int", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_fc", function(x) "out-of-memory factor")
+setMethod("describe_for_display", "matter_fc", function(x) {
+	desc1 <- paste0("<", x@length, " length> ", class(x))
+	desc2 <- paste0("out-of-memory factor")
+	paste0(desc1, " :: ", desc2)
+})
 
-setMethod("show", "matter_fc", function(object) {
-	callNextMethod(object)
-	cat("    levels:", paste_head(levels(object)), "\n")
+setMethod("preview_for_display", "matter_fc", function(x) {
+	preview_vector_data(x)
+	cat(nlevels(x), "Levels:", paste_head(levels(x)), "\n")
 })
 
 setAs("raw", "matter_fc",

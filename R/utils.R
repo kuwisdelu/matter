@@ -74,6 +74,26 @@ groupCombiner <- function(fun) {
 	}
 }
 
+#### Show utility functions ####
+## -----------------------------
+
+preview_vector_data <- function(x, n=getOption("matter.show.head.n")) {
+	head <- head(x, n=n)
+	out <- as.character(head)
+	more <- length(x) - length(head) > 0
+	if ( !is.null(names(head)) ) {
+		nms <- names(head)
+	} else {
+		nms <- paste0("[", seq_along(head), "]")
+	}
+	if ( more ) {
+		out <- c(out, "...")
+		nms <- c(nms, "...")
+	}
+	fmt <- matrix(out, nrow=1, dimnames=list("", nms))
+	print(fmt, quote=FALSE, right=TRUE)
+}
+
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 
@@ -91,10 +111,9 @@ returnWithWarning <- function(x, ...) {
 	x
 }
 
-paste_head <- function(x, n=6L, collapse=" ") {
+paste_head <- function(x, n=getOption("matter.show.head.n"), collapse=" ") {
 	if ( length(x) > n ) {
-		paste0(paste0(head(x, n=n), collapse=collapse),
-			" [and ", length(x) - n, " more]")
+		paste0(paste0(head(x, n=n), collapse=collapse), " ...")
 	} else {
 		paste0(x, collapse=collapse)
 	}

@@ -88,15 +88,13 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_str", function(x) "out-of-memory string")
-
-setMethod("show", "matter_str", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@length, " length> ",
-		describe_for_display(object), "\n", sep="")
-	callNextMethod(object)
-	cat("    encoding:", object@encoding, "\n")
+setMethod("describe_for_display", "matter_str", function(x) {
+	desc1 <- paste0("<", x@length, " length> ", class(x))
+	desc2 <- paste0("out-of-memory ", x@datamode, " vector")
+	paste0(desc1, " :: ", desc2)
 })
+
+setMethod("preview_for_display", "matter_str", function(x) preview_vector_data(x))
 
 setAs("character", "matter_str", function(from) matter_str(from, names=names(from)))
 

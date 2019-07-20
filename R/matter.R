@@ -117,6 +117,8 @@ matter <- function(...) {
 
 setMethod("describe_for_display", "ANY", function(x) class(x))
 
+setMethod("preview_for_display", "ANY", function(x) head(x))
+
 is.matter <- function(x) {
 	is(x, "matter")
 }
@@ -147,12 +149,16 @@ setReplaceMethod("atomdata", "matter", function(object, value) {
 })
 
 setMethod("show", "matter", function(object) {
-	object.memory <- object.size(object)
-	class(object.memory) <- "num_bytes"
-	cat("    sources:", length(object@paths), "\n")
-	cat("    datamode:", paste_head(object@datamode), "\n")
-	cat("    ", format(object.memory, units="auto"), " real memory\n", sep="")
-	cat("    ", format(vm_used(object), units="auto"), " virtual memory\n", sep="")
+	cat(describe_for_display(object), "\n", sep="")
+	if ( getOption("matter.show.head") )
+		preview_for_display(object)
+	if ( !is.virtual(object) ) {
+		object.memory <- object.size(object)
+		class(object.memory) <- "num_bytes"
+		rmem <- format(object.memory, units="auto")
+		vmem <- format(vm_used(object), units="auto")
+		cat("(", rmem, " real", " / ", vmem, " virtual)\n", sep="")
+	}
 })
 
 setMethod("datamode", "matter", function(x) x@datamode)

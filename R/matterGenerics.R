@@ -74,6 +74,8 @@ setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
 
 setGeneric("describe_for_display", function(x) standardGeneric("describe_for_display"))
 
+setGeneric("preview_for_display", function(x) standardGeneric("preview_for_display"))
+
 setGeneric("combine_by_cols", function(x, y, ...) {
 	if ( length(list(...)) > 0L ) {
 		combine_by_cols(x, do.call(combine_by_cols, list(y, ...)))

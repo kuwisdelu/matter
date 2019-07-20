@@ -79,14 +79,13 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_vec", function(x) "out-of-memory vector")
-
-setMethod("show", "matter_vec", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@length, " length> ",
-		describe_for_display(object), "\n", sep="")
-	callNextMethod(object)
+setMethod("describe_for_display", "matter_vec", function(x) {
+	desc1 <- paste0("<", x@length, " length> ", class(x))
+	desc2 <- paste0("out-of-memory ", x@datamode, " vector")
+	paste0(desc1, " :: ", desc2)
 })
+
+setMethod("preview_for_display", "matter_vec", function(x) preview_vector_data(x))
 
 setAs("raw", "matter_vec",
 	function(from) matter_vec(from, datamode="raw", names=names(from)))
