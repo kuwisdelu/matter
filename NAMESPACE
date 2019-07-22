@@ -111,6 +111,10 @@ exportMethods(
 exportMethods("checksum")
 
 exportMethods(
+	"describe_for_display",
+	"preview_for_display")
+
+exportMethods(
 	"keys",
 	"keys<-",
 	"tolerance",

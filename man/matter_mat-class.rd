@@ -142,7 +142,7 @@ matter_mat(data, datamode = "double", paths = NULL,
 
 \examples{
 x <- matter_mat(1:100, nrow=10, ncol=10)
-x[]
+x
 }
 
 \keyword{classes}

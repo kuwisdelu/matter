@@ -117,7 +117,7 @@ matter_vec(data, datamode = "double", paths = NULL,
 
 \examples{
 x <- matter_vec(1:100)
-x[]
+x
 }
 
 \keyword{classes}

@@ -126,19 +126,13 @@ virtual_mat <- function(data, datamode = "double", rowMaj = FALSE,
 	x
 }
 
-setMethod("describe_for_display", "virtual_mat", function(x) "virtual matrix")
-
-setMethod("show", "virtual_mat", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		describe_for_display(object), "\n", sep="")
-	cat("    datamode:", paste0(object@datamode[2]), "\n")
-	callNextMethod(object)
-	if ( !is.null(attr(object, "scaled:center")) )
-		cat("    scaled:center = TRUE\n")
-	if ( !is.null(attr(object, "scaled:scale")) )
-		cat("    scaled:scale = TRUE\n")
+setMethod("describe_for_display", "virtual_mat", function(x) {
+	desc1 <- paste0("<", x@dim[[1]], " row, ", x@dim[[2]], " column> ", class(x))
+	desc2 <- paste0("virtual ", x@datamode[2], " matrix")
+	paste0(desc1, " :: ", desc2)
 })
+
+setMethod("preview_for_display", "virtual_mat", function(x) preview_matrix(x))
 
 setAs("ANY", "virtual_matc",
 	function(from) virtual_mat(from, dimnames=dimnames(from), rowMaj=FALSE))

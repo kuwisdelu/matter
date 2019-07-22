@@ -194,27 +194,37 @@ as_sparse_mat_tolerance <- function(tolerance) {
 	tol
 }
 
-setMethod("describe_for_display", "sparse_mat", function(x) "sparse matrix")
+setMethod("describe_for_display", "sparse_mat", function(x) {
+	desc1 <- paste0("<", x@dim[[1]], " row, ", x@dim[[2]], " column> ", class(x))
+	desc2 <- paste0("sparse ", x@datamode[2], " matrix")
+	paste0(desc1, " :: ", desc2)
+})
 
-setMethod("show", "sparse_mat", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		describe_for_display(object), "\n", sep="")
-	memnames <- names(object@data)[!sapply(object@data, is.matter)]
-	disknames <- names(object@data)[sapply(object@data, is.matter)]
-	object.memory <- num_bytes(object.size(object))
-	cat("    datamode:", paste0(object@datamode[2]), "\n")
-	cat("    ", format(object.memory, units="auto"), " real memory: ",
-		paste_head(memnames, collapse=", "), "\n", sep="")
-	cat("    ", format(vm_used(object), units="auto"), " virtual memory: ",
-		paste_head(disknames, collapse=", "), "\n", sep="")
-	cat("    ", length(object), " non-zero elements\n", sep="")
-	cat("    ", round(length(object) / prod(dim(object)), 4) * 100,
-		"% density\n", sep="")
-	if ( !is.null(attr(object, "scaled:center")) )
-		cat("    scaled:center = TRUE\n")
-	if ( !is.null(attr(object, "scaled:scale")) )
-		cat("    scaled:scale = TRUE\n")
+setMethod("preview_for_display", "sparse_mat", function(x) {
+	hdr <- preview_matrix_data(x)
+	if ( is(x, "sparse_matc") ) {
+		if ( is.null(rownames(x)) && !is.null(keys(x)) ) {
+			n <- nrow(hdr)
+			if ( rownames(hdr)[n] == "..." ) {
+				rownames(hdr) <- c(paste0("[", keys(x)[1:(n - 1)], ",]"), "...")
+			} else {
+				rownames(hdr) <- paste0("[", keys(x)[1:n], ",]")
+			}
+		}
+	}
+	if ( is(x, "sparse_matr") ) {
+		if ( is.null(colnames(x)) && !is.null(keys(x)) ) {
+			n <- nrow(hdr)
+			if ( colnames(hdr)[n] == "..." ) {
+				colnames(hdr) <- c(paste0("[,", keys(x)[1:(n - 1)], "]"), "...")
+			} else {
+				colnames(hdr) <- paste0("[,", keys(x)[1:n], "]")
+			}
+		}
+	}
+	print(hdr, quote=FALSE, right=TRUE)
+	cat("(", length(x), "/", prod(dim(x)), " non-zero elements: ",
+		round(length(x) / prod(dim(x)), 4) * 100, "% density)\n", sep="")
 })
 
 setAs("matrix", "sparse_mat",

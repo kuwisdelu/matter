@@ -85,7 +85,7 @@ setMethod("describe_for_display", "matter_fc", function(x) {
 })
 
 setMethod("preview_for_display", "matter_fc", function(x) {
-	preview_vector_data(x)
+	preview_vector(x)
 	cat(nlevels(x), "Levels:", paste_head(levels(x)), "\n")
 })
 

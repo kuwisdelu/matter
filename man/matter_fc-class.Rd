@@ -112,8 +112,8 @@ matter_fc(data, datamode = "int", paths = NULL,
 }
 
 \examples{
-x <- matter_fc(c("a", "a", "b"), levels=c("a", "b", "c"))
-x[]
+x <- matter_fc(rep(c("a", "a", "b"), 5), levels=c("a", "b", "c"))
+x
 }
 
 \keyword{classes}

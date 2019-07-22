@@ -18,13 +18,6 @@ setClass("matter_vt",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setMethod("show", "matter_vt", function(object) {
-	object.memory <- object.size(object)
-	class(object.memory) <- "num_bytes"
-	cat("    ", format(object.memory, units="auto"), " real memory\n", sep="")
-	cat("    ", format(vm_used(object), units="auto"), " virtual memory\n", sep="")
-})
-
 setReplaceMethod("datamode", "matter_vt", function(x, value) {
 	x@data <- lapply(x@data, function(a) {
 		if ( is.matter(a) )

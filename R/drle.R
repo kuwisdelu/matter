@@ -44,16 +44,19 @@ drle <- function(x, cr_threshold = 0, delta = TRUE)
 		out
 }
 
-setMethod("describe_for_display", "drle", function(x) "compressed vector")
+setMethod("describe_for_display", "drle", function(x) {
+	desc1 <- paste0("<", length(x), " length> ", class(x))
+	desc2 <- paste0("compressed vector")
+	paste0(desc1, " :: ", desc2)
+})
 
 setMethod("show", "drle", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", length(object), " length> ",
-		describe_for_display(object), "\n", sep="")
-	print(data.frame(
-		values=object@values,
-		lengths=object@lengths,
-		deltas=object@deltas))
+	cat(describe_for_display(object), "\n", sep="")
+	n <- getOption("matter.show.head.n")
+	runs <- formatDRLERuns(object)
+	print(head(runs, n=n))
+	if ( nrow(runs) > n )
+		cat("... and", nrow(runs) - n, "more runs\n")
 })
 
 is.drle <- function(x) is(x, "drle")
@@ -74,6 +77,13 @@ getDRLEElements <- function(x, i) {
 		y <- .Call("C_getDRLEElements", x, i, PACKAGE="matter")
 	}
 	y
+}
+
+formatDRLERuns <- function(x) {
+	data.frame(
+		values=x@values,
+		lengths=x@lengths,
+		deltas=x@deltas)
 }
 
 setAs("drle", "list", function(from)

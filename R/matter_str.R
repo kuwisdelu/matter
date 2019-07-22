@@ -94,7 +94,7 @@ setMethod("describe_for_display", "matter_str", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
-setMethod("preview_for_display", "matter_str", function(x) preview_vector_data(x))
+setMethod("preview_for_display", "matter_str", function(x) preview_vector(x))
 
 setAs("character", "matter_str", function(from) matter_str(from, names=names(from)))
 

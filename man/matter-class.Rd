@@ -171,11 +171,11 @@ as.matter(x, \dots)
 \examples{
 ## Create a matter_vec vector
 x <- matter(1:100, length=100)
-x[]
+x
 
 ## Create a matter_mat matrix
 x <- matter(1:100, nrow=10, ncol=10)
-x[]
+x
 }
 
 \keyword{classes}

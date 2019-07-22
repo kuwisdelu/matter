@@ -97,14 +97,13 @@ struct <- function(..., filename = NULL, filemode = "rw", offset = 0) {
 		lengths=lens, names=names, filemode=filemode)
 }
 
-setMethod("describe_for_display", "matter_list", function(x) "out-of-memory list")
-
-setMethod("show", "matter_list", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@length, " length> ",
-		describe_for_display(object), "\n", sep="")
-	callNextMethod(object)
+setMethod("describe_for_display", "matter_list", function(x) {
+	desc1 <- paste0("<", x@length, " length> ", class(x))
+	desc2 <- paste0("out-of-memory list")
+	paste0(desc1, " :: ", desc2)
 })
+
+setMethod("preview_for_display", "matter_list", function(x) preview_list(x))
 
 setAs("list", "matter_list", function(from) matter_list(from, names=names(from)))
 
@@ -200,7 +199,7 @@ subList <- function(x, i, exact) {
 		i <- names2index(x, i, exact)
 	new(class(x),
 		data=atomdata(x)[,i],
-		datamode=datamode(x),
+		datamode=datamode(x)[i],
 		paths=paths(x),
 		filemode=filemode(x),
 		length=length(i),
@@ -237,6 +236,23 @@ subListElements <- function(x, i, j, exact) {
 				else list(dimnames(y)[[1]][j]),
 			ops=NULL)
 	}	
+}
+
+subListElementAsVector <- function(x, i, exact) {
+	if ( is.logical(i) )
+		i <- logical2index(x, i)
+	if ( is.character(i) )
+		i <- names2index(x, i, exact)
+	new("matter_vec",
+		data=atomdata(x)[,i],
+		datamode=datamode(x)[i],
+		paths=paths(x),
+		filemode=filemode(x),
+		length=dim(x)[i],
+		dim=NULL,
+		names=dimnames(x)[i],
+		dimnames=NULL,
+		ops=NULL)
 }
 
 # subsetting

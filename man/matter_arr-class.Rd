@@ -105,8 +105,8 @@ matter_arr(data, datamode = "double", paths = NULL,
 }
 
 \examples{
-x <- matter_arr(1:125, dim=c(5,5,5))
-x[]
+x <- matter_arr(1:1000, dim=c(10,10,10))
+x
 }
 
 \keyword{classes}

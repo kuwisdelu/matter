@@ -83,13 +83,22 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter_arr", function(x) "out-of-memory array")
+setMethod("describe_for_display", "matter_arr", function(x) {
+	desc1 <- paste0("<", paste0(x@dim, collapse=" x "), " dim> ", class(x))
+	desc2 <- paste0("out-of-memory ", x@datamode, " array")
+	paste0(desc1, " :: ", desc2)
+})
 
-setMethod("show", "matter_arr", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", paste0(object@dim, collapse=" x "), " dim> ",
-		describe_for_display(object), "\n", sep="")
-	callNextMethod(object)
+setMethod("preview_for_display", "matter_arr", function(x) {
+	if ( length(dim(x)) < 2L ) {
+		preview_vector(x)
+	} else if ( length(dim(x)) == 2L ) {
+		preview_matrix(x)
+	} else if ( length(dim(x)) > 2L ) {
+		preview_Nd_array(x)
+	} else {
+		stop("ill-formed array dimensions")
+	}
 })
 
 setAs("array", "matter_arr", function(from) matter_arr(from, dimnames=dimnames(from)))

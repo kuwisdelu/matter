@@ -152,12 +152,12 @@ setMethod("show", "matter", function(object) {
 	cat(describe_for_display(object), "\n", sep="")
 	if ( getOption("matter.show.head") )
 		preview_for_display(object)
-	if ( !is.virtual(object) ) {
+	if ( is.matter(object) ) {
 		object.memory <- object.size(object)
 		class(object.memory) <- "num_bytes"
 		rmem <- format(object.memory, units="auto")
 		vmem <- format(vm_used(object), units="auto")
-		cat("(", rmem, " real", " / ", vmem, " virtual)\n", sep="")
+		cat("(", rmem, " real", " | ", vmem, " virtual)\n", sep="")
 	}
 })
 

@@ -77,21 +77,125 @@ groupCombiner <- function(fun) {
 #### Show utility functions ####
 ## -----------------------------
 
-preview_vector_data <- function(x, n=getOption("matter.show.head.n")) {
-	head <- head(x, n=n)
-	out <- as.character(head)
-	more <- length(x) - length(head) > 0
-	if ( !is.null(names(head)) ) {
-		nms <- names(head)
+preview_vector_data <- function(x, n = getOption("matter.show.head.n")) {
+	hdr <- head(x, n=n)
+	out <- as.character(hdr)
+	more <- length(x) - length(hdr) > 0
+	if ( !is.null(names(hdr)) ) {
+		nms <- names(hdr)
 	} else {
-		nms <- paste0("[", seq_along(head), "]")
+		nms <- paste0("[", seq_along(hdr), "]")
 	}
 	if ( more ) {
 		out <- c(out, "...")
 		nms <- c(nms, "...")
 	}
-	fmt <- matrix(out, nrow=1, dimnames=list("", nms))
-	print(fmt, quote=FALSE, right=TRUE)
+	matrix(out, nrow=1, dimnames=list("", nms))
+}
+
+preview_vector <- function(x, n = getOption("matter.show.head.n")) {
+	print(preview_vector_data(x, n), quote=FALSE, right=TRUE)
+}
+
+preview_matrix_data <- function(x, n = getOption("matter.show.head.n")) {
+	more_i <- nrow(x) > n
+	more_j <- ncol(x) > n
+	if ( more_i ) {
+		i <- 1:n
+	} else {
+		i <- 1:nrow(x)
+	}
+	if ( more_j ) {
+		j <- 1:n
+	} else {
+		j <- 1:ncol(x)
+	}
+	hdr <- x[i,j,drop=FALSE]
+	out <- matrix(as.character(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
+	if ( !is.null(rownames(hdr)) ) {
+		rnm <- rownames(hdr)[i]
+	} else {
+		rnm <- paste0("[", seq_along(i), ",]")
+	}
+	if ( !is.null(colnames(hdr)) ) {
+		cnm <- rownames(hdr)[i]
+	} else {
+		cnm <- paste0("[,", seq_along(j), "]")
+	}
+	if ( more_i ) {
+		out <- rbind(out, "...")
+		rnm <- c(rnm, "...")
+	}
+	if ( more_j ) {
+		out <- cbind(out, "...")
+		cnm <- c(cnm, "...")
+	}
+	dimnames(out) <- list(rnm, cnm)
+	out
+}
+
+preview_matrix <- function(x, n = getOption("matter.show.head.n")) {
+	print(preview_matrix_data(x, n), quote=FALSE, right=TRUE)
+}
+
+preview_Nd_array <- function(x, n = getOption("matter.show.head.n")) {
+	more_i <- nrow(x) > n
+	more_j <- ncol(x) > n
+	if ( more_i ) {
+		i <- 1:n
+	} else {
+		i <- 1:nrow(x)
+	}
+	if ( more_j ) {
+		j <- 1:n
+	} else {
+		j <- 1:ncol(x)
+	}
+	extra <- rep(1L, length(dim(x)) - 2L)
+	inds <- c(list(i, j), as.list(extra))
+	hdr <- do.call("[", c(list(x), inds, list(drop=FALSE)))
+	out <- matrix(as.character(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
+	if ( !is.null(rownames(hdr)) ) {
+		rnm <- rownames(hdr)[i]
+	} else {
+		rnm <- paste0("[", seq_along(i), ",]")
+	}
+	if ( !is.null(colnames(hdr)) ) {
+		cnm <- rownames(hdr)[i]
+	} else {
+		cnm <- paste0("[,", seq_along(j), "]")
+	}
+	if ( more_i ) {
+		out <- rbind(out, "...")
+		rnm <- c(rnm, "...")
+	}
+	if ( more_j ) {
+		out <- cbind(out, "...")
+		cnm <- c(cnm, "...")
+	}
+	dimnames(out) <- list(rnm, cnm)
+	cat(paste0(c("", "", extra), collapse=", "), "\n")
+	print(out, quote=FALSE, right=TRUE)
+	if ( prod(dim(x)[-c(1,2)]) > 1L ) {
+		dots <- ifelse(dim(x)[-c(1,2)] > 1L, "...", "")
+		cat(paste0(c("", "", dots), collapse=", "), "\n")
+	}
+}
+
+preview_list <- function(x, n = getOption("matter.show.head.n")) {
+	n1 <- min(n, length(x))
+	for ( i in 1:n1 ) {
+		y <- subListElementAsVector(x, i)
+		fmt <- preview_vector_data(y, n)
+		if ( !is.null(names(x)) ) {
+			rownames(fmt) <- paste0("$", names(x)[i])
+		} else {
+			rownames(fmt) <- paste0("[[", i, "]]")
+		}
+		print(fmt, quote=FALSE, right=TRUE)
+	}
+	if ( length(x) > n1 )
+		cat("...\n")
 }
 
 #### Miscellaneous utility functions ####

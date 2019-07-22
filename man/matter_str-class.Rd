@@ -111,8 +111,8 @@ matter_str(data, datamode = "uchar", paths = NULL,
 }
 
 \examples{
-x <- matter_str(c("hello", "world!"))
-x[]
+x <- matter_str(rep(c("hello", "world!"), 50))
+x
 }
 
 \keyword{classes}

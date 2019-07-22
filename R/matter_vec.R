@@ -85,7 +85,7 @@ setMethod("describe_for_display", "matter_vec", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
-setMethod("preview_for_display", "matter_vec", function(x) preview_vector_data(x))
+setMethod("preview_for_display", "matter_vec", function(x) preview_vector(x))
 
 setAs("raw", "matter_vec",
 	function(from) matter_vec(from, datamode="raw", names=names(from)))

@@ -262,11 +262,18 @@ setMethod("c", "atoms", function(x, ..., recursive=FALSE)
 	}
 })
 
+setMethod("describe_for_display", "atoms", function(x) {
+	desc1 <- paste0("<", x@natoms, " length, ", x@ngroups, " group> ", class(x))
+	desc2 <- paste0("units of data")
+	paste0(desc1, " :: ", desc2)
+})
+
 setMethod("show", "atoms", function(object) {
-	n <- 10L
+	cat(describe_for_display(object), "\n", sep="")
+	n <- getOption("matter.show.head.n")
 	adata <- as.data.frame(object)
 	print(head(adata, n=n))
 	if ( nrow(adata) > n )
-		cat("and", nrow(adata) - n, "more atoms\n")
+		cat("... and", nrow(adata) - n, "more atoms\n")
 })
 
