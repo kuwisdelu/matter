@@ -2,8 +2,8 @@
 # create matter-backed ALTREP objects
 
 as_ALTREP <- function(x, attr = list(), wrap = getOption("matter.wrap.altrep")) {
-	if ( !is.matter(x) )
-		stop("'x' must be a matter object")
+	if ( !is.matter(x) && !is.atomic && !is.list(x) )
+		stop("'x' must be a matter object, atomic vector, or a list")
 	if ( !is.list(attr) )
 		stop("'attr' must be a list")
 	nm <- dm <- dnm <- NULL
@@ -19,10 +19,33 @@ as_ALTREP <- function(x, attr = list(), wrap = getOption("matter.wrap.altrep")) 
 		dnm <- attr[[idnm]]
 		attr <- attr[-idnm]
 	}
-	.Call("C_makeMatterAltrep", x, attr, nm, dm, dnm, wrap, PACKAGE="matter")
+	.Call("C_makeAltrep", x, attr, nm, dm, dnm, wrap, PACKAGE="matter")
 }
 
 # coercion to ALTREP objects
+
+setMethod("as.altrep", "ANY",
+	function(x, ...) 
+	{
+		if ( !is.matter(x) ) {
+			x <- as.matter(x)
+		} else {
+			stop("don't know how to ALTREP-ify object of class '", class(x), "'")
+		}
+		as.altrep(x)
+	})
+
+setMethod("as.altrep", "list",
+	function(x, ...)
+	{
+		lapply(x, as.altrep)
+	})
+
+setMethod("as.altrep", "data.frame",
+	function(x, ...) 
+	{
+		as.altrep(as.matter(x))
+	})
 
 setMethod("as.altrep", "matter_vec",
 	function(x, ...) 
@@ -58,4 +81,30 @@ setMethod("as.altrep", "matter_fc",
 		attr <- list(names=names(x), class="factor", levels=levels(x))
 		as_ALTREP(as(x, "matter_vec"), attr=attr)
 	})
+
+setMethod("as.altrep", "matter_list",
+	function(x, ...)
+	{
+		lapply(seq_along(x), function(i) as.altrep(subListElementAsVector(x, i)))
+	})
+
+setMethod("as.altrep", "matter_df",
+	function(x, ...)
+	{
+		if ( is.null(rownames(x)) ) {
+			row.names <- as.character(seq_len(nrow(x)))
+		} else {
+			row.names <- rownames(x)
+		}
+		attr <- list(class="data.frame", row.names=row.names)
+		.Call("C_makeAltrep", as.altrep(atomdata(x)),
+			attr, names(x), NULL, NULL, TRUE, PACKAGE="matter")
+	})
+
+setMethod("as.altrep", "virtual_df",
+	function(x, ...)
+	{
+		as.altrep(as(x, "matter_df"))
+	})
+
 

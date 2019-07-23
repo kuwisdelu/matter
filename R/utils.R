@@ -254,6 +254,14 @@ check_compatible_classes <- function(x, y) {
 	}
 }
 
+stringsToFactors <- function(x) {
+	if ( is.character(x) ) {
+		as.factor(x)
+	} else {
+		x
+	}
+}
+
 returnWithWarning <- function(x, ...) {
 	warning(...)
 	x

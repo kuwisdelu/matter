@@ -36,6 +36,8 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 			datamode <- sapply(data, class)
 		if ( missing(lengths) )
 			lengths <- sapply(data, length)
+		if ( !all(sapply(data, is.atomic)) )
+			stop("all list elements must be atomic vectors")
 	}
 	if ( all(extent == 0) )
 		return(new("matter_list"))
@@ -108,10 +110,6 @@ setMethod("preview_for_display", "matter_list", function(x) preview_list(x))
 setAs("list", "matter_list", function(from) matter_list(from, names=names(from)))
 
 as.matter_list <- function(x) as(x, "matter_list")
-
-setAs("matter_list", "list", function(from) from[])
-
-setMethod("as.list", "matter_list", function(x) as(x, "list"))
 
 getList <- function(x) {
 	y <- .Call("C_getList", x, PACKAGE="matter")

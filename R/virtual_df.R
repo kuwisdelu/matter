@@ -43,7 +43,15 @@ setClass("matter_df",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-virtual_df <- function(..., row.names = NULL) {
+setMethod("describe_for_display", "matter_df", function(x) {
+	desc1 <- paste0("<", x@dim[[1]], " row, ", x@dim[[2]], " column> ", class(x))
+	desc2 <- paste0("out-of-memory data frame")
+	paste0(desc1, " :: ", desc2)
+})
+
+virtual_df <- function(..., row.names = NULL,
+	stringsAsFactors = default.stringsAsFactors())
+{
 	data <- list(...)
 	nm <- names(data)
 	if ( length(data) == 1 && is.list(data[[1]]) )
@@ -51,6 +59,8 @@ virtual_df <- function(..., row.names = NULL) {
 	if ( is.null(nm) || any(sapply(nm, nchar) == 0) )
 		stop("all arguments must be named")
 	nm <- make.unique(nm)
+	if ( stringsAsFactors )
+		data <- lapply(data, stringsToFactors)
 	new("virtual_df",
 		data=setNames(data, nm),
 		datamode=make_datamode("virtual", type="R"),
@@ -63,10 +73,14 @@ virtual_df <- function(..., row.names = NULL) {
 		ops=NULL)
 }
 
-matter_df <- function(..., row.names = NULL) {
+matter_df <- function(..., row.names = NULL,
+	stringsAsFactors = default.stringsAsFactors())
+{
 	data <- list(...)
 	if ( length(data) == 1 && is.list(data[[1]]) )
 		return(as.matter_df(data[[1]]))
+	if ( stringsAsFactors )
+		data <- lapply(data, stringsToFactors)
 	data <- lapply(data, as.matter)
 	out <- do.call("virtual_df", data)
 	as(out, "matter_df")
@@ -83,13 +97,18 @@ setAs("list", "matter_df", # also works for data.frame
 		do.call("matter_df", from)
 })
 
+setAs("virtual_df", "matter_df",
+	function(from) {
+		data <- lapply(atomdata(from), as.matter) # coerce columns to matter
+		atomdata(from) <- data
+		class(from) <- "matter_df"
+		if ( validObject(from) )
+			from
+})
+
 as.virtual_df <- function(x) as(x, "virtual_df")
 
 as.matter_df <- function(x) as(x, "matter_df")
-
-setAs("virtual_df", "data.frame", function(from) from[])
-
-setMethod("as.data.frame", "virtual_df", function(x) as(x, "data.frame"))
 
 getDataFrame <- function(x) {
 	y <- lapply(atomdata(x), "[")

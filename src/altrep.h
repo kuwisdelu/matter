@@ -26,36 +26,56 @@ static R_altrep_class_t MatterAlt_string;
 
 */
 
-static SEXP makeMatterAltrep(SEXP x, SEXP attr, SEXP nm, SEXP dm, SEXP dnm, SEXP wrap)
+static SEXP makeAltrep(SEXP x, SEXP attr, SEXP nm, SEXP dm, SEXP dnm, SEXP wrap)
 {
+	SEXP ret;
 	R_altrep_class_t cls;
-	if ( MAYBE_REFERENCED(x) )
-		x = Rf_duplicate(x);
-	PROTECT(x);
-	Matter mVec(x);
-	if ( mVec.S4class() != MATTER_VEC && mVec.S4class() != MATTER_STR )
-    	Rf_error("ALTREP not supported for this matter object");
-    switch(mVec.datamode()) {
-    	case R_RAW:
-            cls = MatterAlt_raw;
-            break;
-        case R_LOGICAL:
-            cls = MatterAlt_logical;
-            break;
-        case R_INTEGER:
-            cls = MatterAlt_integer;
-            break;
-        case R_NUMERIC:
-            cls = MatterAlt_real;
-            break;
-        case R_CHARACTER:
-            cls = MatterAlt_string;
-            break;
-        default:
-            Rf_error("ALTREP not supported for this matter datamode");
-    }
-    SEXP ret = R_new_altrep(cls, x, R_NilValue);
-    MARK_NOT_MUTABLE(ret);
+	if ( Rf_isS4(x) )
+	{
+		if ( MAYBE_REFERENCED(x) )
+			x = Rf_duplicate(x);
+		PROTECT(x);
+		Matter mVec(x);
+		if ( mVec.S4class() != MATTER_VEC && mVec.S4class() != MATTER_STR )
+	    	Rf_error("ALTREP not supported for this matter object");
+	    switch(mVec.datamode()) {
+	    	case R_RAW:
+	            cls = MatterAlt_raw;
+	            break;
+	        case R_LOGICAL:
+	            cls = MatterAlt_logical;
+	            break;
+	        case R_INTEGER:
+	            cls = MatterAlt_integer;
+	            break;
+	        case R_NUMERIC:
+	            cls = MatterAlt_real;
+	            break;
+	        case R_CHARACTER:
+	            cls = MatterAlt_string;
+	            break;
+	        default:
+	            Rf_error("ALTREP not supported for this matter datamode");
+	    }
+	    ret = R_new_altrep(cls, x, R_NilValue);
+	    MARK_NOT_MUTABLE(ret);
+	}
+	else if ( Rf_isVector(x) )
+	{
+		if ( MAYBE_REFERENCED(x) )
+		{
+			if ( Rf_isVectorList(x) )
+				x = Rf_shallow_duplicate(x);
+			else
+				x = Rf_duplicate(x);
+		}
+		PROTECT(x);
+		ret = x;
+	}
+	else
+	{
+		Rf_error("SEXP type not supported");
+	}
     Rboolean has_attr = FALSE, has_special = FALSE; 
     if ( attr != R_NilValue && XLENGTH(attr) > 0 )
     	has_attr = TRUE;
@@ -95,7 +115,7 @@ struct MatterAlt {
 
 	static SEXP Unserialize(SEXP cls, SEXP state)
 	{
-		return makeMatterAltrep(state, R_NilValue, R_NilValue,
+		return makeAltrep(state, R_NilValue, R_NilValue,
 			R_NilValue, R_NilValue, Rf_ScalarLogical(FALSE));
 	}
 
