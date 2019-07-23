@@ -58,7 +58,9 @@ exportClasses(
 	"sparse_matr",
 	"virtual_mat",
 	"virtual_matc",
-	"virtual_matr")
+	"virtual_matr",
+	"virtual_tbl",
+	"virtual_df")
 
 export(
 	"drle",
@@ -75,13 +77,14 @@ export(
 	"matter_df",
 	"rep_vt",
 	"sparse_mat",
-	"virtual_mat",
 	"is.matter",
 	"as.matter",
 	"is.sparse",
 	"as.sparse",
 	"is.virtual",
 	"as.virtual",
+	"virtual_mat",
+	"virtual_df",
 	"struct")
 
 exportMethods(

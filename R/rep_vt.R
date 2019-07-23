@@ -18,8 +18,14 @@ rep_vt <- function(x, times, length.out = length(x) * times)
 		out
 }
 
+setMethod("describe_for_display", "rep_vt", function(x) {
+	desc1 <- paste0("<", length(x), " length> ", class(x))
+	desc2 <- paste0("repeated vector")
+	paste0(desc1, " :: ", desc2)
+})
+
 setMethod("show", "rep_vt", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
+	cat(describe_for_display(object), "\n", sep="")
 	print(list(data=object@data, length=object@length))
 })
 

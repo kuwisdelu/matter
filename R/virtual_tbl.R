@@ -1,7 +1,7 @@
 ### Define matter<data table> class for virtual data tables ####
 # --------------------------------------------------------------
 
-setClass("matter_tbl",
+setClass("virtual_tbl",
 	contains = c("matter", "VIRTUAL"),
 	prototype = prototype(
 		dim = c(0L, 0L),
@@ -16,23 +16,17 @@ setClass("matter_tbl",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setMethod("describe_for_display", "matter_tbl", function(x) "out-of-memory data table")
+setMethod("describe_for_display", "virtual_tbl", function(x) {
+	desc1 <- paste0("<", x@dim[[1]], " row, ", x@dim[[2]], " column> ", class(x))
+	desc2 <- paste0("virtual data table")
+	paste0(desc1, " :: ", desc2)
+})
 
-print_tabular_data <- function(x, classinfo, n = 6L, ...) {
-	tbl <- head(x, n=n)
-	out <- as.matrix(format(tbl))
-	if ( missing(classinfo) )
-		classinfo <- sapply(tbl, function(y)
-			paste0("<", class(y)[1], ">"), USE.NAMES=FALSE)
-	classinfo <- matrix(classinfo, nrow = 1,
-		dimnames = list("", colnames(out)))
-	out <- rbind(classinfo, out)
-	print(out, quote=FALSE, right=TRUE)
-	if ( nrow(x) > n )
-		cat("[and ", nrow(x) - n, " more rows]", "\n", sep="")
-}
+setMethod("preview_for_display", "virtual_tbl", function(x) {
+	preview_table(x, classinfo=sapply(atomdata(x), function(y) class(y)[1L]))
+})
 
-setMethod("head", "matter_tbl",
+setMethod("head", "virtual_tbl",
 	function(x, n = 6L, ...) {
 		stopifnot(length(n) == 1L)
 	    n <- if (n < 0L) 
@@ -41,7 +35,7 @@ setMethod("head", "matter_tbl",
 	    x[seq_len(n),,drop=FALSE]
 })
 
-setMethod("tail", "matter_tbl",
+setMethod("tail", "virtual_tbl",
 	function(x, n = 6L, ...) {
 		stopifnot(length(n) == 1L)
 	    nrx <- nrow(x)
@@ -51,7 +45,7 @@ setMethod("tail", "matter_tbl",
 	    x[seq.int(to=nrx, length.out=n),,drop=FALSE]
 })
 
-setReplaceMethod("names", "matter_tbl", function(x, value) {
+setReplaceMethod("names", "virtual_tbl", function(x, value) {
 	x@names <- value
 	if ( is.null(x@dimnames) ) {
 		x@dimnames <- list(NULL, value)
@@ -62,9 +56,9 @@ setReplaceMethod("names", "matter_tbl", function(x, value) {
 		x
 })
 
-setReplaceMethod("dimnames", "matter_tbl", function(x, value) {
+setReplaceMethod("dimnames", "virtual_tbl", function(x, value) {
 	x@names <- value[[2]]
-	x@dimnames <- value[[2]]
+	x@dimnames <- value
 	if ( validObject(x) )
 		x
 })

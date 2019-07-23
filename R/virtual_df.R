@@ -2,7 +2,7 @@
 #### Define matter<data frame> class for creating data frames ####
 ## --------------------------------------------------------------
 
-setClass("matter_df",
+setClass("virtual_df",
 	prototype = prototype(
 		data = list(),
 		datamode = make_datamode("virtual", type="R"),
@@ -14,7 +14,7 @@ setClass("matter_df",
 		names = character(),
 		dimnames = list(NULL, character()),
 		ops = NULL),
-	contains = c("matter_vt", "matter_tbl"),
+	contains = c("matter_vt", "virtual_tbl"),
 	validity = function(object) {
 		errors <- NULL
 		if ( object@length != length(object@data) )
@@ -30,21 +30,28 @@ setClass("matter_df",
 			errors <- c(errors, paste0("length of '", object@names[neq[1]], " [",
 				lens[neq[1]], "] does not match number of rows [", object@dim[1], "]"))
 		}
-		atms <- sapply(object@data, function(x) is.matter(x) || is.atomic(x))
-		if ( any(!atms) )
-			errors <- c(errors, "columns must be matter objects or atomic vectors")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_df <- function(..., row.names = NULL) {
+setClass("matter_df",
+	contains = "virtual_df",
+	validity = function(object) {
+		errors <- NULL
+		atms <- sapply(object@data, function(x) is.matter(x) )
+		if ( any(!atms) )
+			errors <- c(errors, "columns must be matter objects")
+		if ( is.null(errors) ) TRUE else errors
+	})
+
+virtual_df <- function(..., row.names = NULL) {
 	data <- list(...)
 	nm <- names(data)
 	if ( length(data) == 1 && is.list(data[[1]]) )
-		return(as.matter_df(data[[1]]))
+		return(as.virtual_df(data[[1]]))
 	if ( is.null(nm) || any(sapply(nm, nchar) == 0) )
 		stop("all arguments must be named")
 	nm <- make.unique(nm)
-	new("matter_df",
+	new("virtual_df",
 		data=setNames(data, nm),
 		datamode=make_datamode("virtual", type="R"),
 		paths=character(),
@@ -56,35 +63,33 @@ matter_df <- function(..., row.names = NULL) {
 		ops=NULL)
 }
 
-setMethod("describe_for_display", "matter_df", function(x) "out-of-memory data frame")
+matter_df <- function(..., row.names = NULL) {
+	data <- list(...)
+	if ( length(data) == 1 && is.list(data[[1]]) )
+		return(as.matter_df(data[[1]]))
+	data <- lapply(data, as.matter)
+	out <- do.call("virtual_df", data)
+	as(out, "matter_df")
+}
 
-setMethod("show", "matter_df", function(object) {
-	cat("An object of class '", class(object), "'\n", sep="")
-	cat("  <", object@dim[[1]], " row, ", object@dim[[2]], " column> ",
-		describe_for_display(object), "\n", sep="")
-	m <- sum(sapply(atomdata(object), is.matter))
-	object.memory <- num_bytes(object.size(object))
-	cat("    ", format(object.memory, units="auto"), " real memory: ",
-		length(object) - m, " variables\n", sep="")
-	cat("    ", format(vm_used(object), units="auto"), " virtual memory: ",
-		m, " variables\n", sep="")
-	cat("\n")
-	classinfo <- sapply(atomdata(object), function(x)
-		paste0("<", class(x)[1], ">"), USE.NAMES=FALSE)
-	print_tabular_data(object, classinfo)
+setAs("list", "virtual_df", # also works for data.frame
+	function(from) {
+		do.call("virtual_df", from)
 })
 
-setAs("list", "matter_df", # also for data.frame
+setAs("list", "matter_df", # also works for data.frame
 	function(from) {
-		from <- lapply(from, as.matter)
+		from <- lapply(from, as.matter) # coerce columns to matter
 		do.call("matter_df", from)
 })
 
+as.virtual_df <- function(x) as(x, "virtual_df")
+
 as.matter_df <- function(x) as(x, "matter_df")
 
-setAs("matter_df", "data.frame", function(from) from[])
+setAs("virtual_df", "data.frame", function(from) from[])
 
-setMethod("as.data.frame", "matter_df", function(x) as(x, "data.frame"))
+setMethod("as.data.frame", "virtual_df", function(x) as(x, "data.frame"))
 
 getDataFrame <- function(x) {
 	y <- lapply(atomdata(x), "[")
@@ -253,7 +258,7 @@ subDataFrameElements <- function(x, i, j) {
 # data frame getter methods
 
 setMethod("[",
-	c(x = "matter_df", i = "ANY", j = "ANY", drop = "ANY"),
+	c(x = "virtual_df", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, j, ..., drop) {
 		narg <- nargs() - 1 - !missing(drop)
 		if ( !missing(i) && narg == 1 ) {
@@ -274,7 +279,7 @@ setMethod("[",
 	})
 
 setMethod("[",
-	c(x = "matter_df", i = "ANY", j = "ANY", drop = "NULL"),
+	c(x = "virtual_df", i = "ANY", j = "ANY", drop = "NULL"),
 	function(x, i, j, ..., drop) {
 		narg <- nargs() - 1 - !missing(drop)
 		if ( !missing(i) && narg == 1 ) {
@@ -297,7 +302,7 @@ setMethod("[",
 # data frame setter methods
 
 setReplaceMethod("[",
-	c(x = "matter_df", i = "ANY", j = "ANY", value = "ANY"),
+	c(x = "virtual_df", i = "ANY", j = "ANY", value = "ANY"),
 	function(x, i, j, ..., value) {
 		narg <- nargs() - 2
 		if ( !is.list(value) )
@@ -322,11 +327,11 @@ setReplaceMethod("[",
 # x[[i]] subsetting
 
 setMethod("[[",
-	c(x = "matter_df", j = "missing"),
+	c(x = "virtual_df", j = "missing"),
 	function(x, i, ...) atomdata(x)[[i]])
 
 setReplaceMethod("[[",
-	c(x = "matter_df", j = "missing"),
+	c(x = "virtual_df", j = "missing"),
 	function(x, i, ..., value) {
 		atomdata(x)[[i]] <- value
 		if ( validObject(x) )
@@ -336,11 +341,11 @@ setReplaceMethod("[[",
 # x$name subsetting
 
 setMethod("$",
-	c(x = "matter_df"),
+	c(x = "virtual_df"),
 	function(x, name) atomdata(x)[[name, exact=FALSE]])
 
 setReplaceMethod("$",
-	c(x = "matter_df"),
+	c(x = "virtual_df"),
 	function(x, name, value) {
 		atomdata(x)[[name]] <- value
 		if ( validObject(x) )

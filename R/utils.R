@@ -112,13 +112,13 @@ preview_matrix_data <- function(x, n = getOption("matter.show.head.n")) {
 	}
 	hdr <- x[i,j,drop=FALSE]
 	out <- matrix(as.character(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
-	if ( !is.null(rownames(hdr)) ) {
-		rnm <- rownames(hdr)[i]
+	if ( !is.null(rownames(x)) ) {
+		rnm <- rownames(x)[i]
 	} else {
 		rnm <- paste0("[", seq_along(i), ",]")
 	}
-	if ( !is.null(colnames(hdr)) ) {
-		cnm <- rownames(hdr)[i]
+	if ( !is.null(colnames(x)) ) {
+		cnm <- colnames(x)[j]
 	} else {
 		cnm <- paste0("[,", seq_along(j), "]")
 	}
@@ -155,13 +155,13 @@ preview_Nd_array <- function(x, n = getOption("matter.show.head.n")) {
 	inds <- c(list(i, j), as.list(extra))
 	hdr <- do.call("[", c(list(x), inds, list(drop=FALSE)))
 	out <- matrix(as.character(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
-	if ( !is.null(rownames(hdr)) ) {
-		rnm <- rownames(hdr)[i]
+	if ( !is.null(rownames(x)) ) {
+		rnm <- rownames(x)[i]
 	} else {
 		rnm <- paste0("[", seq_along(i), ",]")
 	}
-	if ( !is.null(colnames(hdr)) ) {
-		cnm <- rownames(hdr)[i]
+	if ( !is.null(colnames(x)) ) {
+		cnm <- colnames(x)[j]
 	} else {
 		cnm <- paste0("[,", seq_along(j), "]")
 	}
@@ -196,6 +196,50 @@ preview_list <- function(x, n = getOption("matter.show.head.n")) {
 	}
 	if ( length(x) > n1 )
 		cat("...\n")
+}
+
+preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NULL) {
+	more_i <- nrow(x) > n
+	more_j <- ncol(x) > n
+	if ( more_i ) {
+		i <- 1:n
+	} else {
+		i <- 1:nrow(x)
+	}
+	if ( more_j ) {
+		j <- 1:n
+	} else {
+		j <- 1:ncol(x)
+	}
+	hdr <- x[i,j,drop=FALSE]
+	out <- as.matrix(hdr)
+	if ( is.null(classinfo) )
+		classinfo <- sapply(hdr, function(y) class(y)[1])
+	classinfo <- classinfo[j]
+	classinfo <- paste0("<", classinfo, ">")
+	if ( !is.null(rownames(x)) ) {
+		rnm <- rownames(x)[i]
+	} else {
+		rnm <- paste0("[", seq_along(i), ",]")
+	}
+	if ( !is.null(colnames(x)) ) {
+		cnm <- colnames(x)[j]
+	} else {
+		cnm <- paste0("[,", seq_along(j), "]")
+	}
+	if ( more_i ) {
+		out <- rbind(out, "...")
+		rnm <- c(rnm, "...")
+	}
+	if ( more_j ) {
+		out <- cbind(out, "...")
+		cnm <- c(cnm, "...")
+		classinfo <- c(classinfo, "")
+	}
+	out <- rbind(classinfo, out)
+	rnm <- c("", rnm)
+	dimnames(out) <- list(rnm, cnm)
+	print(out, quote=FALSE, right=TRUE)
 }
 
 #### Miscellaneous utility functions ####

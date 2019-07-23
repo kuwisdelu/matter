@@ -17,8 +17,8 @@ setMethod("apply", "virtual_mat",
 		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
 })
 
-#### List-Apply functions over matter lists ####
-## -------------------------------------------
+#### List-Apply functions over matter lists and data frames ####
+## ------------------------------------------------------------
 
 setMethod("lapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam())
@@ -29,6 +29,23 @@ setMethod("lapply", "matter_list",
 )
 
 setMethod("sapply", "matter_list",
+	function(X, FUN, ..., BPPARAM = bpparam(),
+		simplify = TRUE, USE.NAMES = TRUE)
+	{
+		mapfun_matter(X, FUN, ..., SIMPLIFY=simplify,
+			USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
+	}
+)
+
+setMethod("lapply", "virtual_df",
+	function(X, FUN, ..., BPPARAM = bpparam())
+	{
+		mapfun_matter(X, FUN, ..., SIMPLIFY=FALSE,
+			USE.NAMES=TRUE, BPPARAM=BPPARAM)
+	}
+)
+
+setMethod("sapply", "virtual_df",
 	function(X, FUN, ..., BPPARAM = bpparam(),
 		simplify = TRUE, USE.NAMES = TRUE)
 	{
