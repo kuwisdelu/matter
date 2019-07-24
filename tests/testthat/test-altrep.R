@@ -11,7 +11,7 @@ test_that("altrep raw", {
 
 	y <- matter_vec(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
@@ -29,7 +29,7 @@ test_that("altrep logical", {
 
 	y <- matter_vec(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
@@ -49,7 +49,7 @@ test_that("altrep integer", {
 
 	y <- matter_vec(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
@@ -69,7 +69,7 @@ test_that("altrep real", {
 
 	y <- matter_vec(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
@@ -89,7 +89,7 @@ test_that("altrep string", {
 
 	y <- matter_str(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
@@ -107,7 +107,7 @@ test_that("altrep matrix", {
 
 	y <- matter_mat(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(x[1:3,1:3], z[1:3,1:3])
 
@@ -129,7 +129,7 @@ test_that("altrep array", {
 
 	y <- matter_arr(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(x[1:3,1:3,1:3], z[1:3,1:3,1:3])
 
@@ -146,17 +146,29 @@ test_that("altrep array", {
 })
 
 
-test_that("factor subsetting", {
+test_that("altrep factor", {
 
 	x <- factor(c("neon", "genesis", "evangelion"))
 
 	y <- matter_fc(x)
 
-	z <- matter:::as.altrep(y)
+	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
 	expect_equal(levels(x), levels(z))
+
+})
+
+test_that("altrep data frame", {
+
+	x <- data.frame(a=1:10, b=11:20, c=letters[1:10])
+
+	y <- matter_df(x)
+
+	z <- as.altrep(y)
+
+	expect_equivalent(head(x), head(z))
 
 })
 
