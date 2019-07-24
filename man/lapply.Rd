@@ -5,6 +5,8 @@
 \alias{sapply}
 \alias{lapply,matter_list-method}
 \alias{sapply,matter_list-method}
+\alias{lapply,virtual_df-method}
+\alias{sapply,virtual_df-method}
 
 \title{Apply Functions Over ``matter'' Lists}
 

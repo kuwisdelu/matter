@@ -1,43 +1,53 @@
 \name{matter_df-class}
 \docType{class}
 
+\alias{class:virtual_tbl}
+\alias{virtual_tbl-class}
+
+\alias{class:virtual_df}
+\alias{virtual_df}
+\alias{virtual_df-class}
+
 \alias{class:matter_df}
 \alias{matter_df}
 \alias{matter_df-class}
 
-\alias{names<-,matter_tbl-method}
-\alias{dimnames<-,matter_tbl,ANY-method}
+\alias{names<-,virtual_tbl-method}
+\alias{dimnames<-,virtual_tbl,ANY-method}
 
-\alias{[,matter_df-method}
-\alias{[,matter_df,ANY,ANY,ANY-method}
-\alias{[,matter_df,ANY,ANY,NULL-method}
-\alias{[<-,matter_df-method}
-\alias{[<-,matter_df,ANY,ANY,ANY-method}
+\alias{[,virtual_df-method}
+\alias{[,virtual_df,ANY,ANY,ANY-method}
+\alias{[,virtual_df,ANY,ANY,NULL-method}
+\alias{[<-,virtual_df-method}
+\alias{[<-,virtual_df,ANY,ANY,ANY-method}
 
-\alias{[[,matter_df,ANY,missing-method}
-\alias{[[<-,matter_df,ANY,missing-method}
+\alias{[[,virtual_df,ANY,missing-method}
+\alias{[[<-,virtual_df,ANY,missing-method}
 
-\alias{$,matter_df-method}
-\alias{$<-,matter_df-method}
+\alias{$,virtual_df-method}
+\alias{$<-,virtual_df-method}
 
-\alias{head,matter_tbl-method}
-\alias{tail,matter_tbl-method}
+\alias{head,virtual_tbl-method}
+\alias{tail,virtual_tbl-method}
 
+\alias{as.data.frame,virtual_df-method}
 \alias{as.data.frame,matter_df-method}
 
 \title{Out-of-Memory Data Frames}
 
 \description{
-    The \code{matter_df} class implements out-of-memory data frames.
+    The \code{virtual_df} class implements lightweight data frames that may be a mixture of atomic vectors and \code{matter} vectors, simulating the behavior of \code{data.frame}.
 
-    The columns may be \code{matter} objects or ordinary R objects. If they are ordinary R objects, those columns remain in memory. Columns that should be stored out-of-memory should be manually coerced to \code{matter} objects, if they are not already. 
+    The \code{matter_df} class extends \code{virtual_df} to implement fully out-of-memory data frames where all columns are \code{matter} objects.
 
-    Calling \code{as.matter()} on an ordinary R \code{data.frame} will do this automatically.
+    Calling \code{as.matter()} on an ordinary R \code{data.frame} will coerce all columns to \code{matter} objects to create a \code{matter_df} data frame.
 }
 
 \usage{
 ## Instance creation
-matter_df(\dots, row.names = NULL)
+virtual_df(\dots, row.names = NULL, stringsAsFactors = default.stringsAsFactors())
+
+matter_df(\dots, row.names = NULL, stringsAsFactors = default.stringsAsFactors())
 
 ## Additional methods documented below
 }
@@ -46,6 +56,8 @@ matter_df(\dots, row.names = NULL)
         \item{\dots}{These arguments become the data columns or data frame variables. They should be named.}
 
         \item{row.names}{A character vector giving the row names.}
+
+        \item{stringsAsFactors}{Should character vectors be converted to factors? This is recommended for \code{matter_df}, as accessing the underlying out-of-memory integer vectors (for a factor) is typically much faster than accessing a vector of out-of-memory strings.}
 }
 
 \section{Slots}{
@@ -77,7 +89,9 @@ matter_df(\dots, row.names = NULL)
 }
 
 \section{Creating Objects}{
-    \code{matter_df} instances can be created through \code{matter_df()} or \code{matter()}.
+    \code{virtual_df} instances can be created through \code{virtual_df()}.
+
+    \code{matter_df} instances can be created through \code{matter_df()}.
 }
 
 \section{Methods}{
@@ -94,7 +108,7 @@ matter_df(\dots, row.names = NULL)
 }
 
 \value{
-    An object of class \code{\linkS4class{matter_df}}.
+    An object of class \code{\linkS4class{virtual_df}} or \code{\linkS4class{matter_df}}.
 }
 
 \author{Kylie A. Bemis}
@@ -105,7 +119,7 @@ matter_df(\dots, row.names = NULL)
 
 \examples{
 x <- matter_df(a=as.matter(1:10), b=11:20, c=as.matter(letters[1:10]))
-x[]
+x
 x[1:2]
 x[[2]]
 x[["c"]]

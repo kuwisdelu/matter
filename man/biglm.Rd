@@ -2,23 +2,29 @@
 \docType{methods}
 
 \alias{biglm}
-\alias{biglm,formula,matter_df-method}
+\alias{biglm,formula,virtual_df-method}
 \alias{bigglm}
-\alias{bigglm,formula,matter_df-method}
+\alias{bigglm,formula,virtual_df-method}
 \alias{bigglm,formula,matter_mat-method}
+\alias{bigglm,formula,sparse_mat-method}
+\alias{bigglm,formula,virtual_mat-method}
 
 \title{Using ``biglm'' with ``matter''}
 
 \description{
-    This method allows \code{\linkS4class{matter_mat}} matrices to be used with the \code{\link[biglm]{biglm}} and \code{\link[biglm]{bigglm}} function from the ``biglm'' package.
+    This method allows \code{\linkS4class{matter_mat}} matrices and \code{\linkS4class{matter_df}} data frames to be used with the \code{\link[biglm]{biglm}} and \code{\link[biglm]{bigglm}} functions from the ``biglm'' package.
 }
 
 \usage{
-\S4method{biglm}{formula,matter_df}(formula, data, weights = NULL, sandwich = FALSE)
+\S4method{biglm}{formula,virtual_df}(formula, data, weights = NULL, sandwich = FALSE)
 
-\S4method{bigglm}{formula,matter_df}(formula, data, \dots, chunksize = NULL)
+\S4method{bigglm}{formula,virtual_df}(formula, data, \dots, chunksize = NULL)
 
 \S4method{bigglm}{formula,matter_mat}(formula, data, \dots, chunksize = NULL, fc = NULL)
+
+\S4method{bigglm}{formula,sparse_mat}(formula, data, \dots, chunksize = NULL, fc = NULL)
+
+\S4method{bigglm}{formula,virtual_mat}(formula, data, \dots, chunksize = NULL, fc = NULL)
 }
 
 \arguments{
