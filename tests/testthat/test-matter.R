@@ -59,6 +59,30 @@ test_that("matrix subsetting", {
 
 })
 
+test_that("matrix binding", {
+
+	x1 <- matrix(1:100, nrow=10, ncol=10)
+
+	rownames(x1) <- paste0("row", 1:nrow(x1))
+
+	colnames(x1) <- paste0("col", 1:ncol(x1))
+
+	x2 <- x1[,1:5]
+
+	x3 <- x1[1:5,]
+
+	y1 <- matter_mat(x1, dimnames=dimnames(x1))
+
+	y2 <- matter_mat(x2, dimnames=dimnames(x2))
+
+	y3 <- matter_mat(x3, dimnames=dimnames(x3))
+
+	expect_equal(cbind(y1, y2)[], cbind(x1, x2))
+
+	expect_equal(rbind(y1, y3)[], rbind(x1, x3))
+
+})
+
 
 test_that("array subsetting", {
 

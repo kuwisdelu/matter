@@ -344,9 +344,9 @@ combine_colnames <- function(x, y, ...) {
 	} else if ( is.null(dimnames(x)[[2]]) ) {
 		colnames <- c(character(dim(x)[2]), dimnames(y)[[2]])
 	} else if ( is.null(dimnames(y)[[2]]) ) {
-		colnames <- c(dimnames(x)[[2]], character(dim(x)[2]))
+		colnames <- c(dimnames(x)[[2]], character(dim(y)[2]))
 	} else {
-		colnames <- c(dimnames(x)[[2]], dimnames(x)[[2]])
+		colnames <- c(dimnames(x)[[2]], dimnames(y)[[2]])
 	}
 	if ( !is.null(dimnames(x)[[1]]) ) {
 		rownames <- dimnames(x)[[1]]
@@ -368,9 +368,9 @@ combine_rownames <- function(x, y, ...) {
 	} else if ( is.null(dimnames(x)[[1]]) ) {
 		rownames <- c(character(dim(x)[1]), dimnames(y)[[1]])
 	} else if ( is.null(dimnames(y)[[1]]) ) {
-		rownames <- c(dimnames(x)[[1]], character(dim(x)[1]))
+		rownames <- c(dimnames(x)[[1]], character(dim(y)[1]))
 	} else {
-		rownames <- c(dimnames(x)[[1]], dimnames(x)[[1]])
+		rownames <- c(dimnames(x)[[1]], dimnames(y)[[1]])
 	}
 	if ( !is.null(dimnames(x)[[2]]) ) {
 		colnames <- dimnames(x)[[2]]
