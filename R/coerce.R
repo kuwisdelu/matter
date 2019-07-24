@@ -10,6 +10,15 @@ as.native <- function(x, ALTREP = getOption("matter.coerce.altrep"))
 	}
 }
 
+as.nativelist <- function(x, ALTREP = getOption("matter.coerce.altrep.list"))
+{
+	if ( ALTREP ) {
+		as.altrep(x)
+	} else {
+		x[]
+	}
+}
+
 #### matter_vec ####
 
 setAs("matter_vec", "vector", function(from) as.native(from))
@@ -213,9 +222,9 @@ setMethod("as.factor", "matter_fc", function(x) as.native(x))
 
 #### matter_list ####
 
-setAs("matter_list", "list", function(from) as.native(from))
+setAs("matter_list", "list", function(from) as.nativelist(from))
 
-setMethod("as.list", "matter_list", function(x, ...) as.native(x, ...))
+setMethod("as.list", "matter_list", function(x, ...) as.nativelist(x, ...))
 
 setAs("matter_list", "matter_vec", function(from) {
 	new("matter_vec",
@@ -266,7 +275,7 @@ setAs("virtual_df", "data.frame", function(from) from[])
 
 setMethod("as.data.frame", "virtual_df", function(x) as(x, "data.frame"))
 
-setAs("matter_df", "data.frame", function(from) as_native(from))
+setAs("matter_df", "data.frame", function(from) as.native(from))
 
 setMethod("as.data.frame", "matter_df", function(x, ...) as.native(x, ...))
 

@@ -7,7 +7,8 @@
 	options(matter.show.head = TRUE)
 	options(matter.show.head.n = 6L)
 	options(matter.coerce.altrep = TRUE)
-	options(matter.wrap.altrep = TRUE)
+	options(matter.coerce.altrep.list = FALSE)
+	options(matter.wrap.altrep = FALSE)
 }
 
 #### Binary search that allows near-matches ####

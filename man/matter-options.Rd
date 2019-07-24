@@ -16,7 +16,9 @@
 
 	    \item{\code{options(matter.coerce.altrep=TRUE)}:}{When coercing \code{matter} objects to native R objects (such as \code{matrix}), should a \code{matter}-backed ALTREP object be returned instead? The initial coercion will be cheap, and the result will look like a native R object. This does not guarantee that the full data is never read into memory. Not all functions are ALTREP-aware at the C-level, so some operations may still trigger the full data to be read into memory. This should only ever happen once, as long as the object is not duplicated, though.}
 
-	    \item{\code{options(matter.wrap.altrep=TRUE)}:}{When coercing to a \code{matter}-backed ALTREP object, should the object be wrapped in an ALTREP wrapper? (This is always done in cases where the coercion preserves existing attributes.) This allows setting of attributes without triggering a (potentially expensive) duplication of the object when safe to do so.}
+	    \item{\code{options(matter.coerce.altrep.list=FALSE)}:}{Should a \code{matter}-backed ALTREP list be returned when coercing \code{matter_list} lists to native R lists? Lists are treated differently, because the coercion is more costly, as the metadata for each list element must be uncompressed and converted to separate ALTREP representations. (Note that this does not affect \code{matter_df} data frames, which do not compress metadata about the columns, because the columns are regular \code{matter} vectors.)}
+
+	    \item{\code{options(matter.wrap.altrep=FALSE)}:}{When coercing to a \code{matter}-backed ALTREP object, should the object be wrapped in an ALTREP wrapper? (This is always done in cases where the coercion preserves existing attributes.) This allows setting of attributes without triggering a (potentially expensive) duplication of the object when safe to do so.}
     }
 }
 
