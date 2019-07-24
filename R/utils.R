@@ -336,6 +336,17 @@ do_recursive <- function(fun, args) {
 	}
 }
 
+bind_elements <- function(x, y) {
+	if ( !identical(names(x), intersect(names(x), names(y))) )
+		stop("names do not match previous names")
+	y <- y[names(x)]
+	try_c <- function(e1, e2, label) {
+		tryCatch(c(e1, e2), error=function(e)
+			stop("couldn't combine element '", label, "'"))
+	}
+	mapply(try_c, x, y, names(x))
+}
+
 combine_colnames <- function(x, y, ...) {
 	if ( length(list(...)) > 0 )
 		y <- combine_colnames(y, ...)

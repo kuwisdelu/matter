@@ -214,6 +214,36 @@ test_that("data frame subsetting", {
 
 })
 
+test_that("matrix binding", {
+
+	x1 <- data.frame(
+		V1=1:10, V2=11:20, V3=21:30, V4=31:40, V5=41:40,
+		V6=letters[1:10], V7=letters[11:20],
+		V8=factor(letters[1:10]), V9=factor(letters[1:10]),
+		V10=rnorm(10), stringsAsFactors=FALSE)
+
+	rownames(x1) <- paste0("row", 1:nrow(x1))
+
+	colnames(x1) <- paste0("col", 1:ncol(x1))
+
+	x2 <- x1[,1:5]
+
+	x3 <- x1[1:5,]
+
+	row.names(x3) <- paste0("row", 11:15)
+
+	y1 <- matter_df(x1, row.names=row.names(x1), stringsAsFactors=FALSE)
+
+	y2 <- matter_df(x2, row.names=row.names(x2), stringsAsFactors=FALSE)
+
+	y3 <- matter_df(x3, row.names=row.names(x3), stringsAsFactors=FALSE)
+
+	expect_equal(cbind(y1, y2)[], cbind(x1, x2))
+
+	expect_equal(rbind(y1, y3)[], rbind(x1, x3))
+
+})
+
 test_that("sparse matrix subsetting", {
 
 	x <- matrix(rbinom(100, 1, 0.2), nrow=10, ncol=10)

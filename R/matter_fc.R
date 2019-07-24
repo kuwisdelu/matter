@@ -160,9 +160,30 @@ setReplaceMethod("[",
 	})
 
 setMethod("combine", "matter_fc", function(x, y, ...) {
-	class(x) <- "matter_vec"
-	class(y) <- "matter_vec"
-	combine(x, y, ...)
+	if ( !is.null(x@ops) || !is.null(y@ops) )
+		warning("dropping delayed operations")
+	data <- combine_atoms(x@data, y@data,
+		x.paths=x@paths, y.paths=y@paths, new.groups=FALSE)
+	if ( is.null(names(x)) && is.null(names(y)) ) {
+		names <- NULL
+	} else {
+		if ( is.null(names(x)) ) names(x) <- character(length(x))
+		if ( is.null(names(y)) ) names(y) <- character(length(y))
+		names <- c(names(x), names(y))
+	}
+	if ( !setequal(x@levels, y@levels) )
+		warning("factor levels are not identical")
+	new(class(x),
+		data=data,
+		datamode=make_datamode("integer", type="R"),
+		paths=levels(factor(c(x@paths, y@paths))),
+		filemode=common_filemode(x@filemode, y@filemode),
+		length=x@length + y@length,
+		dim=NULL,
+		names=names,
+		dimnames=NULL,
+		ops=NULL,
+		levels=union(x@levels, y@levels))
 })
 
 #### Delayed operations on 'matter_fc' ####

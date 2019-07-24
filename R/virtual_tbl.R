@@ -47,6 +47,7 @@ setMethod("tail", "virtual_tbl",
 
 setReplaceMethod("names", "virtual_tbl", function(x, value) {
 	x@names <- value
+	names(x@data) <- value
 	if ( is.null(x@dimnames) ) {
 		x@dimnames <- list(NULL, value)
 	} else {
@@ -59,6 +60,7 @@ setReplaceMethod("names", "virtual_tbl", function(x, value) {
 setReplaceMethod("dimnames", "virtual_tbl", function(x, value) {
 	x@names <- value[[2]]
 	x@dimnames <- value
+	names(x@data) <- x@names
 	if ( validObject(x) )
 		x
 })

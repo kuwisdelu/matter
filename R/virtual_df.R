@@ -24,6 +24,8 @@ setClass("virtual_df",
 			errors <- c(errors, "elements of 'data' must be named")
 		if ( any(names(object@data) != object@names) )
 			errors <- c(errors, "'names' must match names of data columns")
+		if ( !identical(object@names, object@dimnames[[2]]) )
+			errors <- c(errors, "'names' must match 'dimnames[[2]]'")
 		lens <- sapply(object@data, length)
 		neq <- which(lens != object@dim[1])
 		if ( length(neq) > 0 ) {
@@ -54,8 +56,10 @@ virtual_df <- function(..., row.names = NULL,
 {
 	data <- list(...)
 	nm <- names(data)
-	if ( length(data) == 1 && is.list(data[[1]]) )
-		return(as.virtual_df(data[[1]]))
+	if ( length(data) == 1 && is.list(data[[1]]) ) {
+		args <- list(row.names=row.names, stringsAsFactors=stringsAsFactors)
+		return(do.call("virtual_df", c(data[[1]], args)))
+	}
 	if ( is.null(nm) || any(sapply(nm, nchar) == 0) )
 		stop("all arguments must be named")
 	nm <- make.unique(nm)
@@ -77,12 +81,13 @@ matter_df <- function(..., row.names = NULL,
 	stringsAsFactors = default.stringsAsFactors())
 {
 	data <- list(...)
+	args <- list(row.names=row.names, stringsAsFactors=stringsAsFactors)
 	if ( length(data) == 1 && is.list(data[[1]]) )
-		return(as.matter_df(data[[1]]))
+		data <- data[[1]]
 	if ( stringsAsFactors )
 		data <- lapply(data, stringsToFactors)
 	data <- lapply(data, as.matter)
-	out <- do.call("virtual_df", data)
+	out <- do.call("virtual_df", c(data, args))
 	as(out, "matter_df")
 }
 
@@ -370,5 +375,59 @@ setReplaceMethod("$",
 		if ( validObject(x) )
 			x
 })
+
+# combine by rows
+
+setMethod("combine_by_rows", c("virtual_df", "virtual_df"),
+	function(x, y, ...)
+{
+	if ( ncol(x) != ncol(y) )
+		stop("number of columns of data frames must match")
+	data <- bind_elements(x@data, y@data)
+	dmn <- combine_rownames(x,y)
+	new(class(x),
+		data=data,
+		datamode=x@datamode,
+		paths=x@paths,
+		filemode=x@filemode,
+		length=x@length,
+		dim=c(x@dim[1] + y@dim[1], x@dim[2]),
+		names=dmn[[2]],
+		dimnames=dmn,
+		ops=NULL)
+})
+
+setMethod("combine_by_rows", c("virtual_df", "data.frame"),
+	function(x, y, ...)	combine_by_rows(x, as(y, "virtual_df")))
+
+setMethod("combine_by_rows", c("data.frame", "virtual_df"),
+	function(x, y, ...)	combine_by_rows(as(x, "virtual_df"), y))
+
+# combine by cols
+
+setMethod("combine_by_cols", c("virtual_df", "virtual_df"),
+	function(x, y, ...)
+{
+	if ( nrow(x) != nrow(y) )
+		stop("number of rows of data frames must match")
+	data <- c(x@data, y@data)
+	dmn <- combine_colnames(x,y)
+	new(class(x),
+		data=data,
+		datamode=x@datamode,
+		paths=x@paths,
+		filemode=x@filemode,
+		length=x@length + y@length,
+		dim=c(x@dim[1], x@dim[2] + y@dim[2]),
+		names=dmn[[2]],
+		dimnames=dmn,
+		ops=NULL)
+})
+
+setMethod("combine_by_cols", c("virtual_df", "data.frame"),
+	function(x, y, ...)	combine_by_cols(x, as(y, "virtual_df")))
+
+setMethod("combine_by_cols", c("data.frame", "virtual_df"),
+	function(x, y, ...)	combine_by_cols(as(x, "virtual_df"), y))
 
 
