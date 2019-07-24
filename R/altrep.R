@@ -6,6 +6,7 @@ as_ALTREP <- function(x, attr = list(), wrap = getOption("matter.wrap.altrep")) 
 		stop("'x' must be a matter object, atomic vector, or a list")
 	if ( !is.list(attr) )
 		stop("'attr' must be a list")
+	wrap <- isTRUE(wrap)
 	nm <- dm <- dnm <- NULL
 	if ( !is.na(inm <- match("names", names(attr))) ) {
 		nm <- attr[[inm]]

@@ -1,4 +1,28 @@
 
+CHANGES IN VERSION 1.11.2 [2019-7-24]
+-----------------------------------
+
+NEW FEATURES
+
+    o Coercing to native R types now returns an ALTREP
+        representation for most 'matter' objects
+    o Use 'as.altrep()' method to coerce an existing
+        'matter' object to ALTREP or to coerce native R types
+        to 'matter'-backed out-of-memory ALTREP objects
+    o ALTREP coercion can be controlled by new options:
+        getOption('matter.coerce.altrep')
+        getOption('matter.coerce.altrep.list')
+        getOption('matter.wrap.altrep')
+    o See ?`matter-options` for details
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o The 'show()' method for 'matter' objects now
+        prints a preview of the data head
+    o Printing of data can be controlled with new options
+        getOption('matter.show.head') and
+        getOption('matter.show.head.n') and
+
 CHANGES IN VERSION 1.11.1 [2019-5-7]
 -----------------------------------
 

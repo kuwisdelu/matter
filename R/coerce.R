@@ -3,7 +3,7 @@
 
 as.native <- function(x, ALTREP = getOption("matter.coerce.altrep"))
 {
-	if ( ALTREP ) {
+	if ( isTRUE(ALTREP) ) {
 		as.altrep(x)
 	} else {
 		x[]
@@ -12,7 +12,7 @@ as.native <- function(x, ALTREP = getOption("matter.coerce.altrep"))
 
 as.nativelist <- function(x, ALTREP = getOption("matter.coerce.altrep.list"))
 {
-	if ( ALTREP ) {
+	if ( isTRUE(ALTREP) ) {
 		as.altrep(x)
 	} else {
 		x[]

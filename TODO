@@ -2,7 +2,6 @@
 TODO for matter package
 -------------------------
 
-- Default to endomorphic subsetting of lists and data frames
 - Add block-apply and block-lapply for matter objects
 - Infer length/dim from file in constructor for more classes
 - Add more data manipulation functions for 'matter_df'
