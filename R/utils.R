@@ -246,6 +246,17 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NU
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 
+apply_int <- function(x, margin, fun, fun.value, ...) {
+	fun <- match.fun(fun)
+	if ( margin == 1L ) {
+		vapply(seq_len(nrow(x)), function(i) fun(x[i,,drop=TRUE], ...), fun.value)
+	} else if ( margin == 2L ) {
+		vapply(seq_len(ncol(x)), function(j) fun(x[,j,drop=TRUE], ...), fun.value)
+	} else {
+		stop("internal 'apply' error")
+	}
+}
+
 check_compatible_classes <- function(x, y) {
 	if ( !inherits(y, class(x)) ) {
 		stop("incompatible classes: ",

@@ -195,6 +195,12 @@ export(
 	"s_all",
 	"stat_c")
 
+S3method("c", "stream_stat")
+S3method("print", "stream_stat")
+S3method("nobs", "stream_stat")
+S3method("[", "stream_stat")
+S3method("[[", "stream_stat")
+
 S3method("stat_c", "stream_range")
 S3method("stat_c", "stream_min")
 S3method("stat_c", "stream_max")
@@ -206,8 +212,9 @@ S3method("stat_c", "stream_sd")
 S3method("stat_c", "stream_any")
 S3method("stat_c", "stream_all")
 
-S3method("print", "stream_stat")
-S3method("nobs", "stream_stat")
+export(
+	"colStats",
+	"rowStats")
 
 export(
 	"uuid",

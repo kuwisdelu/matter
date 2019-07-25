@@ -14,6 +14,9 @@
 \alias{s_any}
 \alias{s_all}
 
+\alias{colStats}
+\alias{rowStats}
+
 \alias{combine,stream_stat,ANY-method}
 \alias{stat_c}
 
@@ -26,6 +29,12 @@
 }
 
 \usage{
+# calculate streaming matrix statistics
+colStats(x, stat, na.rm = FALSE, \dots)
+
+rowStats(x, stat, na.rm = FALSE, \dots)
+
+# calculate streaming univariate statistics
 s_range(x, \dots, na.rm = FALSE)
 
 s_min(x, \dots, na.rm = FALSE)
@@ -51,7 +60,9 @@ stat_c(x, y, \dots)
 }
 
 \arguments{
-    \item{x, y, \dots}{object(s) on which to calculate a summary statistic, or a summary statistic to combine.}
+    \item{x, y, \dots}{Object(s) on which to calculate a summary statistic, or a summary statistic to combine.}
+
+    \item{stat}{The name of a summary statistic to compute over the rows or columns of a matrix. Allowable values include: "range", "min", "max", "prod", "sum", "mean", "var", "sd", "any", and "all".}
 
     \item{na.rm}{If \code{TRUE}, remove \code{NA} values before summarizing.}
 }
@@ -63,7 +74,9 @@ stat_c(x, y, \dots)
 }
 
 \value{
-    For all functions except \code{s_range()}, a single number giving the summary statistic. For \code{s_range()}, two numbers giving the minimum and the maximum values.
+    For all univariate functions except \code{s_range()}, a single number giving the summary statistic. For \code{s_range()}, two numbers giving the minimum and the maximum values.
+
+    For \code{colStats()} and \code{rowStats()}, a vector of summary statistics.
 }
 
 \author{Kylie A. Bemis}
@@ -94,6 +107,17 @@ sxy <- stat_c(sx, sy)
 # calculate with 1 new observation
 var(c(x, y, 99))
 stat_c(sxy, 99)
+
+# calculate over rows of a matrix
+set.seed(2)
+A <- matrix(rnorm(100), nrow=10)
+B <- matrix(rnorm(100), nrow=10)
+
+sx <- rowStats(A, "var")
+sy <- rowStats(B, "var")
+
+apply(cbind(A, B), 1, var)
+stat_c(sx, sy) # should be the same
 }
 
 \keyword{methods}

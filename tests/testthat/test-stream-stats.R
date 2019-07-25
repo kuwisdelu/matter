@@ -3,7 +3,7 @@ require(matter)
 
 context("stream-statistics")
 
-test_that("streaming statistics", {
+test_that("streaming univariate statistics", {
 
 	set.seed(1)
 
@@ -92,6 +92,78 @@ test_that("streaming statistics", {
 	s_x <- s_var(x, na.rm=TRUE); s_y <- s_var(y, na.rm=TRUE)
 
 	expect_equal(var(xy, na.rm=TRUE), as.numeric(stat_c(s_x, s_y)))
+
+})
+
+test_that("streaming matrix statistics", {
+
+	set.seed(1)
+
+	x <- matrix(rnorm(100), nrow=10, ncol=10)
+
+	y <- matrix(rnorm(100), nrow=10, ncol=10)
+
+	xy <- cbind(x, y)
+
+	s_x <- rowStats(x, "range"); s_y <- rowStats(y, "range")
+
+	expect_equal(as.numeric(apply(xy, 1, range)), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x, "min"); s_y <- rowStats(y, "min")
+
+	expect_equal(as.numeric(apply(xy, 1, min)), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x, "max"); s_y <- rowStats(y, "max")
+
+	expect_equal(as.numeric(apply(xy, 1, max)), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x, "prod"); s_y <- rowStats(y, "prod")
+
+	expect_equal(as.numeric(apply(xy, 1, prod)), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x, "sum"); s_y <- rowStats(y, "sum")
+
+	expect_equal(as.numeric(apply(xy, 1, sum)), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x, "mean"); s_y <- rowStats(y, "mean")
+
+	expect_equal(as.numeric(apply(xy, 1, mean)), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x, "var"); s_y <- rowStats(y, "var")
+
+	expect_equal(as.numeric(apply(xy, 1, var)), as.numeric(stat_c(s_x, s_y)))
+
+	expect_equal(as.numeric(apply(cbind(xy, 9), 1, var)), as.numeric(stat_c(s_x, s_y, 9)))
+
+	s_x <- rowStats(x, "sd"); s_y <- rowStats(y, "sd")
+
+	expect_equal(as.numeric(apply(xy, 1, sd)), as.numeric(stat_c(s_x, s_y)))
+
+	expect_equal(as.numeric(apply(cbind(xy, 9), 1, sd)), as.numeric(stat_c(s_x, s_y, 9)))
+
+	s_x <- rowStats(x > 0, "any"); s_y <- rowStats(y > 0, "any")
+
+	expect_equal(as.logical(apply(xy > 0, 1, any)), as.logical(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x > 0, "all"); s_y <- rowStats(y > 0, "all")
+
+	expect_equal(as.logical(apply(xy > 0, 1, all)), as.logical(stat_c(s_x, s_y)))
+
+	x[,1] <- NA; y[1,] <- NA
+
+	xy <- cbind(x, y)
+
+	expect_true(all(is.na(rowStats(x, "mean"))))
+
+	expect_true(any(is.na(rowStats(y, "mean"))))
+
+	s_x <- rowStats(x, "mean", na.rm=TRUE); s_y <- rowStats(y, "mean", na.rm=TRUE)
+
+	expect_equal(as.numeric(apply(xy, 1, mean, na.rm=TRUE)), as.numeric(stat_c(s_x, s_y)))
+
+	s_x <- rowStats(x, "var", na.rm=TRUE); s_y <- rowStats(y, "var", na.rm=TRUE)
+
+	expect_equal(as.numeric(apply(xy, 1, var, na.rm=TRUE)), as.numeric(stat_c(s_x, s_y)))
 
 })
 

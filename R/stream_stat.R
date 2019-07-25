@@ -153,6 +153,74 @@ s_all <- function(x, ..., na.rm = FALSE) {
 	}
 }
 
+# streaming matrix stats
+
+stream_stat_fun <- function(name) {
+	f <- list(
+		range=base::range,
+		min=base::min,
+		max=base::max,
+		prod=base::prod,
+		sum=base::sum,
+		mean=base::mean.default,
+		var=stats::var,
+		sd=stats::sd,
+		any=base::any,
+		all=base::all)
+	f[[name, exact=TRUE]]
+}
+
+stream_stat_class <- function(name) {
+	f <- list(
+		range="stream_range",
+		min="stream_min",
+		max="stream_max",
+		prod="stream_prod",
+		sum="stream_sum",
+		mean="stream_mean",
+		var="stream_var",
+		sd="stream_sd",
+		any="stream_any",
+		all="stream_all")
+	c(f[[name, exact=TRUE]], "stream_stat")
+}
+
+rowStats <- function(x, stat, na.rm = FALSE, ...) {
+	if ( missing(stat) )
+		stop("missing argument 'stat'")
+	fun <- stream_stat_fun(stat)
+	template <- switch(stat, range=numeric(2),
+		any=logical(1), all=logical(1), numeric(1))
+	val <- apply_int(x, 1, fun, template, na.rm=na.rm)
+	nobs <- apply_int(x, 1, na_length, numeric(1), na.rm=na.rm)
+	if ( stat %in% c("var", "sd") ) {
+		means <- rowMeans(x, na.rm=na.rm)
+		structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs, mean=means)
+	} else {
+		structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs)
+	}
+}
+
+colStats <- function(x, stat, na.rm = FALSE, ...) {
+	if ( missing(stat) )
+		stop("missing argument 'stat'")
+	fun <- stream_stat_fun(stat)
+	template <- switch(stat, range=numeric(2),
+		any=logical(1), all=logical(1), numeric(1))
+	val <- apply_int(x, 2, fun, template, na.rm=na.rm)
+	nobs <- apply_int(x, 2, na_length, numeric(1), na.rm=na.rm)
+	if ( stat %in% c("var", "sd") ) {
+		means <- colMeans(x, na.rm=na.rm)
+		structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs, mean=means)
+	} else {
+		structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs)
+	}
+}
+
 # length function
 
 na_length <- function(x, na.rm = FALSE) {
@@ -188,11 +256,14 @@ setOldClass(c("stream_all", "stream_stat"))
 
 # streaming statistics methods
 
+drop_attr <- function(x) as.vector(x)
+
 is.stream_stat <- function(x) is(x, "stream_stat")
 
 print.stream_stat <- function(x, ...) {
-	cat(class(x)[1L], "with n =", nobs(x), "\n")
-	print(c(x), ...)
+	cat(class(x)[1L], "with n =", paste_head(nobs(x)), "\n")
+	print(drop_attr(x), ...)
+	cat("na.rm = ", na_rm(x), "\n")
 }
 
 nobs.stream_stat <- function(object, ...) {
@@ -214,12 +285,46 @@ stat_c <- function(x, y, ...) {
 }
 
 setMethod("combine", "stream_stat",
-	function(x, y, ...) stat_c(x, y, ...))
+	function(x, y, ...) {
+		if ( class(x)[1L] != class(y)[1L] )
+			return(c(drop_attr(x), drop_attr(y)))
+		structure(c(drop_attr(x), drop_attr(y)),
+			class=class(x),
+			na.rm=all(na_rm(x) & na_rm(y)),
+			nobs=c(nobs(x), nobs(y)))
+	})
+
+c.stream_stat <- function(x, ...) {
+	dots <- list(...)
+	if ( length(dots) > 0 ) {
+		combine(x, ...)
+	} else {
+		x
+	}
+}
+
+`[.stream_stat` <- function(x, i, j, ..., drop = TRUE) {
+	structure(drop_attr(x)[i],
+			class=class(x),
+			na.rm=na_rm(x),
+			nobs=nobs(x)[i])
+}
+
+`[[.stream_stat` <- function(x, i, exact = TRUE) {
+	structure(drop_attr(x)[[i]],
+			class=class(x),
+			na.rm=na_rm(x),
+			nobs=nobs(x)[[i]])
+}
+
+# create new stream_stat w/ inherited attributes
 
 stream_stat_attr <- function(value, x, y) {
+	if ( na_rm(x) != na_rm(y) )
+		warning("combining statistics with differing na.rm")
 	structure(value,
 		class=class(x),
-		na.rm=na_rm(x) && na_rm(y),
+		na.rm=all(na_rm(x) & na_rm(y)),
 		nobs=nobs(x) + nobs(y))
 }
 
@@ -236,35 +341,57 @@ stat_c.default <- function(x, y, ...) {
 stat_c.stream_range <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_range(y, na.rm=na_rm(x))
-	val <- range(c(x, y), na.rm=FALSE)
+	xx <- drop_attr(x)
+	yy <- drop_attr(y)
+	xmin <- xx[c(TRUE, FALSE)]
+	xmax <- xx[c(FALSE, TRUE)]
+	ymin <- yy[c(TRUE, FALSE)]
+	ymax <- yy[c(FALSE, TRUE)]
+	val1 <- pmin(xmin, ymin, na.rm=na_rm(x) && na_rm(y))
+	val2 <- pmax(xmax, ymax, na.rm=na_rm(x) && na_rm(y))
+	val <- as.vector(matrix(c(val1, val2), nrow=2, byrow=TRUE))
 	stream_stat_attr(val, x, y)
 }
 
 stat_c.stream_min <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_min(y, na.rm=na_rm(x))
-	val <- min(c(x, y), na.rm=FALSE)
+	val <- pmin(x, y, na.rm=na_rm(x) && na_rm(y))
 	stream_stat_attr(val, x, y)
 }
 
 stat_c.stream_max <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_max(y, na.rm=na_rm(x))
-	val <- max(c(x, y), na.rm=FALSE)
+	val <- pmax(x, y, na.rm=na_rm(x) && na_rm(y))
 	stream_stat_attr(val, x, y)
 }
 
 stat_c.stream_prod <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_prod(y, na.rm=na_rm(x))
-	val <- prod(c(x, y), na.rm=FALSE)
+	if ( na_rm(x) && na_rm(y) ) {
+		xx <- ifelse(is.na(x), 1, x)
+		yy <- ifelse(is.na(y), 1, y)
+	} else {
+		xx <- x
+		yy <- y
+	}
+	val <- xx * yy
 	stream_stat_attr(val, x, y)
 }
 
 stat_c.stream_sum <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_sum(y, na.rm=na_rm(x))
-	val <- sum(c(x, y), na.rm=FALSE)
+	if ( na_rm(x) && na_rm(y) ) {
+		xx <- ifelse(is.na(x), 0, x)
+		yy <- ifelse(is.na(y), 0, y)
+	} else {
+		xx <- x
+		yy <- y
+	}
+	val <- xx + yy
 	stream_stat_attr(val, x, y)
 }
 
@@ -273,7 +400,14 @@ stat_c.stream_mean <- function(x, y, ...) {
 		y <- s_mean(y, na.rm=na_rm(x))
 	nx <- nobs(x)
 	ny <- nobs(y)
-	val <- (nx * x + ny * y) / (nx + ny)
+	if ( na_rm(x) && na_rm(y) ) {
+		xx <- ifelse(is.na(x), 0, x)
+		yy <- ifelse(is.na(y), 0, y)
+	} else {
+		xx <- x
+		yy <- y
+	}
+	val <- (nx * xx + ny * yy) / (nx + ny)
 	stream_stat_attr(val, x, y)
 }
 
@@ -285,21 +419,28 @@ stat_c.stream_var <- function(x, y, ...) {
 	mx <- attr(x, "mean")
 	my <- attr(y, "mean")
 	m <- (nx * mx + ny * my) / (nx + ny)
-	if ( nx == 1 && ny > 1 )
-		return(stat_c(y, x))
-	if ( nx >= 1 && ny == 1 ) {
-		if ( nx == 1 ) {
-			ss1 <- 0
-		} else {
-			ss1 <- ((nx - 1) * x) 
-		}
+	if ( na_rm(x) && na_rm(y) ) {
+		mx <- ifelse(is.na(mx), 0, mx)
+		my <- ifelse(is.na(my), 0, my)
+		m <- ifelse(is.na(m), 0, m)
+	}
+	nn1 <- nx <= 1 | ny <= 1
+	nnN <- nx > 1 & ny > 1
+	if ( any(nn1) ) {
+		ss1 <- ifelse(nx <= 1, 0, ((nx - 1) * x))
 		ss2 <- ss1 + (my - mx) * (my - m)
-		val <- ss2 / (nx + ny - 1)
+		val_1 <- ss2 / (nx + ny - 1)
 	} else {
+		val_1 <- rep(NA_real_, length(x))
+	}
+	if ( any(nnN) ) {
 		num1 <- ((nx - 1) * x) + ((ny - 1) * y)
 		num2 <- (nx * ny / (nx + ny)) * (mx - my)^2
-		val <- (num1 + num2) / (nx + ny - 1)
+		val_N <- (num1 + num2) / (nx + ny - 1)
+	} else {
+		val_N <- rep(NA_real_, length(x))
 	}
+	val <- ifelse(nn1, val_1, val_N)
 	ret <- stream_stat_attr(val, x, y)
 	attr(ret, "mean") <- m
 	ret
@@ -313,21 +454,28 @@ stat_c.stream_sd <- function(x, y, ...) {
 	mx <- attr(x, "mean")
 	my <- attr(y, "mean")
 	m <- (nx * mx + ny * my) / (nx + ny)
-	if ( nx == 1 && ny > 1 )
-		return(stat_c(y, x))
-	if ( nx >= 1 && ny == 1 ) {
-		if ( nx == 1 ) {
-			ss1 <- 0
-		} else {
-			ss1 <- ((nx - 1) * x^2) 
-		}
+	if ( na_rm(x) && na_rm(y) ) {
+		mx <- ifelse(is.na(mx), 0, mx)
+		my <- ifelse(is.na(my), 0, my)
+		m <- ifelse(is.na(m), 0, m)
+	}
+	nn1 <- nx <= 1 | ny <= 1
+	nnN <- nx > 1 & ny > 1
+	if ( any(nn1) ) {
+		ss1 <- ifelse(nx <= 1, 0, ((nx - 1) * x^2))
 		ss2 <- ss1 + (my - mx) * (my - m)
-		val <- sqrt(ss2 / (nx + ny - 1))
+		val_1 <- sqrt(ss2 / (nx + ny - 1))
 	} else {
+		val_1 <- rep(NA_real_, length(m))
+	}
+	if ( any(nnN) ) {
 		num1 <- ((nx - 1) * x^2) + ((ny - 1) * y^2)
 		num2 <- (nx * ny / (nx + ny)) * (mx - my)^2
-		val <- sqrt((num1 + num2) / (nx + ny - 1))
+		val_N <- sqrt((num1 + num2) / (nx + ny - 1))
+	} else {
+		val_N <- rep(NA_real_, length(m))
 	}
+	val <- ifelse(nn1, val_1, val_N)
 	ret <- stream_stat_attr(val, x, y)
 	attr(ret, "mean") <- m
 	ret
@@ -336,14 +484,28 @@ stat_c.stream_sd <- function(x, y, ...) {
 stat_c.stream_any <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_any(y, na.rm=na_rm(x))
-	val <- any(c(x, y), na.rm=FALSE)
+	if ( na_rm(x) && na_rm(y) ) {
+		xx <- ifelse(is.na(x), FALSE, x)
+		yy <- ifelse(is.na(y), FALSE, y)
+	} else {
+		xx <- x
+		yy <- y
+	}
+	val <- xx | yy
 	stream_stat_attr(val, x, y)
 }
 
 stat_c.stream_all <- function(x, y, ...) {
 	if ( !inherits(y, class(x)) )
 		y <- s_all(y, na.rm=na_rm(x))
-	val <- all(c(x, y), na.rm=FALSE)
+	if ( na_rm(x) && na_rm(y) ) {
+		xx <- ifelse(is.na(x), TRUE, x)
+		yy <- ifelse(is.na(y), TRUE, y)
+	} else {
+		xx <- x
+		yy <- y
+	}
+	val <- xx & yy
 	stream_stat_attr(val, x, y)
 }
 
