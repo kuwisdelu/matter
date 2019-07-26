@@ -3,7 +3,7 @@
 ## --------------------------------------------------------
 
 setClass("matter_mat",
-	slot = c(data = "atoms"),
+	slots = c(data = "atoms"),
 	prototype = prototype(
 		length = 0,
 		dim = c(0L,0L),
@@ -158,6 +158,15 @@ setAs("matrix", "matter_mat",
 	function(from) matter_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
 
 as.matter_mat <- function(x) as(x, "matter_mat")
+
+setReplaceMethod("dim", "matter_mat", function(x, value) {
+	x <- as(x, "matter_arr")
+	if ( is.null(value) ) {
+		x
+	} else {
+		callNextMethod(x, value)
+	}
+})
 
 getMatrix <- function(x) {
 	y <- .Call("C_getMatrix", x, PACKAGE="matter")

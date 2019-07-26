@@ -78,6 +78,18 @@ groupCombiner <- function(fun) {
 #### Show utility functions ####
 ## -----------------------------
 
+show_matter_memory_and_storage <- function(object) {
+	object.memory <- object.size(object)
+	class(object.memory) <- "num_bytes"
+	if ( is.matter(object) ) {
+		rmem <- format(object.memory, units="auto")
+		vmem <- format(vm_used(object), units="auto")
+		cat("(", rmem, " real", " | ", vmem, " virtual)\n", sep="")
+	} else {
+		cat("(", rmem, " real)\n", sep="")
+	}
+}
+
 preview_vector_data <- function(x, n = getOption("matter.show.head.n")) {
 	hdr <- head(x, n=n)
 	out <- as.character(hdr)

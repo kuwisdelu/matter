@@ -3,7 +3,7 @@
 ## -------------------------------------------------------
 
 setClass("matter_arr",
-	slot = c(data = "atoms"),
+	slots = c(data = "atoms"),
 	prototype = prototype(
 		data = new("atoms"),
 		datamode = make_datamode("numeric", type="R"),
@@ -105,12 +105,6 @@ setAs("array", "matter_arr", function(from) matter_arr(from, dimnames=dimnames(f
 
 as.matter_arr <- function(x) as(x, "matter_arr")
 
-setAs("matter_arr", "array", function(from) from[])
-
-setMethod("as.array", "matter_arr", function(x) as(x, "array"))
-
-setMethod("as.vector", "matter_arr", function(x) as(x, "matter_vec")[])
-
 setReplaceMethod("dim", "matter_arr", function(x, value) {
 	if ( is.null(value) ) {
 		as(x, "matter_vec")
@@ -132,7 +126,7 @@ setArray <- function(x, value) {
 		warning("number of items to replace is not ",
 			"a multiple of replacement length")
 	if ( length(value) != 1 )
-		value <- rep(value, length.out=length(x)) # should do this in C++ code
+		value <- rep(value, length.out=length(x))
 	if ( is.logical(value) )
 		value <- as.integer(value)
 	if ( is.character(value) )
@@ -143,15 +137,25 @@ setArray <- function(x, value) {
 }
 
 getArrayElements <- function(x, ind, drop) {
-	for ( i in seq_along(ind) )
-		if ( is.logical(ind[i]) )
-			ind[i] <- logical2index(x, ind[i])
-	for ( i in seq_along(ind) )
-		if ( is.character(ind[i]) )
-			ind[i] <- names2index(x, ind[i])
-	i <- linearInd(ind, dim(x))
-	y <- .Call("C_getVectorElements", x, i - 1, PACKAGE="matter")
-	dim(y) <- sapply(ind, length)
+	for ( k in seq_along(ind) ) {
+		if ( is.numeric(ind[[k]]) ) {
+			next
+		} else if ( is.logical(ind[[k]]) ) {
+			ind[[k]] <- logical2index(x, ind[[k]])
+		} else if ( is.character(ind[[k]]) ) {
+			ind[[k]] <- names2index(x, ind[[k]])
+		} else if ( is.null(ind[[k]]) ) {
+			ind[[k]] <- seq_len(dim(x)[k])
+		}
+	}
+	dims <- sapply(ind, length)
+	if ( any( dims == 0) ) {
+		y <- array(vector(mode=as.character(datamode(x))), dim=dims)
+	} else {
+		i <- linearInd(ind, dim(x))
+		y <- .Call("C_getVectorElements", x, i - 1, PACKAGE="matter")
+		dim(y) <- sapply(ind, length)
+	}
 	if ( !is.null(dimnames(x)) )
 		dimnames(y) <- mapply(function(dnm, i) dnm[i], dimnames(x), ind)
 	if ( drop )
@@ -220,10 +224,8 @@ setMethod("[",
 		ind <- c(ind, call)
 		names(ind) <- names(dim)
 		for ( k in seq_along(ind) ) {
-			if ( is.vector(ind[[k]]) ) {
+			if ( is.vector(ind[[k]]) || is.null(ind[[k]]) ) {
 				next
-			} else if ( is.null(ind[[k]])) {
-				ind[[k]] <- integer(0)
 			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) == 0 ) {
 				ind[[k]] <- seq_len(dim(x)[k])
 			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) > 0 ) {
@@ -232,16 +234,7 @@ setMethod("[",
 				ind[[k]] <- eval(ind[[k]])
 			}
 		}
-		dims <- sapply(ind, length)
-		if ( any( dims == 0) ) {
-			y <- array(vector(mode=as.character(datamode(x))), dim=dims)
-			if ( !is.null(dimnames(x)) )
-				dimnames(y) <- mapply(function(dnm, i)
-					dnm[i], dimnames(x), ind)
-			y
-		} else {
-			getArrayElements(x, ind, drop)
-		}
+		getArrayElements(x, ind, drop)
 })
 
 setReplaceMethod("[",

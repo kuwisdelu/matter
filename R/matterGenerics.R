@@ -44,8 +44,8 @@ setGeneric("atomdata", function(object) standardGeneric("atomdata"))
 setGeneric("atomdata<-", function(object, value) standardGeneric("atomdata<-"))
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
-setGeneric("paths", function(x) standardGeneric("paths"))
-setGeneric("paths<-", function(x, value) standardGeneric("paths<-"))
+setGeneric("paths", function(x) standardGeneric("paths")) # BiocGenerics 'path()' ?
+setGeneric("paths<-", function(x, value) standardGeneric("paths<-")) # BiocGenerics 'path()' ?
 setGeneric("filemode", function(x) standardGeneric("filemode"))
 setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
 setGeneric("readonly", function(x) standardGeneric("readonly"))

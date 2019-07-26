@@ -57,16 +57,16 @@ setClass("matter",
 	})
 
 matter <- function(...) {
-	dots <- match.call(expand.dots=FALSE)$...
+	dots <- list(...)
 	nm <- names(dots)
-	if ( is.null(nm) || nchar(nm[[1]]) == 0 ) {
-		data <- eval(dots[[1]])
+	if ( nargs() == 1L ) {
+		data <- dots[[1L]]
 	} else if ( "data" %in% nm ) {
-		data <- eval(dots$data)
+		data <- dots$data
 	} else {
 		data <- NULL
 	}
-	if ( nargs() == 1 && !is.null(data) )
+	if ( nargs() == 1L && !is.null(data) )
 		return(as.matter(data))
 	vec.args <- c("length", "names")
 	arr.args <- c("dim", "dimnames")
@@ -119,6 +119,13 @@ setMethod("describe_for_display", "ANY", function(x) class(x))
 
 setMethod("preview_for_display", "ANY", function(x) head(x))
 
+setMethod("show", "matter", function(object) {
+	cat(describe_for_display(object), "\n", sep="")
+	if ( getOption("matter.show.head") )
+		preview_for_display(object)
+	show_matter_memory_and_storage(object)
+})
+
 is.matter <- function(x) {
 	is(x, "matter")
 }
@@ -150,19 +157,6 @@ setReplaceMethod("atomdata", "matter", function(object, value) {
 	object
 })
 
-setMethod("show", "matter", function(object) {
-	cat(describe_for_display(object), "\n", sep="")
-	if ( getOption("matter.show.head") )
-		preview_for_display(object)
-	if ( is.matter(object) ) {
-		object.memory <- object.size(object)
-		class(object.memory) <- "num_bytes"
-		rmem <- format(object.memory, units="auto")
-		vmem <- format(vm_used(object), units="auto")
-		cat("(", rmem, " real", " | ", vmem, " virtual)\n", sep="")
-	}
-})
-
 setMethod("datamode", "matter", function(x) x@datamode)
 
 setReplaceMethod("datamode", "matter", function(x, value) {
@@ -175,6 +169,13 @@ setMethod("paths", "matter", function(x) x@paths)
 setReplaceMethod("paths", "matter", function(x, value) {
 	x@paths <- normalizePath(value, mustWork=FALSE)
 	x
+})
+
+setMethod("path", "matter", function(object, ...) paths(object)) # BiocGenerics version
+
+setReplaceMethod("path", "matter", function(object, ..., value) {  # BiocGenerics version
+	paths(object) <- value
+	object
 })
 
 setMethod("filemode", "matter", function(x) x@filemode)

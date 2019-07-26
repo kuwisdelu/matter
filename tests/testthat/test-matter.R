@@ -51,9 +51,9 @@ test_that("matrix subsetting", {
 
 	expect_equal(x[1,1], y[1,1])
 
-	expect_equal(x[1:10,1:10], y[1:10,1:10])
+	expect_equal(x[1:5,1:5], y[1:5,1:5])
 
-	expect_equal(x[10:1,10:1], y[10:1,10:1])
+	expect_equal(x[5:1,5:1], y[5:1,5:1])
 
 	expect_equivalent(as.matter(x), y)
 

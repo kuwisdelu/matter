@@ -3,7 +3,7 @@
 ## --------------------------------------------------------------
 
 setClass("matter_vt",
-	slot = c(data = "list"),
+	slots = c(data = "list"),
 	contains = c("matter", "VIRTUAL"),
 	prototype = prototype(
 		data = list(),

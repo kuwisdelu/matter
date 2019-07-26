@@ -15,6 +15,8 @@
 \alias{[<-,matter_mat-method}
 \alias{[<-,matter_mat,ANY,ANY,ANY-method}
 
+\alias{dim<-,matter_mat-method}
+
 \alias{cbind,matter-method}
 \alias{rbind,matter-method}
 

@@ -23,6 +23,8 @@
 \alias{paths,matter-method}
 \alias{paths<-,matter-method}
 \alias{paths<-,matter_vt-method}
+\alias{path,matter-method}
+\alias{path<-,matter-method}
 \alias{filemode}
 \alias{filemode<-}
 \alias{filemode,matter-method}
