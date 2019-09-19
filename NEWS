@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.11.3 [2019-9-19]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Faster subsetting of matter-backed ALTREP objects
+
 CHANGES IN VERSION 1.11.2 [2019-7-24]
 -----------------------------------
 

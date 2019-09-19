@@ -68,7 +68,7 @@ struct MatterAlt {
 	{
 		Matter mVec(R_altrep_data1(x));
 		int inmem = R_altrep_data2(x) != R_NilValue;
-		Rprintf("matter vector (mode=%d, len=%d, mem=%d)\n", mVec.datamode(), mVec.length(), inmem);
+		Rprintf("matter: vector (mode=%d, len=%d, mem=%d)\n", mVec.datamode(), mVec.length(), inmem);
 		return TRUE;
 	}
 
@@ -76,6 +76,9 @@ struct MatterAlt {
 
 	static void * Dataptr(SEXP x, Rboolean writeable)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: Dataptr() access\n");
+		#endif
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			SEXP data;
@@ -92,6 +95,9 @@ struct MatterAlt {
 
 	static const void * Dataptr_or_null(SEXP x)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: Dataptr_or_null() access\n");
+		#endif
 		if ( R_altrep_data2(x) == R_NilValue )
 			return NULL;
 		else
@@ -102,6 +108,9 @@ struct MatterAlt {
 
 	static Rbyte raw_Elt(SEXP x, R_xlen_t i)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: raw_Elt(%d) access\n", i);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		Rbyte ans;
 		mVec.data().read<Rbyte>(&ans, i, 1);
@@ -110,14 +119,46 @@ struct MatterAlt {
 
 	static R_xlen_t raw_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, Rbyte * buffer)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: raw_Get_region(%d, %d) access\n", i, size);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		return mVec.data().read<Rbyte>(buffer, i, size);
+	}
+
+	static SEXP raw_Extract_subset(SEXP x, SEXP indx, SEXP call)
+	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: raw_Extract_subset() access\n");
+		#endif
+		SEXP result = NULL;
+		if ( R_altrep_data2(x) == R_NilValue )
+		{
+			Matter mVec(R_altrep_data1(x));
+		    PROTECT(result = Rf_allocVector(RAWSXP, XLENGTH(indx)));
+		    Rbyte * presult = RAW(result);
+		    if ( TYPEOF(indx) == INTSXP )
+		    {
+		    	const int * pindx = INTEGER_RO(indx);
+		    	mVec.data().read_indices<Rbyte>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    else
+		    {
+		    	const double * pindx = REAL_RO(indx);
+		    	mVec.data().read_indices<Rbyte>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    UNPROTECT(1);
+		}
+	    return result;
 	}
 
 	// ALTLOGICAL methods
 
 	static int logical_Elt(SEXP x, R_xlen_t i)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: logical_Elt(%d) access\n", i);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		int ans;
 		mVec.data().read<int>(&ans, i, 1);
@@ -126,14 +167,46 @@ struct MatterAlt {
 
 	static R_xlen_t logical_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, int * buffer)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: logical_Get_region(%d, %d) access\n", i, size);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		return mVec.data().read<int>(buffer, i, size);
+	}
+
+	static SEXP logical_Extract_subset(SEXP x, SEXP indx, SEXP call)
+	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: logical_Extract_subset() access\n");
+		#endif
+		SEXP result = NULL;
+		if ( R_altrep_data2(x) == R_NilValue )
+		{
+			Matter mVec(R_altrep_data1(x));
+		    PROTECT(result = Rf_allocVector(LGLSXP, XLENGTH(indx)));
+		    int * presult = LOGICAL(result);
+		    if ( TYPEOF(indx) == INTSXP )
+		    {
+		    	const int * pindx = INTEGER_RO(indx);
+		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    else
+		    {
+		    	const double * pindx = REAL_RO(indx);
+		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    UNPROTECT(1);
+		}
+	    return result;
 	}
 
 	// ALTINTEGER methods
 
 	static int integer_Elt(SEXP x, R_xlen_t i)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: integer_Elt(%d) access\n", i);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		int ans;
 		mVec.data().read<int>(&ans, i, 1);
@@ -142,14 +215,46 @@ struct MatterAlt {
 
 	static R_xlen_t integer_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, int * buffer)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: integer_Get_region(%d, %d) access\n", i, size);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		return mVec.data().read<int>(buffer, i, size);
+	}
+
+	static SEXP integer_Extract_subset(SEXP x, SEXP indx, SEXP call)
+	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: integer_Extract_subset() access\n");
+		#endif
+		SEXP result = NULL;
+		if ( R_altrep_data2(x) == R_NilValue )
+		{
+			Matter mVec(R_altrep_data1(x));
+		    PROTECT(result = Rf_allocVector(INTSXP, XLENGTH(indx)));
+		    int * presult = INTEGER(result);
+		    if ( TYPEOF(indx) == INTSXP )
+		    {
+		    	const int * pindx = INTEGER_RO(indx);
+		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    else
+		    {
+		    	const double * pindx = REAL_RO(indx);
+		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    UNPROTECT(1);
+		}
+	    return result;
 	}
 
 	// ALTREAL methods
 
 	static double real_Elt(SEXP x, R_xlen_t i)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: real_Elt(%d) access\n", i);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		double ans;
 		mVec.data().read<double>(&ans, i, 1);
@@ -158,15 +263,115 @@ struct MatterAlt {
 
 	static R_xlen_t real_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, double * buffer)
 	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: real_Get_region(%d, %d) access\n", i, size);
+		#endif
 		Matter mVec(R_altrep_data1(x));
 		return mVec.data().read<double>(buffer, i, size);
+	}
+
+	static SEXP real_Extract_subset(SEXP x, SEXP indx, SEXP call)
+	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: real_Extract_subset() access\n");
+		#endif
+		SEXP result = NULL;
+		if ( R_altrep_data2(x) == R_NilValue )
+		{
+			Matter mVec(R_altrep_data1(x));
+		    PROTECT(result = Rf_allocVector(REALSXP, XLENGTH(indx)));
+		    double * presult = REAL(result);
+		    if ( TYPEOF(indx) == INTSXP )
+		    {
+		    	const int * pindx = INTEGER_RO(indx);
+		    	mVec.data().read_indices<double>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    else
+		    {
+		    	const double * pindx = REAL_RO(indx);
+		    	mVec.data().read_indices<double>(presult, pindx, XLENGTH(indx), 1, 1);
+		    }
+		    UNPROTECT(1);
+		}
+	    return result;
 	}
 
 	// ALTSTRING methods
 
 	static SEXP string_Elt(SEXP x, R_xlen_t i)
 	{
-		return STRING_ELT(getStringElements(R_altrep_data1(x), Rf_ScalarReal(i)), 0);
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: string_Elt(%d) access\n", i);
+		#endif
+		SEXP tmp, result = NULL;
+		if ( R_altrep_data2(x) == R_NilValue )
+		{
+			Matter mVec(R_altrep_data1(x));
+	        PROTECT(result = Rf_allocVector(STRSXP, 1));
+			if ( i == NA_INTEGER )
+				SET_STRING_ELT(result, 0, NA_STRING);
+			else
+			{
+	    		PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(i)));
+	    		mVec.data().set_group(i);
+		    	mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(i));
+		    	SET_STRING_ELT(result, 0, raw_to_char(tmp));
+		    	UNPROTECT(1);
+			}
+	        UNPROTECT(1);
+	    }
+		return result;
+	}
+
+	static SEXP string_Extract_subset(SEXP x, SEXP indx, SEXP call)
+	{
+		#ifdef MATTER_DEBUG
+			Rprintf("matter: string_Extract_subset() access\n");
+		#endif
+		SEXP tmp, result = NULL;
+		if ( R_altrep_data2(x) == R_NilValue )
+		{
+			Matter mVec(R_altrep_data1(x));
+	        PROTECT(result = Rf_allocVector(STRSXP, XLENGTH(indx)));
+	    	if ( TYPEOF(indx) == INTSXP )
+		    {
+		    	const int * pindx = INTEGER_RO(indx);
+		    	for ( int i = 0; i < XLENGTH(indx); i++ )
+		    	{
+		    		if ( is_R_NA(pindx[i]) )
+		    			SET_STRING_ELT(result, i, NA_STRING);
+		    		else
+		    		{
+		    			index_t ii = static_cast<index_t>(pindx[i] - 1);
+			    		PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(ii)));
+			    		mVec.data().set_group(ii);
+				    	mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(ii));
+				    	SET_STRING_ELT(result, i, raw_to_char(tmp));
+				    	UNPROTECT(1);
+		    		}
+		    	}
+		    }
+		    else
+		    {
+		    	const double * pindx = REAL_RO(indx);
+		    	for ( int i = 0; i < XLENGTH(indx); i++ )
+		    	{
+		    		if ( is_R_NA(pindx[i]) )
+		    			SET_STRING_ELT(result, i, NA_STRING);
+		    		else
+		    		{
+		    			index_t ii = static_cast<index_t>(pindx[i] - 1);
+			    		PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(ii)));
+			    		mVec.data().set_group(ii);
+				    	mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(ii));
+				    	SET_STRING_ELT(result, i, raw_to_char(tmp));
+				    	UNPROTECT(1);
+		    		}
+		    	}
+		    }
+	        UNPROTECT(1);
+		}
+		return result;
 	}
 
 };

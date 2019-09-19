@@ -94,7 +94,33 @@ SEXP group_mins(T * x, int * group, int ngroup, int length, double init);
 //// Delta run length encoding 
 //-----------------------------
 
-index_t count_consecutive(double * pindex, size_t i, size_t length);
+template<typename T>
+index_t count_consecutive(T * pindex, size_t i, size_t length)
+{
+    index_t n = 0;
+    if ( is_R_NA(pindex[i + 1]) )
+        return n;
+    if ( i < length - 1 && pindex[i + 1] > pindex[i] ) {
+        while ( i < length - 1 && !is_R_NA(pindex[i + 1]) && 
+            static_cast<index_t>(pindex[i + 1] - pindex[i]) == 1 )
+        {
+            i++;
+            n++;
+        }
+        return n;
+    }
+    else if ( i < length - 1 && pindex[i + 1] < pindex[i] ) {
+        while ( i < length - 1 && !is_R_NA(pindex[i + 1]) && 
+            static_cast<index_t>(pindex[i + 1] - pindex[i]) == -1 )
+        {
+            i++;
+            n--;
+        }
+        return n;
+    }
+    else
+        return n;
+}
 
 template<typename T>
 T run_delta(T * values, int i, int n);
@@ -790,23 +816,23 @@ class Atoms {
             return numWrote;
         }
 
-        template<typename RType>
-        index_t read_indices(RType * ptr, Rindex_t * pindex, size_t length, size_t skip = 1) {
+        template<typename RType, typename IType>
+        index_t read_indices(RType * ptr, IType * pindex, size_t length, size_t skip = 1, int zindex = 0) {
             index_t numRead = 0;
             for ( size_t i = 0; i < length; i++ ) {
-                if ( ISNA(pindex[i]) ) {
+                if ( is_R_NA(pindex[i]) ) {
                     ptr[skip * i] = DataNA<RType>();
                     continue;
                 }
-                index_t nx = count_consecutive(pindex, i, length);
+                index_t nx = count_consecutive<IType>(pindex, i, length);
                 if ( nx >= 0 ) {
                     index_t count = nx + 1;
-                    index_t offset = static_cast<index_t>(pindex[i]);
+                    index_t offset = static_cast<index_t>(pindex[i] - zindex);
                     numRead += read<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
                     index_t count = (-nx) + 1;
-                    index_t offset = static_cast<index_t>(pindex[i + (-nx)]);
+                    index_t offset = static_cast<index_t>(pindex[i + (-nx)] - zindex);
                     numRead += read<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);
@@ -814,22 +840,22 @@ class Atoms {
             return numRead;
         }
 
-        template<typename RType>
-        index_t write_indices(RType * ptr, Rindex_t * pindex, size_t length, size_t skip = 1) {
+        template<typename RType, typename IType>
+        index_t write_indices(RType * ptr, IType * pindex, size_t length, size_t skip = 1, int zindex = 0) {
             index_t numWrote = 0;
             for ( size_t i = 0; i < length; i++ ) {
-                if ( ISNA(pindex[i]) ) {
+                if ( is_R_NA(pindex[i]) ) {
                     continue;
                 }
-                index_t nx = count_consecutive(pindex, i, length);
+                index_t nx = count_consecutive<IType>(pindex, i, length);
                 if ( nx >= 0 ) {
                     index_t count = nx + 1;
-                    index_t offset = static_cast<index_t>(pindex[i]);
+                    index_t offset = static_cast<index_t>(pindex[i] - zindex);
                     numWrote += write<RType>(ptr + (skip * i), offset, count, skip);
                 }
                 else {
                     index_t count = (-nx) + 1;
-                    index_t offset = static_cast<index_t>(pindex[i + (-nx)]);
+                    index_t offset = static_cast<index_t>(pindex[i + (-nx)] - zindex);
                     numWrote += write<RType>(ptr + skip * (i + (-nx)), offset, count, -skip);
                 }
                 i += labs(nx);

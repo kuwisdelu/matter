@@ -725,32 +725,6 @@ SEXP group_maxs(T * x, int * group, int ngroup, int length, double init)
 //// Delta run length encoding 
 //-----------------------------
 
-index_t count_consecutive(Rindex_t * pindex, size_t i, size_t length) {
-    index_t n = 0;
-    if ( ISNA(pindex[i + 1]) )
-        return n;
-    if ( i < length - 1 && pindex[i + 1] > pindex[i] ) {
-        while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
-            static_cast<index_t>(pindex[i + 1] - pindex[i]) == 1 )
-        {
-            i++;
-            n++;
-        }
-        return n;
-    }
-    else if ( i < length - 1 && pindex[i + 1] < pindex[i] ) {
-        while ( i < length - 1 && !ISNA(pindex[i + 1]) && 
-            static_cast<index_t>(pindex[i + 1] - pindex[i]) == -1 )
-        {
-            i++;
-            n--;
-        }
-        return n;
-    }
-    else
-        return n;
-}
-
 template<>
 int run_delta<int>(int * values, int i, int n) {
     if ( i < n - 1 ) {
@@ -3880,9 +3854,9 @@ void Matter :: writeVectorElements(SEXP i, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     Rindex_t * pIndex = R_INDEX_PTR(i);
     if ( XLENGTH(value) == 1 )
-        data().write_indices(pValue, pIndex, XLENGTH(i), 0);
+        data().write_indices<RType>(pValue, pIndex, XLENGTH(i), 0);
     else
-        data().write_indices(pValue, pIndex, XLENGTH(i));
+        data().write_indices<RType>(pValue, pIndex, XLENGTH(i));
 }
 
 //// List (ragged array) methods implemented for class Matter
@@ -3915,9 +3889,9 @@ void Matter :: writeListElements(int i, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     data().set_group(i);
     if ( XLENGTH(value) == 1 )
-        data().write(pValue, 0, dim(i), 0);
+        data().write<RType>(pValue, 0, dim(i), 0);
     else
-        data().write(pValue, 0, dim(i));
+        data().write<RType>(pValue, 0, dim(i));
 }
 
 template<typename RType, int SType>
@@ -3925,9 +3899,9 @@ void Matter :: writeListElements(int i, SEXP j, SEXP value) {
     RType * pValue = DataPtr<RType,SType>(value);
     data().set_group(i);
     if ( XLENGTH(value) == 1 )
-        data().write_indices(pValue, R_INDEX_PTR(j), XLENGTH(j), 0);
+        data().write_indices<RType>(pValue, R_INDEX_PTR(j), XLENGTH(j), 0);
     else
-        data().write_indices(pValue, R_INDEX_PTR(j), XLENGTH(j));
+        data().write_indices<RType>(pValue, R_INDEX_PTR(j), XLENGTH(j));
 }
 
 
@@ -4030,9 +4004,9 @@ void Matter :: writeMatrixRows(SEXP i, SEXP value) {
             for ( int col = 0; col < ncols; col++ ) {
                 data().set_group(col);
                 if ( XLENGTH(value) == 1 )
-                    data().write_indices(pValue, pRow, nrows, 0);
+                    data().write_indices<RType>(pValue, pRow, nrows, 0);
                 else
-                    data().write_indices(pValue + col * nrows, pRow, nrows);
+                    data().write_indices<RType>(pValue + col * nrows, pRow, nrows);
             }
             break;
         case MATTER_MATR:
@@ -4106,9 +4080,9 @@ void Matter :: writeMatrixCols(SEXP j, SEXP value) {
             for ( int row = 0; row < nrows; row++ ) {
                 data().set_group(row);
                 if ( XLENGTH(value) == 1 )
-                    data().write_indices(pValue, pCol, ncols, 0);
+                    data().write_indices<RType>(pValue, pCol, ncols, 0);
                 else
-                    data().write_indices(pValue + row, pCol, ncols, nrows);
+                    data().write_indices<RType>(pValue + row, pCol, ncols, nrows);
             }
             break;
         default:
@@ -4168,9 +4142,9 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                 index_t col = static_cast<index_t>(pCol[l]);
                 data().set_group(col);
                 if ( XLENGTH(value) == 1 )
-                    data().write_indices(pValue, pRow, nrows, 0);
+                    data().write_indices<RType>(pValue, pRow, nrows, 0);
                 else
-                    data().write_indices(pValue + l * nrows, pRow, nrows);
+                    data().write_indices<RType>(pValue + l * nrows, pRow, nrows);
             }
             break;
         case MATTER_MATR:
@@ -4180,9 +4154,9 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
                 index_t row = static_cast<index_t>(pRow[l]);
                 data().set_group(row);
                 if ( XLENGTH(value) == 1 )
-                    data().write_indices(pValue, pCol, ncols, 0);
+                    data().write_indices<RType>(pValue, pCol, ncols, 0);
                 else
-                    data().write_indices(pValue + l, pCol, ncols, nrows);
+                    data().write_indices<RType>(pValue + l, pCol, ncols, nrows);
             }
             break;
         default:

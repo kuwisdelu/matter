@@ -103,6 +103,7 @@ extern "C" {
 		// overrid ALTRAW methods
 		R_set_altraw_Elt_method(cls, MatterAlt::raw_Elt);
 		R_set_altraw_Get_region_method(cls, MatterAlt::raw_Get_region);
+		R_set_altvec_Extract_subset_method(cls, MatterAlt::raw_Extract_subset);
 	}
 
 	// Logical
@@ -125,6 +126,7 @@ extern "C" {
 		// overrid ALTLOGICAL methods
 		R_set_altlogical_Elt_method(cls, MatterAlt::logical_Elt);
 		R_set_altlogical_Get_region_method(cls, MatterAlt::logical_Get_region);
+		R_set_altvec_Extract_subset_method(cls, MatterAlt::logical_Extract_subset);
 	}
 
 	// Integer
@@ -147,6 +149,7 @@ extern "C" {
 		// overrid ALTINTEGER methods
 		R_set_altinteger_Elt_method(cls, MatterAlt::integer_Elt);
 		R_set_altinteger_Get_region_method(cls, MatterAlt::integer_Get_region);
+		R_set_altvec_Extract_subset_method(cls, MatterAlt::integer_Extract_subset);
 	}
 
 	// Real
@@ -169,6 +172,7 @@ extern "C" {
 		// overrid ALTREAL methods
 		R_set_altreal_Elt_method(cls, MatterAlt::real_Elt);
 		R_set_altreal_Get_region_method(cls, MatterAlt::real_Get_region);
+		R_set_altvec_Extract_subset_method(cls, MatterAlt::real_Extract_subset);
 	}
 
 	// String
@@ -190,6 +194,7 @@ extern "C" {
 
 		// overrid ALTREAL methods
 		R_set_altstring_Elt_method(cls, MatterAlt::string_Elt);
+		R_set_altvec_Extract_subset_method(cls, MatterAlt::string_Extract_subset);
 	}
 
 }
