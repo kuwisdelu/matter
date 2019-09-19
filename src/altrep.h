@@ -68,7 +68,7 @@ struct MatterAlt {
 	{
 		Matter mVec(R_altrep_data1(x));
 		int inmem = R_altrep_data2(x) != R_NilValue;
-		Rprintf("matter: vector (mode=%d, len=%d, mem=%d)\n", mVec.datamode(), mVec.length(), inmem);
+		Rprintf("matter vector (mode=%d, len=%d, mem=%d)\n", mVec.datamode(), mVec.length(), inmem);
 		return TRUE;
 	}
 

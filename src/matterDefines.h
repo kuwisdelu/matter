@@ -18,7 +18,7 @@ extern "C"
 
 #define MATTER_PKG "matter"
 
-// #define MATTER_DEBUG // comment for matter ALTREP debugging
+#define MATTER_DEBUG // comment for matter ALTREP debugging
 
 // index types
 
