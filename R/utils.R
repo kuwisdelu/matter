@@ -9,6 +9,7 @@
 	options(matter.coerce.altrep = TRUE)
 	options(matter.coerce.altrep.list = FALSE)
 	options(matter.wrap.altrep = FALSE)
+	options(matter.dump.dir = tempdir())
 }
 
 #### Binary search that allows near-matches ####

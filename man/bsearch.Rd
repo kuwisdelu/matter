@@ -28,7 +28,7 @@ bsearch(key, values, tol = 0, tol.ref = "none",
 }
 
 \details{
-    The algorithm is implemented in C and currently only works for 'integer', 'numeric', and 'character' vectors. If there are multiple matches, the first match that is found will be returned, but there are no guarantees about \emph{which} match is found.
+    The algorithm is implemented in C and currently only works for 'integer', 'numeric', and 'character' vectors. If there are multiple matches, then the first match that is found will be returned, with no guarantees. If a nonzero tolerance is provided, the closest match will be returned.
 
     The "nearest" match for strings when there are no exact matches is decided by the match with the most initial matching characters. Tolerance is ignored for strings and integers. Behavior is undefined and results may be unexpected if \code{values} includes NAs.
 }

@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <climits>
 
 #define ABS_DIFF 	1
 #define REL_DIFF_X	2

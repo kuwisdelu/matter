@@ -1,16 +1,16 @@
 Package: matter
 Type: Package
-Title: A framework for rapid prototyping with binary data on disk
-Version: 1.11.2
+Title: A framework for rapid prototyping with file-based data structures
+Version: 1.11.3
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
 Description: Memory-efficient reading, writing, and manipulation of
-        structured binary data on disk as vectors, matrices, arrays,
+        structured binary data as file-based vectors, matrices, arrays,
         lists, and data frames.
 License: Artistic-2.0
 Depends: R (>= 3.5), BiocParallel, methods, stats, biglm
-Imports: BiocGenerics, digest, irlba, utils
+Imports: BiocGenerics, ProtGenerics, digest, irlba, utils
 Suggests: BiocStyle, testthat
 Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
 	matter_vec.R matter_mat.R matter_arr.R matter_list.R

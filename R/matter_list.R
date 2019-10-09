@@ -49,15 +49,15 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 	R_datamode <- make_datamode(datamode, type="R")
 	C_datamode <- make_datamode(datamode, type="C")
 	if ( is.null(paths) )
-		paths <- tempfile(fileext=".bin")
+		paths <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
 	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
 			data <- lapply(as.character(R_datamode), vector, length=1)
 		filemode <- force(filemode)
 		result <- file.create(paths)
-		if ( !result )
-			stop("error creating file")
+		if ( !all(result) )
+			stop("error creating file(s)")
 	} else if ( !missing(data) && missing(filemode) ) {
 		warning("file already exists")
 	}

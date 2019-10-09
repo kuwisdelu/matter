@@ -99,15 +99,15 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 		}
 	}
 	if ( is.null(paths) )
-		paths <- tempfile(fileext=".bin")
+		paths <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
 	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !all(file.exists(paths)) ) {
 		if ( missing(data) )
 			data <- vector(as.character(widest_datamode(datamode)), length=1)
 		filemode <- force(filemode)
 		result <- file.create(paths)
-		if ( !result )
-			stop("error creating file")
+		if ( !all(result) )
+			stop("error creating file(s)")
 	} else if ( !missing(data) && missing(filemode) ) {
 		warning("file already exists")
 	}

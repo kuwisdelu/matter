@@ -43,15 +43,15 @@ matter_fc <- function(data, datamode = "int", paths = NULL,
 	if ( length(datamode) != length(extent) )
 		datamode <- rep(datamode, length.out=length(extent))
 	if ( is.null(paths) )
-		paths <- tempfile(fileext=".bin")
+		paths <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
 	paths <- normalizePath(paths, mustWork=FALSE)
 	if ( !file.exists(paths) ) {
 		if ( missing(data) )
 			data <- NA_integer_
 		filemode <- force(filemode)
 		result <- file.create(paths)
-		if ( !result )
-			stop("error creating file")
+		if ( !all(result) )
+			stop("error creating file(s)")
 	} else if ( !missing(data) && missing(filemode) ) {
 		warning("file already exists")
 	}

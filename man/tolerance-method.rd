@@ -11,13 +11,15 @@
 }
 
 \usage{
-tolerance(object)
+tolerance(object, \dots)
 
-tolerance(object) <- value
+tolerance(object, \dots) <- value
 }
 
 \arguments{
     \item{object}{An object with tolerance.}
+
+    \item{\dots}{Additional arguments.}
     
     \item{value}{The value to set the tolerance.}
 }

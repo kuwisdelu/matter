@@ -37,6 +37,9 @@ importFrom("BiocGenerics",
 	"lapply",
 	"sapply")
 
+importFrom("ProtGenerics",
+	"tolerance")
+
 importFrom("utils",
 	"head",
 	"tail",
@@ -219,6 +222,8 @@ S3method("stat_c", "stream_all")
 export(
 	"colStats",
 	"rowStats")
+
+export("atoms")
 
 export(
 	"uuid",

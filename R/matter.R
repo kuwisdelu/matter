@@ -122,7 +122,7 @@ setMethod("preview_for_display", "ANY", function(x) head(x))
 setMethod("show", "matter", function(object) {
 	cat(describe_for_display(object), "\n", sep="")
 	if ( getOption("matter.show.head") )
-		preview_for_display(object)
+		try(preview_for_display(object), silent=TRUE)
 	show_matter_memory_and_storage(object)
 })
 

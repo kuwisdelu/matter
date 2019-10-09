@@ -61,6 +61,8 @@
 \alias{as.altrep,virtual_df-method}
 \alias{as.altrep,matter_df-method}
 
+\alias{atoms}
+
 \alias{make_filemode}
 \alias{common_filemode}
 

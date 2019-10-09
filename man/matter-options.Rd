@@ -19,6 +19,8 @@
 	    \item{\code{options(matter.coerce.altrep.list=FALSE)}:}{Should a \code{matter}-backed ALTREP list be returned when coercing \code{matter_list} lists to native R lists? Lists are treated differently, because the coercion is more costly, as the metadata for each list element must be uncompressed and converted to separate ALTREP representations. (Note that this does not affect \code{matter_df} data frames, which do not compress metadata about the columns, because the columns are regular \code{matter} vectors.)}
 
 	    \item{\code{options(matter.wrap.altrep=FALSE)}:}{When coercing to a \code{matter}-backed ALTREP object, should the object be wrapped in an ALTREP wrapper? (This is always done in cases where the coercion preserves existing attributes.) This allows setting of attributes without triggering a (potentially expensive) duplication of the object when safe to do so.}
+
+	    \item{\code{options(matter.dump.dir=tempdir())}:}{Temporary directory where \code{matter} object files should be dumped when created without user-specified file paths.}
     }
 }
 

@@ -1,10 +1,13 @@
 
-CHANGES IN VERSION 1.11.3 [2019-9-19]
+CHANGES IN VERSION 1.11.3 [2019-10-9]
 -----------------------------------
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Faster subsetting of matter-backed ALTREP objects
+    o Updated 'bsearch()' to return the closest match when tol > 0
+    o Added getOption('matter.dump.dir') to control where
+        temporary files are stored for matter objects
 
 CHANGES IN VERSION 1.11.2 [2019-7-24]
 -----------------------------------

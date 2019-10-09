@@ -116,7 +116,7 @@ size_t binary_search<double>(double key, SEXP values, size_t start, size_t end,
 	{
 		mid = start + (end - start) / 2;
 		diff = dblcmp(key, pValues[mid], tol_ref);
-		if ( fabs(diff) > tol ) {
+		if ( fabs(diff) > DBL_EPSILON ) {
 			if ( diff < 0 )
 				end = mid;
 			else if ( diff > 0 )
@@ -125,27 +125,26 @@ size_t binary_search<double>(double key, SEXP values, size_t start, size_t end,
 		else
 			return mid;
 	}
-	if ( nearest ) {
+	if ( nearest || tol > DBL_EPSILON ) {
 		size_t left = mid >= min + 1 ? mid - 1 : min;
 		size_t right = mid < max - 1 ? mid + 1 : max - 1;
-		if ( mid == left && diff < 0 )
+		double dleft = fabs(dblcmp(key, pValues[left], tol_ref));
+		double dmid = fabs(dblcmp(key, pValues[mid], tol_ref));
+		double dright = fabs(dblcmp(key, pValues[right], tol_ref));
+		if ( (mid == left && diff < 0) && (nearest || dleft < tol) )
 			return left;
-		else if ( mid == right && diff > 0 )
+		else if ( (mid == right && diff > 0) && (nearest || dright < tol) )
 			return right;
 		else {
-			double dleft = fabs(dblcmp(key, pValues[left]));
-			double dmid = fabs(dblcmp(key, pValues[mid]));
-			double dright = fabs(dblcmp(key, pValues[right]));
-			if ( dleft <= dmid && dleft <= dright )
+			if ( (dleft <= dmid && dleft <= dright) && (nearest || dleft < tol) )
 				return left;
-			else if ( dmid <= dleft && dmid <= dright )
+			else if ( (dmid <= dleft && dmid <= dright) && (nearest || dmid < tol) )
 				return mid;
-			else
+			else if ( nearest || dright < tol )
 				return right;
 		}
 	}
-	else
-		return nomatch;
+	return nomatch;
 }
 
 template<>

@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <climits>
 
 #include "utils.h"
 #include "matterDefines.h"
@@ -17,7 +18,7 @@ using std::fstream;
 
 #define within_bounds(x, a, b) ((a) <= (x) && (x) < (b))
 #define out_of_bounds(x, a, b) ((x) < (a) && (b) <= (x))
-#define is_equal_double(x, y) (fabs((x) - (y)) < 1E-9 || (ISNA(x) && ISNA(y)))
+#define is_equal_double(x, y) (fabs((x) - (y)) < DBL_EPSILON || (ISNA(x) && ISNA(y)))
 
 // Declare Atoms and Matter classes now since component classes need them
 //----------------------------------
