@@ -6,7 +6,7 @@
 	options(matter.cast.warning = TRUE)
 	options(matter.show.head = TRUE)
 	options(matter.show.head.n = 6L)
-	options(matter.coerce.altrep = TRUE)
+	options(matter.coerce.altrep = FALSE)
 	options(matter.coerce.altrep.list = FALSE)
 	options(matter.wrap.altrep = FALSE)
 	options(matter.dump.dir = tempdir())
