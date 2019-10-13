@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 1.11.5 [2019-10-13]
+-----------------------------------
+
+NEW FEATURES
+
+    o Exposed 'chunk_apply()' for applying functions
+        over parallelized chunks of vectors and matrices
+
 CHANGES IN VERSION 1.11.4 [2019-10-13]
 -----------------------------------
 

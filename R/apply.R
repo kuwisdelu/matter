@@ -2,16 +2,21 @@
 #### Chunk-Apply functions over vectors and arrays ####
 ## ----------------------------------------------------
 
-chunkapply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
+chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 						chunks = NA, view = c("element", "chunk"),
 						attr = list(), alist = list(), outfile = NULL,
-						BPREDO = list(), BPPARAM = bpparam())
+						verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
 {
 	view <- match.arg(view)
 	if ( !is.null(dim(X)) && missing(MARGIN) )
 		stop("must specify MARGIN when X is array-like")
+	if ( !missing(MARGIN) && is.character(MARGIN) )
+		MARGIN <- match(MARGIN, names(dimnames(X)))
 	index <- chunkify(X, chunks, MARGIN)
+	index <- chunklabel(index)
 	chunkfun <- function(i) {
+		if ( verbose )
+			message("processing chunk ", attr(i, "idx"), "/", length(index))
 		if ( !is.null(dim(X)) ) {
 			if ( MARGIN == 1L ) {
 				xi <- X[i,,drop=FALSE]
@@ -149,6 +154,12 @@ chunkindex <- function(length.out, nchunks) {
 	mapply(`:`, i1, i2, SIMPLIFY=FALSE)
 }
 
+chunklabel <- function(index) {
+	for ( i in seq_along(index) )
+		attr(index[[i]], "idx") <- i
+	index
+}
+
 chunkattr <- function(x, i, attr, alist, view) {
 	if ( length(attr) > 0L )
 		for ( nm in names(attr) )
@@ -170,17 +181,17 @@ chunkattr <- function(x, i, attr, alist, view) {
 
 setMethod("apply", "matter_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		chunkapply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
+		chunk_apply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "sparse_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		chunkapply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
+		chunk_apply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "virtual_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		chunkapply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
+		chunk_apply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
 })
 
 #### List-Apply functions over matter lists and data frames ####
@@ -189,7 +200,7 @@ setMethod("apply", "virtual_mat",
 setMethod("lapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam())
 	{
-		chunkapply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
+		chunk_apply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
 	}
 )
 
@@ -197,14 +208,14 @@ setMethod("sapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam(),
 		simplify = TRUE, USE.NAMES = TRUE)
 	{
-		chunkapply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
+		chunk_apply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
 	}
 )
 
 setMethod("lapply", "virtual_df",
 	function(X, FUN, ..., BPPARAM = bpparam())
 	{
-		chunkapply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
+		chunk_apply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
 	}
 )
 
@@ -212,7 +223,7 @@ setMethod("sapply", "virtual_df",
 	function(X, FUN, ..., BPPARAM = bpparam(),
 		simplify = TRUE, USE.NAMES = TRUE)
 	{
-		chunkapply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
+		chunk_apply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
 	}
 )
 

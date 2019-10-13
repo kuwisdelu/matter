@@ -304,7 +304,7 @@ paste_head <- function(x, n=getOption("matter.show.head.n"), collapse=" ") {
 collect_by_key <- function(x, reduce) {
 	keys <- unique(names(x))
 	ans <- lapply(keys, function(k) {
-		reduce(unname(x[names(x) %in% k]))
+		Reduce(reduce, unname(x[names(x) %in% k]))
 	})
 	names(ans) <- keys
 	ans
@@ -382,7 +382,7 @@ bind_elements <- function(x, y) {
 }
 
 combine_list <- function(list) {
-	do.call("c", list)
+	Reduce(match.fun("c"), list)
 }
 
 combine_colnames <- function(x, y, ...) {

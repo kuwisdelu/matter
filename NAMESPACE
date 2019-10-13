@@ -228,6 +228,8 @@ exportMethods(
 	"colStats",
 	"rowStats")
 
+export("chunk_apply")
+
 export("atoms")
 
 export(

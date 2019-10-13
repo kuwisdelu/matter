@@ -667,42 +667,41 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 		if ( missing(groups) ) {
 			if ( length(attr) > 0L )
 				alist[["idx"]] <- idx
-			ans <- chunkapply(x, getChunkStats, margin, view="chunk",
+			ans <- chunk_apply(x, getChunkStats, margin, view="chunk",
 				stat=stat, along=along, na.rm=na.rm, tform=tform,
 				chunks=chunks, attr=attr, alist=alist,
 				simplify=combine_list, BPPARAM=BPPARAM, ...)
-			ans <- collect_by_key(ans, combine_list)
+			ans <- collect_by_key(ans, c)
 		} else {
 			alist[["idx"]] <- idx
-			ans <- chunkapply(x, getGroupStats, margin, view="chunk",
+			ans <- chunk_apply(x, getGroupStats, margin, view="chunk",
 				stat=stat, along=along, na.rm=na.rm, tform=tform,
 				chunks=chunks, attr=attr, alist=alist,
 				simplify=combine_list, groups=groups,
 				BPPARAM=BPPARAM, ...)
-			ans <- collect_by_key(ans, combine_list)
-			ans <- lapply(ans, collect_by_key, combine_list)
+			ans <- collect_by_key(ans, c)
+			ans <- lapply(ans, collect_by_key, c)
 		}
 	} else {
 		idx <- seq_len(d2)
 		margin <- switch(along, "rows"=2L, "cols"=1L)
-		stat_c_list <- function(ans) do.call(stat_c, ans)
 		if ( missing(groups) ) {
 			if ( length(attr) > 0L )
 				alist[["idx"]] <- idx
-			ans <- chunkapply(x, getChunkStats, margin, view="chunk",
+			ans <- chunk_apply(x, getChunkStats, margin, view="chunk",
 				stat=stat, along=along, na.rm=na.rm, tform=tform,
 				chunks=chunks, attr=attr, alist=alist,
 				simplify=combine_list, BPPARAM=BPPARAM, ...)
-			ans <- collect_by_key(ans, stat_c_list)
+			ans <- collect_by_key(ans, stat_c)
 		} else {
 			alist[["idx"]] <- idx
-			ans <- chunkapply(x, getGroupStats, margin, view="chunk",
+			ans <- chunk_apply(x, getGroupStats, margin, view="chunk",
 				stat=stat, along=along, na.rm=na.rm, tform=tform,
 				chunks=chunks, attr=attr, alist=alist,
 				simplify=combine_list, groups=groups,
 				BPPARAM=BPPARAM, ...)
-			ans <- collect_by_key(ans, combine_list)
-			ans <- lapply(ans, collect_by_key, stat_c_list)
+			ans <- collect_by_key(ans, c)
+			ans <- lapply(ans, collect_by_key, stat_c)
 		}
 	}
 	if ( !missing(groups) ) {
