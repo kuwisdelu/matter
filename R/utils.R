@@ -381,6 +381,10 @@ bind_elements <- function(x, y) {
 	mapply(try_c, x, y, names(x))
 }
 
+combine_list <- function(list) {
+	do.call("c", list)
+}
+
 combine_colnames <- function(x, y, ...) {
 	if ( length(list(...)) > 0 )
 		y <- combine_colnames(y, ...)
@@ -427,10 +431,6 @@ combine_rownames <- function(x, y, ...) {
 	} else {
 		list(rownames, colnames)
 	}
-}
-
-combine_list <- function(list) {
-	do.call("c", list)
 }
 
 # convert array indices to linear indices
