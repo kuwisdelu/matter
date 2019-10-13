@@ -1,4 +1,20 @@
 
+CHANGES IN VERSION 1.11.4 [2019-10-13]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'rowStats()' and 'colStats()' methods for
+        chunk-applying grouped summary statistics over
+        the rows and columns of matrices
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Family of 'apply()' and 'lapply()' methods now
+        attempt to respect the object's 'chunksize()'
+    o Added getOption('matter.default.chunksize') for
+        setting default chunksize for matter objects
+
 CHANGES IN VERSION 1.11.3 [2019-10-9]
 -----------------------------------
 
@@ -31,7 +47,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
         prints a preview of the data head
     o Printing of data can be controlled with new options
         getOption('matter.show.head') and
-        getOption('matter.show.head.n') and
+        getOption('matter.show.head.n')
 
 CHANGES IN VERSION 1.11.1 [2019-5-7]
 -----------------------------------
