@@ -60,7 +60,7 @@ test_that("col-stats-single", {
 
 })
 
-test_that("row-stats-multi", {
+test_that("col-stats-multi", {
 
 	register(SerialParam())
 

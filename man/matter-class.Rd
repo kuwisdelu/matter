@@ -55,6 +55,8 @@
 \alias{dimnames,matter-method}
 \alias{dimnames<-,matter,ANY-method}
 
+\alias{lengths,matter-method}
+
 \alias{[,atoms,ANY,missing,ANY-method}
 \alias{[,atoms,missing,ANY,ANY-method}
 \alias{[,atoms,ANY,ANY,ANY-method}

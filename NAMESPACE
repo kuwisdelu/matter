@@ -10,6 +10,7 @@ importFrom("irlba",
 	"irlba")
 
 importFrom("stats",
+	"median",
 	"update",
 	"setNames",
 	"na.omit")
@@ -202,6 +203,10 @@ export(
 	"s_all",
 	"stat_c")
 
+export(
+	"colstreamStats",
+	"rowstreamStats")
+
 S3method("c", "stream_stat")
 S3method("print", "stream_stat")
 S3method("nobs", "stream_stat")
@@ -218,8 +223,6 @@ S3method("stat_c", "stream_var")
 S3method("stat_c", "stream_sd")
 S3method("stat_c", "stream_any")
 S3method("stat_c", "stream_all")
-
-export("chunkapply")
 
 exportMethods(
 	"colStats",

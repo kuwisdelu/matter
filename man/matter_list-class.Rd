@@ -5,6 +5,7 @@
 \alias{matter_list}
 \alias{matter_list-class}
 
+\alias{dim,matter_list-method}
 \alias{lengths,matter_list-method}
 
 \alias{[,matter_list-method}

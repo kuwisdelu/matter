@@ -358,14 +358,15 @@ stat_c.stream_var <- function(x, y, ...) {
 		return(x)
 	mx <- attr(x, "mean")
 	my <- attr(y, "mean")
+	m <- (nx * mx + ny * my) / (nx + ny)
 	if ( na_rm(x) && na_rm(y) ) {
 		mx <- ifelse(is.na(mx), 0, mx)
 		my <- ifelse(is.na(my), 0, my)
+		m <- ifelse(is.na(m), 0, m)
 	} else {
 		mx <- ifelse(nx == 0, 0, mx)
 		my <- ifelse(ny == 0, 0, my)
 	}
-	m <- (nx * mx + ny * my) / (nx + ny)
 	nn1 <- nx <= 1 | ny <= 1
 	nnN <- nx > 1 & ny > 1
 	if ( any(nn1) ) {
@@ -407,14 +408,15 @@ stat_c.stream_sd <- function(x, y, ...) {
 		return(x)
 	mx <- attr(x, "mean")
 	my <- attr(y, "mean")
+	m <- (nx * mx + ny * my) / (nx + ny)
 	if ( na_rm(x) && na_rm(y) ) {
 		mx <- ifelse(is.na(mx), 0, mx)
 		my <- ifelse(is.na(my), 0, my)
+		m <- ifelse(is.na(m), 0, m)
 	} else {
 		mx <- ifelse(nx == 0, 0, mx)
 		my <- ifelse(ny == 0, 0, my)
 	}
-	m <- (nx * mx + ny * my) / (nx + ny)
 	nn1 <- nx <= 1 | ny <= 1
 	nnN <- nx > 1 & ny > 1
 	if ( any(nn1) ) {
@@ -744,35 +746,63 @@ getChunkStats <- function(x, stat, along = c("rows", "cols"),
 	if ( missing(stat) )
 		stop("missing argument 'stat'")
 	along <- match.arg(along)
-	margin <- switch(along, "rows"=1, "cols"=2)
 	if ( !is.null(tform) )
 		x <- transformChunk(x, attributes(x), NULL, NULL, along, tform)
-	ret <- lapply(stat, function(sx) {
-		fun <- stream_stat_fun(sx)
-		template <- switch(sx, range=numeric(2),
-			any=logical(1), all=logical(1), numeric(1))
-		val <- apply_int(x, margin, fun, template, na.rm=na.rm)
-		nobs <- apply_int(x, margin, na_length, numeric(1), na.rm=na.rm)
-		if ( sx %in% c("var", "sd") ) {
-			means <- switch(along,
-				"rows"=rowMeans(x, na.rm=na.rm),
-				"cols"=colMeans(x, na.rm=na.rm))
-			ans <- structure(val, class=stream_stat_class(sx),
-				na.rm=na.rm, nobs=nobs, mean=means)
-		} else {
-			ans <- structure(val, class=stream_stat_class(sx),
-				na.rm=na.rm, nobs=nobs)
-		}
-		nms <- switch(along, "rows"=rownames(x), "cols"=colnames(x))
-		if ( sx %in% "range" ) {
-			names(ans) <- rep(nms, each=2)
-		} else {
-			names(ans) <- nms
-		}
-		ans
-	})
+	if ( along == "rows" ) {
+		ret <- lapply(stat, function(sx)
+			rowstreamStats(x, stat=sx, na.rm=na.rm, ...))
+	} else {
+		ret <- lapply(stat, function(sx)
+			colstreamStats(x, stat=sx, na.rm=na.rm, ...))
+	}
 	names(ret) <- stat
 	ret
+}
+
+rowstreamStats <- function(x, stat, na.rm = FALSE, ...) {
+	fun <- stream_stat_fun(stat)
+	template <- switch(stat, range=numeric(2),
+		any=logical(1), all=logical(1), numeric(1))
+	val <- apply_int(x, 1, fun, template, na.rm=na.rm)
+	nobs <- apply_int(x, 1, na_length, numeric(1), na.rm=na.rm)
+	if ( stat %in% c("var", "sd") ) {
+		means <- rowMeans(x, na.rm=na.rm)
+		ans <- structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs, mean=means)
+	} else {
+		ans <- structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs)
+	}
+	nms <- rownames(x)
+	if ( stat %in% "range" ) {
+		names(ans) <- rep(nms, each=2)
+	} else {
+		names(ans) <- nms
+	}
+	ans
+}
+
+colstreamStats <- function(x, stat, na.rm = FALSE, ...) {
+	fun <- stream_stat_fun(stat)
+	template <- switch(stat, range=numeric(2),
+		any=logical(1), all=logical(1), numeric(1))
+	val <- apply_int(x, 2, fun, template, na.rm=na.rm)
+	nobs <- apply_int(x, 2, na_length, numeric(1), na.rm=na.rm)
+	if ( stat %in% c("var", "sd") ) {
+		means <- colMeans(x, na.rm=na.rm)
+		ans <- structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs, mean=means)
+	} else {
+		ans <- structure(val, class=stream_stat_class(stat),
+			na.rm=na.rm, nobs=nobs)
+	}
+	nms <- colnames(x)
+	if ( stat %in% "range" ) {
+		names(ans) <- rep(nms, each=2)
+	} else {
+		names(ans) <- nms
+	}
+	ans
 }
 
 transformChunk <- function(x, attr, group, group_idx, along, tform) {
@@ -826,7 +856,7 @@ transformChunk <- function(x, attr, group, group_idx, along, tform) {
 			if ( is.null(group) ) {
 				row.scale <- attr$row.scale
 			} else {
-				row.scale <- attr$row.scale[,groups]
+				row.scale <- attr$row.scale[,group]
 			}
 			if ( attr$iter.dim == "rows" ) {
 				row.scale <- row.scale[attr$idx]

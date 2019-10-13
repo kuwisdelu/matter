@@ -14,8 +14,8 @@
 \alias{s_any}
 \alias{s_all}
 
-\alias{colStats}
-\alias{rowStats}
+\alias{colstreamStats}
+\alias{rowstreamStats}
 
 \alias{combine,stream_stat,ANY-method}
 \alias{stat_c}
@@ -29,11 +29,6 @@
 }
 
 \usage{
-# calculate streaming matrix statistics
-colStats(x, stat, na.rm = FALSE, \dots)
-
-rowStats(x, stat, na.rm = FALSE, \dots)
-
 # calculate streaming univariate statistics
 s_range(x, \dots, na.rm = FALSE)
 
@@ -54,6 +49,11 @@ s_sd(x, \dots, na.rm = FALSE)
 s_any(x, \dots, na.rm = FALSE)
 
 s_all(x, \dots, na.rm = FALSE)
+
+# calculate streaming matrix statistics
+colstreamStats(x, stat, na.rm = FALSE, \dots)
+
+rowstreamStats(x, stat, na.rm = FALSE, \dots)
 
 # calculate combined summary statistics
 stat_c(x, y, \dots)
@@ -76,7 +76,7 @@ stat_c(x, y, \dots)
 \value{
     For all univariate functions except \code{s_range()}, a single number giving the summary statistic. For \code{s_range()}, two numbers giving the minimum and the maximum values.
 
-    For \code{colStats()} and \code{rowStats()}, a vector of summary statistics.
+    For \code{colstreamStats()} and \code{rowstreamStats()}, a vector of summary statistics.
 }
 
 \author{Kylie A. Bemis}
@@ -113,8 +113,8 @@ set.seed(2)
 A <- matrix(rnorm(100), nrow=10)
 B <- matrix(rnorm(100), nrow=10)
 
-sx <- rowStats(A, "var")
-sy <- rowStats(B, "var")
+sx <- rowstreamStats(A, "var")
+sy <- rowstreamStats(B, "var")
 
 apply(cbind(A, B), 1, var)
 stat_c(sx, sy) # should be the same
