@@ -37,7 +37,8 @@
 ## Instance creation
 matter_vec(data, datamode = "double", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "r", "rw"),
-            offset = 0, extent = length, length = 0L, names = NULL, \dots)
+            offset = 0, extent = length, length = 0L, names = NULL,
+            chunksize = getOption("matter.default.chunksize"), \dots)
 
 ## Additional methods documented below
 }
@@ -58,6 +59,8 @@ matter_vec(data, datamode = "double", paths = NULL,
         \item{length}{An optional number giving the total length of the data across all files, equal to the sum of 'extent'. This is ignored and calculated automatically if 'extent' is specified.}
 
         \item{names}{The names of the data elements.}
+
+        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

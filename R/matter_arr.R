@@ -28,7 +28,8 @@ setClass("matter_arr",
 
 matter_arr <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
-					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, ...)
+					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL,
+					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
@@ -73,6 +74,7 @@ matter_arr <- function(data, datamode = "double", paths = NULL,
 		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=make_filemode(filemode),
+		chunksize=as.integer(chunksize),
 		length=as.numeric(prod(dim)),
 		dim=as.integer(dim),
 		names=NULL,

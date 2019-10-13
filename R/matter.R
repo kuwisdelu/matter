@@ -241,6 +241,14 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 		x
 })
 
+setMethod("lengths", "matter", function(x, use.names = TRUE) {
+	if ( is.null(dim(x)) ) {
+		rep(1L, length(x))
+	} else {
+		array(1L, dim=dim(x))
+	}
+})
+
 #### Additional methods ####
 ## ------------------------
 

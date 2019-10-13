@@ -4,6 +4,7 @@
 
 .onLoad <- function(libname, pkgname) {
 	options(matter.cast.warning = TRUE)
+	options(matter.default.chunksize = 1000000L)
 	options(matter.show.head = TRUE)
 	options(matter.show.head.n = 6L)
 	options(matter.coerce.altrep = FALSE)
@@ -300,6 +301,15 @@ paste_head <- function(x, n=getOption("matter.show.head.n"), collapse=" ") {
 	}
 }
 
+collect_by_key <- function(x, reduce) {
+	keys <- unique(names(x))
+	ans <- lapply(keys, function(k) {
+		reduce(unname(x[names(x) %in% k]))
+	})
+	names(ans) <- keys
+	ans
+}
+
 logical2index <- function(x, i, margin) {
 	if ( missing(margin) ) {
 		len <- length(x)
@@ -417,6 +427,10 @@ combine_rownames <- function(x, y, ...) {
 	} else {
 		list(rownames, colnames)
 	}
+}
+
+combine_list <- function(list) {
+	do.call("c", list)
 }
 
 # convert array indices to linear indices

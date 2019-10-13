@@ -167,3 +167,59 @@ test_that("streaming matrix statistics", {
 
 })
 
+test_that("streaming variance + standard deviation", {
+
+	set.seed(1)
+
+	x <- sample(1:100, size=10)
+
+	s1_a <- sd(x[1:3])
+
+	s1_b <- s_sd(x[1], x[2], x[3])
+
+	expect_equal(s1_a, as.numeric(s1_b))
+
+	s1_a <- sd(x[1:2])
+
+	s1_b <- stat_c(s_sd(x[1]), s_sd(x[2]))
+
+	expect_equal(s1_a, as.numeric(s1_b))
+
+	s1_a <- sd(x[1:5])
+
+	s1_b <- stat_c(s_sd(x[1:4]), s_sd(x[5]))
+
+	expect_equal(s1_a, as.numeric(s1_b))
+
+	s1_a <- sd(x[1:5])
+
+	s1_b <- stat_c(s_sd(x[1]), s_sd(x[2:5]))
+
+	expect_equal(s1_a, as.numeric(s1_b))
+
+	s2_a <- var(x[1:3])
+
+	s2_b <- s_var(x[1], x[2], x[3])
+
+	expect_equal(s2_a, as.numeric(s2_b))
+
+	s2_a <- var(x[1:2])
+
+	s2_b <- stat_c(s_var(x[1]), s_var(x[2]))
+
+	expect_equal(s2_a, as.numeric(s2_b))
+
+	s2_a <- var(x[1:5])
+
+	s2_b <- stat_c(s_var(x[1:4]), s_var(x[5]))
+
+	expect_equal(s2_a, as.numeric(s2_b))
+
+	s2_a <- var(x[1:5])
+
+	s2_b <- stat_c(s_var(x[1]), s_var(x[2:5]))
+
+	expect_equal(s2_a, as.numeric(s2_b))
+
+})
+

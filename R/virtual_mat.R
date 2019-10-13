@@ -81,7 +81,8 @@ setClass("virtual_matr",
 	})
 
 virtual_mat <- function(data, datamode = "double", rowMaj = FALSE,
-						dimnames = NULL, index = NULL, ...) {
+						dimnames = NULL, index = NULL, transpose = FALSE,
+						chunksize = getOption("matter.default.chunksize"), ...) {
 	if ( !is.list(data) )
 		data <- list(data)
 	if ( missing(datamode) ) {
@@ -117,12 +118,15 @@ virtual_mat <- function(data, datamode = "double", rowMaj = FALSE,
 		datamode=datamode,
 		paths=character(),
 		filemode=make_filemode(),
+		chunksize=as.integer(chunksize),
 		length=as.numeric(prod(c(nrow, ncol))),
 		dim=as.integer(c(nrow, ncol)),
 		names=NULL,
 		dimnames=dimnames,
 		ops=NULL,
 		index=index)
+	if ( isTRUE(transpose) )
+		x <- t(x)
 	x
 }
 

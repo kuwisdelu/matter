@@ -1,20 +1,186 @@
 
+#### Chunk-Apply functions over vectors and arrays ####
+## ----------------------------------------------------
+
+chunkapply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
+						chunks = NA, view = c("element", "chunk"),
+						attr = list(), alist = list(), outfile = NULL,
+						BPREDO = list(), BPPARAM = bpparam())
+{
+	view <- match.arg(view)
+	if ( !is.null(dim(X)) && missing(MARGIN) )
+		stop("must specify MARGIN when X is array-like")
+	index <- chunkify(X, chunks, MARGIN)
+	chunkfun <- function(i) {
+		if ( !is.null(dim(X)) ) {
+			if ( MARGIN == 1L ) {
+				xi <- X[i,,drop=FALSE]
+				dn <- dim(xi)[1L]
+			} else if ( MARGIN == 2L ) {
+				xi <- X[,i,drop=FALSE]
+				dn <- dim(xi)[2L]
+			} else {
+				stop("only MARGIN = 1 or 2 supported")
+			}
+			xi <- as.matrix(xi)
+		} else {
+			xi <- X[i,drop=FALSE]
+			dn <- length(xi)
+		}
+		if ( view == "element" ) {
+			ans <- vector("list", dn)
+			for ( j in 1L:dn ){
+				if ( !is.null(dim(X)) ) {
+					xj <- switch(MARGIN, drop(xi[j,]), drop(xi[,j]))
+				} else {
+					xj <- xi[[j]]
+				}
+				xx <- chunkattr(xj, i[j], attr, alist, view)
+				ans[[j]] <- FUN(xx, ...)
+			}
+		} else {
+			xx <- chunkattr(xi, i, attr, alist, view)
+			ans <- FUN(xx, ...)
+		}
+		ans
+	}
+	ans.list <- bplapply(index, chunkfun, BPREDO=BPREDO, BPPARAM=BPPARAM)
+	if ( view == "element" ) {
+		ans.list <- do.call(c, ans.list)
+		if ( !is.null(dim(X)) ) {
+			if ( MARGIN == 1L ) {
+				names(ans.list) <- dimnames(X)[[1L]]
+			} else if ( MARGIN == 2L ) {
+				names(ans.list) <- dimnames(X)[[2L]]
+			}
+		} else {
+			names(ans.list) <- names(X)
+		}
+	}
+	if ( isTRUE(simplify) ) {
+		ans.list <- simplify2array(ans.list)
+	} else if ( is.function(simplify) ) {
+		ans.list <- simplify(ans.list)
+	}
+	ans.list
+}
+
+#### Chunk-Apply internal utilities ####
+## --------------------------------------
+
+chunkify <- function(x, chunks, margin) {
+	if ( !is.numeric(chunks) || is.na(chunks) )
+		chunks <- nchunks(x, margin=margin)
+	if ( !is.null(dim(x)) ) {
+		if ( margin == 1L ) {
+			length.out <- nrow(x)
+		} else if ( margin == 2L ) {
+			length.out <- ncol(x)
+		} else {
+			stop("only MARGIN = 1 or 2 supported")
+		}
+	} else {
+		length.out <- length(x)
+	}
+	chunkindex(length.out, chunks)
+}
+
+setMethod("nchunks", "ANY",
+	function(object, size = NA, margin = NA, ...)
+	{
+		if ( is.na(size) )
+			size <- getOption("matter.default.chunksize")
+		if ( is.null(dim) ) {
+			nchunk_list(object, size=size, ...)
+		} else {
+			nchunk_mat(object, size=size, margin=margin, ...)
+		}
+	}
+)
+
+setMethod("nchunks", "matter",
+	function(object, size = chunksize(object), margin = NA, ...)
+	{
+		if ( is.null(dim) ) {
+			nchunk_vec(object, size=size, ...)
+		} else {
+			nchunk_mat(object, size=size, margin = margin, ...)
+		}
+	}
+)
+
+setMethod("nchunks", "matter_list",
+	function(object, size = chunksize(object), margin = NA, ...)
+	{
+		nchunk_list(object, size=size, ...)
+	}
+)
+
+nchunk_list <- function(x, size) {
+	elts_per_chunk <- max(1L, floor(size / median(lengths(x))))
+	ceiling(length(x) / elts_per_chunk)
+}
+
+nchunk_vec <- function(x, size) {
+	ceiling(length(x) / size)
+}
+
+nchunk_mat <- function(x, size, margin) {
+	if ( is.na(margin) )
+		margin <- 1L
+	if ( margin == 1L ) {
+		elts_per_chunk <- max(1L, floor(size / ncol(x)))
+		n <- ceiling(nrow(x) / elts_per_chunk)
+	} else if ( margin == 2L ) {
+		elts_per_chunk <- max(1L, floor(size / nrow(x)))
+		n <- ceiling(ncol(x) / elts_per_chunk)
+	} else {
+		stop("only MARGIN = 1 or 2 supported")
+	}
+	n
+}
+
+chunkindex <- function(length.out, nchunks) {
+	size <- max(1L, length.out / nchunks)
+	n <- floor(length.out / size) + 1L
+	index <- floor(seq(from=1L, to=length.out + 1L, length.out=n))
+	i1 <- index[-length(index)]
+	i2 <- index[-1L] - 1L
+	mapply(`:`, i1, i2, SIMPLIFY=FALSE)
+}
+
+chunkattr <- function(x, i, attr, alist, view) {
+	if ( length(attr) > 0L )
+		for ( nm in names(attr) )
+			attr(x, nm) <- attr[[nm]]
+	if ( length(alist) > 0L )
+		for ( nm in names(alist) ) {
+			if ( view == "element" ) {
+				attr(x, nm) <- alist[[nm]][[i]]
+			} else {
+				attr(x, nm) <- alist[[nm]][i,drop=FALSE]
+			}
+		}
+	x
+}
+
+
 #### Apply functions over matter matrices ####
 ## -------------------------------------------
 
 setMethod("apply", "matter_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
+		chunkapply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "sparse_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
+		chunkapply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "virtual_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		apply_matter(X, MARGIN, FUN, ..., BPPARAM=BPPARAM)
+		chunkapply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
 })
 
 #### List-Apply functions over matter lists and data frames ####
@@ -23,8 +189,7 @@ setMethod("apply", "virtual_mat",
 setMethod("lapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam())
 	{
-		mapfun_matter(X, FUN, ..., SIMPLIFY=FALSE,
-			USE.NAMES=TRUE, BPPARAM=BPPARAM)
+		chunkapply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
 	}
 )
 
@@ -32,16 +197,14 @@ setMethod("sapply", "matter_list",
 	function(X, FUN, ..., BPPARAM = bpparam(),
 		simplify = TRUE, USE.NAMES = TRUE)
 	{
-		mapfun_matter(X, FUN, ..., SIMPLIFY=simplify,
-			USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
+		chunkapply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
 	}
 )
 
 setMethod("lapply", "virtual_df",
 	function(X, FUN, ..., BPPARAM = bpparam())
 	{
-		mapfun_matter(X, FUN, ..., SIMPLIFY=FALSE,
-			USE.NAMES=TRUE, BPPARAM=BPPARAM)
+		chunkapply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
 	}
 )
 
@@ -49,74 +212,7 @@ setMethod("sapply", "virtual_df",
 	function(X, FUN, ..., BPPARAM = bpparam(),
 		simplify = TRUE, USE.NAMES = TRUE)
 	{
-		mapfun_matter(X, FUN, ..., SIMPLIFY=simplify,
-			USE.NAMES=USE.NAMES, BPPARAM=BPPARAM)
+		chunkapply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
 	}
 )
-
-# lapply and sapply
-
-mapfun_matter <- function(X, FUN, ..., SIMPLIFY, USE.NAMES, BPPARAM)
-{
-	FUN <- match.fun(FUN)
-	len <- length(X)
-	ans <- bplapply(1:len, function(i) FUN(X[[i]], ...), BPPARAM=BPPARAM)
-	if ( USE.NAMES && !is.null(names(X)) )
-		names(ans) <- names(X)
-	if ( USE.NAMES && is.character(X) && is.null(names(ans)) )
-		names(ans) <- X
-	if ( !isFALSE(SIMPLIFY) && length(ans) ) {
-		simplify2array(ans, higher = (SIMPLIFY == "array"))
-	} else {
-		ans
-	}
-}
-
-# apply based on base::apply and biganalytics::apply
-
-apply_matter <- function(X, MARGIN, FUN, ..., BPPARAM)
-{
-	if ( length(MARGIN) > 1 ) 
-		stop("dim(MARGIN) > 1 not supported for 'matter' objects")
-	FUN <- match.fun(FUN)
-	dn.ans <- dimnames(X)[MARGIN]
-	if ( MARGIN == 1 ) {
-		d2 <- nrow(X)
-		ans <- bplapply(1:d2, function(i) FUN(X[i,], ...), BPPARAM=BPPARAM)
-	} else if ( MARGIN == 2 ) {
-		d2 <- ncol(X)
-		ans <- bplapply(1:d2, function(i) FUN(X[,i], ...), BPPARAM=BPPARAM)
-	} else {
-		stop("only MARGIN = 1 or 2 supported for 'matter' objects")
-	}
-	ans.list <- is.recursive(ans[[1]])
-	l.ans <- length(ans[[1]])
-	ans.names <- names(ans[[1]])
-	if ( !ans.list )
-		ans.list <- any(unlist(lapply(ans, length)) != l.ans)
-	if ( !ans.list && length(ans.names) ) {
-		all.same <- sapply(ans, function(x) identical(names(x), ans.names))
-		if (!all(all.same))
-			ans.names <- NULL
-	}
-	if ( ans.list ) {
-		len.a <- d2
-	} else {
-		len.a <- length(ans <- unlist(ans, recursive = FALSE))
-	}
-	if ( len.a == d2 ) {
-		if ( length(dn.ans[[1]]) )
-			names(ans) <- dn.ans[[1]]
-		return(ans)
-	}
-	if ( len.a > 0 && len.a %% d2 == 0 ) {
-		if ( is.null(dn.ans) )
-			dn.ans <- vector(mode = "list", length(d2))
-		dn.ans <- c(list(ans.names), dn.ans)
-		return(array(ans, c(len.a%/%d2, d2), if (!all(sapply(dn.ans, 
-			is.null))) dn.ans))
-	}
-	return(ans)
-}
-
 

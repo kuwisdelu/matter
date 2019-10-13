@@ -219,7 +219,9 @@ S3method("stat_c", "stream_sd")
 S3method("stat_c", "stream_any")
 S3method("stat_c", "stream_all")
 
-export(
+export("chunkapply")
+
+exportMethods(
 	"colStats",
 	"rowStats")
 

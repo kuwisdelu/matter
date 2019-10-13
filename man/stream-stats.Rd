@@ -88,7 +88,7 @@ stat_c(x, y, \dots)
 }
 
 \seealso{
-    \code{\link[matter]{Summary}}
+    \code{\link{Summary}}
 }
 
 \examples{

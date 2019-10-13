@@ -27,7 +27,8 @@ setClass("matter_fc",
 matter_fc <- function(data, datamode = "int", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
 					offset = 0, extent = length, length = 0, names = NULL,
-					levels = base::levels(as.factor(data)), ...)
+					levels = base::levels(as.factor(data)),
+					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(length) )
@@ -67,6 +68,7 @@ matter_fc <- function(data, datamode = "int", paths = NULL,
 		datamode=make_datamode("integer", type="R"),
 		paths=levels(factor(paths)),
 		filemode=make_filemode(filemode),
+		chunksize=as.integer(chunksize),
 		length=as.numeric(sum(extent)),
 		dim=NULL,
 		names=names,

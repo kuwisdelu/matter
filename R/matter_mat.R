@@ -52,7 +52,8 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
 					extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
-					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, ...)
+					nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL,
+					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
@@ -128,6 +129,7 @@ matter_mat <- function(data, datamode = "double", paths = NULL,
 		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=make_filemode(filemode),
+		chunksize=as.integer(chunksize),
 		length=as.numeric(prod(c(nrow, ncol))),
 		dim=as.integer(c(nrow, ncol)),
 		names=NULL,

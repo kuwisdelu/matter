@@ -41,7 +41,8 @@
 \usage{
 ## Instance creation
 virtual_mat(data, datamode = "double", rowMaj = FALSE,
-            dimnames = NULL, index = NULL, \dots)
+            dimnames = NULL, index = NULL, transpose = FALSE,
+            chunksize = getOption("matter.default.chunksize"), \dots)
 
 # Check if an object is a virtual matrix
 is.virtual(x)
@@ -62,6 +63,10 @@ as.virtual(x, \dots)
         \item{dimnames}{The names of the virtual matrix dimensions.}
 
         \item{index}{A length-2 list of row and column indices giving a submatrix, if desired.}
+
+        \item{transpose}{Should the matrix be transposed?}
+
+        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{x}{An object to check if it is a virtual matrix or coerce to a virtual matrix.}
 

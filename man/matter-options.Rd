@@ -10,6 +10,8 @@
 	\itemize{
 	    \item{\code{options(matter.cast.warning=TRUE)}:}{Should a warning be emitted when casting between data types results in a loss of precision?}
 
+	    \item{\code{options(matter.default.chunksize=1000000L)}:}{The default chunksize for new \code{matter} objects. This is the (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset. Must be an integer.}
+
 	    \item{\code{options(matter.show.head=TRUE)}:}{Should a preview of the beginning of the data be displayed when the object is printed?}
 
 	    \item{\code{options(matter.show.head.n=6)}:}{The number of elements, rows, and/or columns to be displayed by the object preview.}

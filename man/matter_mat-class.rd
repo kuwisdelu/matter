@@ -54,7 +54,8 @@ matter_mat(data, datamode = "double", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "r", "rw"),
             offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
             extent = if (rowMaj) rep(ncol, nrow) else rep(nrow, ncol),
-            nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL, \dots)
+            nrow = 0, ncol = 0, rowMaj = FALSE, dimnames = NULL,
+            chunksize = getOption("matter.default.chunksize"), \dots)
 
 ## Additional methods documented below
 }
@@ -79,6 +80,8 @@ matter_mat(data, datamode = "double", paths = NULL,
         \item{rowMaj}{Whether the data should be stored in row-major order (as opposed to column-major order) in virtual memory. Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
 
         \item{dimnames}{The names of the matrix dimensions.}
+
+        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

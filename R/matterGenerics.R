@@ -31,10 +31,12 @@ setGeneric("biglm", signature=c("formula", "data"))
 #### Define new generics for summary stats ####
 ## --------------------------------------------
 
-setGeneric("colVars", function(x, ...) standardGeneric("colVars"))
+setGeneric("rowStats", function(x, ...) standardGeneric("rowStats"))
+setGeneric("colStats", function(x, ...) standardGeneric("colStats"))
 setGeneric("rowVars", function(x, ...) standardGeneric("rowVars"))
-setGeneric("colSds", function(x, ...) standardGeneric("colSds"))
+setGeneric("colVars", function(x, ...) standardGeneric("colVars"))
 setGeneric("rowSds", function(x, ...) standardGeneric("rowSds"))
+setGeneric("colSds", function(x, ...) standardGeneric("colSds"))
 
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------
@@ -91,6 +93,8 @@ setGeneric("combine_by_rows", function(x, y, ...) {
 		standardGeneric("combine_by_rows")
 	}
 })
+
+setGeneric("nchunks", function(object, ...) standardGeneric("nchunks"))
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------

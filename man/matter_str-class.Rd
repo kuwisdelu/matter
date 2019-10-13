@@ -29,8 +29,8 @@
 matter_str(data, datamode = "uchar", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "r", "rw"),
             offset = c(0, cumsum(sizeof("uchar") * extent)[-length(extent)]),
-            extent = nchar, nchar = 0, names = NULL,
-            encoding = "unknown", \dots)
+            extent = nchar, nchar = 0, names = NULL, encoding = "unknown",
+            chunksize = getOption("matter.default.chunksize"), \dots)
 
 ## Additional methods documented below
 }
@@ -53,6 +53,8 @@ matter_str(data, datamode = "uchar", paths = NULL,
         \item{names}{The names of the data elements.}
 
         \item{encoding}{The character encoding to use (if known).}
+
+        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

@@ -86,7 +86,7 @@
 }
 
 \seealso{
-    \code{\link[matter]{stream_stat}}
+    \code{\link{stream_stat}}
 }
 
 \examples{

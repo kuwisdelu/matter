@@ -29,8 +29,8 @@ setClass("matter_str",
 matter_str <- function(data, datamode = "uchar", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
 					offset = c(0, cumsum(sizeof("uchar") * extent)[-length(extent)]),
-					extent = nchar, nchar = 0, names = NULL,
-					encoding = "unknown", ...)
+					extent = nchar, nchar = 0, names = NULL, encoding = "unknown",
+					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(nchar) ) {
@@ -77,6 +77,7 @@ matter_str <- function(data, datamode = "uchar", paths = NULL,
 		datamode=make_datamode("character", type="R"),
 		paths=levels(factor(paths)),
 		filemode=make_filemode(filemode),
+		chunksize=as.integer(chunksize),
 		length=length(extent),
 		dim=as.integer(extent),
 		names=names,

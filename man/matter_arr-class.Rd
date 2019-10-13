@@ -30,7 +30,8 @@
 ## Instance creation
 matter_arr(data, datamode = "double", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "r", "rw"),
-            offset = 0, extent = prod(dim), dim = 0, dimnames = NULL, \dots)
+            offset = 0, extent = prod(dim), dim = 0, dimnames = NULL,
+            chunksize = getOption("matter.default.chunksize"), \dots)
 
 ## Additional methods documented below
 }
@@ -51,6 +52,8 @@ matter_arr(data, datamode = "double", paths = NULL,
         \item{dim}{A vector giving the dimensions of the array.}
 
         \item{dimnames}{The names of the matrix dimensions.}
+
+        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

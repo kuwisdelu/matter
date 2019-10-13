@@ -27,7 +27,8 @@ setClass("matter_vec",
 
 matter_vec <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
-					offset = 0, extent = length, length = 0, names = NULL, ...)
+					offset = 0, extent = length, length = 0, names = NULL,
+					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(datamode) )
@@ -69,6 +70,7 @@ matter_vec <- function(data, datamode = "double", paths = NULL,
 		datamode=widest_datamode(datamode),
 		paths=levels(factor(paths)),
 		filemode=make_filemode(filemode),
+		chunksize=as.integer(chunksize),
 		length=as.numeric(sum(extent)),
 		dim=NULL,
 		names=names,

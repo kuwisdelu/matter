@@ -34,7 +34,8 @@
 matter_list(data, datamode = "double", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "r", "rw"),
             offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-            extent = lengths, lengths = 0, names = NULL, dimnames = NULL, \dots)
+            extent = lengths, lengths = 0, names = NULL, dimnames = NULL,
+            chunksize = getOption("matter.default.chunksize"), \dots)
 
 ## Additional methods documented below
 }
@@ -57,6 +58,8 @@ matter_list(data, datamode = "double", paths = NULL,
         \item{names}{The names of the data elements.}
 
         \item{dimnames}{The names of the data elements' data elements.}
+
+        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

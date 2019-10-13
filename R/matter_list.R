@@ -27,7 +27,8 @@ setClass("matter_list",
 matter_list <- function(data, datamode = "double", paths = NULL,
 					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
 					offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-					extent = lengths, lengths = 0, names = NULL, dimnames = NULL, ...)
+					extent = lengths, lengths = 0, names = NULL, dimnames = NULL,
+					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {
 		if ( !is.list(data) )
@@ -73,6 +74,7 @@ matter_list <- function(data, datamode = "double", paths = NULL,
 		datamode=R_datamode,
 		paths=levels(factor(paths)),
 		filemode=make_filemode(filemode),
+		chunksize=as.integer(chunksize),
 		length=length(extent),
 		dim=as.integer(extent),
 		names=names,
@@ -124,11 +126,11 @@ setList <- function(x, value) {
 	if ( length(value) != length(x) )
 		stop("length of replacement is not equal to object length")
 	for ( i in seq_along(value) ) {
-		if ( dim(x)[i] %% length(value[[i]]) != 0 )
+		if ( lengths(x)[i] %% length(value[[i]]) != 0 )
 			warning("number of items to replace is not ",
 				"a multiple of replacement length")
 		if ( length(value[[i]]) != 1 )
-			value[[i]] <- rep(value[[i]], length.out=dim(x)[i])
+			value[[i]] <- rep(value[[i]], length.out=lengths(x)[i])
 	}
 	.Call("C_setList", x, value, PACKAGE="matter")
 	if ( validObject(x) )
@@ -168,11 +170,11 @@ setListElements <- function(x, i, j, value) {
 	if ( length(i) != 1 )
 		stop("attempt to select more than one element in list")
 	if ( missing(j) || is.null(j) ) {
-		if ( dim(x)[i] %% length(value) != 0 )
+		if ( lengths(x)[i] %% length(value) != 0 )
 			warning("number of items to replace is not ",
 				"a multiple of replacement length")
 		if ( length(value) != 1 )
-			value <- rep(value, length.out=dim(x)[i])
+			value <- rep(value, length.out=lengths(x)[i])
 		.Call("C_setListElements", x, i - 1, NULL, value, PACKAGE="matter")
 	} else {
 		if ( is.logical(j) )
@@ -201,7 +203,7 @@ subList <- function(x, i, exact) {
 		paths=paths(x),
 		filemode=filemode(x),
 		length=length(i),
-		dim=dim(x)[i],
+		dim=lengths(x)[i],
 		names=names(x)[i],
 		dimnames=dimnames(x)[i],
 		ops=NULL)
@@ -246,7 +248,7 @@ subListElementAsVector <- function(x, i, exact) {
 		datamode=datamode(x)[i],
 		paths=paths(x),
 		filemode=filemode(x),
-		length=dim(x)[i],
+		length=lengths(x)[i],
 		dim=NULL,
 		names=dimnames(x)[i],
 		dimnames=NULL,
@@ -324,6 +326,8 @@ setMethod("combine", "matter_list", function(x, y, ...) {
 		dimnames=NULL,
 		ops=NULL)
 })
+
+setMethod("dim", "matter_list", function(x) NULL)
 
 setMethod("lengths", "matter_list", function(x, use.names = TRUE) {
 	if ( use.names ) {

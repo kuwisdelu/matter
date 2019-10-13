@@ -86,7 +86,8 @@ setClass("sparse_matr",
 
 sparse_mat <- function(data, datamode = "double", nrow = 0, ncol = 0,
 					rowMaj = FALSE, dimnames = NULL, keys = NULL,
-					tolerance = c(abs=0), combiner = "identity", ...) {
+					tolerance = c(abs=0), combiner = "identity",
+					chunksize = getOption("matter.default.chunksize"), ...) {
 	if ( !missing(data) ) {
 		if ( is.matrix(data) ) {
 			if ( missing(datamode) )
@@ -138,6 +139,7 @@ sparse_mat <- function(data, datamode = "double", nrow = 0, ncol = 0,
 		datamode=make_datamode(c("virtual", datamode), type="R"),
 		paths=character(),
 		filemode=make_filemode(),
+		chunksize=as.integer(chunksize),
 		length=as.numeric(sum(lengths(adata()$values))),
 		dim=as.integer(c(nrow, ncol)),
 		names=NULL,

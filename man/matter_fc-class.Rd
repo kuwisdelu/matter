@@ -29,7 +29,8 @@
 matter_fc(data, datamode = "int", paths = NULL,
             filemode = ifelse(all(file.exists(paths)), "r", "rw"),
             offset = 0, extent = length, length = 0L, names = NULL,
-            levels = base::levels(as.factor(data)), \dots)
+            levels = base::levels(as.factor(data)),
+            chunksize = getOption("matter.default.chunksize"), \dots)
 
 ## Additional methods documented below
 }
@@ -52,6 +53,8 @@ matter_fc(data, datamode = "int", paths = NULL,
         \item{names}{The names of the data elements.}
 
         \item{levels}{The levels of the factor.}
+
+        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }
