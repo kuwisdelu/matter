@@ -45,15 +45,15 @@
 
     \item{tform}{A dimensionality-preserving transformation to be applied to the matrix (e.g., \code{log()} or \code{sqrt()}).}
 
-    \item{col.center}{A centering vector to substract from the columns.}
+    \item{col.center}{A vector of column centers to substract from each row. (Or a matrix with a column for each level of \code{groups}.)}
 
-    \item{col.scale}{A scaling vector to divide from the columns.}
+    \item{col.scale}{A vector of column scaling factors to divide from each row. (Or a matrix with a column for each level of \code{groups}.)}
 
-    \item{row.center}{A centering vector to substract from the rows.}
+    \item{row.center}{A vector of row centers to substract from each column. (Or a matrix with a column for each level of \code{groups}.)}
 
-    \item{row.scale}{A scaling vector to divide from the rows.}
+    \item{row.scale}{A vector of row centers to scaling factors to divide from each column. (Or a matrix with a column for each level of \code{groups}.)}
 
-    \item{drop}{If only a single summary statistic is calculated, return the results as a vector rather than a list.}
+    \item{drop}{If only a single summary statistic is calculated, return the results as a vector (or matrix) rather than a list.}
 
     \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 
