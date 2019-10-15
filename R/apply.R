@@ -14,7 +14,7 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 		MARGIN <- match(MARGIN, names(dimnames(X)))
 	index <- chunkify(X, chunks, MARGIN)
 	index <- chunklabel(index)
-	chunkfun <- function(i) {
+	chunkfun <- function(i, ...) {
 		if ( verbose )
 			message("processing chunk ", attr(i, "idx"), "/", length(index))
 		if ( !is.null(dim(X)) ) {
@@ -49,7 +49,7 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 		}
 		ans
 	}
-	ans.list <- bplapply(index, chunkfun, BPREDO=BPREDO, BPPARAM=BPPARAM)
+	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
 	if ( view == "element" ) {
 		ans.list <- do.call(c, ans.list)
 		if ( !is.null(dim(X)) ) {

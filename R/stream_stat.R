@@ -518,7 +518,7 @@ setMethod("rowStats", "ANY", function(x, stat, groups,
 			na.rm=na.rm, tform=tform, along = "rows",
 			col.center=col.center, col.scale=col.scale,
 			row.center=row.center, row.scale=row.scale,
-			BPPARAM=BPPARAM, ...)
+			drop=drop, BPPARAM=BPPARAM, ...)
 	})
 
 setMethod("colStats", "ANY", function(x, stat, groups,
@@ -623,11 +623,14 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 	d1 <- switch(along, "rows"=dim(x)[1L], "cols"=dim(x)[2L])
 	d2 <- switch(along, "rows"=dim(x)[2L], "cols"=dim(x)[1L])
 	iter.dim <- match.arg(iter.dim, c("rows", "cols"))
-	if ( !missing(groups) )
+	if ( !missing(groups) && !is.null(groups) ) {
 		groups <- as.factor(rep_len(groups, d2))
+	} else {
+		groups <- NULL
+	}
 	attr <- list()
 	if ( !is.null(col.center) )  {
-		if ( !missing(groups) ) {
+		if ( !is.null(groups) ) {
 			col.center <- matrix(col.center,
 				nrow=ncol(x), ncol=nlevels(groups))
 			colnames(col.center) <- levels(groups)
@@ -635,7 +638,7 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 		attr[["col.center"]] <- col.center
 	}
 	if ( !is.null(col.scale) )  {
-		if ( !missing(groups) ) {
+		if ( !is.null(groups) ) {
 			col.scale <- matrix(col.scale,
 				nrow=ncol(x), ncol=nlevels(groups))
 			colnames(col.scale) <- levels(groups)
@@ -643,7 +646,7 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 		attr[["col.scale"]] <- col.scale
 	}
 	if ( !is.null(row.center) )  {
-		if ( !missing(groups) ) {
+		if ( !is.null(groups) ) {
 			row.center <- matrix(row.center,
 				nrow=nrow(x), ncol=nlevels(groups))
 			colnames(row.center) <- levels(groups)
@@ -651,20 +654,20 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 		attr[["row.center"]] <- row.center
 	}
 	if ( !is.null(row.scale) )  {
-		if ( !missing(groups) ) {
+		if ( !is.null(groups) ) {
 			row.scale <- matrix(row.scale,
 				nrow=nrow(x), ncol=nlevels(groups))
 			colnames(row.scale) <- levels(groups)
 		}
 		attr[["row.scale"]] <- row.scale
 	}
-	if ( length(attr) > 0L || !missing(groups) )
+	if ( length(attr) > 0L || !is.null(groups) )
 		attr[["iter.dim"]] <- iter.dim
 	alist <- list()
 	if ( iter.dim == along ) {
 		idx <- seq_len(d1)
 		margin <- switch(along, "rows"=1L, "cols"=2L)
-		if ( missing(groups) ) {
+		if ( is.null(groups) ) {
 			if ( length(attr) > 0L )
 				alist[["idx"]] <- idx
 			ans <- chunk_apply(x, getChunkStats, margin, view="chunk",
@@ -685,7 +688,7 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 	} else {
 		idx <- seq_len(d2)
 		margin <- switch(along, "rows"=2L, "cols"=1L)
-		if ( missing(groups) ) {
+		if ( is.null(groups) ) {
 			if ( length(attr) > 0L )
 				alist[["idx"]] <- idx
 			ans <- chunk_apply(x, getChunkStats, margin, view="chunk",
@@ -704,7 +707,7 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 			ans <- lapply(ans, collect_by_key, stat_c)
 		}
 	}
-	if ( !missing(groups) ) {
+	if ( !is.null(groups) ) {
 		ans <- lapply(stat, function(sx) {
 			xx <- do.call(cbind, lapply(ans, "[[", sx))
 			colnames(xx) <- levels(groups)
