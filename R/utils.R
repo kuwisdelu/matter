@@ -41,7 +41,91 @@ bsearch_int <- function(key, values, tol = 0, tol.ref = 1L,
 
 is.sorted <- function(x, ...) !is.unsorted(x, ...)
 
-#### Summarise vectors based on intger groupings ####
+#### Find local maxima and local minima ####
+## -----------------------------------------
+
+locmax <- function(x, halfWindow = 2, findLimits = FALSE)
+{
+	if ( halfWindow <= 0 )
+		stop("'halfWindow' must be a positive integer")
+	halfWindow <- as.integer(halfWindow)
+	ans <- .Call("C_localMaxima", x, halfWindow, PACKAGE="matter")
+	ans <- which(ans)
+	if ( findLimits ) {
+		lims <- .Call("C_regionMaxima", x, ans, halfWindow, PACKAGE="matter")
+		attr(ans, "lower") <- lims[[1]]
+		attr(ans, "upper") <- lims[[2]]
+	}
+	ans
+}
+
+#### Binning ####
+## ---------------
+
+binvec <- function(x, u, v, method = "sum")
+{
+	if ( length(u) == length(x) ) {
+		u <- as.factor(u)
+		group <- as.integer(u)
+		ngroup <- nlevels(u)
+		if ( is.function(method) ) {
+			groupCombiner(method)(x, group, ngroup, NA)
+		} else {
+			method <- pmatch(method, c("sum", "mean", "min", "max"))
+			switch(method,
+				.Call("C_groupSums", x, group, ngroup, NA, PACKAGE="matter"),
+				.Call("C_groupMeans", x, group, ngroup, NA, PACKAGE="matter"),
+				.Call("C_groupMins", x, group, ngroup, NA, PACKAGE="matter"),
+				.Call("C_groupMaxs", x, group, ngroup, NA, PACKAGE="matter"))
+		}
+	} else {
+		if ( missing(v) ) {
+			v <- u[-1] - 1L
+			u <- u[-length(u)]
+		}
+		if ( length(u) != length(v) )
+			stop("'u' and 'v' must be the same length")
+		u <- as.integer(u)
+		v <- as.integer(v)
+		if ( is.function(method) ) {
+			binFun(method)(x, u, v)
+		} else {
+			method <- pmatch(method, c("sum", "mean", "min", "max"))
+			switch(method,
+				.Call("C_binSums", x, u, v, PACKAGE="matter"),
+				.Call("C_binMeans", x, u, v, PACKAGE="matter"),
+				.Call("C_binMins", x, u, v, PACKAGE="matter"),
+				.Call("C_binMaxs", x, u, v, PACKAGE="matter"))
+		}
+	}
+}
+
+#### Summarise vectors based on bin intervals ####
+## -----------------------------------------------
+
+binMeans <- function(x, lower, upper) {
+	.Call("C_binMeans", x, lower, upper, PACKAGE="matter")
+}
+
+binSums <- function(x, lower, upper) {
+	.Call("C_binSums", x, lower, upper, PACKAGE="matter")
+}
+
+binMins <- function(x, lower, upper) {
+	.Call("C_binMins", x, lower, upper, PACKAGE="matter")
+}
+
+binMaxs <- function(x, lower, upper) {
+	.Call("C_binMaxs", x, lower, upper, PACKAGE="matter")
+}
+
+binFun <- function(fun) {
+	function(x, u, v) {
+		mapply(function(i, j) fun(x[i:j]), u, v, SIMPLIFY=TRUE)
+	}
+}
+
+#### Summarise vectors based on integer groupings ####
 ## --------------------------------------------------
 
 groupMeans <- function(x, group, ngroup, default=NA) {

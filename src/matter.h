@@ -77,21 +77,6 @@ SEXP raw_to_char(Rbyte * x, int length);
 
 SEXP raw_to_char(SEXP x);
 
-//// Grouped summaries
-//---------------------
-
-template<typename T>
-SEXP group_means(T * x, int * group, int ngroup, int length, double init);
-
-template<typename T>
-SEXP group_sums(T * x, int * group, int ngroup, int length, double init);
-
-template<typename T>
-SEXP group_maxs(T * x, int * group, int ngroup, int length, double init);
-
-template<typename T>
-SEXP group_mins(T * x, int * group, int ngroup, int length, double init);
-
 //// Delta run length encoding 
 //-----------------------------
 
@@ -1326,14 +1311,6 @@ extern "C" {
     SEXP getDRLE(SEXP x);
 
     SEXP getDRLEElements(SEXP x, SEXP i);
-
-    SEXP groupMeans(SEXP x, SEXP group, SEXP ngroup, SEXP init);
-
-    SEXP groupSums(SEXP x, SEXP group, SEXP ngroup, SEXP init);
-
-    SEXP groupMins(SEXP x, SEXP group, SEXP ngroup, SEXP init);
-
-    SEXP groupMaxs(SEXP x, SEXP group, SEXP ngroup, SEXP init);
 
 }
 

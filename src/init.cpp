@@ -3,6 +3,7 @@
 #include "bsearch.h"
 #include "matter.h"
 #include "altrep.h"
+#include "vectools.h"
 
 extern "C" {
 
@@ -47,11 +48,17 @@ extern "C" {
         {"C_createDRLE", (DL_FUNC) &createDRLE, 3},
         {"C_getDRLE", (DL_FUNC) &getDRLE, 1},
         {"C_getDRLEElements", (DL_FUNC) &getDRLEElements, 2},
+        {"C_makeAltrep", (DL_FUNC) &makeAltrep, 6},
+        {"C_localMaxima", (DL_FUNC) &localMaxima, 2},
+        {"C_regionMaxima", (DL_FUNC) &regionMaxima, 3},
+        {"C_binMeans", (DL_FUNC) &binMeans, 3},
+        {"C_binSums", (DL_FUNC) &binSums, 3},
+        {"C_binMins", (DL_FUNC) &binMins, 3},
+        {"C_binMaxs", (DL_FUNC) &binMaxs, 3},
         {"C_groupMeans", (DL_FUNC) &groupMeans, 4},
         {"C_groupSums", (DL_FUNC) &groupSums, 4},
         {"C_groupMins", (DL_FUNC) &groupMins, 4},
         {"C_groupMaxs", (DL_FUNC) &groupMaxs, 4},
-        {"C_makeAltrep", (DL_FUNC) &makeAltrep, 6},
         {NULL, NULL, 0}
     };
 

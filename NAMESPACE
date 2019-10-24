@@ -251,6 +251,10 @@ export(
 	"widest_datamode",
 	"vm_used")
 
+export(
+	"binvec",
+	"locmax")
+
 exportMethods(
 	"apply",
 	"lapply",
