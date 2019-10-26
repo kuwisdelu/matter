@@ -50,8 +50,10 @@ SEXP region_maxima(T * x, int * m, int halfWindow, int length, int nmax) {
 	{
 		pLower[i] = m[i];
 		for ( int j = m[i] - 1; j > 0; j-- ) {
-			if ( x[j - 1] <= x[j] )
+			if ( x[j - 1] < x[j] )
 				pLower[i] = j;
+            else if ( x[j - 1] <= x[j] && m[i] - j < halfWindow )
+                pLower[i] = j;
 			else
 				break;
 		}
@@ -65,8 +67,10 @@ SEXP region_maxima(T * x, int * m, int halfWindow, int length, int nmax) {
 		}
 		pUpper[i] = m[i];
 		for ( int j = m[i] - 1; j < length - 1; j++ ) {
-			if ( x[j + 1] <= x[j] )
+			if ( x[j + 1] < x[j] )
 				pUpper[i] = j + 2;
+            if ( x[j + 1] <= x[j] && (j + 2) - m[i] < halfWindow )
+                pUpper[i] = j + 2;
 			else
 				break;
 		}

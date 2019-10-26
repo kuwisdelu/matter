@@ -23,6 +23,14 @@ test_that("locmax", {
 
 	expect_equal(attr(m1, "upper"), attr(m2, "upper"))
 
+	x <- c(0, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+
+	m3 <- locmax(x, findLimits=TRUE)
+
+	expect_equal(attr(m3, "lower"), 4)
+
+	expect_equal(attr(m3, "upper"), 6)
+
 })
 
 test_that("binvec", {
