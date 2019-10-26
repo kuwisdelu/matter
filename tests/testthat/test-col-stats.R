@@ -146,5 +146,34 @@ test_that("col-stats-scale", {
 
 	expect_equal(ans1, ans2)
 
+	ans1 <- colStats(x, "sum", groups=groups, col.center=center, iter.dim="rows")
+
+	ans2 <- sapply(levels(groups), function(g) {
+		xc <- x - t(center[,groups])
+		colSums(xc[g==groups,,drop=FALSE])
+	})
+
+	expect_equal(ans1, ans2)
+
+	center <- center[,1]
+
+	ans1 <- colStats(x, "sum", groups=groups, row.center=center)
+
+	ans2 <- sapply(levels(groups), function(g) {
+		x2 <- x - center
+		colSums(x2[g==groups,,drop=FALSE])
+	})
+
+	expect_equal(ans1, ans2)
+
+	ans1 <- colStats(x, "sum", groups=groups, row.center=center, iter.dim="rows")
+
+	ans2 <- sapply(levels(groups), function(g) {
+		x2 <- x - center
+		colSums(x2[g==groups,,drop=FALSE])
+	})
+
+	expect_equal(ans1, ans2)
+
 })
 

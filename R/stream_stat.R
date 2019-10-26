@@ -630,6 +630,8 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 	}
 	attr <- list()
 	if ( !is.null(col.center) )  {
+		if ( is.matrix(col.center) && (along == "rows" || is.null(groups)) )
+			stop("col.center must be a vector, not a matrix")
 		if ( !is.null(groups) ) {
 			col.center <- matrix(col.center,
 				nrow=ncol(x), ncol=nlevels(groups))
@@ -638,6 +640,8 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 		attr[["col.center"]] <- col.center
 	}
 	if ( !is.null(col.scale) )  {
+		if ( is.matrix(col.scale) && (along == "rows" || is.null(groups)) )
+			stop("col.scale must be a vector, not a matrix")
 		if ( !is.null(groups) ) {
 			col.scale <- matrix(col.scale,
 				nrow=ncol(x), ncol=nlevels(groups))
@@ -646,6 +650,8 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 		attr[["col.scale"]] <- col.scale
 	}
 	if ( !is.null(row.center) )  {
+		if ( is.matrix(row.center) && (along == "cols" || is.null(groups)) )
+			stop("row.center must be a vector, not a matrix")
 		if ( !is.null(groups) ) {
 			row.center <- matrix(row.center,
 				nrow=nrow(x), ncol=nlevels(groups))
@@ -654,6 +660,8 @@ getStats <- function(x, stat, groups, along = c("rows", "cols"),
 		attr[["row.center"]] <- row.center
 	}
 	if ( !is.null(row.scale) )  {
+		if ( is.matrix(row.scale) && (along == "cols" || is.null(groups)) )
+			stop("row.scale must be a vector, not a matrix")
 		if ( !is.null(groups) ) {
 			row.scale <- matrix(row.scale,
 				nrow=nrow(x), ncol=nlevels(groups))
@@ -812,15 +820,15 @@ transformChunk <- function(x, attr, group, group_idx, along, tform) {
 	nms <- c("col.center", "col.scale", "row.center", "row.scale")
 	if ( any(nms %in% names(attr)) && prod(dim(x)) > 0L ) {
 		if ( !is.null(attr$col.center) ) {
-			if ( is.null(group) ) {
+			if ( along == "rows" || is.null(group) ) {
 				col.center <- attr$col.center
 			} else {
 				col.center <- attr$col.center[,group]
 			}
-			if ( attr$iter.dim == "cols" ) {
-				col.center <- col.center[attr$idx]
-			} else if ( !is.null(group_idx) ) {
+			if ( along == "rows" && !is.null(group_idx) ) {
 				col.center <- col.center[group_idx]
+			} else if ( attr$iter.dim == "cols" ) {
+				col.center <- col.center[attr$idx]
 			}
 		} else {
 			col.center <- rep_len(0, ncol(x))
@@ -831,10 +839,10 @@ transformChunk <- function(x, attr, group, group_idx, along, tform) {
 			} else {
 				col.scale <- attr$col.scale[,group]
 			}
-			if ( attr$iter.dim == "cols" ) {
-				col.scale <- col.scale[attr$idx]
-			} else if ( !is.null(group_idx) ) {
+			if ( along == "rows" && !is.null(group_idx) ) {
 				col.scale <- col.scale[group_idx]
+			} else if ( attr$iter.dim == "cols" ) {
+				col.scale <- col.scale[attr$idx]
 			}
 		} else {
 			col.scale <- rep_len(1, ncol(x))
@@ -846,10 +854,10 @@ transformChunk <- function(x, attr, group, group_idx, along, tform) {
 			} else {
 				row.center <- attr$row.center[,group]
 			}
-			if ( attr$iter.dim == "rows" ) {
-				row.center <- row.center[attr$idx]
-			} else if ( !is.null(group_idx) ) {
+			if ( along == "cols" && !is.null(group_idx) ) {
 				row.center <- row.center[group_idx]
+			} else if ( attr$iter.dim == "rows" ) {
+				row.center <- row.center[attr$idx]
 			}
 		} else {
 			row.center <- rep_len(0, nrow(x))
@@ -860,10 +868,10 @@ transformChunk <- function(x, attr, group, group_idx, along, tform) {
 			} else {
 				row.scale <- attr$row.scale[,group]
 			}
-			if ( attr$iter.dim == "rows" ) {
-				row.scale <- row.scale[attr$idx]
-			} else if ( !is.null(group_idx) ) {
+			if ( along == "cols" && !is.null(group_idx) ) {
 				row.scale <- row.scale[group_idx]
+			} else if ( attr$iter.dim == "rows" ) {
+				row.scale <- row.scale[attr$idx]
 			}
 		} else {
 			row.scale <- rep_len(1, nrow(x))

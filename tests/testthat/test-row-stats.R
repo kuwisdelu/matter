@@ -146,6 +146,34 @@ test_that("row-stats-scale", {
 
 	expect_equal(ans1, ans2)
 
-})
+	ans1 <- rowStats(x, "sum", groups=groups, row.center=center, iter.dim="cols")
 
+	ans2 <- sapply(levels(groups), function(g) {
+		xc <- x - center[,groups]
+		rowSums(xc[,g==groups,drop=FALSE])
+	})
+
+	expect_equal(ans1, ans2)
+
+	center <- center[,1]
+
+	ans1 <- rowStats(x, "sum", groups=groups, col.center=center)
+
+	ans2 <- sapply(levels(groups), function(g) {
+		x2 <- scale(x, center=center, scale=FALSE)
+		rowSums(x2[,g==groups,drop=FALSE])
+	})
+
+	expect_equal(ans1, ans2)
+
+	ans1 <- rowStats(x, "sum", groups=groups, col.center=center, iter.dim="cols")
+
+	ans2 <- sapply(levels(groups), function(g) {
+		x2 <- scale(x, center=center, scale=FALSE)
+		rowSums(x2[,g==groups,drop=FALSE])
+	})
+
+	expect_equal(ans1, ans2)
+
+})
 

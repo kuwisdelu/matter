@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 1.11.7 [2019-10-25]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed errors in 'rowStats()' and 'colStats()' when
+        calculating group statistics over minor dimensions
+
 CHANGES IN VERSION 1.11.6 [2019-10-23]
 -----------------------------------
 
