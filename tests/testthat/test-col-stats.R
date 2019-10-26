@@ -100,7 +100,7 @@ test_that("col-stats-multi", {
 
 })
 
-test_that("col-stats-multi", {
+test_that("col-stats-scale", {
 
 	register(SerialParam())
 
