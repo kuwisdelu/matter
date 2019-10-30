@@ -3,6 +3,26 @@ require(matter)
 
 context("apply")
 
+test_that("chunk_apply", {
+
+	register(SerialParam())
+
+	a <- replicate(100, rnorm(10), simplify=FALSE)
+
+	b <- replicate(100, runif(10), simplify=FALSE)
+
+	expect_equal(chunk_apply(a, mean), lapply(a, mean))
+
+	expect_equal(chunk_apply(a, mean, chunks=10), lapply(a, mean))
+
+	expect_equal(chunk_mapply(`+`, a, b),
+		mapply(`+`, a, b, SIMPLIFY=FALSE))
+
+	expect_equal(chunk_mapply(`+`, a, b, chunks=10),
+		mapply(`+`, a, b, SIMPLIFY=FALSE))
+
+})
+
 test_that("apply", {
 
 	register(SerialParam())

@@ -228,7 +228,9 @@ exportMethods(
 	"colStats",
 	"rowStats")
 
-export("chunk_apply")
+export(
+	"chunk_apply",
+	"chunk_mapply")
 
 export("atoms")
 

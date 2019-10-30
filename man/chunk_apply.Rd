@@ -2,15 +2,21 @@
 \docType{methods}
 
 \alias{chunk_apply}
+\alias{chunk_mapply}
 
 \title{Apply Functions Over Chunks of a Vector or Matrix}
 
 \description{
-    Perform equivalents of \code{lapply} and \code{apply}, but over parallelized chunks of the data. This is most useful if accessing the data is potentially time-consuming, such as for file-based \code{matter} objects. Operating on chunks reduces the number of IO operations.
+    Perform equivalents of \code{apply}, \code{lapply}, and \code{mapply}, but over parallelized chunks of the data. This is most useful if accessing the data is potentially time-consuming, such as for file-based \code{matter} objects. Operating on chunks reduces the number of I/O operations.
 }
 
 \usage{
 chunk_apply(X, FUN, MARGIN, \dots, simplify = FALSE,
+    chunks = NA, view = c("element", "chunk"),
+    attr = list(), alist = list(), outfile = NULL,
+    verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
+
+chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
     chunks = NA, view = c("element", "chunk"),
     attr = list(), alist = list(), outfile = NULL,
     verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
@@ -22,6 +28,8 @@ chunk_apply(X, FUN, MARGIN, \dots, simplify = FALSE,
     \item{FUN}{The function to be applied.}
 
     \item{MARGIN}{If the object is matrix-like, which dimension to iterate over. Must be 1 or 2, where 1 indicates rows and 2 indicates columns. The dimension names can also be used if \code{X} has \code{dimnames} set.}
+
+    \item{MoreArgs}{A list of other arguments to \code{FUN}.}
 
     \item{\dots}{Additional arguments to be passed to \code{FUN}.}
 
@@ -51,8 +59,9 @@ chunk_apply(X, FUN, MARGIN, \dots, simplify = FALSE,
 \author{Kylie A. Bemis}
 
 \seealso{
+    \code{\link[base]{apply}},
     \code{\link[base]{lapply}},
-    \code{\link[base]{apply}}
+    \code{\link[base]{mapply}},
 }
 
 \examples{

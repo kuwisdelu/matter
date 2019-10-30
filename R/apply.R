@@ -7,6 +7,7 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 						attr = list(), alist = list(), outfile = NULL,
 						verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
 {
+	FUN <- match.fun(FUN)
 	view <- match.arg(view)
 	if ( !is.null(dim(X)) && missing(MARGIN) )
 		stop("must specify MARGIN when X is array-like")
@@ -15,7 +16,7 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 	index <- chunkify(X, chunks, MARGIN)
 	index <- chunklabel(index)
 	chunkfun <- function(i, ...) {
-		if ( verbose )
+		if ( verbose && !bpprogressbar(BPPARAM) )
 			message("processing chunk ", attr(i, "idx"), "/", length(index))
 		if ( !is.null(dim(X)) ) {
 			if ( MARGIN == 1L ) {
@@ -34,7 +35,7 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 		}
 		if ( view == "element" ) {
 			ans <- vector("list", dn)
-			for ( j in 1L:dn ){
+			for ( j in 1L:dn ) {
 				if ( !is.null(dim(X)) ) {
 					xj <- switch(MARGIN, drop(xi[j,]), drop(xi[,j]))
 				} else {
@@ -70,6 +71,62 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 	ans.list
 }
 
+chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
+						chunks = NA, view = c("element", "chunk"),
+						attr = list(), alist = list(), outfile = NULL,
+						verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
+{
+	FUN <- match.fun(FUN)
+	view <- match.arg(view)
+	dots <- list(...)
+	if ( length(dots) > 1L ) {
+		len <- vapply(dots, length, integer(1L))
+		if ( !all(len == len[1L]) ) {
+			max.len <- max(len)
+			if ( max.len && any(len == 0L) )
+				stop("zero-length and non-zero length inputs cannot be mixed")
+			if ( any(max.len %% len) ) 
+				warning("longer argument not a multiple of length of vector")
+			dots <- lapply(dots, rep_len, length.out = max.len)
+		}
+	}
+	index <- chunkify(dots[[1L]], chunks)
+	index <- chunklabel(index)
+	chunkfun <- function(i, ...) {
+		if ( verbose && !bpprogressbar(BPPARAM) )
+			message("processing chunk ", attr(i, "idx"), "/", length(index))
+		dd <- lapply(dots, `[`, i, drop=FALSE)
+		dn <- length(dd[[1L]])
+		if ( view == "element" ) {
+			if ( length(attr) > 0L || length(alist) > 0L ) {
+				ans <- vector("list", dn)
+				for ( j in 1L:dn ) {
+					ddd <- lapply(dd, `[[`, j, drop=FALSE)
+					ddd[[1L]] <- chunkattr(ddd[[1L]], i[j], attr, alist, view)
+					ans[[j]] <- do.call(FUN, c(ddd, MoreArgs))
+				}
+			} else {
+				ans <- .mapply(FUN, dd, MoreArgs)
+			}
+		} else {
+			dd[[1L]] <- chunkattr(dd[[1L]], i, attr, alist, view)
+			ans <- do.call(FUN, c(dd, MoreArgs))
+		}
+		ans
+	}
+	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
+	if ( view == "element" ) {
+		ans.list <- do.call(c, ans.list)
+		names(ans.list) <- names(dots[[1L]])
+	}
+	if ( isTRUE(simplify) ) {
+		ans.list <- simplify2array(ans.list)
+	} else if ( is.function(simplify) ) {
+		ans.list <- simplify(ans.list)
+	}
+	ans.list
+}
+
 #### Chunk-Apply internal utilities ####
 ## --------------------------------------
 
@@ -95,7 +152,7 @@ setMethod("nchunks", "ANY",
 	{
 		if ( is.na(size) )
 			size <- getOption("matter.default.chunksize")
-		if ( is.null(dim) ) {
+		if ( is.null(dim(object)) ) {
 			nchunk_list(object, size=size, ...)
 		} else {
 			nchunk_mat(object, size=size, margin=margin, ...)

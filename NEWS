@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.13.1 [2019-10-30]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'chunk_mapply()'
+
 CHANGES IN VERSION 1.11.7 [2019-10-25]
 -----------------------------------
 
