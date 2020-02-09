@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 1.13.3 [2020-2-9]
+-----------------------------------
+
+NEW FEATURES
+
+    o Implemented 'outfile' argument for writing results
+        to a file for 'chunk_apply()' and 'chunk_mapply()'
+
 CHANGES IN VERSION 1.13.2 [2020-2-9]
 -----------------------------------
 

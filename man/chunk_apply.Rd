@@ -47,7 +47,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
 
     \item{pattern}{A list of indices giving a pattern over which to apply \code{FUN} to \code{X}. Each element of \code{pattern} should give a vector of indices which can be used subscript \code{X}. For time and space efficiency, no attempt is made to verify these indices.}
 
-    \item{outfile}{If non-NULL, a file path where the results should be written as they are processed. Not implemented yet.}
+    \item{outfile}{If non-NULL, a file path where the results should be written as they are processed. If specified, \code{FUN} must return a 'raw', 'logical', 'integer', or 'numeric' vector. The result will be returned as a \code{matter} object.}
 
     \item{verbose}{Should user messages be printed with the current chunk being processed?}
 

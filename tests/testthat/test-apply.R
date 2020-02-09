@@ -35,6 +35,30 @@ test_that("chunk_apply", {
 
 })
 
+test_that("chunk_apply io", {
+
+	set.seed(1)
+
+	register(SerialParam())
+
+	a <- replicate(100, rnorm(10), simplify=FALSE)
+
+	b <- replicate(100, runif(10), simplify=FALSE)
+
+	out1 <- chunk_apply(a, function(x) x + 1, chunks=10, outfile=tempfile())
+
+	out2 <- lapply(a, function(x) x + 1)
+
+	expect_equal(out1[], out2)
+
+	mout1 <- chunk_mapply(`+`, a, b, chunks=10, outfile=tempfile())
+
+	mout2 <- mapply(`+`, a, b, SIMPLIFY=FALSE)
+
+	expect_equal(mout1[], mout2)
+
+})
+
 test_that("apply", {
 
 	register(SerialParam())

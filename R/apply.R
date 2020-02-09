@@ -27,6 +27,15 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 		index <- chunk_along(X, chunks, MARGIN)
 	}
 	index <- chunk_label(index)
+	fout <- !is.null(outfile)
+	pid <- ipcid()
+	if ( fout ) {
+		if ( !is.character(outfile) || length(outfile) != 1L )
+			stop("outfile must be a length-1 character vector or NULL")
+		if ( verbose )
+			message("writing output to path = ", outfile)
+		rwrite <- remote_writer(pid, outfile)
+	}
 	chunkfun <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
 			message("processing chunk ", attr(i, "idx"), "/", length(index))
@@ -75,6 +84,13 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 			xx <- chunk_attr(xi, i, attr, alist, view)
 			ans <- FUN(xx, ...)
 		}
+		if ( fout ) {
+			if ( view %in% c("element", "pattern") ) {
+				ans <- lapply(ans, rwrite)
+			} else {
+				ans <- rwrite(ans)
+			}
+		}
 		ans
 	}
 	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
@@ -90,7 +106,9 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 			names(ans.list) <- names(X)
 		}
 	}
-	if ( isTRUE(simplify) ) {
+	if ( fout ) {
+		ans.list <- remote_collect(ans.list, outfile, simplify)
+	} else if ( isTRUE(simplify) ) {
 		ans.list <- simplify2array(ans.list)
 	} else if ( is.function(simplify) ) {
 		ans.list <- simplify(ans.list)
@@ -121,6 +139,15 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 	chunks <- get_nchunks(dots[[1L]], chunks)
 	index <- chunk_along(dots[[1L]], chunks)
 	index <- chunk_label(index)
+	fout <- !is.null(outfile)
+	pid <- ipcid()
+	if ( fout ) {
+		if ( !is.character(outfile) || length(outfile) != 1L )
+			stop("outfile must be a length-1 character vector or NULL")
+		if ( verbose )
+			message("writing output to path = ", outfile)
+		rwrite <- remote_writer(pid, outfile)
+	}
 	chunkfun <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
 			message("processing chunk ", attr(i, "idx"), "/", length(index))
@@ -141,6 +168,13 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 			dd[[1L]] <- chunk_attr(dd[[1L]], i, attr, alist, view)
 			ans <- do.call(FUN, c(dd, MoreArgs))
 		}
+		if ( fout ) {
+			if ( view == "element" ) {
+				ans <- lapply(ans, rwrite)
+			} else {
+				ans <- rwrite(ans)
+			}
+		}
 		ans
 	}
 	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
@@ -148,7 +182,9 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 		ans.list <- do.call(c, ans.list)
 		names(ans.list) <- names(dots[[1L]])
 	}
-	if ( isTRUE(simplify) ) {
+	if ( fout ) {
+		ans.list <- remote_collect(ans.list, outfile, simplify)
+	} else if ( isTRUE(simplify) ) {
 		ans.list <- simplify2array(ans.list)
 	} else if ( is.function(simplify) ) {
 		ans.list <- simplify(ans.list)
@@ -282,6 +318,54 @@ chunk_attr <- function(x, i, attr, alist, view) {
 	x
 }
 
+#### Chunk-Apply i/o utilities ####
+## ---------------------------------
+
+remote_writer <- function(pid, path) {
+	fun <- function(x) {
+		ipclock(pid)
+		eof <- file.size(path)
+		eof <- ifelse(is.na(eof), 0, eof)
+		if ( !is.atomic(x) || is.complex(x) || is.character(x) )
+			stop(paste0("output for remote writing must be of type ",
+				"'raw', 'logical', 'integer', or 'numeric'"))
+		res <- matter_vec(x, datamode=typeof(x), filemode="rw",
+							offset=eof, paths=path)
+		ipcunlock(pid)
+		# [,1] = mode; [,2] = offset; [,3] = extent
+		c(datamode(res), eof, length(res))
+	}
+	fun
+}
+
+remote_collect <- function(ans, path, simplify) {
+	nms <- names(ans)
+	dnm <- list(NULL, nms)
+	ans <- do.call(rbind, ans)
+	mode <- make_datamode(ans[,1], type="R")
+	mode <- as.character(mode)
+	offset <- ans[,2]
+	extent <- ans[,3]
+	vector_ok <- all(extent == 1L)
+	matrix_ok <- length(unique(extent)) == 1L
+	simplify <- isTRUE(simplify)
+	if ( simplify && vector_ok ) {
+		if ( is.sorted(offset) ) {
+			offset <- 0
+			extent <- nrow(ans)
+			mode <- mode[1L]
+		}
+		x <- matter_vec(datamode=mode, filemode="rw", names=nms,
+						offset=offset, extent=extent, paths=path)
+	} else if ( simplify && matrix_ok ) {
+		x <- matter_mat(datamode=mode, filemode="rw", dimnames=dnm,
+						offset=offset, extent=extent, paths=path)
+	} else {
+		x <- matter_list(datamode=mode, filemode="rw", names=nms,
+						offset=offset, extent=extent, paths=path)
+	}
+	x
+}
 
 #### Apply functions over matter matrices ####
 ## -------------------------------------------
