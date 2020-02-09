@@ -41,9 +41,9 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
 
     \item{view}{What should be passed as the argment to \code{FUN}: "element" means the vector element, row, or column are passed (same as the behavior of \code{lapply} and \code{apply}), and "chunk" means to pass the entire chunk.}
 
-    \item{attr}{A list of attributes that will be attached to the argument passed to \code{FUN} as-is.}
+    \item{attr}{A named list of attributes that will be attached to the argument passed to \code{FUN} as-is.}
 
-    \item{alist}{A list of named vector-like attributes that will be attached to the argument passed to \code{FUN}, subsetted to the current elements. Typically, each attribute should be as long as \code{X}, unless \code{pattern} is specified, in which case each attribute should be as long as \code{pattern}.}
+    \item{alist}{A named list of vector-like attributes that will be attached to the argument passed to \code{FUN}, subsetted to the current elements. Typically, each attribute should be as long as \code{X}, unless \code{pattern} is specified, in which case each attribute should be as long as \code{pattern}.}
 
     \item{pattern}{A list of indices giving a pattern over which to apply \code{FUN} to \code{X}. Each element of \code{pattern} should give a vector of indices which can be used subscript \code{X}. For time and space efficiency, no attempt is made to verify these indices.}
 
