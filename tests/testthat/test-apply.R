@@ -5,6 +5,8 @@ context("apply")
 
 test_that("chunk_apply", {
 
+	set.seed(1)
+
 	register(SerialParam())
 
 	a <- replicate(100, rnorm(10), simplify=FALSE)
@@ -20,6 +22,16 @@ test_that("chunk_apply", {
 
 	expect_equal(chunk_mapply(`+`, a, b, chunks=10),
 		mapply(`+`, a, b, SIMPLIFY=FALSE))
+
+	i <- replicate(100, sample(100, 5), simplify=FALSE)
+
+	m <- simplify2array(a)
+
+	out1 <- lapply(i, function(j) sum(m[,j,drop=FALSE]))
+
+	out2 <- chunk_apply(m, sum, MARGIN=2, pattern=i, chunks=10)
+
+	expect_equal(out1, out2)
 
 })
 

@@ -13,13 +13,15 @@
 \usage{
 chunk_apply(X, FUN, MARGIN, \dots, simplify = FALSE,
     chunks = NA, view = c("element", "chunk"),
-    attr = list(), alist = list(), outfile = NULL,
-    verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
+    attr = list(), alist = list(), pattern = NULL,
+    outfile = NULL, verbose = FALSE,
+    BPREDO = list(), BPPARAM = bpparam())
 
 chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
     chunks = NA, view = c("element", "chunk"),
-    attr = list(), alist = list(), outfile = NULL,
-    verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
+    attr = list(), alist = list(),
+    outfile = NULL, verbose = FALSE,
+    BPREDO = list(), BPPARAM = bpparam())
 }
 
 \arguments{
@@ -41,7 +43,9 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
 
     \item{attr}{A list of attributes that will be attached to the argument passed to \code{FUN} as-is.}
 
-    \item{alist}{A list of vector-like attributes that will be attached to the argument passed to \code{FUN}, subsetted to the current elements.}
+    \item{alist}{A list of named vector-like attributes that will be attached to the argument passed to \code{FUN}, subsetted to the current elements. Typically, each attribute should be as long as \code{X}, unless \code{pattern} is specified, in which case each attribute should be as long as \code{pattern}.}
+
+    \item{pattern}{A list of indices giving a pattern over which to apply \code{FUN} to \code{X}. Each element of \code{pattern} should give a vector of indices which can be used subscript \code{X}. For time and space efficiency, no attempt is made to verify these indices.}
 
     \item{outfile}{If non-NULL, a file path where the results should be written as they are processed. Not implemented yet.}
 

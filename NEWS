@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.13.2 [2020-2-9]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'pattern' argument to 'chunk_apply()'
+
 CHANGES IN VERSION 1.13.1 [2019-10-30]
 -----------------------------------
 

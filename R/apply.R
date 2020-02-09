@@ -4,17 +4,29 @@
 
 chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 						chunks = NA, view = c("element", "chunk"),
-						attr = list(), alist = list(), outfile = NULL,
-						verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
+						attr = list(), alist = list(), pattern = NULL,
+						outfile = NULL, verbose = FALSE,
+						BPREDO = list(), BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
-	view <- match.arg(view)
 	if ( !is.null(dim(X)) && missing(MARGIN) )
 		stop("must specify MARGIN when X is array-like")
 	if ( !missing(MARGIN) && is.character(MARGIN) )
 		MARGIN <- match(MARGIN, names(dimnames(X)))
-	index <- chunkify(X, chunks, MARGIN)
-	index <- chunklabel(index)
+	if ( !is.null(pattern) ) {
+		if ( !missing(view) )
+			warning("'view' ignored with non-NULL 'pattern'")
+		view <- "pattern"
+	} else {
+		view <- match.arg(view)
+	}
+	chunks <- get_nchunks(X, chunks, MARGIN)
+	if ( view == "pattern" ) {
+		index <- chunk_pattern(pattern, chunks)
+	} else {
+		index <- chunk_along(X, chunks, MARGIN)
+	}
+	index <- chunk_label(index)
 	chunkfun <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
 			message("processing chunk ", attr(i, "idx"), "/", length(index))
@@ -41,17 +53,32 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 				} else {
 					xj <- xi[[j]]
 				}
-				xx <- chunkattr(xj, i[j], attr, alist, view)
+				xx <- chunk_attr(xj, i[j], attr, alist, view)
+				ans[[j]] <- FUN(xx, ...)
+			}
+		} else if ( view == "pattern" ) {
+			dp <- length(attr(i, "pattern"))
+			ans <- vector("list", dp)
+			for ( j in 1L:dp ) {
+				j2 <- attr(i, "pattern")[[j]]
+				if ( !is.null(dim(X)) ) {
+					xj <- switch(MARGIN,
+						as.matrix(xi[j2,,drop=FALSE]),
+						as.matrix(xi[,j2,drop=FALSE]))
+				} else {
+					xj <- xi[j2]
+				}
+				xx <- chunk_attr(xj, i[j], attr, alist, view)
 				ans[[j]] <- FUN(xx, ...)
 			}
 		} else {
-			xx <- chunkattr(xi, i, attr, alist, view)
+			xx <- chunk_attr(xi, i, attr, alist, view)
 			ans <- FUN(xx, ...)
 		}
 		ans
 	}
 	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
-	if ( view == "element" ) {
+	if ( view %in% c("element", "pattern") ) {
 		ans.list <- do.call(c, ans.list)
 		if ( !is.null(dim(X)) ) {
 			if ( MARGIN == 1L ) {
@@ -73,8 +100,9 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 						chunks = NA, view = c("element", "chunk"),
-						attr = list(), alist = list(), outfile = NULL,
-						verbose = FALSE, BPREDO = list(), BPPARAM = bpparam())
+						attr = list(), alist = list(),
+						outfile = NULL, verbose = FALSE,
+						BPREDO = list(), BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	view <- match.arg(view)
@@ -90,8 +118,9 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 			dots <- lapply(dots, rep_len, length.out = max.len)
 		}
 	}
-	index <- chunkify(dots[[1L]], chunks)
-	index <- chunklabel(index)
+	chunks <- get_nchunks(dots[[1L]], chunks)
+	index <- chunk_along(dots[[1L]], chunks)
+	index <- chunk_label(index)
 	chunkfun <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
 			message("processing chunk ", attr(i, "idx"), "/", length(index))
@@ -102,14 +131,14 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 				ans <- vector("list", dn)
 				for ( j in 1L:dn ) {
 					ddd <- lapply(dd, `[[`, j, drop=FALSE)
-					ddd[[1L]] <- chunkattr(ddd[[1L]], i[j], attr, alist, view)
+					ddd[[1L]] <- chunk_attr(ddd[[1L]], i[j], attr, alist, view)
 					ans[[j]] <- do.call(FUN, c(ddd, MoreArgs))
 				}
 			} else {
 				ans <- .mapply(FUN, dd, MoreArgs)
 			}
 		} else {
-			dd[[1L]] <- chunkattr(dd[[1L]], i, attr, alist, view)
+			dd[[1L]] <- chunk_attr(dd[[1L]], i, attr, alist, view)
 			ans <- do.call(FUN, c(dd, MoreArgs))
 		}
 		ans
@@ -127,12 +156,19 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 	ans.list
 }
 
-#### Chunk-Apply internal utilities ####
+#### Chunk-Apply chunking utilities ####
 ## --------------------------------------
 
-chunkify <- function(x, chunks, margin) {
-	if ( !is.numeric(chunks) || is.na(chunks) )
-		chunks <- nchunks(x, margin=margin)
+chunk_len <- function(length.out, nchunks) {
+	size <- max(1L, length.out / nchunks)
+	n <- floor(length.out / size) + 1L
+	index <- floor(seq(from=1L, to=length.out + 1L, length.out=n))
+	i1 <- index[-length(index)]
+	i2 <- index[-1L] - 1L
+	mapply(`:`, i1, i2, SIMPLIFY=FALSE)
+}
+
+chunk_along <- function(x, nchunks, margin) {
 	if ( !is.null(dim(x)) ) {
 		if ( margin == 1L ) {
 			length.out <- nrow(x)
@@ -144,7 +180,25 @@ chunkify <- function(x, chunks, margin) {
 	} else {
 		length.out <- length(x)
 	}
-	chunkindex(length.out, chunks)
+	chunk_len(length.out, nchunks)
+}
+
+chunk_pattern <- function(pattern, nchunks) {
+	i <- chunk_len(length(pattern), nchunks)
+	lapply(i, function(j) {
+		pp <- pattern[j]
+		index <- sort(unique(unlist(pp)))
+		attr(index, "pattern") <- lapply(pp, match, index)
+		index
+	})
+}
+
+get_nchunks <- function(x, chunks, margin) {
+	if ( !is.numeric(chunks) || is.na(chunks) ) {
+		chunks <- nchunks(x, margin=margin)
+	} else {
+		chunks
+	}
 }
 
 setMethod("nchunks", "ANY",
@@ -202,28 +256,24 @@ nchunk_mat <- function(x, size, margin) {
 	n
 }
 
-chunkindex <- function(length.out, nchunks) {
-	size <- max(1L, length.out / nchunks)
-	n <- floor(length.out / size) + 1L
-	index <- floor(seq(from=1L, to=length.out + 1L, length.out=n))
-	i1 <- index[-length(index)]
-	i2 <- index[-1L] - 1L
-	mapply(`:`, i1, i2, SIMPLIFY=FALSE)
+chunk_split <- function(x, nchunks) {
+	i <- chunk_len(length(x), nchunks)
+	lapply(i, function(j) x[j])
 }
 
-chunklabel <- function(index) {
+chunk_label <- function(index) {
 	for ( i in seq_along(index) )
 		attr(index[[i]], "idx") <- i
 	index
 }
 
-chunkattr <- function(x, i, attr, alist, view) {
+chunk_attr <- function(x, i, attr, alist, view) {
 	if ( length(attr) > 0L )
 		for ( nm in names(attr) )
 			attr(x, nm) <- attr[[nm]]
 	if ( length(alist) > 0L )
 		for ( nm in names(alist) ) {
-			if ( view == "element" ) {
+			if ( view %in% c("element", "pattern") ) {
 				attr(x, nm) <- alist[[nm]][[i]]
 			} else {
 				attr(x, nm) <- alist[[nm]][i,drop=FALSE]
