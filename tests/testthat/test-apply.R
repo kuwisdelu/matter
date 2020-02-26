@@ -27,11 +27,19 @@ test_that("chunk_apply", {
 
 	m <- simplify2array(a)
 
-	out1 <- lapply(i, function(j) sum(m[,j,drop=FALSE]))
+	out1 <- chunk_apply(m, sum, MARGIN=2, pattern=i, chunks=10)
 
-	out2 <- chunk_apply(m, sum, MARGIN=2, pattern=i, chunks=10)
+	out2 <- lapply(i, function(j) sum(m[,j,drop=FALSE]))
 
 	expect_equal(out1, out2)
+
+	f <- function(x, y) sum(mapply(`*`, x, y, SIMPLIFY=TRUE))
+
+	mout1 <- chunk_mapply(f, a, b, pattern=i, chunks=10)
+
+	mout2 <- lapply(i, function(j) f(a[j], b[j]))
+
+	expect_equal(mout1, mout2)
 
 })
 
@@ -54,6 +62,24 @@ test_that("chunk_apply io", {
 	mout1 <- chunk_mapply(`+`, a, b, chunks=10, outfile=tempfile())
 
 	mout2 <- mapply(`+`, a, b, SIMPLIFY=FALSE)
+
+	expect_equal(mout1[], mout2)
+
+	i <- replicate(100, sample(100, 5), simplify=FALSE)
+
+	m <- simplify2array(a)
+
+	out1 <- chunk_apply(m, sum, MARGIN=2, pattern=i, chunks=10, outfile=tempfile())
+
+	out2 <- lapply(i, function(j) sum(m[,j,drop=FALSE]))
+
+	expect_equal(out1[], out2)
+
+	f <- function(x, y) sum(mapply(`*`, x, y, SIMPLIFY=TRUE))
+
+	mout1 <- chunk_mapply(f, a, b, pattern=i, chunks=10, outfile=tempfile())
+
+	mout2 <- lapply(i, function(j) f(a[j], b[j]))
 
 	expect_equal(mout1[], mout2)
 

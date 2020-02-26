@@ -118,12 +118,11 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 						chunks = NA, view = c("element", "chunk"),
-						attr = list(), alist = list(),
+						attr = list(), alist = list(), pattern = NULL,
 						outfile = NULL, verbose = FALSE,
 						BPREDO = list(), BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
-	view <- match.arg(view)
 	dots <- list(...)
 	if ( length(dots) > 1L ) {
 		len <- vapply(dots, length, integer(1L))
@@ -136,8 +135,19 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 			dots <- lapply(dots, rep_len, length.out = max.len)
 		}
 	}
+	if ( !is.null(pattern) ) {
+		if ( !missing(view) )
+			warning("'view' ignored with non-NULL 'pattern'")
+		view <- "pattern"
+	} else {
+		view <- match.arg(view)
+	}
 	chunks <- get_nchunks(dots[[1L]], chunks)
-	index <- chunk_along(dots[[1L]], chunks)
+	if ( view == "pattern" ) {
+		index <- chunk_pattern(pattern, chunks)
+	} else {
+		index <- chunk_along(dots[[1L]], chunks)
+	}
 	index <- chunk_label(index)
 	fout <- !is.null(outfile)
 	pid <- ipcid()
@@ -164,12 +174,23 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 			} else {
 				ans <- .mapply(FUN, dd, MoreArgs)
 			}
+		} else if ( view == "pattern" ) {
+			dp <- length(attr(i, "pattern"))
+			dn <- length(dd[[1L]])
+			ans <- vector("list", dp)
+			for ( j in 1L:dp ) {
+				j2 <- attr(i, "pattern")[[j]]
+				ddd <- lapply(dd, function(ddi) as.list(ddi[j2, drop=FALSE]))
+				if ( length(attr) > 0L || length(alist) > 0L )
+					ddd[[1L]] <- chunk_attr(ddd[[1L]], i[j], attr, alist, view)
+				ans[[j]] <- do.call(FUN, c(ddd, MoreArgs))
+			}
 		} else {
 			dd[[1L]] <- chunk_attr(dd[[1L]], i, attr, alist, view)
 			ans <- do.call(FUN, c(dd, MoreArgs))
 		}
 		if ( fout ) {
-			if ( view == "element" ) {
+			if ( view %in% c("element", "pattern") ) {
 				ans <- lapply(ans, rwrite)
 			} else {
 				ans <- rwrite(ans)
@@ -178,7 +199,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 		ans
 	}
 	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
-	if ( view == "element" ) {
+	if ( view %in% c("element", "pattern") ) {
 		ans.list <- do.call(c, ans.list)
 		names(ans.list) <- names(dots[[1L]])
 	}

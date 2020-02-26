@@ -4,7 +4,7 @@
 \alias{chunk_apply}
 \alias{chunk_mapply}
 
-\title{Apply Functions Over Chunks of a Vector or Matrix}
+\title{Apply Functions Over Chunks of a List, Vector, or Matrix}
 
 \description{
     Perform equivalents of \code{apply}, \code{lapply}, and \code{mapply}, but over parallelized chunks of the data. This is most useful if accessing the data is potentially time-consuming, such as for file-based \code{matter} objects. Operating on chunks reduces the number of I/O operations.
@@ -19,13 +19,13 @@ chunk_apply(X, FUN, MARGIN, \dots, simplify = FALSE,
 
 chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
     chunks = NA, view = c("element", "chunk"),
-    attr = list(), alist = list(),
+    attr = list(), alist = list(), pattern = NULL,
     outfile = NULL, verbose = FALSE,
     BPREDO = list(), BPPARAM = bpparam())
 }
 
 \arguments{
-    \item{X}{A list, vector, or matrix. These may be any class that implements suitable methods for \code{[}, \code{[[}, \code{dim}, and \code{length()}.}
+    \item{X}{A list, vector, or matrix for \code{chunk_apply()}. These may be any class that implements suitable methods for \code{[}, \code{[[}, \code{dim}, and \code{length()}. Only lists are supported for \code{chunk_mapply()}.}
     
     \item{FUN}{The function to be applied.}
 
@@ -45,7 +45,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
 
     \item{alist}{A named list of vector-like attributes that will be attached to the argument passed to \code{FUN}, subsetted to the current elements. Typically, each attribute should be as long as \code{X}, unless \code{pattern} is specified, in which case each attribute should be as long as \code{pattern}.}
 
-    \item{pattern}{A list of indices giving a pattern over which to apply \code{FUN} to \code{X}. Each element of \code{pattern} should give a vector of indices which can be used subscript \code{X}. For time and space efficiency, no attempt is made to verify these indices.}
+    \item{pattern}{A list of indices giving a pattern over which to apply \code{FUN} to \code{X}. Each element of \code{pattern} should give a vector of indices which can be used subscript \code{X}. For time and space efficiency, no attempt is made to verify these indices are valid.}
 
     \item{outfile}{If non-NULL, a file path where the results should be written as they are processed. If specified, \code{FUN} must return a 'raw', 'logical', 'integer', or 'numeric' vector. The result will be returned as a \code{matter} object.}
 
