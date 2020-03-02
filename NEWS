@@ -1,4 +1,12 @@
 
+
+CHANGES IN VERSION 1.13.5 [2020-3-2]
+-----------------------------------
+
+NEW FEATURES
+
+    o Support for 'view="chunk"' when specifying 'pattern'
+
 CHANGES IN VERSION 1.13.4 [2020-2-26]
 -----------------------------------
 
