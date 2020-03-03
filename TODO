@@ -2,7 +2,8 @@
 TODO for matter package
 -------------------------
 
-- Add block-apply and block-lapply for matter objects
+- Write an an updated vignette + switch vignete to R Markdown
+- Investigate access efficiency of ALTREP matter objects
 - Infer length/dim from file in constructor for more classes
 - Add more data manipulation functions for 'matter_df'
 - Add wrappers for reading/manipulating csv, tsv, etc. (?)

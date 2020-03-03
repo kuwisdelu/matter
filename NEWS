@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.13.6 [2020-3-3]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed bug caused by change in R 4.0 so that
+        class of matrix is now c("matrix", "array")
 
 CHANGES IN VERSION 1.13.5 [2020-3-2]
 -----------------------------------

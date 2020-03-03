@@ -133,7 +133,7 @@ is.matter <- function(x) {
 as.matter <- function(x, ...) {
 	if ( is.matter(x) )
 		return(x)
-	switch(class(x),
+	switch(class(x)[1L],
 		raw = as.matter_vec(x),
 		logical = as.matter_vec(x),
 		integer = as.matter_vec(x),
