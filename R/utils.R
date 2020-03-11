@@ -523,7 +523,7 @@ linearInd <- function(ind, .dim) {
 		ind <- expand.grid(ind)
 		apply(ind, 1, linearInd, .dim=.dim)
 	} else {
-		if ( any(ind <= 0 || ind > .dim) )
+		if ( any(ind <= 0 | ind > .dim) )
 			stop("subscript out of bounds")
 		mult <- c(1, cumprod(.dim[-length(.dim)]))
 		sum((ind - 1) * mult) + 1

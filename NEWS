@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.13.7 [2020-3-11]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed to internal function 'linearInd()'
+
 CHANGES IN VERSION 1.13.6 [2020-3-3]
 -----------------------------------
 
