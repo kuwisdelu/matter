@@ -44,7 +44,7 @@ setMethod("[",
 setMethod("[",
 	c(x = "rep_vt", i = "ANY", j = "missing", drop = "missing"),
 	function(x, i, ...) {
-		if ( 0L < i && i <= x@length ) {
+		if ( all(0L < i & i <= x@length) ) {
 			x@data[((i - 1L) %% length(x@data)) + 1L]
 		} else {
 			stop("subscript out of bounds")
@@ -54,7 +54,7 @@ setMethod("[",
 setMethod("[[",
 	c(x = "rep_vt", i = "ANY"),
 	function(x, i, ...) {
-		if ( 0L < i && i <= x@length ) {
+		if ( all(0L < i & i <= x@length) ) {
 			x@data[[((i - 1L) %% length(x@data)) + 1L]]
 		} else {
 			stop("subscript out of bounds")

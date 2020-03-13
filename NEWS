@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.13.8 [2020-3-13]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed bugs due to logical condition length > 1
+
 CHANGES IN VERSION 1.13.7 [2020-3-11]
 -----------------------------------
 
