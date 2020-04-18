@@ -191,7 +191,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 		} else {
 			attr <- c(attributes(i), list("chunk_elt"=c(i)), attr)
 			dd[[1L]] <- chunk_attr(dd[[1L]], ii, attr, alist, view)
-			ans <- do.call(FUN, c(dd, MoreArgs))
+			ans <- .mapply(FUN, dd, MoreArgs)
 		}
 		if ( fout ) {
 			if ( view == "element" ) {

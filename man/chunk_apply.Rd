@@ -71,7 +71,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
 
     When this is the case, it may be useful to provide a custom \code{simplify} function. Otherwise, the result will be returned as a list with length equal to the number of chunks, which must be post-processed to get into a desirable form.
 
-    For convenient to the programmer, several attributes are made available when \code{view = "chunk"}.
+    For convenience to the programmer, several attributes are made available when \code{view = "chunk"}.
 
     \itemize{
 
@@ -85,7 +85,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
 
     }
 
-    The \code{pattern} argument can be used to iterate over dependent elements of a vector, or dependent rows/columns of a matrix. This can be useful if the calculating for a particular row/column/element depends on the values of others.
+    The \code{pattern} argument can be used to iterate over dependent elements of a vector, or dependent rows/columns of a matrix. This can be useful if the calculation for a particular row/column/element depends on the values of others.
 
     When \code{pattern} is provided, multiple rows/columns/elements will be passed to \code{FUN}, even when \code{view="element"}. Each element of the \code{pattern} list should be a vector giving the indices that should be passed to \code{FUN}.
 
