@@ -56,6 +56,42 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
     \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 }
 
+\details{
+    When \code{view = "element"}:
+
+    For vectors and lists, the vector is broken into some number of chunks according to \code{chunks}. The individual elements of the chunk are then passed to \code{FUN}.
+
+    For matrices, the matrix is chunked along rows or columns, based on the number of \code{chunks}. The individual rows or columns of the chunk are then passed to \code{FUN}.
+
+    In this way, the first argument of \code{FUN} is analogous to using the base \code{apply} and \code{lapply} functions.
+
+    However, when \code{view = "chunk"}:
+
+    In this situation, the entire chunk is passed to \code{FUN}, and \code{FUN} is responsible for knowing how to handle a sub-vector or sub-matrix of the original object. This may be useful if \code{FUN} is already a function that could be applied to the whole object such as \code{rowSums} or \code{colSums}.
+
+    When this is the case, it may be useful to provide a custom \code{simplify} function. Otherwise, the result will be returned as a list with length equal to the number of chunks, which must be post-processed to get into a desirable form.
+
+    For convenient to the programmer, several attributes are made available when \code{view = "chunk"}.
+
+    \itemize{
+
+        \item{"chunk_id":}{The index of the chunk currently being processed by \code{FUN}.}
+
+        \item{"chunk_elt":}{The indices of the elements of the chunk, as rows/columns/elements in the original matrix/vector.}
+
+        \item{"pattern_id" (optional):}{The indices of the patterns that compose the current chunk.}
+
+        \item{"pattern_elt" (optional):}{The indices of the elements of the patterns, as rows/columns/elements in the original matrix/vector, that compose the current chunk.}
+
+    }
+
+    The \code{pattern} argument can be used to iterate over dependent elements of a vector, or dependent rows/columns of a matrix. This can be useful if the calculating for a particular row/column/element depends on the values of others.
+
+    When \code{pattern} is provided, multiple rows/columns/elements will be passed to \code{FUN}, even when \code{view="element"}. Each element of the \code{pattern} list should be a vector giving the indices that should be passed to \code{FUN}.
+
+    This can be used to implement a rolling apply function.
+}
+
 \value{
 	Typically, a list if \code{simplify=FALSE}. Otherwise, the results may be coerced to a vector or array.
 }

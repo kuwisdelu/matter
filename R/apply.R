@@ -66,7 +66,7 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 					ans[[j]] <- FUN(xx, ...)
 				}
 			} else {
-				dp <- length(attr(i, "pattern_id"))
+				dp <- length(ii)
 				ans <- vector("list", dp)
 				for ( j in 1L:dp ) {
 					j2 <- match(attr(i, "pattern_elt")[[j]], i)
@@ -82,7 +82,7 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 				}
 			}
 		} else {
-			attr <- c(attributes(i), list(chunk_elt=c(i)), attr)
+			attr <- c(attributes(i), list("chunk_elt"=c(i)), attr)
 			xx <- chunk_attr(xi, ii, attr, alist, view)
 			ans <- FUN(xx, ...)
 		}
@@ -177,7 +177,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 					ans <- .mapply(FUN, dd, MoreArgs)
 				}
 			} else {
-				dp <- length(attr(i, "pattern_id"))
+				dp <- length(ii)
 				dn <- length(dd[[1L]])
 				ans <- vector("list", dp)
 				for ( j in 1L:dp ) {
@@ -189,7 +189,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
 				}
 			}
 		} else {
-			attr <- c(attributes(i), list(chunk_elt=c(i)), attr)
+			attr <- c(attributes(i), list("chunk_elt"=c(i)), attr)
 			dd[[1L]] <- chunk_attr(dd[[1L]], ii, attr, alist, view)
 			ans <- do.call(FUN, c(dd, MoreArgs))
 		}

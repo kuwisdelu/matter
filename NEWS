@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.13.9 [2020-4-18]
+-----------------------------------
+
+BUG FIXES
+
+    o Minor updates to 'chunk_apply()' internals
+
 CHANGES IN VERSION 1.13.8 [2020-3-13]
 -----------------------------------
 
