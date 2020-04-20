@@ -13,6 +13,7 @@
 \alias{s_var}
 \alias{s_any}
 \alias{s_all}
+\alias{s_nnzero}
 
 \alias{colstreamStats}
 \alias{rowstreamStats}
@@ -50,6 +51,8 @@ s_any(x, \dots, na.rm = FALSE)
 
 s_all(x, \dots, na.rm = FALSE)
 
+s_nnzero(x, \dots, na.rm = FALSE)
+
 # calculate streaming matrix statistics
 colstreamStats(x, stat, na.rm = FALSE, \dots)
 
@@ -62,7 +65,7 @@ stat_c(x, y, \dots)
 \arguments{
     \item{x, y, \dots}{Object(s) on which to calculate a summary statistic, or a summary statistic to combine.}
 
-    \item{stat}{The name of a summary statistic to compute over the rows or columns of a matrix. Allowable values include: "range", "min", "max", "prod", "sum", "mean", "var", "sd", "any", and "all".}
+    \item{stat}{The name of a summary statistic to compute over the rows or columns of a matrix. Allowable values include: "range", "min", "max", "prod", "sum", "mean", "var", "sd", "any", "all", and "nnzero".}
 
     \item{na.rm}{If \code{TRUE}, remove \code{NA} values before summarizing.}
 }

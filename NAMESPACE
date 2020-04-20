@@ -9,6 +9,9 @@ importFrom("digest",
 importFrom("irlba",
 	"irlba")
 
+importFrom("Matrix",
+	"nnzero")
+
 importFrom("stats",
 	"median",
 	"update",
@@ -190,6 +193,8 @@ exportMethods(
 	"rowSds",
 	"which")
 
+export("nnzero")
+
 export(
 	"s_range",
 	"s_min",
@@ -201,6 +206,7 @@ export(
 	"s_sd",
 	"s_any",
 	"s_all",
+	"s_nnzero",
 	"stat_c")
 
 export(
@@ -223,6 +229,7 @@ S3method("stat_c", "stream_var")
 S3method("stat_c", "stream_sd")
 S3method("stat_c", "stream_any")
 S3method("stat_c", "stream_all")
+S3method("stat_c", "stream_nnzero")
 
 exportMethods(
 	"colStats",

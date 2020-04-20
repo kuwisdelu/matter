@@ -37,7 +37,7 @@
 \arguments{
     \item{x}{A matrix on which to calculate summary statistics.}
 
-    \item{stat}{The name of summary statistics to compute over the rows or columns of a matrix. Allowable values include: "min", "max", "prod", "sum", "mean", "var", "sd", "any", and "all".}
+    \item{stat}{The name of summary statistics to compute over the rows or columns of a matrix. Allowable values include: "min", "max", "prod", "sum", "mean", "var", "sd", "any", "all", and "nnzero".}
 
     \item{groups}{A factor or vector giving the grouping. If not provided, no grouping will be used.}
 

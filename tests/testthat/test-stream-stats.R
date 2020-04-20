@@ -31,6 +31,8 @@ test_that("streaming univariate statistics", {
 
 	expect_equal(all(x > 50), as.logical(s_all(x > 50)))
 
+	expect_equal(nnzero(x > 50), as.numeric(s_nnzero(x > 50)))
+
 	xy <- c(x, y)
 
 	s_x <- s_range(x); s_y <- s_range(y)
@@ -76,6 +78,10 @@ test_that("streaming univariate statistics", {
 	s_x <- s_all(x > 50); s_y <- s_all(y > 50)
 
 	expect_equal(all(xy > 50), as.logical(stat_c(s_x, s_y)))
+
+	s_x <- s_nnzero(x > 50); s_y <- s_nnzero(y > 50)
+
+	expect_equal(nnzero(xy > 50), as.numeric(stat_c(s_x, s_y)))
 
 	x[1] <- NA; y[1:5] <- NA
 
@@ -148,6 +154,10 @@ test_that("streaming matrix statistics", {
 	s_x <- rowstreamStats(x > 0, "all"); s_y <- rowstreamStats(y > 0, "all")
 
 	expect_equal(as.logical(apply(xy > 0, 1, all)), as.logical(stat_c(s_x, s_y)))
+
+	s_x <- rowstreamStats(x > 0, "nnzero"); s_y <- rowstreamStats(y > 0, "nnzero")
+
+	expect_equal(as.numeric(apply(xy > 0, 1, nnzero)), as.numeric(stat_c(s_x, s_y)))
 
 	x[,1] <- NA; y[1,] <- NA
 
