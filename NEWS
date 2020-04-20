@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 1.13.10 [2020-4-20]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 's_nnzero()' stream-stat for non-zero entries
+    o Added 'push()' and 'pull()' generics for future use
+
 CHANGES IN VERSION 1.13.9 [2020-4-18]
 -----------------------------------
 

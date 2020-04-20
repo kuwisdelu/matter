@@ -105,6 +105,10 @@ exportMethods(
 	"as.factor",
 	"as.data.frame")
 
+export(
+	"push",
+	"pull")
+
 exportMethods(
 	"adata",
 	"atomdata",

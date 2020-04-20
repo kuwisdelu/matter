@@ -61,6 +61,9 @@ setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 setGeneric("as.altrep", function(x, ...) standardGeneric("as.altrep"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
 
+setGeneric("push", function(x, ...) standardGeneric("push"))
+setGeneric("pull", function(x, ...) standardGeneric("pull"))
+
 #### Additional generic functions for subclasses ####
 ## --------------------------------------------------
 

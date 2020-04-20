@@ -2,7 +2,6 @@
 TODO for matter package
 -------------------------
 
-- Add a "nnzero" stream stat for number of non-zero values
 - Add "pull()" and "push()" methods to move data to/from memory
 - Write an an updated vignette + switch vignete to R Markdown
 - Investigate access efficiency of ALTREP matter objects

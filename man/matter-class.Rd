@@ -65,6 +65,9 @@
 
 \alias{combine,atoms,ANY-method}
 
+\alias{push}
+\alias{pull}
+
 \alias{c,atoms-method}
 \alias{c,matter-method}
 
