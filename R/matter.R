@@ -283,7 +283,7 @@ setMethod("rbind", "matter", function(..., deparse.level=1)
 })
 
 setMethod("which", "matter",
-	function(x, arr.ind = FALSE, useNames = TRUE, ...) {
+	function(x, arr.ind = FALSE, useNames = TRUE) {
 		if ( datamode(x)[1] != "logical" )
 			stop("argument to 'which' is not logical")
 		wh <- .Call("C_getWhich", x, PACKAGE="matter")
