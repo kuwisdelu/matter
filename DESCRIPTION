@@ -1,7 +1,7 @@
 Package: matter
 Type: Package
 Title: A framework for rapid prototyping with file-based data structures
-Version: 1.15.1
+Version: 1.16.0
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
