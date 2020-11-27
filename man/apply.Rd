@@ -13,11 +13,11 @@
 }
 
 \usage{
-\S4method{apply}{matter_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam())
+\S4method{apply}{matter_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam(), simplify = TRUE)
 
-\S4method{apply}{sparse_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam())
+\S4method{apply}{sparse_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam(), simplify = TRUE)
 
-\S4method{apply}{virtual_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam())
+\S4method{apply}{virtual_mat}(X, MARGIN, FUN, \dots, BPPARAM = bpparam(), simplify = TRUE)
 }
 
 \arguments{
@@ -30,6 +30,8 @@
     \item{\dots}{Additional arguments to be passed to \code{FUN}.}
 
     \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
+
+    \item{simplify}{Should the result be simplified?}
 }
 
 \details{

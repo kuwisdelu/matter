@@ -397,18 +397,18 @@ remote_collect <- function(ans, path, simplify) {
 ## -------------------------------------------
 
 setMethod("apply", "matter_mat",
-	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		chunk_apply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
+	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
+		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "sparse_mat",
-	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		chunk_apply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
+	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
+		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })
 
 setMethod("apply", "virtual_mat",
-	function(X, MARGIN, FUN, ..., BPPARAM = bpparam()) {
-		chunk_apply(X, FUN, MARGIN, ..., simplify=TRUE, BPPARAM=BPPARAM)
+	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
+		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })
 
 #### List-Apply functions over matter lists and data frames ####
