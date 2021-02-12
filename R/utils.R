@@ -867,7 +867,10 @@ mem <- function(x, reset = FALSE) {
 		mem <- num_bytes(as.numeric(object.size(x)))
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
-		mem <- round(colSums(gc(reset=reset)[,c(1,3,6)] * cell.size) / 1000^2, 1)
+		gc.result <- gc(reset=reset)
+		# There are some cases that the fifth column is missing. See help(gc).
+		max.used.col <- ncol(gc.result) - 1
+		mem <- round(colSums(gc.result[,c(1,3,max.used.col)] * cell.size) / 1000^2, 1)
 		names(mem) <- c("used (MB)", "gc trigger (MB)", "max used (MB)")
 	}
 	mem
