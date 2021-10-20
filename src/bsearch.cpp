@@ -4,7 +4,7 @@
 int strmatch(const char * s1, const char * s2) {
 	int nmatch = 0;
 	while ( *s1 == *s2 ) {
-		if ( *s1 == '\0' )
+		if ( *s1 == '\0' || *s2 == '\0' )
 			break;
 		nmatch++;
 		s1++;
@@ -215,6 +215,45 @@ SEXP map_binary_search<REALSXP>(SEXP key, SEXP values, double tol,
 	}
 	UNPROTECT(1);
 	return index;
+}
+
+template<typename T>
+double relative_diff(T x, T y, double tol, int tol_ref)
+{
+	switch(tol_ref) {
+		case ABS_DIFF:
+			return static_cast<double>(x - y);
+		case REL_DIFF_X:
+			return static_cast<double>(x - y) / x;
+		case REL_DIFF_Y:
+			return static_cast<double>(x - y) / y;
+		default:
+			return NA_REAL;
+	}
+}
+
+template<>
+double relative_diff<const char *>(const char * x, const char * y, double tol, int tol_ref)
+{
+	// implement me!
+}
+
+template<>
+bool approx_equals<int>(int x, int y, double tol, int tol_ref)
+{
+	// implement me!
+}
+
+template<>
+bool approx_equals<double>(double x, double y, double tol, int tol_ref)
+{
+	// implement me!
+}
+
+template<>
+bool approx_equals<const char *>(const char * x, const char * y, double tol, int tol_ref)
+{
+	// implement me!
 }
 
 extern "C" {
