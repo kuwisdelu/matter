@@ -579,7 +579,7 @@ setMethod("combine_by_cols", c("matter_mat", "matter_vec"),
 	function(x, y, ...)	combine_by_cols(x, as(y, "matter_mat")))
 
 setMethod("combine_by_cols", c("matter_vec", "matter_vec"),
-	function(x, y, ...)	combine_by_cols(as(y, "matter_mat"), as(y, "matter_mat")))
+	function(x, y, ...)	combine_by_cols(as(x, "matter_mat"), as(y, "matter_mat")))
 
 # transpose
 
