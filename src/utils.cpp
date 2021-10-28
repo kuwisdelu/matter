@@ -67,3 +67,34 @@ double DataNA<double>()
 {
 	return NA_REAL;
 }
+
+template<>
+SEXP DataNA<SEXP>()
+{
+	return NA_STRING;
+}
+
+template<>
+bool IsNA<Rbyte>(Rbyte x)
+{
+	return false;
+}
+
+template<>
+bool IsNA<int>(int x)
+{
+	return x == NA_INTEGER || x == NA_LOGICAL;
+}
+
+template<>
+bool IsNA<double>(double x)
+{
+	return ISNA(x) || ISNAN(x);
+}
+
+template<>
+bool IsNA<SEXP>(SEXP x)
+{
+	return x == NA_STRING;
+}
+

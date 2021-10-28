@@ -18,25 +18,59 @@
 
 # exported version with argument checking (safer, easier)
 
-bsearch <- function(key, values, tol = 0, tol.ref = "none",
+bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 					nomatch = NA_integer_, nearest = FALSE)
 {
-	if ( is.integer(key) && is.double(values) )
-		key <- as.double(key)
-	if ( is.double(key) && is.integer(values) )
-		values <- as.double(values)
-	tol.ref <- pmatch(tol.ref, c("none", "key", "values"), nomatch=1L)
-	.Call("C_binarySearch", key, values, tol,
+	if ( is.integer(x) && is.double(table) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(table) )
+		table <- as.double(table)
+	if ( is.unsorted(table) )
+		stop("'table' must be sorted")
+	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
+	.Call("C_binarySearch", x, table, tol,
 		tol.ref, nomatch, nearest, PACKAGE="matter")
 }
 
 # faster internal version with no argument checking
 
-bsearch_int <- function(key, values, tol = 0, tol.ref = 1L,
+bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 					nomatch = NA_integer_, nearest = FALSE)
 {
-	.Call("C_binarySearch", key, values, tol,
+	.Call("C_binarySearch", x, table, tol,
 		tol.ref, nomatch, nearest, PACKAGE="matter")
+}
+
+# linear search (for sanity check)
+
+lsearch <- function(x, table, tol = 0, tol.ref = "abs",
+					nomatch = NA_integer_, nearest = FALSE)
+{
+	if ( is.integer(x) && is.double(table) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(table) )
+		table <- as.double(table)
+	if ( is.unsorted(table) )
+		stop("'table' must be sorted")
+	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
+	.Call("C_linearSearch", x, table, tol,
+		tol.ref, nomatch, nearest, PACKAGE="matter")
+}
+
+# relative difference
+
+reldiff <- function(x, y, ref = "abs")
+{
+	if ( is.integer(x) && is.double(y) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(y) )
+		y <- as.double(y)
+	ref <- pmatch(ref, c("abs", "x", "y"), nomatch=1L)
+	n <- max(length(x), length(y))
+	x <- rep_len(x, n)
+	y <- rep_len(y, n)
+	fun <- function(a, b) .Call("C_relativeDiff", a, b, ref, PACKAGE="matter")
+	mapply(fun, x, y, USE.NAMES=FALSE)
 }
 
 is.sorted <- function(x, ...) !is.unsorted(x, ...)

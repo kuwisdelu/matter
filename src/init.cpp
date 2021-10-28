@@ -8,6 +8,8 @@
 extern "C" {
 
     static const R_CallMethodDef callMethods[] = {
+        {"C_relativeDiff", (DL_FUNC) &relativeDiff, 3},
+        {"C_linearSearch", (DL_FUNC) &linearSearch, 6},
         {"C_binarySearch", (DL_FUNC) &binarySearch, 6},
         {"C_createAtoms", (DL_FUNC) &createAtoms, 5},
         {"C_getVector", (DL_FUNC) &getVector, 1},

@@ -281,7 +281,9 @@ exportMethods(
 
 exportMethods("prcomp")
 
-export("bsearch")
+export("reldiff",
+	"lsearch",
+	"bsearch")
 
 export(
 	"mem",

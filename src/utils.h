@@ -23,4 +23,7 @@ T * DataPtr(SEXP x);
 template<typename T>
 T DataNA();
 
+template<typename T>
+bool IsNA(T x);
+
 #endif // UTILS

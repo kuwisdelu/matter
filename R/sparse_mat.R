@@ -390,10 +390,10 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 				}
 			} else if ( length(keys) > length(.jkeys) || dup.ok ) {
 				if ( tol.type == 1 ) { # absolute
-					index <- bsearch_int(key=.jkeys, values=keys,
+					index <- bsearch_int(.jkeys, keys,
 						tol=x@tolerance, tol.ref=1L) # 1 = 'none'
 				} else if ( tol.type == 2 ) { # relative
-					index <- bsearch_int(key=.jkeys, values=keys,
+					index <- bsearch_int(.jkeys, keys,
 						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
 				}
 				if ( sorted ) {
@@ -404,7 +404,7 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 						length(keys), default=zero), mode=vmode)
 				}
 			} else {
-				index <- bsearch_int(key=keys, values=.jkeys)
+				index <- bsearch_int(keys, .jkeys)
 				zwh <- is.na(index) & !is.na(keys)
 				if ( sorted ) {
 					y[ii,] <- as.vector(.jvals[index], mode=vmode)
@@ -431,10 +431,10 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 				}
 			} else if ( length(keys) > length(.ikeys) || dup.ok ) {
 				if ( tol.type == 1 ) { # absolute
-					index <- bsearch_int(key=.ikeys, values=keys,
+					index <- bsearch_int(.ikeys, keys,
 						tol=x@tolerance, tol.ref=1L) # 1 = 'none'
 				} else if ( tol.type == 2 ) { # relative
-					index <- bsearch_int(key=.ikeys, values=keys,
+					index <- bsearch_int(.ikeys, keys,
 						tol=x@tolerance, tol.ref=3L) # 3 = 'values'
 				}
 				if ( sorted ) {
@@ -445,7 +445,7 @@ getSparseMatrixElements <- function(x, i, j, drop=TRUE) {
 						length(keys), default=zero), mode=vmode)
 				}
 			} else {
-				index <- bsearch_int(key=keys, values=.ikeys)
+				index <- bsearch_int(keys, .ikeys)
 				zwh <- is.na(index) & !is.na(keys)
 				if ( sorted ) {
 					y[,jj] <- as.vector(.ivals[index], mode=vmode)
