@@ -110,13 +110,13 @@ template<typename T, int S>
 SEXP do_linear_search(SEXP x, SEXP table, double tol,
 	int tol_ref, int nomatch, bool nearest)
 {
-	int len = LENGTH(x);
+	R_xlen_t len = XLENGTH(x);
 	SEXP positions;
 	PROTECT(positions = Rf_allocVector(INTSXP, len));
 	int * pPos = INTEGER(positions);
 	T * pX = DataPtr<T,S>(x);
-	int n = LENGTH(table);
-	for ( int i = 0; i < len; i++ ) {
+	R_xlen_t n = XLENGTH(table);
+	for ( size_t i = 0; i < len; i++ ) {
 		if ( IsNA<T>(pX[i]) )
 			pPos[i] = nomatch;
 		else
@@ -133,13 +133,13 @@ template<>
 SEXP do_linear_search<const char *, STRSXP>(SEXP x, SEXP table, double tol,
 	int tol_ref, int nomatch, bool nearest)
 {
-	int len = LENGTH(x);
+	R_xlen_t len = XLENGTH(x);
 	SEXP positions;
 	PROTECT(positions = Rf_allocVector(INTSXP, len));
 	int * pPos = INTEGER(positions);
 	SEXP pX;
-	int n = LENGTH(table);
-	for ( int i = 0; i < len; i++ ) {
+	R_xlen_t n = XLENGTH(table);
+	for ( size_t i = 0; i < len; i++ ) {
 		pX = STRING_ELT(x, i);
 		if ( pX == NA_STRING )
 			pPos[i] = nomatch;
@@ -236,13 +236,13 @@ template<typename T, int S>
 SEXP do_binary_search(SEXP x, SEXP table, double tol,
 	int tol_ref, int nomatch, bool nearest)
 {
-	int len = LENGTH(x);
+	R_xlen_t len = XLENGTH(x);
 	SEXP positions;
 	PROTECT(positions = Rf_allocVector(INTSXP, len));
 	int * pPos = INTEGER(positions);
 	T * pX = DataPtr<T,S>(x);
-	int n = LENGTH(table);
-	for ( int i = 0; i < len; i++ ) {
+	R_xlen_t = XLENGTH(table);
+	for ( size_t i = 0; i < len; i++ ) {
 		if ( IsNA<T>(pX[i]) )
 			pPos[i] = nomatch;
 		else
@@ -259,13 +259,13 @@ template<>
 SEXP do_binary_search<const char *, STRSXP>(SEXP x, SEXP table, double tol,
 	int tol_ref, int nomatch, bool nearest)
 {
-	int len = LENGTH(x);
+	R_xlen_t len = XLENGTH(x);
 	SEXP positions;
 	PROTECT(positions = Rf_allocVector(INTSXP, len));
 	int * pPos = INTEGER(positions);
 	SEXP pX;
-	int n = LENGTH(table);
-	for ( int i = 0; i < len; i++ ) {
+	R_xlen_t n = XLENGTH(table);
+	for ( size_t i = 0; i < len; i++ ) {
 		pX = STRING_ELT(x, i);
 		if ( pX == NA_STRING )
 			pPos[i] = nomatch;
@@ -279,60 +279,68 @@ SEXP do_binary_search<const char *, STRSXP>(SEXP x, SEXP table, double tol,
 	return positions;
 }
 
-// template<typename TKey, typename TVal>
-// TVal keyval_search(TKey query, SEXP keys, SEXP values, size_t start, size_t end,
-// 	double tol, int tol_ref, TVal nomatch, bool nearest, int dups)
-// {
-// 	bool sorted = TRUE;
-// 	int num_matches = 0;
-// 	TVal value = nomatch;
-// 	TKey * pKeys = DataPtr<TKey>(keys);
-// 	TVal * pValues = DataPtr<TVal>(values);
-// 	size_t 
-// 	for ( size_t i = start; i < end; i++ )
-// 	{
-// 		if ( approx_eq(query, pKeys[i], tol, tol_ref) )
-// 		{
-// 			if ( num_matches < 1 )
-// 			{
-// 				value = pValues[i];
-// 			}
-// 			else
-// 			{
-// 				switch(dups) {
-// 					case SUM_DUPS:
-// 						value += pValues[i];
-// 						break;
-// 					case MIN_DUPS:
-// 						value = (pValues[i] < value) ? pValues[i] : value;
-// 						break;
-// 					case MAX_DUPS:
-// 						value = (pValues[i] > value) ? pValues[i] : value;
-// 						break;
-// 				}
-// 			}
-// 			num_matches++;
-// 		}
-// 		else if ( sorted && num_matches > 0 )
-// 		{
-// 			break; // stop if sorted & match already found
-// 		}
-// 		if ( sorted && i + 1 < end ) // look 1 ahead to see if sorted
-// 		{
-// 			double diff_i = rel_diff(query, pKeys[i], tol_ref);
-// 			double diff_ip1 = rel_diff(query, pKeys[i], tol_ref);
-// 			if ( diff_i < diff_ip1 )
-// 				sorted = FALSE;
-// 		}
-// 		else if ( start > 0 && i + 1 == end ) // reached end
-// 		{
-// 			i = 0;
-// 			start = 0;
-// 			end = start; // loop around if unsorted
-// 		}
-// 	}
-// 	return value;
-// }
+template<typename TKey, int SKey, typename TVal, int SVal>
+SEXP get_keyvals_sorted(TVal * ptr, SEXP x, SEXP keys, SEXP values,
+	double tol, int tol_ref, TVal nomatch, bool nearest, int dups = SUM_DUPS)
+{
+	size_t count;
+	R_xlen_t xlen = XLENGTH(x);
+	R_xlen_t keylen = XLENGTH(table);
+	TVal * pValues = DataPtr<TVal,SVal>(values);
+	TKey * pX = DataPtr<TKey,SKey>(x);
+	for ( size_t ix = 0, ikey = 0; ix < xlen; ix++ ) {
+		if ( IsNA<T>(pX[ix]) )
+			ptr[i] = nomatch;
+		else
+		{
+			ikey = binary_search(pX[ix], keys, ikey, keylen,
+				tol, tol_ref, NA_INTEGER, nearest)
+			if ( ikey != NA_INTEGER )
+			{
+				ptr[ix] = pValues[ikey];
+				for ( int j = 1; ix - j >= 0; j++ )
+				{
+					if ( approx_eq(pX[ix - j], keys, tol, tol_ref) )
+					{
+						TVal dupVal = pValues[ikey];
+						switch(dups) {
+							case SUM_DUPS:
+								ptr[ix] += dupVal;
+							case MIN_DUPS:
+								ptr[ix] = dupVal < ptr[ix] ? dupVal : ptr[ix];
+							case MAX_DUPS:
+								ptr[ix] = dupVal > ptr[ix] ? dupVal : ptr[ix];
+						}
+					}
+					else
+						break;
+				}
+				for ( int k = 1; ix + k >= 0; j++ )
+				{
+					if ( approx_eq(pX[ix + k], keys, tol, tol_ref) )
+					{
+						TVal dupVal = pValues[ikey];
+						switch(dups) {
+							case SUM_DUPS:
+								ptr[ix] += dupVal;
+							case MIN_DUPS:
+								ptr[ix] = dupVal < ptr[ix] ? dupVal : ptr[ix];
+							case MAX_DUPS:
+								ptr[ix] = dupVal > ptr[ix] ? dupVal : ptr[ix];
+						}
+					}
+					else
+						break;
+				}
+				count++;
+			}
+			else
+				ptr[ix] = nomatch;
+		}
+	}
+	UNPROTECT(1);
+	return count;
+}
 
 extern "C" {
 

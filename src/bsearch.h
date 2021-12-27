@@ -1,5 +1,5 @@
-#ifndef BSEARCH
-#define BSEARCH
+#ifndef MATTER_SEARCH
+#define MATTER_SEARCH
 
 #define R_NO_REMAP
 
@@ -26,6 +26,9 @@ extern "C" {
 
 	SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 		SEXP tol_ref, SEXP nomatch, SEXP nearest);
+
+	SEXP getKeyValues(SEXP x, SEXP keys, SEXP values, SEXP tol,
+		SEXP tol_ref, SEXP nomatch, SEXP nearest, SEXP dups, SEXP sorted);
 
 }
 
@@ -61,8 +64,20 @@ template<typename T, int S>
 SEXP do_binary_search(SEXP x, SEXP table, double tol,
 	int tol_ref, int nomatch, bool nearest);
 
-// template<int S, typename T>
-// SEXP fast_match(SEXP query, SEXP keys, SEXP values,
-// 	double tol, int tol_ref, T nomatch, bool nearest, int dups = SUM_DUPS);
+// return whether a sequence is sorted
+template<typename T, int S>
+bool is_sorted(SEXP x, bool strictly = FALSE);
 
-#endif // BSEARCH
+template<typename TKey, int SKey, typename TVal, int SVal>
+size_t get_keyvals(TVal * ptr, SEXP x, SEXP keys, SEXP values,
+	double tol, int tol_ref, TVal nomatch, bool nearest, int dups = SUM_DUPS);
+
+template<typename TKey, int SKey, typename TVal, int SVal>
+size_t get_keyvals_sorted(TVal * ptr, SEXP x, SEXP keys, SEXP values,
+	double tol, int tol_ref, TVal nomatch, bool nearest, int dups = SUM_DUPS);
+
+template<typename TKey, int SKey, typename TVal, int SVal>
+size_t get_keyvals_unsorted(TVal * ptr, SEXP x, SEXP keys, SEXP values,
+	double tol, int tol_ref, TVal nomatch, bool nearest, int dups = SUM_DUPS);
+
+#endif // MATTER_SEARCH
