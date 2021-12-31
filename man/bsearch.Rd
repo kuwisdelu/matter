@@ -5,22 +5,22 @@
 \title{Binary Search with Approximate Matching}
 
 \description{
-    Given a set of keys and a sorted (non-decreasing) vector of values, use a binary search to find the indexes in \code{values} that match the values of \code{key}. This implementation allows for returning the index of the nearest match if there are no exact matches. It also allows specifying a tolerance for comparison of doubles.
+    Use a binary search to find approximate matches for the elements of its first argument among those in its second. This implementation allows for returning the index of the nearest match if there are no exact matches. It also allows specifying a tolerance for the comparison.
 }
 
 \usage{
-bsearch(key, values, tol = 0, tol.ref = "none",
+bsearch(x, table, tol = 0, tol.ref = "abs",
 		nomatch = NA_integer_, nearest = FALSE)
 }
 
 \arguments{
-	\item{key}{A vector of keys to match.}
+	\item{x}{A vector of keys to match.}
 
-	\item{values}{A sorted (non-decreasing) vector of values to be matched.}
+	\item{table}{A sorted (non-decreasing) vector of values to be matched.}
 
 	\item{tol}{The tolerance for matching doubles. Must be >= 0.}
 
-	\item{tol.ref}{One of 'none', 'key', or 'values'. If 'none', then comparison of doubles is done by taking the absolute difference. If either 'key' or 'values', then relative differences are used, and this specifies which to use as the reference (target) value.}
+	\item{tol.ref}{One of 'abs', 'x', or 'y'. If 'abs', then comparison is done by taking the absolute difference. If either 'x' or 'y', then relative differences are used, and this specifies which to use as the reference (target) value. For strings, this uses the Hamming distance (number of errors), normalized by the length of the reference string for relative differences.}
 
 	\item{nomatch}{The value to be returned in the case when no match is found, coerced to an integer. (Ignored if \code{nearest = TRUE}.)}
 
@@ -34,29 +34,30 @@ bsearch(key, values, tol = 0, tol.ref = "none",
 }
 
 \value{
-    A vector of the same length as \code{key}, giving the indexes of the matches in \code{values}.
+    A vector of the same length as \code{x}, giving the indexes of the matches in \code{table}.
 }
 
 \author{Kylie A. Bemis}
 
 \seealso{
+	\code{\link{kvsearch}},
     \code{\link{match}},
     \code{\link{pmatch}},
     \code{\link{findInterval}}
 }
 
 \examples{
-x <- c(1.11, 2.22, 3.33, 5.0, 5.1)
+a <- c(1.11, 2.22, 3.33, 5.0, 5.1)
 
-bsearch(2.22, x) # 2
-bsearch(3.0, x) # NA
-bsearch(3.0, x, nearest=TRUE) # 3
-bsearch(3.0, x, tol=0.1, tol.ref="values") # 3
+bsearch(2.22, a) # 2
+bsearch(3.0, a) # NA
+bsearch(3.0, a, nearest=TRUE) # 3
+bsearch(3.0, a, tol=0.1, tol.ref="values") # 3
 
-y <- c("hello", "world!")
-bsearch("world!", y) # 2
-bsearch("worl", y) # NA
-bsearch("worl", y, nearest=TRUE) # 2
+b <- c("hello", "world!")
+bsearch("world!", b) # 2
+bsearch("worl", b) # NA
+bsearch("worl", b, nearest=TRUE) # 2
 }
 
 \keyword{utilities}

@@ -201,7 +201,7 @@ test_that("key value search (sorted) - resolve duplicates", {
 
 })
 
-test_that("key value search (sorted) - resolve duplicates", {
+test_that("key value search (unsorted) - resolve duplicates", {
 
 	keys <- rev(c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0))
 
