@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 1.21.1 [2021-12-31]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'kvsearch()' for key-value search with fuzzy matching
+
 CHANGES IN VERSION 1.19.1 [2021-10-20]
 -----------------------------------
 

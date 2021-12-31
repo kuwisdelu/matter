@@ -5,18 +5,20 @@
 \title{Key-Value Search with Approximate Matching}
 
 \description{
-    Given a set of keys and a sorted (non-decreasing) vector of values, find the values corresponding to matches between the elements of the first argument and the reference keys. Approximate matching is allowed within a specified tolerance.
+    Given a set of keys and a sorted (non-decreasing) vector of values, find the values corresponding to matches between the elements of the first argument and the reference keys. Approximate matching is allowed within a specified tolerance. Only numeric types are supported currently.
 }
 
 \usage{
-kvsearch(key, values, tol = 0, tol.ref = "abs",
+kvsearch(x, keys, values, tol = 0, tol.ref = "abs",
 		nomatch = NA_integer_, dups = "top")
 }
 
 \arguments{
-	\item{key}{A vector of keys to match.}
+	\item{x}{A vector of values to be matched. Only integer and number vectors are supported.}
 
-	\item{values}{A sorted (non-decreasing) vector of values to be matched.}
+	\item{keys}{A sorted (non-decreasing) vector of keys to match against. Only integer and number vectors are supported.}
+
+	\item{values}{A vector of values corresponding to the keys. Only integer and number vectors are supported.}
 
 	\item{tol}{The tolerance for matching doubles. Must be >= 0.}
 

@@ -1,6 +1,7 @@
 \name{bsearch}
 
 \alias{bsearch}
+\alias{reldiff}
 
 \title{Binary Search with Approximate Matching}
 
@@ -11,16 +12,18 @@
 \usage{
 bsearch(x, table, tol = 0, tol.ref = "abs",
 		nomatch = NA_integer_, nearest = FALSE)
+
+reldiff(x, y, ref = "abs")
 }
 
 \arguments{
-	\item{x}{A vector of keys to match.}
+	\item{x}{A vector of values to be matched. Only integer, numeric, and character vectors are supported.}
 
-	\item{table}{A sorted (non-decreasing) vector of values to be matched.}
+	\item{y, table}{A sorted (non-decreasing) vector of values to be matched against. Only integer, numeric, and character vectors are supported.}
 
 	\item{tol}{The tolerance for matching doubles. Must be >= 0.}
 
-	\item{tol.ref}{One of 'abs', 'x', or 'y'. If 'abs', then comparison is done by taking the absolute difference. If either 'x' or 'y', then relative differences are used, and this specifies which to use as the reference (target) value. For strings, this uses the Hamming distance (number of errors), normalized by the length of the reference string for relative differences.}
+	\item{ref, tol.ref}{One of 'abs', 'x', or 'y'. If 'abs', then comparison is done by taking the absolute difference. If either 'x' or 'y', then relative differences are used, and this specifies which to use as the reference (target) value. For strings, this uses the Hamming distance (number of errors), normalized by the length of the reference string for relative differences.}
 
 	\item{nomatch}{The value to be returned in the case when no match is found, coerced to an integer. (Ignored if \code{nearest = TRUE}.)}
 
