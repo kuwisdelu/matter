@@ -16,46 +16,7 @@
 #### Binary search that allows near-matches ####
 ## ----------------------------------------------
 
-# exported version with argument checking (safer, easier)
-
-bsearch <- function(x, table, tol = 0, tol.ref = "abs",
-					nomatch = NA_integer_, nearest = FALSE)
-{
-	if ( is.integer(x) && is.double(table) )
-		x <- as.double(x)
-	if ( is.double(x) && is.integer(table) )
-		table <- as.double(table)
-	if ( is.unsorted(table) )
-		stop("'table' must be sorted")
-	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	.Call("C_binarySearch", x, table, tol,
-		tol.ref, nomatch, nearest, PACKAGE="matter")
-}
-
-# faster internal version with no argument checking
-
-bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
-					nomatch = NA_integer_, nearest = FALSE)
-{
-	.Call("C_binarySearch", x, table, tol,
-		tol.ref, nomatch, nearest, PACKAGE="matter")
-}
-
-# linear search (for sanity check)
-
-lsearch <- function(x, table, tol = 0, tol.ref = "abs",
-					nomatch = NA_integer_, nearest = FALSE)
-{
-	if ( is.integer(x) && is.double(table) )
-		x <- as.double(x)
-	if ( is.double(x) && is.integer(table) )
-		table <- as.double(table)
-	if ( is.unsorted(table) )
-		stop("'table' must be sorted")
-	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	.Call("C_linearSearch", x, table, tol,
-		tol.ref, nomatch, nearest, PACKAGE="matter")
-}
+is.sorted <- function(x, ...) !is.unsorted(x, ...)
 
 # relative difference
 
@@ -73,7 +34,54 @@ reldiff <- function(x, y, ref = "abs")
 	mapply(fun, x, y, USE.NAMES=FALSE)
 }
 
-is.sorted <- function(x, ...) !is.unsorted(x, ...)
+# exported version with argument checking (safer, easier)
+
+bsearch <- function(x, table, tol = 0, tol.ref = "abs",
+					nomatch = NA_integer_, nearest = FALSE)
+{
+	if ( is.integer(x) && is.double(table) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(table) )
+		table <- as.double(table)
+	if ( is.unsorted(table) )
+		stop("'table' must be sorted")
+	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
+	bsearch_int(x, table=table, tol=tol, tol.ref=tol.ref,
+		nomatch=nomatch, nearest=nearest)
+}
+
+# faster internal version with no argument checking
+
+bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
+					nomatch = NA_integer_, nearest = FALSE)
+{
+	.Call("C_binarySearch", x, table, tol,
+		tol.ref, nomatch, nearest, PACKAGE="matter")
+}
+
+# exported version with argument checking (safer, easier)
+
+kvsearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
+					nomatch = NA_integer_, dups = "top")
+{
+	if ( is.integer(x) && is.double(keys) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(keys) )
+		keys <- as.double(keys)
+	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
+	dups <- pmatch(dups, c("top", "sum", "max"), nomatch=1L)
+	kvsearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
+		nomatch=nomatch, dups=dups, sorted=is.sorted(keys))
+}
+
+# faster internal version with no argument checking
+
+kvsearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
+					nomatch = NA_integer_, dups = 1L, sorted = TRUE)
+{
+	.Call("C_keyvalSearch", x, keys, values, tol, tol.ref,
+		nomatch, dups, sorted, PACKAGE="matter")
+}
 
 #### Find local maxima and local minima ####
 ## -----------------------------------------

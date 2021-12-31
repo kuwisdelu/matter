@@ -61,104 +61,38 @@ bool approx_eq(T x, T y, double tol, int tol_ref)
 }
 
 template<typename T, int S>
-size_t linear_search(T x, SEXP table, size_t start, size_t end,
-	double tol, int tol_ref, int nomatch, bool nearest)
-{
-	double diff;
-	T * pTable = DataPtr<T,S>(table);
-	size_t cur = start;
-	double cur_diff = rel_diff(x, pTable[cur], tol_ref);
-	for ( size_t i = start + 1; i < end; i++ )
-	{
-		diff = rel_diff(x, pTable[i], tol_ref);
-		if ( diff < cur_diff )
-		{
-			cur = i;
-			cur_diff = diff;
-		}
-	}
-	if ( cur_diff <= tol || nearest )
-		return cur;
-	else
-		return nomatch;
-}
-
-template<>
-size_t linear_search<const char *, STRSXP>(const char * x, SEXP table,
-	size_t start, size_t end, double tol, int tol_ref,
-	int nomatch, bool nearest)
-{
-	double diff;
-	size_t cur = start;
-	double cur_diff = rel_diff(x, CHAR(STRING_ELT(table, cur)));
-	for ( size_t i = start + 1; i < end; i++ )
-	{
-		diff = rel_diff(x, CHAR(STRING_ELT(table, i)), tol_ref);
-		if ( diff < cur_diff )
-		{
-			cur = i;
-			cur_diff = diff;
-		}
-	}
-	if ( cur_diff <= tol || nearest )
-		return cur;
-	else
-		return nomatch;
-}
-
-template<typename T, int S>
-SEXP do_linear_search(SEXP x, SEXP table, double tol,
-	int tol_ref, int nomatch, bool nearest)
+bool is_sorted(SEXP x, bool strictly)
 {
 	R_xlen_t len = XLENGTH(x);
-	SEXP positions;
-	PROTECT(positions = Rf_allocVector(INTSXP, len));
-	int * pPos = INTEGER(positions);
 	T * pX = DataPtr<T,S>(x);
-	R_xlen_t n = XLENGTH(table);
-	for ( size_t i = 0; i < len; i++ ) {
-		if ( IsNA<T>(pX[i]) )
-			pPos[i] = nomatch;
-		else
-			pPos[i] = linear_search<T,S>(pX[i], table, 0, n,
-				tol, tol_ref, nomatch, nearest);
-		if ( pPos[i] != nomatch )
-			pPos[i] += 1; // adjust for R indexing from 1
+	for ( size_t i = 1; i < len; i++ ) {
+		double diff = rel_change(pX[i], pX[i - 1]);
+		if ( diff < 0 || (strictly && diff <= 0) )
+			return FALSE;
 	}
-	UNPROTECT(1);
-	return positions;
+	return TRUE;
 }
 
 template<>
-SEXP do_linear_search<const char *, STRSXP>(SEXP x, SEXP table, double tol,
-	int tol_ref, int nomatch, bool nearest)
+bool is_sorted<const char *, STRSXP>(SEXP x, bool strictly)
 {
 	R_xlen_t len = XLENGTH(x);
-	SEXP positions;
-	PROTECT(positions = Rf_allocVector(INTSXP, len));
-	int * pPos = INTEGER(positions);
-	SEXP pX;
-	R_xlen_t n = XLENGTH(table);
-	for ( size_t i = 0; i < len; i++ ) {
-		pX = STRING_ELT(x, i);
-		if ( pX == NA_STRING )
-			pPos[i] = nomatch;
-		else
-			pPos[i] = linear_search<const char *, STRSXP>(CHAR(pX), table, 0, n,
-				tol, tol_ref, nomatch, nearest);
-		if ( pPos[i] != nomatch )
-			pPos[i] += 1; // adjust for R indexing from 1
+	for ( size_t i = 1; i < len; i++ ) {
+		const char * xi = CHAR(STRING_ELT(x, i));
+		const char * xim1 = CHAR(STRING_ELT(x, i - 1));
+		double diff = rel_change(xi, xim1);
+		if ( diff < 0 || (strictly && diff <= 0) )
+			return FALSE;
 	}
-	UNPROTECT(1);
-	return positions;
+	return TRUE;
 }
 
 template<typename T, int S>
-size_t binary_search(T x, SEXP table, size_t start, size_t end,
+index_t binary_search(T x, SEXP table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest)
 {
 	double diff;
-	size_t min = start, max = end, mid = nomatch;
+	index_t min = start, max = end, mid = nomatch;
 	T * pTable = DataPtr<T,S>(table);
 	while ( start < end )
 	{
@@ -172,8 +106,8 @@ size_t binary_search(T x, SEXP table, size_t start, size_t end,
 			return mid;
 	}
 	if ( nearest || tol > 0 ) {
-		size_t left = mid >= min + 1 ? mid - 1 : min;
-		size_t right = mid < max - 1 ? mid + 1 : max - 1;
+		index_t left = mid >= min + 1 ? mid - 1 : min;
+		index_t right = mid < max - 1 ? mid + 1 : max - 1;
 		double dleft = rel_diff(x, pTable[left], tol_ref);
 		double dmid = rel_diff(x, pTable[mid], tol_ref);
 		double dright = rel_diff(x, pTable[right], tol_ref);
@@ -194,11 +128,11 @@ size_t binary_search(T x, SEXP table, size_t start, size_t end,
 }
 
 template<>
-size_t binary_search<const char *, STRSXP>(const char * x, SEXP table,
+index_t binary_search<const char *, STRSXP>(const char * x, SEXP table,
 	size_t start, size_t end, double tol, int tol_ref, int nomatch, bool nearest)
 {
 	double diff;
-	size_t min = start, max = end, mid = nomatch;
+	index_t min = start, max = end, mid = nomatch;
 	while ( start < end )
 	{
 		mid = start + (end - start) / 2;
@@ -211,8 +145,8 @@ size_t binary_search<const char *, STRSXP>(const char * x, SEXP table,
 			return mid;
 	}
 	if ( nearest || tol > 0 ) {
-		size_t left = mid >= min + 1 ? mid - 1 : min;
-		size_t right = mid < max - 1 ? mid + 1 : max - 1;
+		index_t left = mid >= min + 1 ? mid - 1 : min;
+		index_t right = mid < max - 1 ? mid + 1 : max - 1;
 		double dleft = rel_diff(x, CHAR(STRING_ELT(table, left)), tol_ref);
 		double dmid = rel_diff(x, CHAR(STRING_ELT(table, mid)), tol_ref);
 		double dright = rel_diff(x, CHAR(STRING_ELT(table, right)), tol_ref);
@@ -241,7 +175,7 @@ SEXP do_binary_search(SEXP x, SEXP table, double tol,
 	PROTECT(positions = Rf_allocVector(INTSXP, len));
 	int * pPos = INTEGER(positions);
 	T * pX = DataPtr<T,S>(x);
-	R_xlen_t = XLENGTH(table);
+	R_xlen_t n = XLENGTH(table);
 	for ( size_t i = 0; i < len; i++ ) {
 		if ( IsNA<T>(pX[i]) )
 			pPos[i] = nomatch;
@@ -279,67 +213,112 @@ SEXP do_binary_search<const char *, STRSXP>(SEXP x, SEXP table, double tol,
 	return positions;
 }
 
-template<typename TKey, int SKey, typename TVal, int SVal>
-SEXP get_keyvals_sorted(TVal * ptr, SEXP x, SEXP keys, SEXP values,
-	double tol, int tol_ref, TVal nomatch, bool nearest, int dups = SUM_DUPS)
+template<typename Tkey, int Skey, typename Tval, int Sval>
+SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol,
+	int tol_ref, Tval nomatch, int dups, bool sorted)
 {
-	size_t count;
 	R_xlen_t xlen = XLENGTH(x);
-	R_xlen_t keylen = XLENGTH(table);
-	TVal * pValues = DataPtr<TVal,SVal>(values);
-	TKey * pX = DataPtr<TKey,SKey>(x);
-	for ( size_t ix = 0, ikey = 0; ix < xlen; ix++ ) {
-		if ( IsNA<T>(pX[ix]) )
-			ptr[i] = nomatch;
-		else
+	R_xlen_t keylen = XLENGTH(keys);
+	Tkey * pX = DataPtr<Tkey,Skey>(x);
+	Tkey * pKeys = DataPtr<Tkey,Skey>(keys);
+	Tval * pValues = DataPtr<Tval,Sval>(values);
+	SEXP out;
+	PROTECT(out = Rf_allocVector(Sval, xlen));
+	Tval * pOut = DataPtr<Tval,Sval>(out);
+	for ( index_t ix = 0, ikey = 0; ix < xlen; ix++ )
+	{
+		pOut[ix] = nomatch;
+		if ( !IsNA<Tkey>(pX[ix]) )
 		{
-			ikey = binary_search(pX[ix], keys, ikey, keylen,
-				tol, tol_ref, NA_INTEGER, nearest)
-			if ( ikey != NA_INTEGER )
-			{
-				ptr[ix] = pValues[ikey];
-				for ( int j = 1; ix - j >= 0; j++ )
-				{
-					if ( approx_eq(pX[ix - j], keys, tol, tol_ref) )
+			if ( sorted ) {
+				// sorted keys -- binary search
+				index_t ifound = binary_search<Tkey, Skey>(pX[ix], keys,
+					ikey, keylen, tol, tol_ref, NA_INTEGER, FALSE);
+				if ( ifound != NA_INTEGER ) {
+					ikey = ifound;
+					pOut[ix] = pValues[ikey];
+					if ( dups != NO_DUPS )
 					{
-						TVal dupVal = pValues[ikey];
-						switch(dups) {
-							case SUM_DUPS:
-								ptr[ix] += dupVal;
-							case MIN_DUPS:
-								ptr[ix] = dupVal < ptr[ix] ? dupVal : ptr[ix];
-							case MAX_DUPS:
-								ptr[ix] = dupVal > ptr[ix] ? dupVal : ptr[ix];
+						for ( int j = 1; ikey - j >= 0; j++ )
+						{
+							if ( approx_eq<Tkey>(pX[ix], pKeys[ikey - j], tol, tol_ref) )
+							{
+								Tval dupVal = pValues[ikey - j];
+								switch(dups) {
+									case SUM_DUPS:
+										pOut[ix] += dupVal;
+										break;
+									case MAX_DUPS:
+										pOut[ix] = dupVal > pOut[ix] ? dupVal : pOut[ix];
+										break;
+									case MIN_DUPS:
+										pOut[ix] = dupVal < pOut[ix] ? dupVal : pOut[ix];
+										break;
+								}
+							}
+							else
+								break;
+						}
+						for ( int k = 1; ikey + k >= 0; k++ )
+						{
+							if ( approx_eq<Tkey>(pX[ix], pKeys[ikey + k], tol, tol_ref) )
+							{
+								Tval dupVal = pValues[ikey + k];
+								switch(dups) {
+									case SUM_DUPS:
+										pOut[ix] += dupVal;
+										break;
+									case MAX_DUPS:
+										pOut[ix] = dupVal > pOut[ix] ? dupVal : pOut[ix];
+										break;
+									case MIN_DUPS:
+										pOut[ix] = dupVal < pOut[ix] ? dupVal : pOut[ix];
+										break;
+								}
+							}
+							else
+								break;
 						}
 					}
-					else
-						break;
+					if ( ix + 1 < xlen && pX[ix + 1] < pX[ix] )
+						ikey = 0;
 				}
-				for ( int k = 1; ix + k >= 0; j++ )
-				{
-					if ( approx_eq(pX[ix + k], keys, tol, tol_ref) )
-					{
-						TVal dupVal = pValues[ikey];
-						switch(dups) {
-							case SUM_DUPS:
-								ptr[ix] += dupVal;
-							case MIN_DUPS:
-								ptr[ix] = dupVal < ptr[ix] ? dupVal : ptr[ix];
-							case MAX_DUPS:
-								ptr[ix] = dupVal > ptr[ix] ? dupVal : ptr[ix];
-						}
-					}
-					else
-						break;
-				}
-				count++;
 			}
-			else
-				ptr[ix] = nomatch;
+			else {
+				// unsorted keys -- linear search
+				size_t match_count = 0;
+				double min_diff = DBL_MAX;
+				for ( ikey = 0; ikey < keylen; ikey++ )
+				{
+					double diff = rel_diff<Tkey>(pX[ix], pKeys[ikey], tol_ref);
+					if ( diff <= tol )
+					{
+						match_count++;
+						switch(dups) {
+							case NO_DUPS:
+								pOut[ix] = diff < min_diff ? pValues[ikey] : pOut[ix];
+								break;
+							case SUM_DUPS:
+								pOut[ix] = match_count > 1 ? pValues[ikey] + pOut[ix] : pValues[ikey];
+								break;
+							case MAX_DUPS:
+								pOut[ix] = match_count == 1 || pValues[ikey] > pOut[ix] ? pValues[ikey] : pOut[ix];
+								break;
+							case MIN_DUPS:
+								pOut[ix] = match_count == 1 || pValues[ikey] < pOut[ix] ? pValues[ikey] : pOut[ix];
+								break;
+						}
+						if ( diff < min_diff )
+							min_diff = diff;
+						if ( dups == NO_DUPS && diff == 0 )
+							break;
+					}
+				}
+			}
 		}
 	}
 	UNPROTECT(1);
-	return count;
+	return out;
 }
 
 extern "C" {
@@ -361,31 +340,6 @@ extern "C" {
 			case REALSXP:
 				return Rf_ScalarReal(rel_diff<double>(Rf_asReal(x),
 					Rf_asReal(y), _ref));
-		}
-		Rf_error("supported types are 'integer', 'numeric', or 'character'");
-	}
-
-	SEXP linearSearch(SEXP x, SEXP table, SEXP tol,
-		SEXP tol_ref, SEXP nomatch, SEXP nearest)
-	{
-		if ( TYPEOF(x) != TYPEOF(table) )
-			Rf_error("'x' and 'table' must have the same type");
-		double _tol = Rf_asReal(tol);
-		if ( _tol < 0 )
-			Rf_error("'tol' must be non-negative");
-		int _tol_ref = Rf_asInteger(tol_ref);
-		int _nomatch = Rf_asInteger(nomatch);
-		bool _nearest = static_cast<bool>(Rf_asLogical(nearest));
-		switch(TYPEOF(x)) {
-			case STRSXP:
-				return do_linear_search<const char *, STRSXP>(x, table,
-					_tol, _tol_ref, _nomatch, _nearest);
-			case INTSXP:
-				return do_linear_search<int, INTSXP>(x, table,
-					_tol, _tol_ref, _nomatch, _nearest);
-			case REALSXP:
-				return do_linear_search<double, REALSXP>(x, table,
-					_tol, _tol_ref, _nomatch, _nearest);
 		}
 		Rf_error("supported types are 'integer', 'numeric', or 'character'");
 	}
@@ -413,6 +367,44 @@ extern "C" {
 					_tol, _tol_ref, _nomatch, _nearest);
 		}
 		Rf_error("supported types are 'integer', 'numeric', or 'character'");
+	}
+
+	SEXP keyvalSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
+		SEXP tol_ref, SEXP nomatch, SEXP dups, SEXP sorted)
+	{
+		if ( TYPEOF(x) != TYPEOF(keys) )
+			Rf_error("'x' and 'keys' must have the same type");
+		double _tol = Rf_asReal(tol);
+		if ( _tol < 0 )
+			Rf_error("'tol' must be non-negative");
+		int _tol_ref = Rf_asInteger(tol_ref);
+		int _dups = Rf_asInteger(dups);
+		bool _sorted = static_cast<bool>(Rf_asLogical(sorted));
+		switch(TYPEOF(values)) {
+			case INTSXP: {
+				int _dnomatch = Rf_asInteger(nomatch);
+				switch(TYPEOF(keys)) {
+					case INTSXP:
+						return do_keyval_search<int, INTSXP, int, INTSXP>(x,
+							keys, values, _tol, _tol_ref, _dnomatch, _dups, _sorted);
+					case REALSXP:
+						return do_keyval_search<double, REALSXP, int, INTSXP>(x,
+							keys, values, _tol, _tol_ref, _dnomatch, _dups, _sorted);
+				}
+			}
+			case REALSXP: {
+				double _fnomatch = Rf_asReal(nomatch);
+				switch(TYPEOF(keys)) {
+					case INTSXP:
+						return do_keyval_search<int, INTSXP, double, REALSXP>(x,
+							keys, values, _tol, _tol_ref, _fnomatch, _dups, _sorted);
+					case REALSXP:
+						return do_keyval_search<double, REALSXP, double, REALSXP>(x,
+							keys, values, _tol, _tol_ref, _fnomatch, _dups, _sorted);
+				}
+			}
+		}
+		Rf_error("supported types are 'integer' or 'numeric'");
 	}
 
 }

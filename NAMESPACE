@@ -282,8 +282,8 @@ exportMethods(
 exportMethods("prcomp")
 
 export("reldiff",
-	"lsearch",
-	"bsearch")
+	"bsearch",
+	"kvsearch")
 
 export(
 	"mem",
