@@ -67,6 +67,10 @@ setGeneric("pull", function(x, ...) standardGeneric("pull"))
 #### Additional generic functions for subclasses ####
 ## --------------------------------------------------
 
+setGeneric("index", function(x) standardGeneric("index"))
+setGeneric("index<-", function(x, value) standardGeneric("index<-"))
+setGeneric("pointers", function(x) standardGeneric("pointers"))
+setGeneric("pointers<-", function(x, value) standardGeneric("pointers<-"))
 setGeneric("keys", function(object) standardGeneric("keys"))
 setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 # setGeneric("tolerance", function(object, ...) standardGeneric("tolerance")) # use ProtGenerics

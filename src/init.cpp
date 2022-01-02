@@ -1,6 +1,6 @@
 #include <R_ext/Rdynload.h>
 
-#include "bsearch.h"
+#include "search.h"
 #include "matter.h"
 #include "altrep.h"
 #include "vectools.h"

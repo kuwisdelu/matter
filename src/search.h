@@ -50,15 +50,25 @@ bool is_sorted(SEXP x, bool strictly = FALSE);
 
 // fuzzy binary search returning position of 'x' in 'table'
 template<typename T, int S>
-index_t binary_search(T x, SEXP table, size_t start, size_t end,
+index_t binary_search(SEXP x, SEXP table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest);
 
 // fuzzy binary search returning positions of all 'x' in 'table'
 template<typename T, int S>
-SEXP do_binary_search(SEXP x, SEXP table, double tol,
-	int tol_ref, int nomatch, bool nearest);
+size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
+	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
+	bool index1 = FALSE, index_t skip = 1);
+
+template<typename T, int S>
+SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
+	int nomatch, bool nearest = FALSE, bool index1 = FALSE);
 
 // fuzzy key-value search returning all 'value's matching 'keys' in 'x'
+template<typename Tkey, int Skey, typename Tval, int Sval>
+size_t do_keyval_search(Tval * ptr, SEXP x, SEXP keys, SEXP values,
+	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
+	int dups = NO_DUPS, bool sorted = FALSE, index_t skip = 1);
+
 template<typename Tkey, int Skey, typename Tval, int Sval>
 SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
 	Tval nomatch, int dups = NO_DUPS, bool sorted = FALSE);

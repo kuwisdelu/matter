@@ -64,6 +64,8 @@ bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 kvsearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 					nomatch = NA_integer_, dups = "top")
 {
+	if ( !is.numeric(x) || !is.numeric(keys) || !is.numeric(values) )
+		stop("only numeric types are supported")
 	if ( is.integer(x) && is.double(keys) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
@@ -780,6 +782,31 @@ widest_datamode <- function(x) {
 	} else {
 		stop("unsupported data type")
 	}
+}
+
+#### Sparse key-value search resolution utilities ####
+## ---------------------------------------------------
+
+make_combiner <- function(x) {
+	levels <- c("top", "sum", "max")
+	if ( !is.numeric(x) )
+		x <- as.character(x)
+	factor(switch(x,
+		"top" = "top",
+		"sum" = "sum",
+		"max" = "max",
+		NA_character_), levels=levels)
+}
+
+make_tolerance <- function(tolerance) {
+	tol <- tolerance[1L]
+	if ( !is.null(names(tol)) ) {
+		type <- pmatch(names(tol), c("absolute", "relative"), nomatch=1L)
+	} else {
+		type <- 1L
+	}
+	structure(as.vector(tol), compare=factor(type,
+		levels=c(1, 2), labels=c("absolute", "relative")))
 }
 
 #### Utilities for working with raw bytes and memory ####

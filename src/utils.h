@@ -21,6 +21,9 @@ template<typename T, int S>
 T * DataPtr(SEXP x);
 
 template<typename T>
+T DataElt(SEXP x, size_t i);
+
+template<typename T>
 T DataNA();
 
 template<typename T>

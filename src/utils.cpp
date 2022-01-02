@@ -41,6 +41,23 @@ double * DataPtr<double,REALSXP>(SEXP x)
 	return REAL(x);
 }
 
+template<>
+int DataElt<int>(SEXP x, size_t i)
+{
+	return INTEGER(x)[i];
+}
+
+template<>
+double DataElt<double>(SEXP x, size_t i)
+{
+	return REAL(x)[i];
+}
+
+template<>
+const char * DataElt<const char *>(SEXP x, size_t i)
+{
+	return CHAR(STRING_ELT(x, i));
+}
 
 template<>
 Rbyte DataNA<Rbyte>()

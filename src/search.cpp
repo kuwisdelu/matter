@@ -1,6 +1,6 @@
 
 #include "utils.h"
-#include "bsearch.h"
+#include "search.h"
 
 // search utilities
 
@@ -167,76 +167,88 @@ index_t binary_search<const char *, STRSXP>(const char * x, SEXP table,
 }
 
 template<typename T, int S>
-SEXP do_binary_search(SEXP x, SEXP table, double tol,
-	int tol_ref, int nomatch, bool nearest)
+size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
+	double tol, int tol_ref, int nomatch, bool nearest, bool index1, index_t skip)
 {
 	R_xlen_t len = XLENGTH(x);
-	SEXP positions;
-	PROTECT(positions = Rf_allocVector(INTSXP, len));
-	int * pPos = INTEGER(positions);
 	T * pX = DataPtr<T,S>(x);
 	R_xlen_t n = XLENGTH(table);
+	size_t num_matches = 0;
 	for ( size_t i = 0; i < len; i++ ) {
 		if ( IsNA<T>(pX[i]) )
-			pPos[i] = nomatch;
+			ptr[i] = nomatch;
 		else
-			pPos[i] = binary_search<T,S>(pX[i], table, 0, n,
+			ptr[i] = binary_search<T,S>(pX[i], table, 0, n,
 				tol, tol_ref, nomatch, nearest);
-		if ( pPos[i] != nomatch )
-			pPos[i] += 1; // adjust for R indexing from 1
+		if ( ptr[i] != nomatch ) {
+			num_matches++;
+			ptr[i] += index1; // adjust for R indexing from 1
+		}
 	}
-	UNPROTECT(1);
-	return positions;
+	return num_matches;
 }
 
 template<>
-SEXP do_binary_search<const char *, STRSXP>(SEXP x, SEXP table, double tol,
-	int tol_ref, int nomatch, bool nearest)
+size_t do_binary_search<const char *, STRSXP>(int * ptr, SEXP x, SEXP table,
+	size_t start, size_t end, double tol, int tol_ref,
+	int nomatch, bool nearest, bool index1, index_t skip)
+{
+	R_xlen_t len = XLENGTH(x);
+	SEXP pX;
+	R_xlen_t n = XLENGTH(table);
+	size_t num_matches = 0;
+	for ( size_t i = 0; i < len; i++ ) {
+		pX = STRING_ELT(x, i);
+		if ( pX == NA_STRING )
+			ptr[i] = nomatch;
+		else
+			ptr[i] = binary_search<const char *, STRSXP>(CHAR(pX), table, 0, n,
+				tol, tol_ref, nomatch, nearest);
+		if ( ptr[i] != nomatch ) {
+			num_matches++;
+			ptr[i] += index1; // adjust for R indexing from 1
+		}
+	}
+	return num_matches;
+}
+
+template<typename T, int S>
+SEXP do_binary_search(SEXP x, SEXP table, double tol,
+	int tol_ref, int nomatch, bool nearest, bool index1)
 {
 	R_xlen_t len = XLENGTH(x);
 	SEXP positions;
 	PROTECT(positions = Rf_allocVector(INTSXP, len));
 	int * pPos = INTEGER(positions);
-	SEXP pX;
-	R_xlen_t n = XLENGTH(table);
-	for ( size_t i = 0; i < len; i++ ) {
-		pX = STRING_ELT(x, i);
-		if ( pX == NA_STRING )
-			pPos[i] = nomatch;
-		else
-			pPos[i] = binary_search<const char *, STRSXP>(CHAR(pX), table, 0, n,
-				tol, tol_ref, nomatch, nearest);
-		if ( pPos[i] != nomatch )
-			pPos[i] += 1; // adjust for R indexing from 1
-	}
+	do_binary_search<T, S>(pPos, x, table, 0, len,
+		tol, tol_ref, nomatch, nearest, index1, 1);
 	UNPROTECT(1);
 	return positions;
 }
 
 template<typename Tkey, int Skey, typename Tval, int Sval>
-SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol,
-	int tol_ref, Tval nomatch, int dups, bool sorted)
+size_t do_keyval_search(Tval * ptr, SEXP x, SEXP keys, SEXP values,
+	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
+	int dups, bool sorted, index_t skip)
 {
 	R_xlen_t xlen = XLENGTH(x);
-	R_xlen_t keylen = XLENGTH(keys);
 	Tkey * pX = DataPtr<Tkey,Skey>(x);
 	Tkey * pKeys = DataPtr<Tkey,Skey>(keys);
 	Tval * pValues = DataPtr<Tval,Sval>(values);
-	SEXP out;
-	PROTECT(out = Rf_allocVector(Sval, xlen));
-	Tval * pOut = DataPtr<Tval,Sval>(out);
-	for ( index_t ix = 0, ikey = 0; ix < xlen; ix++ )
+	size_t num_matches = 0;
+	for ( index_t ix = 0, ikey = start; ix < xlen; ix += skip )
 	{
-		pOut[ix] = nomatch;
+		ptr[ix] = nomatch;
 		if ( !IsNA<Tkey>(pX[ix]) )
 		{
 			if ( sorted ) {
 				// sorted keys -- binary search
 				index_t ifound = binary_search<Tkey, Skey>(pX[ix], keys,
-					ikey, keylen, tol, tol_ref, NA_INTEGER, FALSE);
+					ikey, end, tol, tol_ref, NA_INTEGER, FALSE);
 				if ( ifound != NA_INTEGER ) {
+					num_matches++;
 					ikey = ifound;
-					pOut[ix] = pValues[ikey];
+					ptr[ix] = pValues[ikey];
 					if ( dups != NO_DUPS )
 					{
 						for ( int j = 1; ikey - j >= 0; j++ )
@@ -246,13 +258,13 @@ SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol,
 								Tval dupVal = pValues[ikey - j];
 								switch(dups) {
 									case SUM_DUPS:
-										pOut[ix] += dupVal;
+										ptr[ix] += dupVal;
 										break;
 									case MAX_DUPS:
-										pOut[ix] = dupVal > pOut[ix] ? dupVal : pOut[ix];
+										ptr[ix] = dupVal > ptr[ix] ? dupVal : ptr[ix];
 										break;
 									case MIN_DUPS:
-										pOut[ix] = dupVal < pOut[ix] ? dupVal : pOut[ix];
+										ptr[ix] = dupVal < ptr[ix] ? dupVal : ptr[ix];
 										break;
 								}
 							}
@@ -266,13 +278,13 @@ SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol,
 								Tval dupVal = pValues[ikey + k];
 								switch(dups) {
 									case SUM_DUPS:
-										pOut[ix] += dupVal;
+										ptr[ix] += dupVal;
 										break;
 									case MAX_DUPS:
-										pOut[ix] = dupVal > pOut[ix] ? dupVal : pOut[ix];
+										ptr[ix] = dupVal > ptr[ix] ? dupVal : ptr[ix];
 										break;
 									case MIN_DUPS:
-										pOut[ix] = dupVal < pOut[ix] ? dupVal : pOut[ix];
+										ptr[ix] = dupVal < ptr[ix] ? dupVal : ptr[ix];
 										break;
 								}
 							}
@@ -281,31 +293,32 @@ SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol,
 						}
 					}
 					if ( ix + 1 < xlen && pX[ix + 1] < pX[ix] )
-						ikey = 0;
+						ikey = start;
 				}
 			}
 			else {
 				// unsorted keys -- linear search
-				size_t match_count = 0;
+				size_t icount = 0;
 				double min_diff = DBL_MAX;
-				for ( ikey = 0; ikey < keylen; ikey++ )
+				for ( ikey = start; ikey < end; ikey++ )
 				{
 					double diff = rel_diff<Tkey>(pX[ix], pKeys[ikey], tol_ref);
 					if ( diff <= tol )
 					{
-						match_count++;
+						num_matches++;
+						icount++;
 						switch(dups) {
 							case NO_DUPS:
-								pOut[ix] = diff < min_diff ? pValues[ikey] : pOut[ix];
+								ptr[ix] = diff < min_diff ? pValues[ikey] : ptr[ix];
 								break;
 							case SUM_DUPS:
-								pOut[ix] = match_count > 1 ? pValues[ikey] + pOut[ix] : pValues[ikey];
+								ptr[ix] = icount > 1 ? pValues[ikey] + ptr[ix] : pValues[ikey];
 								break;
 							case MAX_DUPS:
-								pOut[ix] = match_count == 1 || pValues[ikey] > pOut[ix] ? pValues[ikey] : pOut[ix];
+								ptr[ix] = icount == 1 || pValues[ikey] > ptr[ix] ? pValues[ikey] : ptr[ix];
 								break;
 							case MIN_DUPS:
-								pOut[ix] = match_count == 1 || pValues[ikey] < pOut[ix] ? pValues[ikey] : pOut[ix];
+								ptr[ix] = icount == 1 || pValues[ikey] < ptr[ix] ? pValues[ikey] : ptr[ix];
 								break;
 						}
 						if ( diff < min_diff )
@@ -317,6 +330,20 @@ SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol,
 			}
 		}
 	}
+	return num_matches;
+}
+
+template<typename Tkey, int Skey, typename Tval, int Sval>
+SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol,
+	int tol_ref, Tval nomatch, int dups, bool sorted)
+{
+	R_xlen_t xlen = XLENGTH(x);
+	R_xlen_t keylen = XLENGTH(keys);
+	SEXP out;
+	PROTECT(out = Rf_allocVector(Sval, xlen));
+	Tval * pOut = DataPtr<Tval,Sval>(out);
+	do_keyval_search<Tkey, Skey, Tval, Sval>(pOut, x, keys, values,
+		0, keylen, tol, tol_ref, nomatch, dups, sorted, 1);
 	UNPROTECT(1);
 	return out;
 }
@@ -358,13 +385,13 @@ extern "C" {
 		switch(TYPEOF(x)) {
 			case STRSXP:
 				return do_binary_search<const char *, STRSXP>(x, table,
-					_tol, _tol_ref, _nomatch, _nearest);
+					_tol, _tol_ref, _nomatch, _nearest, TRUE);
 			case INTSXP:
 				return do_binary_search<int, INTSXP>(x, table,
-					_tol, _tol_ref, _nomatch, _nearest);
+					_tol, _tol_ref, _nomatch, _nearest, TRUE);
 			case REALSXP:
 				return do_binary_search<double, REALSXP>(x, table,
-					_tol, _tol_ref, _nomatch, _nearest);
+					_tol, _tol_ref, _nomatch, _nearest, TRUE);
 		}
 		Rf_error("supported types are 'integer', 'numeric', or 'character'");
 	}

@@ -2,14 +2,14 @@
 #### Define matter VIRTUAL class ####
 ## ----------------------------------
 
-setClassUnion("atoms_OR_list", c("atoms", "list"))
 setClassUnion("character_OR_NULL", c("character", "NULL"))
 setClassUnion("integer_OR_NULL", c("integer", "NULL"))
+setClassUnion("numeric_OR_NULL", c("numeric", "NULL"))
 setClassUnion("list_OR_NULL", c("list", "NULL"))
 
 setClass("matter",
 	slots = c(
-		data = "atoms_OR_list",
+		data = "ANY",
 		datamode = "factor",
 		paths = "character",
 		filemode = "factor",
