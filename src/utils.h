@@ -20,8 +20,11 @@ extern "C" {
 template<typename T, int S>
 T * DataPtr(SEXP x);
 
-template<typename T>
+template<typename T, int S>
 T DataElt(SEXP x, size_t i);
+
+template<typename T, int S>
+void DataSetElt(SEXP x, size_t i, T value);
 
 template<typename T>
 T DataNA();

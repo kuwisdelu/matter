@@ -2,12 +2,10 @@
 #### Define matter<sparse vector> classes for sparse data ####
 ## -----------------------------------------------------------
 
-setClassUnion("valid_sparse_vec_types", c("numeric", "matter_vec"))
-
 setClass("sparse_vec",
 	slots = c(
-		data = "valid_sparse_vec_types",
-		index = "valid_sparse_vec_types",
+		data = "numeric",
+		index = "numeric",
 		keys = "numeric_OR_NULL",
 		tolerance = "numeric",
 		combiner = "factor"),

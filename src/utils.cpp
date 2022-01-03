@@ -17,6 +17,9 @@ extern "C" {
 
 }
 
+//// Data Pointer Access
+//----------------------
+
 template<>
 Rbyte * DataPtr<Rbyte,RAWSXP>(SEXP x)
 {
@@ -41,23 +44,54 @@ double * DataPtr<double,REALSXP>(SEXP x)
 	return REAL(x);
 }
 
+
+//// Get Data Element
+//--------------------
+
 template<>
-int DataElt<int>(SEXP x, size_t i)
+int DataElt<int,INTSXP>(SEXP x, size_t i)
 {
 	return INTEGER(x)[i];
 }
 
 template<>
-double DataElt<double>(SEXP x, size_t i)
+double DataElt<double,REALSXP>(SEXP x, size_t i)
 {
 	return REAL(x)[i];
 }
 
 template<>
-const char * DataElt<const char *>(SEXP x, size_t i)
+const char * DataElt<const char *,STRSXP>(SEXP x, size_t i)
 {
 	return CHAR(STRING_ELT(x, i));
 }
+
+
+//// Set Data Element
+//--------------------
+
+template<>
+void DataSetElt<int,INTSXP>(SEXP x, size_t i, int value)
+{
+	INTEGER(x)[i] = value;
+}
+
+template<>
+void DataSetElt<double,REALSXP>(SEXP x, size_t i, double value)
+{
+	REAL(x)[i] = value;
+}
+
+template<>
+void DataSetElt<const char *,STRSXP>(SEXP x, size_t i, const char * value)
+{
+	SET_STRING_ELT(x, i, Rf_mkChar(value));
+}
+
+
+
+//// Missing values
+//------------------
 
 template<>
 Rbyte DataNA<Rbyte>()

@@ -4048,6 +4048,16 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     }
 }
 
+//// SparseVector methods
+//------------------------
+
+// template<typename TInd, int SInd, typename TVal, int SVal>
+// template<typename T>
+// T SparseVector<TInd, SInd, TVal, SVal> :: get(size_t i)
+// {
+//     return 0;
+// }
+
 //// Statistical functions applied on MatterIterator
 //--------------------------------------------------
 

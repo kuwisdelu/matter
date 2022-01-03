@@ -805,7 +805,7 @@ make_tolerance <- function(tolerance) {
 	} else {
 		type <- 1L
 	}
-	structure(as.vector(tol), compare=factor(type,
+	structure(as.vector(tol), tol_type=factor(type,
 		levels=c(1, 2), labels=c("absolute", "relative")))
 }
 

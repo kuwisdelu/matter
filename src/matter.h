@@ -278,6 +278,7 @@ union R_ANY {
     int * i;
     double * d;
     SEXP * s;
+    Atoms * a;
     Matter * m;
 };
 
@@ -877,7 +878,6 @@ class Atoms {
 
 class Matter
 {
-
     public:
 
         Matter(SEXP x) : _sources(x), _ops(x)
@@ -1100,7 +1100,99 @@ class Matter
         SEXP _dimnames;
         SEXP _names;
         int _S4class;      // 0 = any, 2 = col-matrix, 3 = row-matrix
-        // Scaled _scaled;
+};
+
+
+
+//// Sparse classes
+//------------------
+
+template<typename TInd, int SInd, typename TVal, int SVal>
+class Sparse
+{
+    public:
+
+        Sparse(SEXP x)
+        {
+            _data = R_do_slot(x, Rf_install("data"));
+            _datamode = INTEGER(R_do_slot(x, Rf_install("datamode")));
+            _length = static_cast<index_t>(Rf_asReal(R_do_slot(x, Rf_install("length"))));
+            _dim = R_do_slot(x, Rf_install("dim"));
+            _dimnames = R_do_slot(x, Rf_install("dimnames"));
+            _names = R_do_slot(x, Rf_install("names"));
+            SEXP tol = R_do_slot(x, Rf_install("tolerance"));
+            SEXP tol_type = Rf_getAttrib(tol, Rf_install("tol_type"));
+            _tolerance = Rf_asInteger(tol);
+            _tolerance_type = Rf_asInteger(tol_type);
+            _combiner = Rf_asInteger(R_do_slot(x, Rf_install("combiner")));
+            set_matter_options();
+        }
+
+        ~Sparse(){}
+
+        SEXP data() {
+            return _data;
+        }
+
+        int datamode() {
+            return _datamode[0];
+        }
+
+        index_t length() {
+            return _length;
+        }
+
+        SEXP dim() {
+            return _dim;
+        }
+
+        int dim(int i) {
+            return INTEGER(_dim)[i];
+        }
+
+        int dimlength() {
+            return LENGTH(_dim);
+        }
+
+        SEXP dimnames() {
+            return _dimnames;
+        }
+
+        SEXP names() {
+            return _names;
+        }
+
+        template<typename T>
+        size_t getRegion(size_t i, size_t size);
+
+        template<typename T>
+        SEXP getAll(SEXP i);
+
+        template<typename T>
+        SEXP getElements(SEXP i);
+
+    protected:
+
+        SEXP _data;
+        int * _datamode;  // 1 = raw, 2 = logical, 3 = integer, 4 = numeric
+        index_t _length;
+        SEXP _dim;
+        SEXP _dimnames;
+        SEXP _names;
+        int _tolerance;
+        int _tolerance_type; // 1 = absolute, 2 = relative
+        int _combiner;
+};
+
+template<typename TInd, int SInd, typename TVal, int SVal>
+class SparseVector : public Sparse<TInd,SInd,TVal,SVal>
+{
+    public:
+
+        SparseVector(SEXP x) : Sparse<TInd,SInd,TVal,SVal>(x) {}
+
+        template<typename T>
+        T get(size_t i);
 
 };
 
@@ -1267,6 +1359,10 @@ extern "C" {
     SEXP getMatrixElements(SEXP x, SEXP i, SEXP j);
 
     void setMatrixElements(SEXP x, SEXP i, SEXP j, SEXP value);
+
+    SEXP getSparseVector(SEXP x);
+
+    void setSparseVector(SEXP x, SEXP value);
 
     SEXP getString(SEXP x);
 
