@@ -21,74 +21,52 @@ extern "C" {
 //----------------------
 
 template<>
-Rbyte * DataPtr<Rbyte,RAWSXP>(SEXP x)
+Rbyte * DataPtr<Rbyte>(SEXP x)
 {
-	return RAW(x);
+	return static_cast<Rbyte *>(DATAPTR(x));
 }
 
 template<>
-int * DataPtr<int,LGLSXP>(SEXP x)
+int * DataPtr<int>(SEXP x)
 {
-	return LOGICAL(x);
+	return static_cast<int *>(DATAPTR(x));
 }
 
 template<>
-int * DataPtr<int,INTSXP>(SEXP x)
+double * DataPtr<double>(SEXP x)
 {
-	return INTEGER(x);
+	return static_cast<double *>(DATAPTR(x));
 }
-
-template<>
-double * DataPtr<double,REALSXP>(SEXP x)
-{
-	return REAL(x);
-}
-
 
 //// Get Data Element
 //--------------------
 
-template<>
-int DataElt<int,INTSXP>(SEXP x, size_t i)
+template<typename T>
+T * DataElt(SEXP x, size_t i)
 {
-	return INTEGER(x)[i];
+	return static_cast<double *>(DATAPTR(x));
 }
 
 template<>
-double DataElt<double,REALSXP>(SEXP x, size_t i)
-{
-	return REAL(x)[i];
-}
-
-template<>
-const char * DataElt<const char *,STRSXP>(SEXP x, size_t i)
+const char * DataElt<const char *>(SEXP x, size_t i)
 {
 	return CHAR(STRING_ELT(x, i));
 }
 
-
 //// Set Data Element
 //--------------------
 
-template<>
-void DataSetElt<int,INTSXP>(SEXP x, size_t i, int value)
+template<typename T>
+void SetDataElt(SEXP x, size_t i, T value)
 {
-	INTEGER(x)[i] = value;
+	DataPtr<T>(x)[i] = value;
 }
 
 template<>
-void DataSetElt<double,REALSXP>(SEXP x, size_t i, double value)
-{
-	REAL(x)[i] = value;
-}
-
-template<>
-void DataSetElt<const char *,STRSXP>(SEXP x, size_t i, const char * value)
+void SetDataElt<const char *>(SEXP x, size_t i, const char * value)
 {
 	SET_STRING_ELT(x, i, Rf_mkChar(value));
 }
-
-
 
 //// Missing values
 //------------------
@@ -97,13 +75,6 @@ template<>
 Rbyte DataNA<Rbyte>()
 {
 	Rf_error("NAs unsupported for type 'Rbyte'");
-	return 0;
-}
-
-template<>
-bool DataNA<bool>()
-{
-	Rf_error("NAs unsupported for type 'bool'");
 	return 0;
 }
 
@@ -124,6 +95,9 @@ SEXP DataNA<SEXP>()
 {
 	return NA_STRING;
 }
+
+//// Test missingness
+//--------------------
 
 template<>
 bool IsNA<Rbyte>(Rbyte x)

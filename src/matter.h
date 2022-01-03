@@ -129,15 +129,15 @@ class VectorOrDRLE {
         {
             if ( Rf_isS4(x) )
             {
-                values = DataPtr<RType,SType>(R_do_slot(x, Rf_install("values")));
+                values = DataPtr<RType>(R_do_slot(x, Rf_install("values")));
                 lengths = INTEGER(R_do_slot(x, Rf_install("lengths")));
-                deltas = DataPtr<RType,SType>(R_do_slot(x, Rf_install("deltas")));
+                deltas = DataPtr<RType>(R_do_slot(x, Rf_install("deltas")));
                 nruns = LENGTH(R_do_slot(x, Rf_install("values")));
                 isDRLE = true;
             }
             else
             {
-                values = DataPtr<RType,SType>(x);
+                values = DataPtr<RType>(x);
                 nruns = LENGTH(x);
                 isDRLE = false;
             }

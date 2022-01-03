@@ -17,14 +17,14 @@ extern "C" {
 
 }
 
-template<typename T, int S>
+template<typename T>
 T * DataPtr(SEXP x);
 
-template<typename T, int S>
+template<typename T>
 T DataElt(SEXP x, size_t i);
 
-template<typename T, int S>
-void DataSetElt(SEXP x, size_t i, T value);
+template<typename T>
+void SetDataElt(SEXP x, size_t i, T value);
 
 template<typename T>
 T DataNA();

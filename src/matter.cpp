@@ -857,7 +857,7 @@ SEXP VectorOrDRLE<RType,SType> :: decode() {
     SEXP retVec;
     int nout = length();
     PROTECT(retVec = Rf_allocVector(SType, nout));
-    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    RType * pRetVec = DataPtr<RType>(retVec);
     if ( isDRLE ) {
         int cum_index = 0;
         for ( int nrun = 0; nrun < nruns; nrun++ ) {
@@ -877,7 +877,7 @@ template<typename RType, int SType>
 SEXP VectorOrDRLE<RType,SType> :: decodeElements(SEXP i) {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, LENGTH(i)));
-    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    RType * pRetVec = DataPtr<RType>(retVec);
     int * pIndex = INTEGER(i);
     for ( int k = 0; k < LENGTH(i); k++ )
         pRetVec[k] = (*this)[pIndex[k]];
@@ -3707,7 +3707,7 @@ template<typename RType, int SType>
 SEXP Matter :: readVector() {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, length()));
-    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    RType * pRetVec = DataPtr<RType>(retVec);
     data().read<RType>(pRetVec, 0, length());
     UNPROTECT(1);
     return retVec;
@@ -3715,7 +3715,7 @@ SEXP Matter :: readVector() {
 
 template<typename RType, int SType>
 void Matter :: writeVector(SEXP value) {
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     if ( XLENGTH(value) == 1 )
         data().write<RType>(pValue, 0, length(), 0);
     else
@@ -3726,7 +3726,7 @@ template<typename RType, int SType>
 SEXP Matter :: readVectorElements(SEXP i) {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, XLENGTH(i)));
-    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    RType * pRetVec = DataPtr<RType>(retVec);
     Rindex_t * pIndex = R_INDEX_PTR(i);
     data().read_indices<RType>(pRetVec, pIndex, XLENGTH(i));
     UNPROTECT(1);
@@ -3735,7 +3735,7 @@ SEXP Matter :: readVectorElements(SEXP i) {
 
 template<typename RType, int SType>
 void Matter :: writeVectorElements(SEXP i, SEXP value) {
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     Rindex_t * pIndex = R_INDEX_PTR(i);
     if ( XLENGTH(value) == 1 )
         data().write_indices<RType>(pValue, pIndex, XLENGTH(i), 0);
@@ -3750,7 +3750,7 @@ template<typename RType, int SType>
 SEXP Matter :: readListElements(int i) {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, dim(i)));
-    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    RType * pRetVec = DataPtr<RType>(retVec);
     data().set_group(i);
     data().read<RType>(pRetVec, 0, dim(i));
     UNPROTECT(1);
@@ -3761,7 +3761,7 @@ template<typename RType, int SType>
 SEXP Matter :: readListElements(int i, SEXP j) {
     SEXP retVec;
     PROTECT(retVec = Rf_allocVector(SType, LENGTH(j)));
-    RType * pRetVec = DataPtr<RType,SType>(retVec);
+    RType * pRetVec = DataPtr<RType>(retVec);
     data().set_group(i);
     data().read_indices<RType>(pRetVec, R_INDEX_PTR(j), XLENGTH(j));
     UNPROTECT(1);
@@ -3770,7 +3770,7 @@ SEXP Matter :: readListElements(int i, SEXP j) {
 
 template<typename RType, int SType>
 void Matter :: writeListElements(int i, SEXP value) {
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     data().set_group(i);
     if ( XLENGTH(value) == 1 )
         data().write<RType>(pValue, 0, dim(i), 0);
@@ -3780,7 +3780,7 @@ void Matter :: writeListElements(int i, SEXP value) {
 
 template<typename RType, int SType>
 void Matter :: writeListElements(int i, SEXP j, SEXP value) {
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     data().set_group(i);
     if ( XLENGTH(value) == 1 )
         data().write_indices<RType>(pValue, R_INDEX_PTR(j), XLENGTH(j), 0);
@@ -3797,7 +3797,7 @@ SEXP Matter :: readMatrix() {
     SEXP retMat;
     int nrows = this->nrows(), ncols = this->ncols();
     PROTECT(retMat = Rf_allocMatrix(SType, nrows, ncols));
-    RType * pRetMat = DataPtr<RType,SType>(retMat);
+    RType * pRetMat = DataPtr<RType>(retMat);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -3821,7 +3821,7 @@ SEXP Matter :: readMatrix() {
 template<typename RType, int SType>
 void Matter :: writeMatrix(SEXP value) {
     int nrows = this->nrows(), ncols = this->ncols();
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     switch(S4class()) {
         case MATTER_MATC:
             for ( int col = 0; col < ncols; col++ ) {
@@ -3851,7 +3851,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
     SEXP retMat;
     int nrows = LENGTH(i), ncols = this->ncols();
     PROTECT(retMat = Rf_allocMatrix(SType, nrows, ncols));
-    RType * pRetMat = DataPtr<RType,SType>(retMat);
+    RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pRow = R_INDEX_PTR(i);
     switch(S4class()) {
         case MATTER_MATC:
@@ -3881,7 +3881,7 @@ SEXP Matter :: readMatrixRows(SEXP i) {
 template<typename RType, int SType>
 void Matter :: writeMatrixRows(SEXP i, SEXP value) {
     int nrows = LENGTH(i), ncols = this->ncols();
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     Rindex_t * pRow = R_INDEX_PTR(i);
     switch(S4class()) {
         case MATTER_MATC:
@@ -3915,7 +3915,7 @@ SEXP Matter :: readMatrixCols(SEXP j) {
     SEXP retMat;
     int nrows = this->nrows(), ncols = LENGTH(j);
     PROTECT(retMat = Rf_allocMatrix(SType, nrows, ncols));
-    RType * pRetMat = DataPtr<RType,SType>(retMat);
+    RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
@@ -3945,7 +3945,7 @@ SEXP Matter :: readMatrixCols(SEXP j) {
 template<typename RType, int SType>
 void Matter :: writeMatrixCols(SEXP j, SEXP value) {
     int nrows = this->nrows(), ncols = LENGTH(j);
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
         case MATTER_MATC:
@@ -3979,7 +3979,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
     SEXP retMat;
     int nrows = LENGTH(i), ncols = LENGTH(j);
     PROTECT(retMat = Rf_allocMatrix(SType, nrows, ncols));
-    RType * pRetMat = DataPtr<RType,SType>(retMat);
+    RType * pRetMat = DataPtr<RType>(retMat);
     Rindex_t * pRow = R_INDEX_PTR(i);
     Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
@@ -4015,7 +4015,7 @@ SEXP Matter :: readMatrixElements(SEXP i, SEXP j) {
 template<typename RType, int SType>
 void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
     int nrows = LENGTH(i), ncols = LENGTH(j);
-    RType * pValue = DataPtr<RType,SType>(value);
+    RType * pValue = DataPtr<RType>(value);
     Rindex_t * pRow = R_INDEX_PTR(i);
     Rindex_t * pCol = R_INDEX_PTR(j);
     switch(S4class()) {
@@ -4600,7 +4600,7 @@ SEXP Matter :: rmult(SEXP y) {
     SEXP retMat;
     PROTECT(retMat = Rf_allocMatrix(REALSXP, nrows(), Rf_ncols(y)));
     double * pRetMat = REAL(retMat);
-    RType * pY = DataPtr<RType,SType>(y);
+    RType * pY = DataPtr<RType>(y);
     int nrRetMat = Rf_nrows(retMat);
     int ncRetMat = Rf_ncols(retMat);
     int nrY = Rf_nrows(y);
@@ -4648,7 +4648,7 @@ SEXP Matter :: lmult(SEXP x) {
     SEXP retMat;
     PROTECT(retMat = Rf_allocMatrix(REALSXP, Rf_nrows(x), ncols()));
     double * pRetMat = REAL(retMat);
-    RType * pX = DataPtr<RType,SType>(x);
+    RType * pX = DataPtr<RType>(x);
     int nrRetMat = Rf_nrows(retMat);
     int nrX = Rf_nrows(x);
     int len = LENGTH(retMat);
