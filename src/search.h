@@ -9,6 +9,8 @@
 #include <cmath>
 #include <cfloat>
 
+#include "utils.h"
+
 #define ABS_DIFF 	1
 #define REL_DIFF_X	2
 #define REL_DIFF_Y	3
@@ -53,7 +55,6 @@ template<typename T>
 index_t binary_search(SEXP x, SEXP table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest);
 
-// fuzzy binary search returning positions of all 'x' in 'table'
 template<typename T>
 size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
@@ -63,7 +64,11 @@ template<typename T>
 SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 	int nomatch, bool nearest = FALSE, bool index1 = FALSE);
 
-// fuzzy key-value search returning all 'value's matching 'keys' in 'x'
+// fuzzy key-value search returning all 'value's with 'keys' matching 'x'
+template<typename TKey, typename TVal>
+Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, size_t end,
+	double tol, int tol_ref, TVal nomatch, int dups = NO_DUPS, bool sorted = FALSE);
+
 template<typename TKey, typename TVal>
 size_t do_keyval_search(TVal * ptr, SEXP x, SEXP keys, SEXP values,
 	size_t start, size_t end, double tol, int tol_ref, TVal nomatch,

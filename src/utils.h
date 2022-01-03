@@ -17,6 +17,24 @@ extern "C" {
 
 }
 
+// index types
+
+typedef ptrdiff_t index_t;
+
+typedef double Rindex_t;
+
+#define INDEX_PTR(x) ((Rindex_t *)(DATAPTR(x)))
+
+// pair structure
+
+template<typename T1, typename T2>
+struct Pair {
+	T1 first;
+	T2 second;
+};
+
+// function templates
+
 template<typename T>
 T * DataPtr(SEXP x);
 

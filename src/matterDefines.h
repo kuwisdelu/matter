@@ -20,13 +20,6 @@ extern "C"
 
 // #define MATTER_DEBUG // uncomment for matter ALTREP debugging
 
-// index types
-
-typedef ptrdiff_t index_t;
-typedef double Rindex_t;
-
-#define R_INDEX_PTR(x) REAL(x)
-
 // pair of numerics
 
 struct pair_int {

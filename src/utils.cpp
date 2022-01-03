@@ -23,19 +23,19 @@ extern "C" {
 template<>
 Rbyte * DataPtr<Rbyte>(SEXP x)
 {
-	return static_cast<Rbyte *>(DATAPTR(x));
+	return ((Rbyte *)(DATAPTR(x)));
 }
 
 template<>
 int * DataPtr<int>(SEXP x)
 {
-	return static_cast<int *>(DATAPTR(x));
+	return ((int *)(DATAPTR(x)));
 }
 
 template<>
 double * DataPtr<double>(SEXP x)
 {
-	return static_cast<double *>(DATAPTR(x));
+	return ((double *)(DATAPTR(x)));
 }
 
 //// Get Data Element
@@ -44,7 +44,7 @@ double * DataPtr<double>(SEXP x)
 template<typename T>
 T * DataElt(SEXP x, size_t i)
 {
-	return static_cast<double *>(DATAPTR(x));
+	return ((double *)(DATAPTR(x)));
 }
 
 template<>

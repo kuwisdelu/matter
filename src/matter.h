@@ -1107,7 +1107,6 @@ class Matter
 //// Sparse classes
 //------------------
 
-template<typename TInd, int SInd, typename TVal, int SVal>
 class Sparse
 {
     public:
@@ -1162,13 +1161,13 @@ class Sparse
             return _names;
         }
 
-        template<typename T>
+        template<typename TKey, typename TVal>
         size_t getRegion(size_t i, size_t size);
 
-        template<typename T>
+        template<typename TKey, typename TVal, int S>
         SEXP getAll(SEXP i);
 
-        template<typename T>
+        template<typename TKey, typename TVal, int S>
         SEXP getElements(SEXP i);
 
     protected:
@@ -1184,17 +1183,16 @@ class Sparse
         int _combiner;
 };
 
-template<typename TInd, int SInd, typename TVal, int SVal>
-class SparseVector : public Sparse<TInd,SInd,TVal,SVal>
-{
-    public:
+// class SparseVector : public Sparse
+// {
+//     public:
 
-        SparseVector(SEXP x) : Sparse<TInd,SInd,TVal,SVal>(x) {}
+//         SparseVector(SEXP x) : Sparse(x) {}
 
-        template<typename T>
-        T get(size_t i);
+//         template<typename TKey, typename TVal>
+//         TVal get(size_t i);
 
-};
+// };
 
 
 //// MatterIterator class

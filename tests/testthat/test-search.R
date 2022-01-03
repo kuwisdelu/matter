@@ -1,9 +1,9 @@
 require(testthat)
 require(matter)
 
-context("bsearch")
+context("search")
 
-test_that("binary search - relative diff", {
+test_that("relative difference", {
 
 	expect_equal(reldiff(3L, 4L), abs(3 - 4))
 
