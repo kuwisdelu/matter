@@ -29,18 +29,6 @@ SEXP raw_to_char(SEXP x) {
     return raw_to_char(RAW(x), XLENGTH(x));
 }
 
-bool is_R_NA(Rbyte x) {
-    return false;
-}
-
-bool is_R_NA(int x) {
-    return x == NA_INTEGER;
-}
-
-bool is_R_NA(double x) {
-    return ISNA(x) || ISNAN(x);
-}
-
 int coerce_logical(Rbyte x) {
     return (x == 0 ? 0 : 1);
 }
@@ -986,7 +974,7 @@ RType VectorOrDRLE<RType,SType> :: operator[](int i) {
     }
     if ( i >= ref_index )
         Rf_error("subscript out of bounds");
-    return DataNA<RType>();
+    return NA<RType>();
 }
 
 //// Delayed operations on atoms
@@ -1094,8 +1082,8 @@ void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
     if ( ylen == 1 ) {
         tmp = y[0];
         for ( index_t k = 0; k < count; k++ ) {
-            if ( is_R_NA(*x) || is_R_NA(tmp) )
-                *x = DataNA<T1>();
+            if ( isNA(*x) || isNA(tmp) )
+                *x = NA<T1>();
             else
                 *x += tmp;
             x += skip;
@@ -1109,8 +1097,8 @@ void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[offset + k];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x += tmp;
                     x += skip;
@@ -1120,8 +1108,8 @@ void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x += tmp;
                     x += skip;
@@ -1131,8 +1119,8 @@ void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x += tmp;
                     x += skip;
@@ -1145,8 +1133,8 @@ void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[atm->group()];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x += tmp;
                     x += skip;
@@ -1156,8 +1144,8 @@ void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group()))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x += tmp;
                     x += skip;
@@ -1167,8 +1155,8 @@ void Ops :: add(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x += tmp;
                     x += skip;
@@ -1187,8 +1175,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = tmp - (*x);
                 x += skip;
@@ -1202,8 +1190,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = tmp - (*x);
                         x += skip;
@@ -1213,8 +1201,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = tmp - (*x);
                         x += skip;
@@ -1224,8 +1212,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = tmp - (*x);
                         x += skip;
@@ -1238,8 +1226,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = tmp - (*x);
                         x += skip;
@@ -1249,8 +1237,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = tmp - (*x);
                         x += skip;
@@ -1260,8 +1248,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = tmp - (*x);
                         x += skip;
@@ -1275,8 +1263,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x -= tmp;
                 x += skip;
@@ -1290,8 +1278,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x -= tmp;
                         x += skip;
@@ -1301,8 +1289,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x -= tmp;
                         x += skip;
@@ -1312,8 +1300,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x -= tmp;
                         x += skip;
@@ -1326,8 +1314,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x -= tmp;
                         x += skip;
@@ -1337,8 +1325,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x -= tmp;
                         x += skip;
@@ -1348,8 +1336,8 @@ void Ops :: sub(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x -= tmp;
                         x += skip;
@@ -1367,8 +1355,8 @@ void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
     if ( ylen == 1 ) {
         tmp = y[0];
         for ( index_t k = 0; k < count; k++ ) {
-            if ( is_R_NA(*x) || is_R_NA(tmp) )
-                *x = DataNA<T1>();
+            if ( isNA(*x) || isNA(tmp) )
+                *x = NA<T1>();
             else
                 *x *= tmp;
             x += skip;
@@ -1382,8 +1370,8 @@ void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[offset + k];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x *= tmp;
                     x += skip;
@@ -1393,8 +1381,8 @@ void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x *= tmp;
                     x += skip;
@@ -1404,8 +1392,8 @@ void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x *= tmp;
                     x += skip;
@@ -1418,8 +1406,8 @@ void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[atm->group()];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x *= tmp;
                     x += skip;
@@ -1429,8 +1417,8 @@ void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group()))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x *= tmp;
                     x += skip;
@@ -1440,8 +1428,8 @@ void Ops :: mul(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x *= tmp;
                     x += skip;
@@ -1460,8 +1448,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = static_cast<double>(tmp) / (*x);
                 x += skip;
@@ -1475,8 +1463,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = static_cast<double>(tmp) / (*x);
                         x += skip;
@@ -1486,8 +1474,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = static_cast<double>(tmp) / (*x);
                         x += skip;
@@ -1497,8 +1485,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = static_cast<double>(tmp) / (*x);
                         x += skip;
@@ -1511,8 +1499,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = static_cast<double>(tmp) / (*x);
                         x += skip;
@@ -1522,8 +1510,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = static_cast<double>(tmp) / (*x);
                         x += skip;
@@ -1533,8 +1521,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = static_cast<double>(tmp) / (*x);
                         x += skip;
@@ -1548,8 +1536,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x /= static_cast<double>(tmp);
                 x += skip;
@@ -1563,8 +1551,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x /= static_cast<double>(tmp);
                         x += skip;
@@ -1574,8 +1562,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x /= static_cast<double>(tmp);
                         x += skip;
@@ -1585,8 +1573,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x /= static_cast<double>(tmp);
                         x += skip;
@@ -1599,8 +1587,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x /= static_cast<double>(tmp);
                         x += skip;
@@ -1610,8 +1598,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x /= static_cast<double>(tmp);
                         x += skip;
@@ -1621,8 +1609,8 @@ void Ops :: div(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x /= static_cast<double>(tmp);
                         x += skip;
@@ -1642,8 +1630,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = coerce_mod<T2,T1,T1>(tmp, *x);
                 x += skip;
@@ -1657,8 +1645,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1668,8 +1656,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1679,8 +1667,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1693,8 +1681,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1704,8 +1692,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1715,8 +1703,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1730,8 +1718,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = coerce_mod<T1,T2,T1>(*x, tmp);
                 x += skip;
@@ -1745,8 +1733,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1756,8 +1744,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1767,8 +1755,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1781,8 +1769,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1792,8 +1780,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1803,8 +1791,8 @@ void Ops :: mod(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_mod<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1824,8 +1812,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = coerce_idiv<T2,T1,T1>(tmp, *x);
                 x += skip;
@@ -1839,8 +1827,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1850,8 +1838,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1861,8 +1849,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1875,8 +1863,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1886,8 +1874,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1897,8 +1885,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T2,T1,T1>(tmp, *x);
                         x += skip;
@@ -1912,8 +1900,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
         if ( ylen == 1 ) {
             tmp = y[0];
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                 x += skip;
@@ -1927,8 +1915,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[offset + k];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1938,8 +1926,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1949,8 +1937,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1963,8 +1951,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[atm->group()];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1974,8 +1962,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group()))];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -1985,8 +1973,8 @@ void Ops :: idiv(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t cou
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_idiv<T1,T2,T1>(*x, tmp);
                         x += skip;
@@ -2014,8 +2002,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = coerce_pow<T1>(tmp, (*x));
                 x += skip;
@@ -2029,8 +2017,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>(tmp, (*x));
                         x += skip;
@@ -2040,8 +2028,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>(tmp, (*x));
                         x += skip;
@@ -2051,8 +2039,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>(tmp, (*x));
                         x += skip;
@@ -2065,8 +2053,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>(tmp, (*x));
                         x += skip;
@@ -2076,8 +2064,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>(tmp, (*x));
                         x += skip;
@@ -2087,8 +2075,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>(tmp, (*x));
                         x += skip;
@@ -2102,8 +2090,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = coerce_pow<T1>((*x), tmp);
                 x += skip;
@@ -2117,8 +2105,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>((*x), tmp);
                         x += skip;
@@ -2128,8 +2116,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>((*x), tmp);
                         x += skip;
@@ -2139,8 +2127,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>((*x), tmp);
                         x += skip;
@@ -2153,8 +2141,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>((*x), tmp);
                         x += skip;
@@ -2164,8 +2152,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>((*x), tmp);
                         x += skip;
@@ -2175,8 +2163,8 @@ void Ops :: exp(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_pow<T1>((*x), tmp);
                         x += skip;
@@ -2204,8 +2192,8 @@ void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
         if ( ylen == 1) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = coerce_log<T1>(*x) / coerce_log<T1>(tmp);
                 x += skip;
@@ -2219,8 +2207,8 @@ void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_log<T1>(*x) / coerce_log<T1>(tmp);
                         x += skip;
@@ -2230,8 +2218,8 @@ void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_log<T1>(*x) / coerce_log<T1>(tmp);
                         x += skip;
@@ -2241,8 +2229,8 @@ void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_log<T1>(*x) / coerce_log<T1>(tmp);
                         x += skip;
@@ -2255,8 +2243,8 @@ void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_log<T1>(*x) / coerce_log<T1>(tmp);
                         x += skip;
@@ -2266,8 +2254,8 @@ void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_log<T1>(*x) / coerce_log<T1>(tmp);
                         x += skip;
@@ -2277,8 +2265,8 @@ void Ops :: log(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = coerce_log<T1>(*x) / coerce_log<T1>(tmp);
                         x += skip;
@@ -2296,8 +2284,8 @@ void Ops :: eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
     if ( ylen == 1 ) {
         tmp = y[0];
         for ( index_t k = 0; k < count; k++ ) {
-            if ( is_R_NA(*x) || is_R_NA(tmp) )
-                *x = DataNA<T1>();
+            if ( isNA(*x) || isNA(tmp) )
+                *x = NA<T1>();
             else
                 *x = (*x == tmp);
             x += skip;
@@ -2311,8 +2299,8 @@ void Ops :: eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[offset + k];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x == tmp);
                     x += skip;
@@ -2322,8 +2310,8 @@ void Ops :: eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x == tmp);
                     x += skip;
@@ -2333,8 +2321,8 @@ void Ops :: eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x == tmp);
                     x += skip;
@@ -2347,8 +2335,8 @@ void Ops :: eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[atm->group()];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x == tmp);
                     x += skip;
@@ -2358,8 +2346,8 @@ void Ops :: eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group()))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x == tmp);
                     x += skip;
@@ -2369,8 +2357,8 @@ void Ops :: eq(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x == tmp);
                     x += skip;
@@ -2387,8 +2375,8 @@ void Ops :: ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
     if ( ylen == 1 ) {
         tmp = y[0];
         for ( index_t k = 0; k < count; k++ ) {
-            if ( is_R_NA(*x) || is_R_NA(tmp) )
-                *x = DataNA<T1>();
+            if ( isNA(*x) || isNA(tmp) )
+                *x = NA<T1>();
             else
                 *x = (*x != tmp);
             x += skip;
@@ -2402,8 +2390,8 @@ void Ops :: ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[offset + k];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x != tmp);
                     x += skip;
@@ -2413,8 +2401,8 @@ void Ops :: ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x != tmp);
                     x += skip;
@@ -2424,8 +2412,8 @@ void Ops :: ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x != tmp);
                     x += skip;
@@ -2438,8 +2426,8 @@ void Ops :: ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[atm->group()];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x != tmp);
                     x += skip;
@@ -2449,8 +2437,8 @@ void Ops :: ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group()))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x != tmp);
                     x += skip;
@@ -2460,8 +2448,8 @@ void Ops :: ne(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x != tmp);
                     x += skip;
@@ -2480,8 +2468,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (tmp > *x);
                 x += skip;
@@ -2495,8 +2483,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp > *x);
                         x += skip;
@@ -2506,8 +2494,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp > *x);
                         x += skip;
@@ -2517,8 +2505,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp > *x);
                         x += skip;
@@ -2531,8 +2519,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp > *x);
                         x += skip;
@@ -2542,8 +2530,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp > *x);
                         x += skip;
@@ -2553,8 +2541,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp > *x);
                         x += skip;
@@ -2568,8 +2556,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (*x > tmp);
                 x += skip;
@@ -2583,8 +2571,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x > tmp);
                         x += skip;
@@ -2594,8 +2582,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x > tmp);
                         x += skip;
@@ -2605,8 +2593,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x > tmp);
                         x += skip;
@@ -2619,8 +2607,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x > tmp);
                         x += skip;
@@ -2630,8 +2618,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x > tmp);
                         x += skip;
@@ -2641,8 +2629,8 @@ void Ops :: gt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x > tmp);
                         x += skip;
@@ -2662,8 +2650,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (tmp < *x);
                 x += skip;
@@ -2677,8 +2665,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp < *x);
                         x += skip;
@@ -2688,8 +2676,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp < *x);
                         x += skip;
@@ -2699,8 +2687,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp < *x);
                         x += skip;
@@ -2713,8 +2701,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp < *x);
                         x += skip;
@@ -2724,8 +2712,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp < *x);
                         x += skip;
@@ -2735,8 +2723,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp < *x);
                         x += skip;
@@ -2750,8 +2738,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (*x < tmp);
                 x += skip;
@@ -2765,8 +2753,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x < tmp);
                         x += skip;
@@ -2776,8 +2764,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x < tmp);
                         x += skip;
@@ -2787,8 +2775,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x < tmp);
                         x += skip;
@@ -2801,8 +2789,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x < tmp);
                         x += skip;
@@ -2812,8 +2800,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x < tmp);
                         x += skip;
@@ -2823,8 +2811,8 @@ void Ops :: lt(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x < tmp);
                         x += skip;
@@ -2844,8 +2832,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (tmp >= *x);
                 x += skip;
@@ -2859,8 +2847,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp >= *x);
                         x += skip;
@@ -2870,8 +2858,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp >= *x);
                         x += skip;
@@ -2881,8 +2869,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp >= *x);
                         x += skip;
@@ -2895,8 +2883,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp >= *x);
                         x += skip;
@@ -2906,8 +2894,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp >= *x);
                         x += skip;
@@ -2917,8 +2905,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp >= *x);
                         x += skip;
@@ -2932,8 +2920,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (*x >= tmp);
                 x += skip;
@@ -2947,8 +2935,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x >= tmp);
                         x += skip;
@@ -2958,8 +2946,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x >= tmp);
                         x += skip;
@@ -2969,8 +2957,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x >= tmp);
                         x += skip;
@@ -2983,8 +2971,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x >= tmp);
                         x += skip;
@@ -2994,8 +2982,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x >= tmp);
                         x += skip;
@@ -3005,8 +2993,8 @@ void Ops :: ge(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x >= tmp);
                         x += skip;
@@ -3026,8 +3014,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (tmp <= *x);
                 x += skip;
@@ -3041,8 +3029,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp <= *x);
                         x += skip;
@@ -3052,8 +3040,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp <= *x);
                         x += skip;
@@ -3063,8 +3051,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp <= *x);
                         x += skip;
@@ -3077,8 +3065,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp <= *x);
                         x += skip;
@@ -3088,8 +3076,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp <= *x);
                         x += skip;
@@ -3099,8 +3087,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (tmp <= *x);
                         x += skip;
@@ -3114,8 +3102,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
         if ( ylen == 1 ) {
             tmp = static_cast<T1>(y[0]);
             for ( index_t k = 0; k < count; k++ ) {
-                if ( is_R_NA(*x) || is_R_NA(tmp) )
-                    *x = DataNA<T1>();
+                if ( isNA(*x) || isNA(tmp) )
+                    *x = NA<T1>();
                 else
                     *x = (*x <= tmp);
                 x += skip;
@@ -3129,8 +3117,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[offset + k]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x <= tmp);
                         x += skip;
@@ -3140,8 +3128,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x <= tmp);
                         x += skip;
@@ -3151,8 +3139,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[((atm->group() * xlen) + (offset + k)) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x <= tmp);
                         x += skip;
@@ -3165,8 +3153,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[atm->group()]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x <= tmp);
                         x += skip;
@@ -3176,8 +3164,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group()))]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x <= tmp);
                         x += skip;
@@ -3187,8 +3175,8 @@ void Ops :: le(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
                 {
                     for ( index_t k = 0; k < count; k++ ) {
                         tmp = static_cast<T1>(y[(((offset + k) * xlen + atm->group())) % ylen]);
-                        if ( is_R_NA(*x) || is_R_NA(tmp) )
-                            *x = DataNA<T1>();
+                        if ( isNA(*x) || isNA(tmp) )
+                            *x = NA<T1>();
                         else
                             *x = (*x <= tmp);
                         x += skip;
@@ -3206,8 +3194,8 @@ void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
     if ( ylen == 1 ) {
         tmp = y[0];
         for ( index_t k = 0; k < count; k++ ) {
-            if ( is_R_NA(*x) || is_R_NA(tmp) )
-                *x = DataNA<T1>();
+            if ( isNA(*x) || isNA(tmp) )
+                *x = NA<T1>();
             else
                 *x = (*x && tmp);
             x += skip;
@@ -3221,8 +3209,8 @@ void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[offset + k];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x && tmp);
                     x += skip;
@@ -3232,8 +3220,8 @@ void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x && tmp);
                     x += skip;
@@ -3243,8 +3231,8 @@ void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x && tmp);
                     x += skip;
@@ -3257,8 +3245,8 @@ void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[atm->group()];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x && tmp);
                     x += skip;
@@ -3268,8 +3256,8 @@ void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group()))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x && tmp);
                     x += skip;
@@ -3279,8 +3267,8 @@ void Ops :: AND(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t coun
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x && tmp);
                     x += skip;
@@ -3297,8 +3285,8 @@ void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
     if ( ylen == 1 ) {
         tmp = y[0];
         for ( index_t k = 0; k < count; k++ ) {
-            if ( is_R_NA(*x) || is_R_NA(tmp) )
-                *x = DataNA<T1>();
+            if ( isNA(*x) || isNA(tmp) )
+                *x = NA<T1>();
             else
                 *x = (*x || tmp);
             x += skip;
@@ -3312,8 +3300,8 @@ void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[offset + k];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x || tmp);
                     x += skip;
@@ -3323,8 +3311,8 @@ void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x || tmp);
                     x += skip;
@@ -3334,8 +3322,8 @@ void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[((atm->group() * xlen) + (offset + k)) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x || tmp);
                     x += skip;
@@ -3348,8 +3336,8 @@ void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[atm->group()];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x || tmp);
                     x += skip;
@@ -3359,8 +3347,8 @@ void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group()))];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x || tmp);
                     x += skip;
@@ -3370,8 +3358,8 @@ void Ops :: OR(T1 * x, T2 * y, int i, Atoms * atm, index_t offset, index_t count
             {
                 for ( index_t k = 0; k < count; k++ ) {
                     tmp = y[(((offset + k) * xlen + atm->group())) % ylen];
-                    if ( is_R_NA(*x) || is_R_NA(tmp) )
-                        *x = DataNA<T1>();
+                    if ( isNA(*x) || isNA(tmp) )
+                        *x = NA<T1>();
                     else
                         *x = (*x || tmp);
                     x += skip;

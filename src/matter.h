@@ -32,12 +32,6 @@ class Matter;
 
 void set_matter_options();
 
-bool is_R_NA(Rbyte x);
-
-bool is_R_NA(int x);
-
-bool is_R_NA(double x);
-
 int coerce_logical(Rbyte x);
 
 int coerce_logical(int x);
@@ -65,7 +59,7 @@ T2 coerce_cast(T1 x);
 template<typename RType>
 void fillNA(RType * ptr, size_t count, size_t skip = 1) {
     for ( size_t i = 0; i < count; i ++ ) {
-        *ptr = DataNA<RType>();
+        *ptr = NA<RType>();
         ptr += skip;
     }
 }
@@ -84,10 +78,10 @@ template<typename T>
 index_t count_consecutive(T * pindex, size_t i, size_t length)
 {
     index_t n = 0;
-    if ( is_R_NA(pindex[i + 1]) )
+    if ( isNA(pindex[i + 1]) )
         return n;
     if ( i < length - 1 && pindex[i + 1] > pindex[i] ) {
-        while ( i < length - 1 && !is_R_NA(pindex[i + 1]) && 
+        while ( i < length - 1 && !isNA(pindex[i + 1]) && 
             static_cast<index_t>(pindex[i + 1] - pindex[i]) == 1 )
         {
             i++;
@@ -96,7 +90,7 @@ index_t count_consecutive(T * pindex, size_t i, size_t length)
         return n;
     }
     else if ( i < length - 1 && pindex[i + 1] < pindex[i] ) {
-        while ( i < length - 1 && !is_R_NA(pindex[i + 1]) && 
+        while ( i < length - 1 && !isNA(pindex[i + 1]) && 
             static_cast<index_t>(pindex[i + 1] - pindex[i]) == -1 )
         {
             i++;
@@ -807,8 +801,8 @@ class Atoms {
         index_t read_indices(RType * ptr, IType * pindex, size_t length, size_t skip = 1, int zindex = 0) {
             index_t numRead = 0;
             for ( size_t i = 0; i < length; i++ ) {
-                if ( is_R_NA(pindex[i]) ) {
-                    ptr[skip * i] = DataNA<RType>();
+                if ( isNA(pindex[i]) ) {
+                    ptr[skip * i] = NA<RType>();
                     continue;
                 }
                 index_t nx = count_consecutive<IType>(pindex, i, length);
@@ -831,7 +825,7 @@ class Atoms {
         index_t write_indices(RType * ptr, IType * pindex, size_t length, size_t skip = 1, int zindex = 0) {
             index_t numWrote = 0;
             for ( size_t i = 0; i < length; i++ ) {
-                if ( is_R_NA(pindex[i]) ) {
+                if ( isNA(pindex[i]) ) {
                     continue;
                 }
                 index_t nx = count_consecutive<IType>(pindex, i, length);

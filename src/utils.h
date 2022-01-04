@@ -9,15 +9,8 @@
 
 #include <cstdlib>
 
-#define SWAP(x) swap_bytes(&x, sizeof(x));
-
-extern "C" {
-
-	void swap_bytes(void * pntr, size_t n);
-
-}
-
-// index types
+//// Indexing types
+//-------------------
 
 typedef ptrdiff_t index_t;
 
@@ -25,7 +18,8 @@ typedef double Rindex_t;
 
 #define INDEX_PTR(x) ((Rindex_t *)(DATAPTR(x)))
 
-// pair structure
+//// Pair of values
+//------------------
 
 template<typename T1, typename T2>
 struct Pair {
@@ -33,7 +27,8 @@ struct Pair {
 	T2 second;
 };
 
-// function templates
+//// Data access templates
+//-------------------------
 
 template<typename T>
 T * DataPtr(SEXP x);
@@ -44,10 +39,16 @@ T DataElt(SEXP x, size_t i);
 template<typename T>
 void SetDataElt(SEXP x, size_t i, T value);
 
-template<typename T>
-T DataNA();
+//// Missingness
+//---------------
 
 template<typename T>
-bool IsNA(T x);
+T NA();
+
+bool isNA(Rbyte x);
+
+bool isNA(int x);
+
+bool isNA(double x);
 
 #endif // UTILS

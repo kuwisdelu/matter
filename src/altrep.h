@@ -338,7 +338,7 @@ struct MatterAlt {
 		    	const int * pindx = INTEGER_RO(indx);
 		    	for ( int i = 0; i < XLENGTH(indx); i++ )
 		    	{
-		    		if ( is_R_NA(pindx[i]) )
+		    		if ( isNA(pindx[i]) )
 		    			SET_STRING_ELT(result, i, NA_STRING);
 		    		else
 		    		{
@@ -356,7 +356,7 @@ struct MatterAlt {
 		    	const double * pindx = REAL_RO(indx);
 		    	for ( int i = 0; i < XLENGTH(indx); i++ )
 		    	{
-		    		if ( is_R_NA(pindx[i]) )
+		    		if ( isNA(pindx[i]) )
 		    			SET_STRING_ELT(result, i, NA_STRING);
 		    		else
 		    		{

@@ -1,23 +1,7 @@
 
 #include "utils.h"
 
-extern "C" {
-
-	void swap_bytes(void * pntr, size_t n)
-	{
-	    char * p = (char *) pntr;
-	    size_t lo, hi;
-	    for ( lo = 0, hi = n - 1; lo < hi; lo++, hi-- )
-	    {
-	        char tmp = p[lo];
-	        p[lo] = p[hi];
-	        p[hi] = tmp;
-	    }
-	}
-
-}
-
-//// Data Pointer Access
+//// Data pointer access
 //----------------------
 
 template<>
@@ -38,13 +22,13 @@ double * DataPtr<double>(SEXP x)
 	return ((double *)(DATAPTR(x)));
 }
 
-//// Get Data Element
+//// Get data element
 //--------------------
 
 template<typename T>
 T * DataElt(SEXP x, size_t i)
 {
-	return ((double *)(DATAPTR(x)));
+	return ((double *)(DATAPTR(x)))[i];
 }
 
 template<>
@@ -53,7 +37,7 @@ const char * DataElt<const char *>(SEXP x, size_t i)
 	return CHAR(STRING_ELT(x, i));
 }
 
-//// Set Data Element
+//// Set data element
 //--------------------
 
 template<typename T>
@@ -72,54 +56,38 @@ void SetDataElt<const char *>(SEXP x, size_t i, const char * value)
 //------------------
 
 template<>
-Rbyte DataNA<Rbyte>()
+Rbyte NA<Rbyte>()
 {
-	Rf_error("NAs unsupported for type 'Rbyte'");
+	Rf_error("NAs not supported for type 'Rbyte'");
 	return 0;
 }
 
 template<>
-int DataNA<int>()
+int NA<int>()
 {
 	return NA_INTEGER;
 }
 
 template<>
-double DataNA<double>()
+double NA<double>()
 {
 	return NA_REAL;
-}
-
-template<>
-SEXP DataNA<SEXP>()
-{
-	return NA_STRING;
 }
 
 //// Test missingness
 //--------------------
 
-template<>
-bool IsNA<Rbyte>(Rbyte x)
+bool isNA(Rbyte x)
 {
-	return false;
+    return FALSE;
 }
 
-template<>
-bool IsNA<int>(int x)
+bool isNA(int x)
 {
-	return x == NA_INTEGER || x == NA_LOGICAL;
+    return x == NA_INTEGER || x == NA_LOGICAL;
 }
 
-template<>
-bool IsNA<double>(double x)
+bool isNA(double x)
 {
-	return ISNA(x) || ISNAN(x);
+    return ISNA(x) || ISNAN(x);
 }
-
-template<>
-bool IsNA<SEXP>(SEXP x)
-{
-	return x == NA_STRING;
-}
-

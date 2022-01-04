@@ -174,7 +174,7 @@ size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 	R_xlen_t n = XLENGTH(table);
 	size_t num_matches = 0;
 	for ( size_t i = 0; i < len; i++ ) {
-		if ( IsNA<T>(pX[i]) )
+		if ( isNA(pX[i]) )
 			ptr[i] = nomatch;
 		else
 			ptr[i] = binary_search<T>(pX[i], table, 0, n,
@@ -237,7 +237,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start,
 	TVal * pValues = DataPtr<TVal>(values);
 	index_t pos = NA_INTEGER;
 	TVal retVal = nomatch;
-	if ( !IsNA<TKey>(x) )
+	if ( !isNA(x) )
 	{
 		if ( sorted ) { // sorted keys -- binary search
 			pos = binary_search<TKey>(x, keys, start, end,
@@ -337,7 +337,7 @@ size_t do_keyval_search(TVal * ptr, SEXP x, SEXP keys, SEXP values,
 	for ( index_t ix = 0, ikey = start; ix < xlen; ix += skip )
 	{
 		ptr[ix] = nomatch;
-		if ( !IsNA<TKey>(pX[ix]) )
+		if ( !isNA(pX[ix]) )
 		{
 			Pair<index_t,TVal> result = keyval_search(pX[ix], keys, values,
 				ikey, end, tol, tol_ref, nomatch, dups, sorted);
