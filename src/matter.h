@@ -6,9 +6,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <climits>
+#include <cmath>
 
 #include "utils.h"
 #include "matterDefines.h"
+
+#include "search.h"
 
 #include <ios>
 #include <fstream>
@@ -1113,10 +1116,12 @@ class Sparse
             _dim = R_do_slot(x, Rf_install("dim"));
             _dimnames = R_do_slot(x, Rf_install("dimnames"));
             _names = R_do_slot(x, Rf_install("names"));
+            _index = R_do_slot(x, Rf_install("index"));
+            _keys = R_do_slot(x, Rf_install("keys"));
             SEXP tol = R_do_slot(x, Rf_install("tolerance"));
             SEXP tol_type = Rf_getAttrib(tol, Rf_install("tol_type"));
-            _tolerance = Rf_asInteger(tol);
-            _tolerance_type = Rf_asInteger(tol_type);
+            _tol = Rf_asReal(tol);
+            _tol_type = Rf_asInteger(tol_type);
             _combiner = Rf_asInteger(R_do_slot(x, Rf_install("combiner")));
             set_matter_options();
         }
@@ -1155,14 +1160,48 @@ class Sparse
             return _names;
         }
 
-        template<typename TKey, typename TVal>
-        size_t getRegion(size_t i, size_t size);
+        SEXP index() {
+            return _index;
+        }
 
-        template<typename TKey, typename TVal, int S>
-        SEXP getAll(SEXP i);
+        bool has_keys() {
+            return _keys != R_NilValue;
+        }
 
-        template<typename TKey, typename TVal, int S>
-        SEXP getElements(SEXP i);
+        SEXP keys() {
+            return _keys;
+        }
+
+        template<typename TKey>
+        void copy_keys(size_t i, size_t size, TKey * buffer)
+        {
+            TKey * pKeys = DataPtr<TKey>(keys());
+            for ( size_t j = 0; j < size; i++, j++ )
+                buffer[j] = has_keys() ? pKeys[i] : i;
+        }
+
+        template<typename TKey, typename TInd>
+        void copy_keys(TInd * pindex, size_t size, TKey * buffer)
+        {
+            TKey * pKeys = DataPtr<TKey>(keys());
+            for ( size_t j = 0; j < size; j++ )
+            {
+                index_t i = static_cast<index_t>(pindex[j]);
+                buffer[j] = has_keys() ? pKeys[i] : i;
+            }
+        }
+
+        double tol() {
+            return _tol;
+        }
+
+        int tol_ref() {
+            return _tol_type == ABS_COMPARE ? ABS_DIFF : REL_DIFF_Y;
+        }
+
+        int combiner() {
+            return _combiner;
+        }
 
     protected:
 
@@ -1172,21 +1211,29 @@ class Sparse
         SEXP _dim;
         SEXP _dimnames;
         SEXP _names;
-        int _tolerance;
-        int _tolerance_type; // 1 = absolute, 2 = relative
+        SEXP _index;
+        SEXP _keys;
+        double _tol;
+        int _tol_type; // 1 = absolute, 2 = relative
         int _combiner;
 };
 
-// class SparseVector : public Sparse
-// {
-//     public:
+class SparseVector : public Sparse
+{
+    public:
 
-//         SparseVector(SEXP x) : Sparse(x) {}
+        SparseVector(SEXP x) : Sparse(x) {}
 
-//         template<typename TKey, typename TVal>
-//         TVal get(size_t i);
+        template<typename TKey, typename TVal>
+        TVal get(size_t i);
 
-// };
+        template<typename TKey, typename TVal>
+        size_t getRegion(size_t i, size_t size, TVal * buffer);
+
+        template<typename TKey, typename TVal, int S>
+        SEXP getElements(SEXP i);
+
+};
 
 
 //// MatterIterator class
@@ -1354,7 +1401,7 @@ extern "C" {
 
     SEXP getSparseVector(SEXP x);
 
-    void setSparseVector(SEXP x, SEXP value);
+    SEXP getSparseVectorElements(SEXP x, SEXP i);
 
     SEXP getString(SEXP x);
 

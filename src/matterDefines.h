@@ -100,9 +100,14 @@ struct MATTER_OPTIONS {
 #define BY_GROUP				1
 #define BY_EACH_GROUP			2
 
-// MatterAccessor access
+// MatterIterator access
 
 #define NULL_INDEX -99
+
+// Sparse element duplicate behavior (must match factor levels)
+
+#define ABS_COMPARE		1
+#define REL_COMPARE		2
 
 // Data type limits
 

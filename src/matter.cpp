@@ -1,8 +1,6 @@
 
 #include "matter.h"
 
-#include <cmath>
-
 //// Low-level utility functions
 //-------------------------------
 
@@ -4039,11 +4037,36 @@ void Matter :: writeMatrixElements(SEXP i, SEXP j, SEXP value) {
 //// SparseVector methods
 //------------------------
 
-// template<typename TKey, typename TVal>
-// TVal SparseVector :: get(size_t i)
-// {
-//     return 0;
-// }
+template<typename TKey, typename TVal>
+TVal SparseVector :: get(size_t i)
+{
+    TKey subset = has_keys() ? DataPtr<TKey>(keys())[i] : i;
+    TVal val = keyval_search<TKey,TVal>(subset, index(), data(),
+        0, length(), tol(), tol_ref(), 0, combiner(), TRUE).second;
+    return val;
+}
+
+template<typename TKey, typename TVal>
+size_t SparseVector :: getRegion(size_t i, size_t size, TVal * buffer)
+{
+    TKey * region_keys = (TKey *) Calloc(size, TKey);
+    copy_keys<TKey>(i, size, region_keys);
+    size_t num_read = do_keyval_search<TKey,TVal>(buffer, region_keys, size,
+        index(), data(), 0, length(), tol(), tol_ref(), 0, combiner(), TRUE);
+    Free(region_keys);
+    return num_read;
+}
+
+template<typename TKey, typename TVal, int S>
+SEXP SparseVector :: getElements(SEXP i)
+{
+    TKey * region_keys = (TKey *) Calloc(XLENGTH(i), TKey);
+    copy_keys(i, XLENGTH(i), region_keys);
+    SEXP retVec = do_keyval_search<TKey,TVal,S>(region_keys, index(), data(),
+        tol(), tol_ref(), 0, combiner(), TRUE);
+    Free(region_keys);
+    return retVec;
+}
 
 //// Statistical functions applied on MatterIterator
 //--------------------------------------------------
@@ -4949,32 +4972,6 @@ extern "C" {
         }
     }
 
-    SEXP getString(SEXP x) {
-        Matter mVec(x);
-        SEXP retVec;
-        PROTECT(retVec = Rf_allocVector(STRSXP, mVec.length()));
-        for ( int i = 0; i < mVec.length(); i++ )
-            SET_STRING_ELT(retVec, i, raw_to_char(mVec.readListElements<Rbyte,RAWSXP>(i)));
-        UNPROTECT(1);
-        return retVec;
-    }
-
-    SEXP getStringElements(SEXP x, SEXP i) {
-        Matter mVec(x);
-        SEXP retVec;
-        Rindex_t * ii = INDEX_PTR(i);
-        PROTECT(retVec = Rf_allocVector(STRSXP, XLENGTH(i)));
-        for ( int j = 0; j < XLENGTH(i); j++ ) {
-            int k = static_cast<int>(ii[j]);
-            if ( ISNA(ii[j]) )
-                SET_STRING_ELT(retVec, j, NA_STRING);
-            else
-                SET_STRING_ELT(retVec, j, raw_to_char(mVec.readListElements<Rbyte,RAWSXP>(k)));
-        }
-        UNPROTECT(1);
-        return retVec;   
-    }
-
     SEXP getMatrix(SEXP x) {
         Matter mMat(x);
         switch(mMat.datamode()) {
@@ -5109,6 +5106,67 @@ extern "C" {
                 mMat.writeMatrixElements<double,REALSXP>(i, j, value);
                 break;
         }
+    }
+
+    SEXP getSparseVector(SEXP x) {
+        SparseVector sVec(x);
+        SEXP retVec;
+        switch(sVec.datamode()) {
+            case R_INTEGER:
+                PROTECT(retVec = Rf_allocVector(INTSXP, sVec.length()));
+                switch(TYPEOF(sVec.keys())) {
+                    case INTSXP:
+                        sVec.getRegion<int,int>(0, sVec.length(), INTEGER(retVec));
+                        break;
+                    case REALSXP:
+                        sVec.getRegion<double,int>(0, sVec.length(), INTEGER(retVec));
+                        break;
+                }
+                break;
+            case R_NUMERIC:
+                PROTECT(retVec = Rf_allocVector(REALSXP, sVec.length()));
+                switch(TYPEOF(sVec.keys())) {
+                    case INTSXP:
+                        sVec.getRegion<int,double>(0, sVec.length(), REAL(retVec));
+                        break;
+                    case REALSXP:
+                        sVec.getRegion<double,double>(0, sVec.length(), REAL(retVec));
+                        break;
+                }
+                break;
+        }
+        UNPROTECT(1);
+        return retVec;
+    }
+
+    // SEXP getSparseVectorElements(SEXP x, SEXP i) {
+
+    // }
+
+    SEXP getString(SEXP x) {
+        Matter mVec(x);
+        SEXP retVec;
+        PROTECT(retVec = Rf_allocVector(STRSXP, mVec.length()));
+        for ( int i = 0; i < mVec.length(); i++ )
+            SET_STRING_ELT(retVec, i, raw_to_char(mVec.readListElements<Rbyte,RAWSXP>(i)));
+        UNPROTECT(1);
+        return retVec;
+    }
+
+    SEXP getStringElements(SEXP x, SEXP i) {
+        Matter mVec(x);
+        SEXP retVec;
+        Rindex_t * ii = INDEX_PTR(i);
+        PROTECT(retVec = Rf_allocVector(STRSXP, XLENGTH(i)));
+        for ( int j = 0; j < XLENGTH(i); j++ ) {
+            int k = static_cast<int>(ii[j]);
+            if ( ISNA(ii[j]) )
+                SET_STRING_ELT(retVec, j, NA_STRING);
+            else
+                SET_STRING_ELT(retVec, j, raw_to_char(mVec.readListElements<Rbyte,RAWSXP>(k)));
+        }
+        UNPROTECT(1);
+        return retVec;   
     }
 
     SEXP getRange(SEXP x, SEXP na_rm) {

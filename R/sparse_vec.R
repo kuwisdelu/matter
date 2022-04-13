@@ -59,8 +59,12 @@ sparse_vec <- function(data, index, datamode = "double", length = 0,
 			length <- length(keys)
 		}
 	}
+	if ( missing(keys) || is.null(keys) )
+		keys <- as.numeric(!from0)
 	if ( length(index) != length(data) )
 		index <- rep(index, length.out=length(data))
+	if ( length(keys) > 1L && length(keys) != length )
+		keys <- rep(keys, length.out=length)
 	new("sparse_vec",
 		data=data,
 		datamode=make_datamode(datamode, type="R"),
