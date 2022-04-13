@@ -1122,7 +1122,7 @@ class Sparse
             SEXP tol_type = Rf_getAttrib(tol, Rf_install("tol_type"));
             _tol = Rf_asReal(tol);
             _tol_type = Rf_asInteger(tol_type);
-            _combiner = Rf_asInteger(R_do_slot(x, Rf_install("combiner")));
+            _dups_handler = Rf_asInteger(R_do_slot(x, Rf_install("combiner")));
             set_matter_options();
         }
 
@@ -1199,8 +1199,8 @@ class Sparse
             return _tol_type == ABS_COMPARE ? ABS_DIFF : REL_DIFF_Y;
         }
 
-        int combiner() {
-            return _combiner;
+        int dups_handler() {
+            return _dups_handler;
         }
 
     protected:
@@ -1215,7 +1215,7 @@ class Sparse
         SEXP _keys;
         double _tol;
         int _tol_type; // 1 = absolute, 2 = relative
-        int _combiner;
+        int _dups_handler;
 };
 
 class SparseVector : public Sparse

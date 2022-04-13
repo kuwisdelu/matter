@@ -62,16 +62,14 @@ bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 # exported version with argument checking (safer, easier)
 
 kvsearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
-					nomatch = NA_integer_, dups = "top")
+					nomatch = NA_integer_, dups = "any")
 {
-	if ( !is.numeric(x) || !is.numeric(keys) || !is.numeric(values) )
-		stop("only numeric types are supported")
 	if ( is.integer(x) && is.double(keys) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
 	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	dups <- pmatch(dups, c("top", "sum", "max"), nomatch=1L)
+	dups <- pmatch(dups, c("any", "sum", "max"), nomatch=1L)
 	kvsearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
 		nomatch=nomatch, dups=dups, sorted=is.sorted(keys))
 }

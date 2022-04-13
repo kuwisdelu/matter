@@ -4042,7 +4042,7 @@ TVal SparseVector :: get(size_t i)
 {
     TKey subset = has_keys() ? DataPtr<TKey>(keys())[i] : i;
     TVal val = keyval_search<TKey,TVal>(subset, index(), data(),
-        0, length(), tol(), tol_ref(), 0, combiner(), TRUE).second;
+        0, length(), tol(), tol_ref(), 0, dups_handler(), TRUE).second;
     return val;
 }
 
@@ -4052,7 +4052,7 @@ size_t SparseVector :: getRegion(size_t i, size_t size, TVal * buffer)
     TKey * region_keys = (TKey *) Calloc(size, TKey);
     copy_keys<TKey>(i, size, region_keys);
     size_t num_read = do_keyval_search<TKey,TVal>(buffer, region_keys, size,
-        index(), data(), 0, length(), tol(), tol_ref(), 0, combiner(), TRUE);
+        index(), data(), 0, length(), tol(), tol_ref(), 0, dups_handler(), TRUE);
     Free(region_keys);
     return num_read;
 }
@@ -4063,7 +4063,7 @@ SEXP SparseVector :: getElements(SEXP i)
     TKey * region_keys = (TKey *) Calloc(XLENGTH(i), TKey);
     copy_keys(i, XLENGTH(i), region_keys);
     SEXP retVec = do_keyval_search<TKey,TVal,S>(region_keys, index(), data(),
-        tol(), tol_ref(), 0, combiner(), TRUE);
+        tol(), tol_ref(), 0, dups_handler(), TRUE);
     Free(region_keys);
     return retVec;
 }

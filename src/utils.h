@@ -27,17 +27,14 @@ struct Pair {
 	T2 second;
 };
 
-//// Data access templates
+//// Data accessor template
 //-------------------------
 
 template<typename T>
-T * DataPtr(SEXP x);
-
-template<typename T>
-T DataElt(SEXP x, size_t i);
-
-template<typename T>
-void SetDataElt(SEXP x, size_t i, T value);
+T * DataPtr(SEXP x)
+{
+	return ((T *)(DATAPTR(x)));
+}
 
 //// Missingness
 //---------------
@@ -45,10 +42,43 @@ void SetDataElt(SEXP x, size_t i, T value);
 template<typename T>
 T NA();
 
-bool isNA(Rbyte x);
+template<> inline
+Rbyte NA<Rbyte>()
+{
+	Rf_error("NAs not supported for type 'Rbyte'");
+	return 0;
+}
 
-bool isNA(int x);
+template<> inline
+int NA<int>()
+{
+	return NA_INTEGER;
+}
 
-bool isNA(double x);
+template<> inline
+double NA<double>()
+{
+	return NA_REAL;
+}
+
+inline bool isNA(Rbyte x)
+{
+    return FALSE;
+}
+
+inline bool isNA(int x)
+{
+    return x == NA_INTEGER || x == NA_LOGICAL;
+}
+
+inline bool isNA(double x)
+{
+    return ISNA(x) || ISNAN(x);
+}
+
+inline bool isNA(SEXP x)
+{
+    return x == NA_STRING;
+}
 
 #endif // UTILS

@@ -95,17 +95,17 @@ test_that("key value search (sorted) - integers", {
 
 	keys <- c(1L, 2L, 3L, 4L, 5L, 8L, 9L, 100L, 101L, 102L)
 
-	values <- keys^1.11
+	vals <- keys^1.11
 
 	x <- c(1L, 4L, 6L, 99L, 102L)
 
-	expect_equal(values[c(1, 4, NA, NA, 10)], kvsearch(x, keys, values))
+	expect_equal(vals[c(1, 4, NA, NA, 10)], kvsearch(x, keys, vals))
 
-	expect_equal(values[c(1, 4, 5, 8, 10)], kvsearch(x, keys, values, tol=Inf))
+	expect_equal(vals[c(1, 4, 5, 8, 10)], kvsearch(x, keys, vals, tol=Inf))
 
-	expect_equal(values[rev(c(1, 4, NA, NA, 10))], kvsearch(rev(x), keys, values))
+	expect_equal(vals[rev(c(1, 4, NA, NA, 10))], kvsearch(rev(x), keys, vals))
 
-	expect_equal(values[rev(c(1, 4, 5, 8, 10))], kvsearch(rev(x), keys, values, tol=Inf))
+	expect_equal(vals[rev(c(1, 4, 5, 8, 10))], kvsearch(rev(x), keys, vals, tol=Inf))
 
 })
 
@@ -113,17 +113,17 @@ test_that("key value search (unsorted) - integers", {
 
 	keys <- rev(c(1L, 2L, 3L, 4L, 5L, 8L, 9L, 100L, 101L, 102L))
 
-	values <- keys^1.11
+	vals <- keys^1.11
 
 	x <- c(1L, 4L, 6L, 99L, 102L)
 
-	expect_equal(values[c(10, 7, NA, NA, 1)], kvsearch(x, keys, values))
+	expect_equal(vals[c(10, 7, NA, NA, 1)], kvsearch(x, keys, vals))
 
-	expect_equal(values[c(10, 7, 6, 3, 1)], kvsearch(x, keys, values, tol=Inf))
+	expect_equal(vals[c(10, 7, 6, 3, 1)], kvsearch(x, keys, vals, tol=Inf))
 
-	expect_equal(values[rev(c(10, 7, NA, NA, 1))], kvsearch(rev(x), keys, values))
+	expect_equal(vals[rev(c(10, 7, NA, NA, 1))], kvsearch(rev(x), keys, vals))
 
-	expect_equal(values[rev(c(10, 7, 6, 3, 1))], kvsearch(rev(x), keys, values, tol=Inf))
+	expect_equal(vals[rev(c(10, 7, 6, 3, 1))], kvsearch(rev(x), keys, vals, tol=Inf))
 
 })
 
@@ -131,25 +131,25 @@ test_that("key value search (sorted) - doubles", {
 
 	keys <- c(1.11, 2.22, 3.33, 4.0, 5.0)
 
-	values <- keys^1.11
+	vals <- keys^1.11
 
 	x <- c(1.11, 3.0, 3.33, 5.0, 5.1)
 
-	expect_equal(values[c(1, NA, 3, 5, NA)], kvsearch(x, keys, values))
+	expect_equal(vals[c(1, NA, 3, 5, NA)], kvsearch(x, keys, vals))
 
-	expect_equal(values[c(1, 3, 3, 5, 5)], kvsearch(x, keys, values, tol=Inf))
+	expect_equal(vals[c(1, 3, 3, 5, 5)], kvsearch(x, keys, vals, tol=Inf))
 
-	expect_equal(NA_real_, kvsearch(3.0, keys, values, tol=0))
+	expect_equal(NA_real_, kvsearch(3.0, keys, vals, tol=0))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=0.5))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=0.5))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=Inf))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=Inf))
 
-	expect_equal(NA_real_, kvsearch(3.0, keys, values, tol=0.1, tol.ref="x"))
+	expect_equal(NA_real_, kvsearch(3.0, keys, vals, tol=0.1, tol.ref="x"))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=0.2, tol.ref="x"))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=0.2, tol.ref="x"))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=0.1, tol.ref="y"))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=0.1, tol.ref="y"))
 
 })
 
@@ -157,25 +157,53 @@ test_that("key value search (unsorted) - doubles", {
 
 	keys <- rev(c(1.11, 2.22, 3.33, 4.0, 5.0))
 
-	values <- keys^1.11
+	vals <- keys^1.11
 
 	x <- c(1.11, 3.0, 3.33, 5.0, 5.1)
 
-	expect_equal(values[c(5, NA, 3, 1, NA)], kvsearch(x, keys, values))
+	expect_equal(vals[c(5, NA, 3, 1, NA)], kvsearch(x, keys, vals))
 
-	expect_equal(values[c(5, 3, 3, 1, 1)], kvsearch(x, keys, values, tol=Inf))
+	expect_equal(vals[c(5, 3, 3, 1, 1)], kvsearch(x, keys, vals, tol=Inf))
 
-	expect_equal(NA_real_, kvsearch(3.0, keys, values, tol=0))
+	expect_equal(NA_real_, kvsearch(3.0, keys, vals, tol=0))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=0.5))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=0.5))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=Inf))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=Inf))
 
-	expect_equal(NA_real_, kvsearch(3.0, keys, values, tol=0.1, tol.ref="x"))
+	expect_equal(NA_real_, kvsearch(3.0, keys, vals, tol=0.1, tol.ref="x"))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=0.2, tol.ref="x"))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=0.2, tol.ref="x"))
 
-	expect_equal(values[3], kvsearch(3.0, keys, values, tol=0.1, tol.ref="y"))
+	expect_equal(vals[3], kvsearch(3.0, keys, vals, tol=0.1, tol.ref="y"))
+
+})
+
+test_that("key value search (sorted) - strings", {
+
+	keys <- c("a", "b", "c", "d", "e")
+
+	vals <- c(1.11, 2.22, 3.33, 4.0, 5.0)
+
+	x <- c("a", "c", "ee")
+
+	expect_equal(vals[c(1, 3, NA)], kvsearch(x, keys, vals))
+
+	expect_equal(vals[c(1, 3, 5)], kvsearch(x, keys, vals, tol=Inf))
+
+})
+
+test_that("key value search (unsorted) - strings", {
+
+	keys <- rev(c("a", "b", "c", "d", "e"))
+
+	vals <- rev(c(1.11, 2.22, 3.33, 4.0, 5.0))
+
+	x <- c("a", "c", "ee")
+
+	expect_equal(vals[c(5, 3, NA)], kvsearch(x, keys, vals))
+
+	expect_equal(vals[c(5, 3, 1)], kvsearch(x, keys, vals, tol=Inf))
 
 })
 
@@ -183,21 +211,21 @@ test_that("key value search (sorted) - resolve duplicates", {
 
 	keys <- c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0)
 
-	values <- keys
+	vals <- keys
 
 	x <- c(1.0, 2.0, 3.33, 5.0)
 
-	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, values))
+	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, vals))
 
-	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, values, tol=0.5))
+	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, vals, tol=0.5))
 
 	test1 <- c(1.0 + 1.01 + 1.11, 2.0 + 2.22, 3.0 + 3.33 + 3.333, NA)
 
-	expect_equal(test1, kvsearch(x, keys, values, tol=0.5, dups="sum"))
+	expect_equal(test1, kvsearch(x, keys, vals, tol=0.5, dups="sum"))
 
 	test2 <- c(1.11, 2.22, 3.333, NA)
 
-	expect_equal(test2, kvsearch(x, keys, values, tol=0.5, dups="max"))
+	expect_equal(test2, kvsearch(x, keys, vals, tol=0.5, dups="max"))
 
 })
 
@@ -205,21 +233,21 @@ test_that("key value search (unsorted) - resolve duplicates", {
 
 	keys <- rev(c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0))
 
-	values <- keys
+	vals <- keys
 
 	x <- c(1.0, 2.0, 3.33, 5.0)
 
-	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, values))
+	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, vals))
 
-	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, values, tol=0.5))
+	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, vals, tol=0.5))
 
 	test1 <- c(1.0 + 1.01 + 1.11, 2.0 + 2.22, 3.0 + 3.33 + 3.333, NA)
 
-	expect_equal(test1, kvsearch(x, keys, values, tol=0.5, dups="sum"))
+	expect_equal(test1, kvsearch(x, keys, vals, tol=0.5, dups="sum"))
 
 	test2 <- c(1.11, 2.22, 3.333, NA)
 
-	expect_equal(test2, kvsearch(x, keys, values, tol=0.5, dups="max"))
+	expect_equal(test2, kvsearch(x, keys, vals, tol=0.5, dups="max"))
 
 })
 
