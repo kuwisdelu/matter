@@ -11,15 +11,13 @@ test_that("sparse vector subsetting", {
 
 	y <- sparse_vec(x)
 
-	expect_equal(1, 1)
+	expect_equal(x, y[])
 
-	# expect_equal(x, y[])
+	expect_equal(x[1], y[1])
 
-	# expect_equal(x[1], y[1])
+	expect_equal(x[1:10], y[1:10])
 
-	# expect_equal(x[1:10], y[1:10])
-
-	# expect_equal(x[10:1], y[10:1])
+	expect_equal(x[10:1], y[10:1])
 
 	# expect_equivalent(as.matter(x), y)
 

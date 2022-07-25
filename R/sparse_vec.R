@@ -38,7 +38,7 @@ setClass("sparse_vec",
 	})
 
 sparse_vec <- function(data, index, datamode = "double", length = 0,
-					names = NULL, keys = NULL, from0 = TRUE,
+					names = NULL, keys = NULL, from0 = FALSE,
 					tolerance = c(abs=0), combiner = "top",
 					chunksize = getOption("matter.default.chunksize"), ...)
 {
@@ -60,7 +60,7 @@ sparse_vec <- function(data, index, datamode = "double", length = 0,
 		}
 	}
 	if ( missing(keys) || is.null(keys) )
-		keys <- as.numeric(!from0)
+		keys <- as.integer(!from0)
 	if ( length(index) != length(data) )
 		index <- rep(index, length.out=length(data))
 	if ( length(keys) > 1L && length(keys) != length )
@@ -87,26 +87,22 @@ setMethod("describe_for_display", "sparse_vec", function(x) {
 
 setMethod("preview_for_display", "sparse_vec", function(x) preview_vector(x))
 
-# getSparseVector <- function(x) {
-# 	# y <- .Call("C_getVector", x, PACKAGE="matter")
-# 	y <- kvsearch(seq_len(x@length), x@index, x@data, nomatch=zero)
-# 	if ( !is.null(names(x)) )
-# 		names(y) <- names(x)
-# 	y
-# }
+getSparseVector <- function(x, i) {
+	y <- .Call("C_getSparseVector", x, i, PACKAGE="matter")
+	if ( !is.null(names(x)) )
+		names(y) <- names(x)
+	y
+}
 
-# setSparseVector <- function(x, value) {
-# 	if ( length(x) %% length(value) != 0 )
-# 		warning("number of items to replace is not ",
-# 			"a multiple of replacement length")
-# 	if ( length(value) != 1 )
-# 		value <- rep(value, length.out=length(x))
-# 	if ( is.logical(value) )
-# 		value <- as.integer(value)
-# 	if ( is.character(value) )
-# 		value <- as.double(value)
-# 	.Call("C_setVector", x, value, PACKAGE="matter")
-# 	if ( validObject(x) )
-# 		invisible(x)
-# }
+setMethod("[",
+	c(x = "sparse_vec", i = "ANY", j = "missing", drop = "ANY"),
+	function(x, i, ..., drop) {
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) ) {
+			getSparseVector(x, i)
+		} else {
+			getSparseVector(x, NULL)
+		}
+	})
 

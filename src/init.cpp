@@ -2,6 +2,7 @@
 
 #include "search.h"
 #include "matter.h"
+#include "sparse.h"
 #include "altrep.h"
 #include "vectools.h"
 
@@ -61,6 +62,7 @@ extern "C" {
         {"C_groupSums", (DL_FUNC) &groupSums, 4},
         {"C_groupMins", (DL_FUNC) &groupMins, 4},
         {"C_groupMaxs", (DL_FUNC) &groupMaxs, 4},
+        {"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
         {NULL, NULL, 0}
     };
 
