@@ -401,7 +401,7 @@ setMethod("apply", "matter_mat",
 		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })
 
-setMethod("apply", "sparse_mat",
+setMethod("apply", "sparse_old_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
 		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })

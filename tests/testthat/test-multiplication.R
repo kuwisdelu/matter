@@ -43,7 +43,7 @@ test_that("sparse matrix multiplication", {
 
 	x <- matrix(rbinom(100, 1, 0.2), nrow=10, ncol=10)
 
-	y <- sparse_mat(x, keys=1:10 + (1:10) * 0.11)
+	y <- sparse_old_mat(x, keys=1:10 + (1:10) * 0.11)
 
 	expect_equal(x %*% x, x %*% y)
 
@@ -51,7 +51,7 @@ test_that("sparse matrix multiplication", {
 
 	x <- matrix(rbinom(100, 1, 0.2), nrow=10, ncol=10)
 
-	y <- sparse_mat(x, keys=1:10 + (1:10) * 0.11, rowMaj=TRUE)
+	y <- sparse_old_mat(x, keys=1:10 + (1:10) * 0.11, rowMaj=TRUE)
 
 	expect_equal(x %*% x, x %*% y)
 
@@ -59,7 +59,7 @@ test_that("sparse matrix multiplication", {
 
 	x <- matrix(rbinom(91, 1, 0.2), nrow=7, ncol=13)
 
-	y <- sparse_mat(x, keys=1:7 + (1:7) * 0.11)
+	y <- sparse_old_mat(x, keys=1:7 + (1:7) * 0.11)
 
 	expect_equal(x %*% t(x), x %*% t(y))
 
@@ -67,7 +67,7 @@ test_that("sparse matrix multiplication", {
 
 	x <- matrix(rbinom(91, 1, 0.2), nrow=7, ncol=13)
 
-	y <- sparse_mat(x, keys=1:13 + (1:13) * 0.11, rowMaj=TRUE)
+	y <- sparse_old_mat(x, keys=1:13 + (1:13) * 0.11, rowMaj=TRUE)
 
 	expect_equal(x %*% t(x), x %*% t(y))
 

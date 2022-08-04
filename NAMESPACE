@@ -63,9 +63,9 @@ exportClasses(
 	"matter_df",
 	"rep_vt",
 	"sparse_vec",
-	"sparse_mat",
-	"sparse_matc",
-	"sparse_matr",
+	"sparse_old_mat",
+	"sparse_old_matc",
+	"sparse_old_matr",
 	"virtual_mat",
 	"virtual_matc",
 	"virtual_matr",
@@ -87,7 +87,7 @@ export(
 	"matter_df",
 	"rep_vt",
 	"sparse_vec",
-	"sparse_mat",
+	"sparse_old_mat",
 	"is.matter",
 	"as.matter",
 	"is.sparse",
@@ -135,12 +135,16 @@ exportMethods(
 	"preview_for_display")
 
 exportMethods(
+	"aindex",
+	"atomindex",
+	"atomindex<-",
 	"keys",
 	"keys<-",
 	"tolerance",
 	"tolerance<-",
 	"combiner",
-	"combiner<-")
+	"combiner<-",
+	"nnz")
 
 exportMethods(
 	"%*%",

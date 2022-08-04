@@ -248,7 +248,7 @@ test_that("sparse matrix subsetting", {
 
 	x <- matrix(rbinom(100, 1, 0.2), nrow=10, ncol=10)
 
-	y <- sparse_mat(x, keys=1:10 + (1:10) * 0.11)
+	y <- sparse_old_mat(x, keys=1:10 + (1:10) * 0.11)
 
 	expect_equal(x, y[])
 
@@ -288,7 +288,7 @@ test_that("sparse matrix subsetting", {
 
 	x2 <- 100 * x
 
-	y <- sparse_mat(init, keys=c(1, 2, 3), nrow=3, ncol=3)
+	y <- sparse_old_mat(init, keys=c(1, 2, 3), nrow=3, ncol=3)
 
 	expect_equal(x, y[])
 

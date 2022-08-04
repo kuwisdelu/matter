@@ -9,6 +9,8 @@ test_that("sparse vector subsetting", {
 
 	x <- rbinom(100, 1, 0.2)
 
+	x[x != 0] <- seq_len(sum(x != 0))
+
 	y <- sparse_vec(x)
 
 	expect_equal(x, y[])
@@ -19,6 +21,76 @@ test_that("sparse vector subsetting", {
 
 	expect_equal(x[10:1], y[10:1])
 
-	# expect_equivalent(as.matter(x), y)
+	keys(y) <- seq_along(y)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1], y[1])
+
+	expect_equal(x[1:10], y[1:10])
+
+	expect_equal(x[10:1], y[10:1])
+
+	atomindex(y) <- as.matter(atomindex(y))
+
+	atomdata(y) <- as.matter(atomdata(y))
+
+	expect_equal(x, y[])
+
+	expect_equal(x[1], y[1])
+
+	expect_equal(x[1:10], y[1:10])
+
+	expect_equal(x[10:1], y[10:1])
+
+	z <- sparse_vec(index=c(1.0, 1.01, 1.11,
+							2.0, 2.22,
+							3.0, 3.33, 3.333,
+							4.0),
+					data=c(1.0, 1.01, 1.11,
+							2.0, 2.22,
+							3.0, 3.33, 3.333,
+							4.0),
+					keys=seq(from=0, to=4, by=0.5))
+
+	expect_equal(c(0, 0, 1, 0, 2, 0, 3, 0, 4), z[])
+
+	tolerance(z) <- 0.25
+
+	expect_equal(c(0, 0, 1, 0, 2, 0, 3, 3.333, 4), z[])
+
+	combiner(z) <- "max"
+
+	expect_equal(c(0, 0, 1.11, 0, 2.22, 0, 3, 3.33, 4), z[])
+
+	combiner(z) <- "sum"
+
+	expect_equal(c(0, 0, 3.12, 0, 4.22, 0, 3, 6.663, 4), z[])
+
+})
+
+test_that("sparse vector timing", {
+
+	set.seed(1)
+
+	x <- rbinom(100000, 1, 0.2)
+
+	x[x != 0] <- seq_len(sum(x != 0))
+
+	y <- sparse_vec(x, keys=1:length(x), tolerance=0.1)
+
+	z <- sparse_old_mat(list(keys=list(y@index),
+							values=list(y@data)),
+						nrow=length(y), ncol=1,
+						keys=1:length(y),
+						tolerance=0.1)
+
+	bench::mark(y[])
+
+	bench::mark(z[])
+
+	bench::mark(y[1000:1])
+
+	bench::mark(z[1000:1,])
 
 })

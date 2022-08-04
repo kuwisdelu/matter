@@ -2,11 +2,13 @@
 #### Define matter<sparse vector> classes for sparse data ####
 ## -----------------------------------------------------------
 
+setClassUnion("matter_numeric_types", c("integer", "numeric", "matter_vec"))
+
 setClass("sparse_vec",
 	slots = c(
-		data = "numeric",
-		index = "numeric",
-		keys = "numeric_OR_NULL",
+		data = "matter_numeric_types",
+		index = "matter_numeric_types",
+		keys = "numeric",
 		tolerance = "numeric",
 		combiner = "factor"),
 	prototype = prototype(
@@ -17,29 +19,28 @@ setClass("sparse_vec",
 		names = NULL,
 		dimnames = NULL,
 		index = integer(),
-		keys = NULL,
+		keys = 0L,
 		tolerance = make_tolerance(0),
-		combiner = make_combiner("top")),
-	contains = "matter",
+		combiner = make_combiner("none")),
+	contains = "sparse_",
 	validity = function(object) {
 		errors <- NULL
 		if ( !is.null(object@dim) )
 			errors <- c(errors, "vector must have NULL 'dim'")
 		if ( !is.null(object@dimnames) )
 			errors <- c(errors, "vector must have NULL 'dimnames'")
-		if ( inherits(data, c("list", "matter_list")) ) {
-			if ( !all(lengths(object@data) == lengths(object@index)) )
-				errors <- c(errors, "lengths of 'data' must match lengths of 'index'")
-		} else {
-			if ( length(object@data) != length(object@index) )
-				errors <- c(errors, "length of 'data' must match length of 'index'")
-		}
+		if ( length(object@keys) != 1L && length(object@keys) != object@length )
+			errors <- c(errors, paste0("'keys' must be scalar ",
+				"OR match length of object [", object@length, "]"))
+		if ( length(object@data) != length(object@index) )
+			errors <- c(errors, paste0("length of 'data' [", length(object@data),
+				"] must match length of 'index' [", length(object@index), "]"))
 		if ( is.null(errors) ) TRUE else errors
 	})
 
 sparse_vec <- function(data, index, datamode = "double", length = 0,
 					names = NULL, keys = NULL, from0 = FALSE,
-					tolerance = c(abs=0), combiner = "top",
+					tolerance = c(abs=0), combiner = "none",
 					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {
@@ -85,10 +86,34 @@ setMethod("describe_for_display", "sparse_vec", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
-setMethod("preview_for_display", "sparse_vec", function(x) preview_vector(x))
+setMethod("preview_for_display", "sparse_vec", function(x) {
+	hdr <- preview_vector_data(x)
+	if ( is.null(colnames(x)) && length(keys(x)) == length(x) ) {
+		n <- ncol(hdr)
+		if ( colnames(hdr)[n] == "..." ) {
+			colnames(hdr) <- c(paste0("[~", keys(x)[1:(n - 1)], "]"), "...")
+		} else {
+			colnames(hdr) <- paste0("[~", keys(x)[1:n], "]")
+		}
+	}
+	print(hdr, quote=FALSE, right=TRUE)
+	cat("(", nnz(x), "/", length(x), " non-zero elements: ",
+		round(nnz(x) / length(x), 4) * 100, "% density)\n", sep="")
+})
 
-getSparseVector <- function(x, i) {
-	y <- .Call("C_getSparseVector", x, i, PACKAGE="matter")
+setMethod("nnz", "sparse_vec", function(x, ...) length(object@data))
+
+norm_index1 <- function(i, x, from0 = FALSE) {
+	if ( !is.null(i) && from0 ) {
+		i - 1
+	} else {
+		i
+	}
+}
+
+extract_sparse_vec <- function(x, i = NULL) {
+	i <- norm_index1(i, x, from0=TRUE)
+	y <- .Call("Mt_getSparseVector", x, i, PACKAGE="matter")
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)
 	y
@@ -100,9 +125,9 @@ setMethod("[",
 		if ( length(list(...)) > 0 )
 			stop("incorrect number of dimensions")
 		if ( !missing(i) ) {
-			getSparseVector(x, i)
+			extract_sparse_vec(x, i)
 		} else {
-			getSparseVector(x, NULL)
+			extract_sparse_vec(x)
 		}
 	})
 

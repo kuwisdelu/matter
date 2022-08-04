@@ -3,7 +3,7 @@
 
 extern "C" {
 
-	SEXP getSparseVector(SEXP x, SEXP i) {
+	SEXP Mt_getSparseVector(SEXP x, SEXP i) {
 		SparseVector sVec(x);
 		switch(sVec.datamode()) {
 			case R_INTEGER:

@@ -15,7 +15,8 @@ Suggests: BiocStyle, testthat
 Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
 	matter_vec.R matter_mat.R matter_arr.R matter_list.R
 	matter_str.R matter_fc.R matter_vt.R rep_vt.R
-	sparse_vec.R sparse_mat.R virtual_mat.R virtual_tbl.R virtual_df.R
+	sparse.R sparse_vec.R sparse_mat.R sparse_old_mat.R
+	virtual_mat.R virtual_tbl.R virtual_df.R
 	coerce.R stream_stat.R stats.R statsget.R
 	apply.R scale.R biglm.R prcomp.R altrep.R
 biocViews: Infrastructure, DataRepresentation
