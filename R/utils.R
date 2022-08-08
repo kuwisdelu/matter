@@ -69,7 +69,7 @@ kvsearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
 	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	dups <- pmatch(dups, c("none", "sum", "max"), nomatch=1L)
+	dups <- pmatch(dups, levels(make_combiner("none")), nomatch=1L)
 	kvsearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
 		nomatch=nomatch, dups=dups, sorted=is.sorted(keys))
 }
@@ -786,13 +786,15 @@ widest_datamode <- function(x) {
 ## ---------------------------------------------------
 
 make_combiner <- function(x) {
-	levels <- c("none", "sum", "max")
+	levels <- c("none", "sum", "mean", "max", "min")
 	if ( !is.numeric(x) )
 		x <- as.character(x)
 	factor(switch(x,
 		"none" = "none",
 		"sum" = "sum",
+		"mean" = "mean",
 		"max" = "max",
+		"min" = "min",
 		NA_character_), levels=levels)
 }
 

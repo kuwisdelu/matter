@@ -75,47 +75,47 @@ setClass("sparse_matlr",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
-					rowMaj = FALSE, dimnames = NULL, keys = NULL, from0 = FALSE,
-					tolerance = c(abs=0), combiner = "none",
-					chunksize = getOption("matter.default.chunksize"), ...)
-{
-	if ( !missing(data) ) {
-		if ( missing(datamode) )
-			datamode <- typeof(data)
-		if ( missing(index) ) {
-			nz <- data != 0
-			length <- length(data)
-			index <- which(nz) - from0
-			data <- data[nz]
-		}
-	}
-	if ( missing(length) ) {
-		if ( is.null(keys) ) {
-			length <- max(index) + from0
-		} else {
-			length <- length(keys)
-		}
-	}
-	if ( missing(keys) || is.null(keys) )
-		keys <- as.integer(!from0)
-	if ( length(index) != length(data) )
-		index <- rep(index, length.out=length(data))
-	if ( length(keys) > 1L && length(keys) != length )
-		keys <- rep(keys, length.out=length)
-	new("sparse_vec",
-		data=data,
-		datamode=make_datamode(datamode, type="R"),
-		paths=character(),
-		filemode=make_filemode(),
-		chunksize=as.integer(chunksize),
-		length=length,
-		names=names,
-		index=index,
-		keys=keys,
-		tolerance=make_tolerance(tolerance),
-		combiner=make_combiner(combiner))
-}
+# sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
+# 					rowMaj = FALSE, dimnames = NULL, keys = NULL, from0 = FALSE,
+# 					tolerance = c(abs=0), combiner = "none",
+# 					chunksize = getOption("matter.default.chunksize"), ...)
+# {
+# 	if ( !missing(data) ) {
+# 		if ( missing(datamode) )
+# 			datamode <- typeof(data)
+# 		if ( missing(index) ) {
+# 			nz <- data != 0
+# 			length <- length(data)
+# 			index <- which(nz) - from0
+# 			data <- data[nz]
+# 		}
+# 	}
+# 	if ( missing(length) ) {
+# 		if ( is.null(keys) ) {
+# 			length <- max(index) + from0
+# 		} else {
+# 			length <- length(keys)
+# 		}
+# 	}
+# 	if ( missing(keys) || is.null(keys) )
+# 		keys <- as.integer(!from0)
+# 	if ( length(index) != length(data) )
+# 		index <- rep(index, length.out=length(data))
+# 	if ( length(keys) > 1L && length(keys) != length )
+# 		keys <- rep(keys, length.out=length)
+# 	new("sparse_vec",
+# 		data=data,
+# 		datamode=make_datamode(datamode, type="R"),
+# 		paths=character(),
+# 		filemode=make_filemode(),
+# 		chunksize=as.integer(chunksize),
+# 		length=length,
+# 		names=names,
+# 		index=index,
+# 		keys=keys,
+# 		tolerance=make_tolerance(tolerance),
+# 		combiner=make_combiner(combiner))
+# }
 
 # setMethod("describe_for_display", "sparse_vec", function(x) {
 # 	desc1 <- paste0("<", x@length, " length> ", class(x))

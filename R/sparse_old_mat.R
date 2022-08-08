@@ -153,6 +153,8 @@ sparse_old_mat <- function(data, datamode = "double", nrow = 0, ncol = 0,
 	x
 }
 
+sparse_mat <- sparse_old_mat
+
 as_sparse_old_mat_combiner <- function(combiner) {
 	if ( is.character(combiner) ) {
 		if ( combiner == "identity" ) {

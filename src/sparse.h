@@ -23,6 +23,7 @@ class Sparse
 			_dimnames = R_do_slot(x, Rf_install("dimnames"));
 			_names = R_do_slot(x, Rf_install("names"));
 			_index = R_do_slot(x, Rf_install("index"));
+			_offset = Rf_asInteger(R_do_slot(x, Rf_install("offset")));
 			_keys = R_do_slot(x, Rf_install("keys"));
 			SEXP tol = R_do_slot(x, Rf_install("tolerance"));
 			SEXP tol_type = Rf_getAttrib(tol, Rf_install("tol_type"));
@@ -79,8 +80,12 @@ class Sparse
 				return _index;
 		}
 
+		int offset() {
+			return _offset;
+		}
+
 		bool has_keys() {
-			return XLENGTH(_keys) > 1; // scalar -> offset
+			return _keys != R_NilValue;
 		}
 
 		SEXP keys() {
@@ -91,9 +96,8 @@ class Sparse
 		void copy_keys(size_t i, size_t size, TKey * buffer, index_t skip = 1)
 		{
 			TKey * pKeys = DataPtr<TKey>(keys());
-			int offset = static_cast<int>(pKeys[0]);
 			for ( size_t j = 0; j < size; j++ ) {
-				buffer[j] = has_keys() ? pKeys[i] : i + offset;
+				buffer[j] = has_keys() ? pKeys[i] : i + offset();
 				i += skip;
 			}
 		}
@@ -102,12 +106,15 @@ class Sparse
 		void copy_keys(TInd * pindex, size_t size, TKey * buffer)
 		{
 			TKey * pKeys = DataPtr<TKey>(keys());
-			int offset = static_cast<int>(pKeys[0]);
 			for ( size_t j = 0; j < size; j++ )
 			{
 				index_t i = static_cast<index_t>(pindex[j]);
-				buffer[j] = has_keys() ? pKeys[i] : i + offset;
+				buffer[j] = has_keys() ? pKeys[i] : i + offset();
 			}
+		}
+
+		double zero() {
+			return 0;
 		}
 
 		double tol() {
@@ -126,12 +133,13 @@ class Sparse
 
 		SEXP _data;
 		int * _datamode;  // 1 = raw, 2 = logical, 3 = integer, 4 = numeric
+		SEXP _index;
+		int _offset;
+		SEXP _keys;
 		index_t _length;
 		SEXP _dim;
 		SEXP _dimnames;
 		SEXP _names;
-		SEXP _index;
-		SEXP _keys;
 		double _tol;
 		int _tol_type; // 1 = absolute, 2 = relative
 		int _combiner;
@@ -148,7 +156,7 @@ class SparseVector : public Sparse
 		{
 			TKey subset = has_keys() ? DataPtr<TKey>(keys())[i] : i;
 			TVal val = keyval_search<TKey,TVal>(subset, index(), data(),
-				0, length(), tol(), tol_ref(), 0, combiner(), TRUE).second;
+				0, length(), tol(), tol_ref(), zero(), combiner(), TRUE).second;
 			return val;
 		}
 
@@ -158,7 +166,7 @@ class SparseVector : public Sparse
 			TKey * region_idx = (TKey *) Calloc(size, TKey);
 			copy_keys<TKey>(i, size, region_idx, skip);
 			size_t num_read = do_keyval_search<TKey,TVal>(buffer, region_idx, size,
-				index(), data(), 0, nnz(), tol(), tol_ref(), 0, combiner(), TRUE);
+				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
 			Free(region_idx);
 			return num_read;
 		}
@@ -176,7 +184,7 @@ class SparseVector : public Sparse
 					break;
 			}
 			size_t num_read = do_keyval_search<TKey,TVal>(buffer, element_idx, XLENGTH(i),
-				index(), data(), 0, nnz(), tol(), tol_ref(), 0, combiner(), TRUE);
+				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
 			Free(element_idx);
 			return num_read;
 		}
@@ -185,13 +193,13 @@ class SparseVector : public Sparse
 		SEXP getElements(SEXP i)
 		{
 			SEXP retVec;
-			if ( i != R_NilValue && XLENGTH(i) > 0 ) {
-				PROTECT(retVec = Rf_allocVector(S, XLENGTH(i)));
-				getElements<TKey,TVal>(i, DataPtr<TVal>(retVec));
-			}
-			else {
+			if ( i == R_NilValue ) {
 				PROTECT(retVec = Rf_allocVector(S, length()));
 				getRegion<TKey,TVal>(0, length(), DataPtr<TVal>(retVec));
+			}
+			else {
+				PROTECT(retVec = Rf_allocVector(S, XLENGTH(i)));
+				getElements<TKey,TVal>(i, DataPtr<TVal>(retVec));
 			}
 			UNPROTECT(1);
 			return retVec;

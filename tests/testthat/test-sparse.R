@@ -15,8 +15,6 @@ test_that("sparse vector subsetting", {
 
 	expect_equal(x, y[])
 
-	expect_equal(x[1], y[1])
-
 	expect_equal(x[1:10], y[1:10])
 
 	expect_equal(x[10:1], y[10:1])
@@ -24,8 +22,6 @@ test_that("sparse vector subsetting", {
 	keys(y) <- seq_along(y)
 
 	expect_equal(x, y[])
-
-	expect_equal(x[1], y[1])
 
 	expect_equal(x[1:10], y[1:10])
 
@@ -36,8 +32,6 @@ test_that("sparse vector subsetting", {
 	atomdata(y) <- as.matter(atomdata(y))
 
 	expect_equal(x, y[])
-
-	expect_equal(x[1], y[1])
 
 	expect_equal(x[1:10], y[1:10])
 
@@ -57,15 +51,27 @@ test_that("sparse vector subsetting", {
 
 	tolerance(z) <- 0.25
 
-	expect_equal(c(0, 0, 1, 0, 2, 0, 3, 3.333, 4), z[])
+	test1 <- c(0, 0, 1, 0, 2, 0, 3, 3.333, 4)
 
-	combiner(z) <- "max"
-
-	expect_equal(c(0, 0, 1.11, 0, 2.22, 0, 3, 3.33, 4), z[])
+	expect_equal(test1, z[])
 
 	combiner(z) <- "sum"
 
-	expect_equal(c(0, 0, 3.12, 0, 4.22, 0, 3, 6.663, 4), z[])
+	test2 <- c(0, 0, 1.0+1.01+1.11, 0, 2.0+2.22, 0, 3, 3.33+3.333, 4)
+
+	expect_equal(test2, z[])
+
+	combiner(z) <- "mean"
+
+	test3 <- c(0, 0, (1.0+1.01+1.11)/3, 0, (2.0+2.22)/2, 0, 3, (3.33+3.333)/2, 4)
+
+	expect_equal(test3, z[])
+
+	combiner(z) <- "max"
+
+	test4 <- c(0, 0, 1.11, 0, 2.22, 0, 3, 3.333, 4)
+
+	expect_equal(test4, z[])
 
 })
 

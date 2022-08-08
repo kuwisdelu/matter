@@ -17,8 +17,9 @@
 
 #define NO_DUPS		1
 #define SUM_DUPS	2
-#define MAX_DUPS	3
-#define MIN_DUPS	4
+#define AVG_DUPS	3
+#define MAX_DUPS	4
+#define MIN_DUPS	5
 
 typedef ptrdiff_t index_t;
 
@@ -251,6 +252,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 	TVal * pValues = DataPtr<TVal>(values);
 	index_t pos = NA_INTEGER;
 	TVal retVal = nomatch;
+	size_t num_matches = 0;
 	if ( !isNA(x) )
 	{
 		if ( sorted ) { // sorted keys -- binary search
@@ -258,6 +260,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 				tol, tol_ref, NA_INTEGER, FALSE);
 			if ( pos != NA_INTEGER ) {
 				retVal = pValues[pos];
+				num_matches++;
 				if ( dups != NO_DUPS )
 				{
 					for ( int j = 1; pos - j >= 0; j++ )
@@ -267,6 +270,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 							TVal dupVal = pValues[pos - j];
 							switch(dups) {
 								case SUM_DUPS:
+								case AVG_DUPS:
 									retVal += dupVal;
 									break;
 								case MAX_DUPS:
@@ -276,6 +280,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 									retVal = dupVal < retVal ? dupVal : retVal;
 									break;
 							}
+							num_matches++;
 						}
 						else
 							break;
@@ -287,6 +292,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 							TVal dupVal = pValues[pos + k];
 							switch(dups) {
 								case SUM_DUPS:
+								case AVG_DUPS:
 									retVal += dupVal;
 									break;
 								case MAX_DUPS:
@@ -296,6 +302,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 									retVal = dupVal < retVal ? dupVal : retVal;
 									break;
 							}
+							num_matches++;
 						}
 						else
 							break;
@@ -304,38 +311,40 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			}
 		}
 		else { // unsorted keys -- linear search
-			size_t count = 0;
 			double min_diff = DBL_MAX;
 			for ( size_t i = start; i < end; i++ )
 			{
 				double diff = rel_diff<TKey>(x, pKeys[i], tol_ref);
 				if ( diff <= tol )
 				{
-					count++;
 					switch(dups) {
 						case NO_DUPS:
 							retVal = diff < min_diff ? pValues[i] : retVal;
 							break;
 						case SUM_DUPS:
-							retVal = count > 1 ? pValues[i] + retVal : pValues[i];
+						case AVG_DUPS:
+							retVal = num_matches > 0 ? pValues[i] + retVal : pValues[i];
 							break;
 						case MAX_DUPS:
-							retVal = count == 1 || pValues[i] > retVal ? pValues[i] : retVal;
+							retVal = (num_matches == 0 || pValues[i] > retVal) ? pValues[i] : retVal;
 							break;
 						case MIN_DUPS:
-							retVal = count == 1 || pValues[i] < retVal ? pValues[i] : retVal;
+							retVal = (num_matches == 0 || pValues[i] < retVal) ? pValues[i] : retVal;
 							break;
 					}
 					if ( diff < min_diff ) {
-						min_diff = diff;
 						pos = i;
+						min_diff = diff;
+						if ( dups == NO_DUPS && min_diff == 0 )
+							break;
 					}
-					if ( dups == NO_DUPS && min_diff == 0 )
-						break;
+					num_matches++;
 				}
 			}
 		}
 	}
+	if ( dups == AVG_DUPS )
+		retVal = retVal / num_matches;
 	Pair<index_t,TVal> result = {pos, retVal};
 	return result;
 }
@@ -348,6 +357,7 @@ Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, s
 	TVal * pValues = DataPtr<TVal>(values);
 	index_t pos = NA_INTEGER;
 	TVal retVal = nomatch;
+	size_t num_matches = 0;
 	if ( !isNA(x) )
 	{
 		if ( sorted ) { // sorted keys -- binary search
@@ -355,6 +365,7 @@ Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, s
 				tol, tol_ref, NA_INTEGER, FALSE);
 			if ( pos != NA_INTEGER ) {
 				retVal = pValues[pos];
+				num_matches++;
 				if ( dups != NO_DUPS )
 				{
 					for ( int j = 1; pos - j >= 0; j++ )
@@ -364,6 +375,7 @@ Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, s
 							TVal dupVal = pValues[pos - j];
 							switch(dups) {
 								case SUM_DUPS:
+								case AVG_DUPS:
 									retVal += dupVal;
 									break;
 								case MAX_DUPS:
@@ -373,6 +385,7 @@ Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, s
 									retVal = dupVal < retVal ? dupVal : retVal;
 									break;
 							}
+							num_matches++;
 						}
 						else
 							break;
@@ -384,6 +397,7 @@ Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, s
 							TVal dupVal = pValues[pos + k];
 							switch(dups) {
 								case SUM_DUPS:
+								case AVG_DUPS:
 									retVal += dupVal;
 									break;
 								case MAX_DUPS:
@@ -393,6 +407,7 @@ Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, s
 									retVal = dupVal < retVal ? dupVal : retVal;
 									break;
 							}
+							num_matches++;
 						}
 						else
 							break;
@@ -401,38 +416,40 @@ Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, s
 			}
 		}
 		else { // unsorted keys -- linear search
-			size_t count = 0;
 			double min_diff = DBL_MAX;
 			for ( size_t i = start; i < end; i++ )
 			{
 				double diff = rel_diff<const char *>(CHAR(x), CHAR(pKeys[i]), tol_ref);
 				if ( diff <= tol )
 				{
-					count++;
 					switch(dups) {
 						case NO_DUPS:
 							retVal = diff < min_diff ? pValues[i] : retVal;
 							break;
 						case SUM_DUPS:
-							retVal = count > 1 ? pValues[i] + retVal : pValues[i];
+						case AVG_DUPS:
+							retVal = num_matches > 0 ? pValues[i] + retVal : pValues[i];
 							break;
 						case MAX_DUPS:
-							retVal = count == 1 || pValues[i] > retVal ? pValues[i] : retVal;
+							retVal = (num_matches == 0 || pValues[i] > retVal) ? pValues[i] : retVal;
 							break;
 						case MIN_DUPS:
-							retVal = count == 1 || pValues[i] < retVal ? pValues[i] : retVal;
+							retVal = (num_matches == 0 || pValues[i] < retVal) ? pValues[i] : retVal;
 							break;
 					}
 					if ( diff < min_diff ) {
 						min_diff = diff;
 						pos = i;
+						if ( dups == NO_DUPS && min_diff == 0 )
+							break;
 					}
-					if ( dups == NO_DUPS && min_diff == 0 )
-						break;
+					num_matches++;
 				}
 			}
 		}
 	}
+	if ( dups == AVG_DUPS )
+		retVal = retVal / num_matches;
 	Pair<index_t,TVal> result = {pos, retVal};
 	return result;
 }

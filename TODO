@@ -2,6 +2,9 @@
 TODO for matter package
 -------------------------
 
+- Implement summarization over 'mean', etc., for 'kvsearch()'
+- Optimize extraction of sparse data when 'keys' are NULL
+
 - Add "pull()" and "push()" methods to move data to/from memory
 - Write an an updated vignette + switch vignete to R Markdown
 - Investigate access efficiency of ALTREP matter objects

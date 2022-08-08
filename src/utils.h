@@ -36,7 +36,7 @@ T * DataPtr(SEXP x)
 	return ((T *)(DATAPTR(x)));
 }
 
-//// Missingness
+//// Generate NA
 //---------------
 
 template<typename T>
@@ -46,7 +46,6 @@ template<> inline
 Rbyte NA<Rbyte>()
 {
 	Rf_error("NAs not supported for type 'Rbyte'");
-	return 0;
 }
 
 template<> inline
@@ -60,6 +59,9 @@ double NA<double>()
 {
 	return NA_REAL;
 }
+
+//// Check for NA
+//----------------
 
 inline bool isNA(Rbyte x)
 {

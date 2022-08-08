@@ -219,13 +219,17 @@ test_that("key value search (sorted) - resolve duplicates", {
 
 	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, vals, tol=0.5))
 
-	test1 <- c(1.0 + 1.01 + 1.11, 2.0 + 2.22, 3.0 + 3.33 + 3.333, NA)
+	test1 <- c(1.0+1.01+1.11, 2.0+2.22, 3.0+3.33+3.333, NA)
 
 	expect_equal(test1, kvsearch(x, keys, vals, tol=0.5, dups="sum"))
 
-	test2 <- c(1.11, 2.22, 3.333, NA)
+	test2 <- c((1.0+1.01+1.11)/3, (2.0+2.22)/2, (3.0+3.33+3.333)/3, NA)
 
-	expect_equal(test2, kvsearch(x, keys, vals, tol=0.5, dups="max"))
+	expect_equal(test2, kvsearch(x, keys, vals, tol=0.5, dups="mean"))
+
+	test3 <- c(1.11, 2.22, 3.333, NA)
+
+	expect_equal(test3, kvsearch(x, keys, vals, tol=0.5, dups="max"))
 
 })
 
@@ -241,13 +245,17 @@ test_that("key value search (unsorted) - resolve duplicates", {
 
 	expect_equal(c(1.0, 2.0, 3.33, NA), kvsearch(x, keys, vals, tol=0.5))
 
-	test1 <- c(1.0 + 1.01 + 1.11, 2.0 + 2.22, 3.0 + 3.33 + 3.333, NA)
+	test1 <- c(1.0+1.01+1.11, 2.0+2.22, 3.0+3.33+3.333, NA)
 
 	expect_equal(test1, kvsearch(x, keys, vals, tol=0.5, dups="sum"))
 
-	test2 <- c(1.11, 2.22, 3.333, NA)
+	test2 <- c((1.0+1.01+1.11)/3, (2.0+2.22)/2, (3.0+3.33+3.333)/3, NA)
 
-	expect_equal(test2, kvsearch(x, keys, vals, tol=0.5, dups="max"))
+	expect_equal(test2, kvsearch(x, keys, vals, tol=0.5, dups="mean"))
+
+	test3 <- c(1.11, 2.22, 3.333, NA)
+
+	expect_equal(test3, kvsearch(x, keys, vals, tol=0.5, dups="max"))
 
 })
 

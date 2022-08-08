@@ -8,6 +8,7 @@ extern "C" {
 		switch(sVec.datamode()) {
 			case R_INTEGER:
 				switch(TYPEOF(sVec.keys())) {
+					case NILSXP:
 					case INTSXP:
 						return sVec.getElements<int,int,INTSXP>(i);
 					case REALSXP:
@@ -15,6 +16,7 @@ extern "C" {
 				}
 			case R_NUMERIC:
 				switch(TYPEOF(sVec.keys())) {
+					case NILSXP:
 					case INTSXP:
 						return sVec.getElements<int,double,REALSXP>(i);
 					case REALSXP:

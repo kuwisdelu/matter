@@ -10,7 +10,7 @@
 
 \usage{
 kvsearch(x, keys, values, tol = 0, tol.ref = "abs",
-		nomatch = NA_integer_, dups = "any")
+		nomatch = NA_integer_, dups = "none")
 }
 
 \arguments{
@@ -26,7 +26,7 @@ kvsearch(x, keys, values, tol = 0, tol.ref = "abs",
 
 	\item{nomatch}{The value to be returned in the case when no match is found, coerced to an integer. (Ignored if \code{nearest = TRUE}.)}
 
-	\item{dups}{How to resolve matches to items with duplicate keys. One of 'any', 'sum', or 'max'. For 'any', choose the first matched key-value pair (regardless of order). For \code{tol > 0}, this will still always select the nearest match. For all other options, summarize over all matches within the given tolerance.}
+	\item{dups}{How to resolve matches to items with duplicate keys. One of 'none', 'sum', 'mean', 'max', or 'min'. For 'none', choose the first matched key-value pair (regardless of order). For \code{tol > 0}, this will still always select the nearest match. For all other options, summarize over all matches within the given tolerance.}
 }
 
 \details{
