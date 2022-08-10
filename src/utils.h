@@ -73,6 +73,11 @@ inline bool isNA(int x)
     return x == NA_INTEGER || x == NA_LOGICAL;
 }
 
+inline bool isNA(long x)
+{
+    return ((int)(x)) == NA_INTEGER || ((int)(x)) == NA_LOGICAL;
+}
+
 inline bool isNA(double x)
 {
     return ISNA(x) || ISNAN(x);

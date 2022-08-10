@@ -2,15 +2,14 @@
 TODO for matter package
 -------------------------
 
-- Implement filters and linear interpolation for 'kvsearch()'
 - Optimize extraction of sparse data when 'keys' are NULL
-- Switch 'keys()' to 'domain()' for sparse data structures
+- Add smoothing filters and linear interpolation for 'kvsearch()'
 - Implement combining using 'cbind2()' and 'rbind2()'
 
 - Refactor original matter S4 data structures R/C++ code
 - Clean up generics and remove unneeded methods/functions
 	- Deprecate 'keys()' -> 'domain()'
-	- Deprecate 'datamode()' -> 'type()'
+	- Deprecate 'datamode()' -> 'type()' (but maybe not?)
 	- Deprecate 'pull()' and 'push()' (no replacements?)
 	- Deprecate 'rowSds()', etc. -> 'rowStats()'
 	- Deprecate 'paths()' -> 'path()'
@@ -23,5 +22,3 @@ TODO for matter package
 - Add wrappers for reading/manipulating csv, tsv, etc. (?)
 - Add 'match' and '%in%' functions for 'matter_vec' class
 - Add support for different data sources via @datasrc slot
-
-

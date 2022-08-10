@@ -100,7 +100,7 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 		round(nnz(x) / length(x), 4) * 100, "% density)\n", sep="")
 })
 
-setMethod("nnz", "sparse_vec", function(x, ...) length(object@data))
+setMethod("nnz", "sparse_vec", function(x, ...) length(x@data))
 
 extract_sparse_vec <- function(x, i = NULL) {
 	i <- if ( is.null(i) ) NULL else i - 1

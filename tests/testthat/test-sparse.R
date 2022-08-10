@@ -95,7 +95,30 @@ test_that("sparse vector timing", {
 
 	set.seed(1)
 
-	x <- rbinom(100000, 1, 0.2)
+	x <- rbinom(100000, 1, 0.05)
+
+	x[x != 0] <- seq_len(sum(x != 0))
+
+	y <- sparse_vec(x)
+
+	z <- sparse_old_mat(list(keys=list(y@index),
+							values=list(y@data)),
+						nrow=length(y), ncol=1)
+
+	expect_equal(x, y[])
+
+	bench::mark(y[])
+	bench::mark(z[])
+
+	bench::mark(y[1:1000])
+	bench::mark(z[1:1000,])
+
+	bench::mark(y[1000:1])
+	bench::mark(z[1000:1,])
+
+	set.seed(1)
+
+	x <- rbinom(100000, 1, 0.1)
 
 	x[x != 0] <- seq_len(sum(x != 0))
 
@@ -108,11 +131,12 @@ test_that("sparse vector timing", {
 						tolerance=0.1)
 
 	bench::mark(y[])
-
 	bench::mark(z[])
 
-	bench::mark(y[1000:1])
+	bench::mark(y[1:1000])
+	bench::mark(z[1:1000,])
 
+	bench::mark(y[1000:1])
 	bench::mark(z[1000:1,])
 
 })

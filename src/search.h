@@ -81,6 +81,12 @@ double rel_change<const char *>(const char * x, const char * y, int ref)
 	}
 }
 
+template<> inline
+double rel_change<SEXP>(SEXP x, SEXP y, int ref)
+{
+	return rel_change(CHAR(x), CHAR(y), ref);
+}
+
 // return the absolute or relative (unsigned) difference between two values
 template<typename T>
 double rel_diff(T x, T y, int ref = ABS_DIFF)
@@ -103,20 +109,6 @@ bool is_sorted(SEXP x, bool strictly = FALSE)
 	T * pX = DataPtr<T>(x);
 	for ( size_t i = 1; i < len; i++ ) {
 		double diff = rel_change(pX[i], pX[i - 1]);
-		if ( diff < 0 || (strictly && diff <= 0) )
-			return FALSE;
-	}
-	return TRUE;
-}
-
-template<> inline
-bool is_sorted<const char *>(SEXP x, bool strictly)
-{
-	R_xlen_t len = XLENGTH(x);
-	for ( size_t i = 1; i < len; i++ ) {
-		const char * xi = CHAR(STRING_ELT(x, i));
-		const char * xim1 = CHAR(STRING_ELT(x, i - 1));
-		double diff = rel_change(xi, xim1);
 		if ( diff < 0 || (strictly && diff <= 0) )
 			return FALSE;
 	}
@@ -168,53 +160,10 @@ index_t binary_search(T x, SEXP table, size_t start, size_t end,
 	return nomatch;
 }
 
-template<> inline // strings
-index_t binary_search<SEXP>(SEXP x, SEXP table, size_t start, size_t end,
-	double tol, int tol_ref, int nomatch, bool nearest, int err)
-{
-	double diff;
-	index_t min = start, max = end, mid = nomatch;
-	while ( start < end )
-	{
-		mid = start + (end - start) / 2;
-		double d1 = rel_change(CHAR(STRING_ELT(table, start)), CHAR(STRING_ELT(table, mid)));
-		double d2 = rel_change(CHAR(STRING_ELT(table, mid)), CHAR(STRING_ELT(table, end - 1)));
-		if ( d1 > 0 || d2 > 0 )
-			return err; // table is not sorted
-		diff = rel_change(CHAR(x), CHAR(STRING_ELT(table, mid)));
-		if ( diff < 0 )
-			end = mid;
-		else if ( diff > 0 )
-			start = mid + 1;
-		else
-			return mid;
-	}
-	if ( nearest || tol > 0 ) {
-		index_t left = mid >= min + 1 ? mid - 1 : min;
-		index_t right = mid < max - 1 ? mid + 1 : max - 1;
-		double dleft = rel_diff(CHAR(x), CHAR(STRING_ELT(table, left)), tol_ref);
-		double dmid = rel_diff(CHAR(x), CHAR(STRING_ELT(table, mid)), tol_ref);
-		double dright = rel_diff(CHAR(x), CHAR(STRING_ELT(table, right)), tol_ref);
-		if ( (mid == left && diff < 0) && (nearest || dleft < tol) )
-			return left;
-		else if ( (mid == right && diff > 0) && (nearest || dright < tol) )
-			return right;
-		else {
-			if ( (dleft <= dmid && dleft <= dright) && (nearest || dleft < tol) )
-				return left;
-			else if ( (dmid <= dleft && dmid <= dright) && (nearest || dmid < tol) )
-				return mid;
-			else if ( nearest || dright < tol )
-				return right;
-		}
-	}
-	return nomatch;
-}
-
 template<typename T>
 size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
-	bool index1 = FALSE, index_t skip = 1, int err = -1)
+	bool index1 = FALSE, int err = -1)
 {
 	R_xlen_t len = XLENGTH(x);
 	T * pX = DataPtr<T>(x);
@@ -247,7 +196,7 @@ SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 	}
 	int * pPos = INTEGER(pos);
 	do_binary_search<T>(pPos, x, table, 0, len,
-		tol, tol_ref, nomatch, nearest, index1, 1);
+		tol, tol_ref, nomatch, nearest, index1);
 	UNPROTECT(1);
 	return pos;
 }
@@ -268,9 +217,9 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 		if ( sorted ) {
 			pos = binary_search<TKey>(x, keys, start, end,
 				tol, tol_ref, NA_INTEGER, FALSE);
-			if ( dups == NO_DUPS || pos == NA_INTEGER || pos < 0 )
+			if ( dups == NO_DUPS || isNA(pos) || pos < 0 )
 			{
-				if ( pos != NA_INTEGER && pos >= 0 )
+				if ( !isNA(pos) && pos >= 0 )
 					retval = pValues[pos];
 				result = {pos, retval};
 				return result;
@@ -363,19 +312,22 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			else if ( sorted )
 				break;
 		}
-		if ( pos != NA_INTEGER )
+		if ( !isNA(pos) )
 		{
 			switch(dups) {
 				case AVG_DUPS:
 					retval = retval / num_matches;
 					break;
 				case LERP_DUPS:
-					int i0 = bounding_pos[0] != NA_INTEGER ? bounding_pos[0] : pos;
-					int i1 = bounding_pos[1] != NA_INTEGER ? bounding_pos[1] : pos;
+					int i0 = !isNA(bounding_pos[0]) ? bounding_pos[0] : pos;
+					int i1 = !isNA(bounding_pos[1]) ? bounding_pos[1] : pos;
 					TKey x0 = pKeys[i0], x1 = pKeys[i1];
 					TVal y0 = pValues[i0], y1 = pValues[i1];
+					double dx = rel_change(x1, x0, ABS_DIFF);
+					double dy = rel_change(y1, y0, ABS_DIFF);
+					double tx = rel_change(x, x0, ABS_DIFF);
 					if ( i0 != i1 && diff_min > 0 )
-						retval = y0 + ((y1 - y0) / (x1 - x0)) * (x - x0);
+						retval = y0 + (dy / dx) * tx;
 					else
 						retval = pValues[pos];
 			}
@@ -385,121 +337,33 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 	return result;
 }
 
-template<typename TVal> // strings
-Pair<index_t,TVal> keyval_search(SEXP x, SEXP keys, SEXP values, size_t start, size_t end,
-	double tol, int tol_ref, TVal nomatch, int dups = NO_DUPS, bool sorted = FALSE)
-{
-	SEXP * pKeys = DataPtr<SEXP>(keys);
-	TVal * pValues = DataPtr<TVal>(values);
-	index_t pos = NA_INTEGER;
-	TVal retval = nomatch;
-	size_t num_matches = 0;
-	Pair<index_t,TVal> result;
-	if ( !isNA(x) )
-	{
-		if ( sorted ) {
-			pos = binary_search<SEXP>(x, keys, start, end,
-				tol, tol_ref, NA_INTEGER, FALSE);
-			if ( dups == NO_DUPS || pos == NA_INTEGER || pos < 0 )
-			{
-				if ( pos != NA_INTEGER && pos >= 0 )
-					retval = pValues[pos];
-				result = {pos, retval};
-				return result;
-			}
-			start = pos;
-		}
-		double diff_min = DBL_MAX;
-		for ( size_t i = start; i < end; i++ )
-		{
-			double diff = rel_diff<const char *>(CHAR(x), CHAR(pKeys[i]), tol_ref);
-			if ( diff <= tol )
-			{
-				switch(dups) {
-					case NO_DUPS:
-						retval = diff < diff_min ? pValues[i] : retval;
-						break;
-					case SUM_DUPS:
-					case AVG_DUPS:
-						retval = num_matches > 0 ? pValues[i] + retval : pValues[i];
-						break;
-					case MAX_DUPS:
-						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
-						break;
-					case MIN_DUPS:
-						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
-						break;
-				}
-				num_matches++;
-				if ( diff < diff_min ) {
-					diff_min = diff;
-					pos = i;
-					if ( dups == NO_DUPS && diff_min == 0 )
-						break;
-				}
-			}
-			else if ( sorted )
-				break;
-		}
-		for ( size_t i = start; sorted && i >= 0; i-- )
-		{
-			double diff = rel_diff<const char *>(CHAR(x), CHAR(pKeys[i]), tol_ref);
-			if ( diff <= tol )
-			{
-				switch(dups) {
-					case NO_DUPS:
-						retval = diff < diff_min ? pValues[i] : retval;
-						break;
-					case SUM_DUPS:
-					case AVG_DUPS:
-						retval = num_matches > 0 ? pValues[i] + retval : pValues[i];
-						break;
-					case MAX_DUPS:
-						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
-						break;
-					case MIN_DUPS:
-						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
-						break;
-				}
-				num_matches++;
-			}
-			else if ( sorted )
-				break;
-		}
-		if ( dups == AVG_DUPS )
-			retval = retval / num_matches;
-	}
-	result = {pos, retval};
-	return result;
-}
-
 template<typename TKey, typename TVal>
 size_t do_keyval_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP values,
 	size_t start, size_t end, double tol, int tol_ref, TVal nomatch,
-	int dups = NO_DUPS, bool sorted = FALSE, index_t skip = 1)
+	int dups = NO_DUPS, bool sorted = FALSE)
 {
 	size_t num_matches = 0;
-	index_t i = 0, curkey = start;
+	index_t i = 0, current = start;
 	while ( i < xlen )
 	{
 		ptr[i] = nomatch;
 		if ( !isNA(x[i]) )
 		{
 			Pair<index_t,TVal> result = keyval_search(x[i], keys, values,
-				curkey, end, tol, tol_ref, nomatch, dups, sorted);
-			if ( result.first != NA_INTEGER ) {
+				current, end, tol, tol_ref, nomatch, dups, sorted);
+			if ( !isNA(result.first) ) {
 				if ( result.first < 0 ) {
 					sorted = FALSE; // fall back to linear search
-					curkey = start; // reset search space
+					current = start; // reset search space
 					continue;
 				}
-				curkey = result.first;
+				current = result.first;
 				ptr[i] = result.second;
 			}
 			if ( !sorted || (i + 1 < xlen && x[i + 1] < x[i]) )
-				curkey = start; // reset if either 'x' or 'keys' is unsorted
+				current = start; // reset if either 'x' or 'keys' is unsorted
 		}
-		i += skip;
+		i++;
 	}
 	return num_matches;
 }
