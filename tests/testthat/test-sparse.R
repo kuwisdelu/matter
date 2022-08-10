@@ -19,7 +19,7 @@ test_that("sparse vector subsetting", {
 
 	expect_equal(x[10:1], y[10:1])
 
-	keys(y) <- seq_along(y)
+	domain(y) <- seq_along(y)
 
 	expect_equal(x, y[])
 
@@ -45,7 +45,7 @@ test_that("sparse vector subsetting", {
 							2.0, 2.22,
 							3.0, 3.33, 3.333,
 							4.0),
-					keys=seq(from=0, to=4, by=0.5))
+					domain=seq(from=0, to=4, by=0.5))
 
 	test1 <- c(0, 0, 1, 0, 2, 0, 3, 0, 4)
 
@@ -75,11 +75,19 @@ test_that("sparse vector subsetting", {
 
 	expect_equal(test5, z[])
 
-	z2 <- sparse_vec(index=rev(atomindex(z)),
-					data=rev(atomdata(z)),
-					keys=keys(z))
+	combiner(z) <- "linear"
 
-	expect_equal(c(0, 0, 1, 0, 2, 0, 3, 0, 4), z2[])
+	tolerance(z) <- 1.0
+
+	test6 <- seq(from=0, to=4, by=0.5)
+
+	expect_equal(test6, z[])
+
+	z2 <- sparse_vec(index=rev(aindex(z)),
+					data=rev(adata(z)),
+					domain=domain(z))
+
+	expect_equal(test1, z2[])
 
 })
 
@@ -91,7 +99,7 @@ test_that("sparse vector timing", {
 
 	x[x != 0] <- seq_len(sum(x != 0))
 
-	y <- sparse_vec(x, keys=1:length(x), tolerance=0.1)
+	y <- sparse_vec(x, domain=1:length(x), tolerance=0.1)
 
 	z <- sparse_old_mat(list(keys=list(y@index),
 							values=list(y@data)),

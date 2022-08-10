@@ -24,7 +24,7 @@ class Sparse
 			_names = R_do_slot(x, Rf_install("names"));
 			_index = R_do_slot(x, Rf_install("index"));
 			_offset = Rf_asInteger(R_do_slot(x, Rf_install("offset")));
-			_keys = R_do_slot(x, Rf_install("keys"));
+			_domain = R_do_slot(x, Rf_install("domain"));
 			SEXP tol = R_do_slot(x, Rf_install("tolerance"));
 			SEXP tol_type = Rf_getAttrib(tol, Rf_install("tol_type"));
 			_tol = Rf_asReal(tol);
@@ -84,32 +84,32 @@ class Sparse
 			return _offset;
 		}
 
-		bool has_keys() {
-			return _keys != R_NilValue;
+		bool has_domain() {
+			return _domain != R_NilValue;
 		}
 
-		SEXP keys() {
-			return _keys;
+		SEXP domain() {
+			return _domain;
 		}
 
 		template<typename TKey>
-		void copy_keys(size_t i, size_t size, TKey * buffer, index_t skip = 1)
+		void copy_domain(size_t i, size_t size, TKey * buffer, index_t skip = 1)
 		{
-			TKey * pKeys = DataPtr<TKey>(keys());
+			TKey * pKeys = DataPtr<TKey>(domain());
 			for ( size_t j = 0; j < size; j++ ) {
-				buffer[j] = has_keys() ? pKeys[i] : i + offset();
+				buffer[j] = has_domain() ? pKeys[i] : i + offset();
 				i += skip;
 			}
 		}
 
 		template<typename TKey, typename TInd>
-		void copy_keys(TInd * pindex, size_t size, TKey * buffer)
+		void copy_domain(TInd * pindex, size_t size, TKey * buffer)
 		{
-			TKey * pKeys = DataPtr<TKey>(keys());
+			TKey * pKeys = DataPtr<TKey>(domain());
 			for ( size_t j = 0; j < size; j++ )
 			{
 				index_t i = static_cast<index_t>(pindex[j]);
-				buffer[j] = has_keys() ? pKeys[i] : i + offset();
+				buffer[j] = has_domain() ? pKeys[i] : i + offset();
 			}
 		}
 
@@ -135,7 +135,7 @@ class Sparse
 		int * _datamode;  // 1 = raw, 2 = logical, 3 = integer, 4 = numeric
 		SEXP _index;
 		int _offset;
-		SEXP _keys;
+		SEXP _domain;
 		index_t _length;
 		SEXP _dim;
 		SEXP _dimnames;
@@ -154,7 +154,7 @@ class SparseVector : public Sparse
 		template<typename TKey, typename TVal>
 		TVal get(size_t i)
 		{
-			TKey subset = has_keys() ? DataPtr<TKey>(keys())[i] : i;
+			TKey subset = has_domain() ? DataPtr<TKey>(domain())[i] : i;
 			TVal val = keyval_search<TKey,TVal>(subset, index(), data(),
 				0, length(), tol(), tol_ref(), zero(), combiner(), TRUE).second;
 			return val;
@@ -164,7 +164,7 @@ class SparseVector : public Sparse
 		size_t getRegion(size_t i, size_t size, TVal * buffer, index_t skip = 1)
 		{
 			TKey * region_idx = (TKey *) Calloc(size, TKey);
-			copy_keys<TKey>(i, size, region_idx, skip);
+			copy_domain<TKey>(i, size, region_idx, skip);
 			size_t num_read = do_keyval_search<TKey,TVal>(buffer, region_idx, size,
 				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
 			Free(region_idx);
@@ -177,10 +177,10 @@ class SparseVector : public Sparse
 			TKey * element_idx = (TKey *) Calloc(XLENGTH(i), TKey);
 			switch(TYPEOF(i)) {
 				case INTSXP:
-					copy_keys<TKey,int>(INTEGER(i), XLENGTH(i), element_idx);
+					copy_domain<TKey,int>(INTEGER(i), XLENGTH(i), element_idx);
 					break;
 				case REALSXP:
-					copy_keys<TKey,double>(REAL(i), XLENGTH(i), element_idx);
+					copy_domain<TKey,double>(REAL(i), XLENGTH(i), element_idx);
 					break;
 			}
 			size_t num_read = do_keyval_search<TKey,TVal>(buffer, element_idx, XLENGTH(i),

@@ -5,32 +5,32 @@
 setClass("sparse_",
 	slots = c(
 		index = "ANY",
-		keys = "ANY",
+		domain = "ANY",
 		tolerance = "numeric",
 		combiner = "factor"),
 	contains = c("matter", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
-		if ( !is.null(object@keys) ) {
+		if ( !is.null(object@domain) ) {
 			if ( is.matter(object@index) ) {
-				if ( typeof(object@keys) == "integer" && any(datamode(object@index) != "integer") )
-					errors <- c(errors, paste0("data type of 'keys' [",
-						typeof(object@keys), "], and 'index' [",
+				if ( typeof(object@domain) == "integer" && any(datamode(object@index) != "integer") )
+					errors <- c(errors, paste0("data type of 'domain' [",
+						typeof(object@domain), "], and 'index' [",
 						datamode(object@index), "] must match"))
-				if ( typeof(object@keys) == "double" && any(datamode(object@index) != "numeric") )
-					errors <- c(errors, paste0("data type of 'keys' [",
-						typeof(object@keys), "], and 'index' [",
+				if ( typeof(object@domain) == "double" && any(datamode(object@index) != "numeric") )
+					errors <- c(errors, paste0("data type of 'domain' [",
+						typeof(object@domain), "], and 'index' [",
 						datamode(object@index), "] must match"))
 			} else if ( is.atomic(object@index) ) {
-				if ( typeof(object@keys) != typeof(object@index) )
-					errors <- c(errors, paste0("data type of 'keys' [",
-						typeof(object@keys), "], and 'index' [",
+				if ( typeof(object@domain) != typeof(object@index) )
+					errors <- c(errors, paste0("data type of 'domain' [",
+						typeof(object@domain), "], and 'index' [",
 						typeof(object@index), "] must match"))
 			} else {
 				index_types <- vapply(object@index, typeof, character(1))
-				if ( !all(typeof(object@keys) == index_types) )
-					errors <- c(errors, paste0("data type of 'keys' [",
-						typeof(object@keys), "] and 'index' types must match"))
+				if ( !all(typeof(object@domain) == index_types) )
+					errors <- c(errors, paste0("data type of 'domain' [",
+						typeof(object@domain), "] and 'index' types must match"))
 			}
 		}
 		if ( is.null(errors) ) TRUE else errors
@@ -46,10 +46,10 @@ setReplaceMethod("atomindex", "sparse_", function(object, value) {
 		object
 })
 
-setMethod("keys", "sparse_", function(object) object@keys)
+setMethod("domain", "sparse_", function(object) object@domain)
 
-setReplaceMethod("keys", "sparse_", function(object, value) {
-	object@keys <- value
+setReplaceMethod("domain", "sparse_", function(object, value) {
+	object@domain <- value
 	if ( validObject(object) )
 		object
 })

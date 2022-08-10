@@ -786,7 +786,7 @@ widest_datamode <- function(x) {
 ## ---------------------------------------------------
 
 make_combiner <- function(x) {
-	levels <- c("none", "sum", "mean", "max", "min")
+	levels <- c("none", "sum", "mean", "max", "min", "linear")
 	if ( !is.numeric(x) )
 		x <- as.character(x)
 	factor(switch(x,
@@ -795,6 +795,7 @@ make_combiner <- function(x) {
 		"mean" = "mean",
 		"max" = "max",
 		"min" = "min",
+		"linear" = "linear",
 		NA_character_), levels=levels)
 }
 

@@ -9,7 +9,7 @@ setClass("sparse_vec",
 		data = "matter_numeric_types",
 		index = "matter_numeric_types",
 		offset = "integer",
-		keys = "numeric_OR_NULL",
+		domain = "numeric_OR_NULL",
 		dim = "NULL",
 		dimnames = "NULL",
 		tolerance = "numeric",
@@ -19,7 +19,7 @@ setClass("sparse_vec",
 		datamode = make_datamode("numeric", type="R"),
 		index = integer(),
 		offset = 0L,
-		keys = NULL,
+		domain = NULL,
 		length = 0,
 		names = NULL,
 		tolerance = make_tolerance(0),
@@ -27,8 +27,8 @@ setClass("sparse_vec",
 	contains = "sparse_",
 	validity = function(object) {
 		errors <- NULL
-		if ( !is.null(object@keys) && length(object@keys) != object@length )
-			errors <- c(errors, paste0("'keys' must be NULL ",
+		if ( !is.null(object@domain) && length(object@domain) != object@length )
+			errors <- c(errors, paste0("'domain' must be NULL ",
 				"OR match length of object [", object@length, "]"))
 		if ( length(object@data) != length(object@index) )
 			errors <- c(errors, paste0("length of 'data' [", length(object@data),
@@ -39,7 +39,7 @@ setClass("sparse_vec",
 	})
 
 sparse_vec <- function(data, index, datamode = "double", length = 0,
-					names = NULL, keys = NULL, offset = 1L,
+					names = NULL, domain = NULL, offset = 1L,
 					tolerance = c(abs=0), combiner = "none",
 					chunksize = getOption("matter.default.chunksize"), ...)
 {
@@ -54,22 +54,22 @@ sparse_vec <- function(data, index, datamode = "double", length = 0,
 		}
 	}
 	if ( missing(length) ) {
-		if ( is.null(keys) ) {
+		if ( is.null(domain) ) {
 			length <- max(index) + 1 - offset
 		} else {
-			length <- length(keys)
+			length <- length(domain)
 		}
 	}
 	if ( length(index) != length(data) )
 		index <- rep(index, length.out=length(data))
-	if ( length(keys) > 1L && length(keys) != length )
-		keys <- rep(keys, length.out=length)
+	if ( length(domain) > 1L && length(domain) != length )
+		domain <- rep(domain, length.out=length)
 	new("sparse_vec",
 		data=data,
 		datamode=make_datamode(datamode, type="R"),
 		index=index,
 		offset=as.integer(offset),
-		keys=keys,
+		domain=domain,
 		paths=character(),
 		filemode=make_filemode(),
 		chunksize=as.integer(chunksize),
@@ -87,12 +87,12 @@ setMethod("describe_for_display", "sparse_vec", function(x) {
 
 setMethod("preview_for_display", "sparse_vec", function(x) {
 	hdr <- preview_vector_data(x)
-	if ( is.null(colnames(x)) && !is.null(keys(x)) ) {
+	if ( is.null(colnames(x)) && !is.null(domain(x)) ) {
 		n <- ncol(hdr)
 		if ( colnames(hdr)[n] == "..." ) {
-			colnames(hdr) <- c(paste0("(", keys(x)[1:(n - 1)], ")"), "...")
+			colnames(hdr) <- c(paste0("(", domain(x)[1:(n - 1)], ")"), "...")
 		} else {
-			colnames(hdr) <- paste0("(", keys(x)[1:n], ")")
+			colnames(hdr) <- paste0("(", domain(x)[1:n], ")")
 		}
 	}
 	print(hdr, quote=FALSE, right=TRUE)

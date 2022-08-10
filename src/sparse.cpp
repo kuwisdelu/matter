@@ -7,7 +7,7 @@ extern "C" {
 		SparseVector sVec(x);
 		switch(sVec.datamode()) {
 			case R_INTEGER:
-				switch(TYPEOF(sVec.keys())) {
+				switch(TYPEOF(sVec.domain())) {
 					case NILSXP:
 					case INTSXP:
 						return sVec.getElements<int,int,INTSXP>(i);
@@ -15,7 +15,7 @@ extern "C" {
 						return sVec.getElements<double,int,INTSXP>(i);
 				}
 			case R_NUMERIC:
-				switch(TYPEOF(sVec.keys())) {
+				switch(TYPEOF(sVec.domain())) {
 					case NILSXP:
 					case INTSXP:
 						return sVec.getElements<int,double,REALSXP>(i);
