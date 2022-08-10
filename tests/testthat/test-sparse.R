@@ -122,13 +122,14 @@ test_that("sparse vector timing", {
 
 	x[x != 0] <- seq_len(sum(x != 0))
 
-	y <- sparse_vec(x, domain=1:length(x), tolerance=0.1)
+	y <- sparse_vec(x, domain=1:length(x))
 
 	z <- sparse_old_mat(list(keys=list(y@index),
 							values=list(y@data)),
 						nrow=length(y), ncol=1,
-						keys=1:length(y),
-						tolerance=0.1)
+						keys=1:length(y))
+
+	expect_equal(x, y[])
 
 	bench::mark(y[])
 	bench::mark(z[])

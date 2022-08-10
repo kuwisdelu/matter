@@ -93,12 +93,12 @@ class Sparse
 		}
 
 		template<typename TKey>
-		void copy_domain(size_t i, size_t size, TKey * buffer, index_t skip = 1)
+		void copy_domain(size_t i, size_t size, TKey * buffer)
 		{
 			TKey * pKeys = DataPtr<TKey>(domain());
 			for ( size_t j = 0; j < size; j++ ) {
 				buffer[j] = has_domain() ? pKeys[i] : i + offset();
-				i += skip;
+				i++;
 			}
 		}
 
@@ -161,14 +161,29 @@ class SparseVector : public Sparse
 		}
 
 		template<typename TKey, typename TVal>
-		size_t getRegion(size_t i, size_t size, TVal * buffer, index_t skip = 1)
+		size_t getRegion(size_t i, size_t size, TVal * buffer)
 		{
-			TKey * region_idx = (TKey *) Calloc(size, TKey);
-			copy_domain<TKey>(i, size, region_idx, skip);
-			size_t num_read = do_keyval_search<TKey,TVal>(buffer, region_idx, size,
-				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
-			Free(region_idx);
-			return num_read;
+			size_t num_nz = 0;
+			if ( has_domain() ) {
+				TKey * region_idx = (TKey *) Calloc(size, TKey);
+				copy_domain<TKey>(i, size, region_idx);
+				num_nz = do_keyval_search<TKey,TVal>(buffer, region_idx, size,
+					index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
+				Free(region_idx);
+			}
+			else {
+				for ( size_t j = 0; j < size; j++ )
+					buffer[j] = zero();
+				for ( size_t k = 0; k < nnz(); k++ )
+				{
+					TKey * pIndex = DataPtr<TKey>(index());
+					TVal * pData = DataPtr<TVal>(data());
+					index_t indk = static_cast<index_t>(pIndex[k]);
+					buffer[indk + i - offset()] = pData[k];
+					num_nz++;
+				}
+			}
+			return num_nz;
 		}
 
 		template<typename TKey, typename TVal>
@@ -183,10 +198,10 @@ class SparseVector : public Sparse
 					copy_domain<TKey,double>(REAL(i), XLENGTH(i), element_idx);
 					break;
 			}
-			size_t num_read = do_keyval_search<TKey,TVal>(buffer, element_idx, XLENGTH(i),
+			size_t num_nz = do_keyval_search<TKey,TVal>(buffer, element_idx, XLENGTH(i),
 				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
 			Free(element_idx);
-			return num_read;
+			return num_nz;
 		}
 
 		template<typename TKey, typename TVal, int S>
