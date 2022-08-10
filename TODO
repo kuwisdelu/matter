@@ -2,16 +2,26 @@
 TODO for matter package
 -------------------------
 
-- Implement summarization over 'mean', etc., for 'kvsearch()'
+- Implement filters and linear interpolation for 'kvsearch()'
 - Optimize extraction of sparse data when 'keys' are NULL
+- Switch 'keys()' to 'domain()' for sparse data structures
+- Implement combining using 'cbind2()' and 'rbind2()'
 
-- Add "pull()" and "push()" methods to move data to/from memory
+- Refactor original matter S4 data structures R/C++ code
+- Clean up generics and remove unneeded methods/functions
+	- Deprecate 'keys()' -> 'domain()'
+	- Deprecate 'datamode()' -> 'type()'
+	- Deprecate 'pull()' and 'push()' (no replacements?)
+	- Deprecate 'rowSds()', etc. -> 'rowStats()'
+	- Deprecate 'paths()' -> 'path()'
+	- Deprecate 'filemode()' -> 'readonly()'
+
 - Write an an updated vignette + switch vignete to R Markdown
 - Investigate access efficiency of ALTREP matter objects
 - Infer length/dim from file in constructor for more classes
 - Add more data manipulation functions for 'matter_df'
 - Add wrappers for reading/manipulating csv, tsv, etc. (?)
 - Add 'match' and '%in%' functions for 'matter_vec' class
-- Add support for different data sources via @datasources slot
+- Add support for different data sources via @datasrc slot
 
 

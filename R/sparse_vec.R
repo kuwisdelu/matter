@@ -90,9 +90,9 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 	if ( is.null(colnames(x)) && !is.null(keys(x)) ) {
 		n <- ncol(hdr)
 		if ( colnames(hdr)[n] == "..." ) {
-			colnames(hdr) <- c(paste0("{", keys(x)[1:(n - 1)], "}"), "...")
+			colnames(hdr) <- c(paste0("(", keys(x)[1:(n - 1)], ")"), "...")
 		} else {
-			colnames(hdr) <- paste0("{", keys(x)[1:n], "}")
+			colnames(hdr) <- paste0("(", keys(x)[1:n], ")")
 		}
 	}
 	print(hdr, quote=FALSE, right=TRUE)

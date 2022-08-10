@@ -47,31 +47,39 @@ test_that("sparse vector subsetting", {
 							4.0),
 					keys=seq(from=0, to=4, by=0.5))
 
-	expect_equal(c(0, 0, 1, 0, 2, 0, 3, 0, 4), z[])
-
-	tolerance(z) <- 0.25
-
-	test1 <- c(0, 0, 1, 0, 2, 0, 3, 3.333, 4)
+	test1 <- c(0, 0, 1, 0, 2, 0, 3, 0, 4)
 
 	expect_equal(test1, z[])
 
-	combiner(z) <- "sum"
+	tolerance(z) <- 0.25
 
-	test2 <- c(0, 0, 1.0+1.01+1.11, 0, 2.0+2.22, 0, 3, 3.33+3.333, 4)
+	test2 <- c(0, 0, 1, 0, 2, 0, 3, 3.333, 4)
 
 	expect_equal(test2, z[])
 
-	combiner(z) <- "mean"
+	combiner(z) <- "sum"
 
-	test3 <- c(0, 0, (1.0+1.01+1.11)/3, 0, (2.0+2.22)/2, 0, 3, (3.33+3.333)/2, 4)
+	test3 <- c(0, 0, 1.0+1.01+1.11, 0, 2.0+2.22, 0, 3, 3.33+3.333, 4)
 
 	expect_equal(test3, z[])
 
-	combiner(z) <- "max"
+	combiner(z) <- "mean"
 
-	test4 <- c(0, 0, 1.11, 0, 2.22, 0, 3, 3.333, 4)
+	test4 <- c(0, 0, (1.0+1.01+1.11)/3, 0, (2.0+2.22)/2, 0, 3, (3.33+3.333)/2, 4)
 
 	expect_equal(test4, z[])
+
+	combiner(z) <- "max"
+
+	test5 <- c(0, 0, 1.11, 0, 2.22, 0, 3, 3.333, 4)
+
+	expect_equal(test5, z[])
+
+	z2 <- sparse_vec(index=rev(atomindex(z)),
+					data=rev(atomdata(z)),
+					keys=keys(z))
+
+	expect_equal(c(0, 0, 1, 0, 2, 0, 3, 0, 4), z2[])
 
 })
 

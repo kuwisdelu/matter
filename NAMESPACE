@@ -140,6 +140,8 @@ exportMethods(
 	"aindex",
 	"atomindex",
 	"atomindex<-",
+	"domain",
+	"domain<-",
 	"keys",
 	"keys<-",
 	"tolerance",
