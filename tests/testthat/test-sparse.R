@@ -3,7 +3,7 @@ require(matter)
 
 context("sparse-classes")
 
-test_that("sparse vector subsetting", {
+test_that("sparse vector subsetting (simple)", {
 
 	set.seed(1)
 
@@ -36,6 +36,10 @@ test_that("sparse vector subsetting", {
 	expect_equal(x[1:10], y[1:10])
 
 	expect_equal(x[10:1], y[10:1])
+
+}
+
+test_that("sparse vector subsetting (domain)", {
 
 	z <- sparse_vec(index=c(1.0, 1.01, 1.11,
 							2.0, 2.22,
@@ -88,6 +92,35 @@ test_that("sparse vector subsetting", {
 					domain=domain(z))
 
 	expect_equal(test1, z2[])
+
+	z3 <- sparse_vec(index=seq_len(11),
+					data=c(rep_len(1, 5), 10,
+						rep_len(1, 5)),
+					domain=seq_len(11))
+
+	tolerance(z3) <- 2
+
+	combiner(z3) <- "sum"
+
+	test7 <- c(3, 4, 5, 14, 14, 14, 14, 14, 5, 4, 3)
+
+	expect_equal(test7, z3[])
+
+	combiner(z3) <- "mean"
+
+	wts <- rep_len(1, 5)
+
+	test8 <- filter(adata(z3), wts / sum(wts), circular=TRUE)
+
+	expect_equal(as.vector(test8), z3[])
+
+	combiner(z3) <- "gaussian"
+
+	wts <- dnorm((-2):2, sd=5/4)
+
+	test9 <- filter(adata(z3), wts / sum(wts), circular=TRUE)
+
+	expect_equal(as.vector(test9), z3[])
 
 })
 

@@ -33,7 +33,15 @@ extern "C" {
 
 }
 
-//// Local extrama
+//// Kernels
+//-----------
+
+inline double kgaussian(double x, double sd)
+{
+    return exp(-(x * x) / (2 * (sd * sd)));
+}
+
+//// Local extrema
 //-----------------
 
 template<typename T>

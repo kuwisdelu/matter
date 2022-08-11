@@ -2,8 +2,8 @@
 TODO for matter package
 -------------------------
 
-- Optimize extraction of sparse data when 'keys' are NULL
 - Add smoothing filters and linear interpolation for 'kvsearch()'
+- Implement sparse list and sparse matrix classes
 - Implement combining using 'cbind2()' and 'rbind2()'
 
 - Refactor original matter S4 data structures R/C++ code

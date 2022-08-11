@@ -10,17 +10,19 @@
 #include <cfloat>
 
 #include "utils.h"
+#include "vectools.h"
 
 #define ABS_DIFF 	1
 #define REL_DIFF_X	2
 #define REL_DIFF_Y	3
 
 #define NO_DUPS		1
-#define SUM_DUPS	2
-#define AVG_DUPS	3
+#define AVG_DUPS	2
+#define SUM_DUPS	3
 #define MAX_DUPS	4
 #define MIN_DUPS	5
 #define LERP_DUPS	6
+#define GAUS_DUPS	7
 
 typedef ptrdiff_t index_t;
 
@@ -229,7 +231,8 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 		double bounding_diff[] = {DBL_MAX, DBL_MAX};
 		int bounding_pos[] = {NA_INTEGER, NA_INTEGER};
 		double diff_min = DBL_MAX;
-		for ( size_t i = start; i < end; i++ )
+		double wt = 1, wscale = 0;
+		for ( index_t i = start; i < end; i++ )
 		{
 			double delta = rel_change<TKey>(x, pKeys[i], tol_ref);
 			double diff = fabs(delta);
@@ -239,9 +242,12 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 					case NO_DUPS:
 						retval = diff < diff_min ? pValues[i] : retval;
 						break;
-					case SUM_DUPS:
+					case GAUS_DUPS:
+						wt = kgaussian(diff, ((2 * tol) + 1) / 4);
 					case AVG_DUPS:
-						retval = num_matches > 0 ? pValues[i] + retval : pValues[i];
+					case SUM_DUPS:
+						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
+						wscale += wt;
 						break;
 					case MAX_DUPS:
 						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
@@ -250,6 +256,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
 						break;
 					case LERP_DUPS:
+					{
 						if ( delta > 0 && diff < bounding_diff[0] )
 						{
 							bounding_diff[0] = diff;
@@ -261,6 +268,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 							bounding_pos[1] = i;
 						}
 						break;
+					}
 				}
 				num_matches++;
 				if ( diff < diff_min )
@@ -274,7 +282,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			else if ( sorted )
 				break;
 		}
-		for ( size_t i = start - 1; sorted && i >= 0; i-- )
+		for ( index_t i = start - 1; sorted && i >= 0; i-- )
 		{
 			double delta = rel_change<TKey>(x, pKeys[i], tol_ref);
 			double diff = fabs(delta);
@@ -284,9 +292,12 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 					case NO_DUPS:
 						retval = diff < diff_min ? pValues[i] : retval;
 						break;
-					case SUM_DUPS:
+					case GAUS_DUPS:
+						wt = kgaussian(diff, ((2 * tol) + 1) / 4);
 					case AVG_DUPS:
-						retval = num_matches > 0 ? pValues[i] + retval : pValues[i];
+					case SUM_DUPS:
+						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
+						wscale += wt;
 						break;
 					case MAX_DUPS:
 						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
@@ -295,6 +306,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
 						break;
 					case LERP_DUPS:
+					{
 						if ( delta > 0 && diff < bounding_diff[0] )
 						{
 							bounding_diff[0] = diff;
@@ -306,6 +318,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 							bounding_pos[1] = i;
 						}
 						break;
+					}
 				}
 				num_matches++;
 			}
@@ -316,9 +329,11 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 		{
 			switch(dups) {
 				case AVG_DUPS:
-					retval = retval / num_matches;
+				case GAUS_DUPS:
+					retval = retval / wscale;
 					break;
 				case LERP_DUPS:
+				{
 					int i0 = !isNA(bounding_pos[0]) ? bounding_pos[0] : pos;
 					int i1 = !isNA(bounding_pos[1]) ? bounding_pos[1] : pos;
 					TKey x0 = pKeys[i0], x1 = pKeys[i1];
@@ -330,6 +345,8 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 						retval = y0 + (dy / dx) * tx;
 					else
 						retval = pValues[pos];
+					break;
+				}
 			}
 		}
 	}
