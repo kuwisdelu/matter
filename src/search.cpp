@@ -51,8 +51,8 @@ extern "C" {
 		Rf_error("supported types are 'integer', 'numeric', or 'character'");
 	}
 
-	SEXP keyvalSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
-		SEXP tol_ref, SEXP nomatch, SEXP dups, SEXP sorted)
+	SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
+		SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted)
 	{
 		if ( TYPEOF(x) != TYPEOF(keys) )
 			Rf_error("'x' and 'keys' must have the same type");
@@ -60,21 +60,21 @@ extern "C" {
 		if ( _tol < 0 )
 			Rf_error("'tol' must be non-negative");
 		int _tol_ref = Rf_asInteger(tol_ref);
-		int _dups = Rf_asInteger(dups);
+		int _interp = Rf_asInteger(interp);
 		bool _sorted = static_cast<bool>(Rf_asLogical(sorted));
 		switch(TYPEOF(values)) {
 			case INTSXP: {
 				int dnomatch = Rf_asInteger(nomatch);
 				switch(TYPEOF(keys)) {
 					case STRSXP:
-						return do_keyval_search<SEXP, int, INTSXP>(x,
-							keys, values, _tol, _tol_ref, dnomatch, _dups, _sorted);
+						return do_approx_search<SEXP, int, INTSXP>(x,
+							keys, values, _tol, _tol_ref, dnomatch, _interp, _sorted);
 					case INTSXP:
-						return do_keyval_search<int, int, INTSXP>(x,
-							keys, values, _tol, _tol_ref, dnomatch, _dups, _sorted);
+						return do_approx_search<int, int, INTSXP>(x,
+							keys, values, _tol, _tol_ref, dnomatch, _interp, _sorted);
 					case REALSXP:
-						return do_keyval_search<double, int, INTSXP>(x,
-							keys, values, _tol, _tol_ref, dnomatch, _dups, _sorted);
+						return do_approx_search<double, int, INTSXP>(x,
+							keys, values, _tol, _tol_ref, dnomatch, _interp, _sorted);
 				}
 				Rf_error("supported key types are 'integer', 'numeric', or 'character'");
 			}
@@ -82,14 +82,14 @@ extern "C" {
 				double fnomatch = Rf_asReal(nomatch);
 				switch(TYPEOF(keys)) {
 					case STRSXP:
-						return do_keyval_search<SEXP, double, REALSXP>(x,
-							keys, values, _tol, _tol_ref, fnomatch, _dups, _sorted);
+						return do_approx_search<SEXP, double, REALSXP>(x,
+							keys, values, _tol, _tol_ref, fnomatch, _interp, _sorted);
 					case INTSXP:
-						return do_keyval_search<int, double, REALSXP>(x,
-							keys, values, _tol, _tol_ref, fnomatch, _dups, _sorted);
+						return do_approx_search<int, double, REALSXP>(x,
+							keys, values, _tol, _tol_ref, fnomatch, _interp, _sorted);
 					case REALSXP:
-						return do_keyval_search<double, double, REALSXP>(x,
-							keys, values, _tol, _tol_ref, fnomatch, _dups, _sorted);
+						return do_approx_search<double, double, REALSXP>(x,
+							keys, values, _tol, _tol_ref, fnomatch, _interp, _sorted);
 				}
 				Rf_error("supported key types are 'integer', 'numeric', or 'character'");
 			}

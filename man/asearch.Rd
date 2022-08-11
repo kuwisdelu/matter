@@ -1,16 +1,16 @@
-\name{kvsearch}
+\name{asearch}
 
-\alias{kvsearch}
+\alias{asearch}
 
-\title{Key-Value Search with Approximate Matching}
+\title{Approximate Search with Interpolation}
 
 \description{
-    Given a set of keys and a sorted (non-decreasing) vector of values, find the values corresponding to matches between the elements of the first argument and the reference keys. Approximate matching is allowed within a specified tolerance.
+    Search a set of values indexed by a sorted (non-decreasing) vector of keys. Finds the values corresponding to matches between the elements of the first argument and the keys. Approximate matching is allowed within a specified tolerance. Interpolation can be performed for key collisions and/or non-exact matches.
 }
 
 \usage{
-kvsearch(x, keys, values, tol = 0, tol.ref = "abs",
-		nomatch = NA_integer_, dups = "none")
+asearch(x, keys, values, tol = 0, tol.ref = "abs",
+		nomatch = NA_integer_, interp = "nearest")
 }
 
 \arguments{
@@ -26,7 +26,7 @@ kvsearch(x, keys, values, tol = 0, tol.ref = "abs",
 
 	\item{nomatch}{The value to be returned in the case when no match is found, coerced to an integer. (Ignored if \code{nearest = TRUE}.)}
 
-	\item{dups}{How to resolve matches to items with duplicate keys. One of 'none', 'sum', 'mean', 'max', or 'min'. For 'none', choose the first matched key-value pair (regardless of order). For \code{tol > 0}, this will still always select the nearest match. For all other options, summarize over all matches within the given tolerance.}
+	\item{interp}{Interpolation scheme to be computed for non-exact matches or key collisions. One of 'nearest', 'mean', 'sum', 'max', 'min', 'linear', or 'gaussian'.}
 }
 
 \details{
@@ -47,9 +47,9 @@ kvsearch(x, keys, values, tol = 0, tol.ref = "abs",
 keys <- c(1.11, 2.22, 3.33, 5.0, 5.1)
 values <- keys^1.11
 
-kvsearch(2.22, keys, values) # 2.42359
-kvsearch(3.0, keys, values) # NA
-kvsearch(3.0, keys, values, tol=0.1, tol.ref="y") # 3.801133
+asearch(2.22, keys, values) # 2.42359
+asearch(3.0, keys, values) # NA
+asearch(3.0, keys, values, tol=0.1, tol.ref="y") # 3.801133
 }
 
 \keyword{utilities}

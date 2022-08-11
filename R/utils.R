@@ -61,26 +61,26 @@ bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 
 # exported version with argument checking (safer, easier)
 
-kvsearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
-					nomatch = NA_integer_, dups = "none")
+asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
+					nomatch = NA_integer_, interp = "nearest")
 {
 	if ( is.integer(x) && is.double(keys) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
 	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	dups <- pmatch(dups, levels(make_combiner("none")), nomatch=1L)
-	kvsearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
-		nomatch=nomatch, dups=dups, sorted=is.sorted(keys))
+	interp <- pmatch(interp, levels(make_combiner("")), nomatch=1L)
+	asearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
+		nomatch=nomatch, interp=interp, sorted=is.sorted(keys))
 }
 
 # faster internal version with no argument checking
 
-kvsearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
-					nomatch = NA_integer_, dups = 1L, sorted = TRUE)
+asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
+					nomatch = NA_integer_, interp = 1L, sorted = TRUE)
 {
-	.Call("C_keyvalSearch", x, keys, values, tol, tol.ref,
-		nomatch, dups, sorted, PACKAGE="matter")
+	.Call("C_approxSearch", x, keys, values, tol, tol.ref,
+		nomatch, interp, sorted, PACKAGE="matter")
 }
 
 #### Find local maxima and local minima ####
@@ -786,15 +786,15 @@ widest_datamode <- function(x) {
 ## ---------------------------------------------------
 
 make_combiner <- function(x) {
-	levels <- c("none", "mean",
+	levels <- c("nearest", "mean",
 		"sum", "max", "min",
 		"linear", "gaussian")
 	if ( !is.numeric(x) )
 		x <- as.character(x)
 	factor(switch(x,
-		"none" = "none",
-		"sum" = "sum",
+		"nearest" = "nearest",
 		"mean" = "mean",
+		"sum" = "sum",
 		"max" = "max",
 		"min" = "min",
 		"linear" = "linear",

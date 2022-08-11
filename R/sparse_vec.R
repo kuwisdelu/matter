@@ -23,7 +23,7 @@ setClass("sparse_vec",
 		length = 0,
 		names = NULL,
 		tolerance = make_tolerance(0),
-		combiner = make_combiner("none")),
+		combiner = make_combiner("nearest")),
 	contains = "sparse_",
 	validity = function(object) {
 		errors <- NULL
@@ -40,7 +40,7 @@ setClass("sparse_vec",
 
 sparse_vec <- function(data, index, datamode = "double", length = 0,
 					names = NULL, domain = NULL, offset = 1L,
-					tolerance = c(abs=0), combiner = "none",
+					tolerance = c(abs=0), combiner = "nearest",
 					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {

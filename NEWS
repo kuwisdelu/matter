@@ -1,10 +1,10 @@
 
-CHANGES IN VERSION 1.21.1 [2021-12-31]
+CHANGES IN VERSION 1.21.1 [2022-8-11]
 -----------------------------------
 
 NEW FEATURES
 
-    o Added 'kvsearch()' for key-value search with fuzzy matching
+    o Added 'asearch()' for approximate search with interpolation
 
 CHANGES IN VERSION 1.19.1 [2021-10-20]
 -----------------------------------

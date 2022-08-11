@@ -43,7 +43,7 @@ reldiff(x, y, ref = "abs")
 \author{Kylie A. Bemis}
 
 \seealso{
-	\code{\link{kvsearch}},
+	\code{\link{asearch}},
     \code{\link{match}},
     \code{\link{pmatch}},
     \code{\link{findInterval}}

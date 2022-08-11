@@ -155,7 +155,7 @@ class SparseVector : public Sparse
 		TVal get(size_t i)
 		{
 			TKey subset = has_domain() ? DataPtr<TKey>(domain())[i] : i;
-			TVal val = keyval_search<TKey,TVal>(subset, index(), data(),
+			TVal val = approx_search<TKey,TVal>(subset, index(), data(),
 				0, length(), tol(), tol_ref(), zero(), combiner(), TRUE).second;
 			return val;
 		}
@@ -167,7 +167,7 @@ class SparseVector : public Sparse
 			if ( has_domain() ) {
 				TKey * region_idx = (TKey *) Calloc(size, TKey);
 				copy_domain<TKey>(i, size, region_idx);
-				num_nz = do_keyval_search<TKey,TVal>(buffer, region_idx, size,
+				num_nz = do_approx_search<TKey,TVal>(buffer, region_idx, size,
 					index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
 				Free(region_idx);
 			}
@@ -198,7 +198,7 @@ class SparseVector : public Sparse
 					copy_domain<TKey,double>(REAL(i), XLENGTH(i), element_idx);
 					break;
 			}
-			size_t num_nz = do_keyval_search<TKey,TVal>(buffer, element_idx, XLENGTH(i),
+			size_t num_nz = do_approx_search<TKey,TVal>(buffer, element_idx, XLENGTH(i),
 				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
 			Free(element_idx);
 			return num_nz;

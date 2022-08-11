@@ -77,7 +77,7 @@ setClass("sparse_matlr",
 
 # sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 # 					rowMaj = FALSE, dimnames = NULL, keys = NULL, from0 = FALSE,
-# 					tolerance = c(abs=0), combiner = "none",
+# 					tolerance = c(abs=0), combiner = "nearest",
 # 					chunksize = getOption("matter.default.chunksize"), ...)
 # {
 # 	if ( !missing(data) ) {

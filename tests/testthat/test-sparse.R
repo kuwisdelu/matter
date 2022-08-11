@@ -37,7 +37,7 @@ test_that("sparse vector subsetting (simple)", {
 
 	expect_equal(x[10:1], y[10:1])
 
-}
+})
 
 test_that("sparse vector subsetting (domain)", {
 
@@ -83,7 +83,7 @@ test_that("sparse vector subsetting (domain)", {
 
 	tolerance(z) <- 1.0
 
-	test6 <- seq(from=0, to=4, by=0.5)
+	test6 <- c(0, 1, 1, 1.5, 2, 2.5, 3, 3.5, 4)
 
 	expect_equal(test6, z[])
 
@@ -140,14 +140,14 @@ test_that("sparse vector timing", {
 
 	expect_equal(x, y[])
 
-	bench::mark(y[])
-	bench::mark(z[])
+	# bench::mark(y[])
+	# bench::mark(z[])
 
-	bench::mark(y[1:1000])
-	bench::mark(z[1:1000,])
+	# bench::mark(y[1:1000])
+	# bench::mark(z[1:1000,])
 
-	bench::mark(y[1000:1])
-	bench::mark(z[1000:1,])
+	# bench::mark(y[1000:1])
+	# bench::mark(z[1000:1,])
 
 	set.seed(1)
 
@@ -164,13 +164,13 @@ test_that("sparse vector timing", {
 
 	expect_equal(x, y[])
 
-	bench::mark(y[])
-	bench::mark(z[])
+	# bench::mark(y[])
+	# bench::mark(z[])
 
-	bench::mark(y[1:1000])
-	bench::mark(z[1:1000,])
+	# bench::mark(y[1:1000])
+	# bench::mark(z[1:1000,])
 
-	bench::mark(y[1000:1])
-	bench::mark(z[1000:1,])
+	# bench::mark(y[1000:1])
+	# bench::mark(z[1000:1,])
 
 })

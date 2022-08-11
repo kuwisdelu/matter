@@ -16,13 +16,13 @@
 #define REL_DIFF_X	2
 #define REL_DIFF_Y	3
 
-#define NO_DUPS		1
-#define AVG_DUPS	2
-#define SUM_DUPS	3
-#define MAX_DUPS	4
-#define MIN_DUPS	5
-#define LERP_DUPS	6
-#define GAUS_DUPS	7
+#define EST_NEAR	1
+#define EST_AVG		2
+#define EST_SUM		3
+#define EST_MAX		4
+#define EST_MIN		5
+#define EST_LERP	6
+#define EST_GAUS	7
 
 typedef ptrdiff_t index_t;
 
@@ -33,8 +33,8 @@ extern "C" {
 	SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 		SEXP tol_ref, SEXP nomatch, SEXP nearest);
 
-	SEXP keyvalSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
-		SEXP tol_ref, SEXP nomatch, SEXP dups, SEXP sorted);
+	SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
+		SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted);
 
 }
 
@@ -205,8 +205,8 @@ SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 
 // fuzzy key-value search returning all 'value's with 'keys' matching 'x'
 template<typename TKey, typename TVal>
-Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, size_t end,
-	double tol, int tol_ref, TVal nomatch, int dups = NO_DUPS, bool sorted = FALSE)
+Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, size_t end,
+	double tol, int tol_ref, TVal nomatch, int interp = EST_NEAR, bool sorted = FALSE)
 {
 	TKey * pKeys = DataPtr<TKey>(keys);
 	TVal * pValues = DataPtr<TVal>(values);
@@ -219,7 +219,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 		if ( sorted ) {
 			pos = binary_search<TKey>(x, keys, start, end,
 				tol, tol_ref, NA_INTEGER, FALSE);
-			if ( dups == NO_DUPS || isNA(pos) || pos < 0 )
+			if ( interp == EST_NEAR || isNA(pos) || pos < 0 )
 			{
 				if ( !isNA(pos) && pos >= 0 )
 					retval = pValues[pos];
@@ -238,24 +238,24 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			double diff = fabs(delta);
 			if ( diff <= tol )
 			{
-				switch(dups) {
-					case NO_DUPS:
+				switch(interp) {
+					case EST_NEAR:
 						retval = diff < diff_min ? pValues[i] : retval;
 						break;
-					case GAUS_DUPS:
+					case EST_GAUS:
 						wt = kgaussian(diff, ((2 * tol) + 1) / 4);
-					case AVG_DUPS:
-					case SUM_DUPS:
+					case EST_AVG:
+					case EST_SUM:
 						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
 						wscale += wt;
 						break;
-					case MAX_DUPS:
+					case EST_MAX:
 						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
 						break;
-					case MIN_DUPS:
+					case EST_MIN:
 						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
 						break;
-					case LERP_DUPS:
+					case EST_LERP:
 					{
 						if ( delta > 0 && diff < bounding_diff[0] )
 						{
@@ -275,7 +275,7 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 				{
 					diff_min = diff;
 					pos = i;
-					if ( dups == NO_DUPS && diff_min == 0 )
+					if ( interp == EST_NEAR && diff_min == 0 )
 						break;
 				}
 			}
@@ -288,24 +288,24 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			double diff = fabs(delta);
 			if ( diff <= tol )
 			{
-				switch(dups) {
-					case NO_DUPS:
+				switch(interp) {
+					case EST_NEAR:
 						retval = diff < diff_min ? pValues[i] : retval;
 						break;
-					case GAUS_DUPS:
+					case EST_GAUS:
 						wt = kgaussian(diff, ((2 * tol) + 1) / 4);
-					case AVG_DUPS:
-					case SUM_DUPS:
+					case EST_AVG:
+					case EST_SUM:
 						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
 						wscale += wt;
 						break;
-					case MAX_DUPS:
+					case EST_MAX:
 						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
 						break;
-					case MIN_DUPS:
+					case EST_MIN:
 						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
 						break;
-					case LERP_DUPS:
+					case EST_LERP:
 					{
 						if ( delta > 0 && diff < bounding_diff[0] )
 						{
@@ -327,12 +327,12 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 		}
 		if ( !isNA(pos) )
 		{
-			switch(dups) {
-				case AVG_DUPS:
-				case GAUS_DUPS:
+			switch(interp) {
+				case EST_AVG:
+				case EST_GAUS:
 					retval = retval / wscale;
 					break;
-				case LERP_DUPS:
+				case EST_LERP:
 				{
 					int i0 = !isNA(bounding_pos[0]) ? bounding_pos[0] : pos;
 					int i1 = !isNA(bounding_pos[1]) ? bounding_pos[1] : pos;
@@ -355,9 +355,9 @@ Pair<index_t,TVal> keyval_search(TKey x, SEXP keys, SEXP values, size_t start, s
 }
 
 template<typename TKey, typename TVal>
-size_t do_keyval_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP values,
+size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP values,
 	size_t start, size_t end, double tol, int tol_ref, TVal nomatch,
-	int dups = NO_DUPS, bool sorted = FALSE)
+	int interp = EST_NEAR, bool sorted = FALSE)
 {
 	size_t num_matches = 0;
 	index_t i = 0, current = start;
@@ -366,8 +366,8 @@ size_t do_keyval_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP value
 		ptr[i] = nomatch;
 		if ( !isNA(x[i]) )
 		{
-			Pair<index_t,TVal> result = keyval_search(x[i], keys, values,
-				current, end, tol, tol_ref, nomatch, dups, sorted);
+			Pair<index_t,TVal> result = approx_search(x[i], keys, values,
+				current, end, tol, tol_ref, nomatch, interp, sorted);
 			if ( !isNA(result.first) ) {
 				if ( result.first < 0 ) {
 					sorted = FALSE; // fall back to linear search
@@ -386,8 +386,8 @@ size_t do_keyval_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP value
 }
 
 template<typename TKey, typename TVal, int S>
-SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
-	TVal nomatch, int dups = NO_DUPS, bool sorted = FALSE)
+SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
+	TVal nomatch, int interp = EST_NEAR, bool sorted = FALSE)
 {
 	R_xlen_t xlen = XLENGTH(x);
 	R_xlen_t keylen = XLENGTH(keys);
@@ -395,8 +395,8 @@ SEXP do_keyval_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
 	PROTECT(result = Rf_allocVector(S, xlen));
 	TVal * pResult = DataPtr<TVal>(result);
 	TKey * pX = DataPtr<TKey>(x);
-	do_keyval_search<TKey, TVal>(pResult, pX, xlen, keys, values,
-		0, keylen, tol, tol_ref, nomatch, dups, sorted);
+	do_approx_search<TKey, TVal>(pResult, pX, xlen, keys, values,
+		0, keylen, tol, tol_ref, nomatch, interp, sorted);
 	UNPROTECT(1);
 	return result;
 }
