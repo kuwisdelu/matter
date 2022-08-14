@@ -11,9 +11,7 @@ setClass("sparse_vec",
 		offset = "integer",
 		domain = "numeric_OR_NULL",
 		dim = "NULL",
-		dimnames = "NULL",
-		tolerance = "numeric",
-		combiner = "factor"),
+		dimnames = "NULL"),
 	prototype = prototype(
 		data = numeric(),
 		datamode = make_datamode("numeric", type="R"),
@@ -23,7 +21,7 @@ setClass("sparse_vec",
 		length = 0,
 		names = NULL,
 		tolerance = make_tolerance(0),
-		combiner = make_combiner("nearest")),
+		combiner = make_combiner("none")),
 	contains = "sparse_",
 	validity = function(object) {
 		errors <- NULL
@@ -40,7 +38,7 @@ setClass("sparse_vec",
 
 sparse_vec <- function(data, index, datamode = "double", length = 0,
 					names = NULL, domain = NULL, offset = 1L,
-					tolerance = c(abs=0), combiner = "nearest",
+					tolerance = c(abs=0), combiner = "none",
 					chunksize = getOption("matter.default.chunksize"), ...)
 {
 	if ( !missing(data) ) {

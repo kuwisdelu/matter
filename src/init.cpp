@@ -1,17 +1,17 @@
 #include <R_ext/Rdynload.h>
 
-#include "search.h"
 #include "matter.h"
-#include "sparse.h"
+#include "matterExports.h"
+
 #include "altrep.h"
 #include "vectools.h"
 
 extern "C" {
 
     static const R_CallMethodDef callMethods[] = {
-        {"C_relativeDiff", (DL_FUNC) &relativeDiff, 3},
-        {"C_binarySearch", (DL_FUNC) &binarySearch, 6},
-        {"C_approxSearch", (DL_FUNC) &approxSearch, 8},
+        {"Mt_relativeDiff", (DL_FUNC) &relativeDiff, 3},
+        {"Mt_binarySearch", (DL_FUNC) &binarySearch, 6},
+        {"Mt_approxSearch", (DL_FUNC) &approxSearch, 8},
         {"C_createAtoms", (DL_FUNC) &createAtoms, 5},
         {"C_getVector", (DL_FUNC) &getVector, 1},
         {"C_setVector", (DL_FUNC) &setVector, 2},

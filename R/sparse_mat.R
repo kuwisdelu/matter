@@ -5,46 +5,27 @@
 setClassUnion("matter_list_types", c("list", "matter_list"))
 
 setClass("sparse_mat",
-	slots = c(pointers = "numeric_OR_NULL"),
+	slots = c(
+		pointers = "numeric_OR_NULL",
+		dim = "integer",
+		names = "NULL",
+		length = "NULL"),
 	prototype = prototype(
 		pointers = NULL,
 		dim = c(0L,0L),
-		names = NULL,
 		dimnames = NULL),
 	contains = c("sparse_", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
-		if ( is.null(object@dim) )
-			errors <- c(errors, "sparse matrix must have non-NULL 'dim'")
 		if ( length(object@dim) != 2 )
 			errors <- c(errors, "sparse matrix must have 'dim' of length 2")
-		if ( prod(object@dim) != object@length )
-			errors <- c(errors, paste0("dims [product ", prod(object@dim),
-				"] do not match the length of array [", object@length, "]"))
-		if ( is.null(errors) ) TRUE else errors
-	})
-
-setClass("sparse_matl",
-	slots = c(
-		data = "matter_list_types",
-		index = "matter_list_types",
-		keys = "numeric",
-		pointers = "NULL"),
-	prototype = prototype(
-		data = list(),
-		index = list(),
-		keys = 0L,
-		pointers = NULL),
-	contains = c("sparse_mat", "VIRTUAL"),
-	validity = function(object) {
-		errors <- NULL
 		if ( !all(lengths(object@data) == lengths(object@index)) )
 			errors <- c(errors, "lengths of 'data' must match lengths of 'index'")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setClass("sparse_matlc",
-	contains = "sparse_matl",
+setClass("sparse_matc",
+	contains = "sparse_mat",
 	validity = function(object) {
 		errors <- NULL
 		if ( length(object@data) != object@dim[2L] )
@@ -59,8 +40,8 @@ setClass("sparse_matlc",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setClass("sparse_matlr",
-	contains = "sparse_matl",
+setClass("sparse_matr",
+	contains = "sparse_mat",
 	validity = function(object) {
 		errors <- NULL
 		if ( length(object@data) != object@dim[1L] )
@@ -77,7 +58,7 @@ setClass("sparse_matlr",
 
 # sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 # 					rowMaj = FALSE, dimnames = NULL, keys = NULL, from0 = FALSE,
-# 					tolerance = c(abs=0), combiner = "nearest",
+# 					tolerance = c(abs=0), combiner = "none",
 # 					chunksize = getOption("matter.default.chunksize"), ...)
 # {
 # 	if ( !missing(data) ) {
@@ -138,7 +119,8 @@ setClass("sparse_matlr",
 # 		round(nnz(x) / length(x), 4) * 100, "% density)\n", sep="")
 # })
 
-setMethod("nnz", "sparse_mat", function(x, ...) sum(lengths(object@data)))
+setMethod("nnz", "sparse_mat",
+	function(x, ...) sum(lengths(object@data)))
 
 extract_sparse_mat <- function(x, i = NULL) {
 	# not implemented yet

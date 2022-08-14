@@ -4,12 +4,6 @@
 
 #include "matter.h"
 
-extern "C" {
-
-	SEXP Mt_getSparseVector(SEXP x, SEXP i);
-
-}
-
 class Sparse
 {
 	public:
@@ -155,8 +149,8 @@ class SparseVector : public Sparse
 		TVal get(size_t i)
 		{
 			TKey subset = has_domain() ? DataPtr<TKey>(domain())[i] : i;
-			TVal val = approx_search<TKey,TVal>(subset, index(), data(),
-				0, length(), tol(), tol_ref(), zero(), combiner(), TRUE).second;
+			TVal val = approx_search<TKey,TVal>(subset, index(), data(), 0, nnz(),
+				tol(), tol_ref(), zero(), combiner()).second;
 			return val;
 		}
 
@@ -168,7 +162,7 @@ class SparseVector : public Sparse
 				TKey * region_idx = (TKey *) Calloc(size, TKey);
 				copy_domain<TKey>(i, size, region_idx);
 				num_nz = do_approx_search<TKey,TVal>(buffer, region_idx, size,
-					index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
+					index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner());
 				Free(region_idx);
 			}
 			else {
@@ -186,38 +180,98 @@ class SparseVector : public Sparse
 			return num_nz;
 		}
 
-		template<typename TKey, typename TVal>
-		size_t getElements(SEXP i, TVal * buffer)
+		SEXP getRegion(size_t i, size_t size)
 		{
-			TKey * element_idx = (TKey *) Calloc(XLENGTH(i), TKey);
-			switch(TYPEOF(i)) {
+			SEXP result;
+			switch(datamode()) {
+				case R_INTEGER:
+				{
+					PROTECT(result = Rf_allocVector(INTSXP, size));
+					switch(TYPEOF(domain())) {
+						case NILSXP:
+						case INTSXP:
+							getRegion<int,int>(i, size, INTEGER(result));
+							break;
+						case REALSXP:
+							getRegion<double,int>(i, size, INTEGER(result));
+							break;
+					}
+					UNPROTECT(1);
+				}
+				break;
+				case R_NUMERIC:
+				{
+					PROTECT(result = Rf_allocVector(REALSXP, size));
+					switch(TYPEOF(domain())) {
+						case NILSXP:
+						case INTSXP:
+							getRegion<int,double>(i, size, REAL(result));
+							break;
+						case REALSXP:
+							getRegion<double,double>(i, size, REAL(result));
+							break;
+					}
+					UNPROTECT(1);
+				}
+				break;
+			}
+			return result;
+		}
+
+		template<typename TKey, typename TVal>
+		size_t getElements(SEXP indx, TVal * buffer)
+		{
+			TKey * element_idx = (TKey *) Calloc(XLENGTH(indx), TKey);
+			switch(TYPEOF(indx)) {
 				case INTSXP:
-					copy_domain<TKey,int>(INTEGER(i), XLENGTH(i), element_idx);
+					copy_domain<TKey,int>(INTEGER(indx), XLENGTH(indx), element_idx);
 					break;
 				case REALSXP:
-					copy_domain<TKey,double>(REAL(i), XLENGTH(i), element_idx);
+					copy_domain<TKey,double>(REAL(indx), XLENGTH(indx), element_idx);
 					break;
 			}
-			size_t num_nz = do_approx_search<TKey,TVal>(buffer, element_idx, XLENGTH(i),
-				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner(), TRUE);
+			size_t num_nz = do_approx_search<TKey,TVal>(buffer, element_idx, XLENGTH(indx),
+				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), combiner());
 			Free(element_idx);
 			return num_nz;
 		}
 
-		template<typename TKey, typename TVal, int S>
-		SEXP getElements(SEXP i)
+		SEXP getElements(SEXP indx)
 		{
-			SEXP retVec;
-			if ( i == R_NilValue ) {
-				PROTECT(retVec = Rf_allocVector(S, length()));
-				getRegion<TKey,TVal>(0, length(), DataPtr<TVal>(retVec));
+			SEXP result;
+			switch(datamode()) {
+				case R_INTEGER:
+				{
+					PROTECT(result = Rf_allocVector(INTSXP, XLENGTH(indx)));
+					switch(TYPEOF(domain())) {
+						case NILSXP:
+						case INTSXP:
+							getElements<int,int>(indx, INTEGER(result));
+							break;
+						case REALSXP:
+							getElements<double,int>(indx, INTEGER(result));
+							break;
+					}
+					UNPROTECT(1);
+				}
+				break;
+				case R_NUMERIC:
+				{
+					PROTECT(result = Rf_allocVector(REALSXP, XLENGTH(indx)));
+					switch(TYPEOF(domain())) {
+						case NILSXP:
+						case INTSXP:
+							getElements<int,double>(indx, REAL(result));
+							break;
+						case REALSXP:
+							getElements<double,double>(indx, REAL(result));
+							break;
+					}
+					UNPROTECT(1);
+				}
+				break;
 			}
-			else {
-				PROTECT(retVec = Rf_allocVector(S, XLENGTH(i)));
-				getElements<TKey,TVal>(i, DataPtr<TVal>(retVec));
-			}
-			UNPROTECT(1);
-			return retVec;
+			return result;
 		}
 
 };

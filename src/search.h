@@ -206,7 +206,7 @@ SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 // fuzzy key-value search returning all 'value's with 'keys' matching 'x'
 template<typename TKey, typename TVal>
 Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, size_t end,
-	double tol, int tol_ref, TVal nomatch, int interp = EST_NEAR, bool sorted = FALSE)
+	double tol, int tol_ref, TVal nomatch, int interp = EST_NEAR, bool sorted = TRUE)
 {
 	TKey * pKeys = DataPtr<TKey>(keys);
 	TVal * pValues = DataPtr<TVal>(values);
@@ -243,7 +243,7 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 						retval = diff < diff_min ? pValues[i] : retval;
 						break;
 					case EST_GAUS:
-						wt = kgaussian(diff, ((2 * tol) + 1) / 4);
+						wt = kgaussian(diff, (2 * tol + 1) / 4);
 					case EST_AVG:
 					case EST_SUM:
 						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
@@ -293,7 +293,7 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 						retval = diff < diff_min ? pValues[i] : retval;
 						break;
 					case EST_GAUS:
-						wt = kgaussian(diff, ((2 * tol) + 1) / 4);
+						wt = kgaussian(diff, (2 * tol + 1) / 4);
 					case EST_AVG:
 					case EST_SUM:
 						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
@@ -357,7 +357,7 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 template<typename TKey, typename TVal>
 size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP values,
 	size_t start, size_t end, double tol, int tol_ref, TVal nomatch,
-	int interp = EST_NEAR, bool sorted = FALSE)
+	int interp = EST_NEAR, bool sorted = TRUE)
 {
 	size_t num_matches = 0;
 	index_t i = 0, current = start;
@@ -376,6 +376,7 @@ size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP value
 				}
 				current = result.first;
 				ptr[i] = result.second;
+				num_matches++;
 			}
 			if ( !sorted || (i + 1 < xlen && x[i + 1] < x[i]) )
 				current = start; // reset if either 'x' or 'keys' is unsorted
@@ -385,14 +386,14 @@ size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP value
 	return num_matches;
 }
 
-template<typename TKey, typename TVal, int S>
+template<typename TKey, typename TVal>
 SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
-	TVal nomatch, int interp = EST_NEAR, bool sorted = FALSE)
+	TVal nomatch, int interp = EST_NEAR, bool sorted = TRUE)
 {
 	R_xlen_t xlen = XLENGTH(x);
 	R_xlen_t keylen = XLENGTH(keys);
 	SEXP result;
-	PROTECT(result = Rf_allocVector(S, xlen));
+	PROTECT(result = Rf_allocVector(TYPEOF(values), xlen));
 	TVal * pResult = DataPtr<TVal>(result);
 	TKey * pX = DataPtr<TKey>(x);
 	do_approx_search<TKey, TVal>(pResult, pX, xlen, keys, values,

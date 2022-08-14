@@ -1,7 +1,9 @@
 
-#include "search.h"
+#ifndef MATTER_EXPORTS
+#define MATTER_EXPORTS
 
-// search utilities
+#include "search.h"
+#include "sparse.h"
 
 extern "C" {
 
@@ -64,32 +66,36 @@ extern "C" {
 		bool _sorted = static_cast<bool>(Rf_asLogical(sorted));
 		switch(TYPEOF(values)) {
 			case INTSXP: {
-				int dnomatch = Rf_asInteger(nomatch);
 				switch(TYPEOF(keys)) {
 					case STRSXP:
-						return do_approx_search<SEXP, int, INTSXP>(x,
-							keys, values, _tol, _tol_ref, dnomatch, _interp, _sorted);
+						return do_approx_search<SEXP, int>(
+							x, keys, values, _tol, _tol_ref,
+							Rf_asInteger(nomatch), _interp, _sorted);
 					case INTSXP:
-						return do_approx_search<int, int, INTSXP>(x,
-							keys, values, _tol, _tol_ref, dnomatch, _interp, _sorted);
+						return do_approx_search<int, int>(
+							x, keys, values, _tol, _tol_ref,
+							Rf_asInteger(nomatch), _interp, _sorted);
 					case REALSXP:
-						return do_approx_search<double, int, INTSXP>(x,
-							keys, values, _tol, _tol_ref, dnomatch, _interp, _sorted);
+						return do_approx_search<double, int>(
+							x, keys, values, _tol, _tol_ref,
+							Rf_asInteger(nomatch), _interp, _sorted);
 				}
 				Rf_error("supported key types are 'integer', 'numeric', or 'character'");
 			}
 			case REALSXP: {
-				double fnomatch = Rf_asReal(nomatch);
 				switch(TYPEOF(keys)) {
 					case STRSXP:
-						return do_approx_search<SEXP, double, REALSXP>(x,
-							keys, values, _tol, _tol_ref, fnomatch, _interp, _sorted);
+						return do_approx_search<SEXP, double>(
+							x, keys, values, _tol, _tol_ref,
+							Rf_asReal(nomatch), _interp, _sorted);
 					case INTSXP:
-						return do_approx_search<int, double, REALSXP>(x,
-							keys, values, _tol, _tol_ref, fnomatch, _interp, _sorted);
+						return do_approx_search<int, double>(
+							x, keys, values, _tol, _tol_ref,
+							Rf_asReal(nomatch), _interp, _sorted);
 					case REALSXP:
-						return do_approx_search<double, double, REALSXP>(x,
-							keys, values, _tol, _tol_ref, fnomatch, _interp, _sorted);
+						return do_approx_search<double, double>(
+							x, keys, values, _tol, _tol_ref,
+							Rf_asReal(nomatch), _interp, _sorted);
 				}
 				Rf_error("supported key types are 'integer', 'numeric', or 'character'");
 			}
@@ -97,7 +103,15 @@ extern "C" {
 		Rf_error("supported value types are 'integer' or 'numeric'");
 	}
 
+	SEXP Mt_getSparseVector(SEXP x, SEXP i)
+	{
+		SparseVector out(x);
+		if ( i == R_NilValue )
+			return out.getRegion(0, out.length());
+		else
+			return out.getElements(i);
+	}
+
 }
 
-
-
+#endif
