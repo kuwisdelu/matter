@@ -4,17 +4,12 @@
 #define R_NO_REMAP
 
 #include <R.h>
-#include <Rinternals.h>
 
 #include <cmath>
 #include <cfloat>
 
 #include "utils.h"
-#include "vectools.h"
-
-#define ABS_DIFF 	1
-#define REL_DIFF_X	2
-#define REL_DIFF_Y	3
+#include "sigtools.h"
 
 #define EST_NEAR	1
 #define EST_AVG		2
@@ -29,63 +24,8 @@
 
 typedef ptrdiff_t index_t;
 
-// return the absolute or relative (signed) change between two values
-template<typename T>
-double rel_change(T x, T y, int ref = ABS_DIFF)
-{
-	switch(ref) {
-		case ABS_DIFF:
-			return static_cast<double>(x - y);
-		case REL_DIFF_X:
-			return static_cast<double>(x - y) / x;
-		case REL_DIFF_Y:
-			return static_cast<double>(x - y) / y;
-		default:
-			return NA_REAL;
-	}
-}
-
-template<> inline
-double rel_change<const char *>(const char * x, const char * y, int ref)
-{
-	int i = -1, sign = 1;
-	int n = 0, nx = 0, ny = 0;
-	while ( x[nx] != '\0' || y[ny] != '\0' ) {
-		if ( x[nx] != y[ny] && i < 0 ) {
-			i = nx > ny ? nx : ny;
-			sign = x[nx] < y[ny] ? -1 : 1;
-		}
-		if ( x[nx] != '\0' )
-			nx++;
-		if ( y[ny] != '\0' )
-			ny++;
-	}
-	n = nx > ny ? nx : ny;
-	i = i < 0 ? n : i;
-	switch(ref) {
-		case ABS_DIFF:
-			return sign * static_cast<double>(n - i);
-		case REL_DIFF_X:
-			return sign * static_cast<double>(n - i) / nx;
-		case REL_DIFF_Y:
-			return sign * static_cast<double>(n - i) / ny;
-		default:
-			return NA_REAL;
-	}
-}
-
-template<> inline
-double rel_change<SEXP>(SEXP x, SEXP y, int ref)
-{
-	return rel_change(CHAR(x), CHAR(y), ref);
-}
-
-// return the absolute or relative (unsigned) difference between two values
-template<typename T>
-double rel_diff(T x, T y, int ref = ABS_DIFF)
-{
-	return fabs(rel_change<T>(x, y, ref));
-}
+//// Binary search
+//-----------------
 
 // fuzzy binary search returning position of 'x' in 'table'
 template<typename T>
@@ -173,7 +113,10 @@ SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 	return pos;
 }
 
-// fuzzy key-value search returning all 'value's with 'keys' matching 'x'
+//// Approximate search
+//----------------------
+
+// search for 'values' indexed by 'keys' with interpolation
 template<typename TKey, typename TVal>
 Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, size_t end,
 	double tol, int tol_ref, TVal nomatch, int interp = EST_NEAR, bool sorted = TRUE)
@@ -189,6 +132,7 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 	if ( sorted ) {
 		pos = binary_search<TKey>(x, keys,
 			start, end, tol, tol_ref, NA_INTEGER);
+		// return early if no interpolation, no match, or unsorted
 		if ( interp == EST_NEAR || isNA(pos) || pos < 0 )
 		{
 			if ( !isNA(pos) && pos >= 0 )
@@ -198,12 +142,13 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 		}
 		start = pos;
 	}
-	int init = start, step = 1; // expand search if tol > 0
-	double diff_min = DBL_MAX; // track nearest sample
-	int p_i[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // nearest sample idxs
-	double p_diff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to nearest samples
+	// perform linear search, or expand search for interpolation
+	int init = start, step = 1;
+	double diff_min = DBL_MAX; // track nearest key to 'x'
+	int p_i[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // nearest key idxs
+	double p_diff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to nearest key
 	double wt = 1, wscale = 0; // weights for kernels
-	while ( TRUE ) // search left, then right
+	while ( TRUE ) // search right, then left
 	{
 		for ( index_t i = init; i < end && i >= 0; i += step )
 		{
@@ -237,7 +182,9 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 								p_diff[1] = diff;
 								p_i[1] = i;
 							}
-							else if ( diff < p_diff[0] ) {
+							if ( (diff > p_diff[1] && diff < p_diff[0]) ||
+								(p_i[1] == p_i[0] || isNA(p_i[0])) )
+							{
 								p_diff[0] = diff;
 								p_i[0] = i;
 							}
@@ -248,7 +195,9 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 								p_diff[2] = diff;
 								p_i[2] = i;
 							}
-							else if ( diff < p_diff[3] ) {
+							if ( (diff > p_diff[2] && diff < p_diff[3]) ||
+								(p_i[2] == p_i[3] || isNA(p_i[3])) )
+							{
 								p_diff[3] = diff;
 								p_i[3] = i;
 							}
@@ -268,7 +217,7 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			else if ( sorted )
 				break;
 		}
-		if ( init == start )
+		if ( init == start && sorted )
 		{
 			init = start - 1;
 			step = -1;
@@ -278,10 +227,25 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 	}
 	if ( !isNA(pos) )
 	{
-		p_i[1] = !isNA(p_i[1]) ? p_i[1] : pos;
-		p_i[0] = !isNA(p_i[0]) ? p_i[0] : p_i[1];
-		p_i[2] = !isNA(p_i[2]) ? p_i[2] : pos;
-		p_i[3] = !isNA(p_i[3]) ? p_i[3] : p_i[2];
+		// setup params for interpolation methods
+		double tx, dxs[3], ys[4];
+		switch(interp) {
+			case EST_LERP:
+			case EST_CUBIC:
+				p_i[1] = !isNA(p_i[1]) ? p_i[1] : pos;
+				p_i[0] = !isNA(p_i[0]) ? p_i[0] : p_i[1];
+				p_i[2] = !isNA(p_i[2]) ? p_i[2] : pos;
+				p_i[3] = !isNA(p_i[3]) ? p_i[3] : p_i[2];
+				tx = rel_change(x, pKeys[p_i[1]]);
+				dxs[0] = rel_change(pKeys[p_i[1]], pKeys[p_i[0]]);
+				dxs[1] = rel_change(pKeys[p_i[2]], pKeys[p_i[1]]);
+				dxs[2] = rel_change(pKeys[p_i[3]], pKeys[p_i[2]]);
+				ys[0] = static_cast<double>(pValues[p_i[0]]);
+				ys[1] = static_cast<double>(pValues[p_i[1]]);
+				ys[2] = static_cast<double>(pValues[p_i[2]]);
+				ys[3] = static_cast<double>(pValues[p_i[3]]);
+		}
+		// calculate interpolated values
 		switch(interp) {
 			case EST_AVG:
 			case EST_GAUSS:
@@ -289,27 +253,15 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 				break;
 			case EST_LERP:
 			{
-				double dx = rel_change(pKeys[p_i[2]], pKeys[p_i[1]], ABS_DIFF);
-				double tx = rel_change(x, pKeys[p_i[1]], ABS_DIFF);
-				if ( p_i[1] != p_i[2] && diff_min > 0 )
-					val = lerp(pValues[p_i[1]], pValues[p_i[2]], tx / dx);
+				if ( dxs[1] > 0 && diff_min > 0 )
+					val = lerp(ys[1], ys[2], tx / dxs[1]);
 				else
 					val = pValues[pos];
 				break;
 			}
 			case EST_CUBIC:
 			{
-				double ys[] = {
-					static_cast<double>(pValues[p_i[0]]),
-					static_cast<double>(pValues[p_i[1]]),
-					static_cast<double>(pValues[p_i[2]]),
-					static_cast<double>(pValues[p_i[3]])};
-				double dxs[] = {
-					rel_change(pKeys[p_i[1]], pKeys[p_i[0]], ABS_DIFF),
-					rel_change(pKeys[p_i[2]], pKeys[p_i[1]], ABS_DIFF),
-					rel_change(pKeys[p_i[3]], pKeys[p_i[2]], ABS_DIFF)};
-				double tx = rel_change(x, pKeys[p_i[1]], ABS_DIFF);
-				if ( p_i[1] != p_i[2] && diff_min > 0 )
+				if ( dxs[1] > 0 && diff_min > 0 )
 					val = cubic(ys, dxs, tx / dxs[1]);
 				else
 					val = pValues[pos];
@@ -336,7 +288,7 @@ size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP value
 			Pair<index_t,TVal> result = approx_search(x[i], keys, values,
 				current, end, tol, tol_ref, nomatch, interp, sorted);
 			if ( !isNA(result.first) ) {
-				if ( result.first < 0 ) {
+				if ( result.first < 0 ) { // keys are not sorted
 					sorted = FALSE; // fall back to linear search
 					current = start; // reset search space
 					continue;

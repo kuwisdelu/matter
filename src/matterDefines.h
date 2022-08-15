@@ -134,4 +134,4 @@ struct MATTER_OPTIONS {
 #define R_LONG_MIN (1+INT64_MIN)
 #define R_LONG_MAX INT64_MAX
 
-#endif
+#endif // MATTER_DEFINES

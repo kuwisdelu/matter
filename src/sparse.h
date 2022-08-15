@@ -276,4 +276,4 @@ class SparseVector : public Sparse
 
 };
 
-#endif
+#endif // SPARSE

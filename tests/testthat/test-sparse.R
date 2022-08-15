@@ -3,7 +3,7 @@ require(matter)
 
 context("sparse-classes")
 
-test_that("sparse vector subsetting (simple)", {
+test_that("sparse vector subsetting - simple", {
 
 	set.seed(1)
 
@@ -39,7 +39,7 @@ test_that("sparse vector subsetting (simple)", {
 
 })
 
-test_that("sparse vector subsetting (domain)", {
+test_that("sparse vector subsetting - interpolation", {
 
 	z <- sparse_vec(index=c(1.0, 1.01, 1.11,
 							2.0, 2.22,

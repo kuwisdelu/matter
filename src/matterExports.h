@@ -2,6 +2,7 @@
 #ifndef MATTER_EXPORTS
 #define MATTER_EXPORTS
 
+#include "sigtools.h"
 #include "search.h"
 #include "sparse.h"
 
@@ -16,14 +17,14 @@ extern "C" {
 			Rf_error("unrecognized value for 'ref' (must be 1, 2, or 3");
 		switch(TYPEOF(x)) {
 			case STRSXP:
-				return Rf_ScalarReal(rel_diff<const char *>(CHAR(Rf_asChar(x)),
-					CHAR(Rf_asChar(y)), _ref));
+				return Rf_ScalarReal(rel_diff<const char *>(
+					CHAR(Rf_asChar(x)), CHAR(Rf_asChar(y)), _ref));
 			case INTSXP:
-				return Rf_ScalarReal(rel_diff<int>(Rf_asInteger(x),
-					Rf_asInteger(y), _ref));
+				return Rf_ScalarReal(rel_diff<int>(
+					Rf_asInteger(x), Rf_asInteger(y), _ref));
 			case REALSXP:
-				return Rf_ScalarReal(rel_diff<double>(Rf_asReal(x),
-					Rf_asReal(y), _ref));
+				return Rf_ScalarReal(rel_diff<double>(
+					Rf_asReal(x), Rf_asReal(y), _ref));
 		}
 		Rf_error("supported types are 'integer', 'numeric', or 'character'");
 	}
@@ -114,4 +115,4 @@ extern "C" {
 
 }
 
-#endif
+#endif // MATTER_EXPORTS
