@@ -21,22 +21,13 @@
 #define EST_SUM		3
 #define EST_MAX		4
 #define EST_MIN		5
-#define EST_LERP	6
-#define EST_GAUS	7
+#define EST_AREA	6
+#define EST_LERP	7
+#define EST_CUBIC	8
+#define EST_GAUSS	9
+#define EST_SINC	10
 
 typedef ptrdiff_t index_t;
-
-extern "C" {
-
-	SEXP relativeDiff(SEXP x, SEXP y, SEXP ref);
-
-	SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
-		SEXP tol_ref, SEXP nomatch, SEXP nearest);
-
-	SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
-		SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted);
-
-}
 
 // return the absolute or relative (signed) change between two values
 template<typename T>
@@ -96,31 +87,10 @@ double rel_diff(T x, T y, int ref = ABS_DIFF)
 	return fabs(rel_change<T>(x, y, ref));
 }
 
-// return whether two values are approximately equal (within tolerance)
-template<typename T>
-bool approx_eq(T x, T y, double tol = FLT_EPSILON, int tol_ref = ABS_DIFF)
-{
-	return rel_diff<T>(x, y, tol_ref) < tol;
-}
-
-// return whether a sequence is sorted
-template<typename T>
-bool is_sorted(SEXP x, bool strictly = FALSE)
-{
-	R_xlen_t len = XLENGTH(x);
-	T * pX = DataPtr<T>(x);
-	for ( size_t i = 1; i < len; i++ ) {
-		double diff = rel_change(pX[i], pX[i - 1]);
-		if ( diff < 0 || (strictly && diff <= 0) )
-			return FALSE;
-	}
-	return TRUE;
-}
-
 // fuzzy binary search returning position of 'x' in 'table'
 template<typename T>
 index_t binary_search(T x, SEXP table, size_t start, size_t end,
-	double tol, int tol_ref, int nomatch, bool nearest, int err = -1)
+	double tol, int tol_ref, int nomatch, bool nearest = FALSE, int err = -1)
 {
 	double diff;
 	index_t min = start, max = end, mid = nomatch;
@@ -211,28 +181,31 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 	TKey * pKeys = DataPtr<TKey>(keys);
 	TVal * pValues = DataPtr<TVal>(values);
 	index_t pos = NA_INTEGER;
-	TVal retval = nomatch;
+	TVal val = nomatch;
 	size_t num_matches = 0;
-	Pair<index_t,TVal> result;
-	if ( !isNA(x) )
-	{
-		if ( sorted ) {
-			pos = binary_search<TKey>(x, keys, start, end,
-				tol, tol_ref, NA_INTEGER, FALSE);
-			if ( interp == EST_NEAR || isNA(pos) || pos < 0 )
-			{
-				if ( !isNA(pos) && pos >= 0 )
-					retval = pValues[pos];
-				result = {pos, retval};
-				return result;
-			}
-			start = pos;
+	Pair<index_t,TVal> result = {pos, val};
+	if ( isNA(x) )
+		return result;
+	if ( sorted ) {
+		pos = binary_search<TKey>(x, keys,
+			start, end, tol, tol_ref, NA_INTEGER);
+		if ( interp == EST_NEAR || isNA(pos) || pos < 0 )
+		{
+			if ( !isNA(pos) && pos >= 0 )
+				val = pValues[pos];
+			result = {pos, val};
+			return result;
 		}
-		double bounding_diff[] = {DBL_MAX, DBL_MAX};
-		int bounding_pos[] = {NA_INTEGER, NA_INTEGER};
-		double diff_min = DBL_MAX;
-		double wt = 1, wscale = 0;
-		for ( index_t i = start; i < end; i++ )
+		start = pos;
+	}
+	int init = start, step = 1; // expand search if tol > 0
+	double diff_min = DBL_MAX; // track nearest sample
+	int p_i[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // nearest sample idxs
+	double p_diff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to nearest samples
+	double wt = 1, wscale = 0; // weights for kernels
+	while ( TRUE ) // search left, then right
+	{
+		for ( index_t i = init; i < end && i >= 0; i += step )
 		{
 			double delta = rel_change<TKey>(x, pKeys[i], tol_ref);
 			double diff = fabs(delta);
@@ -240,32 +213,45 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			{
 				switch(interp) {
 					case EST_NEAR:
-						retval = diff < diff_min ? pValues[i] : retval;
+						val = diff < diff_min ? pValues[i] : val;
 						break;
-					case EST_GAUS:
+					case EST_GAUSS:
 						wt = kgaussian(diff, (2 * tol + 1) / 4);
 					case EST_AVG:
 					case EST_SUM:
-						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
+						val = num_matches > 0 ? wt * pValues[i] + val : wt * pValues[i];
 						wscale += wt;
 						break;
 					case EST_MAX:
-						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
+						val = (num_matches == 0 || pValues[i] > val) ? pValues[i] : val;
 						break;
 					case EST_MIN:
-						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
+						val = (num_matches == 0 || pValues[i] < val) ? pValues[i] : val;
 						break;
 					case EST_LERP:
+					case EST_CUBIC:
 					{
-						if ( delta > 0 && diff < bounding_diff[0] )
+						if ( delta > 0 )
 						{
-							bounding_diff[0] = diff;
-							bounding_pos[0] = i;
+							if ( diff < p_diff[1] ) {
+								p_diff[1] = diff;
+								p_i[1] = i;
+							}
+							else if ( diff < p_diff[0] ) {
+								p_diff[0] = diff;
+								p_i[0] = i;
+							}
 						}
-						if ( delta < 0 && diff < bounding_diff[1] )
+						if ( delta < 0 )
 						{
-							bounding_diff[1] = diff;
-							bounding_pos[1] = i;
+							if ( diff < p_diff[2] ) {
+								p_diff[2] = diff;
+								p_i[2] = i;
+							}
+							else if ( diff < p_diff[3] ) {
+								p_diff[3] = diff;
+								p_i[3] = i;
+							}
 						}
 						break;
 					}
@@ -282,75 +268,56 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 			else if ( sorted )
 				break;
 		}
-		for ( index_t i = start - 1; sorted && i >= 0; i-- )
+		if ( init == start )
 		{
-			double delta = rel_change<TKey>(x, pKeys[i], tol_ref);
-			double diff = fabs(delta);
-			if ( diff <= tol )
-			{
-				switch(interp) {
-					case EST_NEAR:
-						retval = diff < diff_min ? pValues[i] : retval;
-						break;
-					case EST_GAUS:
-						wt = kgaussian(diff, (2 * tol + 1) / 4);
-					case EST_AVG:
-					case EST_SUM:
-						retval = num_matches > 0 ? wt * pValues[i] + retval : wt * pValues[i];
-						wscale += wt;
-						break;
-					case EST_MAX:
-						retval = (num_matches == 0 || pValues[i] > retval) ? pValues[i] : retval;
-						break;
-					case EST_MIN:
-						retval = (num_matches == 0 || pValues[i] < retval) ? pValues[i] : retval;
-						break;
-					case EST_LERP:
-					{
-						if ( delta > 0 && diff < bounding_diff[0] )
-						{
-							bounding_diff[0] = diff;
-							bounding_pos[0] = i;
-						}
-						if ( delta < 0 && diff < bounding_diff[1] )
-						{
-							bounding_diff[1] = diff;
-							bounding_pos[1] = i;
-						}
-						break;
-					}
-				}
-				num_matches++;
-			}
-			else if ( sorted )
-				break;
+			init = start - 1;
+			step = -1;
 		}
-		if ( !isNA(pos) )
-		{
-			switch(interp) {
-				case EST_AVG:
-				case EST_GAUS:
-					retval = retval / wscale;
-					break;
-				case EST_LERP:
-				{
-					int i0 = !isNA(bounding_pos[0]) ? bounding_pos[0] : pos;
-					int i1 = !isNA(bounding_pos[1]) ? bounding_pos[1] : pos;
-					TKey x0 = pKeys[i0], x1 = pKeys[i1];
-					TVal y0 = pValues[i0], y1 = pValues[i1];
-					double dx = rel_change(x1, x0, ABS_DIFF);
-					double dy = rel_change(y1, y0, ABS_DIFF);
-					double tx = rel_change(x, x0, ABS_DIFF);
-					if ( i0 != i1 && diff_min > 0 )
-						retval = y0 + (dy / dx) * tx;
-					else
-						retval = pValues[pos];
-					break;
-				}
+		else
+			break;
+	}
+	if ( !isNA(pos) )
+	{
+		p_i[1] = !isNA(p_i[1]) ? p_i[1] : pos;
+		p_i[0] = !isNA(p_i[0]) ? p_i[0] : p_i[1];
+		p_i[2] = !isNA(p_i[2]) ? p_i[2] : pos;
+		p_i[3] = !isNA(p_i[3]) ? p_i[3] : p_i[2];
+		switch(interp) {
+			case EST_AVG:
+			case EST_GAUSS:
+				val = val / wscale;
+				break;
+			case EST_LERP:
+			{
+				double dx = rel_change(pKeys[p_i[2]], pKeys[p_i[1]], ABS_DIFF);
+				double tx = rel_change(x, pKeys[p_i[1]], ABS_DIFF);
+				if ( p_i[1] != p_i[2] && diff_min > 0 )
+					val = lerp(pValues[p_i[1]], pValues[p_i[2]], tx / dx);
+				else
+					val = pValues[pos];
+				break;
+			}
+			case EST_CUBIC:
+			{
+				double ys[] = {
+					static_cast<double>(pValues[p_i[0]]),
+					static_cast<double>(pValues[p_i[1]]),
+					static_cast<double>(pValues[p_i[2]]),
+					static_cast<double>(pValues[p_i[3]])};
+				double dxs[] = {
+					rel_change(pKeys[p_i[1]], pKeys[p_i[0]], ABS_DIFF),
+					rel_change(pKeys[p_i[2]], pKeys[p_i[1]], ABS_DIFF),
+					rel_change(pKeys[p_i[3]], pKeys[p_i[2]], ABS_DIFF)};
+				double tx = rel_change(x, pKeys[p_i[1]], ABS_DIFF);
+				if ( p_i[1] != p_i[2] && diff_min > 0 )
+					val = cubic(ys, dxs, tx / dxs[1]);
+				else
+					val = pValues[pos];
+				break;
 			}
 		}
 	}
-	result = {pos, retval};
+	result = {pos, val};
 	return result;
 }
 

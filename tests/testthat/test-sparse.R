@@ -61,15 +61,15 @@ test_that("sparse vector subsetting (domain)", {
 
 	expect_equal(test2, z[])
 
-	combiner(z) <- "sum"
+	combiner(z) <- "mean"
 
-	test3 <- c(0, 0, 1.0+1.01+1.11, 0, 2.0+2.22, 0, 3, 3.33+3.333, 4)
+	test3 <- c(0, 0, (1.0+1.01+1.11)/3, 0, (2.0+2.22)/2, 0, 3, (3.33+3.333)/2, 4)
 
 	expect_equal(test3, z[])
 
-	combiner(z) <- "mean"
+	combiner(z) <- "sum"
 
-	test4 <- c(0, 0, (1.0+1.01+1.11)/3, 0, (2.0+2.22)/2, 0, 3, (3.33+3.333)/2, 4)
+	test4 <- c(0, 0, 1.0+1.01+1.11, 0, 2.0+2.22, 0, 3, 3.33+3.333, 4)
 
 	expect_equal(test4, z[])
 

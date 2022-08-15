@@ -2,9 +2,13 @@
 TODO for matter package
 -------------------------
 
-- Add smoothing filters and linear interpolation for 'kvsearch()'
-- Implement sparse list and sparse matrix classes
+- Rename "combiner()" -> "sampler()"
+- Add cubic spline interpolation filter
+- Add Lanczos (sinc) interpolation filter
+- Add AUC (integration-based) interpolation filter
+- Implement sparse matrix classes (CSC and CSR)
 - Implement combining using 'cbind2()' and 'rbind2()'
+- Add delayed operations for sparse matrices 
 
 - Refactor original matter S4 data structures R/C++ code
 - Clean up generics and remove unneeded methods/functions
