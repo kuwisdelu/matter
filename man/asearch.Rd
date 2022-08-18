@@ -10,7 +10,7 @@
 
 \usage{
 asearch(x, keys, values, tol = 0, tol.ref = "abs",
-		nomatch = NA_integer_, interp = "nearest")
+		nomatch = NA_integer_, interp = "none")
 }
 
 \arguments{
@@ -20,13 +20,13 @@ asearch(x, keys, values, tol = 0, tol.ref = "abs",
 
 	\item{values}{A vector of values corresponding to the keys. Only numeric types are supported.}
 
-	\item{tol}{The tolerance for matching doubles. Must be >= 0.}
+	\item{tol}{The tolerance for matching doubles. Must be nonnegative.}
 
 	\item{tol.ref}{One of 'abs', 'x', or 'y'. If 'abs', then comparison is done by taking the absolute difference. If either 'x' or 'y', then relative differences are used, and this specifies which to use as the reference (target) value.}
 
 	\item{nomatch}{The value to be returned in the case when no match is found, coerced to an integer. (Ignored if \code{nearest = TRUE}.)}
 
-	\item{interp}{Interpolation scheme to be computed for non-exact matches or key collisions. One of 'nearest', 'mean', 'sum', 'max', 'min', 'linear', or 'gaussian'.}
+	\item{interp}{Interpolation scheme for non-exact matches or key collisions. One of 'none', 'mean', 'sum', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'.}
 }
 
 \details{

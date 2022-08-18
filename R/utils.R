@@ -715,7 +715,7 @@ widest_datamode <- function(x) {
 #### Sparse key-value search resolution utilities ####
 ## ---------------------------------------------------
 
-make_combiner <- function(x) {
+make_sampler <- function(x) {
 	levels <- c("none", "mean",
 		"sum", "max", "min", "area",
 		"linear", "cubic",

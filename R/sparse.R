@@ -2,37 +2,23 @@
 #### Define sparse VIRTUAL class ####
 ## ----------------------------------
 
+setClassUnion("matter_OR_numeric", c("matter_vec", "integer", "numeric"))
+setClassUnion("matter_OR_list", c("matter_list", "list"))
+setClassUnion("matter_OR_numeric_OR_list", c("matter_OR_numeric", "matter_OR_list"))
+
 setClass("sparse_",
 	slots = c(
 		index = "ANY",
-		domain = "ANY",
+		offset = "integer",
+		domain = "numeric_OR_NULL",
+		pointers = "numeric_OR_NULL",
 		tolerance = "numeric",
-		combiner = "factor"),
+		sampler = "factor"),
 	contains = c("matter", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
-		if ( !is.null(object@domain) ) {
-			if ( is.matter(object@index) ) {
-				if ( typeof(object@domain) == "integer" && any(datamode(object@index) != "integer") )
-					errors <- c(errors, paste0("data type of 'domain' [",
-						typeof(object@domain), "], and 'index' [",
-						datamode(object@index), "] must match"))
-				if ( typeof(object@domain) == "double" && any(datamode(object@index) != "numeric") )
-					errors <- c(errors, paste0("data type of 'domain' [",
-						typeof(object@domain), "], and 'index' [",
-						datamode(object@index), "] must match"))
-			} else if ( is.atomic(object@index) ) {
-				if ( typeof(object@domain) != typeof(object@index) )
-					errors <- c(errors, paste0("data type of 'domain' [",
-						typeof(object@domain), "], and 'index' [",
-						typeof(object@index), "] must match"))
-			} else {
-				index_types <- vapply(object@index, typeof, character(1))
-				if ( !all(typeof(object@domain) == index_types) )
-					errors <- c(errors, paste0("data type of 'domain' [",
-						typeof(object@domain), "] and 'index' types must match"))
-			}
-		}
+		if ( length(object@offset) != 1L )
+			errors <- c(errors, "'offset' must be scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -61,9 +47,9 @@ setReplaceMethod("tolerance", "sparse_", function(object, value) {
 	object
 })
 
-setMethod("combiner", "sparse_", function(object) object@combiner)
+setMethod("sampler", "sparse_", function(object) object@sampler)
 
-setReplaceMethod("combiner", "sparse_", function(object, value) {
-	object@combiner <- make_combiner(value)
+setReplaceMethod("sampler", "sparse_", function(object, value) {
+	object@sampler <- make_sampler(value)
 	object
 })

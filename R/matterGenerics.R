@@ -78,6 +78,8 @@ setGeneric("pointers", function(x) standardGeneric("pointers"))
 setGeneric("pointers<-", function(x, value) standardGeneric("pointers<-"))
 # setGeneric("tolerance", function(object, ...) standardGeneric("tolerance")) # use ProtGenerics
 setGeneric("tolerance<-", function(object, ..., value) standardGeneric("tolerance<-"))
+setGeneric("sampler", function(object) standardGeneric("sampler"))
+setGeneric("sampler<-", function(object, value) standardGeneric("sampler<-"))
 setGeneric("combiner", function(object) standardGeneric("combiner"))
 setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
 setGeneric("nnz", function(x, ...) standardGeneric("nnz"))

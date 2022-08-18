@@ -2,7 +2,7 @@
 #ifndef MATTER_EXPORTS
 #define MATTER_EXPORTS
 
-#include "sigtools.h"
+#include "signal.h"
 #include "search.h"
 #include "sparse.h"
 
@@ -104,13 +104,22 @@ extern "C" {
 		Rf_error("supported value types are 'integer' or 'numeric'");
 	}
 
-	SEXP Mt_getSparseVector(SEXP x, SEXP i)
+	SEXP getSparseVector(SEXP x, SEXP i)
 	{
-		SparseVector out(x);
-		if ( i == R_NilValue )
-			return out.getRegion(0, out.length());
-		else
-			return out.getElements(i);
+		SparseVector y(x);
+		return y.getElements(i);
+	}
+
+	SEXP getSparseMatrixC(SEXP x, SEXP i, SEXP j)
+	{
+		SparseMatrixC y(x);	
+		return y.getElements(i, j);
+	}
+
+	SEXP getSparseMatrixR(SEXP x, SEXP i, SEXP j)
+	{
+		SparseMatrixR y(x);	
+		return y.getElements(i, j);
 	}
 
 }

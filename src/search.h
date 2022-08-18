@@ -9,7 +9,7 @@
 #include <cfloat>
 
 #include "utils.h"
-#include "sigtools.h"
+#include "signal.h"
 
 #define EST_NEAR	1
 #define EST_AVG		2
@@ -19,7 +19,7 @@
 #define EST_AREA	6
 #define EST_LERP	7
 #define EST_CUBIC	8
-#define EST_GAUSS	9
+#define EST_GAUS	9
 #define EST_SINC	10
 
 typedef ptrdiff_t index_t;
@@ -50,7 +50,8 @@ index_t binary_search(T x, SEXP table, size_t start, size_t end,
 		else
 			return mid;
 	}
-	if ( nearest || tol > 0 ) {
+	if ( (nearest || tol > 0) && (max - min) > 0 )
+	{
 		index_t left = mid >= min + 1 ? mid - 1 : min;
 		index_t right = mid < max - 1 ? mid + 1 : max - 1;
 		double dleft = rel_diff(x, pTable[left], tol_ref);
@@ -75,7 +76,7 @@ index_t binary_search(T x, SEXP table, size_t start, size_t end,
 template<typename T>
 size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
-	bool index1 = FALSE, int err = -1)
+	bool ind1 = FALSE, int err = -1)
 {
 	R_xlen_t len = XLENGTH(x);
 	T * pX = DataPtr<T>(x);
@@ -89,7 +90,7 @@ size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 				tol, tol_ref, nomatch, nearest, err);
 		if ( ptr[i] != nomatch ) {
 			num_matches++;
-			ptr[i] += index1; // adjust for R indexing from 1
+			ptr[i] += ind1; // adjust for R indexing from 1
 		}
 	}
 	return num_matches;
@@ -97,7 +98,7 @@ size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 
 template<typename T>
 SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
-	int nomatch, bool nearest = FALSE, bool index1 = FALSE)
+	int nomatch, bool nearest = FALSE, bool ind1 = FALSE)
 {
 	R_xlen_t len = XLENGTH(x);
 	SEXP pos;
@@ -108,7 +109,7 @@ SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 	}
 	int * pPos = INTEGER(pos);
 	do_binary_search<T>(pPos, x, table, 0, len,
-		tol, tol_ref, nomatch, nearest, index1);
+		tol, tol_ref, nomatch, nearest, ind1);
 	UNPROTECT(1);
 	return pos;
 }
@@ -117,20 +118,20 @@ SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 //----------------------
 
 // search for 'values' indexed by 'keys' with interpolation
-template<typename TKey, typename TVal>
-Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, size_t end,
-	double tol, int tol_ref, TVal nomatch, int interp = EST_NEAR, bool sorted = TRUE)
+template<typename Tkey, typename Tval>
+Pair<index_t,Tval> approx_search(Tkey x, SEXP keys, SEXP values, size_t start, size_t end,
+	double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR, bool sorted = TRUE)
 {
-	TKey * pKeys = DataPtr<TKey>(keys);
-	TVal * pValues = DataPtr<TVal>(values);
+	Tkey * pKeys = DataPtr<Tkey>(keys);
+	Tval * pValues = DataPtr<Tval>(values);
 	index_t pos = NA_INTEGER;
-	TVal val = nomatch;
+	Tval val = nomatch;
 	size_t num_matches = 0;
-	Pair<index_t,TVal> result = {pos, val};
+	Pair<index_t,Tval> result = {pos, val};
 	if ( isNA(x) )
 		return result;
 	if ( sorted ) {
-		pos = binary_search<TKey>(x, keys,
+		pos = binary_search<Tkey>(x, keys,
 			start, end, tol, tol_ref, NA_INTEGER);
 		// return early if no interpolation, no match, or unsorted
 		if ( interp == EST_NEAR || isNA(pos) || pos < 0 )
@@ -145,74 +146,94 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 	// perform linear search, or expand search for interpolation
 	int init = start, step = 1;
 	double diff_min = DBL_MAX; // track nearest key to 'x'
-	int p_i[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // nearest key idxs
-	double p_diff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to nearest key
+	index_t pos_max = NA_INTEGER; // track extrema
+	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // nearest key idxs
+	double pdiff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to nearest key
 	double wt = 1, wscale = 0; // weights for kernels
 	while ( TRUE ) // search right, then left
 	{
 		for ( index_t i = init; i < end && i >= 0; i += step )
 		{
-			double delta = rel_change<TKey>(x, pKeys[i], tol_ref);
+			double delta = rel_change<Tkey>(x, pKeys[i], tol_ref);
 			double diff = fabs(delta);
 			if ( diff <= tol )
 			{
+				if ( diff < diff_min )
+				{
+					diff_min = diff;
+					pos = i;
+				}
 				switch(interp) {
 					case EST_NEAR:
-						val = diff < diff_min ? pValues[i] : val;
+						if ( diff <= diff_min ) {
+							val = pValues[i];
+							if ( diff <= 0 ) {
+								result = {pos, val};
+								return result;
+							}
+						}
 						break;
-					case EST_GAUSS:
-						wt = kgaussian(diff, (2 * tol + 1) / 4);
-					case EST_AVG:
 					case EST_SUM:
-						val = num_matches > 0 ? wt * pValues[i] + val : wt * pValues[i];
+					case EST_AVG:
+					case EST_GAUS:
+					case EST_SINC:
+						if ( interp == EST_GAUS )
+							wt = kgaussian(diff, (2 * tol + 1) / 4);
+						if ( interp == EST_SINC )
+							Rf_error("interp = 'lanczos' not implemented yet");
+						if ( num_matches == 0 )
+							val = wt * pValues[i];
+						else
+							val += wt * pValues[i];
 						wscale += wt;
 						break;
+					case EST_AREA:
+						Rf_error("interp = 'area' not implemented yet");
 					case EST_MAX:
-						val = (num_matches == 0 || pValues[i] > val) ? pValues[i] : val;
+						if ( num_matches == 0 || pValues[i] > val ) {
+							val = pValues[i];
+							pos_max = i;
+						}
 						break;
 					case EST_MIN:
-						val = (num_matches == 0 || pValues[i] < val) ? pValues[i] : val;
+						if ( num_matches == 0 || pValues[i] < val ) {
+							val = pValues[i];
+							pos_max = i;
+						}
 						break;
 					case EST_LERP:
 					case EST_CUBIC:
 					{
 						if ( delta > 0 )
 						{
-							if ( diff < p_diff[1] ) {
-								p_diff[1] = diff;
-								p_i[1] = i;
+							if ( diff < pdiff[1] ) {
+								pdiff[1] = diff;
+								pj[1] = i;
 							}
-							if ( (diff > p_diff[1] && diff < p_diff[0]) ||
-								(p_i[1] == p_i[0] || isNA(p_i[0])) )
+							if ( (diff > pdiff[1] && diff < pdiff[0]) ||
+								(pj[1] == pj[0] || isNA(pj[0])) )
 							{
-								p_diff[0] = diff;
-								p_i[0] = i;
+								pdiff[0] = diff;
+								pj[0] = i;
 							}
 						}
 						if ( delta < 0 )
 						{
-							if ( diff < p_diff[2] ) {
-								p_diff[2] = diff;
-								p_i[2] = i;
+							if ( diff < pdiff[2] ) {
+								pdiff[2] = diff;
+								pj[2] = i;
 							}
-							if ( (diff > p_diff[2] && diff < p_diff[3]) ||
-								(p_i[2] == p_i[3] || isNA(p_i[3])) )
+							if ( (diff > pdiff[2] && diff < pdiff[3]) ||
+								(pj[2] == pj[3] || isNA(pj[3])) )
 							{
-								p_diff[3] = diff;
-								p_i[3] = i;
+								pdiff[3] = diff;
+								pj[3] = i;
 							}
 						}
 						break;
 					}
 				}
 				num_matches++;
-				if ( diff < diff_min )
-				{
-					diff_min = diff;
-					pos = i;
-					if ( interp == EST_NEAR && diff_min == 0 )
-						break;
-				}
 			}
 			else if ( sorted )
 				break;
@@ -232,23 +253,24 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 		switch(interp) {
 			case EST_LERP:
 			case EST_CUBIC:
-				p_i[1] = !isNA(p_i[1]) ? p_i[1] : pos;
-				p_i[0] = !isNA(p_i[0]) ? p_i[0] : p_i[1];
-				p_i[2] = !isNA(p_i[2]) ? p_i[2] : pos;
-				p_i[3] = !isNA(p_i[3]) ? p_i[3] : p_i[2];
-				tx = rel_change(x, pKeys[p_i[1]]);
-				dxs[0] = rel_change(pKeys[p_i[1]], pKeys[p_i[0]]);
-				dxs[1] = rel_change(pKeys[p_i[2]], pKeys[p_i[1]]);
-				dxs[2] = rel_change(pKeys[p_i[3]], pKeys[p_i[2]]);
-				ys[0] = static_cast<double>(pValues[p_i[0]]);
-				ys[1] = static_cast<double>(pValues[p_i[1]]);
-				ys[2] = static_cast<double>(pValues[p_i[2]]);
-				ys[3] = static_cast<double>(pValues[p_i[3]]);
+				pj[1] = !isNA(pj[1]) ? pj[1] : pos;
+				pj[0] = !isNA(pj[0]) ? pj[0] : pj[1];
+				pj[2] = !isNA(pj[2]) ? pj[2] : pos;
+				pj[3] = !isNA(pj[3]) ? pj[3] : pj[2];
+				tx = rel_change(x, pKeys[pj[1]]);
+				dxs[0] = rel_change(pKeys[pj[1]], pKeys[pj[0]]);
+				dxs[1] = rel_change(pKeys[pj[2]], pKeys[pj[1]]);
+				dxs[2] = rel_change(pKeys[pj[3]], pKeys[pj[2]]);
+				ys[0] = static_cast<double>(pValues[pj[0]]);
+				ys[1] = static_cast<double>(pValues[pj[1]]);
+				ys[2] = static_cast<double>(pValues[pj[2]]);
+				ys[3] = static_cast<double>(pValues[pj[3]]);
 		}
 		// calculate interpolated values
 		switch(interp) {
 			case EST_AVG:
-			case EST_GAUSS:
+			case EST_GAUS:
+			case EST_SINC:
 				val = val / wscale;
 				break;
 			case EST_LERP:
@@ -273,19 +295,19 @@ Pair<index_t,TVal> approx_search(TKey x, SEXP keys, SEXP values, size_t start, s
 	return result;
 }
 
-template<typename TKey, typename TVal>
-size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP values,
-	size_t start, size_t end, double tol, int tol_ref, TVal nomatch,
-	int interp = EST_NEAR, bool sorted = TRUE)
+template<typename Tkey, typename Tval>
+size_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP values,
+	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
+	int interp = EST_NEAR, bool sorted = TRUE, size_t stride = 1)
 {
 	size_t num_matches = 0;
 	index_t i = 0, current = start;
 	while ( i < xlen )
 	{
-		ptr[i] = nomatch;
+		ptr[i * stride] = nomatch;
 		if ( !isNA(x[i]) )
 		{
-			Pair<index_t,TVal> result = approx_search(x[i], keys, values,
+			Pair<index_t,Tval> result = approx_search(x[i], keys, values,
 				current, end, tol, tol_ref, nomatch, interp, sorted);
 			if ( !isNA(result.first) ) {
 				if ( result.first < 0 ) { // keys are not sorted
@@ -294,7 +316,7 @@ size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP value
 					continue;
 				}
 				current = result.first;
-				ptr[i] = result.second;
+				ptr[i * stride] = result.second;
 				num_matches++;
 			}
 			if ( !sorted || (i + 1 < xlen && x[i + 1] < x[i]) )
@@ -305,17 +327,17 @@ size_t do_approx_search(TVal * ptr, TKey * x, size_t xlen, SEXP keys, SEXP value
 	return num_matches;
 }
 
-template<typename TKey, typename TVal>
+template<typename Tkey, typename Tval>
 SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
-	TVal nomatch, int interp = EST_NEAR, bool sorted = TRUE)
+	Tval nomatch, int interp = EST_NEAR, bool sorted = TRUE)
 {
 	R_xlen_t xlen = XLENGTH(x);
 	R_xlen_t keylen = XLENGTH(keys);
 	SEXP result;
 	PROTECT(result = Rf_allocVector(TYPEOF(values), xlen));
-	TVal * pResult = DataPtr<TVal>(result);
-	TKey * pX = DataPtr<TKey>(x);
-	do_approx_search<TKey, TVal>(pResult, pX, xlen, keys, values,
+	Tval * pResult = DataPtr<Tval>(result);
+	Tkey * pX = DataPtr<Tkey>(x);
+	do_approx_search<Tkey, Tval>(pResult, pX, xlen, keys, values,
 		0, keylen, tol, tol_ref, nomatch, interp, sorted);
 	UNPROTECT(1);
 	return result;

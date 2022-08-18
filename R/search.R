@@ -30,7 +30,7 @@ asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
 	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	interp <- pmatch(interp, levels(make_combiner("")), nomatch=1L)
+	interp <- pmatch(interp, levels(make_sampler("")), nomatch=1L)
 	asearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
 		nomatch=nomatch, interp=interp, sorted=is.sorted(keys))
 }
