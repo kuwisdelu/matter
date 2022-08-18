@@ -218,3 +218,42 @@ test_that("sparse matrix subsetting w/ interpolation", {
 
 })
 
+
+test_that("sparse matrix timing", {
+
+	set.seed(1)
+
+	x <- rbinom(500 * 1000, 1, 0.2)
+
+	x[x != 0] <- seq_len(sum(x != 0))
+
+	dim(x) <- c(500, 1000)
+
+	y <- sparse_mat2(x)
+
+	z <- sparse_mat(x)
+
+	expect_equal(y[], z[])
+
+	bench::mark(y[,1:100], z[,1:100])
+
+	bench::mark(y[1:100,], z[1:100,])
+
+	bench::mark(y[1:100,1:100], z[1:100,1:100])
+
+	d <- seq_len(nrow(x)) + round(runif(nrow(x))/4, 2)
+
+	y2 <- sparse_mat2(x, domain=d, tolerance=0.5)
+
+	z2 <- sparse_mat(x, domain=d, tolerance=0.5)
+
+	expect_equal(y2[], z2[])
+
+	bench::mark(y2[,1:100], z2[,1:100])
+
+	bench::mark(y2[1:100,], z2[1:100,])
+
+	bench::mark(y2[1:100,1:100], z2[1:100,1:100])
+
+})
+
