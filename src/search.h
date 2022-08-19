@@ -11,6 +11,8 @@
 #include "utils.h"
 #include "signal.h"
 
+#define SEARCH_ERROR -1
+
 //// Linear search
 //-----------------
 
@@ -44,7 +46,8 @@ index_t linear_search(T x, SEXP table, size_t start, size_t end,
 // fuzzy binary search returning position of 'x' in 'table'
 template<typename T>
 index_t binary_search(T x, SEXP table, size_t start, size_t end,
-	double tol, int tol_ref, int nomatch, bool nearest = FALSE, int err = -1)
+	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
+	bool ind1 = FALSE, int err = SEARCH_ERROR)
 {
 	double diff;
 	index_t min = start, max = end, mid = nomatch;
@@ -62,7 +65,7 @@ index_t binary_search(T x, SEXP table, size_t start, size_t end,
 		else if ( diff > 0 )
 			start = mid + 1;
 		else
-			return mid;
+			return mid + ind1;
 	}
 	if ( (nearest || tol > 0) && (max - min) > 0 )
 	{
@@ -72,25 +75,25 @@ index_t binary_search(T x, SEXP table, size_t start, size_t end,
 		double dmid = rel_diff(x, pTable[mid], tol_ref);
 		double dright = rel_diff(x, pTable[right], tol_ref);
 		if ( (mid == left && diff < 0) && (nearest || dleft < tol) )
-			return left;
+			return left + ind1;
 		else if ( (mid == right && diff > 0) && (nearest || dright < tol) )
-			return right;
+			return right + ind1;
 		else {
 			if ( (dleft <= dmid && dleft <= dright) && (nearest || dleft < tol) )
-				return left;
+				return left + ind1;
 			else if ( (dmid <= dleft && dmid <= dright) && (nearest || dmid < tol) )
-				return mid;
+				return mid + ind1;
 			else if ( nearest || dright < tol )
-				return right;
+				return right + ind1;
 		}
 	}
 	return nomatch;
 }
 
 template<typename T>
-size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
+index_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
-	bool ind1 = FALSE, int err = -1)
+	bool ind1 = FALSE, int err = SEARCH_ERROR)
 {
 	R_xlen_t len = XLENGTH(x);
 	T * pX = DataPtr<T>(x);
@@ -99,12 +102,15 @@ size_t do_binary_search(int * ptr, SEXP x, SEXP table, size_t start, size_t end,
 	for ( size_t i = 0; i < len; i++ ) {
 		if ( isNA(pX[i]) )
 			ptr[i] = nomatch;
-		else
-			ptr[i] = binary_search<T>(pX[i], table, 0, n,
-				tol, tol_ref, nomatch, nearest, err);
-		if ( ptr[i] != nomatch ) {
-			num_matches++;
-			ptr[i] += ind1; // adjust for R indexing from 1
+		else {
+			index_t pos = binary_search<T>(pX[i], table, 0, n,
+				tol, tol_ref, nomatch, nearest, ind1, err);
+			if ( pos != err ) {
+				ptr[i] = pos;
+				num_matches++;
+			}
+			else
+				return err;
 		}
 	}
 	return num_matches;
@@ -162,12 +168,11 @@ Pair<index_t,Tval> approx_search(Tkey x, SEXP keys, SEXP values, size_t start, s
 }
 
 template<typename Tkey, typename Tval>
-size_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP values,
+index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP values,
 	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
 	int interp = EST_NEAR, bool sorted = TRUE, size_t stride = 1)
 {
-	size_t num_matches = 0;
-	index_t i = 0, current = start;
+	index_t num_matches = 0, i = 0, current = start;
 	while ( i < xlen )
 	{
 		ptr[i * stride] = nomatch;

@@ -328,7 +328,7 @@ test_that("sparse matrix timing", {
 
 		bench::mark(y[,1:3], z[,1:3]) # old is faster
 
-		bench::mark(y[,1:10], z[,1:10]) # old is much faster
+		bench::mark(y[,1:50], z[,1:50]) # old is much faster
 
 		bench::mark(
 			a=asearch(domain(y), aindex(y)[[1]], adata(y)[[1]], tol=0.5),
