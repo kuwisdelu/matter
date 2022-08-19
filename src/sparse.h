@@ -392,6 +392,14 @@ class SparseMatrix : public Sparse
 		{
 			SEXP indx;
 			Pair<index_t,index_t> p = pointers(i);
+			if ( has_pointers() && p.first == p.second ) {
+				switch(datamode()) {
+					case R_INTEGER:
+						return Rf_allocVector(INTSXP, 0);
+					case R_NUMERIC:
+						return Rf_allocVector(REALSXP, 0);
+				}
+			}
 			if ( Rf_isS4(_data) )
 			{
 				SEXP dims = R_do_slot(_data, Rf_install("dim"));
@@ -401,7 +409,12 @@ class SparseMatrix : public Sparse
 				}
 				else {
 					// matter vector
-					indx = R_compact_intrange(p.first, p.second - 1);
+					if ( has_pointers() )
+						indx = R_compact_intrange(p.first, p.second - 1);
+					else {
+						size_t n = XLENGTH(_index);
+						indx = R_compact_intrange(i * n + 1, (i + 1) * n);
+					}
 					indx = Rf_coerceVector(indx, REALSXP);
 					return getVectorElements(_data, indx);
 				}
@@ -412,7 +425,12 @@ class SparseMatrix : public Sparse
 			}
 			else {
 				// R vector
-				indx = R_compact_intrange(p.first + 1, p.second);
+				if ( has_pointers() )
+					indx = R_compact_intrange(p.first + 1, p.second);
+				else {
+					size_t n = XLENGTH(_index);
+					indx = R_compact_intrange(i * n + 1, (i + 1) * n);
+				}
 				return Rf_ExtractSubset(_data, indx, R_NilValue);
 			}
 		}
@@ -421,6 +439,14 @@ class SparseMatrix : public Sparse
 		{
 			SEXP indx;
 			Pair<index_t,index_t> p = pointers(i);
+			if ( has_pointers() && p.first == p.second ) {
+				switch(indexmode()) {
+					case R_INTEGER:
+						return Rf_allocVector(INTSXP, 0);
+					case R_NUMERIC:
+						return Rf_allocVector(REALSXP, 0);
+				}
+			}
 			if ( Rf_isS4(_index) )
 			{
 				SEXP dims = R_do_slot(_index, Rf_install("dim"));
@@ -430,9 +456,13 @@ class SparseMatrix : public Sparse
 				}
 				else {
 					// matter vector
-					indx = R_compact_intrange(p.first, p.second - 1);
-					indx = Rf_coerceVector(indx, REALSXP);
-					return getVectorElements(_index, indx);
+					if ( has_pointers() ) {
+						indx = R_compact_intrange(p.first, p.second - 1);
+						indx = Rf_coerceVector(indx, REALSXP);
+						return getVectorElements(_index, indx);
+					}
+					else
+						return getVector(_index);
 				}
 			}
 			else if ( TYPEOF(_index) == VECSXP ) {
@@ -441,8 +471,12 @@ class SparseMatrix : public Sparse
 			}
 			else {
 				// R vector
-				indx = R_compact_intrange(p.first + 1, p.second);
-				return Rf_ExtractSubset(_index, indx, R_NilValue);
+				if ( has_pointers() ) {
+					indx = R_compact_intrange(p.first + 1, p.second);
+					return Rf_ExtractSubset(_index, indx, R_NilValue);
+				}
+				else
+					return _index;
 			}
 		}
 

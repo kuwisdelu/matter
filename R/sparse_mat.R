@@ -33,7 +33,8 @@ setClass("sparse_mat",
 			if ( is(object@data, "matter_OR_list") ) {
 				# data and index are both lists
 				if ( length(object@data) != length(object@index) )
-					errors <- c(errors, "length of 'data' must match length of 'index'")
+					errors <- c(errors, paste0("length of 'data' [", length(object@data),
+						"] must match length of 'index' [", length(object@index), "]"))
 				if ( !all(lengths(object@data) == lengths(object@index)) )
 					errors <- c(errors, "lengths of 'data' must match lengths of 'index'")
 			} else {
@@ -47,9 +48,13 @@ setClass("sparse_mat",
 			# data and index are both numeric
 			if ( length(object@data) != length(object@index) ) {
 				if ( length(object@data) != length(object@index) )
-					errors <- c(errors, "length of 'data' must match length of 'index'")
+					errors <- c(errors, paste0("length of 'data' [", length(object@data),
+						"] must match length of 'index' [", length(object@index), "]"))
 				if ( length(object@data) != object@pointers[length(object@pointers)] )
-					errors <- c(errors, "last element of 'pointers' must match length of 'data'")
+					errors <- c(errors, paste0("last element of 'pointers' [",
+						object@pointers[length(object@pointers)],
+						"] must match length of 'data' [",
+						length(object@data), "]"))
 			}
 		}
 		if ( is.null(errors) ) TRUE else errors
@@ -63,23 +68,23 @@ setClass("sparse_matc",
 			if ( is(object@data, "matter_OR_list") ) {
 				# data and index are both lists
 				if ( length(object@data) != object@dim[2L] )
-					errors <- c(errors, paste0("length of 'data' must ",
-						"match ncol of object [", object@dim[2L], "]"))
+					errors <- c(errors, paste0("length of 'data' [", length(object@data),
+						"] must match ncol of object [", object@dim[2L], "]"))
 			} else {
 				# data is numeric with shared index
-				if ( length(object@data) %% length(object@index) != object@dim[2L] )
-					errors <- c(errors, paste0("modulo of lengths of 'data' and 'index' must ",
+				if ( length(object@data) / length(object@index) != object@dim[2L] )
+					errors <- c(errors, paste0("division of lengths of 'data' and 'index' must ",
 						"match ncol of object [", object@dim[2L], "]"))
 			}
 		} else {
 			# data and index are both numeric
 			if ( length(object@pointers) != object@dim[2L] + 1 )
-				errors <- c(errors, paste0("length of 'pointers' must ",
-					"match ncol of object [", object@dim[2L], "] plus 1"))
+				errors <- c(errors, paste0("length of 'pointers' [", length(object@pointers),
+					"] must match ncol of object [", object@dim[2L], "] plus 1"))
 		}
 		if ( !is.null(object@domain) && length(object@domain) != object@dim[1L] )
-			errors <- c(errors, paste0("length of 'domain' must ",
-				"match nrow of object [", object@dim[1L], "]"))
+			errors <- c(errors, paste0("length of 'domain' [", length(object@domain),
+				"] must match nrow of object [", object@dim[1L], "]"))
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -91,23 +96,23 @@ setClass("sparse_matr",
 			if ( is(object@data, "matter_OR_list") ) {
 				# data and index are both lists
 				if ( length(object@data) != object@dim[1L] )
-					errors <- c(errors, paste0("length of 'data' must ",
-						"match nrow of object [", object@dim[1L], "]"))
+					errors <- c(errors, paste0("length of 'data' [", length(object@data),
+						"] must match nrow of object [", object@dim[1L], "]"))
 			} else {
 				# data is numeric with shared index
-				if ( length(object@data) %% length(object@index) != object@dim[2L] )
-					errors <- c(errors, paste0("modulo of lengths of 'data' and 'index' must ",
+				if ( length(object@data) / length(object@index) != object@dim[1L] )
+					errors <- c(errors, paste0("division of lengths of 'data' and 'index' must ",
 						"match nrow of object [", object@dim[1L], "]"))
 			}
 		} else {
 			# data and index are both numeric
 			if ( length(object@pointers) != object@dim[1L] + 1 )
-				errors <- c(errors, paste0("length of 'pointers' must ",
-					"match nrow of object [", object@dim[1L], "] plus 1"))
+				errors <- c(errors, paste0("length of 'pointers' [", length(object@pointers),
+					"] must match nrow of object [", object@dim[1L], "] plus 1"))
 		}
 		if ( !is.null(object@domain) && length(object@domain) != object@dim[2L] )
-			errors <- c(errors, paste0("length of 'domain' must ",
-				"match ncol of object [", object@dim[2L], "]"))
+			errors <- c(errors, paste0("length of 'domain' [", length(object@domain),
+				"] must match ncol of object [", object@dim[2L], "]"))
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -116,15 +121,14 @@ sparse_mat2 <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 					tolerance = c(abs=0), sampler = "none", pointers = NULL,
 					chunksize = getOption("matter.default.chunksize"), ...)
 {
-	if ( !missing(data) ) {
-		if ( is.matrix(data) ) {
-			if ( missing(datamode) )
-				datamode <- typeof(data)
-			if ( missing(nrow) )
-				nrow <- nrow(data)
-			if ( missing(ncol) )
-				ncol <- ncol(data)
-		}
+	if ( !missing(data) && is.matrix(data) )
+	{
+		if ( missing(datamode) )
+			datamode <- typeof(data)
+		if ( missing(nrow) )
+			nrow <- nrow(data)
+		if ( missing(ncol) )
+			ncol <- ncol(data)
 		if ( missing(index) ) {
 			if ( rowMaj ) {
 				index <- apply(data, 1,
@@ -150,6 +154,12 @@ sparse_mat2 <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 				index <- unlist(index)
 				data <- unlist(data)
 			}
+		} else {
+			if ( rowMaj ) {
+				data <- as.vector(t(data))
+			} else {
+				data <- as.vector(data)
+			}
 		}
 	}
 	if ( is.null(pointers) ) {
@@ -166,9 +176,9 @@ sparse_mat2 <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 		} else {
 			# data is numeric with shared index
 			if ( missing(nrow) && rowMaj )
-				nrow <- length(data) %% length(index)
+				nrow <- length(data) / length(index)
 			if ( missing(ncol) && !rowMaj )
-				ncol <- length(data) %% length(index)
+				ncol <- length(data) / length(index)
 		}
 	} else {
 		# data and index are both numeric
@@ -186,12 +196,12 @@ sparse_mat2 <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 		datamode=make_datamode(datamode, type="R"),
 		index=index,
 		domain=domain,
-		offset=offset,
+		offset=as.integer(offset),
 		pointers=pointers,
 		paths=character(),
 		filemode=make_filemode(),
 		chunksize=as.integer(chunksize),
-		dim=c(nrow, ncol),
+		dim=as.integer(c(nrow, ncol)),
 		dimnames=dimnames,
 		tolerance=make_tolerance(tolerance),
 		sampler=make_sampler(sampler))

@@ -164,6 +164,88 @@ test_that("sparse matrix subsetting", {
 
 	expect_equal(x[11:20,6:10], y[11:20,6:10])
 
+	y <- sparse_mat2(x, pointers=TRUE)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,10], y[,10])
+
+	expect_equal(x[20,], y[20,])
+
+	expect_equal(x[1:10,1:5], y[1:10,1:5])
+
+	expect_equal(x[10:1,5:1], y[10:1,5:1])
+
+	expect_equal(x[11:20,6:10], y[11:20,6:10])
+
+	y <- sparse_mat2(x, pointers=TRUE, rowMaj=TRUE)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,10], y[,10])
+
+	expect_equal(x[20,], y[20,])
+
+	expect_equal(x[1:10,1:5], y[1:10,1:5])
+
+	expect_equal(x[10:1,5:1], y[10:1,5:1])
+
+	expect_equal(x[11:20,6:10], y[11:20,6:10])
+
+})
+
+test_that("sparse matrix subsetting w/ shared index", {
+
+	set.seed(1)
+
+	x <- round(runif(200), 2)
+
+	dim(x) <- c(20, 10)
+
+	y <- sparse_mat2(x, index=1:20)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,10], y[,10])
+
+	expect_equal(x[20,], y[20,])
+
+	expect_equal(x[1:10,1:5], y[1:10,1:5])
+
+	expect_equal(x[10:1,5:1], y[10:1,5:1])
+
+	expect_equal(x[11:20,6:10], y[11:20,6:10])
+
+	y <- sparse_mat2(x, index=1:10, rowMaj=TRUE)
+
+	expect_equal(x, y[])
+
+	expect_equal(x[,1], y[,1])
+
+	expect_equal(x[1,], y[1,])
+
+	expect_equal(x[,10], y[,10])
+
+	expect_equal(x[20,], y[20,])
+
+	expect_equal(x[1:10,1:5], y[1:10,1:5])
+
+	expect_equal(x[10:1,5:1], y[10:1,5:1])
+
+	expect_equal(x[11:20,6:10], y[11:20,6:10])
+
 })
 
 test_that("sparse matrix subsetting w/ interpolation", {
@@ -215,45 +297,6 @@ test_that("sparse matrix subsetting w/ interpolation", {
 	expect_equal(x[10:1,5:1], y[10:1,5:1])
 
 	expect_equal(x[11:20,6:10], y[11:20,6:10])
-
-})
-
-
-test_that("sparse matrix timing", {
-
-	set.seed(1)
-
-	x <- rbinom(500 * 1000, 1, 0.2)
-
-	x[x != 0] <- seq_len(sum(x != 0))
-
-	dim(x) <- c(500, 1000)
-
-	y <- sparse_mat2(x)
-
-	z <- sparse_mat(x)
-
-	expect_equal(y[], z[])
-
-	bench::mark(y[,1:100], z[,1:100])
-
-	bench::mark(y[1:100,], z[1:100,])
-
-	bench::mark(y[1:100,1:100], z[1:100,1:100])
-
-	d <- seq_len(nrow(x)) + round(runif(nrow(x))/4, 2)
-
-	y2 <- sparse_mat2(x, domain=d, tolerance=0.5)
-
-	z2 <- sparse_mat(x, domain=d, tolerance=0.5)
-
-	expect_equal(y2[], z2[])
-
-	bench::mark(y2[,1:100], z2[,1:100])
-
-	bench::mark(y2[1:100,], z2[1:100,])
-
-	bench::mark(y2[1:100,1:100], z2[1:100,1:100])
 
 })
 
