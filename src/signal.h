@@ -166,11 +166,14 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // knots
 	double pdiff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to knots
 	double wt = 1, wtnorm = 0; // kernel weights and normalizing constant
-	size_t n = 0; // count of xi - x < tol
+	size_t n = 0; // count of xi - x <= tol
 	Ty val = NA<Ty>();
+	// go right, then left
 	for ( int k = 1; k == 1 || k == -1; k -= 2 )
 	{
-		for ( index_t i = start; i < end && i >= 0; i += k )
+		// search for xi - x <= tol
+		index_t init = k > 0 ? start : start - 1;
+		for ( index_t i = init; i < end && i >= 0; i += k )
 		{
 			delta = rel_change<Tx>(xi, x[i], tol_ref);
 			diff = fabs(delta);
@@ -188,6 +191,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 					pos = i;
 				}
 				n++;
+				// update interpolant
 				switch(interp)
 				{
 					case EST_NEAR:
@@ -258,16 +262,23 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	}
 	if ( !isNA(pos) )
 	{
-		// setup params for interpolation methods
-		double tx, dxs[3], ys[4];
-		switch(interp) {
+		// additional calculation for interpolant
+		switch(interp)
+		{
+			case EST_AVG:
+			case EST_GAUS:
+			case EST_SINC:
+				val = val / wtnorm;
+				break;
 			case EST_LERP:
 			case EST_CUBIC:
+			{
+				double tx, dxs[3], ys[4];
 				pj[1] = !isNA(pj[1]) ? pj[1] : pos;
 				pj[0] = !isNA(pj[0]) ? pj[0] : pj[1];
 				pj[2] = !isNA(pj[2]) ? pj[2] : pos;
 				pj[3] = !isNA(pj[3]) ? pj[3] : pj[2];
-				tx = rel_change(xi, y[pj[1]]);
+				tx = rel_change(xi, x[pj[1]]);
 				dxs[0] = rel_change(x[pj[1]], x[pj[0]]);
 				dxs[1] = rel_change(x[pj[2]], x[pj[1]]);
 				dxs[2] = rel_change(x[pj[3]], x[pj[2]]);
@@ -275,28 +286,20 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 				ys[1] = static_cast<double>(y[pj[1]]);
 				ys[2] = static_cast<double>(y[pj[2]]);
 				ys[3] = static_cast<double>(y[pj[3]]);
-		}
-		// calculate interpolated values
-		switch(interp) {
-			case EST_AVG:
-			case EST_GAUS:
-			case EST_SINC:
-				val = val / wtnorm;
-				break;
-			case EST_LERP:
-			{
-				if ( dxs[1] > 0 && diff_min > 0 )
-					val = lerp(ys[1], ys[2], tx / dxs[1]);
-				else
-					val = y[pos];
-				break;
-			}
-			case EST_CUBIC:
-			{
-				if ( dxs[1] > 0 && diff_min > 0 )
-					val = cubic(ys, dxs, tx / dxs[1]);
-				else
-					val = y[pos];
+				if ( interp == EST_LERP )
+				{
+					if ( dxs[1] > 0 && diff_min > 0 )
+						val = lerp(ys[1], ys[2], tx / dxs[1]);
+					else
+						val = y[pos];
+				}
+				if ( interp == EST_CUBIC )
+				{
+					if ( dxs[1] > 0 && diff_min > 0 )
+						val = cubic(ys, dxs, tx / dxs[1]);
+					else
+						val = y[pos];	
+				}
 				break;
 			}
 		}
