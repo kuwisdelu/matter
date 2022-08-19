@@ -268,11 +268,10 @@ class SparseVector : public Sparse
 		{
 			size_t num_nz = 0;
 			if ( has_domain() ) {
-				Tind * region_idx = (Tind *) Calloc(size, Tind);
+				Tind region_idx [size];
 				copy_domain<Tind>(i, size, region_idx);
 				num_nz = do_approx_search<Tind,Tval>(buffer, region_idx, size,
-					index(), data(), 0, nnz(), tol(), tol_ref(), zero(), sampler());
-				Free(region_idx);
+					index(), data(), tol(), tol_ref(), zero(), sampler());
 			}
 			else {
 				for ( size_t j = 0; j < size; j++ )
@@ -330,11 +329,10 @@ class SparseVector : public Sparse
 		size_t getElements(SEXP indx, Tval * buffer)
 		{
 			R_xlen_t size = XLENGTH(indx);
-			Tind * element_idx = (Tind *) Calloc(size, Tind);
+			Tind element_idx [size];
 			copy_domain<Tind>(indx, element_idx, TRUE);
 			size_t num_nz = do_approx_search<Tind,Tval>(buffer, element_idx, size,
-				index(), data(), 0, nnz(), tol(), tol_ref(), zero(), sampler());
-			Free(element_idx);
+				index(), data(), tol(), tol_ref(), zero(), sampler());
 			return num_nz;
 		}
 
@@ -504,12 +502,11 @@ class SparseMatrixC : public SparseMatrix
 			SEXP cdata = data(i);
 			size_t cnnz = LENGTH(cdata);
 			if ( has_domain() ) {
-				Tind * row_idx = (Tind *) Calloc(nrow(), Tind);
+				Tind row_idx [nrow()];
 				copy_domain<Tind>(0, nrow(), row_idx);
 				num_nz = do_approx_search<Tind,Tval>(buffer, row_idx, nrow(),
-					cindex, cdata, 0, cnnz, tol(), tol_ref(), zero(),
+					cindex, cdata, tol(), tol_ref(), zero(),
 					sampler(), TRUE, stride);
-				Free(row_idx);
 			}
 			else {
 				for ( size_t j = 0; j < nrow(); j++ )
@@ -590,7 +587,7 @@ class SparseMatrixC : public SparseMatrix
 			else
 			{
 				// get indexed columns
-				Tind * row_idx = (Tind *) Calloc(ni, Tind);
+				Tind row_idx [ni];
 				if ( i == R_NilValue )
 					copy_domain<Tind>(0, ni, row_idx);
 				else
@@ -606,12 +603,10 @@ class SparseMatrixC : public SparseMatrix
 							cdata = data(REAL_ELT(j, k) - 1);
 							break;
 					}
-					size_t cnnz = LENGTH(cdata);
 					Tval * cbuffer = buffer + (k * ni);
 					num_nz += do_approx_search<Tind,Tval>(cbuffer, row_idx, ni,
-						cindex, cdata, 0, cnnz, tol(), tol_ref(), zero(), sampler());
+						cindex, cdata, tol(), tol_ref(), zero(), sampler());
 				}
-				Free(row_idx);
 			}
 			return num_nz;
 		}
@@ -672,12 +667,11 @@ class SparseMatrixR : public SparseMatrix
 			SEXP rdata = data(i);
 			size_t rnnz = LENGTH(rdata);
 			if ( has_domain() ) {
-				Tind * col_idx = (Tind *) Calloc(ncol(), Tind);
+				Tind col_idx [ncol()];
 				copy_domain<Tind>(0, ncol(), col_idx);
 				num_nz = do_approx_search<Tind,Tval>(buffer, col_idx, ncol(),
-					rindex, rdata, 0, rnnz, tol(), tol_ref(), zero(),
+					rindex, rdata, tol(), tol_ref(), zero(),
 					sampler(), TRUE, stride);
-				Free(col_idx);
 			}
 			else {
 				for ( size_t j = 0; j < ncol(); j++ )
@@ -758,7 +752,7 @@ class SparseMatrixR : public SparseMatrix
 			else
 			{
 				// get indexed rows
-				Tind * col_idx = (Tind *) Calloc(nj, Tind);
+				Tind col_idx [nj];
 				if ( j == R_NilValue )
 					copy_domain<Tind>(0, nj, col_idx);
 				else
@@ -774,13 +768,11 @@ class SparseMatrixR : public SparseMatrix
 							rdata = data(REAL_ELT(i, k) - 1);
 							break;
 					}
-					size_t rnnz = LENGTH(rdata);
 					Tval * rbuffer = buffer + k;
 					num_nz += do_approx_search<Tind,Tval>(rbuffer, col_idx, nj,
-						rindex, rdata, 0, rnnz, tol(), tol_ref(), zero(),
+						rindex, rdata, tol(), tol_ref(), zero(),
 						sampler(), TRUE, ni);
 				}
-				Free(col_idx);
 			}
 			return num_nz;
 		}

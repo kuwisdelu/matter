@@ -314,7 +314,7 @@ test_that("sparse matrix timing", {
 
 	y <- sparse_mat2(x, domain=d, tolerance=0.5)
 
-	z <- sparse_mat(x, domain=d, tolerance=0.5)
+	suppressWarnings(z <- sparse_mat(x, keys=d, tolerance=0.5))
 
 	expect_equal(y[], z[])
 
@@ -322,19 +322,19 @@ test_that("sparse matrix timing", {
 
 	if ( do_timings ) {
 
-		bench::mark(y[,1], z[,1]) # new is faster
+		bench::mark(y[,1], z[,1]) # new > old
 
-		bench::mark(y[,1:2], z[,1:2]) # almost tied
+		bench::mark(y[,1:5], z[,1:5]) # new > old
 
-		bench::mark(y[,1:3], z[,1:3]) # old is faster
+		bench::mark(y[,1:50], z[,1:50]) # new > old
 
-		bench::mark(y[,1:50], z[,1:50]) # old is much faster
+		bench::mark(y[1,], z[1,]) # new > old
 
-		bench::mark(
-			a=asearch(domain(y), aindex(y)[[1]], adata(y)[[1]], tol=0.5),
-			b1=bsearch(domain(y), aindex(y)[[1]], tol=0.5),
-			b2=bsearch(aindex(y)[[1]], domain(y), tol=0.5),
-			check=FALSE)
+		bench::mark(y[1:5,], z[1:5,]) # new > old
+
+		bench::mark(y[1:50,], z[1:50,]) # new > old
+
+		bench::mark(y[1:50,1:50], z[1:50,1:50]) # new > old
 
 	}
 
