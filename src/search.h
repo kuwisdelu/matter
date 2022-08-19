@@ -11,18 +11,32 @@
 #include "utils.h"
 #include "signal.h"
 
-#define EST_NEAR	1
-#define EST_AVG		2
-#define EST_SUM		3
-#define EST_MAX		4
-#define EST_MIN		5
-#define EST_AREA	6
-#define EST_LERP	7
-#define EST_CUBIC	8
-#define EST_GAUS	9
-#define EST_SINC	10
+//// Linear search
+//-----------------
 
-typedef ptrdiff_t index_t;
+// fuzzy linear search (fallback for unsorted arrays)
+template<typename T>
+index_t linear_search(T x, SEXP table, size_t start, size_t end,
+	double tol, int tol_ref, int nomatch, bool nearest = FALSE)
+{
+	index_t pos = nomatch;
+	double diff, diff_min = DBL_MAX;
+	T * pTable = DataPtr<T>(table);
+	for ( size_t i = start; i < end; i++ )
+	{
+		diff = rel_diff(x, pTable[i], tol_ref);
+		if ( diff == 0 )
+			return i;
+		if ( diff < diff_min ) {
+			diff_min = diff;
+			pos = i;
+		}
+	}
+	if ( diff_min < tol || nearest )
+		return pos;
+	else
+		return nomatch;
+}
 
 //// Binary search
 //-----------------

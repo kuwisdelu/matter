@@ -11,6 +11,19 @@
 #define REL_DIFF_X  2
 #define REL_DIFF_Y  3
 
+#define EST_NEAR	1
+#define EST_AVG		2
+#define EST_SUM		3
+#define EST_MAX		4
+#define EST_MIN		5
+#define EST_AREA	6
+#define EST_LERP	7
+#define EST_CUBIC	8
+#define EST_GAUS	9
+#define EST_SINC	10
+
+typedef ptrdiff_t index_t;
+
 //// Relative differences
 //------------------------
 
@@ -142,6 +155,153 @@ inline double cubic(double y[4], double dx[3], double t)
 	double p11 = ((t * t * t) - (t * t)) * dx[1] * m2;
 	// return interpolated value
 	return p00 + p10 + p01 + p11;
+}
+
+template<typename Tx, typename Ty>
+Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
+	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = TRUE)
+{
+	double delta, diff, diff_min = DBL_MAX;
+	index_t pos = NA_INTEGER;
+	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // knots
+	double pdiff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to knots
+	double wt = 1, wtnorm = 0; // kernel weights and normalizing constant
+	size_t n = 0; // count of xi - x < tol
+	Ty val = NA<Ty>();
+	for ( int k = 1; k == 1 || k == -1; k -= 2 )
+	{
+		for ( index_t i = start; i < end && i >= 0; i += k )
+		{
+			delta = rel_change<Tx>(xi, x[i], tol_ref);
+			diff = fabs(delta);
+			if ( diff > tol ) {
+				if ( i > 0 && delta < 0 && sorted )
+					break;
+				if ( i < 0 && delta > 0 && sorted )
+					break;
+			}
+			else
+			{
+				if ( diff < diff_min )
+				{
+					diff_min = diff;
+					pos = i;
+				}
+				n++;
+				switch(interp)
+				{
+					case EST_NEAR:
+						if ( diff <= diff_min ) {
+							val = y[i];
+							if ( diff == 0 )
+								return val;
+						}
+						break;
+					case EST_SUM:
+					case EST_AVG:
+					case EST_GAUS:
+					case EST_SINC:
+						if ( interp == EST_GAUS )
+							wt = kgaussian(diff, (2 * tol + 1) / 4);
+						if ( interp == EST_SINC )
+							Rf_error("interp = 'lanczos' not implemented yet");
+						if ( n == 1 )
+							val = wt * y[i];
+						else
+							val += wt * y[i];
+						wtnorm += wt;
+						break;
+					case EST_AREA:
+						Rf_error("interp = 'area' not implemented yet");
+					case EST_MAX:
+						if ( n == 1 || y[i] > val )
+							val = y[i];
+						break;
+					case EST_MIN:
+						if ( n == 1 || y[i] < val )
+							val = y[i];
+						break;
+					case EST_LERP:
+					case EST_CUBIC:
+					{
+						if ( delta > 0 )
+						{
+							if ( diff < pdiff[1] ) {
+								pdiff[1] = diff;
+								pj[1] = i;
+							}
+							if ( (diff > pdiff[1] && diff < pdiff[0]) ||
+								(pj[1] == pj[0] || isNA(pj[0])) )
+							{
+								pdiff[0] = diff;
+								pj[0] = i;
+							}
+						}
+						if ( delta < 0 )
+						{
+							if ( diff < pdiff[2] ) {
+								pdiff[2] = diff;
+								pj[2] = i;
+							}
+							if ( (diff > pdiff[2] && diff < pdiff[3]) ||
+								(pj[2] == pj[3] || isNA(pj[3])) )
+							{
+								pdiff[3] = diff;
+								pj[3] = i;
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	if ( !isNA(pos) )
+	{
+		// setup params for interpolation methods
+		double tx, dxs[3], ys[4];
+		switch(interp) {
+			case EST_LERP:
+			case EST_CUBIC:
+				pj[1] = !isNA(pj[1]) ? pj[1] : pos;
+				pj[0] = !isNA(pj[0]) ? pj[0] : pj[1];
+				pj[2] = !isNA(pj[2]) ? pj[2] : pos;
+				pj[3] = !isNA(pj[3]) ? pj[3] : pj[2];
+				tx = rel_change(xi, y[pj[1]]);
+				dxs[0] = rel_change(x[pj[1]], x[pj[0]]);
+				dxs[1] = rel_change(x[pj[2]], x[pj[1]]);
+				dxs[2] = rel_change(x[pj[3]], x[pj[2]]);
+				ys[0] = static_cast<double>(y[pj[0]]);
+				ys[1] = static_cast<double>(y[pj[1]]);
+				ys[2] = static_cast<double>(y[pj[2]]);
+				ys[3] = static_cast<double>(y[pj[3]]);
+		}
+		// calculate interpolated values
+		switch(interp) {
+			case EST_AVG:
+			case EST_GAUS:
+			case EST_SINC:
+				val = val / wtnorm;
+				break;
+			case EST_LERP:
+			{
+				if ( dxs[1] > 0 && diff_min > 0 )
+					val = lerp(ys[1], ys[2], tx / dxs[1]);
+				else
+					val = y[pos];
+				break;
+			}
+			case EST_CUBIC:
+			{
+				if ( dxs[1] > 0 && diff_min > 0 )
+					val = cubic(ys, dxs, tx / dxs[1]);
+				else
+					val = y[pos];
+				break;
+			}
+		}
+	}
+	return val;
 }
 
 //// Peak detection

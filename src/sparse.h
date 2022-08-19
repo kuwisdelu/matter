@@ -572,8 +572,9 @@ class SparseMatrixC : public SparseMatrix
 			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
 			if ( j == R_NilValue )
 				j = R_compact_intrange(1, nj);
-			if ( i == R_NilValue )
+			if ( i == R_NilValue && !has_domain() )
 			{
+				// get full columns
 				for ( size_t k = 0; k < nj; k++ ) {
 					Tval * cbuffer = buffer + (k * ni);
 					switch(TYPEOF(j)) {
@@ -588,8 +589,12 @@ class SparseMatrixC : public SparseMatrix
 			}
 			else
 			{
+				// get indexed columns
 				Tind * row_idx = (Tind *) Calloc(ni, Tind);
-				copy_domain<Tind>(i, row_idx, TRUE);
+				if ( i == R_NilValue )
+					copy_domain<Tind>(0, ni, row_idx);
+				else
+					copy_domain<Tind>(i, row_idx, TRUE);
 				for ( size_t k = 0; k < nj; k++ ) {
 					switch(TYPEOF(j)) {
 						case INTSXP:
@@ -603,7 +608,7 @@ class SparseMatrixC : public SparseMatrix
 					}
 					size_t cnnz = LENGTH(cdata);
 					Tval * cbuffer = buffer + (k * ni);
-					num_nz += do_approx_search<Tind,Tval>(cbuffer, row_idx, LENGTH(i),
+					num_nz += do_approx_search<Tind,Tval>(cbuffer, row_idx, ni,
 						cindex, cdata, 0, cnnz, tol(), tol_ref(), zero(), sampler());
 				}
 				Free(row_idx);
@@ -735,8 +740,9 @@ class SparseMatrixR : public SparseMatrix
 			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
 			if ( i == R_NilValue )
 				i = R_compact_intrange(1, ni);
-			if ( j == R_NilValue )
+			if ( j == R_NilValue && !has_domain() )
 			{
+				// get full rows
 				for ( size_t k = 0; k < ni; k++ ) {
 					Tval * rbuffer = buffer + k;
 					switch(TYPEOF(i)) {
@@ -751,8 +757,12 @@ class SparseMatrixR : public SparseMatrix
 			}
 			else
 			{
+				// get indexed rows
 				Tind * col_idx = (Tind *) Calloc(nj, Tind);
-				copy_domain<Tind>(j, col_idx, TRUE);
+				if ( j == R_NilValue )
+					copy_domain<Tind>(0, nj, col_idx);
+				else
+					copy_domain<Tind>(j, col_idx, TRUE);
 				for ( size_t k = 0; k < ni; k++ ) {
 					switch(TYPEOF(i)) {
 						case INTSXP:
@@ -766,7 +776,7 @@ class SparseMatrixR : public SparseMatrix
 					}
 					size_t rnnz = LENGTH(rdata);
 					Tval * rbuffer = buffer + k;
-					num_nz += do_approx_search<Tind,Tval>(rbuffer, col_idx, LENGTH(j),
+					num_nz += do_approx_search<Tind,Tval>(rbuffer, col_idx, nj,
 						rindex, rdata, 0, rnnz, tol(), tol_ref(), zero(),
 						sampler(), TRUE, ni);
 				}

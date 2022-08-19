@@ -300,3 +300,43 @@ test_that("sparse matrix subsetting w/ interpolation", {
 
 })
 
+test_that("sparse matrix timing", {
+
+	set.seed(1)
+
+	x <- rbinom(500 * 1000, 1, 0.2)
+
+	x[x != 0] <- seq_len(sum(x != 0))
+
+	dim(x) <- c(500, 1000)
+
+	d <- seq_len(nrow(x)) + round(runif(nrow(x))/4, 2)
+
+	y <- sparse_mat2(x, domain=d, tolerance=0.5)
+
+	z <- sparse_mat(x, domain=d, tolerance=0.5)
+
+	expect_equal(y[], z[])
+
+	do_timings <- FALSE
+
+	if ( do_timings ) {
+
+		bench::mark(y[,1], z[,1]) # new is faster
+
+		bench::mark(y[,1:2], z[,1:2]) # almost tied
+
+		bench::mark(y[,1:3], z[,1:3]) # old is faster
+
+		bench::mark(y[,1:10], z[,1:10]) # old is much faster
+
+		bench::mark(
+			a=asearch(domain(y), aindex(y)[[1]], adata(y)[[1]], tol=0.5),
+			b1=bsearch(domain(y), aindex(y)[[1]], tol=0.5),
+			b2=bsearch(aindex(y)[[1]], domain(y), tol=0.5),
+			check=FALSE)
+
+	}
+
+})
+
