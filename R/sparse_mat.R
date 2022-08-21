@@ -240,6 +240,20 @@ setMethod("preview_for_display", "sparse_mat", function(x) {
 		round(nnz(x) / prod(dim(x)), 4) * 100, "% density)\n", sep="")
 })
 
+setReplaceMethod("domain", "sparse_matc", function(object, value) {
+	object@domain <- value
+	object@dim[1L] <- length(value)
+	if ( validObject(object) )
+		object
+})
+
+setReplaceMethod("domain", "sparse_matr", function(object, value) {
+	object@domain <- value
+	object@dim[2L] <- length(value)
+	if ( validObject(object) )
+		object
+})
+
 setMethod("length", "sparse_mat",
 	function(x) prod(dim(x)))
 

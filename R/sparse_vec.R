@@ -89,6 +89,13 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 		round(nnz(x) / length(x), 4) * 100, "% density)\n", sep="")
 })
 
+setReplaceMethod("domain", "sparse_vec", function(object, value) {
+	object@domain <- value
+	object@length <- length(value)
+	if ( validObject(object) )
+		object
+})
+
 setMethod("nnz", "sparse_vec", function(x, ...) length(x@data))
 
 get_sparse_vec_elts <- function(x, i = NULL)

@@ -237,6 +237,10 @@ test_that("approx search (sorted) - interpolation", {
 
 	expect_equal(x2, asearch(x2, keys, vals, tol=2, interp="cubic"))
 
+	x3 <- seq(from=1, to=3, by=0.05)
+
+	expect_equal(x3, asearch(x3, keys, vals, tol=1, interp="linear"))
+
 })
 
 test_that("approx search (unsorted) - interpolation", {
@@ -268,6 +272,10 @@ test_that("approx search (unsorted) - interpolation", {
 	expect_equal(x2, asearch(x2, keys, vals, tol=1, interp="linear"))
 
 	expect_equal(x2, asearch(x2, keys, vals, tol=2, interp="cubic"))
+
+	x3 <- seq(from=1, to=3, by=0.05)
+
+	expect_equal(x3, asearch(x3, keys, vals, tol=1, interp="linear"))
 
 })
 

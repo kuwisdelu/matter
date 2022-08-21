@@ -2,11 +2,10 @@
 TODO for matter package
 -------------------------
 
-- Rename "combiner()" -> "sampler()"
-- Add cubic spline interpolation filter
+- Speed up approximate search when len(x) > len(keys)
+- Add bounds checking (!) to sparse data subsetting
 - Add Lanczos (sinc) interpolation filter
 - Add AUC (integration-based) interpolation filter
-- Implement sparse matrix classes (CSC and CSR)
 - Implement combining using 'cbind2()' and 'rbind2()'
 - Add delayed operations for sparse matrices 
 
@@ -19,10 +18,10 @@ TODO for matter package
 	- Deprecate 'paths()' -> 'path()'
 	- Deprecate 'filemode()' -> 'readonly()'
 
-- Write an an updated vignette + switch vignete to R Markdown
+- Write updated vignette + switch vignete to R Markdown
 - Investigate access efficiency of ALTREP matter objects
-- Infer length/dim from file in constructor for more classes
+- Infer length/dim from file in class constructors
 - Add more data manipulation functions for 'matter_df'
-- Add wrappers for reading/manipulating csv, tsv, etc. (?)
+- Add wrappers for reading csv, tsv, etc. (?)
 - Add 'match' and '%in%' functions for 'matter_vec' class
-- Add support for different data sources via @datasrc slot
+- Add support for different data sources via @datasrc

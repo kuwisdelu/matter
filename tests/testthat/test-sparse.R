@@ -37,6 +37,14 @@ test_that("sparse vector subsetting", {
 
 	expect_equal(x[10:1], y[10:1])
 
+	# z <- sparse_vec(1:5, index=1:5)
+
+	# domain(z) <- seq(from=2, to=3, by=0.25)
+
+	# tolerance(z) <- 0.3
+
+	# expect_equal(c(2, 2, 0, 3, 3), z[])
+
 })
 
 test_that("sparse vector subsetting w/ interpolation", {
@@ -77,7 +85,7 @@ test_that("sparse vector subsetting w/ interpolation", {
 
 	tolerance(z) <- 1.0
 
-	test5 <- c(0, 1, 1, 1.5, 2, 2.5, 3, 3.5, 4)
+	test5 <- c(1, 1, 1, 1.5, 2, 2.5, 3, 3.5, 4)
 
 	expect_equal(test5, z[])
 
@@ -200,6 +208,14 @@ test_that("sparse matrix subsetting", {
 
 	expect_equal(x[11:20,6:10], y[11:20,6:10])
 
+	# z <- sparse_mat2(list(as.double(1:5)), list(1:5), nrow=5, ncol=1)
+
+	# domain(z) <- seq(from=2, to=3, by=0.25)
+
+	# tolerance(z) <- 0.3
+
+	# expect_equal(c(2, 2, 0, 3, 3), as.double(z[]))
+
 })
 
 test_that("sparse matrix subsetting w/ shared index", {
@@ -302,19 +318,19 @@ test_that("sparse matrix subsetting w/ interpolation", {
 
 test_that("sparse matrix timing", {
 
+	n <- 50000
+	p <- 20
+
 	set.seed(1)
-
-	x <- rbinom(500 * 1000, 1, 0.2)
-
+	x <- rbinom(n * p, 1, 0.01)
 	x[x != 0] <- seq_len(sum(x != 0))
-
-	dim(x) <- c(500, 1000)
+	dim(x) <- c(n, p)
 
 	d <- seq_len(nrow(x)) + round(runif(nrow(x))/4, 2)
-
 	y <- sparse_mat2(x, domain=d, tolerance=0.5)
-
 	suppressWarnings(z <- sparse_mat(x, keys=d, tolerance=0.5))
+
+	expect_equal(x[], y[])
 
 	expect_equal(y[], z[])
 
@@ -322,19 +338,15 @@ test_that("sparse matrix timing", {
 
 	if ( do_timings ) {
 
-		bench::mark(y[,1], z[,1]) # new > old
+		bench::mark(x[,1], y[,1], z[,1])
+		bench::mark(x[,1:5], y[,1:5], z[,1:5])
+		bench::mark(x[,1:10], y[,1:10], z[,1:10])
 
-		bench::mark(y[,1:5], z[,1:5]) # new > old
-
-		bench::mark(y[,1:50], z[,1:50]) # new > old
-
-		bench::mark(y[1,], z[1,]) # new > old
-
-		bench::mark(y[1:5,], z[1:5,]) # new > old
-
-		bench::mark(y[1:50,], z[1:50,]) # new > old
-
-		bench::mark(y[1:50,1:50], z[1:50,1:50]) # new > old
+		bench::mark(
+			a=asearch(domain(y), aindex(y)[[1]], adata(y)[[1]], tol=0.5),
+			b1=bsearch(domain(y), aindex(y)[[1]], tol=0.5),
+			b2=bsearch(aindex(y)[[1]], domain(y), tol=0.5),
+			check=FALSE)
 
 	}
 

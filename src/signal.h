@@ -44,7 +44,7 @@ double rel_change(T x, T y, int ref = ABS_DIFF)
 }
 
 template<> inline
-double rel_change<const char *>(const char * x, const char * y, int ref)
+double rel_change(const char * x, const char * y, int ref)
 {
 	int i = -1, sign = 1;
 	int n = 0, nx = 0, ny = 0;
@@ -76,7 +76,7 @@ double rel_change<const char *>(const char * x, const char * y, int ref)
 }
 
 template<> inline
-double rel_change<SEXP>(SEXP x, SEXP y, int ref)
+double rel_change(SEXP x, SEXP y, int ref)
 {
 	if ( TYPEOF(x) != TYPEOF(y) )
 		Rf_error("'x' and 'y' must have the same type");
@@ -99,6 +99,19 @@ template<typename T>
 double rel_diff(T x, T y, int ref = ABS_DIFF)
 {
 	return fabs(rel_change<T>(x, y, ref));
+}
+
+inline int switch_tol_ref(int tol_ref)
+{
+	switch(tol_ref) {
+		case ABS_DIFF:
+			return ABS_DIFF;
+		case REL_DIFF_X:
+			return REL_DIFF_Y;
+		case REL_DIFF_Y:
+			return REL_DIFF_X;
+	}
+	return NA_INTEGER;
 }
 
 //// Kernels
@@ -161,12 +174,13 @@ template<typename Tx, typename Ty>
 Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = TRUE)
 {
+	// Rprintf("inside interp(%f)\n", xi);
 	double delta, diff, diff_min = DBL_MAX;
 	index_t pos = NA_INTEGER;
 	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // knots
 	double pdiff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to knots
 	double wt = 1, wtnorm = 0; // kernel weights and normalizing constant
-	size_t n = 0; // count of xi - x <= tol
+	size_t nxi = 0; // count of xi - x <= tol
 	Ty val = NA<Ty>();
 	// go right, then left
 	for ( int k = 1; k == 1 || k == -1; k -= 2 )
@@ -190,7 +204,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 					diff_min = diff;
 					pos = i;
 				}
-				n++;
+				nxi++;
 				// update interpolant
 				switch(interp)
 				{
@@ -209,7 +223,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 							wt = kgaussian(diff, (2 * tol + 1) / 4);
 						if ( interp == EST_SINC )
 							Rf_error("interp = 'lanczos' not implemented yet");
-						if ( n == 1 )
+						if ( nxi == 1 )
 							val = wt * y[i];
 						else
 							val += wt * y[i];
@@ -218,11 +232,11 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 					case EST_AREA:
 						Rf_error("interp = 'area' not implemented yet");
 					case EST_MAX:
-						if ( n == 1 || y[i] > val )
+						if ( nxi == 1 || y[i] > val )
 							val = y[i];
 						break;
 					case EST_MIN:
-						if ( n == 1 || y[i] < val )
+						if ( nxi == 1 || y[i] < val )
 							val = y[i];
 						break;
 					case EST_LERP:
@@ -304,6 +318,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 			}
 		}
 	}
+	// Rprintf("interp(%f) = %d | n = %d\n", xi, val, nxi);
 	return val;
 }
 
