@@ -90,7 +90,7 @@ double rel_change(SEXP x, SEXP y, int ref)
 		case REALSXP:
 			return rel_change(Rf_asReal(x), Rf_asReal(y), ref);
 		default:
-			Rf_error("supported types are 'integer', 'double', or 'character'");
+			Rf_error("unsupported data type");
 	}
 }
 

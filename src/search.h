@@ -1,5 +1,5 @@
-#ifndef MATTER_SEARCH
-#define MATTER_SEARCH
+#ifndef SEARCH
+#define SEARCH
 
 #define R_NO_REMAP
 
@@ -55,14 +55,6 @@ index_t linear_search(T x, T * table, size_t start, size_t end,
 }
 
 template<typename T>
-index_t linear_search(T x, SEXP table, double tol, int tol_ref,
-	int nomatch, bool nearest = FALSE, bool ind1 = FALSE)
-{
-	return linear_search(x, DataPtr<T>(table), 0, XLENGTH(table),
-		tol, tol_ref, nomatch, nearest, ind1);
-}
-
-template<typename T>
 index_t do_linear_search(int * ptr, T * x, size_t xlen, T * table,
 	size_t start, size_t end, double tol, int tol_ref, int nomatch,
 	bool nearest = FALSE, bool ind1 = FALSE)
@@ -81,14 +73,6 @@ index_t do_linear_search(int * ptr, T * x, size_t xlen, T * table,
 	return num_matches;
 }
 
-template<typename T>
-index_t do_linear_search(int * ptr, T * x, size_t xlen, SEXP table,
-	double tol, int tol_ref, int nomatch, bool nearest = FALSE, bool ind1 = FALSE)
-{
-	return do_linear_search(ptr, x, xlen, DataPtr<T>(table),
-		0, XLENGTH(table), tol, tol_ref, nomatch, nearest, ind1);
-}
-
 //// Binary search
 //-----------------
 
@@ -98,7 +82,7 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
 	bool ind1 = FALSE, int err = SEARCH_ERROR)
 {
-	double diff;
+	double delta;
 	index_t min = start, max = end, mid = nomatch;
 	while ( start < end )
 	{
@@ -107,10 +91,10 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 		double d2 = rel_change(table[mid], table[end - 1]);
 		if ( d1 > 0 || d2 > 0 )
 			return err; // table is not sorted
-		diff = rel_change(x, table[mid], tol_ref);
-		if ( diff < 0 )
+		delta = rel_change(x, table[mid], tol_ref);
+		if ( delta < 0 )
 			end = mid;
-		else if ( diff > 0 )
+		else if ( delta > 0 )
 			start = mid + 1;
 		else
 			return mid + ind1;
@@ -122,9 +106,9 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 		double dleft = rel_diff(x, table[left], tol_ref);
 		double dmid = rel_diff(x, table[mid], tol_ref);
 		double dright = rel_diff(x, table[right], tol_ref);
-		if ( (mid == left && diff < 0) && (nearest || dleft <= tol) )
+		if ( (mid == left && delta < 0) && (nearest || dleft <= tol) )
 			return left + ind1;
-		else if ( (mid == right && diff > 0) && (nearest || dright <= tol) )
+		else if ( (mid == right && delta > 0) && (nearest || dright <= tol) )
 			return right + ind1;
 		else {
 			if ( (dleft <= dmid && dleft <= dright) && (nearest || dleft <= tol) )
@@ -136,14 +120,6 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 		}
 	}
 	return nomatch;
-}
-
-template<typename T>
-index_t binary_search(T x, SEXP table, double tol, int tol_ref, int nomatch,
-	bool nearest = FALSE, bool ind1 = FALSE, int err = SEARCH_ERROR)
-{
-	return binary_search(x, DataPtr<T>(table), 0, XLENGTH(table),
-		tol, tol_ref, nomatch, nearest, ind1, err);
 }
 
 template<typename T>
@@ -169,23 +145,27 @@ index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 	return num_matches;
 }
 
-template<typename T>
-index_t do_binary_search(int * ptr, T * x, size_t xlen, SEXP table,
-	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
-	bool ind1 = FALSE, int err = SEARCH_ERROR)
-{
-	return do_binary_search(ptr, x, xlen, DataPtr<T>(table), 0, XLENGTH(table),
-		tol, tol_ref, nomatch, nearest, ind1, err);
-}
-
-template<typename T>
-SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
+inline SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 	int nomatch, bool nearest = FALSE, bool ind1 = FALSE)
 {
 	SEXP pos;
-	PROTECT(pos = Rf_allocVector(INTSXP, XLENGTH(x)));
-	do_binary_search(INTEGER(pos), DataPtr<T>(x), XLENGTH(x),
-		table, tol, tol_ref, nomatch, nearest, ind1);
+	PROTECT(pos = Rf_allocVector(INTSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_binary_search(INTEGER(pos), INTEGER(x), LENGTH(x), INTEGER(table),
+				0, LENGTH(table), tol, tol_ref, nomatch, nearest, ind1);
+			break;
+		case REALSXP:
+			do_binary_search(INTEGER(pos), REAL(x), LENGTH(x), REAL(table),
+				0, LENGTH(table), tol, tol_ref, nomatch, nearest, ind1);
+			break;
+		case STRSXP:
+			do_binary_search(INTEGER(pos), STRING_PTR(x), LENGTH(x), STRING_PTR(table),
+				0, LENGTH(table), tol, tol_ref, nomatch, nearest, ind1);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
 	UNPROTECT(1);
 	return pos;
 }
@@ -220,14 +200,6 @@ Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 	}
 	result = {pos, val};
 	return result;
-}
-
-template<typename Tkey, typename Tval>
-Pair<index_t,Tval> approx_search(Tkey x, SEXP keys, SEXP values,
-	double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR, bool sorted = TRUE)
-{
-	return approx_search(x, INTEGER(keys), DataPtr<Tval>(values), 0, XLENGTH(keys),
-		tol, tol_ref, nomatch, interp, sorted);
 }
 
 template<typename Tkey, typename Tval>
@@ -296,20 +268,33 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP valu
 	bool sorted = TRUE, size_t stride = 1)
 {
 	return do_approx_search(ptr, x, xlen, DataPtr<Tkey>(keys), DataPtr<Tval>(values),
-		0, XLENGTH(keys), tol, tol_ref, nomatch, interp, sorted, stride);
+		0, LENGTH(values), tol, tol_ref, nomatch, interp, sorted, stride);
 }
 
-template<typename Tkey, typename Tval>
+template<typename T>
 SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
-	Tval nomatch, int interp = EST_NEAR, bool sorted = TRUE)
+	T nomatch, int interp = EST_NEAR, bool sorted = TRUE)
 {
 	SEXP result;
-	PROTECT(result = Rf_allocVector(TYPEOF(values), XLENGTH(x)));
-	Tval * pResult = DataPtr<Tval>(result);
-	do_approx_search<Tkey,Tval>(pResult, DataPtr<Tkey>(x), XLENGTH(x),
-		keys, values, tol, tol_ref, nomatch, interp, sorted);
+	PROTECT(result = Rf_allocVector(TYPEOF(values), LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_approx_search<int,T>(DataPtr<T>(result), INTEGER(x), LENGTH(x),
+				keys, values, tol, tol_ref, nomatch, interp, sorted);
+			break;
+		case REALSXP:
+			do_approx_search<double,T>(DataPtr<T>(result), REAL(x), LENGTH(x),
+				keys, values, tol, tol_ref, nomatch, interp, sorted);
+			break;
+		case STRSXP:
+			do_approx_search<SEXP,T>(DataPtr<T>(result), STRING_PTR(x), LENGTH(x),
+				keys, values, tol, tol_ref, nomatch, interp, sorted);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
 	UNPROTECT(1);
 	return result;
 }
 
-#endif // MATTER_SEARCH
+#endif // SEARCH
