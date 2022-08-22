@@ -36,42 +36,6 @@ T * DataPtr(SEXP x)
 	return ((T *)(DATAPTR(x)));
 }
 
-template<typename T>
-T DataElt(SEXP x, R_xlen_t i)
-{
-	return ((T *)(DATAPTR(x)))[i];
-}
-
-template<> inline
-Rbyte DataElt<Rbyte>(SEXP x, R_xlen_t i)
-{
-	return RAW_ELT(x, i);
-}
-
-template<> inline
-bool DataElt<bool>(SEXP x, R_xlen_t i)
-{
-	return LOGICAL_ELT(x, i);
-}
-
-template<> inline
-int DataElt<int>(SEXP x, R_xlen_t i)
-{
-	return INTEGER_ELT(x, i);
-}
-
-template<> inline
-double DataElt<double>(SEXP x, R_xlen_t i)
-{
-	return REAL_ELT(x, i);
-}
-
-template<> inline
-SEXP DataElt<SEXP>(SEXP x, R_xlen_t i)
-{
-	return STRING_ELT(x, i);
-}
-
 //// Generate NA
 //---------------
 

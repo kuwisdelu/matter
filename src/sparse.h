@@ -35,37 +35,43 @@ class Sparse
 			return _data;
 		}
 
-		int datamode() {
-			return _datamode[0];
+		SEXPTYPE datatype() {
+			switch(_datamode[0]) {
+				case R_INTEGER:
+					return INTSXP;
+				case R_NUMERIC:
+					return REALSXP;
+				default:
+					Rf_error("unsupported 'datamode'");
+			}
 		}
 
 		SEXP index() {
 			return _index;
 		}
 
-		int indexmode() {
-			if ( TYPEOF(domain()) == REALSXP )
-				return R_NUMERIC;
+		SEXPTYPE indextype() {
+			if ( Rf_isReal(domain()) )
+				return REALSXP;
 			if ( Rf_isS4(_index) )
 			{
 				SEXP mode = R_do_slot(_index, Rf_install("datamode"));
-				return Rf_asInteger(mode);
+				switch(Rf_asInteger(mode)) {
+					case R_INTEGER:
+						return INTSXP;
+					case R_NUMERIC:
+						return REALSXP;
+					default:
+						Rf_error("unsupported 'datamode'");
+				}
 			}
 			else
 			{
-				SEXPTYPE type;
-				if ( TYPEOF(_index) == VECSXP )
-					type = TYPEOF(VECTOR_ELT(_index, 0));
+				if ( Rf_isVectorList(_index) )
+					return TYPEOF(VECTOR_ELT(_index, 0));
 				else
-					type = TYPEOF(_index);
-				switch(type) {
-					case INTSXP:
-						return R_INTEGER;
-					case REALSXP:
-						return R_NUMERIC;
-				}
+					return TYPEOF(_index);
 			}
-			return NA_INTEGER;
 		}
 
 		int offset() {
@@ -183,8 +189,6 @@ class Sparse
 					case REALSXP:
 						i = REAL_ELT(indx, j);
 						break;
-					default:
-						Rf_error("unsupported subscript type");
 				}
 				switch(TYPEOF(domain())) {
 					case NILSXP:
@@ -226,17 +230,11 @@ class SparseVector : public Sparse
 		SEXP data() {
 			SEXP data0;
 			if ( Rf_isS4(_data) )
-				PROTECT(data0 = getVector(_data));
+				data0 = getVector(_data);
 			else
-				PROTECT(data0 = _data);
-			switch(datamode()) {
-				case R_INTEGER:
-					data0 = Rf_coerceVector(data0, INTSXP);
-					break;
-				case R_NUMERIC:
-					data0 = Rf_coerceVector(data0, REALSXP);
-					break;
-			}
+				data0 = _data;
+			PROTECT(data0);
+			data0 = Rf_coerceVector(data0, datatype());
 			UNPROTECT(1);
 			return data0;
 		}
@@ -244,11 +242,11 @@ class SparseVector : public Sparse
 		SEXP index() {
 			SEXP index0;
 			if ( Rf_isS4(_index) )
-				PROTECT(index0 = getVector(_index));
+				index0 = getVector(_index);
 			else
-				PROTECT(index0 = _index);
-			if ( TYPEOF(domain()) == REALSXP )
-				index0 = Rf_coerceVector(index0, REALSXP);
+				index0 = _index;
+			PROTECT(index0);
+			index0 = Rf_coerceVector(index0, indextype());
 			UNPROTECT(1);
 			return index0;
 		}
@@ -295,9 +293,9 @@ class SparseVector : public Sparse
 			PROTECT(data0 = data());
 			size_t num_nz = 0;
 			if ( has_domain() ) {
-				Tind region_idx [size];
-				copy_domain<Tind>(i, size, region_idx);
-				num_nz = do_approx_search<Tind,Tval>(buffer, region_idx, size,
+				Tind subscripts [size];
+				copy_domain<Tind>(i, size, subscripts);
+				num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, size,
 					index0, data0, tol(), tol_ref(), zero(), sampler());
 			}
 			else {
@@ -319,28 +317,27 @@ class SparseVector : public Sparse
 		SEXP getRegion(size_t i, size_t size)
 		{
 			SEXP result;
-			switch(datamode()) {
-				case R_INTEGER:
+			PROTECT(result = Rf_allocVector(datatype(), size));
+			switch(datatype()) {
+				case INTSXP:
 				{
-					PROTECT(result = Rf_allocVector(INTSXP, size));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getRegion<int,int>(i, size, INTEGER(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getRegion<double,int>(i, size, INTEGER(result));
 							break;
 					}
 					break;
 				}
-				case R_NUMERIC:
+				case REALSXP:
 				{
-					PROTECT(result = Rf_allocVector(REALSXP, size));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getRegion<int,double>(i, size, REAL(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getRegion<double,double>(i, size, REAL(result));
 							break;
 					}
@@ -360,9 +357,9 @@ class SparseVector : public Sparse
 			PROTECT(index0 = index());
 			PROTECT(data0 = data());
 			R_xlen_t size = XLENGTH(indx);
-			Tind element_idx [size];
-			copy_domain<Tind>(indx, element_idx, TRUE);
-			size_t num_nz = do_approx_search<Tind,Tval>(buffer, element_idx, size,
+			Tind subscripts [size];
+			copy_domain<Tind>(indx, subscripts, TRUE);
+			size_t num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, size,
 				index0, data0, tol(), tol_ref(), zero(), sampler());
 			UNPROTECT(2);
 			return num_nz;
@@ -371,33 +368,30 @@ class SparseVector : public Sparse
 		SEXP getElements(SEXP indx)
 		{
 			SEXP result;
-			if ( indx == R_NilValue ) {
-				result = getRegion(0, length());
-				return result;
-			}
-			switch(datamode()) {
-				case R_INTEGER:
+			if ( indx == R_NilValue )
+				return getRegion(0, length());
+			PROTECT(result = Rf_allocVector(datatype(), XLENGTH(indx)));
+			switch(datatype()) {
+				case INTSXP:
 				{
-					PROTECT(result = Rf_allocVector(INTSXP, XLENGTH(indx)));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getElements<int,int>(indx, INTEGER(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getElements<double,int>(indx, INTEGER(result));
 							break;
 					}
 					break;
 				}
 				break;
-				case R_NUMERIC:
+				case REALSXP:
 				{
-					PROTECT(result = Rf_allocVector(REALSXP, XLENGTH(indx)));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getElements<int,double>(indx, REAL(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getElements<double,double>(indx, REAL(result));
 							break;
 					}
@@ -422,14 +416,8 @@ class SparseMatrix : public Sparse
 		{
 			SEXP indx, data0;
 			Pair<index_t,index_t> p = pointers(i);
-			if ( has_pointers() && p.first == p.second ) {
-				switch(datamode()) {
-					case R_INTEGER:
-						return Rf_allocVector(INTSXP, 0);
-					case R_NUMERIC:
-						return Rf_allocVector(REALSXP, 0);
-				}
-			}
+			if ( has_pointers() && p.first == p.second )
+				return Rf_allocVector(datatype(), 0);
 			if ( Rf_isS4(_data) )
 			{
 				SEXP dims = R_do_slot(_data, Rf_install("dim"));
@@ -440,40 +428,36 @@ class SparseMatrix : public Sparse
 				else {
 					// matter vector
 					if ( has_pointers() )
-						PROTECT(indx = R_compact_intrange(p.first, p.second - 1));
+						indx = R_compact_intrange(p.first, p.second - 1);
 					else {
 						size_t n = XLENGTH(_index);
-						PROTECT(indx = R_compact_intrange(i * n + 1, (i + 1) * n));
+						indx = R_compact_intrange(i * n + 1, (i + 1) * n);
 					}
+					PROTECT(indx);
+					// FIXME: double indexing only for now...
 					PROTECT(indx = Rf_coerceVector(indx, REALSXP));
 					data0 = getVectorElements(_data, indx);
 					UNPROTECT(2);
 				}
 			}
-			else if ( TYPEOF(_data) == VECSXP ) {
+			else if ( Rf_isVectorList(_data) ) {
 				// R list
 				data0 = VECTOR_ELT(_data, i);
 			}
 			else {
 				// R vector
 				if ( has_pointers() )
-					PROTECT(indx = R_compact_intrange(p.first + 1, p.second));
+					indx = R_compact_intrange(p.first + 1, p.second);
 				else {
 					size_t n = XLENGTH(_index);
-					PROTECT(indx = R_compact_intrange(i * n + 1, (i + 1) * n));
+					indx = R_compact_intrange(i * n + 1, (i + 1) * n);
 				}
+				PROTECT(indx);
 				data0 = Rf_ExtractSubset(_data, indx, R_NilValue);
 				UNPROTECT(1);
 			}
 			PROTECT(data0);
-			switch(datamode()) {
-				case R_INTEGER:
-					data0 = Rf_coerceVector(data0, INTSXP);
-					break;
-				case R_NUMERIC:
-					data0 = Rf_coerceVector(data0, REALSXP);
-					break;
-			}
+			data0 = Rf_coerceVector(data0, datatype());
 			UNPROTECT(1);
 			return data0;
 		}
@@ -482,14 +466,8 @@ class SparseMatrix : public Sparse
 		{
 			SEXP indx, index0;
 			Pair<index_t,index_t> p = pointers(i);
-			if ( has_pointers() && p.first == p.second ) {
-				switch(indexmode()) {
-					case R_INTEGER:
-						return Rf_allocVector(INTSXP, 0);
-					case R_NUMERIC:
-						return Rf_allocVector(REALSXP, 0);
-				}
-			}
+			if ( has_pointers() && p.first == p.second )
+				return Rf_allocVector(indextype(), 0);
 			if ( Rf_isS4(_index) )
 			{
 				SEXP dims = R_do_slot(_index, Rf_install("dim"));
@@ -501,6 +479,7 @@ class SparseMatrix : public Sparse
 					// matter vector
 					if ( has_pointers() ) {
 						PROTECT(indx = R_compact_intrange(p.first, p.second - 1));
+						// FIXME: double indexing only for now...
 						PROTECT(indx = Rf_coerceVector(indx, REALSXP));
 						index0 = getVectorElements(_index, indx);
 						UNPROTECT(2);
@@ -509,7 +488,7 @@ class SparseMatrix : public Sparse
 						index0 = getVector(_index);
 				}
 			}
-			else if ( TYPEOF(_index) == VECSXP ) {
+			else if ( Rf_isVectorList(_index) ) {
 				// R list
 				index0 = VECTOR_ELT(_index, i);
 			}
@@ -524,8 +503,7 @@ class SparseMatrix : public Sparse
 					index0 = _index;
 			}
 			PROTECT(index0);
-			if ( TYPEOF(domain()) == REALSXP )
-				index0 = Rf_coerceVector(index0, REALSXP);
+			index0 = Rf_coerceVector(index0, indextype());
 			UNPROTECT(1);
 			return index0;
 		}
@@ -554,9 +532,9 @@ class SparseMatrixC : public SparseMatrix
 			PROTECT(data0 = data(i));
 			size_t num_nz = LENGTH(data0);
 			if ( has_domain() ) {
-				Tind row_idx [nrow()];
-				copy_domain<Tind>(0, nrow(), row_idx);
-				num_nz = do_approx_search<Tind,Tval>(buffer, row_idx, nrow(),
+				Tind subscripts [nrow()];
+				copy_domain<Tind>(0, nrow(), subscripts);
+				num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, nrow(),
 					index0, data0, tol(), tol_ref(), zero(),
 					sampler(), TRUE, stride);
 			}
@@ -578,28 +556,27 @@ class SparseMatrixC : public SparseMatrix
 		SEXP getCol(size_t i)
 		{
 			SEXP result;
-			switch(datamode()) {
-				case R_INTEGER:
+			PROTECT(result = Rf_allocVector(datatype(), nrow()));
+			switch(datatype()) {
+				case INTSXP:
 				{
-					PROTECT(result = Rf_allocVector(INTSXP, nrow()));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getCol<int,int>(i, INTEGER(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getCol<double,int>(i, INTEGER(result));
 							break;
 					}
 					break;
 				}
-				case R_NUMERIC:
+				case REALSXP:
 				{
-					PROTECT(result = Rf_allocVector(REALSXP, nrow()));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getCol<int,double>(i, REAL(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getCol<double,double>(i, REAL(result));
 							break;
 					}
@@ -640,11 +617,11 @@ class SparseMatrixC : public SparseMatrix
 			else
 			{
 				// get indexed columns
-				Tind row_idx [ni];
+				Tind subscripts [ni];
 				if ( i == R_NilValue )
-					copy_domain<Tind>(0, ni, row_idx);
+					copy_domain<Tind>(0, ni, subscripts);
 				else
-					copy_domain<Tind>(i, row_idx, TRUE);
+					copy_domain<Tind>(i, subscripts, TRUE);
 				for ( size_t k = 0; k < nj; k++ ) {
 					switch(TYPEOF(j)) {
 						case INTSXP:
@@ -657,7 +634,7 @@ class SparseMatrixC : public SparseMatrix
 							break;
 					}
 					Tval * buffer0 = buffer + (k * ni);
-					num_nz += do_approx_search<Tind,Tval>(buffer0, row_idx, ni,
+					num_nz += do_approx_search<Tind,Tval>(buffer0, subscripts, ni,
 						index0, data0, tol(), tol_ref(), zero(), sampler());
 					UNPROTECT(2);
 				}
@@ -671,29 +648,28 @@ class SparseMatrixC : public SparseMatrix
 			SEXP result;
 			size_t ni = i != R_NilValue ? LENGTH(i) : dim(0);
 			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
-			switch(datamode()) {
-				case R_INTEGER:
+			PROTECT(result = Rf_allocMatrix(datatype(), ni, nj));
+			switch(datatype()) {
+				case INTSXP:
 				{
-					PROTECT(result = Rf_allocMatrix(INTSXP, ni, nj));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getElements<int,int>(i, j, INTEGER(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getElements<double,int>(i, j, INTEGER(result));
 							break;
 					}
 					break;
 				}
 				break;
-				case R_NUMERIC:
+				case REALSXP:
 				{
-					PROTECT(result = Rf_allocMatrix(REALSXP, ni, nj));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getElements<int,double>(i, j, REAL(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getElements<double,double>(i, j, REAL(result));
 							break;
 					}
@@ -722,9 +698,9 @@ class SparseMatrixR : public SparseMatrix
 			PROTECT(data0 = data(i));
 			size_t num_nz = LENGTH(data0);
 			if ( has_domain() ) {
-				Tind col_idx [ncol()];
-				copy_domain<Tind>(0, ncol(), col_idx);
-				num_nz = do_approx_search<Tind,Tval>(buffer, col_idx, ncol(),
+				Tind subscripts [ncol()];
+				copy_domain<Tind>(0, ncol(), subscripts);
+				num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, ncol(),
 					index0, data0, tol(), tol_ref(), zero(),
 					sampler(), TRUE, stride);
 			}
@@ -746,28 +722,27 @@ class SparseMatrixR : public SparseMatrix
 		SEXP getRow(size_t i)
 		{
 			SEXP result;
-			switch(datamode()) {
-				case R_INTEGER:
+			PROTECT(result = Rf_allocVector(datatype(), ncol()));
+			switch(datatype()) {
+				case INTSXP:
 				{
-					PROTECT(result = Rf_allocVector(INTSXP, ncol()));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getRow<int,int>(i, INTEGER(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getRow<double,int>(i, INTEGER(result));
 							break;
 					}
 					break;
 				}
-				case R_NUMERIC:
+				case REALSXP:
 				{
-					PROTECT(result = Rf_allocVector(REALSXP, ncol()));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getRow<int,double>(i, REAL(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getRow<double,double>(i, REAL(result));
 							break;
 					}
@@ -808,11 +783,11 @@ class SparseMatrixR : public SparseMatrix
 			else
 			{
 				// get indexed rows
-				Tind col_idx [nj];
+				Tind subscripts [nj];
 				if ( j == R_NilValue )
-					copy_domain<Tind>(0, nj, col_idx);
+					copy_domain<Tind>(0, nj, subscripts);
 				else
-					copy_domain<Tind>(j, col_idx, TRUE);
+					copy_domain<Tind>(j, subscripts, TRUE);
 				for ( size_t k = 0; k < ni; k++ ) {
 					switch(TYPEOF(i)) {
 						case INTSXP:
@@ -825,7 +800,7 @@ class SparseMatrixR : public SparseMatrix
 							break;
 					}
 					Tval * buffer0 = buffer + k;
-					num_nz += do_approx_search<Tind,Tval>(buffer0, col_idx, nj,
+					num_nz += do_approx_search<Tind,Tval>(buffer0, subscripts, nj,
 						index0, data0, tol(), tol_ref(), zero(),
 						sampler(), TRUE, ni);
 					UNPROTECT(2);
@@ -840,29 +815,28 @@ class SparseMatrixR : public SparseMatrix
 			SEXP result;
 			size_t ni = i != R_NilValue ? LENGTH(i) : dim(0);
 			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
-			switch(datamode()) {
-				case R_INTEGER:
+			PROTECT(result = Rf_allocMatrix(datatype(), ni, nj));
+			switch(datatype()) {
+				case INTSXP:
 				{
-					PROTECT(result = Rf_allocMatrix(INTSXP, ni, nj));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getElements<int,int>(i, j, INTEGER(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getElements<double,int>(i, j, INTEGER(result));
 							break;
 					}
 					break;
 				}
 				break;
-				case R_NUMERIC:
+				case REALSXP:
 				{
-					PROTECT(result = Rf_allocMatrix(REALSXP, ni, nj));
-					switch(indexmode()) {
-						case R_INTEGER:
+					switch(indextype()) {
+						case INTSXP:
 							getElements<int,double>(i, j, REAL(result));
 							break;
-						case R_NUMERIC:
+						case REALSXP:
 							getElements<double,double>(i, j, REAL(result));
 							break;
 					}
