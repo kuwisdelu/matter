@@ -428,10 +428,10 @@ class SparseMatrix : public Sparse
 				else {
 					// matter vector
 					if ( has_pointers() )
-						indx = R_compact_intrange(p.first, p.second - 1);
+						indx = intrange(p.first, p.second - 1);
 					else {
 						size_t n = XLENGTH(_index);
-						indx = R_compact_intrange(i * n + 1, (i + 1) * n);
+						indx = intrange(i * n + 1, (i + 1) * n);
 					}
 					PROTECT(indx);
 					// FIXME: double indexing only for now...
@@ -447,14 +447,11 @@ class SparseMatrix : public Sparse
 			else {
 				// R vector
 				if ( has_pointers() )
-					indx = R_compact_intrange(p.first + 1, p.second);
+					data0 = extractrange(_data, p.first + 1, p.second);
 				else {
 					size_t n = XLENGTH(_index);
-					indx = R_compact_intrange(i * n + 1, (i + 1) * n);
+					data0 = extractrange(_data, i * n + 1, (i + 1) * n);
 				}
-				PROTECT(indx);
-				data0 = Rf_ExtractSubset(_data, indx, R_NilValue);
-				UNPROTECT(1);
 			}
 			PROTECT(data0);
 			data0 = Rf_coerceVector(data0, datatype());
@@ -478,7 +475,7 @@ class SparseMatrix : public Sparse
 				else {
 					// matter vector
 					if ( has_pointers() ) {
-						PROTECT(indx = R_compact_intrange(p.first, p.second - 1));
+						PROTECT(indx = intrange(p.first, p.second - 1));
 						// FIXME: double indexing only for now...
 						PROTECT(indx = Rf_coerceVector(indx, REALSXP));
 						index0 = getVectorElements(_index, indx);
@@ -494,11 +491,8 @@ class SparseMatrix : public Sparse
 			}
 			else {
 				// R vector
-				if ( has_pointers() ) {
-					PROTECT(indx = R_compact_intrange(p.first + 1, p.second));
-					index0 = Rf_ExtractSubset(_index, indx, R_NilValue);
-					UNPROTECT(1);
-				}
+				if ( has_pointers() )
+					index0 = extractrange(_index, p.first + 1, p.second);
 				else
 					index0 = _index;
 			}
@@ -597,7 +591,7 @@ class SparseMatrixC : public SparseMatrix
 			size_t ni = i != R_NilValue ? LENGTH(i) : dim(0);
 			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
 			if ( j == R_NilValue )
-				j = R_compact_intrange(1, nj);
+				j = intrange(1, nj);
 			PROTECT(j);
 			if ( i == R_NilValue && !has_domain() )
 			{
@@ -763,7 +757,7 @@ class SparseMatrixR : public SparseMatrix
 			size_t ni = i != R_NilValue ? LENGTH(i) : dim(0);
 			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
 			if ( i == R_NilValue )
-				i = R_compact_intrange(1, ni);
+				i = intrange(1, ni);
 			PROTECT(i);
 			if ( j == R_NilValue && !has_domain() )
 			{

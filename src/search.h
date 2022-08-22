@@ -1,13 +1,6 @@
 #ifndef SEARCH
 #define SEARCH
 
-#define R_NO_REMAP
-
-#include <R.h>
-
-#include <cmath>
-#include <cfloat>
-
 #include "utils.h"
 #include "signal.h"
 

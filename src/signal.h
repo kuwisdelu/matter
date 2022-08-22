@@ -1,11 +1,7 @@
 #ifndef SIGNAL
 #define SIGNAL
 
-#define R_NO_REMAP
-
-#include <R.h>
-
-#include <cmath>
+#include "utils.h"
 
 #define ABS_DIFF    1
 #define REL_DIFF_X  2
