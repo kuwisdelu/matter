@@ -19,6 +19,8 @@ setClass("sparse_",
 		errors <- NULL
 		if ( length(object@offset) != 1L )
 			errors <- c(errors, "'offset' must be scalar (length 1)")
+		if ( !is.null(object@domain) && anyNA(object@domain) )
+			errors <- c(errors, "'domain' can't have missing values")
 		if ( is.null(errors) ) TRUE else errors
 	})
 

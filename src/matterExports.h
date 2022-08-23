@@ -58,13 +58,13 @@ extern "C" {
 	SEXP getSparseMatrixC(SEXP x, SEXP i, SEXP j)
 	{
 		SparseMatrixC y(x);	
-		return y.getElements(i, j);
+		return y.getSubMatrix(i, j);
 	}
 
 	SEXP getSparseMatrixR(SEXP x, SEXP i, SEXP j)
 	{
 		SparseMatrixR y(x);	
-		return y.getElements(i, j);
+		return y.getSubMatrix(i, j);
 	}
 
 }

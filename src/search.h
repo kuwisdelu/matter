@@ -175,8 +175,10 @@ Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 	index_t pos = NA_INTEGER;
 	Tval val = nomatch;
 	Pair<index_t,Tval> result;
-	if ( isNA(x) )
+	if ( isNA(x) ) {
+		result = {pos, NA<Tval>()};
 		return result;
+	}
 	if ( sorted )
 		pos = binary_search(x, keys, start, end,
 			tol, tol_ref, NA_INTEGER);
@@ -198,7 +200,7 @@ Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 template<typename Tkey, typename Tval>
 index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * values,
 	size_t start, size_t end, double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR,
-	bool sorted = TRUE, size_t stride = 1)
+	bool sorted = TRUE, int stride = 1)
 {
 	index_t num_matches;
 	if ( xlen > 2 * (end - start) && is_sorted(x, xlen) )
@@ -207,8 +209,12 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 		int pos [end];
 		num_matches = do_binary_search(pos, keys, end,
 			x, 0, xlen, tol, switch_tol_ref(tol_ref), NA_INTEGER);
-		for ( size_t i = 0; i < xlen; i++ )
-			ptr[i * stride] = nomatch;
+		for ( size_t i = 0; i < xlen; i++ ) {
+			if ( isNA(x[i]) )
+				ptr[i * stride] = NA<Tval>();
+			else
+				ptr[i * stride] = nomatch;
+		}
 		for ( size_t j = 0; j < end; j++ )
 		{
 			if ( isNA(pos[j]) )
@@ -245,7 +251,9 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 				keys, start, end, tol, tol_ref, NA_INTEGER);
 		for ( size_t i = 0; i < xlen; i++ )
 		{
-			if ( isNA(pos[i]) )
+			if ( isNA(x[i]) )
+				ptr[i * stride] = NA<Tval>();
+			else if ( isNA(pos[i]) )
 				ptr[i * stride] = nomatch;
 			else
 				ptr[i * stride] = interp1(x[i], keys, values,
@@ -258,7 +266,7 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 template<typename Tkey, typename Tval>
 index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP values,
 	double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR,
-	bool sorted = TRUE, size_t stride = 1)
+	bool sorted = TRUE, int stride = 1)
 {
 	return do_approx_search(ptr, x, xlen, DataPtr<Tkey>(keys), DataPtr<Tval>(values),
 		0, LENGTH(values), tol, tol_ref, nomatch, interp, sorted, stride);

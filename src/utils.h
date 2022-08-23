@@ -34,6 +34,34 @@ T * DataPtr(SEXP x)
 	return ((T *)(DATAPTR(x)));
 }
 
+template<typename T>
+T DataElt(SEXP x, index_t i)
+{
+	return ((T *)(DATAPTR(x)))[i];
+}
+
+inline index_t IndexElt(SEXP indx, index_t i)
+{
+	switch(TYPEOF(indx)) {
+		case INTSXP: {
+			int j = INTEGER_ELT(indx, i);
+			if ( j == NA_INTEGER )
+				return NA_INTEGER;
+			else
+				return static_cast<index_t>(j);
+		}
+		case REALSXP: {
+			double j = REAL_ELT(indx, i);
+			if ( ISNA(j) || ISNAN(j) )
+				return NA_INTEGER;
+			else
+				return static_cast<index_t>(j);
+		}
+		default:
+			Rf_error("invalid index type");
+	}
+}
+
 //// Generate NA
 //---------------
 
@@ -94,6 +122,15 @@ inline bool isNA(SEXP x)
 
 //// Misc utilities
 //--------------------
+
+template<typename T>
+size_t fill(T * buffer, size_t n, T val, size_t stride = 1)
+{
+	size_t count = 0;
+	for ( size_t i = 0; i < n; i++ )
+		buffer[stride * i] = val;
+	return count;
+}
 
 // FIXME: Temporary (slow) solution as R_compact_intrange() is non-API
 inline SEXP intrange(size_t start, size_t end)
