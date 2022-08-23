@@ -240,6 +240,21 @@ setMethod("preview_for_display", "sparse_mat", function(x) {
 		round(nnz(x) / prod(dim(x)), 4) * 100, "% density)\n", sep="")
 })
 
+# setAs("matrix", "sparse_mat",
+# 	function(from) sparse_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
+
+# setAs("array", "sparse_mat",
+# 	function(from) sparse_mat(as.matrix(from), datamode=typeof(from), dimnames=dimnames(from)))
+
+# as.sparse <- function(x, ...) as(x, "sparse_mat")
+
+# is.sparse <- function(x) is(x, "sparse_mat")
+
+# setAs("sparse_mat", "matrix", function(from) from[])
+
+# setMethod("as.matrix", "sparse_mat", function(x) as(x, "matrix"))
+
+
 setReplaceMethod("domain", "sparse_matc", function(object, value) {
 	object@domain <- value
 	object@dim[1L] <- length(value)
@@ -331,3 +346,61 @@ setMethod("[",
 			y <- drop(y)
 		y
 	})
+
+setReplaceMethod("[",
+	c(x = "sparse_mat", i = "ANY", j = "ANY", value = "ANY"),
+	function(x, i, j, ..., value) {
+		narg <- nargs() - 2
+		if ( !missing(i) && narg == 1 )
+			stop("linear indexing not supported")
+		if ( narg > 1 && narg != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		if ( !missing(i) && !missing(j) ) {
+			stop("assignment not implemented yet")
+		} else if ( !missing(i) ) {
+			stop("assignment not implemented yet")
+		} else if ( !missing(j) ) {
+			stop("assignment not implemented yet")
+		} else {
+			stop("assignment not implemented yet")
+		}
+	})
+
+# setMethod("t", "sparse_matc", function(x)
+# {
+# 	class(x) <- "sparse_matr"
+# 	x@dim <- rev(x@dim)
+# 	x@dimnames <- rev(x@dimnames)
+# 	if ( validObject(x) )
+# 		x
+# })
+
+# setMethod("t", "sparse_matr", function(x)
+# {
+# 	class(x) <- "sparse_matc"
+# 	x@dim <- rev(x@dim)
+# 	x@dimnames <- rev(x@dimnames)
+# 	if ( validObject(x) )
+# 		x
+# })
+
+setMethod("%*%", c("sparse_matc", "matrix"), function(x, y)
+{
+	rightMatrixMult(x, y, useOuter=TRUE)
+})
+
+setMethod("%*%", c("sparse_matr", "matrix"), function(x, y)
+{
+	rightMatrixMult(x, y, useOuter=FALSE)
+})
+
+setMethod("%*%", c("matrix", "sparse_matc"), function(x, y)
+{
+	leftMatrixMult(x, y, useOuter=FALSE)
+})
+
+setMethod("%*%", c("matrix", "sparse_matr"), function(x, y)
+{
+	leftMatrixMult(x, y, useOuter=TRUE)
+})
+
