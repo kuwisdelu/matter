@@ -82,7 +82,6 @@ setGeneric("sampler", function(object) standardGeneric("sampler"))
 setGeneric("sampler<-", function(object, value) standardGeneric("sampler<-"))
 setGeneric("combiner", function(object) standardGeneric("combiner"))
 setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
-setGeneric("nnz", function(x, ...) standardGeneric("nnz"))
 
 #### Internal generic functions for matter ####
 ## ----------------------------------------------

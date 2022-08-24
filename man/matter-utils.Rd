@@ -28,6 +28,7 @@
 \alias{describe_for_display,matter_fc-method}
 \alias{describe_for_display,matter_df-method}
 \alias{describe_for_display,rep_vt-method}
+\alias{describe_for_display,sparse_vec-method}
 \alias{describe_for_display,sparse_mat-method}
 \alias{describe_for_display,virtual_mat-method}
 \alias{describe_for_display,virtual_tbl-method}
@@ -44,6 +45,7 @@
 \alias{preview_for_display,matter_fc-method}
 \alias{preview_for_display,matter_df-method}
 \alias{preview_for_display,rep_vt-method}
+\alias{preview_for_display,sparse_vec-method}
 \alias{preview_for_display,sparse_mat-method}
 \alias{preview_for_display,virtual_mat-method}
 \alias{preview_for_display,virtual_tbl-method}

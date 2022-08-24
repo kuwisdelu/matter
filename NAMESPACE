@@ -148,7 +148,7 @@ exportMethods(
 	"sampler<-",
 	"combiner",
 	"combiner<-",
-	"nnz")
+	"nnzero")
 
 exportMethods(
 	"%*%",
@@ -206,8 +206,6 @@ exportMethods(
 	"rowVars",
 	"rowSds",
 	"which")
-
-export("nnzero")
 
 export(
 	"s_range",

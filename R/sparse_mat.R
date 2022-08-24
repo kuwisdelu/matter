@@ -236,8 +236,8 @@ setMethod("preview_for_display", "sparse_mat", function(x) {
 		}
 	}
 	print(hdr, quote=FALSE, right=TRUE)
-	cat("(", nnz(x), "/", prod(dim(x)), " non-zero elements: ",
-		round(nnz(x) / prod(dim(x)), 4) * 100, "% density)\n", sep="")
+	cat("(", nnzero(x), "/", prod(dim(x)), " non-zero elements: ",
+		round(nnzero(x) / prod(dim(x)), 4) * 100, "% density)\n", sep="")
 })
 
 setAs("matrix", "sparse_mat",
@@ -271,8 +271,8 @@ setReplaceMethod("domain", "sparse_matr", function(object, value) {
 setMethod("length", "sparse_mat",
 	function(x) prod(dim(x)))
 
-setMethod("nnz", "sparse_mat",
-	function(x, ...) {
+setMethod("nnzero", "sparse_mat",
+	function(x, na.counted = NA) {
 		if ( is(x@data, "matter_OR_list") ) {
 			# data and index are both lists
 			sum(lengths(x@data))

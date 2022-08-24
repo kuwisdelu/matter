@@ -85,8 +85,8 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 		}
 	}
 	print(hdr, quote=FALSE, right=TRUE)
-	cat("(", nnz(x), "/", length(x), " non-zero elements: ",
-		round(nnz(x) / length(x), 4) * 100, "% density)\n", sep="")
+	cat("(", nnzero(x), "/", length(x), " non-zero elements: ",
+		round(nnzero(x) / length(x), 4) * 100, "% density)\n", sep="")
 })
 
 setReplaceMethod("domain", "sparse_vec", function(object, value) {
@@ -96,7 +96,8 @@ setReplaceMethod("domain", "sparse_vec", function(object, value) {
 		object
 })
 
-setMethod("nnz", "sparse_vec", function(x, ...) length(x@data))
+setMethod("nnzero", "sparse_vec",
+	function(x, na.counted = NA) length(x@data))
 
 get_sparse_vec_elts <- function(x, i = NULL)
 {
@@ -112,7 +113,7 @@ get_sparse_vec_elts <- function(x, i = NULL)
 }
 
 setMethod("[",
-	c(x = "sparse_vec", i = "ANY", j = "missing", drop = "ANY"),
+	c(x = "sparse_vec", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, ..., drop)
 	{
 		if ( length(list(...)) > 0 )
