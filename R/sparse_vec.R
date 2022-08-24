@@ -100,7 +100,7 @@ setMethod("nnz", "sparse_vec", function(x, ...) length(x@data))
 
 get_sparse_vec_elts <- function(x, i = NULL)
 {
-	y <- .Call("Mt_getSparseVector", x, i, PACKAGE="matter")
+	y <- .Call("C_getSparseVector", x, i, PACKAGE="matter")
 	if ( !is.null(names(x)) ) {
 		if ( !is.null(i) ) {
 			names(y) <- names(x)[i]

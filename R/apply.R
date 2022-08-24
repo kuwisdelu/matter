@@ -376,7 +376,7 @@ remote_collect <- function(ans, path, simplify) {
 	matrix_ok <- length(unique(extent)) == 1L
 	simplify <- isTRUE(simplify)
 	if ( simplify && vector_ok ) {
-		if ( is.sorted(offset) ) {
+		if ( !is.unsorted(offset) ) {
 			offset <- 0
 			extent <- nrow(ans)
 			mode <- mode[1L]
@@ -401,7 +401,7 @@ setMethod("apply", "matter_mat",
 		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })
 
-setMethod("apply", "sparse_old_mat",
+setMethod("apply", "sparse_mat",
 	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
 		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })

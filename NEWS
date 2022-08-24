@@ -1,10 +1,11 @@
 
-CHANGES IN VERSION 1.23.1 [2022-8-11]
+CHANGES IN VERSION 1.23.1 [2022-8-23]
 -----------------------------------
 
 NEW FEATURES
 
     o Added 'asearch()' for approximate search with interpolation
+    o Complete re-implementation of sparse matrix code in C++
 
 CHANGES IN VERSION 1.19.1 [2021-10-20]
 -----------------------------------

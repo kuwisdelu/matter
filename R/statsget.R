@@ -53,7 +53,7 @@ setMethod("colStats", "matter_matr", function(x, stat, groups,
 			drop=drop, iter.dim="rows", BPPARAM=BPPARAM, ...)
 	})
 
-setMethod("rowStats", "sparse_old_matc", function(x, stat, groups,
+setMethod("rowStats", "sparse_matc", function(x, stat, groups,
 								na.rm = FALSE, tform = identity,
 								col.center = NULL, col.scale = NULL,
 								row.center = NULL, row.scale = NULL,
@@ -66,7 +66,7 @@ setMethod("rowStats", "sparse_old_matc", function(x, stat, groups,
 			drop=drop, iter.dim="cols", BPPARAM=BPPARAM, ...)
 	})
 
-setMethod("colStats", "sparse_old_matr", function(x, stat, groups,
+setMethod("colStats", "sparse_matr", function(x, stat, groups,
 								na.rm = FALSE, tform = identity,
 								col.center = NULL, col.scale = NULL,
 								row.center = NULL, row.scale = NULL,

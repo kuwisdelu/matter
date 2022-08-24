@@ -31,9 +31,9 @@ tolerance(object, \dots) <- value
 }
 
 \examples{
-x <- sparse_mat(diag(10), keys=rnorm(10))
+x <- sparse_mat(diag(10), domain=1:10 + runif(10)/4)
 tolerance(x)
-tolerance(x) <- c(absolute=0.1)
+tolerance(x) <- c(absolute=0.5)
 x[]
 }
 

@@ -9,9 +9,9 @@
 extern "C" {
 
 	static const R_CallMethodDef callMethods[] = {
-		{"Mt_relativeDiff", (DL_FUNC) &relativeDiff, 3},
-		{"Mt_binarySearch", (DL_FUNC) &binarySearch, 6},
-		{"Mt_approxSearch", (DL_FUNC) &approxSearch, 8},
+		{"C_relativeDiff", (DL_FUNC) &relativeDiff, 3},
+		{"C_binarySearch", (DL_FUNC) &binarySearch, 6},
+		{"C_approxSearch", (DL_FUNC) &approxSearch, 8},
 		{"C_createAtoms", (DL_FUNC) &createAtoms, 5},
 		{"C_getVector", (DL_FUNC) &getVector, 1},
 		{"C_setVector", (DL_FUNC) &setVector, 2},
@@ -62,9 +62,9 @@ extern "C" {
 		{"C_groupSums", (DL_FUNC) &groupSums, 4},
 		{"C_groupMins", (DL_FUNC) &groupMins, 4},
 		{"C_groupMaxs", (DL_FUNC) &groupMaxs, 4},
-		{"Mt_getSparseVector", (DL_FUNC) &getSparseVector, 2},
-		{"Mt_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},
-		{"Mt_getSparseMatrixR", (DL_FUNC) &getSparseMatrixR, 3},
+		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
+		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},
+		{"C_getSparseMatrixR", (DL_FUNC) &getSparseMatrixR, 3},
 		{NULL, NULL, 0}
 	};
 

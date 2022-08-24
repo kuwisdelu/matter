@@ -24,15 +24,4 @@ keys(object) <- value
 
 \author{Kylie A. Bemis}
 
-\seealso{
-    \code{\linkS4class{sparse_mat}}
-}
-
-\examples{
-x <- sparse_mat(diag(10))
-keys(x)
-keys(x) <- 1:10
-x[]
-}
-
 \keyword{utilities}

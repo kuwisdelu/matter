@@ -101,7 +101,7 @@ test_that("sparse matrix subsetting (csc)", {
 	x <- rbinom(200, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
-	y <- sparse_mat2(x)
+	y <- sparse_mat(x)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -118,7 +118,7 @@ test_that("sparse matrix subsetting (csc)", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
-	y <- sparse_mat2(x, pointers=TRUE)
+	y <- sparse_mat(x, pointers=TRUE)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -143,7 +143,7 @@ test_that("sparse matrix subsetting (csr)", {
 	x <- rbinom(200, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
-	y <- sparse_mat2(x, rowMaj=TRUE)
+	y <- sparse_mat(x, rowMaj=TRUE)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -160,7 +160,7 @@ test_that("sparse matrix subsetting (csr)", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
-	y <- sparse_mat2(x, pointers=TRUE, rowMaj=TRUE)
+	y <- sparse_mat(x, pointers=TRUE, rowMaj=TRUE)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -184,7 +184,7 @@ test_that("sparse matrix subsetting w/ shared index", {
 	set.seed(1)
 	x <- round(runif(200), 2)
 	dim(x) <- c(20, 10)
-	y <- sparse_mat2(x, index=1:20)
+	y <- sparse_mat(x, index=1:20)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -201,7 +201,7 @@ test_that("sparse matrix subsetting w/ shared index", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
-	y <- sparse_mat2(x, index=1:10, rowMaj=TRUE)
+	y <- sparse_mat(x, index=1:10, rowMaj=TRUE)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -227,7 +227,7 @@ test_that("sparse matrix subsetting w/ interpolation", {
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
 	d <- seq_len(nrow(x)) + round(runif(nrow(x))/4, 2)
-	y <- sparse_mat2(x, domain=d, tolerance=0.5)
+	y <- sparse_mat(x, domain=d, tolerance=0.5)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -239,7 +239,7 @@ test_that("sparse matrix subsetting w/ interpolation", {
 	expect_equal(x[11:20,6:10], y[11:20,6:10])
 
 	d <- seq_len(ncol(x)) + round(runif(ncol(x))/4, 2)
-	y <- sparse_mat2(x, domain=d, tolerance=0.5, rowMaj=TRUE)
+	y <- sparse_mat(x, domain=d, tolerance=0.5, rowMaj=TRUE)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -250,7 +250,7 @@ test_that("sparse matrix subsetting w/ interpolation", {
 	expect_equal(x[10:1,5:1], y[10:1,5:1])
 	expect_equal(x[11:20,6:10], y[11:20,6:10])
 
-	z <- sparse_mat2(list(as.double(1:5)), list(1:5), nrow=5, ncol=1)
+	z <- sparse_mat(list(as.double(1:5)), list(1:5), nrow=5, ncol=1)
 	domain(z) <- seq(from=2, to=3, by=0.25)
 	tolerance(z) <- 0.3
 

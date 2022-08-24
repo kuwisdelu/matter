@@ -24,15 +24,4 @@ combiner(object) <- value
 
 \author{Kylie A. Bemis}
 
-\seealso{
-    \code{\linkS4class{sparse_mat}}
-}
-
-\examples{
-x <- sparse_mat(diag(10))
-combiner(x)
-combiner(x) <- "sum"
-x[]
-}
-
 \keyword{utilities}

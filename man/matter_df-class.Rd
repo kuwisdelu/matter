@@ -45,9 +45,9 @@
 
 \usage{
 ## Instance creation
-virtual_df(\dots, row.names = NULL, stringsAsFactors = default.stringsAsFactors())
+virtual_df(\dots, row.names = NULL, stringsAsFactors = FALSE)
 
-matter_df(\dots, row.names = NULL, stringsAsFactors = default.stringsAsFactors())
+matter_df(\dots, row.names = NULL, stringsAsFactors = FALSE)
 
 ## Additional methods documented below
 }

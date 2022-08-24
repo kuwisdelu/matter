@@ -2,8 +2,6 @@
 #### Approximate search with resampling ####
 ## ------------------------------------------
 
-is.sorted <- function(x, ...) !is.unsorted(x, ...)
-
 # relative difference
 
 reldiff <- function(x, y, ref = "abs")
@@ -16,13 +14,13 @@ reldiff <- function(x, y, ref = "abs")
 	n <- max(length(x), length(y))
 	x <- rep_len(x, n)
 	y <- rep_len(y, n)
-	fun <- function(a, b) .Call("Mt_relativeDiff", a, b, ref, PACKAGE="matter")
+	fun <- function(a, b) .Call("C_relativeDiff", a, b, ref, PACKAGE="matter")
 	mapply(fun, x, y, USE.NAMES=FALSE)
 }
 
 # exported version with argument checking (safer, easier)
 
-asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
+asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
 					nomatch = NA_integer_, interp = "none")
 {
 	if ( is.integer(x) && is.double(keys) )
@@ -32,15 +30,15 @@ asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
 	interp <- pmatch(interp, levels(make_sampler("")), nomatch=1L)
 	asearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
-		nomatch=nomatch, interp=interp, sorted=is.sorted(keys))
+		nomatch=nomatch, interp=interp, sorted=!is.unsorted(keys))
 }
 
-# faster internal version with no argument checking
+# internal version with no argument checking
 
 asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
 					nomatch = NA_integer_, interp = 1L, sorted = TRUE)
 {
-	.Call("Mt_approxSearch", x, keys, values, tol, tol.ref,
+	.Call("C_approxSearch", x, keys, values, tol, tol.ref,
 		nomatch, interp, sorted, PACKAGE="matter")
 }
 
@@ -60,12 +58,12 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 		nomatch=nomatch, nearest=nearest)
 }
 
-# faster internal version with no argument checking
+# internal version with no argument checking
 
 bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 					nomatch = NA_integer_, nearest = FALSE)
 {
-	.Call("Mt_binarySearch", x, table, tol,
+	.Call("C_binarySearch", x, table, tol,
 		tol.ref, nomatch, nearest, PACKAGE="matter")
 }
 

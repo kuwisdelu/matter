@@ -51,8 +51,7 @@ setMethod("describe_for_display", "matter_df", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
-virtual_df <- function(..., row.names = NULL,
-	stringsAsFactors = default.stringsAsFactors())
+virtual_df <- function(..., row.names = NULL, stringsAsFactors = FALSE)
 {
 	data <- list(...)
 	nm <- names(data)
@@ -77,8 +76,7 @@ virtual_df <- function(..., row.names = NULL,
 		ops=NULL)
 }
 
-matter_df <- function(..., row.names = NULL,
-	stringsAsFactors = default.stringsAsFactors())
+matter_df <- function(..., row.names = NULL, stringsAsFactors = FALSE)
 {
 	data <- list(...)
 	args <- list(row.names=row.names, stringsAsFactors=stringsAsFactors)

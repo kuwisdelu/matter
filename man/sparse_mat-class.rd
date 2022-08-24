@@ -152,24 +152,9 @@ as.sparse(x, \dots)
 }
 
 \examples{
-keys <- list(
-    c(1,4,8,10),
-    c(2,3,5),
-    c(1,2,7,9))
+x <- matrix(rbinom(100, 1, 0.2), nrow=10, ncol=10)
 
-values <- list(
-    rnorm(4),
-    rnorm(3),
-    rnorm(4))
-
-init1 <- list(keys=keys, values=values)
-
-x <- sparse_mat(init1, nrow=10)
-x[]
-
-init2 <- matrix(rbinom(100, 1, 0.2), nrow=10, ncol=10)
-
-y <- sparse_mat(init2, keys=letters[1:10])
+y <- sparse_mat(x)
 y[]
 }
 

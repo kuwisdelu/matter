@@ -116,7 +116,7 @@ setClass("sparse_matr",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-sparse_mat2 <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
+sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 					rowMaj = FALSE, dimnames = NULL, domain = NULL, offset = 1L,
 					tolerance = c(abs=0), sampler = "none", pointers = NULL,
 					chunksize = getOption("matter.default.chunksize"), ...)
@@ -240,20 +240,19 @@ setMethod("preview_for_display", "sparse_mat", function(x) {
 		round(nnz(x) / prod(dim(x)), 4) * 100, "% density)\n", sep="")
 })
 
-# setAs("matrix", "sparse_mat",
-# 	function(from) sparse_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
+setAs("matrix", "sparse_mat",
+	function(from) sparse_mat(from, datamode=typeof(from), dimnames=dimnames(from)))
 
-# setAs("array", "sparse_mat",
-# 	function(from) sparse_mat(as.matrix(from), datamode=typeof(from), dimnames=dimnames(from)))
+setAs("array", "sparse_mat",
+	function(from) sparse_mat(as.matrix(from), datamode=typeof(from), dimnames=dimnames(from)))
 
-# as.sparse <- function(x, ...) as(x, "sparse_mat")
+as.sparse <- function(x, ...) as(x, "sparse_mat")
 
-# is.sparse <- function(x) is(x, "sparse_mat")
+is.sparse <- function(x) is(x, "sparse_mat")
 
-# setAs("sparse_mat", "matrix", function(from) from[])
+setAs("sparse_mat", "matrix", function(from) from[])
 
-# setMethod("as.matrix", "sparse_mat", function(x) as(x, "matrix"))
-
+setMethod("as.matrix", "sparse_mat", function(x) as(x, "matrix"))
 
 setReplaceMethod("domain", "sparse_matc", function(object, value) {
 	object@domain <- value
@@ -284,7 +283,7 @@ setMethod("nnz", "sparse_mat",
 	})
 
 get_sparse_matc_elts <- function(x, i = NULL, j = NULL) {
-	y <- .Call("Mt_getSparseMatrixC", x, i, j)
+	y <- .Call("C_getSparseMatrixC", x, i, j)
 	if ( !is.null(dimnames(x)) ) {
 		if ( !is.null(i) ) {
 			rownames(y) <- rownames(x)[i]
@@ -301,7 +300,7 @@ get_sparse_matc_elts <- function(x, i = NULL, j = NULL) {
 }
 
 get_sparse_matr_elts <- function(x, i = NULL, j = NULL) {
-	y <- .Call("Mt_getSparseMatrixR", x, i, j)
+	y <- .Call("C_getSparseMatrixR", x, i, j)
 	if ( !is.null(dimnames(x)) ) {
 		if ( !is.null(i) ) {
 			rownames(y) <- rownames(x)[i]
@@ -355,34 +354,26 @@ setReplaceMethod("[",
 			stop("linear indexing not supported")
 		if ( narg > 1 && narg != length(dim(x)) )
 			stop("incorrect number of dimensions")
-		if ( !missing(i) && !missing(j) ) {
-			stop("assignment not implemented yet")
-		} else if ( !missing(i) ) {
-			stop("assignment not implemented yet")
-		} else if ( !missing(j) ) {
-			stop("assignment not implemented yet")
-		} else {
-			stop("assignment not implemented yet")
-		}
+		stop("assignment not implemented yet")
 	})
 
-# setMethod("t", "sparse_matc", function(x)
-# {
-# 	class(x) <- "sparse_matr"
-# 	x@dim <- rev(x@dim)
-# 	x@dimnames <- rev(x@dimnames)
-# 	if ( validObject(x) )
-# 		x
-# })
+setMethod("t", "sparse_matc", function(x)
+{
+	class(x) <- "sparse_matr"
+	x@dim <- rev(x@dim)
+	x@dimnames <- rev(x@dimnames)
+	if ( validObject(x) )
+		x
+})
 
-# setMethod("t", "sparse_matr", function(x)
-# {
-# 	class(x) <- "sparse_matc"
-# 	x@dim <- rev(x@dim)
-# 	x@dimnames <- rev(x@dimnames)
-# 	if ( validObject(x) )
-# 		x
-# })
+setMethod("t", "sparse_matr", function(x)
+{
+	class(x) <- "sparse_matc"
+	x@dim <- rev(x@dim)
+	x@dimnames <- rev(x@dimnames)
+	if ( validObject(x) )
+		x
+})
 
 setMethod("%*%", c("sparse_matc", "matrix"), function(x, y)
 {

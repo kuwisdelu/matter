@@ -41,7 +41,7 @@ setMethod("bigglm", c("formula", "matter_mat"),
 })
 		
 
-setMethod("bigglm", c("formula", "sparse_old_mat"),
+setMethod("bigglm", c("formula", "sparse_mat"),
 	function(formula, data, ..., chunksize = NULL, fc = NULL)
 {
 		do_matrix_bigglm(formula, data, ..., chunksize=chunksize, fc=fc)
