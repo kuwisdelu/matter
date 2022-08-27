@@ -7,7 +7,7 @@
 #include <Rinternals.h>
 
 #include "matterDefines.h"
-#include "utils.h"
+#include "Rutils.h"
 
 //// Local extrema
 //-----------------

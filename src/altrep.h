@@ -2,7 +2,7 @@
 #ifndef MATTER_ALT
 #define MATTER_ALT
 
-#include "utils.h"
+#include "Rutils.h"
 #include "matter.h"
 
 extern "C"

@@ -2,6 +2,7 @@
 #ifndef MATTER_EXPORTS
 #define MATTER_EXPORTS
 
+#include "drle.h"
 #include "signal.h"
 #include "search.h"
 #include "sparse.h"
@@ -44,6 +45,41 @@ extern "C" {
 					Rf_asReal(tol), Rf_asInteger(tol_ref),
 					Rf_asReal(nomatch), Rf_asInteger(interp),
 					Rf_asLogical(sorted));
+			default:
+				Rf_error("unsupported data type");
+		}
+	}
+
+	SEXP numRuns(SEXP x, SEXP nz)
+	{
+		return Rf_ScalarInteger(num_runs(x, true));
+	}
+
+	SEXP encodeDRLE(SEXP x)
+	{
+		return encode_drle(x);
+	}
+
+	SEXP decodeDRLE(SEXP x)
+	{
+		SEXP values = R_do_slot(x, Rf_install("values"));
+		SEXP deltas = R_do_slot(x, Rf_install("deltas"));
+		SEXP lengths = R_do_slot(x, Rf_install("lengths"));
+		return decode_drle(values, deltas, lengths);
+	}
+
+	SEXP getCompressedVector(SEXP x, SEXP i)
+	{
+		SEXP values = R_do_slot(x, Rf_install("values"));
+		switch(TYPEOF(values)) {
+			case INTSXP: {
+				CompressedVector<int> y(x);
+				return y.getElements(i);
+			}
+			case REALSXP: {
+				CompressedVector<double> y(x);
+				return y.getElements(i);
+			}
 			default:
 				Rf_error("unsupported data type");
 		}

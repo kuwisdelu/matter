@@ -1,7 +1,7 @@
 #ifndef SEARCH
 #define SEARCH
 
-#include "utils.h"
+#include "Rutils.h"
 #include "signal.h"
 
 #define SEARCH_ERROR -1
@@ -11,14 +11,14 @@
 
 // return whether a sequence is sorted
 template<typename T>
-bool is_sorted(T * x, size_t size, bool strictly = FALSE)
+bool is_sorted(T * x, size_t size, bool strictly = false)
 {
 	for ( size_t i = 1; i < size; i++ ) {
 		double delta = rel_change(x[i], x[i - 1]);
 		if ( delta < 0 || (strictly && delta <= 0) )
-			return FALSE;
+			return false;
 	}
-	return TRUE;
+	return true;
 }
 
 //// Linear search
@@ -27,7 +27,7 @@ bool is_sorted(T * x, size_t size, bool strictly = FALSE)
 // fuzzy linear search (fallback for unsorted arrays)
 template<typename T>
 index_t linear_search(T x, T * table, size_t start, size_t end,
-	double tol, int tol_ref, int nomatch, bool nearest = FALSE, bool ind1 = FALSE)
+	double tol, int tol_ref, int nomatch, bool nearest = false, bool ind1 = false)
 {
 	index_t pos = nomatch;
 	double diff, diff_min = DBL_MAX;
@@ -50,7 +50,7 @@ index_t linear_search(T x, T * table, size_t start, size_t end,
 template<typename T>
 index_t do_linear_search(int * ptr, T * x, size_t xlen, T * table,
 	size_t start, size_t end, double tol, int tol_ref, int nomatch,
-	bool nearest = FALSE, bool ind1 = FALSE)
+	bool nearest = false, bool ind1 = false)
 {
 	size_t num_matches = 0;
 	for ( size_t i = 0; i < xlen; i++ ) {
@@ -72,8 +72,8 @@ index_t do_linear_search(int * ptr, T * x, size_t xlen, T * table,
 // fuzzy binary search returning position of x in table
 template<typename T>
 index_t binary_search(T x, T * table, size_t start, size_t end,
-	double tol, int tol_ref, int nomatch, bool nearest = FALSE,
-	bool ind1 = FALSE, int err = SEARCH_ERROR)
+	double tol, int tol_ref, int nomatch, bool nearest = false,
+	bool ind1 = false, int err = SEARCH_ERROR)
 {
 	double delta;
 	index_t min = start, max = end, mid = nomatch;
@@ -118,7 +118,7 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 template<typename T>
 index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 	size_t start, size_t end, double tol, int tol_ref, int nomatch,
-	bool nearest = FALSE, bool ind1 = FALSE, int err = SEARCH_ERROR)
+	bool nearest = false, bool ind1 = false, int err = SEARCH_ERROR)
 {
 	size_t num_matches = 0;
 	for ( size_t i = 0; i < xlen; i++ ) {
@@ -139,7 +139,7 @@ index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 }
 
 inline SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
-	int nomatch, bool nearest = FALSE, bool ind1 = FALSE)
+	int nomatch, bool nearest = false, bool ind1 = false)
 {
 	SEXP pos;
 	PROTECT(pos = Rf_allocVector(INTSXP, LENGTH(x)));
@@ -170,7 +170,7 @@ inline SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 template<typename Tkey, typename Tval>
 Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
-	int interp = EST_NEAR, bool sorted = TRUE)
+	int interp = EST_NEAR, bool sorted = true)
 {
 	index_t pos = NA_INTEGER;
 	Tval val = nomatch;
@@ -200,7 +200,7 @@ Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 template<typename Tkey, typename Tval>
 index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * values,
 	size_t start, size_t end, double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR,
-	bool sorted = TRUE, int stride = 1)
+	bool sorted = true, int stride = 1)
 {
 	index_t num_matches;
 	if ( xlen > 2 * (end - start) && is_sorted(x, xlen) )
@@ -244,7 +244,7 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 			num_matches = do_binary_search(pos, x, xlen,
 				keys, start, end, tol, tol_ref, NA_INTEGER);
 			if ( num_matches == SEARCH_ERROR )
-				sorted = FALSE;
+				sorted = false;
 		}
 		if ( !sorted )
 			num_matches = do_linear_search(pos, x, xlen,
@@ -266,7 +266,7 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 template<typename Tkey, typename Tval>
 index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP values,
 	double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR,
-	bool sorted = TRUE, int stride = 1)
+	bool sorted = true, int stride = 1)
 {
 	return do_approx_search(ptr, x, xlen, DataPtr<Tkey>(keys), DataPtr<Tval>(values),
 		0, LENGTH(values), tol, tol_ref, nomatch, interp, sorted, stride);
@@ -274,7 +274,7 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP valu
 
 template<typename T>
 SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
-	T nomatch, int interp = EST_NEAR, bool sorted = TRUE)
+	T nomatch, int interp = EST_NEAR, bool sorted = true)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(TYPEOF(values), LENGTH(x)));

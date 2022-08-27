@@ -7,6 +7,13 @@
 #include <R.h>
 #include <Rinternals.h>
 
+//// Constants
+//-------------
+
+#define ABS_DIFF    1
+#define REL_DIFF_X  2
+#define REL_DIFF_Y  3
+
 //// Indexing types
 //-------------------
 
@@ -34,14 +41,10 @@ T * DataPtr(SEXP x)
 	return ((T *)(DATAPTR(x)));
 }
 
-template<typename T>
-T DataElt(SEXP x, index_t i)
-{
-	return ((T *)(DATAPTR(x)))[i];
-}
-
 inline index_t IndexElt(SEXP indx, index_t i)
 {
+	if ( i == NA_INTEGER )
+		return NA_INTEGER;
 	switch(TYPEOF(indx)) {
 		case INTSXP: {
 			int j = INTEGER_ELT(indx, i);
@@ -118,6 +121,102 @@ inline bool isNA(double x)
 inline bool isNA(SEXP x)
 {
     return x == NA_STRING;
+}
+
+//// Comparison
+//--------------
+
+// absolute or relative (signed) change
+template<typename T>
+double rel_change(T x, T y, int ref = ABS_DIFF)
+{
+	switch(ref) {
+		case ABS_DIFF:
+			return static_cast<double>(x - y);
+		case REL_DIFF_X:
+			return static_cast<double>(x - y) / x;
+		case REL_DIFF_Y:
+			return static_cast<double>(x - y) / y;
+		default:
+			return NA_REAL;
+	}
+}
+
+template<> inline
+double rel_change(const char * x, const char * y, int ref)
+{
+	int i = -1, sign = 1;
+	int n = 0, nx = 0, ny = 0;
+	// count number of initial matched characters
+	while ( x[nx] != '\0' || y[ny] != '\0' ) {
+		if ( x[nx] != y[ny] && i < 0 ) {
+			i = nx > ny ? nx : ny;
+			sign = x[nx] < y[ny] ? -1 : 1;
+		}
+		if ( x[nx] != '\0' )
+			nx++;
+		if ( y[ny] != '\0' )
+			ny++;
+	}
+	// check string lengths
+	n = nx > ny ? nx : ny;
+	i = i < 0 ? n : i;
+	// return character-based difference
+	switch(ref) {
+		case ABS_DIFF:
+			return sign * static_cast<double>(n - i);
+		case REL_DIFF_X:
+			return sign * static_cast<double>(n - i) / nx;
+		case REL_DIFF_Y:
+			return sign * static_cast<double>(n - i) / ny;
+		default:
+			return NA_REAL;
+	}
+}
+
+template<> inline
+double rel_change(SEXP x, SEXP y, int ref)
+{
+	if ( TYPEOF(x) != TYPEOF(y) )
+		Rf_error("'x' and 'y' must have the same type");
+	switch(TYPEOF(x)) {
+		case CHARSXP:
+			return rel_change(CHAR(x), CHAR(y), ref);
+		case STRSXP:
+			return rel_change(CHAR(Rf_asChar(x)), CHAR(Rf_asChar(y)), ref);
+		case INTSXP:
+			return rel_change(Rf_asInteger(x), Rf_asInteger(y), ref);
+		case REALSXP:
+			return rel_change(Rf_asReal(x), Rf_asReal(y), ref);
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
+// absolute or relative (unsigned) difference
+template<typename T>
+double rel_diff(T x, T y, int ref = ABS_DIFF)
+{
+	return fabs(rel_change<T>(x, y, ref));
+}
+
+inline int switch_tol_ref(int tol_ref)
+{
+	switch(tol_ref) {
+		case ABS_DIFF:
+			return ABS_DIFF;
+		case REL_DIFF_X:
+			return REL_DIFF_Y;
+		case REL_DIFF_Y:
+			return REL_DIFF_X;
+	}
+	return NA_INTEGER;
+}
+
+template<typename T>
+inline bool equal(T x, T y, double tol = DBL_EPSILON)
+{
+	return rel_diff<T>(x, y) <= tol;
 }
 
 //// Misc utilities

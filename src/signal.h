@@ -1,11 +1,7 @@
 #ifndef SIGNAL
 #define SIGNAL
 
-#include "utils.h"
-
-#define ABS_DIFF    1
-#define REL_DIFF_X  2
-#define REL_DIFF_Y  3
+#include "Rutils.h"
 
 #define EST_NEAR	1
 #define EST_AVG		2
@@ -17,98 +13,6 @@
 #define EST_CUBIC	8
 #define EST_GAUS	9
 #define EST_SINC	10
-
-typedef ptrdiff_t index_t;
-
-//// Relative differences
-//------------------------
-
-// absolute or relative (signed) change
-template<typename T>
-double rel_change(T x, T y, int ref = ABS_DIFF)
-{
-	switch(ref) {
-		case ABS_DIFF:
-			return static_cast<double>(x - y);
-		case REL_DIFF_X:
-			return static_cast<double>(x - y) / x;
-		case REL_DIFF_Y:
-			return static_cast<double>(x - y) / y;
-		default:
-			return NA_REAL;
-	}
-}
-
-template<> inline
-double rel_change(const char * x, const char * y, int ref)
-{
-	int i = -1, sign = 1;
-	int n = 0, nx = 0, ny = 0;
-	// count number of initial matched characters
-	while ( x[nx] != '\0' || y[ny] != '\0' ) {
-		if ( x[nx] != y[ny] && i < 0 ) {
-			i = nx > ny ? nx : ny;
-			sign = x[nx] < y[ny] ? -1 : 1;
-		}
-		if ( x[nx] != '\0' )
-			nx++;
-		if ( y[ny] != '\0' )
-			ny++;
-	}
-	// check string lengths
-	n = nx > ny ? nx : ny;
-	i = i < 0 ? n : i;
-	// return character-based difference
-	switch(ref) {
-		case ABS_DIFF:
-			return sign * static_cast<double>(n - i);
-		case REL_DIFF_X:
-			return sign * static_cast<double>(n - i) / nx;
-		case REL_DIFF_Y:
-			return sign * static_cast<double>(n - i) / ny;
-		default:
-			return NA_REAL;
-	}
-}
-
-template<> inline
-double rel_change(SEXP x, SEXP y, int ref)
-{
-	if ( TYPEOF(x) != TYPEOF(y) )
-		Rf_error("'x' and 'y' must have the same type");
-	switch(TYPEOF(x)) {
-		case CHARSXP:
-			return rel_change(CHAR(x), CHAR(y), ref);
-		case STRSXP:
-			return rel_change(CHAR(Rf_asChar(x)), CHAR(Rf_asChar(y)), ref);
-		case INTSXP:
-			return rel_change(Rf_asInteger(x), Rf_asInteger(y), ref);
-		case REALSXP:
-			return rel_change(Rf_asReal(x), Rf_asReal(y), ref);
-		default:
-			Rf_error("unsupported data type");
-	}
-}
-
-// absolute or relative (unsigned) difference
-template<typename T>
-double rel_diff(T x, T y, int ref = ABS_DIFF)
-{
-	return fabs(rel_change<T>(x, y, ref));
-}
-
-inline int switch_tol_ref(int tol_ref)
-{
-	switch(tol_ref) {
-		case ABS_DIFF:
-			return ABS_DIFF;
-		case REL_DIFF_X:
-			return REL_DIFF_Y;
-		case REL_DIFF_Y:
-			return REL_DIFF_X;
-	}
-	return NA_INTEGER;
-}
 
 //// Kernels
 //-----------
@@ -168,7 +72,7 @@ inline double cubic(double y[4], double dx[3], double t)
 
 template<typename Tx, typename Ty>
 Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
-	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = TRUE)
+	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = true)
 {
 	// Rprintf("inside interp(%f)\n", xi);
 	double delta, diff, diff_min = DBL_MAX;
@@ -372,7 +276,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 // 		b = (i + r) < (len - 1) ? (i + r) : (len - 1);
 // 		for ( size_t j = a; j >= 0 && j <= b; j++ )
 // 		{
-// 			buffer[i] = TRUE;
+// 			buffer[i] = true;
 // 			if ( j < i )
 // 			{
 // 				if ( x[j] >= x[i] )

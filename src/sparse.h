@@ -177,7 +177,7 @@ class Sparse
 		}
 
 		template<typename T>
-		void copy_domain(SEXP indx, T * buffer, bool ind1 = TRUE)
+		void copy_domain(SEXP indx, T * buffer, bool ind1 = true)
 		{
 			index_t i = 0, len = XLENGTH(indx);
 			for ( index_t j = 0; j < len; j++ )
@@ -357,7 +357,7 @@ class SparseVector : public Sparse
 			PROTECT(data0 = data());
 			R_xlen_t size = XLENGTH(indx);
 			Tind subscripts [size];
-			copy_domain<Tind>(indx, subscripts, TRUE);
+			copy_domain<Tind>(indx, subscripts, true);
 			size_t num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, size,
 				index0, data0, tol(), tol_ref(), zero<Tval>(), sampler());
 			UNPROTECT(2);
@@ -529,7 +529,7 @@ class SparseMatrix : public Sparse
 				copy_domain<Tind>(0, minordim(), subscripts);
 				num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, minordim(),
 					index0, data0, tol(), tol_ref(), zero<Tval>(),
-					sampler(), TRUE, stride);
+					sampler(), true, stride);
 			}
 			else {
 				fill<Tval>(buffer, minordim(), zero<Tval>(), stride);
@@ -592,7 +592,7 @@ class SparseMatrixC : public SparseMatrix
 				if ( i == R_NilValue )
 					copy_domain<Tind>(0, ni, subscripts);
 				else
-					copy_domain<Tind>(i, subscripts, TRUE);
+					copy_domain<Tind>(i, subscripts, true);
 				for ( size_t k = 0; k < nj; k++ ) {
 					switch(TYPEOF(j)) {
 						case INTSXP:
@@ -607,7 +607,7 @@ class SparseMatrixC : public SparseMatrix
 					Tval * buffer0 = buffer + (k * ni);
 					num_nz += do_approx_search<Tind,Tval>(buffer0, subscripts, ni,
 						index0, data0, tol(), tol_ref(), zero<Tval>(),
-						sampler(), TRUE, 1);
+						sampler(), true, 1);
 					UNPROTECT(2);
 				}
 			}
@@ -701,7 +701,7 @@ class SparseMatrixR : public SparseMatrix
 				if ( j == R_NilValue )
 					copy_domain<Tind>(0, nj, subscripts);
 				else
-					copy_domain<Tind>(j, subscripts, TRUE);
+					copy_domain<Tind>(j, subscripts, true);
 				for ( size_t k = 0; k < ni; k++ ) {
 					switch(TYPEOF(i)) {
 						case INTSXP:
@@ -716,7 +716,7 @@ class SparseMatrixR : public SparseMatrix
 					Tval * buffer0 = buffer + k;
 					num_nz += do_approx_search<Tind,Tval>(buffer0, subscripts, nj,
 						index0, data0, tol(), tol_ref(), zero<Tval>(),
-						sampler(), TRUE, ni);
+						sampler(), true, ni);
 					UNPROTECT(2);
 				}
 			}

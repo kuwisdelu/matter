@@ -9,9 +9,20 @@
 extern "C" {
 
 	static const R_CallMethodDef callMethods[] = {
+		// search
 		{"C_relativeDiff", (DL_FUNC) &relativeDiff, 3},
 		{"C_binarySearch", (DL_FUNC) &binarySearch, 6},
 		{"C_approxSearch", (DL_FUNC) &approxSearch, 8},
+		// compression
+		{"C_numRuns", (DL_FUNC) &numRuns, 2},
+		{"C_encodeDRLE", (DL_FUNC) &encodeDRLE, 1},
+		{"C_decodeDRLE", (DL_FUNC) &decodeDRLE, 1},
+		// data structures
+		{"C_getCompressedVector", (DL_FUNC) &getCompressedVector, 2},
+		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
+		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},
+		{"C_getSparseMatrixR", (DL_FUNC) &getSparseMatrixR, 3},
+		// legacy
 		{"C_createAtoms", (DL_FUNC) &createAtoms, 5},
 		{"C_getVector", (DL_FUNC) &getVector, 1},
 		{"C_setVector", (DL_FUNC) &setVector, 2},
@@ -62,9 +73,6 @@ extern "C" {
 		{"C_groupSums", (DL_FUNC) &groupSums, 4},
 		{"C_groupMins", (DL_FUNC) &groupMins, 4},
 		{"C_groupMaxs", (DL_FUNC) &groupMaxs, 4},
-		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
-		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},
-		{"C_getSparseMatrixR", (DL_FUNC) &getSparseMatrixR, 3},
 		{NULL, NULL, 0}
 	};
 

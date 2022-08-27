@@ -6,37 +6,36 @@ setClassUnion("integer_OR_numeric", c("integer", "numeric"))
 
 setClass("drle",
 	slots = c(
-		values = "integer_OR_numeric",
-		lengths = "integer",
-		deltas = "integer_OR_numeric"),
+		values = "numeric",
+		deltas = "numeric",
+		lengths = "numeric"),
 	prototype = prototype(
 		values = integer(),
-		lengths= integer(),
-		deltas = integer()),
+		deltas = integer(),
+		lengths= integer()),
 	validity = function(object) {
 		errors <- NULL
 		if ( typeof(object@values) != typeof(object@deltas) )
-			errors <- c(errors, "'values' and 'deltas' must be of the same type")
+			errors <- c(errors, "'values' and 'deltas' must be the same data type")
 		lens <- c(length(object@values), length(object@lengths), length(object@deltas))
 		if ( length(unique(lens)) != 1 )
-			errors <- c(errors, "'values', 'lengths', and 'deltas' must have the same length")
+			errors <- c(errors, "'values', 'deltas', and 'lengths' must have the same length")
 		if ( any(object@lengths < 1) )
-			errors <- c(errors, "'lengths' must be positive")
+			errors <- c(errors, "all 'lengths' must be positive")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-drle <- function(x, cr_threshold = 0, delta = TRUE)
+drle <- function(x, cr_threshold = 0)
 {
 	if ( is.drle(x) )
 		return(x)
-	if ( !(is.integer(x) || is.numeric(x)) )
-		stop("'x' must be an 'integer' or 'numeric' vector")
-	delta <- as.logical(delta)
-	nruns <- .Call("C_countRuns", x, delta, PACKAGE="matter")
-	comp_size <- nruns * (sizeof("integer") + 2 * sizeof(typeof(x)))
-	uncomp_size <- length(x) * sizeof(typeof(x))
+	if ( !is.numeric(x) )
+		stop("'x' must be a numeric vector")
+	nruns <- .Call("C_numRuns", x, TRUE, PACKAGE="matter")
+	comp_size <- 984 + (nruns * (2 * sizeof(typeof(x)) + sizeof("integer")))
+	uncomp_size <- 48 + (length(x) * sizeof(typeof(x)))
 	if ( uncomp_size / comp_size > cr_threshold ) {
-		out <- .Call("C_createDRLE", x, nruns, delta, PACKAGE="matter")
+		out <- .Call("C_encodeDRLE", x, PACKAGE="matter")
 	} else {
 		out <- x
 	}
@@ -46,14 +45,17 @@ drle <- function(x, cr_threshold = 0, delta = TRUE)
 
 setMethod("describe_for_display", "drle", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
-	desc2 <- paste0("compressed vector")
+	desc2 <- paste0("compressed ", typeof(x@values), " vector")
 	paste0(desc1, " :: ", desc2)
 })
 
 setMethod("show", "drle", function(object) {
 	cat(describe_for_display(object), "\n", sep="")
 	n <- getOption("matter.show.head.n")
-	runs <- formatDRLERuns(object)
+	runs <- data.frame(
+		values=object@values,
+		deltas=object@deltas,
+		lengths=object@lengths)
 	print(head(runs, n=n))
 	if ( nrow(runs) > n )
 		cat("... and", nrow(runs) - n, "more runs\n")
@@ -61,29 +63,8 @@ setMethod("show", "drle", function(object) {
 
 is.drle <- function(x) is(x, "drle")
 
-getDRLE <- function(x) {
-	.Call("C_getDRLE", x, PACKAGE="matter")
-}
-
-getDRLEElements <- function(x, i) {
-	if ( is.logical(i) )
-		i <- logical2index(x, i)
-	i <- as.integer(i - 1)
-	if ( length(i) > 1 && is.unsorted(i) ) {
-		o <- order(i)
-		y <- .Call("C_getDRLEElements", x, i[o], PACKAGE="matter")
-		y[o] <- y
-	} else {
-		y <- .Call("C_getDRLEElements", x, i, PACKAGE="matter")
-	}
-	y
-}
-
-formatDRLERuns <- function(x) {
-	data.frame(
-		values=x@values,
-		lengths=x@lengths,
-		deltas=x@deltas)
+get_drle_elts <- function(x, i = NULL) {
+	.Call("C_getCompressedVector", x, i, PACKAGE="matter")
 }
 
 setAs("drle", "list", function(from)
@@ -96,29 +77,35 @@ setMethod("as.list", "drle", function(x) as(x, "list"))
 setMethod("as.vector", "drle", function(x) as(x, "vector"))
 
 setMethod("[",
-	c(x = "drle", i = "missing", j = "missing", drop = "missing"),
-	function(x, ...) getDRLE(x))
-
-setMethod("[",
-	c(x = "drle", i = "ANY", j = "missing", drop = "missing"),
-	function(x, i, ...) getDRLEElements(x, i))
+	c(x = "drle", i = "ANY", j = "ANY", drop = "ANY"),
+	function(x, i, ..., drop)
+	{
+		if ( length(list(...)) > 0 )
+			stop("incorrect number of dimensions")
+		if ( missing(i) )
+			i <- NULL
+		get_drle_elts(x, i)
+	})
 
 setMethod("length", "drle", function(x) sum(x@lengths))
 
 setMethod("combine", c("drle", "drle"), function(x, y, ...) {
-	nruns <- length(x@values)
-	nextval <- x@values[nruns] + x@deltas[nruns] * x@lengths[nruns]
-	if ( nextval == y@values[1] ) {
-		if ( x@deltas[nruns] == y@deltas[1] || y@lengths[1] == 1 ) {
-			x@lengths[nruns] <- x@lengths[nruns] + y@lengths[1]
+	n <- length(x@values)
+	nextval <- x@values[n] + x@deltas[n] * x@lengths[n]
+	if ( nextval == y@values[1] )
+	{
+		if ( x@deltas[n] == y@deltas[1] || y@lengths[1] == 1 )
+		{
+			x@lengths[n] <- x@lengths[n] + y@lengths[1]
 			y@values <- y@values[-1]
 			y@lengths <- y@lengths[-1]
 			y@deltas <- y@deltas[-1]
-		} else if ( y@lengths[1] == 2 ) {
-			x@lengths[nruns] <- x@lengths[nruns] + 1L
+		} else if ( y@lengths[1] == 2 && x@lengths[n] > 2 )
+		{
+			x@lengths[n] <- x@lengths[n] + 1L
 			y@values[1] <- y@values[1] + y@deltas[1]
 			y@lengths[1] <- 1L
-			y@deltas[1] <- vector(1, mode=typeof(y@deltas))
+			y@deltas[1] <- 0L
 		}
 	}
 	new(class(x),
@@ -128,20 +115,20 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 })
 
 setMethod("combine", c("drle", "numeric"),
-	function(x, y, ...) combine(x[], y))
+	function(x, y, ...) combine(x, drle(y)))
 
 setMethod("combine", c("numeric", "drle"),
-	function(x, y, ...) combine(x, y[]))
+	function(x, y, ...) combine(drle(x), y))
 
-setMethod("c", "drle", function(x, ..., recursive=FALSE)
+setMethod("c", "drle", function(x, ...)
 {
 	dots <- list(...)
-	if ( length(dots) == 0 ) {
-		x
-	} else if ( length(dots) == 1 ) {
-		combine(x, dots[[1]])
+	if ( length(dots) > 0 ) {
+		y <- do.call(combine, list(x, ...))
 	} else {
-		do.call(combine, list(x, ...))
+		y <- x
 	}
+	if ( validObject(y) )
+		y
 })
 
