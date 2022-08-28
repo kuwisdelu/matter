@@ -11,12 +11,12 @@ Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool nz = true)
 {
 	R_xlen_t n = 1;
 	T delta = 0;
-	if ( nz )
-		delta = (i + 1 < len) ? x[i + 1] - x[i] : 0;
+	if ( nz && i + 1 < len && !isNA(x[i]) && !isNA(x[i + 1]) )
+		delta = x[i + 1] - x[i];
 	while( i + 1 < len )
 	{
-		T delta2 = x[i + 1] - x[i];
-		bool both_na = isNA(x[i] && isNA(x[i + 1]));
+		bool both_na = isNA(x[i]) && isNA(x[i + 1]);
+		T delta2 = both_na ? 0 : x[i + 1] - x[i];
 		if ( equal<T>(delta, delta2) || both_na ) {
 			n++;
 			i++;
@@ -27,11 +27,13 @@ Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool nz = true)
 	if ( n <= 2 && (i + 2 < len) && !equal<T>(delta, 0) )
 	{
 		R_xlen_t n2 = 1;
-		T delta2 = x[i + 2] - x[i + 1];
+		T delta2 = 0;
+		if ( !isNA(x[i + 1]) && !isNA(x[i + 2]) )
+			delta2 = x[i + 2] - x[i + 1];
 		while( i + 2 < len )
 		{
-			T delta3 = x[i + 2] - x[i + 1];
-			bool both_na = isNA(x[i + 1] && isNA(x[i + 2]));
+			bool both_na = isNA(x[i + 1]) && isNA(x[i + 2]);
+			T delta3 = both_na ? 0 : x[i + 2] - x[i + 1];
 			if ( equal<T>(delta2, delta3) || both_na ) {
 				n2++;
 				i++;
@@ -363,15 +365,22 @@ template<typename T>
 Pair<R_xlen_t,T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
 {
 	R_xlen_t n = 1;
-	index_t i1 = IndexElt(indx, j) - 1;
-	index_t i2 = IndexElt(indx, j + 1) - 1;
-	T delta = (j + 1 < XLENGTH(indx)) ? x[i2] - x[i1] : 0;
+	index_t i1 = 0;
+	index_t i2 = 0;
+	T delta = 0;
+	if ( j + 1 < XLENGTH(indx) )
+	{
+		i1 = IndexElt(indx, j) - 1;
+		i2 = IndexElt(indx, j + 1) - 1;
+		if ( !isNA(x[i1]) && !isNA(x[i2]) )
+			delta = x[i2] - x[i1];
+	}
 	while( j + 1 < XLENGTH(indx) )
 	{
 		i1 = IndexElt(indx, j) - 1;
 		i2 = IndexElt(indx, j + 1) - 1;
-		T delta2 = x[i2] - x[i1];
-		bool both_na = isNA(x[i1] && isNA(x[i2]));
+		bool both_na = isNA(x[i1]) && isNA(x[i2]);
+		T delta2 = both_na ? 0 : x[i2] - x[i1];
 		if ( equal<T>(delta, delta2) || both_na ) {
 			n++;
 			j++;
@@ -384,13 +393,15 @@ Pair<R_xlen_t,T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
 		R_xlen_t n2 = 1;
 		i1 = IndexElt(indx, j + 1) - 1;
 		i2 = IndexElt(indx, j + 2) - 1;
-		T delta2 = x[i2] - x[i1];
+		T delta2 = 0;
+		if ( !isNA(x[i1]) && !isNA(x[i2]) )
+			delta2 = x[i2] - x[i1];
 		while( j + 2 < XLENGTH(indx) )
 		{
 			i1 = IndexElt(indx, j + 1) - 1;
 			i2 = IndexElt(indx, j + 2) - 1;
-			T delta3 = x[i2] - x[i1];
-			bool both_na = isNA(x[i1] && isNA(x[i2]));
+			bool both_na = isNA(x[i1]) && isNA(x[i2]);
+			T delta3 = both_na ? 0 : x[i2] - x[i1];
 			if ( equal<T>(delta2, delta3) || both_na ) {
 				n2++;
 				j++;

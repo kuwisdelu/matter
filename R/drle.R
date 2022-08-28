@@ -49,16 +49,14 @@ setMethod("describe_for_display", "drle", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
+setMethod("preview_for_display", "drle", function(x) preview_vector(x))
+
 setMethod("show", "drle", function(object) {
 	cat(describe_for_display(object), "\n", sep="")
 	n <- getOption("matter.show.head.n")
-	runs <- data.frame(
-		values=object@values,
-		deltas=object@deltas,
-		lengths=object@lengths)
-	print(head(runs, n=n))
-	if ( nrow(runs) > n )
-		cat("... and", nrow(runs) - n, "more runs\n")
+	if ( getOption("matter.show.head") )
+		try(preview_for_display(object), silent=TRUE)
+	cat("with", length(object@values), "delta-encoded runs\n")
 })
 
 is.drle <- function(x) is(x, "drle")
@@ -72,13 +70,23 @@ subset_drle <- function(x, i = NULL) {
 }
 
 setAs("drle", "list", function(from)
-	list(values=from@values, lengths=from@lengths, deltas=from@deltas))
+	list(values=from@values,
+		deltas=from@deltas,
+		lengths=from@lengths))
 
 setAs("drle", "vector", function(from) from[])
+
+setAs("drle", "integer", function(from) as.integer(from[]))
+
+setAs("drle", "numeric", function(from) as.numeric(from[]))
 
 setMethod("as.list", "drle", function(x) as(x, "list"))
 
 setMethod("as.vector", "drle", function(x) as(x, "vector"))
+
+setMethod("as.integer", "drle", function(x) as(x, "integer"))
+
+setMethod("as.numeric", "drle", function(x) as(x, "numeric"))
 
 setMethod("[",
 	c(x = "drle", i = "ANY", j = "ANY", drop = "ANY"),
@@ -123,20 +131,16 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 })
 
 setMethod("combine", c("drle", "numeric"),
-	function(x, y, ...) combine(x, drle(y)))
+	function(x, y, ...) combine(x[], y))
 
 setMethod("combine", c("numeric", "drle"),
-	function(x, y, ...) combine(drle(x), y))
+	function(x, y, ...) combine(x, y[]))
 
 setMethod("c", "drle", function(x, ...)
 {
-	dots <- list(...)
-	if ( length(dots) > 0 ) {
-		y <- do.call(combine, list(x, ...))
-	} else {
-		y <- x
-	}
-	if ( validObject(y) )
-		y
+	if ( ...length() > 0 )
+		x <- do.call(combine, list(x, ...))
+	if ( validObject(x) )
+		x
 })
 
