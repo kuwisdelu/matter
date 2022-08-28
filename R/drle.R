@@ -9,10 +9,6 @@ setClass("drle",
 		values = "numeric",
 		deltas = "numeric",
 		lengths = "numeric"),
-	prototype = prototype(
-		values = integer(),
-		deltas = integer(),
-		lengths= integer()),
 	validity = function(object) {
 		errors <- NULL
 		if ( typeof(object@values) != typeof(object@deltas) )
@@ -25,27 +21,36 @@ setClass("drle",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-drle <- function(x, cr_threshold = 0)
+setClass("drle_fc",
+	slots = c(levels = "character"),
+	contains = "drle")
+
+drle <- function(x, cr_threshold = 0, ...)
 {
+	if ( !is.numeric(x) || ...length() > 0 )
+	{
+		if ( is.drle(x) )
+			x <- as.vector(x)
+		x <- factor(x, ...)
+	}
 	if ( is.drle(x) )
 		return(x)
-	if ( !is.numeric(x) )
-		stop("'x' must be a numeric vector")
-	nruns <- .Call("C_numRuns", x, TRUE, PACKAGE="matter")
-	comp_size <- 984 + (nruns * (2 * sizeof(typeof(x)) + sizeof("integer")))
-	uncomp_size <- 48 + (length(x) * sizeof(typeof(x)))
-	if ( uncomp_size / comp_size > cr_threshold ) {
-		out <- .Call("C_encodeDRLE", x, PACKAGE="matter")
-	} else {
-		out <- x
-	}
-	if ( validObject(out) )
-		out
+	y <- .Call("C_encodeDRLE", x, cr_threshold, PACKAGE="matter")
+	if ( is.factor(x) )
+		y <- new("drle_fc", y, levels=levels(x))
+	if ( validObject(y) )
+		y
 }
 
 setMethod("describe_for_display", "drle", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("compressed ", typeof(x@values), " vector")
+	paste0(desc1, " :: ", desc2)
+})
+
+setMethod("describe_for_display", "drle_fc", function(x) {
+	desc1 <- paste0("<", length(x), " length> ", class(x))
+	desc2 <- paste0("compressed factor")
 	paste0(desc1, " :: ", desc2)
 })
 
@@ -57,6 +62,12 @@ setMethod("show", "drle", function(object) {
 	if ( getOption("matter.show.head") )
 		try(preview_for_display(object), silent=TRUE)
 	cat("with", length(object@values), "delta-encoded runs\n")
+})
+
+setMethod("show", "drle_fc", function(object) {
+	callNextMethod()
+	cat("Levels(", nlevels(object), "): ", sep="")
+	cat(paste_head(object@levels), "\n")
 })
 
 is.drle <- function(x) is(x, "drle")
@@ -80,6 +91,8 @@ setAs("drle", "integer", function(from) as.integer(from[]))
 
 setAs("drle", "numeric", function(from) as.numeric(from[]))
 
+setAs("drle_fc", "factor", function(from) from[])
+
 setMethod("as.list", "drle", function(x) as(x, "list"))
 
 setMethod("as.vector", "drle", function(x) as(x, "vector"))
@@ -87,6 +100,8 @@ setMethod("as.vector", "drle", function(x) as(x, "vector"))
 setMethod("as.integer", "drle", function(x) as(x, "integer"))
 
 setMethod("as.numeric", "drle", function(x) as(x, "numeric"))
+
+setMethod("as.factor", "drle_fc", function(x) as(x, "factor"))
 
 setMethod("[",
 	c(x = "drle", i = "ANY", j = "ANY", drop = "ANY"),
@@ -103,7 +118,19 @@ setMethod("[",
 		}
 	})
 
+setMethod("[",
+	c(x = "drle_fc", i = "ANY", j = "ANY", drop = "ANY"),
+	function(x, i, ..., drop)
+	{
+		y <- callNextMethod()
+		if ( is.numeric(y) )
+			y <- factor(levels(x)[y], levels=levels(x))
+		y
+	})
+
 setMethod("length", "drle", function(x) sum(x@lengths))
+
+setMethod("levels", "drle_fc", function(x) x@levels)
 
 setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 	n <- length(x@values)
@@ -128,6 +155,18 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 		values=c(x@values, y@values),
 		lengths=c(x@lengths, y@lengths),
 		deltas=c(x@deltas, y@deltas))
+})
+
+setMethod("combine", c("drle_fc", "drle_fc"), function(x, y, ...) {
+	if ( isTRUE(all.equal(levels(x), levels(y))) ) {
+		y <- combine(as(x, "drle"), as(y, "drle"))
+		y <- new(class(x), y, levels=levels(x))
+	} else {
+		y <- c(as.factor(x), as.factor(y))
+		y <- drle(y)
+	}
+	if ( validObject(y) )
+		y
 })
 
 setMethod("combine", c("drle", "numeric"),

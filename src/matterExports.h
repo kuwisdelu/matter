@@ -50,14 +50,9 @@ extern "C" {
 		}
 	}
 
-	SEXP numRuns(SEXP x, SEXP nz)
+	SEXP encodeDRLE(SEXP x, SEXP cr)
 	{
-		return Rf_ScalarInteger(num_runs(x, Rf_asLogical(nz)));
-	}
-
-	SEXP encodeDRLE(SEXP x)
-	{
-		return encode_drle(x);
+		return encode_drle(x, Rf_asReal(cr));
 	}
 
 	SEXP recodeDRLE(SEXP x, SEXP i)

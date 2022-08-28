@@ -14,8 +14,7 @@ extern "C" {
 		{"C_binarySearch", (DL_FUNC) &binarySearch, 6},
 		{"C_approxSearch", (DL_FUNC) &approxSearch, 8},
 		// compression
-		{"C_numRuns", (DL_FUNC) &numRuns, 2},
-		{"C_encodeDRLE", (DL_FUNC) &encodeDRLE, 1},
+		{"C_encodeDRLE", (DL_FUNC) &encodeDRLE, 2},
 		{"C_decodeDRLE", (DL_FUNC) &decodeDRLE, 2},
 		{"C_recodeDRLE", (DL_FUNC) &recodeDRLE, 2},
 		// data structures

@@ -87,3 +87,21 @@ test_that("drle combining", {
 	expect_equal(x3[45:1], y3[45:1])
 
 })
+
+test_that("drle factor", {
+
+	x <- factor(c("a","a","a","b","b","b","c","b","b","a"))
+	y <- drle(x)
+
+	expect_equal(x, y[])
+	expect_equal(x[1], y[1])
+	expect_equal(x[1:10], y[1:10])
+	expect_equal(x[10:1], y[10:1])
+
+	x2 <- rev(x)
+	y2 <- drle(x2)
+
+	expect_equal(c(x, x2), c(y, y2)[])
+	expect_equal(c(x, x2, x), c(y, y2, y)[])
+
+})

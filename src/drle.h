@@ -93,17 +93,24 @@ size_t encode_drle(Tv * x, size_t len, Tv * values,
 	return j;
 }
 
-SEXP encode_drle(SEXP x)
+SEXP encode_drle(SEXP x, double cr = 0)
 {
 	SEXP values, deltas, lengths;
-	SEXPTYPE lengthstype = IS_LONG_VEC(x) ? REALSXP : INTSXP;
+	size_t nruns = num_runs(x);
+	size_t sizeof_x = Rf_isReal(x) ? sizeof(double) : sizeof(int);
+	size_t sizeof_lens = IS_LONG_VEC(x) ? sizeof(double) : sizeof(int);
+	double uncomp_size = 48 + (XLENGTH(x) * sizeof_x);
+	double comp_size = 984 + (nruns * (2 * sizeof_x + sizeof_lens));
+	double comp_ratio = uncomp_size / comp_size;
+	if ( comp_ratio < cr )
+		return x;
+	SEXPTYPE lenstype = IS_LONG_VEC(x) ? REALSXP : INTSXP;
 	switch(TYPEOF(x)) {
 		case INTSXP: {
-			size_t nruns = num_runs(INTEGER(x), XLENGTH(x), true);
 			PROTECT(values = Rf_allocVector(INTSXP, nruns));
 			PROTECT(deltas = Rf_allocVector(INTSXP, nruns));
-			PROTECT(lengths = Rf_allocVector(lengthstype, nruns));
-			switch(lengthstype) {
+			PROTECT(lengths = Rf_allocVector(lenstype, nruns));
+			switch(lenstype) {
 				case INTSXP:
 					encode_drle<int,int>(INTEGER(x), XLENGTH(x), INTEGER(values),
 						INTEGER(deltas), INTEGER(lengths), nruns);
@@ -116,11 +123,10 @@ SEXP encode_drle(SEXP x)
 			break;
 		}
 		case REALSXP: {
-			size_t nruns = num_runs(REAL(x), XLENGTH(x), true);
 			PROTECT(values = Rf_allocVector(REALSXP, nruns));
 			PROTECT(deltas = Rf_allocVector(REALSXP, nruns));
-			PROTECT(lengths = Rf_allocVector(lengthstype, nruns));
-			switch(lengthstype) {
+			PROTECT(lengths = Rf_allocVector(lenstype, nruns));
+			switch(lenstype) {
 				case INTSXP:
 					encode_drle<double,int>(REAL(x), XLENGTH(x), REAL(values),
 						REAL(deltas), INTEGER(lengths), nruns);
@@ -177,8 +183,8 @@ class CompressedVector {
 			{
 				_type = TYPEOF(x);
 				_pvalues = DataPtr<T>(x);
-				_length = XLENGTH(x);
-				_truelength = _length;
+				_truelength = XLENGTH(x);
+				_length = _truelength;
 				_is_compressed = false;
 				_is_long_vec = IS_LONG_VEC(x);
 			}
@@ -358,6 +364,38 @@ class CompressedVector {
 		index_t _last_run = 0;   // cache most recent access
 		bool _is_compressed;
 		bool _is_long_vec;
+
+};
+
+class CompressedFactor : public CompressedVector<int> {
+
+	public:
+
+		CompressedFactor(SEXP x) : CompressedVector<int>(x)
+		{
+			if ( Rf_isS4(x) )
+				_levels = R_do_slot(x, Rf_install("levels"));
+			else
+				_levels = Rf_getAttrib(x, R_LevelsSymbol);
+			_nlevels = LENGTH(_levels);
+		}
+
+		SEXP levels() {
+			return _levels;
+		}
+
+		SEXP levels(index_t i) {
+			return STRING_ELT(_levels, i);
+		}
+
+		int nlevels() {
+			return _nlevels;
+		}
+
+	protected:
+
+		SEXP _levels;
+		int _nlevels;
 
 };
 
