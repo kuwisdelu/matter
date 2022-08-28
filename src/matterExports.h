@@ -52,7 +52,7 @@ extern "C" {
 
 	SEXP numRuns(SEXP x, SEXP nz)
 	{
-		return Rf_ScalarInteger(num_runs(x, true));
+		return Rf_ScalarInteger(num_runs(x, Rf_asLogical(nz)));
 	}
 
 	SEXP encodeDRLE(SEXP x)
@@ -60,15 +60,12 @@ extern "C" {
 		return encode_drle(x);
 	}
 
-	SEXP decodeDRLE(SEXP x)
+	SEXP recodeDRLE(SEXP x, SEXP i)
 	{
-		SEXP values = R_do_slot(x, Rf_install("values"));
-		SEXP deltas = R_do_slot(x, Rf_install("deltas"));
-		SEXP lengths = R_do_slot(x, Rf_install("lengths"));
-		return decode_drle(values, deltas, lengths);
+		return recode_drle(x, i);
 	}
 
-	SEXP getCompressedVector(SEXP x, SEXP i)
+	SEXP decodeDRLE(SEXP x, SEXP i)
 	{
 		SEXP values = R_do_slot(x, Rf_install("values"));
 		switch(TYPEOF(values)) {

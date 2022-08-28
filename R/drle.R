@@ -64,7 +64,11 @@ setMethod("show", "drle", function(object) {
 is.drle <- function(x) is(x, "drle")
 
 get_drle_elts <- function(x, i = NULL) {
-	.Call("C_getCompressedVector", x, i, PACKAGE="matter")
+	.Call("C_decodeDRLE", x, i, PACKAGE="matter")
+}
+
+subset_drle <- function(x, i = NULL) {
+	.Call("C_recodeDRLE", x, i, PACKAGE="matter")
 }
 
 setAs("drle", "list", function(from)
@@ -80,11 +84,15 @@ setMethod("[",
 	c(x = "drle", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, ..., drop)
 	{
-		if ( length(list(...)) > 0 )
+		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		if ( missing(i) )
 			i <- NULL
-		get_drle_elts(x, i)
+		if ( is_nil(drop) ) {
+			subset_drle(x, i)
+		} else {
+			get_drle_elts(x, i)
+		}
 	})
 
 setMethod("length", "drle", function(x) sum(x@lengths))

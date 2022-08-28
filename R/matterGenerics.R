@@ -9,6 +9,8 @@ setGeneric("as.factor")
 setGeneric("apply", signature="X")
 setGeneric("scale", signature="x")
 
+setGeneric("subset")
+
 setGeneric("levels")
 setGeneric("levels<-")
 

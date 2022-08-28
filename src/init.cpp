@@ -16,9 +16,9 @@ extern "C" {
 		// compression
 		{"C_numRuns", (DL_FUNC) &numRuns, 2},
 		{"C_encodeDRLE", (DL_FUNC) &encodeDRLE, 1},
-		{"C_decodeDRLE", (DL_FUNC) &decodeDRLE, 1},
+		{"C_decodeDRLE", (DL_FUNC) &decodeDRLE, 2},
+		{"C_recodeDRLE", (DL_FUNC) &recodeDRLE, 2},
 		// data structures
-		{"C_getCompressedVector", (DL_FUNC) &getCompressedVector, 2},
 		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
 		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},
 		{"C_getSparseMatrixR", (DL_FUNC) &getSparseMatrixR, 3},

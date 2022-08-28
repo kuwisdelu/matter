@@ -27,6 +27,28 @@ test_that("drle indexing - double", {
 
 })
 
+test_that("drle subsetting", {
+
+	x <- c(1,1,1,1,1,6,7,8,9,10,21,32,33,34,15)
+	y <- drle(x)
+
+	expect_equal(y, y[1:15,drop=NA])
+	expect_equal(x[1:15], y[1:15,drop=NA][])
+	expect_equal(x[15:1], y[15:1,drop=NA][])
+	expect_equal(x[c(1,3,5,7)], y[c(1,3,5,7),drop=NA][])
+	expect_equal(x[c(3:7,11:14)], y[c(3:7,11:14),drop=NA][])
+
+	x <- c(rep(1L, 10), 10:1, 1:10)
+	y <- drle(x)
+
+	expect_equal(y, y[1:30,drop=NA])
+	expect_equal(x[1:30], y[1:30,drop=NA][])
+	expect_equal(x[30:1], y[30:1,drop=NA][])
+	expect_equal(x[c(7,9,11,13)], y[c(7,9,11,13),drop=NA][])
+	expect_equal(x[c(7:13,17:23)], y[c(7:13,17:23),drop=NA][])
+
+})
+
 test_that("drle combining", {
 
 	x1 <- c(1,1,1,1,1,6,7,8,9,10,21,32,33,34,15)

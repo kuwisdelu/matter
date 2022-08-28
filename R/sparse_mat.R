@@ -319,7 +319,7 @@ get_sparse_matr_elts <- function(x, i = NULL, j = NULL) {
 setMethod("[",
 	c(x = "sparse_matc", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, j, ..., drop) {
-		if ( length(list(...)) > 0 )
+		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		if ( missing(i) )
 			i <- NULL
@@ -334,7 +334,7 @@ setMethod("[",
 setMethod("[",
 	c(x = "sparse_matr", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, j, ..., drop) {
-		if ( length(list(...)) > 0 )
+		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		if ( missing(i) )
 			i <- NULL

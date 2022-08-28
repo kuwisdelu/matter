@@ -116,7 +116,7 @@ setMethod("[",
 	c(x = "sparse_vec", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, ..., drop)
 	{
-		if ( length(list(...)) > 0 )
+		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		if ( missing(i) )
 			i <- NULL

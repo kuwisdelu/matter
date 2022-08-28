@@ -7,13 +7,13 @@
 //-----------------------------
 
 template<typename T>
-Pair<T,R_xlen_t> compute_run(T * x, size_t i, size_t len, bool nz = true)
+Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool nz = true)
 {
 	R_xlen_t n = 1;
 	T delta = 0;
 	if ( nz )
 		delta = (i + 1 < len) ? x[i + 1] - x[i] : 0;
-	while( i < len - 1 )
+	while( i + 1 < len )
 	{
 		T delta2 = x[i + 1] - x[i];
 		bool both_na = isNA(x[i] && isNA(x[i + 1]));
@@ -24,11 +24,11 @@ Pair<T,R_xlen_t> compute_run(T * x, size_t i, size_t len, bool nz = true)
 		else
 			break;
 	}
-	if ( len <= 2 && !equal<T>(delta, 0) )
+	if ( n <= 2 && (i + 2 < len) && !equal<T>(delta, 0) )
 	{
 		R_xlen_t n2 = 1;
 		T delta2 = x[i + 2] - x[i + 1];
-		while( i + 1 < len - 1 )
+		while( i + 2 < len )
 		{
 			T delta3 = x[i + 2] - x[i + 1];
 			bool both_na = isNA(x[i + 1] && isNA(x[i + 2]));
@@ -44,7 +44,7 @@ Pair<T,R_xlen_t> compute_run(T * x, size_t i, size_t len, bool nz = true)
 			delta = 0;
 		}
 	}
-	Pair<T,R_xlen_t> run = {delta, n};
+	Pair<R_xlen_t,T> run = {n, delta};
 	return run;
 }
 
@@ -54,8 +54,8 @@ R_xlen_t num_runs(T * x, R_xlen_t len, bool nz = true)
 	R_xlen_t i = 0, n = 0;
 	while ( i < len )
 	{
-		Pair<T,R_xlen_t> run = compute_run<T>(x, i, len, nz);
-		i += run.second;
+		Pair<R_xlen_t,T> run = compute_run<T>(x, i, len, nz);
+		i += run.first;
 		n++;
 	}
 	return n;
@@ -81,20 +81,20 @@ size_t encode_drle(Tv * x, size_t len, Tv * values,
 	size_t i = 0, j = 0;
 	while ( i < len && j < nruns )
 	{
-		Pair<Tv,R_xlen_t> run = compute_run<Tv>(x, i, len, true);
+		Pair<R_xlen_t,Tv> run = compute_run<Tv>(x, i, len, true);
 		values[j] = static_cast<Tv>(x[i]);
-		deltas[j] = static_cast<Tv>(run.first);
-		lengths[j] = static_cast<Tl>(run.second);
+		deltas[j] = static_cast<Tv>(run.second);
+		lengths[j] = static_cast<Tl>(run.first);
 		i += lengths[j];
 		j++;
 	}
 	return j;
 }
 
-SEXP encode_drle(SEXP x, bool is_long_vec = false)
+SEXP encode_drle(SEXP x)
 {
 	SEXP values, deltas, lengths;
-	SEXPTYPE lengthstype = is_long_vec ? REALSXP : INTSXP;
+	SEXPTYPE lengthstype = IS_LONG_VEC(x) ? REALSXP : INTSXP;
 	switch(TYPEOF(x)) {
 		case INTSXP: {
 			size_t nruns = num_runs(INTEGER(x), XLENGTH(x), true);
@@ -143,69 +143,6 @@ SEXP encode_drle(SEXP x, bool is_long_vec = false)
 	return obj;
 }
 
-template<typename Tv, typename Tl>
-size_t decode_drle(Tv * x, size_t len, Tv * values,
-	Tv * deltas, Tl * lengths, size_t nruns)
-{
-	size_t n = 0;
-	for ( size_t j = 0; j < nruns; j++ )
-	{
-		size_t nj = static_cast<size_t>(lengths[j]);
-		for ( size_t i = 0; i < nj; i++ )
-			x[n + i] = values[j] + i * deltas[j];
-		n += nj;
-	}
-	return n;
-}
-
-SEXP decode_drle(SEXP values, SEXP deltas, SEXP lengths)
-{
-	size_t nruns = XLENGTH(lengths);
-	R_xlen_t len = 0;
-	switch(TYPEOF(lengths)) {
-		case INTSXP:
-			for ( size_t i = 0; i < nruns; i++ )
-				len += INTEGER_ELT(lengths, i);
-			break;
-		case REALSXP:
-			for ( size_t i = 0; i < nruns; i++ )
-				len += REAL_ELT(lengths, i);
-			break;
-	}
-	SEXP x;
-	PROTECT(x = Rf_allocVector(TYPEOF(values), len));
-	switch(TYPEOF(values)) {
-		case INTSXP:
-			switch(TYPEOF(lengths)) {
-				case INTSXP:
-					decode_drle<int,int>(INTEGER(x), len, INTEGER(values),
-						INTEGER(deltas), INTEGER(lengths), nruns);
-					break;
-				case REALSXP:
-					decode_drle<int,double>(INTEGER(x), len, INTEGER(values),
-						INTEGER(deltas), REAL(lengths), nruns);
-					break;
-			}
-			break;
-		case REALSXP:
-			switch(TYPEOF(lengths)) {
-				case INTSXP:
-					decode_drle<double,int>(REAL(x), len, REAL(values),
-						REAL(deltas), INTEGER(lengths), nruns);
-					break;
-				case REALSXP:
-					decode_drle<double,double>(REAL(x), len, REAL(values),
-						REAL(deltas), REAL(lengths), nruns);
-					break;
-			}
-			break;
-		default:
-			Rf_error("unsupported data type");
-	}
-	UNPROTECT(1);
-	return x;
-}
-
 template<typename T>
 class CompressedVector {
 
@@ -232,6 +169,7 @@ class CompressedVector {
 						break;
 				}
 				_is_compressed = true;
+				_is_long_vec = Rf_isReal(_lengths);
 			}
 			else
 			{
@@ -240,10 +178,15 @@ class CompressedVector {
 				_length = XLENGTH(x);
 				_truelength = _length;
 				_is_compressed = false;
+				_is_long_vec = IS_LONG_VEC(x);
 			}
 		}
 
 		~CompressedVector() {}
+
+		SEXPTYPE type() {
+			return _type;
+		}
 
 		R_xlen_t length() {
 			return _length;
@@ -255,6 +198,10 @@ class CompressedVector {
 
 		bool is_compressed() {
 			return _is_compressed;
+		}
+
+		bool is_long_vec() {
+			return _is_long_vec;
 		}
 
 		T values(index_t i) {
@@ -340,7 +287,7 @@ class CompressedVector {
 		SEXP getRegion(index_t i, size_t size)
 		{
 			SEXP x;
-			PROTECT(x = Rf_allocVector(_type, size));
+			PROTECT(x = Rf_allocVector(type(), size));
 			getRegion(i, size, DataPtr<T>(x));
 			UNPROTECT(1);
 			return x;
@@ -348,9 +295,9 @@ class CompressedVector {
 
 		size_t getElements(SEXP indx, T * buffer)
 		{
-			R_xlen_t size = XLENGTH(indx);
+			R_xlen_t ni = XLENGTH(indx);
 			size_t j;
-			for ( j = 0; j < size; j++ )
+			for ( j = 0; j < ni; j++ )
 			{
 				index_t i = IndexElt(indx, j);
 				buffer[j] = get(i - 1);
@@ -363,7 +310,7 @@ class CompressedVector {
 			SEXP x;
 			if ( indx == R_NilValue )
 				return getRegion(0, length());
-			PROTECT(x = Rf_allocVector(_type, XLENGTH(indx)));
+			PROTECT(x = Rf_allocVector(type(), XLENGTH(indx)));
 			getElements(indx, DataPtr<T>(x));
 			UNPROTECT(1);
 			return x;
@@ -371,7 +318,7 @@ class CompressedVector {
 
 		index_t find(T value)
 		{
-			if ( !is_compressed() )
+			if ( is_compressed() )
 			{
 				index_t i = 0;
 				for ( size_t run = 0; run < truelength(); run++ ) {
@@ -408,7 +355,134 @@ class CompressedVector {
 		index_t _last_index = 0; // cache most recent access
 		index_t _last_run = 0;   // cache most recent access
 		bool _is_compressed;
+		bool _is_long_vec;
 
 };
+
+template<typename T>
+Pair<R_xlen_t,T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
+{
+	R_xlen_t n = 1;
+	index_t i1 = IndexElt(indx, j) - 1;
+	index_t i2 = IndexElt(indx, j + 1) - 1;
+	T delta = (j + 1 < XLENGTH(indx)) ? x[i2] - x[i1] : 0;
+	while( j + 1 < XLENGTH(indx) )
+	{
+		i1 = IndexElt(indx, j) - 1;
+		i2 = IndexElt(indx, j + 1) - 1;
+		T delta2 = x[i2] - x[i1];
+		bool both_na = isNA(x[i1] && isNA(x[i2]));
+		if ( equal<T>(delta, delta2) || both_na ) {
+			n++;
+			j++;
+		}
+		else
+			break;
+	}
+	if ( n <= 2 && (j + 2 < XLENGTH(indx)) && !equal<T>(delta, 0) )
+	{
+		R_xlen_t n2 = 1;
+		i1 = IndexElt(indx, j + 1) - 1;
+		i2 = IndexElt(indx, j + 2) - 1;
+		T delta2 = x[i2] - x[i1];
+		while( j + 2 < XLENGTH(indx) )
+		{
+			i1 = IndexElt(indx, j + 1) - 1;
+			i2 = IndexElt(indx, j + 2) - 1;
+			T delta3 = x[i2] - x[i1];
+			bool both_na = isNA(x[i1] && isNA(x[i2]));
+			if ( equal<T>(delta2, delta3) || both_na ) {
+				n2++;
+				j++;
+			}
+			else
+				break;
+		}
+		if ( n2 > n ) {
+			n = 1;
+			delta = 0;
+		}
+	}
+	Pair<R_xlen_t,T> run = {n, delta};
+	return run;
+}
+
+template<typename T>
+R_xlen_t num_runs(CompressedVector<T> x, SEXP indx)
+{
+	R_xlen_t i = 0, n = 0;
+	while ( i < XLENGTH(indx) )
+	{
+		Pair<R_xlen_t,T> run = compute_run<T>(x, indx, i);
+		i += run.first;
+		n++;
+	}
+	return n;
+}
+
+template<typename Tv, typename Tl>
+size_t recode_drle(CompressedVector<Tv> x, SEXP indx, Tv * values,
+	Tv * deltas, Tl * lengths, size_t nruns)
+{
+	size_t i = 0, j = 0;
+	while ( i < XLENGTH(indx) && j < nruns )
+	{
+		Pair<R_xlen_t,Tv> run = compute_run<Tv>(x, indx, i);
+		values[j] = static_cast<Tv>(x[IndexElt(indx, i) - 1]);
+		deltas[j] = static_cast<Tv>(run.second);
+		lengths[j] = static_cast<Tl>(run.first);
+		i += lengths[j];
+		j++;
+	}
+	return j;
+}
+
+template<typename T>
+SEXP recode_drle(CompressedVector<T> x, SEXP indx)
+{
+	SEXP values, deltas, lengths;
+	SEXPTYPE lengthstype = x.is_long_vec() ? REALSXP : INTSXP;
+	size_t nruns = num_runs(x, indx);
+	PROTECT(values = Rf_allocVector(x.type(), nruns));
+	PROTECT(deltas = Rf_allocVector(x.type(), nruns));
+	PROTECT(lengths = Rf_allocVector(lengthstype, nruns));
+	switch(lengthstype) {
+		case INTSXP:
+			recode_drle<T,int>(x, indx, DataPtr<T>(values),
+				DataPtr<T>(deltas), INTEGER(lengths), nruns);
+			break;
+		case REALSXP:
+			recode_drle<T,double>(x, indx, DataPtr<T>(values),
+				DataPtr<T>(deltas), REAL(lengths), nruns);
+			break;
+	}
+	SEXP classDef, obj;
+	PROTECT(classDef = R_do_MAKE_CLASS("drle"));
+	PROTECT(obj = R_do_new_object(classDef));
+	R_do_slot_assign(obj, Rf_install("values"), values);
+	R_do_slot_assign(obj, Rf_install("deltas"), deltas);
+	R_do_slot_assign(obj, Rf_install("lengths"), lengths);
+	UNPROTECT(5);
+	return obj;
+}
+
+SEXP recode_drle(SEXP x, SEXP indx)
+{
+	if ( indx == R_NilValue )
+		return x;
+	SEXP values = R_do_slot(x, Rf_install("values"));
+	switch(TYPEOF(values)) {
+		case INTSXP: {
+			CompressedVector<int> y(x);
+			return recode_drle(y, indx);
+		}
+		case REALSXP: {
+			CompressedVector<double> y(x);
+			return recode_drle(y, indx);
+		}
+		default:
+			Rf_error("unsupported data type");
+	}
+}
 
 #endif // DRLE
