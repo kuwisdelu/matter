@@ -7,13 +7,13 @@
 //-----------------------------
 
 template<typename T>
-Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool seq_only = false)
+Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool seq = false)
 {
 	R_xlen_t n = 1;
 	T delta = 0;
 	if ( i + 1 < len && !isNA(x[i]) && !isNA(x[i + 1]) )
 		delta = x[i + 1] - x[i];
-	if ( seq_only && !equal<T>(std::fabs(delta), 1) && !equal<T>(delta, 0) )
+	if ( seq && !equal<T>(std::fabs(delta), 1) && !equal<T>(delta, 0) )
 	{
 		Pair<R_xlen_t,T> run = {1, 0};
 		return run;
@@ -56,26 +56,26 @@ Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool seq_only = false)
 }
 
 template<typename T>
-R_xlen_t num_runs(T * x, R_xlen_t len, bool seq_only = false)
+R_xlen_t num_runs(T * x, R_xlen_t len, bool seq = false)
 {
 	R_xlen_t i = 0, n = 0;
 	while ( i < len )
 	{
-		Pair<R_xlen_t,T> run = compute_run<T>(x, i, len, seq_only);
+		Pair<R_xlen_t,T> run = compute_run<T>(x, i, len, seq);
 		i += run.first;
 		n++;
 	}
 	return n;
 }
 
-R_xlen_t num_runs(SEXP x, bool seq_only = false)
+R_xlen_t num_runs(SEXP x, bool seq = false)
 {
 	R_xlen_t len = XLENGTH(x);
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			return num_runs<int>(INTEGER(x), len, seq_only);
+			return num_runs<int>(INTEGER(x), len, seq);
 		case REALSXP:
-			return num_runs<double>(REAL(x), len, seq_only);
+			return num_runs<double>(REAL(x), len, seq);
 		default:
 			Rf_error("unsupported data type");
 	}

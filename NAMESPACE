@@ -32,6 +32,7 @@ importFrom("BiocGenerics",
 	"rowMeans",
 	"rowSums",
 	"t",
+	"dims",
 	"path",
 	"path<-",
 	"combine",
@@ -76,6 +77,12 @@ exportClasses(
 export(
 	"drle",
 	"is.drle")
+
+export(
+	"read_atom",
+	"write_atom",
+	"read_atoms",
+	"write_atoms")
 
 export(
 	"matter",
@@ -125,12 +132,6 @@ exportMethods(
 	"chunksize",
 	"chunksize<-")
 
-exportMethods("checksum")
-
-exportMethods(
-	"describe_for_display",
-	"preview_for_display")
-
 exportMethods(
 	"aindex",
 	"atomindex",
@@ -147,6 +148,12 @@ exportMethods(
 	"combiner<-",
 	"nnzero")
 
+exportMethods("checksum")
+
+exportMethods(
+	"describe_for_display",
+	"preview_for_display")
+
 exportMethods(
 	"%*%",
 	"[",
@@ -157,6 +164,8 @@ exportMethods(
 	"combine",
 	"cbind",
 	"rbind",
+	"cbind2",
+	"rbind2",
 	"lengths",
 	"length",
 	"length<-",
@@ -288,7 +297,8 @@ exportMethods(
 
 exportMethods("prcomp")
 
-export("reldiff",
+export(
+	"reldiff",
 	"asearch",
 	"bsearch")
 

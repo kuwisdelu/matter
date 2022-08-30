@@ -36,7 +36,7 @@ drle <- function(x, cr_threshold = 0, ...)
 	if ( is.drle(x) )
 		return(x)
 	y <- .Call("C_encodeDRLE", x, cr_threshold, PACKAGE="matter")
-	if ( is.factor(x) )
+	if ( is.factor(x) && is.drle(y) )
 		y <- new("drle_fc", y, levels=levels(x))
 	if ( validObject(y) )
 		y

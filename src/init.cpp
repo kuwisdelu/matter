@@ -1,6 +1,5 @@
 #include <R_ext/Rdynload.h>
 
-#include "atoms.h"
 #include "matter.h"
 #include "matterExports.h"
 
@@ -18,6 +17,11 @@ extern "C" {
 		{"C_encodeDRLE", (DL_FUNC) &encodeDRLE, 2},
 		{"C_decodeDRLE", (DL_FUNC) &decodeDRLE, 2},
 		{"C_recodeDRLE", (DL_FUNC) &recodeDRLE, 2},
+		// internal
+		{"C_readAtom", (DL_FUNC) &readAtom, 3},
+		{"C_writeAtom", (DL_FUNC) &writeAtom, 3},
+		{"C_readAtoms", (DL_FUNC) &readAtoms, 4},
+		{"C_writeAtoms", (DL_FUNC) &writeAtoms, 4},
 		// data structures
 		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
 		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},

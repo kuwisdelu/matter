@@ -14,6 +14,13 @@
 #define REL_DIFF_X  2
 #define REL_DIFF_Y  3
 
+#define R_RAW		1
+#define R_LOGICAL	2
+#define R_INTEGER	3
+#define R_DOUBLE	4
+#define R_STRING	5
+#define R_LIST		6
+
 #define C_CHAR		1
 #define C_UCHAR		2
 #define C_SHORT		3

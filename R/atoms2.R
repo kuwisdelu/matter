@@ -32,8 +32,8 @@ setClass("atoms2",
 				"'extent' [", lens["extent"], "], ",
 				"and 'group' [", lens["group"], "] ",
 				"must all be equal"))
-		# FIXME: shouldn't need to realize drle objects[]
-		# (add supported for these functions on drle directly)
+		# FIXME: shouldn't need to realize drle vectors[]
+		# (add support for these functions on drle directly)
 		if ( any(object@offset[] < 0) )
 			errors <- c(errors, "'offset' must be non-negative")
 		if ( any(object@extent[] < 0) )
@@ -49,18 +49,8 @@ setClass("atoms2",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setMethod("initialize", "atoms2",
-	function(.Object, ...) {
-		callNextMethod()
-		p <- which(as.logical(diff(.Object@group[]))) # FIXME: shouldn't need to realize groups[]
-		p <- c(0L, p, length(.Object@group))
-		p <- drle(p, cr_threshold=getOption("matter.compress.atoms"))
-		.Object@pointers <- p
-		.Object
-	})
-
-atoms2 <- function(source, type = "double", offset = 0, extent = 0,
-	group = 0L, ..., readonly = TRUE, compress = getOption("matter.compress.atoms"))
+atoms2 <- function(source = tempfile(), type = "int",
+	offset = 0, extent = 0, group = 0L, readonly = TRUE)
 {
 	n <- max(length(source), length(type),
 		length(offset), length(extent), length(group))
@@ -74,20 +64,69 @@ atoms2 <- function(source, type = "double", offset = 0, extent = 0,
 		extent <- rep_len(extent, n)
 	if ( length(group) != n )
 		group <- rep_len(group, n)
-	source <- as.factor(source)
-	type <- make_datamode(type, type="C")
-	if ( compress > 0 && n > 1 ) {
+	if ( !is(source, "factor_OR_drle") )
+		source <- as.factor(source)
+	if ( !is(type, "factor_OR_drle") )
+		type <- make_datamode(type, type="C")
+	group <- as.logical(diff(as.integer(group)))
+	group <- c(0L, cumsum(group))
+	pointers <- c(0L, which(group), length(group))
+	compress <- getOption("matter.compress.atoms")
+	if ( compress && n > 1 ) {
 		source <- drle(source, cr_threshold=compress)
 		type <- drle(type, cr_threshold=compress)
 		offset <- drle(offset, cr_threshold=compress)
 		extent <- drle(extent, cr_threshold=compress)
 		group <- drle(group, cr_threshold=compress)
+		pointers <- drle(pointers, cr_threshold=compress)
 	}
 	x <- new("atoms2", source=source, type=type,
-		offset=offset, extent=extent,
-		group=group, readonly=readonly)
+		offset=offset, extent=extent, group=group,
+		pointers=pointers, readonly=readonly)
 	if ( validObject(x) )
 		x
+}
+
+setMethod("describe_for_display", "atoms2", function(x) {
+	natoms <- length(x@offset)
+	ngroups <- length(x@pointers) - 1L
+	desc1 <- paste0("<", natoms, " length> ", class(x))
+	desc2 <- paste0("units of data")
+	paste0(desc1, " :: ", desc2)
+})
+
+setMethod("show", "atoms2", function(object) {
+	cat(describe_for_display(object), "\n", sep="")
+	n <- getOption("matter.show.head.n")
+	x <- as.data.frame(object)
+	x$source <- basename(as.character(x$source))
+	print(head(x, n=n))
+	if ( nrow(x) > n )
+		cat("... and", nrow(x) - n, "more atoms\n")
+})
+
+read_atom <- function(x, atom, type = "double")
+{
+	.Call("C_readAtom", x, as.integer(atom - 1),
+		make_datamode(type, type="R"), PACKAGE="matter")
+}
+
+write_atom <- function(x, atom, value)
+{
+	.Call("C_writeAtom", x, as.integer(atom - 1),
+		value, PACKAGE="matter")
+}
+
+read_atoms <- function(x, i, type = "double", group = 0L)
+{
+	.Call("C_readAtoms", x, i, make_datamode(type, type="R"),
+		as.integer(group), PACKAGE="matter")
+}
+
+write_atoms <- function(x, i, value, group = 0L)
+{
+	.Call("C_writeAtoms", x, i, value,
+		as.integer(group), PACKAGE="matter")
 }
 
 setMethod("as.data.frame", "atoms2",
@@ -103,65 +142,88 @@ setMethod("as.data.frame", "atoms2",
 setMethod("as.list", "atoms2",
 	function(x, ...) as.list(as.data.frame(x, ...)))
 
-setMethod("length", "atoms2", function(x) sum(x@extent))
+setMethod("length", "atoms2", function(x) length(x@offset))
 
-setMethod("combine", "atoms2",
+setMethod("lengths", "atoms2",
+	function(x, use.names = TRUE) as.double(x@extent))
+
+setMethod("dim", "atoms2",
+	function(x) {
+		extents <- as.double(x@extent)
+		groups <- as.integer(x@group)
+		ncols <- length(x@pointers) - 1
+		nrows <- unique(tapply(extents, groups, sum))
+		if ( length(nrows) > 1 ) {
+			nrows <- NA_integer_ # if jagged array
+		} else {
+			nrows <- as.vector(nrows) # drop names
+		}
+		c(nrows, ncols)
+	})
+
+setMethod("cbind2", "atoms2",
 	function(x, y, ...) {
-		new("atoms2",
-			source=c(x@source, y@source),
+		x@group <- as.integer(x@group)
+		y@group <- as.integer(y@group)
+		y@group <- y@group + max(x@group) + 1L
+		atoms2(source=c(x@source, y@source),
 			type=c(x@type, y@type),
 			offset=c(x@offset, y@offset),
 			extent=c(x@extent, y@extent),
 			group=c(x@group, y@group),
-			readonly=x@readonly | y@readonly)
+			readonly=x@readonly || y@readonly)
+	})
+
+setMethod("rbind2", "atoms2",
+	function(x, y, ...) {
+		groups <- c(x@group, y@group)
+		o <- order(groups, method="radix")
+		atoms2(source=c(x@source, y@source)[o],
+			type=c(x@type, y@type)[o],
+			offset=c(x@offset, y@offset)[o],
+			extent=c(x@extent, y@extent)[o],
+			group=groups[o],
+			readonly=x@readonly || y@readonly)
 	})
 
 setMethod("[", c(x="atoms2"),
-	function(x, i, ...) {
-		if ( ...length() > 0 )
-			stop("incorect number of dimensions")
-		if ( anyNA(i) )
-			stop("NAs not allowed when subsetting atoms")
-		new("atoms",
-			source=x@source[i],
-			type=x@type[i],
-			offset=x@offset[i],
-			extent=x@extent[i],
-			group=x@group[i],
-			readonly=x@readonly)
+	function(x, i, j, ...) {
+		if ( nargs() == 2 ) {
+			atoms2(source=x@source[i],
+				type=x@type[i],
+				offset=x@offset[i],
+				extent=x@extent[i],
+				group=x@group[i],
+				readonly=x@readonly)
+		} else {
+			if ( ...length() > 0 )
+				stop("incorrect number of dimensions")
+			if ( !missing(j) )
+				x <- x[which(as.integer(x@group) %in% (j - 1L))]
+			if ( !missing(i) )
+				stop("not implemented yet") # FIXME
+			if ( validObject(x) )
+				x
+		}
 	})
 
 setMethod("[[", "atoms2",
 	function(x, i, ...) {
-		if ( length(i) > 1 )
+		if ( length(i) > 1 ) {
 			stop("attempt to select more than one element")
-		x[i]
+		} else {
+			x[i]
+		}
 	})
 
 setMethod("c", "atoms2", function(x, ...)
 {
 	if ( ...length() > 0 ) {
-		do.call(combine, list(x, ...))
+		do.call(rbind, list(x, ...))
 	} else {
 		x
 	}
 })
 
-setMethod("describe_for_display", "atoms2", function(x) {
-	natoms <- length(x@offset)
-	ngroups <- length(x@groups) - 1L
-	desc1 <- paste0("<", natoms, " length, ", ngroups, " groups> ", class(x))
-	desc2 <- paste0("units of data")
-	paste0(desc1, " :: ", desc2)
-})
 
-setMethod("show", "atoms2", function(object) {
-	cat(describe_for_display(object), "\n", sep="")
-	n <- getOption("matter.show.head.n")
-	x <- as.data.frame(object)
-	x$source <- basename(as.character(x$source))
-	print(head(x, n=n))
-	if ( nrow(x) > n )
-		cat("... and", nrow(x) - n, "more atoms\n")
-})
 

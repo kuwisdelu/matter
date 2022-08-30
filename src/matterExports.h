@@ -3,11 +3,14 @@
 #define MATTER_EXPORTS
 
 #include "drle.h"
+#include "atoms.h"
 #include "signal.h"
 #include "search.h"
 #include "sparse.h"
 
 extern "C" {
+
+	// search
 
 	SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
 	{
@@ -50,6 +53,8 @@ extern "C" {
 		}
 	}
 
+	// compression
+
 	SEXP encodeDRLE(SEXP x, SEXP cr)
 	{
 		return encode_drle(x, Rf_asReal(cr));
@@ -76,6 +81,116 @@ extern "C" {
 				Rf_error("unsupported data type");
 		}
 	}
+
+	// internal
+
+	SEXP readAtom(SEXP x, SEXP i, SEXP type)
+	{
+		SEXP ans;
+		Atoms2 y(x);
+		int j = Rf_asInteger(i);
+		R_xlen_t len = static_cast<R_xlen_t>(y.extent(j));
+		switch(Rf_asInteger(type)) {
+			case R_RAW:
+				PROTECT(ans = Rf_allocVector(RAWSXP, len));
+				y.get_atom<Rbyte>(RAW(ans), j, 0, len);
+				break;
+			case R_INTEGER:
+				PROTECT(ans = Rf_allocVector(INTSXP, len));
+				y.get_atom<int>(INTEGER(ans), j, 0, len);
+				break;
+			case R_DOUBLE:
+				PROTECT(ans = Rf_allocVector(REALSXP, len));
+				y.get_atom<double>(REAL(ans), j, 0, len);
+				break;
+			default:
+				y.self_destruct();
+				Rf_error("data type must be raw, integer, or double");
+		}
+		UNPROTECT(1);
+		return ans;
+	}
+
+	SEXP writeAtom(SEXP x, SEXP i, SEXP value)
+	{
+		Atoms2 y(x);
+		int j = Rf_asInteger(i);
+		R_xlen_t len = static_cast<R_xlen_t>(y.extent(j));
+		if ( len != XLENGTH(value) ) {
+			y.self_destruct();
+			Rf_error("length of value does not match atom extent");
+		}
+		switch(TYPEOF(value)) {
+			case RAWSXP:
+				y.set_atom<Rbyte>(RAW(value), j, 0, len);
+				break;
+			case INTSXP:
+				y.set_atom<int>(INTEGER(value), j, 0, len);
+				break;
+			case REALSXP:
+				y.set_atom<double>(REAL(value), j, 0, len);
+				break;
+			default:
+				y.self_destruct();
+				Rf_error("data type must be raw, integer, or double");
+		}
+		return x;
+	}
+
+	SEXP readAtoms(SEXP x, SEXP indx, SEXP type, SEXP grp)
+	{
+		SEXP ans;
+		Atoms2 y(x);
+		int g = Rf_asInteger(grp);
+		R_xlen_t len = XLENGTH(indx);
+		switch(Rf_asInteger(type)) {
+			case R_RAW:
+				PROTECT(ans = Rf_allocVector(RAWSXP, len));
+				y.get_elements<Rbyte>(RAW(ans), indx, g);
+				break;
+			case R_INTEGER:
+				PROTECT(ans = Rf_allocVector(INTSXP, len));
+				y.get_elements<int>(INTEGER(ans), indx, g);
+				break;
+			case R_DOUBLE:
+				PROTECT(ans = Rf_allocVector(REALSXP, len));
+				y.get_elements<double>(REAL(ans), indx, g);
+				break;
+			default:
+				y.self_destruct();
+				Rf_error("data type must be raw, integer, or double");
+		}
+		UNPROTECT(1);
+		return ans;
+	}
+
+	SEXP writeAtoms(SEXP x, SEXP indx, SEXP value, SEXP grp)
+	{
+		Atoms2 y(x);
+		int g = Rf_asInteger(grp);
+		R_xlen_t len = XLENGTH(indx);
+		if ( len != XLENGTH(value) ) {
+			y.self_destruct();
+			Rf_error("length of value does not match atom extent");
+		}
+		switch(TYPEOF(value)) {
+			case RAWSXP:
+				y.set_elements<Rbyte>(RAW(value), indx, g);
+				break;
+			case INTSXP:
+				y.set_elements<int>(INTEGER(value), indx, g);
+				break;
+			case REALSXP:
+				y.set_elements<double>(REAL(value), indx, g);
+				break;
+			default:
+				y.self_destruct();
+				Rf_error("data type must be raw, integer, or double");
+		}
+		return x;
+	}
+
+	// data structures
 
 	SEXP getSparseVector(SEXP x, SEXP i)
 	{
