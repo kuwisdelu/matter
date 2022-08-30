@@ -12,7 +12,8 @@ License: Artistic-2.0
 Depends: R (>= 3.5), BiocParallel, Matrix, methods, stats, biglm
 Imports: BiocGenerics, ProtGenerics, digest, irlba, utils
 Suggests: BiocStyle, testthat
-Collate: matterGenerics.R utils.R drle.R atoms.R matter.R
+Collate: matterGenerics.R utils.R drle.R
+	atoms.R atoms2.R matter.R
 	matter_vec.R matter_mat.R matter_arr.R matter_list.R
 	matter_str.R matter_fc.R matter_vt.R
 	search.R rep_vt.R

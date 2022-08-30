@@ -7,12 +7,17 @@
 //-----------------------------
 
 template<typename T>
-Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool nz = true)
+Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool seq_only = false)
 {
 	R_xlen_t n = 1;
 	T delta = 0;
-	if ( nz && i + 1 < len && !isNA(x[i]) && !isNA(x[i + 1]) )
+	if ( i + 1 < len && !isNA(x[i]) && !isNA(x[i + 1]) )
 		delta = x[i + 1] - x[i];
+	if ( seq_only && !equal<T>(std::fabs(delta), 1) && !equal<T>(delta, 0) )
+	{
+		Pair<R_xlen_t,T> run = {1, 0};
+		return run;
+	}
 	while( i + 1 < len )
 	{
 		bool both_na = isNA(x[i]) && isNA(x[i + 1]);
@@ -51,26 +56,26 @@ Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool nz = true)
 }
 
 template<typename T>
-R_xlen_t num_runs(T * x, R_xlen_t len, bool nz = true)
+R_xlen_t num_runs(T * x, R_xlen_t len, bool seq_only = false)
 {
 	R_xlen_t i = 0, n = 0;
 	while ( i < len )
 	{
-		Pair<R_xlen_t,T> run = compute_run<T>(x, i, len, nz);
+		Pair<R_xlen_t,T> run = compute_run<T>(x, i, len, seq_only);
 		i += run.first;
 		n++;
 	}
 	return n;
 }
 
-R_xlen_t num_runs(SEXP x, bool nz = true)
+R_xlen_t num_runs(SEXP x, bool seq_only = false)
 {
 	R_xlen_t len = XLENGTH(x);
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			return num_runs<int>(INTEGER(x), len, nz);
+			return num_runs<int>(INTEGER(x), len, seq_only);
 		case REALSXP:
-			return num_runs<double>(REAL(x), len, nz);
+			return num_runs<double>(REAL(x), len, seq_only);
 		default:
 			Rf_error("unsupported data type");
 	}
@@ -83,7 +88,7 @@ size_t encode_drle(Tv * x, size_t len, Tv * values,
 	size_t i = 0, j = 0;
 	while ( i < len && j < nruns )
 	{
-		Pair<R_xlen_t,Tv> run = compute_run<Tv>(x, i, len, true);
+		Pair<R_xlen_t,Tv> run = compute_run<Tv>(x, i, len);
 		values[j] = static_cast<Tv>(x[i]);
 		deltas[j] = static_cast<Tv>(run.second);
 		lengths[j] = static_cast<Tl>(run.first);
@@ -334,7 +339,7 @@ class CompressedVector {
 					T mvalue = values(run) + (deltas(run) * (lengths(run) - 1));
 					if ( equal<T>(delta, 0) )
 						return i;
-					if ( value <= mvalue && equal(fmod(delta, deltas(run)), 0) )
+					if ( value <= mvalue && equal(std::fmod(delta, deltas(run)), 0) )
 						return i + static_cast<index_t>(delta / deltas(run));
 					i += lengths(run);
 				}

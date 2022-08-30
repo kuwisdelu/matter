@@ -14,6 +14,17 @@
 #define REL_DIFF_X  2
 #define REL_DIFF_Y  3
 
+#define C_CHAR		1
+#define C_UCHAR		2
+#define C_SHORT		3
+#define C_USHORT	4
+#define C_INT		5
+#define C_UINT		6
+#define C_LONG		7
+#define C_ULONG		8
+#define C_FLOAT		9
+#define C_DOUBLE	10
+
 //// Indexing types
 //-------------------
 
@@ -108,14 +119,14 @@ inline bool isNA(int x)
     return x == NA_INTEGER || x == NA_LOGICAL;
 }
 
-inline bool isNA(long x)
-{
-    return ((int)(x)) == NA_INTEGER || ((int)(x)) == NA_LOGICAL;
-}
-
 inline bool isNA(double x)
 {
     return ISNA(x) || ISNAN(x);
+}
+
+inline bool isNA(index_t x)
+{
+    return ((int)(x)) == NA_INTEGER || ((int)(x)) == NA_LOGICAL;
 }
 
 inline bool isNA(SEXP x)
@@ -197,7 +208,7 @@ double rel_change(SEXP x, SEXP y, int ref)
 template<typename T>
 double rel_diff(T x, T y, int ref = ABS_DIFF)
 {
-	return fabs(rel_change<T>(x, y, ref));
+	return std::fabs(rel_change<T>(x, y, ref));
 }
 
 inline int switch_tol_ref(int tol_ref)

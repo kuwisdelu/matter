@@ -248,7 +248,9 @@ export(
 	"chunk_apply",
 	"chunk_mapply")
 
-export("atoms")
+export(
+	"atoms",
+	"atoms2")
 
 export(
 	"uuid",

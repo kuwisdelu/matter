@@ -272,23 +272,23 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP valu
 		0, LENGTH(values), tol, tol_ref, nomatch, interp, sorted, stride);
 }
 
-template<typename T>
+template<typename Tval>
 SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
-	T nomatch, int interp = EST_NEAR, bool sorted = true)
+	Tval nomatch, int interp = EST_NEAR, bool sorted = true)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(TYPEOF(values), LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			do_approx_search<int,T>(DataPtr<T>(result), INTEGER(x), LENGTH(x),
+			do_approx_search<int,Tval>(DataPtr<Tval>(result), INTEGER(x), LENGTH(x),
 				keys, values, tol, tol_ref, nomatch, interp, sorted);
 			break;
 		case REALSXP:
-			do_approx_search<double,T>(DataPtr<T>(result), REAL(x), LENGTH(x),
+			do_approx_search<double,Tval>(DataPtr<Tval>(result), REAL(x), LENGTH(x),
 				keys, values, tol, tol_ref, nomatch, interp, sorted);
 			break;
 		case STRSXP:
-			do_approx_search<SEXP,T>(DataPtr<T>(result), STRING_PTR(x), LENGTH(x),
+			do_approx_search<SEXP,Tval>(DataPtr<Tval>(result), STRING_PTR(x), LENGTH(x),
 				keys, values, tol, tol_ref, nomatch, interp, sorted);
 			break;
 		default:

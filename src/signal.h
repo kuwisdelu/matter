@@ -22,7 +22,7 @@ inline double sinc(double x)
 	if ( x == 0 )
 		return 1;
 	else
-		return sin(x) / x;
+		return std::sin(x) / x;
 }
 
 // Lanczos kernel
@@ -34,7 +34,7 @@ inline double klanczos(double x, double a)
 // Gaussian kernel
 inline double kgaussian(double x, double sd)
 {
-	return exp(-(x * x) / (2 * (sd * sd)));
+	return std::exp(-(x * x) / (2 * (sd * sd)));
 }
 
 //// Interpolation
@@ -90,7 +90,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 		for ( index_t i = init; i < end && i >= 0; i += k )
 		{
 			delta = rel_change<Tx>(xi, x[i], tol_ref);
-			diff = fabs(delta);
+			diff = std::fabs(delta);
 			if ( diff > tol ) {
 				if ( i > 0 && delta < 0 && sorted )
 					break;

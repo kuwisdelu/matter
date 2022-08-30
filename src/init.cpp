@@ -1,5 +1,6 @@
 #include <R_ext/Rdynload.h>
 
+#include "atoms.h"
 #include "matter.h"
 #include "matterExports.h"
 

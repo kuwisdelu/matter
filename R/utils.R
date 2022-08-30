@@ -4,6 +4,7 @@
 
 .onLoad <- function(libname, pkgname) {
 	options(matter.cast.warning = TRUE)
+	options(matter.compress.atoms = 3)
 	options(matter.default.chunksize = 1000000L)
 	options(matter.show.head = TRUE)
 	options(matter.show.head.n = 6L)
