@@ -25,13 +25,13 @@ setClass("drle_fc",
 	slots = c(levels = "character"),
 	contains = "drle")
 
-drle <- function(x, cr_threshold = 0, ...)
+drle <- function(x, cr_threshold = 0)
 {
-	if ( !is.numeric(x) || ...length() > 0 )
+	if ( !is.numeric(x) )
 	{
 		if ( is.drle(x) )
 			x <- as.vector(x)
-		x <- factor(x, ...)
+		x <- as.factor(x)
 	}
 	if ( is.drle(x) )
 		return(x)

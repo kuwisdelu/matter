@@ -3,19 +3,29 @@
 
 #include "Rutils.h"
 
+//// Struct for runs
+//--------------------
+
+template<typename T>
+struct RunInfo {
+	T value;
+	T delta;
+	R_xlen_t length;
+};
+
 //// Delta run length encoding 
 //-----------------------------
 
 template<typename T>
-Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool seq = false)
+RunInfo<T> compute_run(T * x, size_t i, size_t len, bool seq = false)
 {
 	R_xlen_t n = 1;
-	T delta = 0;
+	T value = x[i], delta = 0;
 	if ( i + 1 < len && !isNA(x[i]) && !isNA(x[i + 1]) )
 		delta = x[i + 1] - x[i];
 	if ( seq && !equal<T>(std::fabs(delta), 1) && !equal<T>(delta, 0) )
 	{
-		Pair<R_xlen_t,T> run = {1, 0};
+		RunInfo<T> run = {value, 0, 1};
 		return run;
 	}
 	while( i + 1 < len )
@@ -51,7 +61,7 @@ Pair<R_xlen_t,T> compute_run(T * x, size_t i, size_t len, bool seq = false)
 			delta = 0;
 		}
 	}
-	Pair<R_xlen_t,T> run = {n, delta};
+	RunInfo<T> run = {value, delta, n};
 	return run;
 }
 
@@ -61,14 +71,14 @@ R_xlen_t num_runs(T * x, R_xlen_t len, bool seq = false)
 	R_xlen_t i = 0, n = 0;
 	while ( i < len )
 	{
-		Pair<R_xlen_t,T> run = compute_run<T>(x, i, len, seq);
-		i += run.first;
+		RunInfo<T> run = compute_run<T>(x, i, len, seq);
+		i += run.length;
 		n++;
 	}
 	return n;
 }
 
-R_xlen_t num_runs(SEXP x, bool seq = false)
+inline R_xlen_t num_runs(SEXP x, bool seq = false)
 {
 	R_xlen_t len = XLENGTH(x);
 	switch(TYPEOF(x)) {
@@ -88,17 +98,17 @@ size_t encode_drle(Tv * x, size_t len, Tv * values,
 	size_t i = 0, j = 0;
 	while ( i < len && j < nruns )
 	{
-		Pair<R_xlen_t,Tv> run = compute_run<Tv>(x, i, len);
-		values[j] = static_cast<Tv>(x[i]);
-		deltas[j] = static_cast<Tv>(run.second);
-		lengths[j] = static_cast<Tl>(run.first);
+		RunInfo<Tv> run = compute_run<Tv>(x, i, len);
+		values[j] = static_cast<Tv>(run.value);
+		deltas[j] = static_cast<Tv>(run.delta);
+		lengths[j] = static_cast<Tl>(run.length);
 		i += lengths[j];
 		j++;
 	}
 	return j;
 }
 
-SEXP encode_drle(SEXP x, double cr = 0)
+inline SEXP encode_drle(SEXP x, double cr = 0)
 {
 	SEXP values, deltas, lengths;
 	size_t nruns = num_runs(x);
@@ -405,12 +415,12 @@ class CompressedFactor : public CompressedVector<int> {
 };
 
 template<typename T>
-Pair<R_xlen_t,T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
+RunInfo<T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
 {
 	R_xlen_t n = 1;
 	index_t i1 = 0;
 	index_t i2 = 0;
-	T delta = 0;
+	T value = x[IndexElt(indx, j) - 1], delta = 0;
 	if ( j + 1 < XLENGTH(indx) )
 	{
 		i1 = IndexElt(indx, j) - 1;
@@ -457,7 +467,7 @@ Pair<R_xlen_t,T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
 			delta = 0;
 		}
 	}
-	Pair<R_xlen_t,T> run = {n, delta};
+	RunInfo<T> run = {value, delta, n};
 	return run;
 }
 
@@ -467,8 +477,8 @@ R_xlen_t num_runs(CompressedVector<T> x, SEXP indx)
 	R_xlen_t i = 0, n = 0;
 	while ( i < XLENGTH(indx) )
 	{
-		Pair<R_xlen_t,T> run = compute_run<T>(x, indx, i);
-		i += run.first;
+		RunInfo<T> run = compute_run<T>(x, indx, i);
+		i += run.length;
 		n++;
 	}
 	return n;
@@ -481,10 +491,10 @@ size_t recode_drle(CompressedVector<Tv> x, SEXP indx, Tv * values,
 	size_t i = 0, j = 0;
 	while ( i < XLENGTH(indx) && j < nruns )
 	{
-		Pair<R_xlen_t,Tv> run = compute_run<Tv>(x, indx, i);
-		values[j] = static_cast<Tv>(x[IndexElt(indx, i) - 1]);
-		deltas[j] = static_cast<Tv>(run.second);
-		lengths[j] = static_cast<Tl>(run.first);
+		RunInfo<Tv> run = compute_run<Tv>(x, indx, i);
+		values[j] = static_cast<Tv>(run.value);
+		deltas[j] = static_cast<Tv>(run.delta);
+		lengths[j] = static_cast<Tl>(run.length);
 		i += lengths[j];
 		j++;
 	}
@@ -520,7 +530,7 @@ SEXP recode_drle(CompressedVector<T> x, SEXP indx)
 	return obj;
 }
 
-SEXP recode_drle(SEXP x, SEXP indx)
+inline SEXP recode_drle(SEXP x, SEXP indx)
 {
 	if ( indx == R_NilValue )
 		return x;

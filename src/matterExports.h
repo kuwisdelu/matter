@@ -190,6 +190,21 @@ extern "C" {
 		return x;
 	}
 
+	SEXP subsetAtoms(SEXP x, SEXP indx)
+	{
+		Atoms2 y(x);
+		R_xlen_t size = XLENGTH(indx);
+		switch(TYPEOF(indx)) {
+			case INTSXP:
+				return y.subset_index<int>(INTEGER(indx), size, true);
+			case REALSXP:
+				return y.subset_index<double>(REAL(indx), size, true);
+			default:
+				y.self_destruct();
+				Rf_error("invalid index type");
+		}
+	}
+
 	// data structures
 
 	SEXP getSparseVector(SEXP x, SEXP i)

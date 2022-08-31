@@ -22,6 +22,7 @@ extern "C" {
 		{"C_writeAtom", (DL_FUNC) &writeAtom, 3},
 		{"C_readAtoms", (DL_FUNC) &readAtoms, 4},
 		{"C_writeAtoms", (DL_FUNC) &writeAtoms, 4},
+		{"C_subsetAtoms", (DL_FUNC) &subsetAtoms, 2},
 		// data structures
 		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
 		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},

@@ -127,8 +127,16 @@ class DataSources2 {
 
 };
 
+//// Struct for atom information
+//-------------------------------
+
+struct AtomInfo {
+	int atom;
+	index_t pos;
+};
+
 //// Atoms class
-//-----------------------
+//----------------
 
 class Atoms2 {
 
@@ -150,25 +158,25 @@ class Atoms2 {
 			_io.exit_streams();
 		}
 
-		int natoms() {
+		R_xlen_t natoms() {
 			return _offsets.length();
 		}
 
-		int ngroups() {
+		R_xlen_t ngroups() {
 			return _pointers.length() - 1;
 		}
 
-		Pair<int,index_t> find_atom(index_t i, int grp)
+		AtomInfo find_atom(index_t i, int grp)
 		{
 			index_t j = 0;
 			int atom = find_group(grp);
-			Pair<int,index_t> info;
+			AtomInfo ap;
 			while ( i >= 0 && group(atom) == grp && atom < natoms() )
 			{
 				size_t len = extent(atom);
 				if ( j <= i && i < j + len ) {
-					info = {atom, i - j};
-					return info;
+					ap = {atom, i - j};
+					return ap;
 				}
 				j += len;
 				atom++;
@@ -238,10 +246,12 @@ class Atoms2 {
 		template<typename Tin, typename Tout>
 		index_t read_atom(Tout * ptr, int atom, size_t pos, size_t size, int stride = 1)
 		{
+			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
-				size = extent(atom) - pos; // allow specifying over-size for convenience
+				size = extent(atom) - pos;
 			Tin * tmp = (Tin *) R_Calloc(size, Tin);
-			bool success = _io.rseek(source(atom), offset(atom, pos))->read<Tin>(tmp, size);
+			index_t off = offset(atom, pos);
+			bool success = _io.rseek(source(atom), off)->read<Tin>(tmp, size);
 			if ( !success ) {
 				self_destruct();
 				Rf_error("failed to read data elements");
@@ -255,12 +265,14 @@ class Atoms2 {
 		template<typename Tin, typename Tout>
 		index_t write_atom(Tin * ptr, int atom, size_t pos, size_t size, int stride = 1)
 		{
+			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
-				size = extent(atom) - pos;  // allow specifying over-size for convenience
+				size = extent(atom) - pos; 
 			Tout * tmp = (Tout *) R_Calloc(size, Tout);
 			for ( index_t i = 0; i < size; i++ )
 				tmp[i] = static_cast<Tout>(ptr[stride * i]); // FIXME: change to coerce_cast()
-			bool success = _io.wseek(source(atom), offset(atom, pos))->write<Tout>(tmp, size);
+			index_t off = offset(atom, pos);
+			bool success = _io.wseek(source(atom), off)->write<Tout>(tmp, size);
 			if ( !success ) {
 				self_destruct();
 				Rf_error("failed to write data elements");
@@ -330,9 +342,9 @@ class Atoms2 {
 		template<typename T>
 		index_t get_region(T * ptr, index_t i, size_t size, int grp = 0, int stride = 1)
 		{
-			Pair<int,index_t> info = find_atom(i, grp);
-			int atom = info.first;
-			index_t n, pos = info.second, num_read = 0, num_toread = size;
+			AtomInfo ap = find_atom(i, grp);
+			int atom = ap.atom;
+			index_t n, pos = ap.pos, num_read = 0, num_toread = size;
 			while ( num_toread > 0 )
 			{
 				if ( atom >= natoms() || group(atom) != grp ) {
@@ -352,9 +364,9 @@ class Atoms2 {
 		template<typename T>
 		index_t set_region(T * ptr, index_t i, size_t size, int grp = 0, int stride = 1)
 		{
-			Pair<int,index_t> info = find_atom(i, grp);
-			int atom = info.first;
-			index_t n, pos = info.second, num_write = 0, num_towrite = size;
+			AtomInfo ap = find_atom(i, grp);
+			int atom = ap.atom;
+			index_t n, pos = ap.pos, num_write = 0, num_towrite = size;
 			while ( num_towrite > 0 )
 			{
 				if ( atom >= natoms() || group(atom) != grp ) {
@@ -378,9 +390,9 @@ class Atoms2 {
 			index_t n, i = 0, num_read = 0, num_toread = size;
 			while ( num_toread > 0 )
 			{
-				Pair<R_xlen_t,Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
-				size = run.first;
-				if ( run.second >= 0 ) {
+				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
+				size = run.length;
+				if ( run.delta >= 0 ) {
 					i = (*pindx) - ind1;
 					n = get_region<Tval>(ptr, i, size, grp, stride);
 				}
@@ -404,9 +416,9 @@ class Atoms2 {
 			while ( num_toread > 0 )
 			{
 				i = (*pindx) - ind1;
-				Pair<R_xlen_t,Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
-				size = run.first;
-				if ( run.second >= 0 ) {
+				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
+				size = run.length;
+				if ( run.delta >= 0 ) {
 					i = (*pindx) - ind1;
 					n = set_region<Tval>(ptr, i, size, grp, stride);
 				}
@@ -450,6 +462,113 @@ class Atoms2 {
 					self_destruct();
 					Rf_error("invalid index type");
 			}
+		}
+
+		int span(index_t i, size_t size, int grp = 0)
+		{
+			// how many atoms does a region span?
+			AtomInfo ap = find_atom(i, grp);
+			int num_atoms = 0, atom = ap.atom;
+			index_t n = size, pos = ap.pos;
+			while ( n > 0 )
+			{
+				if ( atom >= natoms() || group(atom) != grp ) {
+					self_destruct();
+					Rf_error("subscript out of bounds");
+				}
+				n -= (extent(atom) - pos);
+				pos = 0;
+				atom++;
+				num_atoms++;
+			}
+			return num_atoms;
+		}
+
+		template<typename T>
+		SEXP subset_index(T * pindx, size_t size, bool ind1 = false)
+		{
+			SEXP ans, nms, atomids, offsets, extents;
+			index_t n, m, atom, pos;
+			RunInfo<T> run;
+			AtomInfo ap;
+			int k = 0, num_atoms = 0;
+			for ( int grp = 0; grp < ngroups(); grp++ )
+			{
+				index_t i = 0;
+				while ( i < size )
+				{
+					run = compute_run<T>(pindx, i, size, true);
+					n = run.length;
+					if ( run.delta == 1 )
+						num_atoms += span(pindx[i] - ind1, n, grp);
+					else
+						num_atoms += n;
+					i += n;
+				}
+			}
+			PROTECT(atomids = Rf_allocVector(INTSXP, num_atoms));
+			PROTECT(offsets = Rf_allocVector(REALSXP, num_atoms));
+			PROTECT(extents = Rf_allocVector(REALSXP, num_atoms));
+			int * pids = INTEGER(atomids);
+			double * poff = REAL(offsets);
+			double * pext = REAL(extents);
+			for ( int grp = 0; grp < ngroups(); grp++ )
+			{
+				index_t i = 0;
+				while ( i < size )
+				{
+					run = compute_run<T>(pindx, i, size, true);
+					n = run.length;
+					if ( run.delta == 1 )
+					{
+						int j = 0;
+						while ( j < n )
+						{
+							if ( k >= num_atoms ) {
+								self_destruct();
+								Rf_error("subsetting atoms failed");
+							}
+							ap = find_atom(pindx[i + j] - ind1, grp);
+							atom = ap.atom, pos = ap.pos;
+							m = extent(atom) - pos;
+							m = m < (n - j) ? m : (n - j);
+							pids[k] = atom + 1;
+							poff[k] = offset(atom, pos);
+							pext[k] = m;
+							j += m;
+							k++;
+						}
+					}
+					else
+					{
+						for ( int j = 0; j < n; j++ )
+						{
+							if ( k >= num_atoms ) {
+								self_destruct();
+								Rf_error("subsetting atoms failed");
+							}
+							ap = find_atom(pindx[i + j] - ind1, grp);
+							atom = ap.atom, pos = ap.pos;
+							pids[k] = atom + 1;
+							poff[k] = offset(atom, pos);
+							pext[k] = 1;
+							k++;
+						}
+					}
+					i += n;
+				}
+			}
+			PROTECT(ans = Rf_allocVector(VECSXP, 3));
+			PROTECT(nms = Rf_allocVector(STRSXP, 3));
+			SET_VECTOR_ELT(ans, 0, atomids);
+			SET_VECTOR_ELT(ans, 1, offsets);
+			SET_VECTOR_ELT(ans, 2, extents);
+			SET_STRING_ELT(nms, 0, Rf_mkChar("index"));
+			SET_STRING_ELT(nms, 1, Rf_mkChar("offset"));
+			SET_STRING_ELT(nms, 2, Rf_mkChar("extent"));
+			Rf_setAttrib(ans, R_NamesSymbol, nms);
+			UNPROTECT(5);
+			return ans;
 		}
 
 	protected:

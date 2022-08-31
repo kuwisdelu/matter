@@ -169,6 +169,7 @@ exportMethods(
 	"lengths",
 	"length",
 	"length<-",
+	"dims",
 	"dim",
 	"dim<-",
 	"names",

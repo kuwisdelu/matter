@@ -1,5 +1,4 @@
 
-
 #### Define atoms class ####
 ## -------------------------
 
@@ -34,6 +33,8 @@ setClass("atoms2",
 				"must all be equal"))
 		# FIXME: shouldn't need to realize drle vectors[]
 		# (add support for these functions on drle directly)
+		if ( any(levels(object@type) != levels(make_datamode())) )
+			errors <- c(errors, "invalid 'type' factor levels")
 		if ( any(object@offset[] < 0) )
 			errors <- c(errors, "'offset' must be non-negative")
 		if ( any(object@extent[] < 0) )
@@ -69,8 +70,8 @@ atoms2 <- function(source = tempfile(), type = "int",
 	if ( !is(type, "factor_OR_drle") )
 		type <- make_datamode(type, type="C")
 	group <- as.logical(diff(as.integer(group)))
-	group <- c(0L, cumsum(group))
-	pointers <- c(0L, which(group), length(group))
+	pointers <- c(0L, which(group), n)
+	group <- cumsum(c(0L, group))
 	compress <- getOption("matter.compress.atoms")
 	if ( compress && n > 1 ) {
 		source <- drle(source, cr_threshold=compress)
@@ -103,6 +104,16 @@ setMethod("show", "atoms2", function(object) {
 	print(head(x, n=n))
 	if ( nrow(x) > n )
 		cat("... and", nrow(x) - n, "more atoms\n")
+	dms <- as.vector(dims(object))
+	nrows <- min(dms)
+	ncols <- length(dms)
+	if ( length(unique(dms)) > 1 ) {
+		cat("(", nrows, "+ elements per group | ",
+			ncols, " groups)\n", sep="")
+	} else {
+		cat("(", nrows, " elements per group | ",
+			ncols, " groups)\n", sep="")
+	}
 })
 
 read_atom <- function(x, atom, type = "double")
@@ -127,6 +138,17 @@ write_atoms <- function(x, i, value, group = 0L)
 {
 	.Call("C_writeAtoms", x, i, value,
 		as.integer(group), PACKAGE="matter")
+}
+
+subset_atoms <- function(x, i) {
+	sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
+	# FIXME: Make sure drle_fc supports droplevels()
+	atoms2(source=droplevels(x@source[sub$index]),
+			type=x@type[sub$index],
+			offset=sub$offset,
+			extent=sub$extent,
+			group=x@group[sub$index],
+			readonly=x@readonly)
 }
 
 setMethod("as.data.frame", "atoms2",
@@ -161,6 +183,19 @@ setMethod("dim", "atoms2",
 		c(nrows, ncols)
 	})
 
+setMethod("dims", "atoms2",
+	function(x, use.names = TRUE) {
+		extents <- as.double(x@extent)
+		groups <- as.integer(x@group)
+		nrows <- tapply(extents, groups, sum)
+		if ( use.names ) {
+			nms <- seq_along(nrows) - 1L
+		} else {
+			nms <- NULL
+		}
+		t(setNames(nrows, nms))
+	})
+
 setMethod("cbind2", "atoms2",
 	function(x, y, ...) {
 		x@group <- as.integer(x@group)
@@ -189,7 +224,10 @@ setMethod("rbind2", "atoms2",
 setMethod("[", c(x="atoms2"),
 	function(x, i, j, ...) {
 		if ( nargs() == 2 ) {
-			atoms2(source=x@source[i],
+			if ( any(i <= 0 | i > length(x)) )
+				stop("subscript out of bounds")
+			# FIXME: Make sure drle_fc supports droplevels()
+			atoms2(source=droplevels(x@source[i]),
 				type=x@type[i],
 				offset=x@offset[i],
 				extent=x@extent[i],
@@ -201,7 +239,7 @@ setMethod("[", c(x="atoms2"),
 			if ( !missing(j) )
 				x <- x[which(as.integer(x@group) %in% (j - 1L))]
 			if ( !missing(i) )
-				stop("not implemented yet") # FIXME
+				x <- subset_atoms(x, i)
 			if ( validObject(x) )
 				x
 		}
