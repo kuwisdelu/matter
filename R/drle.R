@@ -2,17 +2,15 @@
 #### Define drle class ####
 ## -------------------------
 
-setClassUnion("integer_OR_numeric", c("integer", "numeric"))
+setClassUnion("numeric_OR_logical", c("numeric", "logical"))
 
 setClass("drle",
 	slots = c(
-		values = "numeric",
+		values = "numeric_OR_logical",
 		deltas = "numeric",
 		lengths = "numeric"),
 	validity = function(object) {
 		errors <- NULL
-		if ( typeof(object@values) != typeof(object@deltas) )
-			errors <- c(errors, "'values' and 'deltas' must be the same data type")
 		lens <- c(length(object@values), length(object@lengths), length(object@deltas))
 		if ( length(unique(lens)) != 1 )
 			errors <- c(errors, "'values', 'deltas', and 'lengths' must have the same length")
@@ -27,7 +25,7 @@ setClass("drle_fc",
 
 drle <- function(x, cr_threshold = 0)
 {
-	if ( !is.numeric(x) )
+	if ( !is.numeric(x) && !is.logical(x) )
 	{
 		if ( is.drle(x) )
 			x <- as.vector(x)
@@ -182,4 +180,23 @@ setMethod("c", "drle", function(x, ...)
 	if ( validObject(x) )
 		x
 })
+
+# doCompressedOp <- function(e1, e2, Generic) {
+# 	check <- check_comformable_lengths(e1, e2)
+# 	if ( isTRUE(check) ) {
+# 		.Call("C_doCompressedOp", e1, e2, Generic)
+# 	} else {
+# 		stop(check)
+# 	}
+# })
+
+# setMethod("Ops", c("drle", "drle"),
+# 	function(e1, e2) doCompressedOp(e1, e2, as_Op(.Generic[2L])))
+
+# setMethod("Ops", c("drle", "ANY"),
+# 	function(e1, e2) doCompressedOp(e1, e2, as_Op(.Generic[2L])))
+
+# setMethod("Ops", c("ANY", "drle"),
+# 	function(e1, e2) doCompressedOp(e1, e2, as_Op(.Generic[2L])))
+
 

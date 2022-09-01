@@ -115,6 +115,7 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 	return nomatch;
 }
 
+// apply binary search over an array x, return via ptr
 template<typename T>
 index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 	size_t start, size_t end, double tol, int tol_ref, int nomatch,
@@ -138,6 +139,7 @@ index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 	return num_matches;
 }
 
+// apply binary search over a SEXP array
 inline SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 	int nomatch, bool nearest = false, bool ind1 = false)
 {
@@ -166,7 +168,7 @@ inline SEXP do_binary_search(SEXP x, SEXP table, double tol, int tol_ref,
 //// Approximate search
 //----------------------
 
-// search for values indexed by keys w/ interpolation
+// approximate search for values indexed by keys w/ interpolation
 template<typename Tkey, typename Tval>
 Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
@@ -197,6 +199,7 @@ Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 	return result;
 }
 
+// apply approximate search over an array of x, return via ptr
 template<typename Tkey, typename Tval>
 index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * values,
 	size_t start, size_t end, double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR,
@@ -263,6 +266,7 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 	return num_matches;
 }
 
+// apply approximate search over array of x to SEXP keys and values
 template<typename Tkey, typename Tval>
 index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP values,
 	double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR,
@@ -272,27 +276,51 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, SEXP keys, SEXP valu
 		0, LENGTH(values), tol, tol_ref, nomatch, interp, sorted, stride);
 }
 
-template<typename Tval>
-SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
-	Tval nomatch, int interp = EST_NEAR, bool sorted = true)
+// apply approximate search with all SEXP data structures
+inline SEXP do_approx_search(SEXP x, SEXP keys, SEXP values, double tol, int tol_ref,
+	SEXP nomatch, int interp = EST_NEAR, bool sorted = true)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(TYPEOF(values), LENGTH(x)));
-	switch(TYPEOF(x)) {
+	switch(TYPEOF(values)) {
 		case INTSXP:
-			do_approx_search<int,Tval>(DataPtr<Tval>(result), INTEGER(x), LENGTH(x),
-				keys, values, tol, tol_ref, nomatch, interp, sorted);
+			switch(TYPEOF(x)) {
+				case INTSXP:
+					do_approx_search<int,int>(INTEGER(result), INTEGER(x), LENGTH(x),
+						keys, values, tol, tol_ref, Rf_asInteger(nomatch), interp, sorted);
+					break;
+				case REALSXP:
+					do_approx_search<double,int>(INTEGER(result), REAL(x), LENGTH(x),
+						keys, values, tol, tol_ref, Rf_asInteger(nomatch), interp, sorted);
+					break;
+				case STRSXP:
+					do_approx_search<SEXP,int>(INTEGER(result), STRING_PTR(x), LENGTH(x),
+						keys, values, tol, tol_ref, Rf_asInteger(nomatch), interp, sorted);
+					break;
+				default:
+					Rf_error("unsupported key type");
+			}
 			break;
 		case REALSXP:
-			do_approx_search<double,Tval>(DataPtr<Tval>(result), REAL(x), LENGTH(x),
-				keys, values, tol, tol_ref, nomatch, interp, sorted);
-			break;
-		case STRSXP:
-			do_approx_search<SEXP,Tval>(DataPtr<Tval>(result), STRING_PTR(x), LENGTH(x),
-				keys, values, tol, tol_ref, nomatch, interp, sorted);
+			switch(TYPEOF(x)) {
+				case INTSXP:
+					do_approx_search<int,double>(REAL(result), INTEGER(x), LENGTH(x),
+						keys, values, tol, tol_ref, Rf_asReal(nomatch), interp, sorted);
+					break;
+				case REALSXP:
+					do_approx_search<double,double>(REAL(result), REAL(x), LENGTH(x),
+						keys, values, tol, tol_ref, Rf_asReal(nomatch), interp, sorted);
+					break;
+				case STRSXP:
+					do_approx_search<SEXP,double>(REAL(result), STRING_PTR(x), LENGTH(x),
+						keys, values, tol, tol_ref, Rf_asReal(nomatch), interp, sorted);
+					break;
+				default:
+					Rf_error("unsupported key type");
+			}
 			break;
 		default:
-			Rf_error("unsupported data type");
+			Rf_error("unsupported value type");
 	}
 	UNPROTECT(1);
 	return result;

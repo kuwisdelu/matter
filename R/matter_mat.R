@@ -643,15 +643,6 @@ setMethod("tcrossprod", c("ANY", "matter"), function(x, y) x %*% t(y))
 #### Delayed operations on 'matter_mat' ####
 ## ----------------------------------------
 
-check_comformable_dims <- function(x, y, margin = 1) {
-	if ( is.vector(x) ) {
-		return(check_comformable_dims(y, x))
-	} else if ( length(y) != 1 && length(y) != dim(x)[margin] ) {
-		warning("argument length is non-conformable with matrix dimensions and will be recycled")
-	}
-	TRUE
-}
-
 # Arith
 
 setMethod("Arith", c("matter_matc", "matter_matc"),

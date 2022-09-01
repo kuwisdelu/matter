@@ -3,6 +3,18 @@ require(matter)
 
 context("drle-class")
 
+test_that("drle indexing - logical", {
+
+	x <- c(rep(TRUE,10),rep(FALSE,10),rep(c(TRUE,FALSE),5))
+	y <- drle(x)
+
+	expect_equal(x, y[])
+	expect_equal(x[1], y[1])
+	expect_equal(x[1:30], y[1:30])
+	expect_equal(x[30:1], y[30:1])
+
+})
+
 test_that("drle indexing - integer", {
 
 	x <- c(rep(1L,10),10:1,1:10)
@@ -49,7 +61,7 @@ test_that("drle indexing - NAs", {
 
 })
 
-test_that("drle subsetting", {
+test_that("drle endomorphic subsetting", {
 
 	x <- c(rep(1L, 10), 10:1, 1:10)
 	y <- drle(x)

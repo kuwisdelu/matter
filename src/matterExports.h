@@ -4,22 +4,22 @@
 
 #include "drle.h"
 #include "atoms.h"
-#include "signal.h"
 #include "search.h"
 #include "sparse.h"
 
 extern "C" {
 
-	// search
+	// Search (binary and approximate)
+	//--------------------------------
 
-	SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
+	static inline SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
 	{
 		if ( TYPEOF(x) != TYPEOF(y) )
 			Rf_error("'x' and 'y' must have the same type");
 		return Rf_ScalarReal(rel_diff(x, y, Rf_asInteger(ref)));
 	}
 
-	SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
+	static inline SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 		SEXP tol_ref, SEXP nomatch, SEXP nearest)
 	{
 		if ( TYPEOF(x) != TYPEOF(table) )
@@ -30,61 +30,40 @@ extern "C" {
 			Rf_asInteger(nomatch), Rf_asLogical(nearest), TRUE);
 	}
 
-	SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
+	static inline SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
 		SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted)
 	{
 		if ( TYPEOF(x) != TYPEOF(keys) )
 			Rf_error("'x' and 'keys' must have the same type");
 		if ( Rf_asReal(tol) < 0 )
 			Rf_error("'tol' must be non-negative");
-		switch(TYPEOF(values)) {
-			case INTSXP:
-				return do_approx_search<int>(x, keys, values,
-					Rf_asReal(tol), Rf_asInteger(tol_ref),
-					Rf_asReal(nomatch), Rf_asInteger(interp),
-					Rf_asLogical(sorted));
-			case REALSXP:
-				return do_approx_search<double>(x, keys, values,
-					Rf_asReal(tol), Rf_asInteger(tol_ref),
-					Rf_asReal(nomatch), Rf_asInteger(interp),
-					Rf_asLogical(sorted));
-			default:
-				Rf_error("unsupported data type");
-		}
+		return do_approx_search(x, keys, values,
+			Rf_asReal(tol), Rf_asInteger(tol_ref), nomatch,
+			Rf_asInteger(interp), Rf_asLogical(sorted));
 	}
 
-	// compression
+	// Compression (delta run length encoding)
+	//-----------------------------------------
 
-	SEXP encodeDRLE(SEXP x, SEXP cr)
+	static inline SEXP encodeDRLE(SEXP x, SEXP cr)
 	{
 		return encode_drle(x, Rf_asReal(cr));
 	}
 
-	SEXP recodeDRLE(SEXP x, SEXP i)
+	static inline SEXP recodeDRLE(SEXP x, SEXP i)
 	{
 		return recode_drle(x, i);
 	}
 
-	SEXP decodeDRLE(SEXP x, SEXP i)
+	static inline SEXP decodeDRLE(SEXP x, SEXP i)
 	{
-		SEXP values = R_do_slot(x, Rf_install("values"));
-		switch(TYPEOF(values)) {
-			case INTSXP: {
-				CompressedVector<int> y(x);
-				return y.getElements(i);
-			}
-			case REALSXP: {
-				CompressedVector<double> y(x);
-				return y.getElements(i);
-			}
-			default:
-				Rf_error("unsupported data type");
-		}
+		return decode_drle(x, i);
 	}
 
-	// internal
+	// Internal testing for Atoms
+	//---------------------------
 
-	SEXP readAtom(SEXP x, SEXP i, SEXP type)
+	static inline SEXP readAtom(SEXP x, SEXP i, SEXP type)
 	{
 		SEXP ans;
 		Atoms2 y(x);
@@ -111,7 +90,7 @@ extern "C" {
 		return ans;
 	}
 
-	SEXP writeAtom(SEXP x, SEXP i, SEXP value)
+	static inline SEXP writeAtom(SEXP x, SEXP i, SEXP value)
 	{
 		Atoms2 y(x);
 		int j = Rf_asInteger(i);
@@ -137,7 +116,7 @@ extern "C" {
 		return x;
 	}
 
-	SEXP readAtoms(SEXP x, SEXP indx, SEXP type, SEXP grp)
+	static inline SEXP readAtoms(SEXP x, SEXP indx, SEXP type, SEXP grp)
 	{
 		SEXP ans;
 		Atoms2 y(x);
@@ -164,7 +143,7 @@ extern "C" {
 		return ans;
 	}
 
-	SEXP writeAtoms(SEXP x, SEXP indx, SEXP value, SEXP grp)
+	static inline SEXP writeAtoms(SEXP x, SEXP indx, SEXP value, SEXP grp)
 	{
 		Atoms2 y(x);
 		int g = Rf_asInteger(grp);
@@ -190,7 +169,7 @@ extern "C" {
 		return x;
 	}
 
-	SEXP subsetAtoms(SEXP x, SEXP indx)
+	static inline SEXP subsetAtoms(SEXP x, SEXP indx)
 	{
 		Atoms2 y(x);
 		R_xlen_t size = XLENGTH(indx);
@@ -205,21 +184,22 @@ extern "C" {
 		}
 	}
 
-	// data structures
+	// Sparse data structures
+	//-----------------------
 
-	SEXP getSparseVector(SEXP x, SEXP i)
+	static inline SEXP getSparseVector(SEXP x, SEXP i)
 	{
 		SparseVector y(x);
 		return y.getElements(i);
 	}
 
-	SEXP getSparseMatrixC(SEXP x, SEXP i, SEXP j)
+	static inline SEXP getSparseMatrixC(SEXP x, SEXP i, SEXP j)
 	{
 		SparseMatrixC y(x);	
 		return y.getSubMatrix(i, j);
 	}
 
-	SEXP getSparseMatrixR(SEXP x, SEXP i, SEXP j)
+	static inline SEXP getSparseMatrixR(SEXP x, SEXP i, SEXP j)
 	{
 		SparseMatrixR y(x);	
 		return y.getSubMatrix(i, j);

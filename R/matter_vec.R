@@ -253,15 +253,6 @@ setMethod("t", "matter_vec", function(x) t(as(x, "matter_mat")))
 #### Delayed operations on 'matter_vec' ####
 ## ----------------------------------------
 
-check_comformable_lengths <- function(x, y, margin = 1) {
-	if ( is.vector(x) ) {
-		return(check_comformable_dims(y, x))
-	} else if ( length(y) != 1 && length(x) != length(y) ) {
-		warning("argument length unequal to array length and will be recycled")
-	}
-	TRUE
-}
-
 # Arith
 
 setMethod("Arith", c("matter_vec", "matter_vec"),

@@ -8,12 +8,16 @@
 #include <Rinternals.h>
 
 //// Constants
-//-------------
+//--------------
 
+// most of these must match factor levels passed from R
+
+// relative comparison
 #define ABS_DIFF    1
 #define REL_DIFF_X  2
 #define REL_DIFF_Y  3
 
+// R-level data types
 #define R_RAW		1
 #define R_LOGICAL	2
 #define R_INTEGER	3
@@ -21,6 +25,7 @@
 #define R_STRING	5
 #define R_LIST		6
 
+// C-level data types
 #define C_CHAR		1
 #define C_UCHAR		2
 #define C_SHORT		3
@@ -31,6 +36,37 @@
 #define C_ULONG		8
 #define C_FLOAT		9
 #define C_DOUBLE	10
+
+// Ops
+// #define OP_ADD		1	// +
+// #define OP_SUB		2	// -
+// #define OP_MUL		3	// *
+// #define OP_EXP		4	// ^
+// #define OP_MOD		5	// %%
+// #define OP_IDIV		6	// %/%
+// #define OP_DIV		7	// /
+// #define OP_EQ		8	// ==
+// #define OP_GT		9	// >
+// #define OP_LT		10	// <
+// #define OP_NE		11	// !=
+// #define OP_LE		12	// <=
+// #define OP_GE		13	// >=
+// #define OP_AND		14	// &
+// #define OP_OR		15	// |
+
+// Summary + Stats
+#define STAT_MAX		1	// max
+#define STAT_MIN		2	// min
+#define STAT_RANGE		3	// range
+#define STAT_PROD		4	// prod
+#define STAT_SUM		5	// sum
+#define STAT_ANY		6	// any
+#define STAT_ALL		7	// all
+// Stats (matter defined)
+#define STAT_MEAN		8	// mean
+#define STAT_SD			9	// sd
+#define STAT_VAR		10	// var
+#define STAT_NNZ		11	// nnzero
 
 //// Indexing types
 //-------------------

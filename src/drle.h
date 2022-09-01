@@ -3,8 +3,8 @@
 
 #include "Rutils.h"
 
-//// Struct for runs
-//--------------------
+//// Struct for run length encoding info
+//---------------------------------------
 
 template<typename T>
 struct RunInfo {
@@ -13,9 +13,10 @@ struct RunInfo {
 	R_xlen_t length;
 };
 
-//// Delta run length encoding 
-//-----------------------------
+//// Delta run length encoding utilities
+//---------------------------------------
 
+// calculate run length and delta
 template<typename T>
 RunInfo<T> compute_run(T * x, size_t i, size_t len, bool seq = false)
 {
@@ -65,6 +66,7 @@ RunInfo<T> compute_run(T * x, size_t i, size_t len, bool seq = false)
 	return run;
 }
 
+// count runs in an array x
 template<typename T>
 R_xlen_t num_runs(T * x, R_xlen_t len, bool seq = false)
 {
@@ -78,10 +80,12 @@ R_xlen_t num_runs(T * x, R_xlen_t len, bool seq = false)
 	return n;
 }
 
+// count runs in a SEXP x
 inline R_xlen_t num_runs(SEXP x, bool seq = false)
 {
 	R_xlen_t len = XLENGTH(x);
 	switch(TYPEOF(x)) {
+		case LGLSXP:
 		case INTSXP:
 			return num_runs<int>(INTEGER(x), len, seq);
 		case REALSXP:
@@ -91,6 +95,20 @@ inline R_xlen_t num_runs(SEXP x, bool seq = false)
 	}
 }
 
+// initialize a DRLE S4 instance
+inline SEXP make_drle(SEXP values, SEXP deltas, SEXP lengths)
+{
+	SEXP classDef, obj;
+	PROTECT(classDef = R_do_MAKE_CLASS("drle"));
+	PROTECT(obj = R_do_new_object(classDef));
+	R_do_slot_assign(obj, Rf_install("values"), values);
+	R_do_slot_assign(obj, Rf_install("deltas"), deltas);
+	R_do_slot_assign(obj, Rf_install("lengths"), lengths);
+	UNPROTECT(2);
+	return obj;
+}
+
+// use DRLE to encode an array of x
 template<typename Tv, typename Tl>
 size_t encode_drle(Tv * x, size_t len, Tv * values,
 	Tv * deltas, Tl * lengths, size_t nruns)
@@ -108,9 +126,10 @@ size_t encode_drle(Tv * x, size_t len, Tv * values,
 	return j;
 }
 
+// use DRLE to encode a SEXP
 inline SEXP encode_drle(SEXP x, double cr = 0)
 {
-	SEXP values, deltas, lengths;
+	SEXP values, deltas, lengths, obj;
 	size_t nruns = num_runs(x);
 	size_t sizeof_x = Rf_isReal(x) ? sizeof(double) : sizeof(int);
 	size_t sizeof_lens = IS_LONG_VEC(x) ? sizeof(double) : sizeof(int);
@@ -119,12 +138,15 @@ inline SEXP encode_drle(SEXP x, double cr = 0)
 	double comp_ratio = uncomp_size / comp_size;
 	if ( comp_ratio < cr )
 		return x;
+	SEXPTYPE valstype = TYPEOF(x);
+	SEXPTYPE delstype = Rf_isLogical(x) ? INTSXP : valstype;
 	SEXPTYPE lenstype = IS_LONG_VEC(x) ? REALSXP : INTSXP;
+	PROTECT(values = Rf_allocVector(valstype, nruns));
+	PROTECT(deltas = Rf_allocVector(delstype, nruns));
+	PROTECT(lengths = Rf_allocVector(lenstype, nruns));
 	switch(TYPEOF(x)) {
+		case LGLSXP: 
 		case INTSXP: {
-			PROTECT(values = Rf_allocVector(INTSXP, nruns));
-			PROTECT(deltas = Rf_allocVector(INTSXP, nruns));
-			PROTECT(lengths = Rf_allocVector(lenstype, nruns));
 			switch(lenstype) {
 				case INTSXP:
 					encode_drle<int,int>(INTEGER(x), XLENGTH(x), INTEGER(values),
@@ -138,9 +160,6 @@ inline SEXP encode_drle(SEXP x, double cr = 0)
 			break;
 		}
 		case REALSXP: {
-			PROTECT(values = Rf_allocVector(REALSXP, nruns));
-			PROTECT(deltas = Rf_allocVector(REALSXP, nruns));
-			PROTECT(lengths = Rf_allocVector(lenstype, nruns));
 			switch(lenstype) {
 				case INTSXP:
 					encode_drle<double,int>(REAL(x), XLENGTH(x), REAL(values),
@@ -156,16 +175,15 @@ inline SEXP encode_drle(SEXP x, double cr = 0)
 		default:
 			Rf_error("unsupported data type");
 	}	
-	SEXP classDef, obj;
-	PROTECT(classDef = R_do_MAKE_CLASS("drle"));
-	PROTECT(obj = R_do_new_object(classDef));
-	R_do_slot_assign(obj, Rf_install("values"), values);
-	R_do_slot_assign(obj, Rf_install("deltas"), deltas);
-	R_do_slot_assign(obj, Rf_install("lengths"), lengths);
-	UNPROTECT(5);
+	PROTECT(obj = make_drle(values, deltas, lengths));
+	UNPROTECT(4);
 	return obj;
 }
 
+//// CompressedVector class
+//--------------------------
+
+// container for DRLE S4 instance OR atomic vector
 template<typename T>
 class CompressedVector {
 
@@ -382,6 +400,7 @@ class CompressedVector {
 
 };
 
+// container for DRLE S4 instance w/ levels OR factor
 class CompressedFactor : public CompressedVector<int> {
 
 	public:
@@ -414,6 +433,10 @@ class CompressedFactor : public CompressedVector<int> {
 
 };
 
+//// Delta run length encoding for CompressedVector
+//--------------------------------------------------
+
+// compute run for CompressedVector
 template<typename T>
 RunInfo<T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
 {
@@ -471,6 +494,7 @@ RunInfo<T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
 	return run;
 }
 
+// count runs in a CompressedVector
 template<typename T>
 R_xlen_t num_runs(CompressedVector<T> x, SEXP indx)
 {
@@ -484,6 +508,7 @@ R_xlen_t num_runs(CompressedVector<T> x, SEXP indx)
 	return n;
 }
 
+// recode a subsetted CompressedVector, must pre-calculate output length
 template<typename Tv, typename Tl>
 size_t recode_drle(CompressedVector<Tv> x, SEXP indx, Tv * values,
 	Tv * deltas, Tl * lengths, size_t nruns)
@@ -501,10 +526,11 @@ size_t recode_drle(CompressedVector<Tv> x, SEXP indx, Tv * values,
 	return j;
 }
 
+// recode a subsetted CompressedVector, return a SEXP
 template<typename T>
 SEXP recode_drle(CompressedVector<T> x, SEXP indx)
 {
-	SEXP values, deltas, lengths;
+	SEXP values, deltas, lengths, obj;
 	SEXPTYPE lengthstype = x.is_long_vec() ? REALSXP : INTSXP;
 	size_t nruns = num_runs(x, indx);
 	PROTECT(values = Rf_allocVector(x.type(), nruns));
@@ -520,22 +546,19 @@ SEXP recode_drle(CompressedVector<T> x, SEXP indx)
 				DataPtr<T>(deltas), REAL(lengths), nruns);
 			break;
 	}
-	SEXP classDef, obj;
-	PROTECT(classDef = R_do_MAKE_CLASS("drle"));
-	PROTECT(obj = R_do_new_object(classDef));
-	R_do_slot_assign(obj, Rf_install("values"), values);
-	R_do_slot_assign(obj, Rf_install("deltas"), deltas);
-	R_do_slot_assign(obj, Rf_install("lengths"), lengths);
-	UNPROTECT(5);
+	PROTECT(obj = make_drle(values, deltas, lengths));
+	UNPROTECT(4);
 	return obj;
 }
 
+// recode a subsetted DRLE S4 instance
 inline SEXP recode_drle(SEXP x, SEXP indx)
 {
 	if ( indx == R_NilValue )
 		return x;
 	SEXP values = R_do_slot(x, Rf_install("values"));
 	switch(TYPEOF(values)) {
+		case LGLSXP: 
 		case INTSXP: {
 			CompressedVector<int> y(x);
 			return recode_drle(y, indx);
@@ -543,6 +566,25 @@ inline SEXP recode_drle(SEXP x, SEXP indx)
 		case REALSXP: {
 			CompressedVector<double> y(x);
 			return recode_drle(y, indx);
+		}
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
+// decode a DRLE S4 instance at specified indices
+inline SEXP decode_drle(SEXP x, SEXP indx)
+{
+	SEXP values = R_do_slot(x, Rf_install("values"));
+	switch(TYPEOF(values)) {
+		case LGLSXP: 
+		case INTSXP: {
+			CompressedVector<int> y(x);
+			return y.getElements(indx);
+		}
+		case REALSXP: {
+			CompressedVector<double> y(x);
+			return y.getElements(indx);
 		}
 		default:
 			Rf_error("unsupported data type");

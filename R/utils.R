@@ -317,8 +317,6 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NU
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 
-is_nil <- function(x) is.na(x) || is.null(x)
-
 apply_int <- function(x, margin, fun, fun.value, ...) {
 	fun <- match.fun(fun)
 	if ( margin == 1L ) {
