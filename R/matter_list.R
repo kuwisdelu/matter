@@ -116,7 +116,7 @@ as.matter_list <- function(x) as(x, "matter_list")
 getList <- function(x) {
 	y <- .Call("C_getList", x, PACKAGE="matter")
 	if ( !is.null(dimnames(x)) )
-		y <- mapply(setNames, y, dimnames(x))
+		y <- mapply(set_names, y, dimnames(x))
 	if ( !is.null(names(x)) )
 		names(y) <- names(x)
 	y
@@ -149,7 +149,7 @@ getListElements <- function(x, i, j, exact) {
 	if ( missing(j) || is.null(j) ) {
 		y <- .Call("C_getListElements", x, i - 1, NULL, PACKAGE="matter")
 		if ( !is.null(dimnames(x)) )
-			y <- setNames(y, dimnames(x)[i])
+			y <- set_names(y, dimnames(x)[i])
 	} else {
 		if ( is.logical(j) )
 			j <- logical2index(x, j, i)
@@ -157,7 +157,7 @@ getListElements <- function(x, i, j, exact) {
 			j <- dimnames2index(x, j, i)
 		y <- .Call("C_getListElements", x, i - 1, j - 1, PACKAGE="matter")
 		if ( !is.null(dimnames(x)) )
-			y <- setNames(y, dimnames(x)[i][j])
+			y <- set_names(y, dimnames(x)[i][j])
 	}
 	y	
 }
@@ -331,9 +331,9 @@ setMethod("dim", "matter_list", function(x) NULL)
 
 setMethod("lengths", "matter_list", function(x, use.names = TRUE) {
 	if ( use.names ) {
-		setNames(x@dim, x@names)
+		set_names(x@dim, x@names)
 	} else {
-		setNames(x@dim, NULL)
+		set_names(x@dim, NULL)
 	}
 })
 

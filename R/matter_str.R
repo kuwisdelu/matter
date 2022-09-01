@@ -204,9 +204,9 @@ setMethod("combine", "matter_str", function(x, y, ...) {
 
 setMethod("lengths", "matter_str", function(x, use.names = TRUE) {
 	if ( use.names ) {
-		setNames(x@dim, x@names)
+		set_names(x@dim, x@names)
 	} else {
-		setNames(x@dim, NULL)
+		set_names(x@dim, NULL)
 	}
 })
 

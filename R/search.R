@@ -10,7 +10,7 @@ reldiff <- function(x, y, ref = "abs")
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(y) )
 		y <- as.double(y)
-	ref <- pmatch(ref, c("abs", "x", "y"), nomatch=1L)
+	ref <- as_tol_ref(ref)
 	n <- max(length(x), length(y))
 	x <- rep_len(x, n)
 	y <- rep_len(y, n)
@@ -27,10 +27,8 @@ asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
-	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	interp <- pmatch(interp, levels(make_sampler("")), nomatch=1L)
-	asearch_int(x, keys=keys, values=values, tol=tol, tol.ref=tol.ref,
-		nomatch=nomatch, interp=interp, sorted=!is.unsorted(keys))
+	asearch_int(x, keys=keys, values=values, tol=tol, tol.ref=as_tol_ref(tol.ref),
+		nomatch=nomatch, interp=as_kernel(interp), sorted=!is.unsorted(keys))
 }
 
 # internal version with no argument checking
@@ -53,8 +51,7 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 		table <- as.double(table)
 	if ( is.unsorted(table) )
 		stop("'table' must be sorted")
-	tol.ref <- pmatch(tol.ref, c("abs", "x", "y"), nomatch=1L)
-	bsearch_int(x, table=table, tol=tol, tol.ref=tol.ref,
+	bsearch_int(x, table=table, tol=tol, tol.ref=as_tol_ref(tol.ref),
 		nomatch=nomatch, nearest=nearest)
 }
 
@@ -63,7 +60,7 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 					nomatch = NA_integer_, nearest = FALSE)
 {
-	.Call("C_binarySearch", x, table, tol,
-		tol.ref, nomatch, nearest, PACKAGE="matter")
+	.Call("C_binarySearch", x, table, tol, tol.ref,
+		nomatch, nearest, PACKAGE="matter")
 }
 

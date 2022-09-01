@@ -166,7 +166,7 @@ class Atoms2 {
 			return _pointers.length() - 1;
 		}
 
-		AtomInfo find_atom(index_t i, int grp)
+		AtomInfo find_atom(index_t i, int grp = 0)
 		{
 			index_t j = 0;
 			int atom = find_group(grp);

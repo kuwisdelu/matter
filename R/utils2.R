@@ -1,16 +1,105 @@
 
-#### Codes for C-level functions ####
-## -----------------------------------
+#### Data type codes and type conversions ####
+## ---------------------------------------------
 
-make_code <- function(codes, x) {
+make_code <- function(codes, x, nomatch = NA_integer_) {
 	if ( missing(x) )
 		x <- character()
 	if ( is.factor(x) && all(levels(x) == codes) )
 		return(x)
 	if ( !is.numeric(x) )
-		x <- pmatch(tolower(x), codes)
+		x <- pmatch(tolower(x), codes, nomatch, TRUE)
 	factor(x, levels=seq_along(codes), labels=codes)
 }
+
+# export
+get_Rtypes <- function() {
+	codes <- c("raw", "logical", "integer",
+		"double", "character", "list")
+}
+
+# export
+get_Ctypes <- function() {
+	codes <- c("char", "uchar", "short", "ushort",
+		"int", "uint", "long", "ulong",
+		"float", "double")
+}
+
+# export
+as_Rtype <- function(x) {
+	if ( !missing(x) ) {
+		if ( is_Rtype(x, strict=TRUE) )
+			return(x)
+		if ( is_Ctype(x, strict=FALSE) )
+			return(to_Rtype(as_Ctype(x)))
+	}
+	if ( !missing(x) && is.character(x) ) {
+		# allow 'numeric' as synonym for 'double'
+		i <- pmatch(x, "numeric", 0L, TRUE)
+		i <- which(as.logical(i))
+		if ( length(i) > 0 )
+			x[i] <- "double"
+	}
+	make_code(get_Rtypes(), x)
+}
+
+# export
+as_Ctype <- function(x) {
+	if ( !missing(x) ) {
+		if ( is_Ctype(x, strict=TRUE) )
+			return(x)
+		if ( is_Rtype(x, strict=FALSE) )
+			return(to_Ctype(as_Rtype(x)))
+	}
+	
+	make_code(get_Ctypes(), x)
+}
+
+is_Rtype <- function(x, strict = TRUE) {
+	codes <- get_Rtypes()
+	valid <- is.factor(x) && all(levels(x) == codes)
+	valid || (all(x %in% codes) && !strict)
+}
+
+is_Ctype <- function(x, strict = TRUE) {
+	codes <- get_Ctypes()
+	valid <- is.factor(x) && all(levels(x) == codes)
+	valid || (all(x %in% codes) && !strict)
+}
+
+to_Rtype <- function(x) {
+	codes <- c(char = "raw", uchar = "raw",
+		short = "integer", ushort = "integer",
+		int = "integer", uint = "integer",
+		long = "double", ulong = "double",
+		float = "double", double = "double")
+	as_Rtype(codes[as.integer(as_Ctype(x))])
+}
+
+to_Ctype <- function(x) {
+	codes <- c(raw = "uchar", logical = "int",
+		integer = "int", numeric = "double",
+		character = "uchar", list = NA_character_)
+	as_Ctype(codes[as.integer(as_Rtype(x))])
+}
+
+# export
+sizeof <- function(x) {
+	sizes <- c(char = 1L, uchar = 1L, short = 2L, ushort = 2L,
+		int = 4L, uint = 4L, long = 8L, ulong = 8L,
+		float = 4L, double = 8L)
+	sizes[as.integer(as_Ctype(x))]
+}
+
+toplevel_type <- function(x) {
+	sizes <- c(raw = 1L, logical = 4L, integer = 4L,
+		double = 8L, character = Inf, list = NA_integer_)
+	x <- as_Rtype(x)
+	x[which.max(sizes[as.integer(x)])]
+}
+
+#### Codes for C-level switch statements ####
+## ------------------------------------------
 
 as_Op <- function(x) {
 	codes <- c(
@@ -34,11 +123,30 @@ as_Summary <- function(x) {
 
 as_Math <- function(x) {
 	# FIXME: add support for more later
-	codes <- c("log", "log10", "log2", "log1p")
+	codes <- c("exp", "log", "log10", "log2", "log1p")
 	make_code(codes, x)
 }
 
-as_interp <- function(x) {
+# export
+as_tol <- function(x) {
+	tol <- x[1L]
+	codes <- c("absolute", "relative")
+	if ( !is.null(names(tol)) ) {
+		tol_type <- pmatch(names(tol), codes, nomatch=1L)
+	} else {
+		tol_type <- 1L
+	}
+	tol_type <- factor(type, levels=c(1L, 2L), labels=codes)
+	structure(as.integer(tol), tol_type=tol_type)
+}
+
+as_tol_ref <- function(x) {
+	codes <- c("abs", "x", "y")
+	make_code(codes, x[1L], nomatch=1L)
+}
+
+# export
+as_kernel <- function(x) {
 	codes <- c(
 		# simple interp (1-5)
 		"none", "mean", "sum", "max", "min",
@@ -51,16 +159,48 @@ as_interp <- function(x) {
 	make_code(codes, x)
 }
 
-as_tol <- function(x) {
-	tol <- x[1L]
-	codes <- c("absolute", "relative")
-	if ( !is.null(names(tol)) ) {
-		tol_type <- pmatch(names(tol), codes, nomatch=1L)
-	} else {
-		tol_type <- 1L
+#### Normalize subscripts ####
+## ----------------------------
+
+as_subscripts <- function(i, x, exact = TRUE) {
+	if ( missing(i) )
+		return(NULL)
+	if ( is.logical(i) ) {
+		i <- which(rep_len(i, length(x)))
+	} else if ( !is.numeric(i) ) {
+		if ( exact ) {
+			i <- match(i, names(x))
+		} else {
+			i <- pmatch(i, names(x))
+		}
 	}
-	tol_type <- factor(type, levels=c(1, 2), labels=codes)
-	structure(as.vector(tol), tol_type=tol_type)
+	i
+}
+
+as_array_subscripts <- function(i, x, margin, exact = TRUE) {
+	if ( missing(i) )
+		return(NULL)
+	if ( is.list(i) )
+		return(lapply(seq_along(i), function(j)
+			as_array_subscripts(i[[j]], x, j, exact)))
+	if ( is.logical(i) ) {
+		i <- which(rep_len(i, dim(x)[[margin]]))
+	} else if ( !is.numeric(i) ) {
+		if ( exact ) {
+			i <- match(i, dimnames(x)[[margin]])
+		} else {
+			i <- pmatch(i, dimnames(x)[[margin]])
+		}
+	}
+	i
+}
+
+as_row_subscripts <- function(i, x, exact = TRUE) {
+	as_array_subscripts(i, x, 1L, exact)
+}
+
+as_col_subscripts <- function(i, x, exact = TRUE) {
+	as_array_subscripts(i, x, 2L, exact)
 }
 
 #### Miscellaneous utility functions ####
@@ -68,7 +208,34 @@ as_tol <- function(x) {
 
 is_nil <- function(x) is.na(x) || is.null(x)
 
-check_comformable_dims <- function(x, y, margin = 1) {
+set_names <- function(x, nm, i) {
+	if ( !is.null(i) )
+		nm <- nm[i]
+	names(x) <- nm
+	x
+}
+
+set_dimnames <- function(x, dnm, index) {
+	if ( !is.null(index) )
+		for ( i in seq_along(index) ) {
+			j <- index[[i]]
+			if ( !is.null(dnm[[i]]) && !is.null(j) )
+				dnm[[i]] <- dnm[[i]][j]
+		}
+	dimnames(x) <- dnm
+	x
+}
+
+check_comformable_lengths <- function(x, y) {
+	if ( is.vector(x) ) {
+		return(check_comformable_lengths(y, x))
+	} else if ( length(y) != 1 && length(y) != length(x) ) {
+		return("argument length is non-conformable with array length")
+	}
+	TRUE
+}
+
+check_comformable_dims <- function(x, y, margin = 1L) {
 	if ( is.vector(x) ) {
 		return(check_comformable_dims(y, x))
 	} else if ( length(y) != 1 && length(y) != dim(x)[margin] ) {
@@ -76,14 +243,4 @@ check_comformable_dims <- function(x, y, margin = 1) {
 	}
 	TRUE
 }
-
-check_comformable_lengths <- function(x, y, margin = 1) {
-	if ( is.vector(x) ) {
-		return(check_comformable_dims(y, x))
-	} else if ( length(y) != 1 && length(x) != length(y) ) {
-		return("argument length is non-conformable with array length")
-	}
-	TRUE
-}
-
 

@@ -404,21 +404,6 @@ allIndices <- function(x, i, margin) {
 	}
 }
 
-sizeof <- function(type) {
-	type <- make_datamode(type, type="C")
-	vapply(as.character(type), switch, numeric(1),
-		char = 1,
-		uchar = 1,
-		short = 2,
-		ushort = 2,
-		int = 4,
-		uint = 4,
-		long = 8,
-		ulong = 8,
-		float = 4,
-		double = 8)
-}
-
 do_recursive <- function(fun, args) {
 	if ( length(args) > 2 ) {
 		fun(args[[1]], do_recursive(fun, args[-1]))

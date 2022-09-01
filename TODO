@@ -5,10 +5,12 @@ TODO for matter package
 - Add Lanczos (sinc) interpolation filter
 - Add AUC (integration-based) interpolation filter
 - Implement combining using 'cbind2()' and 'rbind2()'
-- Add delayed operations for sparse matrices 
+- Add deferred operations for sparse matrices
+- For deferred arithmetic: "non-matter object can't have more than one dimsion not equal to 1"
 
 - Refactor original matter S4 data structures R/C++ code
 - Clean up generics and remove unneeded methods/functions
+	- Switch from 'sampler()' -> 'kernel()' (?)
 	- Deprecate 'keys()' -> 'domain()'
 	- Deprecate 'datamode()' -> 'type()' (but maybe not?)
 	- Deprecate 'pull()' and 'push()' (no replacements?)
@@ -29,4 +31,4 @@ TODO for matter package
 - Deprecate old classes ('virtual_df', 'matter_df', etc.)
 
 - Add low-level signal processing ('peakwidths()', etc.)
-- Add low-level spatial methods ('dist()', etc.)
+- Add low-level spatial funcs ('dist()', 'kernels()', etc.)

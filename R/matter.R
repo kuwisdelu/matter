@@ -2,9 +2,9 @@
 #### Define matter VIRTUAL class ####
 ## ----------------------------------
 
-setClassUnion("character_OR_NULL", c("character", "NULL"))
 setClassUnion("integer_OR_NULL", c("integer", "NULL"))
 setClassUnion("numeric_OR_NULL", c("numeric", "NULL"))
+setClassUnion("character_OR_NULL", c("character", "NULL"))
 setClassUnion("list_OR_NULL", c("list", "NULL"))
 
 setClass("matter",
@@ -114,10 +114,6 @@ matter <- function(...) {
 		stop("couldn't guess data structure, use 'matter_' functions")
 	}
 }
-
-setMethod("describe_for_display", "ANY", function(x) class(x))
-
-setMethod("preview_for_display", "ANY", function(x) head(x))
 
 setMethod("show", "matter", function(object) {
 	cat(describe_for_display(object), "\n", sep="")

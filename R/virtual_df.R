@@ -65,7 +65,7 @@ virtual_df <- function(..., row.names = NULL, stringsAsFactors = FALSE)
 	if ( stringsAsFactors )
 		data <- lapply(data, stringsToFactors)
 	new("virtual_df",
-		data=setNames(data, nm),
+		data=set_names(data, nm),
 		datamode=make_datamode("virtual", type="R"),
 		paths=character(),
 		filemode=make_filemode(),
@@ -115,7 +115,7 @@ as.matter_df <- function(x) as(x, "matter_df")
 
 getDataFrame <- function(x) {
 	y <- lapply(atomdata(x), "[")
-	data.frame(setNames(y, names(x)),
+	data.frame(set_names(y, names(x)),
 		row.names=rownames(x),
 		check.names=FALSE,
 		stringsAsFactors=FALSE)
@@ -139,7 +139,7 @@ getDataFrameRows <- function(x, i, drop=TRUE) {
 	if ( drop && length(y) == 1 ) {
 		y[[1]]
 	} else {
-		data.frame(setNames(y, names(x)),
+		data.frame(set_names(y, names(x)),
 			row.names=rownames(x)[i],
 			check.names=FALSE,
 			stringsAsFactors=FALSE)
@@ -166,7 +166,7 @@ getDataFrameCols <- function(x, j, drop=TRUE) {
 	if ( drop && length(y) == 1 ) {
 		y[[1]]
 	} else {
-		data.frame(setNames(y, names(x)[j]),
+		data.frame(set_names(y, names(x)[j]),
 			row.names=rownames(x),
 			check.names=FALSE,
 			stringsAsFactors=FALSE)
@@ -197,7 +197,7 @@ getDataFrameElements <- function(x, i, j, drop=TRUE) {
 	if ( drop && length(j) == 1 ) {
 		y[[1]]
 	} else {
-		data.frame(setNames(y, names(x)[j]),
+		data.frame(set_names(y, names(x)[j]),
 			row.names=rownames(x)[i],
 			check.names=FALSE,
 			stringsAsFactors=FALSE)
@@ -226,7 +226,7 @@ subDataFrameRows <- function(x, i) {
 		i <- dimnames2index(x, i, 1)
 	y <- lapply(names(x), function(nm) atomdata(x)[[nm]][i,drop=NULL])
 	new(class(x),
-		data=setNames(y, names(x)),
+		data=set_names(y, names(x)),
 		datamode=datamode(x),
 		paths=paths(x),
 		filemode=filemode(x),
@@ -244,7 +244,7 @@ subDataFrameCols <- function(x, j) {
 		j <- dimnames2index(x, j, 2)
 	y <- atomdata(x)[j]
 	new(class(x),
-		data=setNames(y, names(x)[j]),
+		data=set_names(y, names(x)[j]),
 		datamode=datamode(x),
 		paths=paths(x),
 		filemode=filemode(x),
@@ -266,7 +266,7 @@ subDataFrameElements <- function(x, i, j) {
 		j <- dimnames2index(x, j, 2)	
 	y <- lapply(j, function(jj) atomdata(x)[[jj]][i,drop=NULL])
 	new(class(x),
-		data=setNames(y, names(x)[j]),
+		data=set_names(y, names(x)[j]),
 		datamode=datamode(x),
 		paths=paths(x),
 		filemode=filemode(x),

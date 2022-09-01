@@ -107,8 +107,7 @@ setMethod("[",
 	{
 		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
-		if ( missing(i) )
-			i <- NULL
+		i <- as_subscripts(i, x)
 		if ( is_nil(drop) ) {
 			subset_drle(x, i)
 		} else {
@@ -129,6 +128,12 @@ setMethod("[",
 setMethod("length", "drle", function(x) sum(x@lengths))
 
 setMethod("levels", "drle_fc", function(x) x@levels)
+
+setReplaceMethod("levels", "drle_fc",
+	function(x, value) {
+		x@levels <- value
+		x
+	})
 
 setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 	n <- length(x@values)

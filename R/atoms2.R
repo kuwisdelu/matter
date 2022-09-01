@@ -33,7 +33,7 @@ setClass("atoms2",
 				"must all be equal"))
 		# FIXME: shouldn't need to realize drle vectors[]
 		# (add support for these functions on drle directly)
-		if ( any(levels(object@type) != levels(make_datamode())) )
+		if ( any(levels(object@type) != get_Ctypes()) )
 			errors <- c(errors, "invalid 'type' factor levels")
 		if ( any(object@offset[] < 0) )
 			errors <- c(errors, "'offset' must be non-negative")
@@ -68,7 +68,7 @@ atoms2 <- function(source = tempfile(), type = "int",
 	if ( !is(source, "factor_OR_drle") )
 		source <- as.factor(source)
 	if ( !is(type, "factor_OR_drle") )
-		type <- make_datamode(type, type="C")
+		type <- as_Ctype(type)
 	group <- as.logical(diff(as.integer(group)))
 	pointers <- c(0L, which(group), n)
 	group <- cumsum(c(0L, group))
@@ -116,10 +116,36 @@ setMethod("show", "atoms2", function(object) {
 	}
 })
 
+setMethod("path", "atoms2", function(object, ...) levels(object@source))
+
+setReplaceMethod("path", "atoms2",
+	function(object, ..., value) {
+		levels(object@source) <- value
+		if ( validObject(object) )
+			object
+	})
+
+setMethod("readonly", "atoms2", function(x) x@readonly)
+
+setReplaceMethod("readonly", "atoms2",
+	function(x, value) {
+		x@readonly <- value
+		if ( validObject(x) )
+			x
+	})
+
+setMethod("checksum", "atoms2",
+	function(x, algo="sha1", ...) {
+		hash <- sapply(path(x), function(filename)
+			digest(filename, algo=algo, file=TRUE, ...))
+		attr(hash, "algo") <- algo
+		hash
+	})
+
 read_atom <- function(x, atom, type = "double")
 {
 	.Call("C_readAtom", x, as.integer(atom - 1),
-		make_datamode(type, type="R"), PACKAGE="matter")
+		as_Rtype(type), PACKAGE="matter")
 }
 
 write_atom <- function(x, atom, value)
@@ -130,7 +156,7 @@ write_atom <- function(x, atom, value)
 
 read_atoms <- function(x, i, type = "double", group = 0L)
 {
-	.Call("C_readAtoms", x, i, make_datamode(type, type="R"),
+	.Call("C_readAtoms", x, i, as_Rtype(type),
 		as.integer(group), PACKAGE="matter")
 }
 
@@ -140,15 +166,21 @@ write_atoms <- function(x, i, value, group = 0L)
 		as.integer(group), PACKAGE="matter")
 }
 
-subset_atoms <- function(x, i) {
-	sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
-	# FIXME: Make sure drle_fc supports droplevels()
-	atoms2(source=droplevels(x@source[sub$index]),
-			type=x@type[sub$index],
-			offset=sub$offset,
-			extent=sub$extent,
-			group=x@group[sub$index],
-			readonly=x@readonly)
+subset_atoms <- function(x, i = NULL, j = NULL) {
+	if ( !is.null(j) )
+		x <- x[which(as.integer(x@group) %in% (j - 1L))]
+	if ( !is.null(i) ) {
+		sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
+		# FIXME: Make sure drle_fc supports droplevels()
+		x <- atoms2(source=droplevels(x@source[sub$index]),
+				type=x@type[sub$index],
+				offset=sub$offset,
+				extent=sub$extent,
+				group=x@group[sub$index],
+				readonly=x@readonly)
+	}
+	if ( validObject(x) )
+		x
 }
 
 setMethod("as.data.frame", "atoms2",
@@ -193,7 +225,7 @@ setMethod("dims", "atoms2",
 		} else {
 			nms <- NULL
 		}
-		t(setNames(nrows, nms))
+		t(set_names(nrows, nms))
 	})
 
 setMethod("cbind2", "atoms2",
@@ -223,7 +255,9 @@ setMethod("rbind2", "atoms2",
 
 setMethod("[", c(x="atoms2"),
 	function(x, i, j, ...) {
-		if ( nargs() == 2 ) {
+		i <- as_subscripts(i, x)
+		j <- as_subscripts(j, x)
+		if ( nargs() - 1L == 1L ) {
 			if ( any(i <= 0 | i > length(x)) )
 				stop("subscript out of bounds")
 			# FIXME: Make sure drle_fc supports droplevels()
@@ -236,12 +270,7 @@ setMethod("[", c(x="atoms2"),
 		} else {
 			if ( ...length() > 0 )
 				stop("incorrect number of dimensions")
-			if ( !missing(j) )
-				x <- x[which(as.integer(x@group) %in% (j - 1L))]
-			if ( !missing(i) )
-				x <- subset_atoms(x, i)
-			if ( validObject(x) )
-				x
+			subset_atoms(x, i, j)
 		}
 	})
 
