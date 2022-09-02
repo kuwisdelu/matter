@@ -1,7 +1,7 @@
 #ifndef SEARCH
 #define SEARCH
 
-#include "Rutils.h"
+#include "matterDefines.h"
 #include "signal.h"
 
 #define SEARCH_ERROR -1

@@ -1,7 +1,7 @@
 #ifndef MATTER2
 #define MATTER2
 
-#include "Rutils.h"
+#include "matterDefines.h"
 #include "atoms.h"
 
 //// Matter class

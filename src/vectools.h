@@ -6,8 +6,8 @@
 #include <R.h>
 #include <Rinternals.h>
 
+#include "legacy.h"
 #include "matterDefines.h"
-#include "Rutils.h"
 
 //// Local extrema
 //-----------------

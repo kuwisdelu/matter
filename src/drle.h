@@ -1,7 +1,7 @@
 #ifndef DRLE
 #define DRLE
 
-#include "Rutils.h"
+#include "matterDefines.h"
 
 //// Struct for run length encoding info
 //---------------------------------------

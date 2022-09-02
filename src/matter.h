@@ -8,8 +8,8 @@
 #include <climits>
 #include <cmath>
 
-#include "Rutils.h"
 #include "matterDefines.h"
+#include "legacy.h"
 
 #include "search.h"
 

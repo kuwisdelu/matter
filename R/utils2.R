@@ -203,6 +203,37 @@ as_col_subscripts <- function(i, x, exact = TRUE) {
 	as_array_subscripts(i, x, 2L, exact)
 }
 
+linear_ind <- function(index, dim, lastMaj = TRUE) {
+	for ( j in seq_along(dim) ) {
+		if ( is.null(index[[j]]) )
+			index[[j]] <- seq_len(dim[j])
+	}
+	outdim <- lengths(index)
+	if ( lastMaj ) {
+		index <- as.matrix(expand.grid(index))
+	} else {
+		index <- as.matrix(expand.grid(rev(index)))
+		dim <- rev(dim)
+	}
+	for ( j in seq_along(dim) ) {
+		i <- index[,j]
+		if ( any(i <= 0 | i > dim[j]) )
+			stop("subscript out of bounds")
+	}
+	mul <- c(1, cumprod(dim[-length(dim)]))
+	mul <- rep(mul, each=nrow(index))
+	index <- rowSums((index - 1) * mul) + 1
+	if ( all(index <= .Machine$integer.max) )
+		index <- as.integer(index)
+	if ( !lastMaj ) {
+		perm <- array(seq_len(prod(outdim)), rev(outdim))
+		perm <- aperm(perm, rev(seq_along(outdim)))
+		storage.mode(perm) <- typeof(index)
+		attr(index, "perm") <- c(perm)
+	}
+	index
+}
+
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 

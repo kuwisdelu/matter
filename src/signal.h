@@ -1,7 +1,7 @@
 #ifndef SIGNAL
 #define SIGNAL
 
-#include "Rutils.h"
+#include "matterDefines.h"
 
 // interpolation scheme
 // (must match factor levels)
