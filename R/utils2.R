@@ -202,35 +202,66 @@ as_col_subscripts <- function(i, x, exact = TRUE) {
 	as_array_subscripts(i, x, 2L, exact)
 }
 
-linear_ind <- function(index, dim, lastMaj = TRUE) {
-	for ( j in seq_along(dim) ) {
-		if ( is.null(index[[j]]) )
-			index[[j]] <- seq_len(dim[j])
-	}
-	outdim <- lengths(index)
-	if ( lastMaj ) {
-		index <- as.matrix(expand.grid(index))
+# export
+linear_ind <- function(index, dim, rowMaj = FALSE) {
+	if ( is.list(index) ) {
+		for ( j in seq_along(dim) ) {
+			if ( is.null(index[[j]]) )
+				index[[j]] <- seq_len(dim[j])
+		}
+		ans.dim <- lengths(index)
+		if ( rowMaj ) {
+			index <- as.matrix(rev(expand.grid(rev(index))))
+		} else {
+			index <- as.matrix(expand.grid(index))
+		}
 	} else {
-		index <- as.matrix(expand.grid(rev(index)))
-		dim <- rev(dim)
+		ans.dim <- NULL
 	}
+	index <- as.matrix(index)
 	for ( j in seq_along(dim) ) {
 		i <- index[,j]
 		if ( any(i <= 0 | i > dim[j]) )
 			stop("subscript out of bounds")
 	}
-	mul <- c(1, cumprod(dim[-length(dim)]))
-	mul <- rep(mul, each=nrow(index))
-	index <- rowSums((index - 1) * mul) + 1
+	if ( rowMaj ) {
+		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
+	} else {
+		strides <- c(1L, cumprod(dim[-length(dim)]))
+	}
+	index <- ((index - 1L) %*% strides) + 1L
 	if ( all(index <= .Machine$integer.max) )
 		index <- as.integer(index)
-	if ( !lastMaj ) {
-		perm <- array(seq_len(prod(outdim)), rev(outdim))
-		perm <- aperm(perm, rev(seq_along(outdim)))
-		storage.mode(perm) <- typeof(index)
-		attr(index, "perm") <- c(perm)
+	if ( !is.null(ans.dim) ) {
+		if ( rowMaj ) {
+			ord <- aperm(array(seq_along(index), rev(ans.dim)))
+		} else {
+			ord <- array(seq_along(index), ans.dim)
+		}
+		storage.mode(ord) <- typeof(index)
+		attr(index, "order") <- ord
 	}
 	index
+}
+
+# export
+array_ind <- function(i, dim, rowMaj = FALSE) {
+	i <- i - 1L
+	if ( rowMaj ) {
+		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
+	} else {
+		strides <- c(1L, cumprod(dim[-length(dim)]))
+	}
+	index <- matrix(nrow=length(i), ncol=length(dim))
+	for ( j in seq_along(dim) ) {
+		nextind <- i %/% strides[j]
+		index[,j] <- nextind %% dim[j]
+	}
+	index + 1L
+}
+
+convert_ind <- function(i, dim, rowMaj = FALSE) {
+	linear_ind(array_ind(i, dim, rowMaj), dim, !rowMaj)
 }
 
 #### Miscellaneous utility functions ####
