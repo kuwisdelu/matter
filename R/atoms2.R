@@ -166,10 +166,33 @@ write_atoms <- function(x, i, value, group = 0L)
 		as.integer(group), PACKAGE="matter")
 }
 
+subset_atoms_1d <- function(x, i = NULL) {
+	if ( is.null(i) )
+		return(x)
+	if ( any(i < 1 | i > length(x)) )
+		stop("subscript out of bounds")
+	# FIXME: Make sure drle_fc supports droplevels()
+	atoms2(source=droplevels(x@source[i]),
+		type=x@type[i],
+		offset=x@offset[i],
+		extent=x@extent[i],
+		group=x@group[i],
+		readonly=x@readonly)
+}
+
 subset_atoms <- function(x, i = NULL, j = NULL) {
-	if ( !is.null(j) )
-		x <- x[which(as.integer(x@group) %in% (j - 1L))]
+	dms <- dims(x)
+	if ( !is.null(j) ) {
+		if ( any(j < 1 | j > length(dms)) )
+			stop("subscript out of bounds")
+		grp <- as.integer(x@group) + 1L
+		j <- lapply(j, function(g) which(grp %in% g))
+		j <- unlist(j)
+		x <- subset_atoms_1d(x, j)
+	}
 	if ( !is.null(i) ) {
+		if ( any(i < 1 | i > min(dms)) )
+			stop("subscript out of bounds")
 		sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
 		# FIXME: Make sure drle_fc supports droplevels()
 		x <- atoms2(source=droplevels(x@source[sub$index]),
@@ -255,21 +278,13 @@ setMethod("rbind2", "atoms2",
 
 setMethod("[", c(x="atoms2"),
 	function(x, i, j, ...) {
+		if ( ...length() > 0 )
+			stop("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
 		if ( nargs() - 1L == 1L ) {
-			if ( any(i <= 0 | i > length(x)) )
-				stop("subscript out of bounds")
-			# FIXME: Make sure drle_fc supports droplevels()
-			atoms2(source=droplevels(x@source[i]),
-				type=x@type[i],
-				offset=x@offset[i],
-				extent=x@extent[i],
-				group=x@group[i],
-				readonly=x@readonly)
+			subset_atoms_1d(x, i)
 		} else {
-			if ( ...length() > 0 )
-				stop("incorrect number of dimensions")
 			subset_atoms(x, i, j)
 		}
 	})

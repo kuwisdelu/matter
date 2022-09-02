@@ -30,7 +30,7 @@ as_Rtype <- function(x) {
 	if ( !missing(x) ) {
 		if ( is_Rtype(x, strict=TRUE) )
 			return(x)
-		if ( is_Ctype(x, strict=FALSE) )
+		if ( is_Ctype(x) && !is_Rtype(x) )
 			return(to_Rtype(as_Ctype(x)))
 	}
 	if ( !missing(x) && is.character(x) ) {
@@ -48,20 +48,20 @@ as_Ctype <- function(x) {
 	if ( !missing(x) ) {
 		if ( is_Ctype(x, strict=TRUE) )
 			return(x)
-		if ( is_Rtype(x, strict=FALSE) )
+		if ( is_Rtype(x) && !is_Ctype(x) )
 			return(to_Ctype(as_Rtype(x)))
 	}
 	
 	make_code(get_Ctypes(), x)
 }
 
-is_Rtype <- function(x, strict = TRUE) {
+is_Rtype <- function(x, strict = FALSE) {
 	codes <- get_Rtypes()
 	valid <- is.factor(x) && all(levels(x) == codes)
 	valid || (all(x %in% codes) && !strict)
 }
 
-is_Ctype <- function(x, strict = TRUE) {
+is_Ctype <- function(x, strict = FALSE) {
 	codes <- get_Ctypes()
 	valid <- is.factor(x) && all(levels(x) == codes)
 	valid || (all(x %in% codes) && !strict)
@@ -240,14 +240,14 @@ linear_ind <- function(index, dim, lastMaj = TRUE) {
 is_nil <- function(x) is.na(x) || is.null(x)
 
 set_names <- function(x, nm, i) {
-	if ( !is.null(i) )
+	if ( !missing(i) && !is.null(i) )
 		nm <- nm[i]
 	names(x) <- nm
 	x
 }
 
 set_dimnames <- function(x, dnm, index) {
-	if ( !is.null(index) )
+	if ( !missing(index) && !is.null(index) )
 		for ( i in seq_along(index) ) {
 			j <- index[[i]]
 			if ( !is.null(dnm[[i]]) && !is.null(j) )
