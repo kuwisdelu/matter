@@ -22,7 +22,7 @@
 #define R_LOGICAL	2
 #define R_INTEGER	3
 #define R_DOUBLE	4
-#define R_STRING	5
+#define R_CHARACTER	5
 #define R_LIST		6
 
 // C-level data types
@@ -275,6 +275,25 @@ inline bool equal(T x, T y, double tol = DBL_EPSILON)
 
 //// Misc utilities
 //--------------------
+
+// inline SEXPTYPE asTYPE(int type) {
+// 	switch(type) {
+// 		case R_RAW:
+// 			return RAWSXP;
+// 		case R_LOGICAL:
+// 			return LGLSXP;
+// 		case R_INTEGER:
+// 			return INTSXP;
+// 		case R_DOUBLE:
+// 			return REALSXP;
+// 		case R_CHARACTER:
+// 			return STRSXP;
+// 		case R_LIST:
+// 			return VECSXP;
+// 		default:
+// 			Rf_error("invalid data type");
+// 	}
+// }
 
 template<typename T>
 size_t fill(T * buffer, size_t n, T val, size_t stride = 1)

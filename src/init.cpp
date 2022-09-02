@@ -23,7 +23,10 @@ extern "C" {
 		{"C_readAtoms", (DL_FUNC) &readAtoms, 4},
 		{"C_writeAtoms", (DL_FUNC) &writeAtoms, 4},
 		{"C_subsetAtoms", (DL_FUNC) &subsetAtoms, 2},
-		// data structures
+		// matter data structures
+		{"C_getMatterArray", (DL_FUNC) &getMatterArray, 2},
+		{"C_setMatterArray", (DL_FUNC) &setMatterArray, 3},
+		// sparse data structures
 		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
 		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},
 		{"C_getSparseMatrixR", (DL_FUNC) &getSparseMatrixR, 3},

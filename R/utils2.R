@@ -91,11 +91,10 @@ sizeof <- function(x) {
 	sizes[as.integer(as_Ctype(x))]
 }
 
-toplevel_type <- function(x) {
-	sizes <- c(raw = 1L, logical = 4L, integer = 4L,
-		double = 8L, character = Inf, list = NA_integer_)
-	x <- as_Rtype(x)
-	x[which.max(sizes[as.integer(x)])]
+collapse_Rtype <- function(x) {
+	sizes <- sizeof(x)
+	x <- to_Rtype(x)
+	x[which.max(sizes)]
 }
 
 #### Codes for C-level switch statements ####

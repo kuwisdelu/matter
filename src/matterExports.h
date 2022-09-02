@@ -4,6 +4,7 @@
 
 #include "drle.h"
 #include "atoms.h"
+#include "matter2.h"
 #include "search.h"
 #include "sparse.h"
 
@@ -182,6 +183,21 @@ extern "C" {
 				y.self_destruct();
 				Rf_error("invalid index type");
 		}
+	}
+
+	// Matter data structures
+	//-----------------------
+
+	static inline SEXP getMatterArray(SEXP x, SEXP i)
+	{
+		Matter2Array y(x);
+		return y.getElements(i);
+	}
+
+	static inline SEXP setMatterArray(SEXP x, SEXP i, SEXP value)
+	{
+		Matter2Array y(x);
+		return y.setElements(i, value);
 	}
 
 	// Sparse data structures

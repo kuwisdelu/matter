@@ -109,17 +109,17 @@ inline SEXP make_drle(SEXP values, SEXP deltas, SEXP lengths)
 }
 
 // use DRLE to encode an array of x
-template<typename Tv, typename Tl>
-size_t encode_drle(Tv * x, size_t len, Tv * values,
-	Tv * deltas, Tl * lengths, size_t nruns)
+template<typename Tval, typename Tlen>
+size_t encode_drle(Tval * x, size_t len, Tval * values,
+	Tval * deltas, Tlen * lengths, size_t nruns)
 {
 	size_t i = 0, j = 0;
 	while ( i < len && j < nruns )
 	{
-		RunInfo<Tv> run = compute_run<Tv>(x, i, len);
-		values[j] = static_cast<Tv>(run.value);
-		deltas[j] = static_cast<Tv>(run.delta);
-		lengths[j] = static_cast<Tl>(run.length);
+		RunInfo<Tval> run = compute_run<Tval>(x, i, len);
+		values[j] = static_cast<Tval>(run.value);
+		deltas[j] = static_cast<Tval>(run.delta);
+		lengths[j] = static_cast<Tlen>(run.length);
 		i += lengths[j];
 		j++;
 	}
@@ -509,17 +509,17 @@ R_xlen_t num_runs(CompressedVector<T> x, SEXP indx)
 }
 
 // recode a subsetted CompressedVector, must pre-calculate output length
-template<typename Tv, typename Tl>
-size_t recode_drle(CompressedVector<Tv> x, SEXP indx, Tv * values,
-	Tv * deltas, Tl * lengths, size_t nruns)
+template<typename Tval, typename Tlen>
+size_t recode_drle(CompressedVector<Tval> x, SEXP indx, Tval * values,
+	Tval * deltas, Tlen * lengths, size_t nruns)
 {
 	size_t i = 0, j = 0;
 	while ( i < XLENGTH(indx) && j < nruns )
 	{
-		RunInfo<Tv> run = compute_run<Tv>(x, indx, i);
-		values[j] = static_cast<Tv>(run.value);
-		deltas[j] = static_cast<Tv>(run.delta);
-		lengths[j] = static_cast<Tl>(run.length);
+		RunInfo<Tval> run = compute_run<Tval>(x, indx, i);
+		values[j] = static_cast<Tval>(run.value);
+		deltas[j] = static_cast<Tval>(run.delta);
+		lengths[j] = static_cast<Tlen>(run.length);
 		i += lengths[j];
 		j++;
 	}

@@ -163,7 +163,10 @@ class Atoms2 {
 		}
 
 		R_xlen_t ngroups() {
-			return _pointers.length() - 1;
+			if ( is_flat() )
+				return 1;
+			else
+				return _pointers.length() - 1;
 		}
 
 		AtomInfo find_atom(index_t i, int grp = 0)
@@ -186,7 +189,19 @@ class Atoms2 {
 		}
 
 		int find_group(int grp) {
-			return _pointers[grp];
+			if ( is_flat() )
+				return 0;
+			else
+				return _pointers[grp];
+		}
+
+		bool is_flat() {
+			return _flatten;
+		}
+
+		Atoms2 * flatten(bool flat = true) {
+			_flatten = flat;
+			return this;
 		}
 
 		int source(int atom) {
@@ -198,7 +213,10 @@ class Atoms2 {
 		}
 
 		int group(int atom) {
-			return _groups[atom];
+			if ( is_flat() )
+				return 0;
+			else
+				return _groups[atom];
 		}
 
 		index_t extent(int atom) {
@@ -244,7 +262,7 @@ class Atoms2 {
 		}
 
 		template<typename Tin, typename Tout>
-		index_t read_atom(Tout * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t read_atom(Tout * ptr, int atom, size_t pos, size_t size, int stride = 1)
 		{
 			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
@@ -263,7 +281,7 @@ class Atoms2 {
 		}
 
 		template<typename Tin, typename Tout>
-		index_t write_atom(Tin * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t write_atom(Tin * ptr, int atom, size_t pos, size_t size, int stride = 1)
 		{
 			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
@@ -282,7 +300,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		index_t get_atom(T * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t get_atom(T * ptr, int atom, size_t pos, size_t size, int stride = 1)
 		{
 			switch(type(atom)) {
 				case C_CHAR:
@@ -311,7 +329,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		index_t set_atom(T * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t set_atom(T * ptr, int atom, size_t pos, size_t size, int stride = 1)
 		{
 			switch(type(atom)) {
 				case C_CHAR:
@@ -340,7 +358,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		index_t get_region(T * ptr, index_t i, size_t size, int grp = 0, int stride = 1)
+		size_t get_region(T * ptr, index_t i, size_t size, int grp = 0, int stride = 1)
 		{
 			AtomInfo ap = find_atom(i, grp);
 			int atom = ap.atom;
@@ -362,7 +380,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		index_t set_region(T * ptr, index_t i, size_t size, int grp = 0, int stride = 1)
+		size_t set_region(T * ptr, index_t i, size_t size, int grp = 0, int stride = 1)
 		{
 			AtomInfo ap = find_atom(i, grp);
 			int atom = ap.atom;
@@ -384,7 +402,7 @@ class Atoms2 {
 		}
 
 		template<typename Tind, typename Tval>
-		index_t get_elements(Tval * ptr, Tind * pindx, size_t size,
+		size_t get_elements(Tval * ptr, Tind * pindx, size_t size,
 			int grp = 0, int stride = 1, bool ind1 = false)
 		{
 			index_t n, i = 0, num_read = 0, num_toread = size;
@@ -409,7 +427,7 @@ class Atoms2 {
 		}
 
 		template<typename Tind, typename Tval>
-		index_t set_elements(Tval * ptr, Tind * pindx, size_t size,
+		size_t set_elements(Tval * ptr, Tind * pindx, size_t size,
 			int grp = 0, int stride = 1, bool ind1 = false)
 		{
 			index_t n, i = 0, num_read = 0, num_toread = size;
@@ -435,7 +453,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		index_t get_elements(T * ptr, SEXP indx, int grp = 0, int stride = 1)
+		size_t get_elements(T * ptr, SEXP indx, int grp = 0, int stride = 1)
 		{
 			R_xlen_t len = XLENGTH(indx);
 			switch(TYPEOF(indx)) {
@@ -450,7 +468,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		index_t set_elements(T * ptr, SEXP indx, int grp = 0, int stride = 1)
+		size_t set_elements(T * ptr, SEXP indx, int grp = 0, int stride = 1)
 		{
 			R_xlen_t len = XLENGTH(indx);
 			switch(TYPEOF(indx)) {
@@ -580,6 +598,7 @@ class Atoms2 {
 		CompressedVector<double> _extents; // number of elements
 		CompressedVector<int> _groups; // 0-based organization
 		CompressedVector<int> _pointers; // 0-based pointers to groups
+		bool _flatten = false;
 
 };
 

@@ -11,7 +11,7 @@ setClass("matter2_arr",
 		errors <- NULL
 		if ( is.null(object@dim) )
 			errors <- c(errors, "array must have non-NULL 'dim'")
-		if ( length(object@lastMaj) )
+		if ( length(object@lastMaj) != 1L )
 			errors <- c(errors, "'lastMaj' must be a scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
 	})
@@ -33,6 +33,7 @@ matter2_arr <- function(data, type = "double", path = NULL,
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
 	path <- normalizePath(path, mustWork=FALSE)
 	exists <- file.exists(path)
+	readonly <- force(readonly)
 	if ( all(exists) ) {
 		if ( missing(data) ) {
 			if ( missing(dim) && missing(extent) ) {
@@ -49,8 +50,8 @@ matter2_arr <- function(data, type = "double", path = NULL,
 		}
 	} else {
 		if ( missing(data) ) {
-			data <- vector(toplevel_type(type), length=1L)
-		} else if ( !readonly ) {
+			data <- vector(collapse_Rtype(type), length=1L)
+		} else if ( any(exists) && !readonly ) {
 			warning("data may overwrite existing file(s): ", sQuote(path[exists]))
 		}
 		# create files if they don't exist
@@ -66,14 +67,14 @@ matter2_arr <- function(data, type = "double", path = NULL,
 			extent=extent,
 			group=0L,
 			readonly=readonly),
-		type=toplevel_type(type),
+		type=collapse_Rtype(type),
 		dim=dim,
 		names=NULL,
 		dimnames=dimnames,
 		ops=NULL,
 		lastMaj=lastMaj)
-	if ( !missing(data) )
-		x[] <- data
+	# if ( !missing(data) )
+	# 	x[] <- data
 	x
 }
 

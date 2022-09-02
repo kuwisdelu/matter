@@ -90,6 +90,7 @@ export(
 	"matter_vec",
 	"matter_mat",
 	"matter_arr",
+	"matter2_arr",
 	"matter_list",
 	"matter_str",
 	"matter_fc",

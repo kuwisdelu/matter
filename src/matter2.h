@@ -11,23 +11,28 @@ class Matter2 {
 
 	public:
 
-		Matter2(SEXP x) : _data(x)
+		Matter2(SEXP x) : _data(R_do_slot(x, Rf_install("data")))
 		{
 			_type = R_do_slot(x, Rf_install("type"));
 			_dim = R_do_slot(x, Rf_install("dim"));
 			_names = R_do_slot(x, Rf_install("names"));
 			_dimnames = R_do_slot(x, Rf_install("dimnames"));
+			_self = x;
 		}
 
 		~Matter2() {
 			_data.self_destruct();
 		}
 
+		SEXP self() {
+			return _self;
+		}
+
 		void self_destruct() {
 			_data.self_destruct();
 		}
 
-		Atoms * data() {
+		Atoms2 * data() {
 			return &_data;
 		}
 
@@ -42,15 +47,26 @@ class Matter2 {
 				return NA_INTEGER;
 		}
 
+		int rank() {
+			return LENGTH(_dim);
+		}
+
+		SEXP dim() {
+			return _dim;
+		}
+
 		R_xlen_t dim(int i) {
-			if ( XLENGTH(_dim) > i )
+			if ( i < rank() )
 				return IndexElt(_dim, i);
 			else
 				return NA_INTEGER;
 		}
 
-		int rank() {
-			return LENGTH(_dim);
+		R_xlen_t length() {
+			R_xlen_t size = 1;
+			for ( size_t i = 0; i < rank(); i++ )
+				size *= dim(i);
+			return size;
 		}
 
 		SEXP names() {
@@ -69,7 +85,7 @@ class Matter2 {
 		}
 
 		SEXP dimnames(int i) {
-			if ( XLENGTH(_dimnames) > i )
+			if ( i < rank() )
 				return VECTOR_ELT(_dimnames, i);
 			else
 				return R_NilValue;
@@ -77,6 +93,7 @@ class Matter2 {
 
 	protected:
 
+		SEXP _self;
 		Atoms2 _data;
 		SEXP _type;
 		SEXP _dim;
@@ -85,7 +102,7 @@ class Matter2 {
 
 };
 
-class Matter2Array {
+class Matter2Array : public Matter2 {
 
 	public:
 
@@ -96,21 +113,136 @@ class Matter2Array {
 		}
 
 		bool last_dim_major() {
-			return _lastMaj
+			return _lastMaj;
 		}
 
-		template<typename Tind, typename Tval>
-		Tval get(index_t i);
+		template<typename T>
+		size_t getRegion(index_t i, size_t size, T * buffer, int stride = 1)
+		{
+			return data()->flatten()->get_region<T>(buffer, i, size, 0, stride);
+		}
 
-		template<typename Tind, typename Tval>
-		size_t getRegion(index_t i, size_t size, Tval * buffer);
+		template<typename T>
+		size_t setRegion(index_t i, size_t size, T * buffer, int stride = 1)
+		{
+			return data()->flatten()->set_region<T>(buffer, i, size, 0, stride);
+		}
 
-		SEXP getRegion(index_t i, size_t size);
+		SEXP getRegion(index_t i, size_t size)
+		{
+			SEXP x;
+			switch(type()) {
+				case R_RAW:
+					PROTECT(x = Rf_allocVector(RAWSXP, size));
+					getRegion(i, size, RAW(x));
+					break;
+				case R_LOGICAL:
+					PROTECT(x = Rf_allocVector(LGLSXP, size));
+					getRegion(i, size, LOGICAL(x));
+					break;
+				case R_INTEGER:
+					PROTECT(x = Rf_allocVector(INTSXP, size));
+					getRegion(i, size, INTEGER(x));
+					break;
+				case R_DOUBLE:
+					PROTECT(x = Rf_allocVector(REALSXP, size));
+					getRegion(i, size, REAL(x));
+					break;
+				default:
+					self_destruct();
+					Rf_error("invalid matter array type");
+			}
+			UNPROTECT(1);
+			return x;
+		}
 
-		template<typename Tind, typename Tval>
-		size_t getElements(SEXP indx, Tval * buffer);
+		SEXP setRegion(index_t i, SEXP value)
+		{
+			switch(type()) {
+				case R_RAW:
+					setRegion(i, XLENGTH(value), RAW(value));
+					break;
+				case R_LOGICAL:
+					setRegion(i, XLENGTH(value), LOGICAL(value));
+					break;
+				case R_INTEGER:
+					setRegion(i, XLENGTH(value), INTEGER(value));
+					break;
+				case R_DOUBLE:
+					setRegion(i, XLENGTH(value), REAL(value));
+					break;
+				default:
+					self_destruct();
+					Rf_error("invalid matter array type");
+			}
+			return self();
+		}
 
-		SEXP getElements(SEXP indx);
+		template<typename T>
+		size_t getElements(SEXP indx, T * buffer, int stride = 1)
+		{
+			return data()->flatten()->get_elements<T>(buffer, indx, 0, stride);
+		}
+
+		template<typename T>
+		size_t setElements(SEXP indx, T * buffer, int stride = 1)
+		{
+			return data()->flatten()->set_elements<T>(buffer, indx, 0, stride);
+		}
+
+		SEXP getElements(SEXP indx)
+		{
+			SEXP x;
+			if ( Rf_isNull(indx) )
+				return getRegion(0, length());
+			switch(type()) {
+				case R_RAW:
+					PROTECT(x = Rf_allocVector(RAWSXP, XLENGTH(indx)));
+					getElements(indx, RAW(x));
+					break;
+				case R_LOGICAL:
+					PROTECT(x = Rf_allocVector(LGLSXP, XLENGTH(indx)));
+					getElements(indx, LOGICAL(x));
+					break;
+				case R_INTEGER:
+					PROTECT(x = Rf_allocVector(INTSXP, XLENGTH(indx)));
+					getElements(indx, INTEGER(x));
+					break;
+				case R_DOUBLE:
+					PROTECT(x = Rf_allocVector(REALSXP, XLENGTH(indx)));
+					getElements(indx, REAL(x));
+					break;
+				default:
+					self_destruct();
+					Rf_error("invalid matter array type");
+			}
+			UNPROTECT(1);
+			return x;
+		}
+
+		SEXP setElements(SEXP indx, SEXP value)
+		{
+			if ( Rf_isNull(indx) )
+				return setRegion(0, value);
+			switch(type()) {
+				case R_RAW:
+					setElements(indx, RAW(value));
+					break;
+				case R_LOGICAL:
+					setElements(indx, LOGICAL(value));
+					break;
+				case R_INTEGER:
+					setElements(indx, INTEGER(value));
+					break;
+				case R_DOUBLE:
+					setElements(indx, REAL(value));
+					break;
+				default:
+					self_destruct();
+					Rf_error("invalid matter array type");
+			}
+			return self();
+		}
 
 	protected:
 
