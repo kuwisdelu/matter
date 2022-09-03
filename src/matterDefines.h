@@ -276,36 +276,24 @@ inline bool equal(T x, T y, double tol = DBL_EPSILON)
 //// Misc utilities
 //--------------------
 
-// inline SEXPTYPE asTYPE(int type) {
-// 	switch(type) {
-// 		case R_RAW:
-// 			return RAWSXP;
-// 		case R_LOGICAL:
-// 			return LGLSXP;
-// 		case R_INTEGER:
-// 			return INTSXP;
-// 		case R_DOUBLE:
-// 			return REALSXP;
-// 		case R_CHARACTER:
-// 			return STRSXP;
-// 		case R_LIST:
-// 			return VECSXP;
-// 		default:
-// 			Rf_error("invalid data type");
-// 	}
-// }
-
+// fill a buffer with a value
 template<typename T>
-size_t fill(T * buffer, size_t n, T val, size_t stride = 1)
+void fill(T * buffer, size_t size, T val, int stride = 1)
 {
-	size_t count = 0;
-	for ( size_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < size; i++ )
 		buffer[stride * i] = val;
-	return count;
 }
 
-// FIXME: Temporary (slow) solution as R_compact_intrange() is non-API
-inline SEXP intrange(size_t start, size_t end)
+// copy src buffer to dest at permuted indices
+template<typename T>
+void perm_copy(T * dest, T * src, size_t size, int * indx)
+{
+	for ( size_t i = 0; i < size; i++ )
+		dest[indx[i]] = src[i];
+}
+
+// FIXME: Temporary (slow) solution as R_compact_seq_range() is non-API
+inline SEXP seq_range(size_t start, size_t end)
 {
 	SEXP ans;
 	size_t len = end - start + 1;
@@ -319,7 +307,7 @@ inline SEXP intrange(size_t start, size_t end)
 
 // FIXME: Temporary solution as Rf_ExtractSubset() is non-API
 template<typename T>
-SEXP extractrange(SEXP x, size_t start, size_t end)
+SEXP extract_range(SEXP x, size_t start, size_t end)
 {
 	SEXP ans;
 	size_t len = end - start + 1;
@@ -332,13 +320,13 @@ SEXP extractrange(SEXP x, size_t start, size_t end)
 	return ans;
 }
 
-inline SEXP extractrange(SEXP x, size_t start, size_t end)
+inline SEXP extract_range(SEXP x, size_t start, size_t end)
 {
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			return extractrange<int>(x, start, end);
+			return extract_range<int>(x, start, end);
 		case REALSXP:
-			return extractrange<double>(x, start, end);
+			return extract_range<double>(x, start, end);
 		default:
 			Rf_error("unsupported data type");
 	}

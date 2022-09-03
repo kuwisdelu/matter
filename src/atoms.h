@@ -262,7 +262,7 @@ class Atoms2 {
 		}
 
 		template<typename Tin, typename Tout>
-		size_t read_atom(Tout * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t read_atom(Tout * ptr, int atom, index_t pos, size_t size, int stride = 1)
 		{
 			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
@@ -281,7 +281,7 @@ class Atoms2 {
 		}
 
 		template<typename Tin, typename Tout>
-		size_t write_atom(Tin * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t write_atom(Tin * ptr, int atom, index_t pos, size_t size, int stride = 1)
 		{
 			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
@@ -300,7 +300,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		size_t get_atom(T * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t get_atom(T * ptr, int atom, index_t pos, size_t size, int stride = 1)
 		{
 			switch(type(atom)) {
 				case C_CHAR:
@@ -329,7 +329,7 @@ class Atoms2 {
 		}
 
 		template<typename T>
-		size_t set_atom(T * ptr, int atom, size_t pos, size_t size, int stride = 1)
+		size_t set_atom(T * ptr, int atom, index_t pos, size_t size, int stride = 1)
 		{
 			switch(type(atom)) {
 				case C_CHAR:

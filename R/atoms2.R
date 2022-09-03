@@ -267,12 +267,12 @@ setMethod("cbind2", "atoms2",
 setMethod("rbind2", "atoms2",
 	function(x, y, ...) {
 		groups <- c(x@group, y@group)
-		o <- order(groups, method="radix")
-		atoms2(source=c(x@source, y@source)[o],
-			type=c(x@type, y@type)[o],
-			offset=c(x@offset, y@offset)[o],
-			extent=c(x@extent, y@extent)[o],
-			group=groups[o],
+		ind <- order(groups, method="radix")
+		atoms2(source=c(x@source, y@source)[ind],
+			type=c(x@type, y@type)[ind],
+			offset=c(x@offset, y@offset)[ind],
+			extent=c(x@extent, y@extent)[ind],
+			group=groups[ind],
 			readonly=x@readonly || y@readonly)
 	})
 

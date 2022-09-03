@@ -5,20 +5,20 @@
 setClass("matter2_arr",
 	slots = c(
 		ops = "list_OR_NULL",
-		lastMaj = "logical"),
+		tranpose = "logical"),
 	contains = "matter2_",
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )
 			errors <- c(errors, "array must have non-NULL 'dim'")
-		if ( length(object@lastMaj) != 1L )
-			errors <- c(errors, "'lastMaj' must be a scalar (length 1)")
+		if ( length(object@tranpose) != 1L )
+			errors <- c(errors, "'tranpose' must be a scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
 matter2_arr <- function(data, type = "double", path = NULL,
 	dim = 0, dimnames = NULL, offset = 0, extent = prod(dim),
-	readonly = file.exists(path), lastMaj = TRUE, ...)
+	readonly = file.exists(path), rowMaj = FALSE, ...)
 {
 	if ( !missing(data) ) {
 		data <- as.array(data)
@@ -72,7 +72,7 @@ matter2_arr <- function(data, type = "double", path = NULL,
 		names=NULL,
 		dimnames=dimnames,
 		ops=NULL,
-		lastMaj=lastMaj)
+		transpose=rowMaj)
 	# if ( !missing(data) )
 	# 	x[] <- data
 	x
@@ -93,3 +93,25 @@ setMethod("preview_for_display", "matter2_arr", function(x) {
 		preview_Nd_array(x)
 	}
 })
+
+get_matter_arr_elts <- function(x, i = NULL) {
+	.Call("C_getMatterArray", x, i)
+}
+
+set_matter_arr_elts <- function(x, i = NULL) {
+	.Call("C_setMatterArray", x, i)
+}
+
+# setMethod("[", c(x="matter2_arr"),
+# 	function(x, i, j, ..., drop = TRUE) {
+# 		if ( ...length() > 0 )
+# 			stop("incorrect number of dimensions")
+# 		i <- as_subscripts(i, x)
+# 		j <- as_subscripts(j, x)
+# 		if ( nargs() - 1L == 1L ) {
+# 			subset_atoms_1d(x, i)
+# 		} else {
+# 			subset_atoms(x, i, j)
+# 		}
+# 	})
+

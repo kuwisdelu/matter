@@ -436,10 +436,10 @@ class SparseMatrix : public Sparse
 				else {
 					// matter vector
 					if ( has_pointers() )
-						indx = intrange(p.first, p.second - 1);
+						indx = seq_range(p.first, p.second - 1);
 					else {
 						size_t n = XLENGTH(_index);
-						indx = intrange(i * n + 1, (i + 1) * n);
+						indx = seq_range(i * n + 1, (i + 1) * n);
 					}
 					PROTECT(indx);
 					// FIXME: double indexing only for now...
@@ -455,10 +455,10 @@ class SparseMatrix : public Sparse
 			else {
 				// R vector
 				if ( has_pointers() )
-					data0 = extractrange(_data, p.first + 1, p.second);
+					data0 = extract_range(_data, p.first + 1, p.second);
 				else {
 					size_t n = XLENGTH(_index);
-					data0 = extractrange(_data, i * n + 1, (i + 1) * n);
+					data0 = extract_range(_data, i * n + 1, (i + 1) * n);
 				}
 			}
 			PROTECT(data0);
@@ -485,7 +485,7 @@ class SparseMatrix : public Sparse
 				else {
 					// matter vector
 					if ( has_pointers() ) {
-						PROTECT(indx = intrange(p.first, p.second - 1));
+						PROTECT(indx = seq_range(p.first, p.second - 1));
 						// FIXME: double indexing only for now...
 						PROTECT(indx = Rf_coerceVector(indx, REALSXP));
 						index0 = getVectorElements(_index, indx);
@@ -502,7 +502,7 @@ class SparseMatrix : public Sparse
 			else {
 				// R vector
 				if ( has_pointers() )
-					index0 = extractrange(_index, p.first + 1, p.second);
+					index0 = extract_range(_index, p.first + 1, p.second);
 				else
 					index0 = _index;
 			}
@@ -570,7 +570,7 @@ class SparseMatrixC : public SparseMatrix
 			size_t ni = i != R_NilValue ? LENGTH(i) : nrow();
 			size_t nj = j != R_NilValue ? LENGTH(j) : ncol();
 			if ( j == R_NilValue )
-				j = intrange(1, nj);
+				j = seq_range(1, nj);
 			PROTECT(j);
 			if ( i == R_NilValue && !has_domain() )
 			{
@@ -679,7 +679,7 @@ class SparseMatrixR : public SparseMatrix
 			size_t ni = i != R_NilValue ? LENGTH(i) : nrow();
 			size_t nj = j != R_NilValue ? LENGTH(j) : ncol();
 			if ( i == R_NilValue )
-				i = intrange(1, ni);
+				i = seq_range(1, ni);
 			PROTECT(i);
 			if ( j == R_NilValue && !has_domain() )
 			{

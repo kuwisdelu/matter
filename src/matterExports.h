@@ -197,7 +197,8 @@ extern "C" {
 	static inline SEXP setMatterArray(SEXP x, SEXP i, SEXP value)
 	{
 		Matter2Array y(x);
-		return y.setElements(i, value);
+		y.setElements(i, value);
+		return x;
 	}
 
 	// Sparse data structures

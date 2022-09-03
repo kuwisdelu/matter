@@ -95,6 +95,9 @@ inline R_xlen_t num_runs(SEXP x, bool seq = false)
 	}
 }
 
+//// Create DRLE objects
+//------------------------
+
 // initialize a DRLE S4 instance
 inline SEXP make_drle(SEXP values, SEXP deltas, SEXP lengths)
 {
