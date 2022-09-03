@@ -5,14 +5,14 @@
 setClass("matter2_arr",
 	slots = c(
 		ops = "list_OR_NULL",
-		tranpose = "logical"),
+		transpose = "logical"),
 	contains = "matter2_",
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )
 			errors <- c(errors, "array must have non-NULL 'dim'")
-		if ( length(object@tranpose) != 1L )
-			errors <- c(errors, "'tranpose' must be a scalar (length 1)")
+		if ( length(object@transpose) != 1L )
+			errors <- c(errors, "'transpose' must be a scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -50,7 +50,7 @@ matter2_arr <- function(data, type = "double", path = NULL,
 		}
 	} else {
 		if ( missing(data) ) {
-			data <- vector(collapse_Rtype(type), length=1L)
+			data <- vector(as.character(collapse_Rtype(type)), length=1L)
 		} else if ( any(exists) && !readonly ) {
 			warning("data may overwrite existing file(s): ", sQuote(path[exists]))
 		}
@@ -73,14 +73,14 @@ matter2_arr <- function(data, type = "double", path = NULL,
 		dimnames=dimnames,
 		ops=NULL,
 		transpose=rowMaj)
-	# if ( !missing(data) )
-	# 	x[] <- data
+	if ( !missing(data) )
+		x[] <- data
 	x
 }
 
 setMethod("describe_for_display", "matter2_arr", function(x) {
-	desc1 <- paste0("<", paste0(x@dim, collapse=" x "), " dim> ", class(x))
-	desc2 <- paste0("out-of-memory ", x@datamode, " array")
+	desc1 <- paste0("<", paste0(dim(x), collapse=" x "), " dim> ", class(x))
+	desc2 <- paste0("out-of-memory ", type(x), " array")
 	paste0(desc1, " :: ", desc2)
 })
 
@@ -98,20 +98,42 @@ get_matter_arr_elts <- function(x, i = NULL) {
 	.Call("C_getMatterArray", x, i)
 }
 
-set_matter_arr_elts <- function(x, i = NULL) {
-	.Call("C_setMatterArray", x, i)
+set_matter_arr_elts <- function(x, i = NULL, value = 0L) {
+	.Call("C_setMatterArray", x, i, value)
 }
 
-# setMethod("[", c(x="matter2_arr"),
-# 	function(x, i, j, ..., drop = TRUE) {
-# 		if ( ...length() > 0 )
-# 			stop("incorrect number of dimensions")
-# 		i <- as_subscripts(i, x)
-# 		j <- as_subscripts(j, x)
-# 		if ( nargs() - 1L == 1L ) {
-# 			subset_atoms_1d(x, i)
-# 		} else {
-# 			subset_atoms(x, i, j)
-# 		}
-# 	})
+setMethod("[", c(x="matter2_arr"),
+	function(x, i, j, ..., drop = TRUE) {
+		narg <- nargs() - 1L - !missing(drop)
+		if ( missing(i) )
+			i <- NULL
+		if ( missing(j) )
+			j <- NULL
+		if ( narg == 1L ) {
+			get_matter_arr_elts(x, i)
+		} else {
+			index <- list(i, j, ...)
+			index <- as_array_subscripts(index, x)
+			k <- linear_ind(index, dim(x))
+			y <- get_matter_arr_elts(x, k)
+			dim(y) <- attr(index, "dim")
+			y
+		}
+	})
 
+setReplaceMethod("[", c(x="matter2_arr"),
+	function(x, i, j, ..., value) {
+		narg <- nargs() - 2L
+		if ( missing(i) )
+			i <- NULL
+		if ( missing(j) )
+			j <- NULL
+		if ( narg == 1L ) {
+			set_matter_arr_elts(x, i, value)
+		} else {
+			index <- list(i, j, ...)
+			index <- as_array_subscripts(index, x)
+			k <- linear_ind(index, dim(x))
+			set_matter_arr_elts(x, k, value)
+		}
+	})

@@ -179,9 +179,16 @@ as_subscripts <- function(i, x, exact = TRUE) {
 as_array_subscripts <- function(i, x, margin, exact = TRUE) {
 	if ( missing(i) )
 		return(NULL)
-	if ( is.list(i) )
-		return(lapply(seq_along(i), function(j)
-			as_array_subscripts(i[[j]], x, j, exact)))
+	if ( is.list(i) || missing(margin) ) {
+		if ( length(i) != length(dim(x)) )
+			stop("incorrect number of dimensions")
+		s <- lapply(seq_along(i), function(j)
+			as_array_subscripts(i[[j]], x, j, exact))
+		sdim <- vapply(seq_along(s), function(j)
+			if(is.null(s[[j]])) dim(x)[j] else length(s[[j]]), numeric(1))
+		attr(s, "dim") <- s
+		return(s)
+	}
 	if ( is.logical(i) ) {
 		i <- which(rep_len(i, dim(x)[[margin]]))
 	} else if ( !is.numeric(i) ) {

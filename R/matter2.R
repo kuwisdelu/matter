@@ -35,6 +35,12 @@ setClass("matter2",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
+setMethod("show", "matter2", function(object) {
+	cat(describe_for_display(object), "\n", sep="")
+	if ( getOption("matter.show.head") )
+		try(preview_for_display(object), silent=TRUE)
+})
+
 setMethod("adata", "matter2", function(object) atomdata(object))
 
 setMethod("atomdata", "matter2", function(object) object@data)
@@ -45,10 +51,10 @@ setReplaceMethod("atomdata", "matter2", function(object, value) {
 		object
 })
 
-setMethod("type", "matter2", function(x) x@data)
+setMethod("type", "matter2", function(x) x@type)
 
 setReplaceMethod("type", "matter2", function(x, value) {
-	x@data <- value
+	x@type <- value
 	if ( validObject(x) )
 		x
 })
@@ -99,10 +105,8 @@ setMethod("describe_for_display", "ANY", function(x) class(x))
 
 setMethod("preview_for_display", "ANY", function(x) head(x))
 
-setMethod("show", "matter", function(object) {
-	cat(describe_for_display(object), "\n", sep="")
-	if ( getOption("matter.show.head") )
-		try(preview_for_display(object), silent=TRUE)
+setMethod("show", "matter2_", function(object) {
+	callNextMethod()
 	show_matter_memory_and_storage(object)
 })
 

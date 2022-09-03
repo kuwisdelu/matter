@@ -103,11 +103,11 @@ class Matter2Array : public Matter2 {
 		Matter2Array(SEXP x) : Matter2(x)
 		{
 			_ops = R_do_slot(x, Rf_install("ops"));
-			_transposed = Rf_asLogical(R_do_slot(x, Rf_install("transposed")));
+			_transpose = Rf_asLogical(R_do_slot(x, Rf_install("transpose")));
 		}
 
 		bool is_transposed() {
-			return _transposed;
+			return _transpose;
 		}
 
 		// convert col-major to row-major index
@@ -209,30 +209,33 @@ class Matter2Array : public Matter2 {
 					break;
 				default:
 					self_destruct();
-					Rf_error("invalid matter array type");
+					Rf_error("invalid matter array data type");
 			}
 			UNPROTECT(1);
 			return x;
 		}
 
-		void setRegion(index_t i, SEXP value)
+		void setRegion(index_t i, size_t size, SEXP value)
 		{
-			switch(type()) {
-				case R_RAW:
-					setRegion(i, XLENGTH(value), RAW(value));
+			int stride = XLENGTH(value) <= 1 ? 0 : 1;
+			if ( size > XLENGTH(value) && stride != 0 )
+				size = XLENGTH(value);
+			switch(TYPEOF(value)) {
+				case RAWSXP:
+					setRegion(i, size, RAW(value), stride);
 					break;
-				case R_LOGICAL:
-					setRegion(i, XLENGTH(value), LOGICAL(value));
+				case LGLSXP:
+					setRegion(i, size, LOGICAL(value), stride);
 					break;
-				case R_INTEGER:
-					setRegion(i, XLENGTH(value), INTEGER(value));
+				case INTSXP:
+					setRegion(i, size, INTEGER(value), stride);
 					break;
-				case R_DOUBLE:
-					setRegion(i, XLENGTH(value), REAL(value));
+				case REALSXP:
+					setRegion(i, size, REAL(value), stride);
 					break;
 				default:
 					self_destruct();
-					Rf_error("invalid matter array type");
+					Rf_error("invalid replacement data type");
 			}
 		}
 
@@ -288,7 +291,7 @@ class Matter2Array : public Matter2 {
 					break;
 				default:
 					self_destruct();
-					Rf_error("invalid matter array type");
+					Rf_error("invalid matter array data type");
 			}
 			UNPROTECT(1);
 			return x;
@@ -296,31 +299,32 @@ class Matter2Array : public Matter2 {
 
 		void setElements(SEXP indx, SEXP value)
 		{
+			int stride = XLENGTH(value) <= 1 ? 0 : 1;
 			if ( Rf_isNull(indx) )
-				return setRegion(0, value);
-			switch(type()) {
-				case R_RAW:
-					setElements(indx, RAW(value));
+				return setRegion(0, length(), value);
+			switch(TYPEOF(value)) {
+				case RAWSXP:
+					setElements(indx, RAW(value), stride);
 					break;
-				case R_LOGICAL:
-					setElements(indx, LOGICAL(value));
+				case LGLSXP:
+					setElements(indx, LOGICAL(value), stride);
 					break;
-				case R_INTEGER:
-					setElements(indx, INTEGER(value));
+				case INTSXP:
+					setElements(indx, INTEGER(value), stride);
 					break;
-				case R_DOUBLE:
-					setElements(indx, REAL(value));
+				case REALSXP:
+					setElements(indx, REAL(value), stride);
 					break;
 				default:
 					self_destruct();
-					Rf_error("invalid matter array type");
+					Rf_error("invalid replacement data type");
 			}
 		}
 
 	protected:
 
 		SEXP _ops;
-		bool _transposed;
+		bool _transpose;
 
 };
 

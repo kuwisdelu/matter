@@ -140,8 +140,8 @@ groupCombiner <- function(fun) {
 show_matter_memory_and_storage <- function(object) {
 	object.memory <- object.size(object)
 	class(object.memory) <- "num_bytes"
+	rmem <- format(object.memory, units="auto")
 	if ( is.matter(object) ) {
-		rmem <- format(object.memory, units="auto")
 		vmem <- format(vm_used(object), units="auto")
 		cat("(", rmem, " real", " | ", vmem, " virtual)\n", sep="")
 	} else {

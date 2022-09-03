@@ -20,6 +20,7 @@ TODO for matter package
 
 - Implement more 'drle' methods (e.g., Ops group)
 - Compare on 'matter' objects returns logical 'drle'?
+- Add support for in-memory atoms (via '@source_ext'?)
 - Implement 'row_chunk_apply()' and 'col_chunk_apply()'?
 - Implement 'chunkApply()' as higher-level 'chunk_apply()'
 - Simplify 'stream_stat' classes/functions

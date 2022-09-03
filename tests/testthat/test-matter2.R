@@ -5,8 +5,9 @@ context("matter-class")
 
 test_that("matter array indexing", {
 
-	x <- matter2_arr(1:10, readonly=FALSE)
+	x <- matter2_arr(0, dim=10)
 
-	set_matter_arr_elts(x, 1:10)
+	x[1:5]
 
 })
+ 

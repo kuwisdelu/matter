@@ -277,12 +277,13 @@ setMethod("rbind2", "atoms2",
 	})
 
 setMethod("[", c(x="atoms2"),
-	function(x, i, j, ...) {
+	function(x, i, j, ..., drop = TRUE) {
+		narg <- nargs() - 1L - !missing(drop)
 		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
-		if ( nargs() - 1L == 1L ) {
+		if ( narg == 1L ) {
 			subset_atoms_1d(x, i)
 		} else {
 			subset_atoms(x, i, j)
