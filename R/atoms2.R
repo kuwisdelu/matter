@@ -183,6 +183,8 @@ subset_atoms_1d <- function(x, i = NULL) {
 subset_atoms <- function(x, i = NULL, j = NULL) {
 	dms <- dims(x)
 	if ( !is.null(j) ) {
+		if ( anyNA(j) )
+			stop("NAs not allowed when subsetting atoms")
 		if ( any(j < 1 | j > length(dms)) )
 			stop("subscript out of bounds")
 		grp <- as.integer(x@group) + 1L
@@ -191,6 +193,8 @@ subset_atoms <- function(x, i = NULL, j = NULL) {
 		x <- subset_atoms_1d(x, j)
 	}
 	if ( !is.null(i) ) {
+		if ( anyNA(i) )
+			stop("NAs not allowed when subsetting atoms")
 		if ( any(i < 1 | i > min(dms)) )
 			stop("subscript out of bounds")
 		sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")

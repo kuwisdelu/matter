@@ -117,11 +117,15 @@ class Matter2Array : public Matter2 {
 			size_t nind = 0;
 			int s1 [rank()], s2 [rank()];
 			int arr_ind [rank()];
-			s1[0] = 1, s2[rank()] = 1;
-			for ( int j = 1; j < rank(); j++ )
+			s1[0] = 1, s2[rank() - 1] = 1;
+			for ( int j = 1; j < rank(); j++ ) {
 				s1[j] = s1[j - 1] * dim(j - 1);
-			for ( int j = rank() - 2; j >= 0; j-- )
-				s2[j] = s1[j + 1] * dim(j + 1);
+				// Rprintf("stride[%d] = %d\n", j, s1[j]);
+			}
+			for ( int j = rank() - 2; j >= 0; j-- ) {
+				s2[j] = s2[j + 1] * dim(j + 1);
+				// Rprintf("trans stride[%d] = %d\n", j, s2[j]);
+			}
 			for ( size_t k = 0; k < size; k++ )
 			{
 				tindx[k] = 0;
@@ -131,6 +135,7 @@ class Matter2Array : public Matter2 {
 					tindx[k] += arr_ind[j] * s2[j];
 				tindx[k] += ind1;
 				nind++;
+				// Rprintf("i = %d, trans i = %d\n", i + k, tindx[k]);
 			}
 			return nind;
 		}
@@ -143,20 +148,31 @@ class Matter2Array : public Matter2 {
 			index_t s1 [rank()];
 			index_t s2 [rank()];
 			index_t arr_ind [rank()];
-			s1[0] = 1, s2[rank()] = 1;
-			for ( int j = 1; j < rank(); j++ )
+			s1[0] = 1, s2[rank() - 1] = 1;
+			for ( int j = 1; j < rank(); j++ ) {
 				s1[j] = s1[j - 1] * dim(j - 1);
-			for ( int j = rank() - 2; j >= 0; j-- )
-				s2[j] = s1[j + 1] * dim(j + 1);
+				// Rprintf("stride[%d] = %d\n", j, s1[j]);
+			}
+			for ( int j = rank() - 2; j >= 0; j-- ) {
+				s2[j] = s2[j + 1] * dim(j + 1);
+				// Rprintf("trans stride[%d] = %d\n", j, s2[j]);
+			}
 			for ( size_t k = 0; k < XLENGTH(indx); k++ )
 			{
+				index_t i = IndexElt(indx, k);
+				if ( isNA(i) ) {
+					tindx[k] = NA<T>();
+					nind++;
+					continue;
+				}
 				tindx[k] = 0;
 				for ( int j = 0; j < rank(); j++ )
-					arr_ind[j] = ((IndexElt(indx, k) - ind1) / s1[j]) % dim(j);
+					arr_ind[j] = ((i - ind1) / s1[j]) % dim(j);
 				for ( int j = 0; j < rank(); j++ )
 					tindx[k] += arr_ind[j] * s2[j];
 				tindx[k] += ind1;
 				nind++;
+				// Rprintf("i = %d, trans i = %d\n", i, tindx[k]);
 			}
 			return nind;
 		}
@@ -247,7 +263,7 @@ class Matter2Array : public Matter2 {
 				R_xlen_t size = XLENGTH(indx);
 				index_t tindx [size];
 				transpose_index(tindx, indx, true);
-				return data()->flatten()->get_elements<index_t,T>(buffer, tindx, size, 0, stride);
+				return data()->flatten()->get_elements<index_t,T>(buffer, tindx, size, 0, stride, true);
 			}
 			else
 				return data()->flatten()->get_elements<T>(buffer, indx, 0, stride);
@@ -261,7 +277,7 @@ class Matter2Array : public Matter2 {
 				R_xlen_t size = XLENGTH(indx);
 				index_t tindx [size];
 				transpose_index(tindx, indx, true);
-				return data()->flatten()->set_elements<index_t,T>(buffer, tindx, size, 0, stride);
+				return data()->flatten()->set_elements<index_t,T>(buffer, tindx, size, 0, stride, true);
 			}
 			else
 				return data()->flatten()->set_elements<T>(buffer, indx, 0, stride);

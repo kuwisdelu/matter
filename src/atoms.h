@@ -7,6 +7,9 @@
 #include "matterDefines.h"
 #include "drle.h"
 
+// FIXME: matter.h used for coerce_cast() for now, remove later
+#include "matter.h"
+
 //// DataSources class
 //---------------------
 
@@ -275,7 +278,7 @@ class Atoms2 {
 				Rf_error("failed to read data elements");
 			}
 			for ( index_t i = 0; i < size; i++ )
-				ptr[stride * i] = static_cast<Tout>(tmp[i]); // FIXME: change to coerce_cast()
+				ptr[stride * i] = coerce_cast<Tin,Tout>(tmp[i]);
 			R_Free(tmp);
 			return size;
 		}
@@ -288,7 +291,7 @@ class Atoms2 {
 				size = extent(atom) - pos; 
 			Tout * tmp = (Tout *) R_Calloc(size, Tout);
 			for ( index_t i = 0; i < size; i++ )
-				tmp[i] = static_cast<Tout>(ptr[stride * i]); // FIXME: change to coerce_cast()
+				tmp[i] = coerce_cast<Tin,Tout>(ptr[stride * i]);
 			index_t off = offset(atom, pos);
 			bool success = _io.wseek(source(atom), off)->write<Tout>(tmp, size);
 			if ( !success ) {
@@ -410,7 +413,12 @@ class Atoms2 {
 			{
 				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
 				size = run.length;
-				if ( run.delta >= 0 ) {
+				if ( isNA(run.value) ) {
+					for ( size_t j = 0; j < size; j++ )
+						ptr[j] = NA<Tval>();
+					n = size;
+				}
+				else if ( run.delta >= 0 ) {
 					i = (*pindx) - ind1;
 					n = get_region<Tval>(ptr, i, size, grp, stride);
 				}
@@ -433,10 +441,13 @@ class Atoms2 {
 			index_t n, i = 0, num_read = 0, num_toread = size;
 			while ( num_toread > 0 )
 			{
-				i = (*pindx) - ind1;
 				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
 				size = run.length;
-				if ( run.delta >= 0 ) {
+				if ( isNA(run.value) ) {
+					self_destruct();
+					Rf_error("NAs not allowed in subscripted assignments");
+				}
+				else if ( run.delta >= 0 ) {
 					i = (*pindx) - ind1;
 					n = set_region<Tval>(ptr, i, size, grp, stride);
 				}

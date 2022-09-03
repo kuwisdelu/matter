@@ -48,16 +48,16 @@ test_that("drle indexing - NAs", {
 	expect_equal(x[1], y[1])
 	expect_equal(x[1:20], y[1:20])
 	expect_equal(x[20:1], y[20:1])
+	expect_equal(x[c(16,NA,17)], y[c(16,NA,17)])
 
 	x <- as.double(x)
 	y <- drle(x)
-
-	as.data.frame(as.list(y))
 
 	expect_equal(x, y[])
 	expect_equal(x[1], y[1])
 	expect_equal(x[1:20], y[1:20])
 	expect_equal(x[20:1], y[20:1])
+	expect_equal(x[c(16,NA,17)], y[c(16,NA,17)])
 
 })
 

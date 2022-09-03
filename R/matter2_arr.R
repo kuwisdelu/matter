@@ -102,38 +102,89 @@ set_matter_arr_elts <- function(x, i = NULL, value = 0L) {
 	.Call("C_setMatterArray", x, i, value)
 }
 
+get_matter_arr_subarray <- function(x, index, drop = FALSE)
+{
+	index <- as_array_subscripts(index, x)
+	i <- linear_ind(index, dim(x))
+	y <- get_matter_arr_elts(x, i)
+	dim(y) <- vapply(seq_along(index), function(j)
+		if (is.null(index[[j]])) dim(x)[j]
+		else length(index[[j]]), numeric(1))
+	y <- set_dimnames(y, dimnames(x), index)
+	if ( drop )
+		y <- drop(y)
+	y
+}
+
+set_matter_arr_subarray <- function(x, index, value)
+{
+	index <- as_array_subscripts(index, x)
+	i <- linear_ind(index, dim(x))
+	set_matter_arr_elts(x, i, value)
+}
+
 setMethod("[", c(x="matter2_arr"),
 	function(x, i, j, ..., drop = TRUE) {
 		narg <- nargs() - 1L - !missing(drop)
-		if ( missing(i) )
-			i <- NULL
-		if ( missing(j) )
-			j <- NULL
-		if ( narg == 1L ) {
+		if ( narg == 1L && !missing(i) ) {
 			get_matter_arr_elts(x, i)
 		} else {
-			index <- list(i, j, ...)
-			index <- as_array_subscripts(index, x)
-			k <- linear_ind(index, dim(x))
-			y <- get_matter_arr_elts(x, k)
-			dim(y) <- attr(index, "dim")
-			y
+			if ( narg != 1L && narg != length(dim(x)) )
+				stop("incorrect number of dimensions")
+			if ( missing(i) )
+				i <- NULL
+			if ( missing(j) )
+				j <- NULL
+			if ( ...length() > 0 ) {
+				more.ind <- eval(substitute(alist(...)))
+				more.ind <- lapply(more.ind, function(elt) 
+					if (identical(elt, quote(expr=))) NULL else eval(elt))
+			} else {
+				more.ind <- NULL
+			}
+			if ( length(dim(x)) >= 2 ) {
+				index <- c(list(i, j), more.ind)
+			} else {
+				index <- list(i)
+			}
+			get_matter_arr_subarray(x, index, drop)
 		}
 	})
 
 setReplaceMethod("[", c(x="matter2_arr"),
 	function(x, i, j, ..., value) {
 		narg <- nargs() - 2L
-		if ( missing(i) )
-			i <- NULL
-		if ( missing(j) )
-			j <- NULL
-		if ( narg == 1L ) {
+		if ( narg == 1L && !missing(i) ) {
 			set_matter_arr_elts(x, i, value)
 		} else {
-			index <- list(i, j, ...)
-			index <- as_array_subscripts(index, x)
-			k <- linear_ind(index, dim(x))
-			set_matter_arr_elts(x, k, value)
+			if ( narg != 1L && narg != length(dim(x)) )
+				stop("incorrect number of dimensions")
+			if ( missing(i) )
+				i <- NULL
+			if ( missing(j) )
+				j <- NULL
+			if ( ...length() > 0 ) {
+				more.ind <- eval(substitute(alist(...)))
+				more.ind <- lapply(more.ind, function(elt) 
+					if (identical(elt, quote(expr=))) NULL else eval(elt))
+			} else {
+				more.ind <- NULL
+			}
+			if ( length(dim(x)) >= 2 ) {
+				index <- c(list(i, j), more.ind)
+			} else {
+				index <- list(i)
+			}
+			set_matter_arr_subarray(x, index, value)
 		}
 	})
+
+setMethod("t", "matter2_arr", function(x)
+{
+	x@transpose <- !x@transpose
+	x@dim <- rev(x@dim)
+	x@dimnames <- rev(x@dimnames)
+	if ( validObject(x) )
+		x
+})
+

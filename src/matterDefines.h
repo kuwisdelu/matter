@@ -149,6 +149,12 @@ SEXP NA<SEXP>()
 	return NA_STRING;
 }
 
+template<> inline
+index_t NA<index_t>()
+{
+	return NA_INTEGER;
+}
+
 //// Check for NA
 //----------------
 

@@ -1,4 +1,110 @@
 
+#### Normalize subscripts ####
+## ----------------------------
+
+as_subscripts <- function(i, x, exact = TRUE) {
+	if ( missing(i) )
+		return(NULL)
+	if ( is.null(i) ) {
+		i <- seq_len(length(x))
+	} else if ( is.logical(i) ) {
+		i <- which(rep_len(i, length(x)))
+	} else if ( !is.numeric(i) ) {
+		if ( exact ) {
+			i <- match(i, names(x))
+		} else {
+			i <- pmatch(i, names(x))
+		}
+	}
+	i
+}
+
+as_array_subscripts <- function(i, x, margin, exact = TRUE) {
+	if ( missing(i) )
+		return(NULL)
+	if ( is.list(i) || missing(margin) ) {
+		i <- rep_len(i, length(dim(x)))
+		return(lapply(seq_along(i), function(j)
+			as_array_subscripts(i[[j]], x, j, exact)))
+	}
+	if ( is.null(i) ) {
+		i <- seq_len(dim(x)[margin])
+	} else if ( is.logical(i) ) {
+		i <- which(rep_len(i, dim(x)[[margin]]))
+	} else if ( !is.numeric(i) ) {
+		if ( exact ) {
+			i <- match(i, dimnames(x)[[margin]])
+		} else {
+			i <- pmatch(i, dimnames(x)[[margin]])
+		}
+	}
+	i
+}
+
+as_row_subscripts <- function(i, x, exact = TRUE) {
+	as_array_subscripts(i, x, 1L, exact)
+}
+
+as_col_subscripts <- function(i, x, exact = TRUE) {
+	as_array_subscripts(i, x, 2L, exact)
+}
+
+# export
+linear_ind <- function(index, dim, rowMaj = FALSE) {
+	if ( is.list(index) ) {
+		for ( j in seq_along(dim) ) {
+			if ( is.null(index[[j]]) )
+				index[[j]] <- seq_len(dim[j])
+		}
+		ans.dim <- lengths(index)
+		if ( rowMaj ) {
+			index <- as.matrix(rev(expand.grid(rev(index))))
+		} else {
+			index <- as.matrix(expand.grid(index))
+		}
+	} else {
+		ans.dim <- NULL
+	}
+	index <- as.matrix(index)
+	for ( j in seq_along(dim) ) {
+		i <- index[,j]
+		if ( any(!is.na(i) & (i <= 0 | i > dim[j])) )
+			stop("subscript out of bounds")
+	}
+	if ( rowMaj ) {
+		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
+	} else {
+		strides <- c(1L, cumprod(dim[-length(dim)]))
+	}
+	index <- ((index - 1L) %*% strides) + 1L
+	if ( !is.null(ans.dim) ) {
+		if ( rowMaj ) {
+			ord <- aperm(array(seq_along(index), rev(ans.dim)))
+		} else {
+			ord <- array(seq_along(index), ans.dim)
+		}
+		storage.mode(ord) <- typeof(index)
+		attr(index, "order") <- ord
+	}
+	index
+}
+
+# export
+array_ind <- function(i, dim, rowMaj = FALSE) {
+	i <- i - 1L
+	if ( rowMaj ) {
+		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
+	} else {
+		strides <- c(1L, cumprod(dim[-length(dim)]))
+	}
+	index <- matrix(nrow=length(i), ncol=length(dim))
+	for ( j in seq_along(dim) ) {
+		nextind <- i %/% strides[j]
+		index[,j] <- nextind %% dim[j]
+	}
+	index + 1L
+}
+
 #### Data type codes and type conversions ####
 ## ---------------------------------------------
 
@@ -156,119 +262,6 @@ as_kernel <- function(x) {
 		# kernel interp (9-10)
 		"gaussian", "lanczos")
 	make_code(codes, x)
-}
-
-#### Normalize subscripts ####
-## ----------------------------
-
-as_subscripts <- function(i, x, exact = TRUE) {
-	if ( missing(i) )
-		return(NULL)
-	if ( is.logical(i) ) {
-		i <- which(rep_len(i, length(x)))
-	} else if ( !is.numeric(i) ) {
-		if ( exact ) {
-			i <- match(i, names(x))
-		} else {
-			i <- pmatch(i, names(x))
-		}
-	}
-	i
-}
-
-as_array_subscripts <- function(i, x, margin, exact = TRUE) {
-	if ( missing(i) )
-		return(NULL)
-	if ( is.list(i) || missing(margin) ) {
-		if ( length(i) != length(dim(x)) )
-			stop("incorrect number of dimensions")
-		s <- lapply(seq_along(i), function(j)
-			as_array_subscripts(i[[j]], x, j, exact))
-		sdim <- vapply(seq_along(s), function(j)
-			if(is.null(s[[j]])) dim(x)[j] else length(s[[j]]), numeric(1))
-		attr(s, "dim") <- s
-		return(s)
-	}
-	if ( is.logical(i) ) {
-		i <- which(rep_len(i, dim(x)[[margin]]))
-	} else if ( !is.numeric(i) ) {
-		if ( exact ) {
-			i <- match(i, dimnames(x)[[margin]])
-		} else {
-			i <- pmatch(i, dimnames(x)[[margin]])
-		}
-	}
-	i
-}
-
-as_row_subscripts <- function(i, x, exact = TRUE) {
-	as_array_subscripts(i, x, 1L, exact)
-}
-
-as_col_subscripts <- function(i, x, exact = TRUE) {
-	as_array_subscripts(i, x, 2L, exact)
-}
-
-# export
-linear_ind <- function(index, dim, rowMaj = FALSE) {
-	if ( is.list(index) ) {
-		for ( j in seq_along(dim) ) {
-			if ( is.null(index[[j]]) )
-				index[[j]] <- seq_len(dim[j])
-		}
-		ans.dim <- lengths(index)
-		if ( rowMaj ) {
-			index <- as.matrix(rev(expand.grid(rev(index))))
-		} else {
-			index <- as.matrix(expand.grid(index))
-		}
-	} else {
-		ans.dim <- NULL
-	}
-	index <- as.matrix(index)
-	for ( j in seq_along(dim) ) {
-		i <- index[,j]
-		if ( any(i <= 0 | i > dim[j]) )
-			stop("subscript out of bounds")
-	}
-	if ( rowMaj ) {
-		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
-	} else {
-		strides <- c(1L, cumprod(dim[-length(dim)]))
-	}
-	index <- ((index - 1L) %*% strides) + 1L
-	if ( all(index <= .Machine$integer.max) )
-		index <- as.integer(index)
-	if ( !is.null(ans.dim) ) {
-		if ( rowMaj ) {
-			ord <- aperm(array(seq_along(index), rev(ans.dim)))
-		} else {
-			ord <- array(seq_along(index), ans.dim)
-		}
-		storage.mode(ord) <- typeof(index)
-		attr(index, "order") <- ord
-	}
-	index
-}
-
-# export
-array_ind <- function(i, dim, rowMaj = FALSE) {
-	i <- i - 1L
-	if ( rowMaj ) {
-		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
-	} else {
-		strides <- c(1L, cumprod(dim[-length(dim)]))
-	}
-	index <- matrix(nrow=length(i), ncol=length(dim))
-	for ( j in seq_along(dim) ) {
-		nextind <- i %/% strides[j]
-		index[,j] <- nextind %% dim[j]
-	}
-	index + 1L
-}
-
-convert_ind <- function(i, dim, rowMaj = FALSE) {
-	linear_ind(array_ind(i, dim, rowMaj), dim, !rowMaj)
 }
 
 #### Miscellaneous utility functions ####

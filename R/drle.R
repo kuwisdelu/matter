@@ -91,8 +91,6 @@ setAs("drle", "numeric", function(from) as.numeric(from[]))
 
 setAs("drle_fc", "factor", function(from) from[])
 
-setMethod("as.list", "drle", function(x) as(x, "list"))
-
 setMethod("as.vector", "drle", function(x) as(x, "vector"))
 
 setMethod("as.integer", "drle", function(x) as(x, "integer"))
@@ -100,6 +98,10 @@ setMethod("as.integer", "drle", function(x) as(x, "integer"))
 setMethod("as.numeric", "drle", function(x) as(x, "numeric"))
 
 setMethod("as.factor", "drle_fc", function(x) as(x, "factor"))
+
+setMethod("as.list", "drle", function(x) as(x, "list"))
+
+setMethod("as.data.frame", "drle", function(x) as.data.frame(as.list(x)))
 
 setMethod("[",
 	c(x = "drle", i = "ANY", j = "ANY", drop = "ANY"),

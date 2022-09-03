@@ -62,6 +62,8 @@ RunInfo<T> compute_run(T * x, size_t i, size_t len, bool seq = false)
 			delta = 0;
 		}
 	}
+	if ( isNA(value) )
+		delta = NA<T>();
 	RunInfo<T> run = {value, delta, n};
 	return run;
 }
@@ -293,7 +295,10 @@ class CompressedVector {
 					if ( i < j + lengths(run) ) {
 						_last_index = j;
 						_last_run = run;
-						return values(run) + deltas(run) * (i - j);
+						if ( isNA(values(run)) )
+							return values(run);
+						else
+							return values(run) + deltas(run) * (i - j);
 					}
 					else {
 						j += lengths(run);
@@ -308,7 +313,10 @@ class CompressedVector {
 					if ( i >= j ) {
 						_last_index = j;
 						_last_run = run;
-						return values(run) + deltas(run) * (i - j);
+						if ( isNA(values(run)) )
+							return values(run);
+						else
+							return values(run) + deltas(run) * (i - j);
 					}
 					else
 					{
@@ -344,7 +352,10 @@ class CompressedVector {
 			for ( j = 0; j < ni; j++ )
 			{
 				index_t i = IndexElt(indx, j);
-				buffer[j] = get(i - 1);
+				if ( isNA(i) )
+					buffer[j] = NA<T>();
+				else	
+					buffer[j] = get(i - 1);
 			}
 			return j;
 		}
@@ -493,6 +504,8 @@ RunInfo<T> compute_run(CompressedVector<T> x, SEXP indx, index_t j)
 			delta = 0;
 		}
 	}
+	if ( isNA(value) )
+		delta = NA<T>();
 	RunInfo<T> run = {value, delta, n};
 	return run;
 }
