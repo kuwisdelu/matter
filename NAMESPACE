@@ -91,6 +91,8 @@ export(
 	"matter_mat",
 	"matter_arr",
 	"matter2_arr",
+	"matter2_mat",
+	"matter2_vec",
 	"matter_list",
 	"matter_str",
 	"matter_fc",

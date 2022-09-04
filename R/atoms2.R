@@ -105,15 +105,13 @@ setMethod("show", "atoms2", function(object) {
 	if ( nrow(x) > n )
 		cat("... and", nrow(x) - n, "more atoms\n")
 	dms <- as.vector(dims(object))
+	n <- sum(as.numeric(object@extent))
 	nrows <- min(dms)
 	ncols <- length(dms)
-	if ( length(unique(dms)) > 1 ) {
-		cat("(", nrows, "+ elements per group | ",
-			ncols, " groups)\n", sep="")
-	} else {
-		cat("(", nrows, " elements per group | ",
-			ncols, " groups)\n", sep="")
-	}
+	desc1 <- paste0(n, " element", if (n > 1) "s")
+	desc2 <- paste0(nrows, if (length(unique(dms)) > 1) "+" else "", " per group")
+	desc3 <- paste0(ncols, " group", if (ncols > 1) "s" else "")
+	cat("(", desc1, " | ", desc2, " | ", desc3, ")\n", sep="")
 })
 
 setMethod("path", "atoms2", function(object, ...) levels(object@source))
@@ -200,12 +198,25 @@ subset_atoms <- function(x, i = NULL, j = NULL) {
 		sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
 		# FIXME: Make sure drle_fc supports droplevels()
 		x <- atoms2(source=droplevels(x@source[sub$index]),
-				type=x@type[sub$index],
-				offset=sub$offset,
-				extent=sub$extent,
-				group=x@group[sub$index],
-				readonly=x@readonly)
+			type=x@type[sub$index],
+			offset=sub$offset,
+			extent=sub$extent,
+			group=x@group[sub$index],
+			readonly=x@readonly)
 	}
+	if ( validObject(x) )
+		x
+}
+
+regroup_atoms <- function(x, ngroups) {
+	sub <- .Call("C_regroupAtoms", x, ngroups, PACKAGE="matter")
+	# FIXME: Make sure drle_fc supports droplevels()
+	x <- atoms2(source=droplevels(x@source[sub$index]),
+		type=x@type[sub$index],
+		offset=sub$offset,
+		extent=sub$extent,
+		group=sub$group,
+		readonly=x@readonly)
 	if ( validObject(x) )
 		x
 }

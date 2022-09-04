@@ -185,6 +185,12 @@ extern "C" {
 		}
 	}
 
+	static inline SEXP regroupAtoms(SEXP x, SEXP n)
+	{
+		Atoms2 y(x);
+		return y.regroup_index(Rf_asInteger(n));
+	}
+
 	// Matter data structures
 	//-----------------------
 

@@ -23,6 +23,7 @@ extern "C" {
 		{"C_readAtoms", (DL_FUNC) &readAtoms, 4},
 		{"C_writeAtoms", (DL_FUNC) &writeAtoms, 4},
 		{"C_subsetAtoms", (DL_FUNC) &subsetAtoms, 2},
+		{"C_regroupAtoms", (DL_FUNC) &regroupAtoms, 2},
 		// matter data structures
 		{"C_getMatterArray", (DL_FUNC) &getMatterArray, 2},
 		{"C_setMatterArray", (DL_FUNC) &setMatterArray, 3},

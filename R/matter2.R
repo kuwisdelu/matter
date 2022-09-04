@@ -64,6 +64,9 @@ setMethod("length", "matter2", function(x) prod(x@dim))
 setMethod("dim", "matter2", function(x) x@dim)
 
 setReplaceMethod("dim", "matter2", function(x, value) {
+	if ( prod(x@dim) != prod(value) )
+		stop("dims [product ", prod(value), "] do not match ",
+			"the length of object [", prod(x@dim), "]")
 	x@dim <- value
 	if ( validObject(x) )
 		x

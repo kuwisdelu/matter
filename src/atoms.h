@@ -172,6 +172,13 @@ class Atoms2 {
 				return _pointers.length() - 1;
 		}
 
+		R_xlen_t nelements() {
+			R_xlen_t n = 0;
+			for ( index_t atom = 0; atom < natoms(); atom++ )
+				n += extent(atom);
+			return n;
+		}
+
 		AtomInfo find_atom(index_t i, int grp = 0)
 		{
 			index_t j = 0;
@@ -597,6 +604,64 @@ class Atoms2 {
 			SET_STRING_ELT(nms, 2, Rf_mkChar("extent"));
 			Rf_setAttrib(ans, R_NamesSymbol, nms);
 			UNPROTECT(5);
+			return ans;
+		}
+
+		SEXP regroup_index(size_t ngroups)
+		{
+			SEXP ans, nms, atomids, offsets, extents, groups;
+			index_t n, atom, pos;
+			AtomInfo ap;
+			int k = 0, num_atoms = 0;
+			R_xlen_t nelt = nelements();
+			R_xlen_t groupsize = nelt / ngroups;
+			if ( nelt % ngroups != 0 ) {
+				self_destruct();
+				Rf_error("number of elements is not a multiple of 'ngroups'");
+			}
+			for ( index_t i = 0; i < ngroups; i++ )
+				num_atoms += flatten()->span(i * groupsize, groupsize);
+			PROTECT(atomids = Rf_allocVector(INTSXP, num_atoms));
+			PROTECT(offsets = Rf_allocVector(REALSXP, num_atoms));
+			PROTECT(extents = Rf_allocVector(REALSXP, num_atoms));
+			PROTECT(groups = Rf_allocVector(INTSXP, num_atoms));
+			int * pids = INTEGER(atomids);
+			double * poff = REAL(offsets);
+			double * pext = REAL(extents);
+			int * pgrp = INTEGER(groups);
+			for ( index_t i = 0; i < ngroups; i++ )
+			{
+				index_t j = 0;
+				while ( j < groupsize )
+				{
+					if ( k >= num_atoms ) {
+						self_destruct();
+						Rf_error("regrouping atoms failed");
+					}
+					ap = flatten()->find_atom(i * groupsize + j);
+					atom = ap.atom, pos = ap.pos;
+					n = extent(atom) - pos;
+					n = n < (groupsize - j) ? n : (groupsize - j);
+					pids[k] = atom + 1;
+					poff[k] = offset(atom, pos);
+					pext[k] = n;
+					pgrp[k] = i;
+					j += n;
+					k++;
+				}
+			}
+			PROTECT(ans = Rf_allocVector(VECSXP, 4));
+			PROTECT(nms = Rf_allocVector(STRSXP, 4));
+			SET_VECTOR_ELT(ans, 0, atomids);
+			SET_VECTOR_ELT(ans, 1, offsets);
+			SET_VECTOR_ELT(ans, 2, extents);
+			SET_VECTOR_ELT(ans, 3, groups);
+			SET_STRING_ELT(nms, 0, Rf_mkChar("index"));
+			SET_STRING_ELT(nms, 1, Rf_mkChar("offset"));
+			SET_STRING_ELT(nms, 2, Rf_mkChar("extent"));
+			SET_STRING_ELT(nms, 3, Rf_mkChar("groups"));
+			Rf_setAttrib(ans, R_NamesSymbol, nms);
+			UNPROTECT(6);
 			return ans;
 		}
 
