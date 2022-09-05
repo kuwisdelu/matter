@@ -111,7 +111,7 @@ array_ind <- function(i, dim, rowMaj = FALSE) {
 make_code <- function(codes, x, nomatch = NA_integer_) {
 	if ( missing(x) )
 		x <- character()
-	if ( is.factor(x) && all(levels(x) == codes) )
+	if ( is.factor(x) && setequal(levels(x), codes) )
 		return(x)
 	if ( !is.numeric(x) )
 		x <- pmatch(tolower(x), codes, nomatch, TRUE)
@@ -163,13 +163,13 @@ as_Ctype <- function(x) {
 
 is_Rtype <- function(x, strict = FALSE) {
 	codes <- get_Rtypes()
-	valid <- is.factor(x) && all(levels(x) == codes)
+	valid <- is.factor(x) && setequal(levels(x), codes)
 	valid || (all(x %in% codes) && !strict)
 }
 
 is_Ctype <- function(x, strict = FALSE) {
 	codes <- get_Ctypes()
-	valid <- is.factor(x) && all(levels(x) == codes)
+	valid <- is.factor(x) && setequal(levels(x), codes)
 	valid || (all(x %in% codes) && !strict)
 }
 

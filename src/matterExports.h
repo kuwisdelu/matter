@@ -207,6 +207,41 @@ extern "C" {
 		return x;
 	}
 
+	static inline SEXP getMatterList(SEXP x, SEXP i, SEXP j)
+	{
+		Matter2List y(x);
+		if ( Rf_isNull(j) )
+			return y.getElements(i);
+		else
+			return y.getElements(i, j);
+	}
+
+	static inline SEXP setMatterList(SEXP x, SEXP i, SEXP j, SEXP value)
+	{
+		Matter2List y(x);
+		if ( Rf_isNull(j) )
+			y.setElements(i, value);
+		else
+			y.setElements(i, j, value);
+		return x;
+	}
+
+	static inline SEXP getMatterList1(SEXP x, SEXP i, SEXP j)
+	{
+		Matter2List y(x);
+		if ( Rf_isNull(j) )
+			return y.getElement(Rf_asInteger(i));
+		else
+			return y.getElement(Rf_asInteger(i), j);
+	}
+
+	static inline SEXP setMatterList1(SEXP x, SEXP i, SEXP value)
+	{
+		Matter2List y(x);
+		y.setElement(Rf_asInteger(i), value);
+		return x;
+	}
+
 	// Sparse data structures
 	//-----------------------
 

@@ -27,6 +27,10 @@ extern "C" {
 		// matter data structures
 		{"C_getMatterArray", (DL_FUNC) &getMatterArray, 2},
 		{"C_setMatterArray", (DL_FUNC) &setMatterArray, 3},
+		{"C_getMatterList", (DL_FUNC) &getMatterList, 3},
+		{"C_setMatterList", (DL_FUNC) &setMatterList, 4},
+		{"C_getMatterList1", (DL_FUNC) &getMatterList1, 3},
+		{"C_setMatterList1", (DL_FUNC) &setMatterList1, 3},
 		// sparse data structures
 		{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
 		{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},

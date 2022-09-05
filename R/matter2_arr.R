@@ -17,7 +17,6 @@ setClass("matter2_arr",
 	})
 
 setClass("matter2_mat",
-	slots = c(dimnames = "NULL"),
 	contains = "matter2_arr",
 	validity = function(object) {
 		errors <- NULL
@@ -27,7 +26,6 @@ setClass("matter2_mat",
 	})
 
 setClass("matter2_vec",
-	slots = c(dimnames = "NULL"),
 	contains = "matter2_arr",
 	validity = function(object) {
 		errors <- NULL
@@ -49,44 +47,45 @@ matter2_arr <- function(data, type = "double", path = NULL,
 			dim <- dim(data)
 		}
 	}
-	if ( is.null(path) && missing(data) )
-		return(new("matter2_arr"))
 	if ( is.null(path) )
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
 	path <- normalizePath(path, mustWork=FALSE)
 	exists <- file.exists(path)
 	if ( is.na(readonly) )
 		readonly <- all(exists)
-	if ( all(exists) ) {
-		if ( missing(data) ) {
-			if ( anyNA(dim) && anyNA(extent) ) {
-				# attempt to infer data size from file(s)
-				sizes <- file.size(path)
-				if ( length(type) == 1L ) {
-					dim <- sum(sizes - offset) %/% sizeof(type)
-				} else {
-					dim <- sum((sizes - offset) %/% sizeof(type))
-				}
+	if ( any(exists) && !readonly && !missing(data) )
+		warning("data may overwrite existing file(s): ",
+			paste0(sQuote(path[exists]), collapse=", "))
+	if ( all(exists) && missing(data) ) {
+		if ( anyNA(dim) && anyNA(extent) ) {
+			# FIXME: can we infer the NA dims instead of overriding?
+			sizes <- file.size(path)
+			if ( length(type) == 1L ) {
+				dim <- sum(sizes - offset) %/% sizeof(type)
+			} else {
+				dim <- sum((sizes - offset) %/% sizeof(type))
 			}
-		} else if ( !readonly ) {
-			warning("data may overwrite existing file(s): ",
-				paste0(sQuote(path[exists]), collapse=", "))
 		}
-	} else {
-		if ( missing(data) ) {
-			data <- vector(as.character(collapse_Rtype(type)), 1L)
-		} else if ( any(exists) && !readonly ) {
-			warning("data may overwrite existing file(s): ",
-				paste0(sQuote(path[exists]), collapse=", "))
-		}
-		# create files if they don't exist
+	}
+	if ( anyNA(dim) && anyNA(extent) ) {
+		extent <- dim <- rep.int(0, length(dim))
+	} else if ( anyNA(extent) ) {
+		extent <- prod(dim)
+	} else if ( anyNA(dim) ) {
+		dim <- max(extent)
+	}
+	if ( length(offset) != length(extent) && length(path) == 1L )
+		offset <- cumsum(c(offset,
+			sizeof(type) * extent[-length(extent)]))
+	if ( any(!exists) ) {
+		if ( missing(data) && any(extent > 0) )
+			warning("creating uninitialized backing file(s): ",
+				paste0(sQuote(path[!exists]), collapse=", "))
 		success <- file.create(path)
 		if ( !all(success) )
 			stop("error creating file(s): ",
 				paste0(sQuote(path[!success]), collapse=", "))
 	}
-	if ( anyNA(extent) )
-		extent <- prod(dim) # FIXME: can this be improved?
 	x <- new("matter2_arr",
 		data=atoms2(
 			source=path,
@@ -105,7 +104,7 @@ matter2_arr <- function(data, type = "double", path = NULL,
 	} else if ( length(dim) == 2L ) {
 		x <- as(x, "matter2_mat")
 	}
-	if ( !missing(data) )
+	if ( !missing(data) && !is.null(data) )
 		x[] <- data
 	x
 }
@@ -126,8 +125,6 @@ matter2_mat <- function(data, type = "double", path = NULL,
 			ncol <- length(data) / nrow
 		}
 	}
-	if ( is.null(path) && missing(data) )
-		return(new("matter2_mat"))
 	x <- matter2_arr(data, type=type, path=path, dim=c(nrow, ncol),
 		dimnames=dimnames, offset=offset, extent=extent,
 		readonly=readonly, rowMaj=rowMaj, ...)
@@ -146,9 +143,6 @@ matter2_vec <- function(data, type = "double", path = NULL,
 		if ( is.na(length) )
 			length <- length(data)
 	}
-	# FIXME
-	if ( is.null(path) && missing(data) )
-		return(new("matter2_vec"))
 	x <- matter2_arr(data, type=type, path=path, dim=length,
 		names=names, offset=offset, extent=extent,
 		readonly=readonly, rowMaj=rowMaj, ...)
@@ -282,7 +276,9 @@ setMethod("dim", "matter2_vec", function(x) NULL)
 
 setReplaceMethod("dim", "matter2_arr", function(x, value) {
 	if ( is.null(value) ) {
-		dim(x) <- prod(dim(x))
+		x@transpose <- FALSE
+		x@dim <- prod(x@dim)
+		x@dimnames <- NULL
 		as(x, "matter2_vec")
 	} else {
 		callNextMethod()

@@ -46,9 +46,11 @@ test_that("matter array 1-D indexing", {
 	expect_equal(x, z[])
 	expect_null(dim(z))
 
+	expect_is(matter2_vec(), "matter2_vec")
+
 })
 
-test_that("matter array 2-D indexing", {
+test_that("matter array 2-D indexing (col major)", {
 
 	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))
@@ -81,36 +83,11 @@ test_that("matter array 2-D indexing", {
 	
 	expect_equal(t(x), t(y)[])
 
-})
-
-test_that("matter array N-D indexing", {
-
-	set.seed(1)
-	vals <- sort(round(10 * runif(24), 2))
-	x <- array(vals, dim=c(4,3,2))
-	y <- matter2_arr(x)
-	i <- 1:2
-
-	expect_equal(x, y[])
-	expect_equal(x[1,,], y[1,,])
-	expect_equal(x[,1,], y[,1,])
-	expect_equal(x[,,1], y[,,1])
-	expect_equal(x[4,,], y[4,,])
-	expect_equal(x[,3,], y[,3,])
-	expect_equal(x[,,2], y[,,2])
-	expect_equal(x[i,i,], y[i,i,])
-	expect_equal(x[,i,i], y[,i,i])
-
-	x[,,1] <- x[,,1] + 100
-	y[,,1] <- y[,,1] + 100
-
-	expect_equal(x, y[])
-
-	expect_equal(aperm(x), t(y)[])
+	expect_is(matter2_mat(), "matter2_mat")
 
 })
 
-test_that("matter array 2-D indexing - rowMaj", {
+test_that("matter array 2-D indexing (row major)", {
 
 	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))
@@ -145,7 +122,36 @@ test_that("matter array 2-D indexing - rowMaj", {
 
 })
 
-test_that("matter array N-D indexing - rowMaj", {
+test_that("matter array N-D indexing (col major)", {
+
+	set.seed(1)
+	vals <- sort(round(10 * runif(24), 2))
+	x <- array(vals, dim=c(4,3,2))
+	y <- matter2_arr(x)
+	i <- 1:2
+
+	expect_equal(x, y[])
+	expect_equal(x[1,,], y[1,,])
+	expect_equal(x[,1,], y[,1,])
+	expect_equal(x[,,1], y[,,1])
+	expect_equal(x[4,,], y[4,,])
+	expect_equal(x[,3,], y[,3,])
+	expect_equal(x[,,2], y[,,2])
+	expect_equal(x[i,i,], y[i,i,])
+	expect_equal(x[,i,i], y[,i,i])
+
+	x[,,1] <- x[,,1] + 100
+	y[,,1] <- y[,,1] + 100
+
+	expect_equal(x, y[])
+
+	expect_equal(aperm(x), t(y)[])
+
+	expect_is(matter2_arr(), "matter2_arr")
+
+})
+
+test_that("matter array N-D indexing (row major)", {
 
 	set.seed(1)
 	vals <- sort(round(10 * runif(24), 2))
