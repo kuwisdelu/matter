@@ -92,7 +92,7 @@ get_matter_list_sublist <- function(x, i = NULL, j = NULL) {
 	y <- vector("list", length(i))
 	for ( k in seq_along(i) ) {
 		if ( !is.na(k) ) {
-			y[[k]] <- get_matter_list_elt(x, i[k], j)
+			y[[k]] <- get_matter_list_elt(x, i[[k]], j)
 		} else {
 			y[k] <- list(NULL)
 		}
@@ -104,7 +104,7 @@ set_matter_list_sublist <- function(x, i = NULL, j = NULL, value = NULL) {
 	if ( is.null(i) )
 		i <- seq_along(x)
 	for ( k in seq_along(i) )
-		set_matter_list_elt(x, i[k], j, value[[k]])
+		set_matter_list_elt(x, i[[k]], j, value[[k]])
 	x
 }
 
@@ -177,6 +177,7 @@ setReplaceMethod("$", c(x = "matter2_list"),
 		}
 	})
 
+setMethod("dim", "matter2_list", function(x) NULL)
 
 setMethod("length", "matter2_list", function(x) length(x@dim))
 

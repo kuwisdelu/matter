@@ -186,6 +186,8 @@ exportMethods(
 	"dimnames<-",
 	"levels",
 	"levels<-",
+	"Encoding",
+	"Encoding<-",
 	"t",
 	"crossprod",
 	"tcrossprod")

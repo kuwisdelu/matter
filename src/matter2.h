@@ -356,6 +356,8 @@ class Matter2List : public Matter2 {
 		SEXP getElement(index_t i)
 		{
 			SEXP x;
+			if ( i < 0 || i >= rank() )
+				Rf_error("subscript out of bounds");
 			switch(type(i)) {
 				case R_RAW:
 					PROTECT(x = Rf_allocVector(RAWSXP, dim(i)));
@@ -379,6 +381,7 @@ class Matter2List : public Matter2 {
 					R_xlen_t len = strlen(s);
 					if ( len < dim(i) )
 						Rf_warning("truncating string with embedded nuls");
+					len = len < dim(i) ? len : dim(i);
 					PROTECT(x = Rf_ScalarString(Rf_mkCharLen(s, len)));
 					break;
 				}
@@ -392,6 +395,8 @@ class Matter2List : public Matter2 {
 
 		void setElement(index_t i, SEXP value)
 		{
+			if ( i < 0 || i >= rank() )
+				Rf_error("subscript out of bounds");
 			if ( !Rf_isString(value) && dim(i) > LENGTH(value) ) {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
@@ -428,6 +433,8 @@ class Matter2List : public Matter2 {
 			SEXP x;
 			if ( Rf_isNull(j) )
 				return getElement(i);
+			if ( i < 0 || i >= rank() )
+				Rf_error("subscript out of bounds");
 			switch(type(i)) {
 				case R_RAW:
 					PROTECT(x = Rf_allocVector(RAWSXP, XLENGTH(j)));
@@ -451,6 +458,7 @@ class Matter2List : public Matter2 {
 					R_xlen_t len = strlen(s);
 					if ( len < LENGTH(j) )
 						Rf_warning("truncating string with embedded nuls");
+					len = len < LENGTH(j) ? len : LENGTH(j);
 					PROTECT(x = Rf_ScalarString(Rf_mkCharLen(s, len)));
 					break;
 				}
@@ -466,6 +474,8 @@ class Matter2List : public Matter2 {
 		{
 			if ( Rf_isNull(j) )
 				return setElement(i, value);
+			if ( i < 0 || i >= rank() )
+				Rf_error("subscript out of bounds");
 			if ( !Rf_isString(value) && LENGTH(j) > LENGTH(value) ) {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
