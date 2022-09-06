@@ -1,0 +1,133 @@
+
+#### 'matter_chr' class for file-based character vectors ####
+## ----------------------------------------------------------
+
+setClass("matter2_chr",
+	slots = c(encoding = "character"),
+	contains = "matter2_",
+	validity = function(object) {
+		errors <- NULL
+		if ( !all(object@type %in% "character") )
+			errors <- c(errors, "'type' must be 'character'")
+		if ( length(object@encoding) != 1L )
+			errors <- c(errors, "'encoding' must be a scalar (length 1)")
+		if ( is.null(errors) ) TRUE else errors
+	})
+
+matter2_chr <- function(data, type = "character", path = NULL,
+	lengths = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
+	readonly = NA, encoding = "unknown", ...)
+{
+	if ( !missing(data) ) {
+		if ( !is.character(data) )
+			data <- as.character(data)
+		if ( anyNA(lengths) )
+			lengths <- as.vector(vapply(data, nchar, numeric(1), "bytes"))
+		if ( is.null(names) )
+			names <- names(data)
+	}
+	if ( is.null(path) )
+		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
+	path <- normalizePath(path, mustWork=FALSE)
+	exists <- file.exists(path)
+	if ( is.na(readonly) )
+		readonly <- all(exists)
+	if ( any(exists) && !readonly && !missing(data) )
+		warning("data may overwrite existing file(s): ",
+			paste0(sQuote(path[exists]), collapse=", "))
+	if ( anyNA(lengths) && anyNA(extent) ) {
+		extent <- lengths <- rep.int(0, length(lengths))
+	} else if ( anyNA(extent) ) {
+		extent <- lengths
+	} else if ( anyNA(lengths) ) {
+		lengths <- extent
+	}
+	if ( length(offset) != length(extent) && length(path) == 1L ) {
+		sizes <- sizeof(type) * extent
+		offset <- cumsum(c(offset, sizes[-length(sizes)]))
+	}
+	if ( any(!exists) ) {
+		if ( missing(data) && any(extent > 0) )
+			warning("creating uninitialized backing file(s): ",
+				paste0(sQuote(path[!exists]), collapse=", "))
+		success <- file.create(path)
+		if ( !all(success) )
+			stop("error creating file(s): ",
+				paste0(sQuote(path[!success]), collapse=", "))
+	}
+	x <- new("matter2_chr",
+		data=atoms2(
+			source=path,
+			type=as_Ctype(type),
+			offset=offset,
+			extent=extent,
+			group=seq_along(extent) - 1L,
+			readonly=readonly),
+		type=as_Rtype(type),
+		dim=lengths,
+		names=names,
+		encoding=encoding, ...)
+	if ( !missing(data) && !is.null(data) )
+		x[] <- data
+	x
+}
+
+setMethod("describe_for_display", "matter2_chr", function(x) {
+	desc1 <- paste0("<", length(x), " length> ", class(x))
+	desc2 <- paste0("out-of-memory character vector")
+	paste0(desc1, " :: ", desc2)
+})
+
+setMethod("preview_for_display", "matter2_chr", function(x) preview_vector(x))
+
+get_matter_chr_elts <- function(x, i = NULL, j = NULL) {
+	y <- .Call("C_getMatterStrings", x, i, j)
+	Encoding(y) <- x@encoding
+	y
+}
+
+set_matter_chr_elts <- function(x, i = NULL, j = NULL, value = NULL) {
+	.Call("C_setMatterStrings", x, i, j, value)
+}
+
+subset_matter_chr_elts <- function(x, i = NULL) {
+	if ( is.null(i) )
+		return(x)
+	new("matter2_chr",
+		data=x@data[,i],
+		type=x@type[i],
+		dim=x@dim[i],
+		names=x@names[i],
+		encoding=x@encoding)
+}
+
+setMethod("[", c(x = "matter2_chr"),
+	function(x, i, j, ..., drop = TRUE) {
+		i <- as_subscripts(i, x)
+		j <- as_subscripts(j, x)
+		get_matter_chr_elts(x, i, j)
+	})
+
+setReplaceMethod("[", c(x = "matter2_chr"),
+	function(x, i, j, ..., value) {
+		i <- as_subscripts(i, x)
+		j <- as_subscripts(j, x)
+		if ( !is.character(value) )
+			value <- as.character(value)
+		set_matter_chr_elts(x, i, j, value)
+	})
+
+setMethod("Encoding", "matter2_chr", function(x) x@encoding)
+
+setReplaceMethod("Encoding", "matter2_chr",
+	function(x, value) {
+		x@encoding <- value
+		if ( validObject(x) )
+			x
+	})
+
+setMethod("length", "matter2_chr", function(x) length(x@dim))
+
+setMethod("lengths", "matter2_chr", function(x) x@dim)
+
+

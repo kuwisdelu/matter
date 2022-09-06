@@ -226,25 +226,6 @@ extern "C" {
 		return x;
 	}
 
-	static inline SEXP getMatterStrings(SEXP x, SEXP i, SEXP j)
-	{
-		Matter2StringList y(x);
-		if ( Rf_isNull(j) )
-			return y.getStrings(i);
-		else
-			return y.getStrings(i, j);
-	}
-
-	static inline SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value)
-	{
-		Matter2StringList y(x);
-		if ( Rf_isNull(j) )
-			y.setStrings(i, value);
-		else
-			y.setStrings(i, j, value);
-		return x;
-	}
-
 	// Sparse data structures
 	//-----------------------
 

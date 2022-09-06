@@ -353,60 +353,35 @@ class Matter2List : public Matter2 {
 
 		Matter2List(SEXP x) : Matter2(x) {}
 
-		template<typename T>
-		size_t getElement(index_t i, T * buffer)
-		{
-			return data()->get_region<T>(buffer, 0, dim(i), i);
-		}
-
-		template<typename T>
-		size_t setElement(index_t i, T * buffer)
-		{
-			return data()->set_region<T>(buffer, 0, dim(i), i);
-		}
-
-		template<typename T>
-		size_t getElement(index_t i, SEXP j, T * buffer)
-		{
-			return data()->get_elements<T>(buffer, j, i);
-		}
-
-		template<typename T>
-		size_t setElement(index_t i, SEXP j, T * buffer)
-		{
-			return data()->set_elements<T>(buffer, j, i);
-		}
-
 		SEXP getElement(index_t i)
 		{
 			SEXP x;
 			switch(type(i)) {
 				case R_RAW:
 					PROTECT(x = Rf_allocVector(RAWSXP, dim(i)));
-					getElement(i, RAW(x));
+					data()->get_region<Rbyte>(RAW(x), 0, dim(i), i);
 					break;
 				case R_LOGICAL:
 					PROTECT(x = Rf_allocVector(LGLSXP, dim(i)));
-					getElement(i, LOGICAL(x));
+					data()->get_region<int>(LOGICAL(x), 0, dim(i), i);
 					break;
 				case R_INTEGER:
 					PROTECT(x = Rf_allocVector(INTSXP, dim(i)));
-					getElement(i, INTEGER(x));
+					data()->get_region<int>(INTEGER(x), 0, dim(i), i);
 					break;
 				case R_DOUBLE:
 					PROTECT(x = Rf_allocVector(REALSXP, dim(i)));
-					getElement(i, REAL(x));
+					data()->get_region<double>(REAL(x), 0, dim(i), i);
 					break;
-				case R_CHARACTER:
-					{
-						char str [dim(i)];
-						getElement(i, str);
-						R_xlen_t len = strlen(str);
-						if ( len < dim(i) )
-							Rf_warning("truncating string with embedded nuls");
-						PROTECT(x = Rf_ScalarString(Rf_mkCharLen(str, len)));
-						break;
-					}
+				case R_CHARACTER: {
+					char s [dim(i)];
+					data()->get_region<char>(s, 0, dim(i), i);
+					R_xlen_t len = strlen(s);
+					if ( len < dim(i) )
+						Rf_warning("truncating string with embedded nuls");
+					PROTECT(x = Rf_ScalarString(Rf_mkCharLen(s, len)));
+					break;
+				}
 				default:
 					self_destruct();
 					Rf_error("unsupported data type");
@@ -417,32 +392,31 @@ class Matter2List : public Matter2 {
 
 		void setElement(index_t i, SEXP value)
 		{
-			if ( !Rf_isString(value) && dim(i) > XLENGTH(value) ) {
+			if ( !Rf_isString(value) && dim(i) > LENGTH(value) ) {
 				self_destruct();
-				Rf_error("number of items to replace is longer than replacement length");
+				Rf_error("length of replacement value and items to replace are not equal");
 			}
 			switch(TYPEOF(value)) {
 				case RAWSXP:
-					setElement(i, RAW(value));
+					data()->set_region<Rbyte>(RAW(value), 0, dim(i), i);
 					break;
 				case LGLSXP:
-					setElement(i, LOGICAL(value));
+					data()->set_region<int>(LOGICAL(value), 0, dim(i), i);
 					break;
 				case INTSXP:
-					setElement(i, INTEGER(value));
+					data()->set_region<int>(INTEGER(value), 0, dim(i), i);
 					break;
 				case REALSXP:
-					setElement(i, REAL(value));
+					data()->set_region<double>(REAL(value), 0, dim(i), i);
 					break;
-				case STRSXP:
-					{
-						SEXP x = Rf_asChar(value);
-						const char * str = CHAR(x);
-						if ( LENGTH(x) != dim(i) )
-							Rf_error("replacement string is wrong length; is this a multibyte string?");
-						setElement(i, str);
-						break;
-					}
+				case STRSXP: {
+					value = Rf_asChar(value);
+					const char * s = CHAR(value);
+					if ( LENGTH(value) != dim(i) )
+						Rf_error("replacement string is wrong length; is this a multibyte string?");
+					data()->set_region<const char>(s, 0, dim(i), i);
+					break;
+				}
 				default:
 					self_destruct();
 					Rf_error("unsupported data type");
@@ -452,35 +426,34 @@ class Matter2List : public Matter2 {
 		SEXP getElement(index_t i, SEXP j)
 		{
 			SEXP x;
+			if ( Rf_isNull(j) )
+				return getElement(i);
 			switch(type(i)) {
 				case R_RAW:
 					PROTECT(x = Rf_allocVector(RAWSXP, XLENGTH(j)));
-					getElement(i, j, RAW(x));
+					data()->get_elements<Rbyte>(RAW(x), j, i);
 					break;
 				case R_LOGICAL:
 					PROTECT(x = Rf_allocVector(LGLSXP, XLENGTH(j)));
-					getElement(i, j, LOGICAL(x));
+					data()->get_elements<int>(LOGICAL(x), j, i);
 					break;
 				case R_INTEGER:
 					PROTECT(x = Rf_allocVector(INTSXP, XLENGTH(j)));
-					getElement(i, j, INTEGER(x));
+					data()->get_elements<int>(INTEGER(x), j, i);
 					break;
 				case R_DOUBLE:
 					PROTECT(x = Rf_allocVector(REALSXP, XLENGTH(j)));
-					getElement(i, j, REAL(x));
+					data()->get_elements<double>(REAL(x), j, i);
 					break;
-				case R_CHARACTER:
-					{
-						char str [LENGTH(j)];
-						getElement(i, j, str);
-						R_xlen_t len = strlen(str);
-						if ( len < LENGTH(j) )
-							Rf_warning("truncating string with embedded nuls");
-						else
-							len = LENGTH(j);
-						PROTECT(x = Rf_ScalarString(Rf_mkCharLen(str, len)));
-						break;
-					}
+				case R_CHARACTER: {
+					char s [LENGTH(j)];
+					data()->get_elements<char>(s, j, i);
+					R_xlen_t len = strlen(s);
+					if ( len < LENGTH(j) )
+						Rf_warning("truncating string with embedded nuls");
+					PROTECT(x = Rf_ScalarString(Rf_mkCharLen(s, len)));
+					break;
+				}
 				default:
 					self_destruct();
 					Rf_error("unsupported data type");
@@ -491,32 +464,33 @@ class Matter2List : public Matter2 {
 
 		void setElement(index_t i, SEXP j, SEXP value)
 		{
-			if ( !Rf_isString(value) && dim(i) > XLENGTH(value) ) {
+			if ( Rf_isNull(j) )
+				return setElement(i, value);
+			if ( !Rf_isString(value) && LENGTH(j) > LENGTH(value) ) {
 				self_destruct();
-				Rf_error("lengths of replacement value and items to replace are not equal");
+				Rf_error("length of replacement value and items to replace are not equal");
 			}
 			switch(TYPEOF(value)) {
 				case RAWSXP:
-					setElement(i, j, RAW(value));
+					data()->set_elements<Rbyte>(RAW(value), j, i);
 					break;
 				case LGLSXP:
-					setElement(i, j, LOGICAL(value));
+					data()->set_elements<int>(LOGICAL(value), j, i);
 					break;
 				case INTSXP:
-					setElement(i, j, INTEGER(value));
+					data()->set_elements<int>(INTEGER(value), j, i);
 					break;
 				case REALSXP:
-					setElement(i, j, REAL(value));
+					data()->set_elements<double>(REAL(value), j, i);
 					break;
-				case STRSXP:
-					{
-						SEXP x = Rf_asChar(value);
-						const char * str = CHAR(x);
-						if ( LENGTH(x) != LENGTH(value) )
-							Rf_error("replacement string is wrong length; is this a multibyte string?");
-						setElement(i, j, str);
-						break;
-					}
+				case STRSXP: {
+					value = Rf_asChar(value);
+					const char * s = CHAR(value);
+					if ( LENGTH(value) != LENGTH(j) )
+						Rf_error("replacement string is wrong length; is this a multibyte string?");
+					data()->set_elements<const char>(s, j, i);
+					break;
+				}
 				default:
 					self_destruct();
 					Rf_error("unsupported data type");
@@ -524,86 +498,5 @@ class Matter2List : public Matter2 {
 		}
 
 };
-
-class Matter2StringList : public Matter2List {
-
-	public:
-
-		Matter2StringList(SEXP x) : Matter2List(x) {}
-
-		SEXP getStrings(SEXP i)
-		{
-			SEXP x;
-			if ( type() != R_CHARACTER )
-				Rf_error("attempt to extract strings from non-character vector");
-			PROTECT(x = Rf_allocVector(STRSXP, XLENGTH(i)));
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-			{
-				index_t indk = IndexElt(i, k);
-				char str [dim(indk)];
-				getElement(indk, str);
-				R_xlen_t len = strlen(str);
-				if ( len < dim(indk) )
-					Rf_warning("truncating string with embedded nuls");
-				SET_STRING_ELT(x, k, Rf_mkCharLen(str, len));
-			}
-			UNPROTECT(1);
-			return x;
-		}
-
-		void setStrings(SEXP i, SEXP value)
-		{
-			if ( type() != R_CHARACTER )
-				Rf_error("attempt to assign strings to non-character vector");
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-			{
-				index_t indk = IndexElt(i, k);
-				SEXP x = STRING_ELT(value, indk);
-				const char * str = CHAR(x);
-				if ( LENGTH(x) != dim(indk) )
-					Rf_error("replacement string is wrong length; is this a multibyte string?");
-				setElement(indk, str);
-			}
-			UNPROTECT(1);
-		}
-
-		SEXP getStrings(SEXP i, SEXP j)
-		{
-			SEXP x;
-			if ( type() != R_CHARACTER )
-				Rf_error("attempt to extract strings from non-character vector");
-			PROTECT(x = Rf_allocVector(STRSXP, XLENGTH(i)));
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-			{
-				index_t indk = IndexElt(i, k);
-				char str [LENGTH(j)];
-				getElement(indk, j, str);
-				R_xlen_t len = strlen(str);
-				if ( len < LENGTH(j) )
-					Rf_warning("truncating string with embedded nuls");
-				SET_STRING_ELT(x, k, Rf_mkCharLen(str, len));
-			}
-			UNPROTECT(1);
-			return x;
-		}
-
-		void setStrings(SEXP i, SEXP j, SEXP value)
-		{
-			if ( type() != R_CHARACTER )
-				Rf_error("attempt to assign strings to non-character vector");
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-			{
-				index_t indk = IndexElt(i, k);
-				SEXP x = STRING_ELT(value, indk);
-				const char * str = CHAR(x);
-				if ( LENGTH(x) != LENGTH(j) )
-					Rf_error("replacement string is wrong length; is this a multibyte string?");
-				setElement(indk, j, str);
-			}
-			UNPROTECT(1);
-		}
-
-};
-
 
 #endif // MATTER2

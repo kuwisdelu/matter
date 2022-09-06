@@ -1,5 +1,5 @@
 
-#### Define matter<list> class for list data ####
+#### 'matter_list' class for file-based lists ####
 ## ----------------------------------------------
 
 setClass("matter2_list", contains = "matter2_")
@@ -90,8 +90,13 @@ get_matter_list_sublist <- function(x, i = NULL, j = NULL) {
 	if ( is.null(i) )
 		i <- seq_along(x)
 	y <- vector("list", length(i))
-	for ( k in seq_along(i) )
-		y[[k]] <- get_matter_list_elt(x, i[k], j)
+	for ( k in seq_along(i) ) {
+		if ( !is.na(k) ) {
+			y[[k]] <- get_matter_list_elt(x, i[k], j)
+		} else {
+			y[k] <- list(NULL)
+		}
+	}
 	set_names(y, names(x), i)
 }
 
