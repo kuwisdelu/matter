@@ -261,8 +261,7 @@ class Matter2Array : public Matter2 {
 			int stride = XLENGTH(value) == 1 ? 0 : 1;
 			if ( size > XLENGTH(value) && stride != 0 ) {
 				self_destruct();
-				Rf_error("number of items to replace is ",
-					"longer than replacement length");
+				Rf_error("number of items to replace is longer than replacement length");
 			}
 			switch(TYPEOF(value)) {
 				case RAWSXP:
@@ -320,8 +319,7 @@ class Matter2Array : public Matter2 {
 			int stride = XLENGTH(value) == 1 ? 0 : 1;
 			if ( XLENGTH(indx) > XLENGTH(value) && stride != 0 ) {
 				self_destruct();
-				Rf_error("number of items to replace is ",
-					"longer than replacement length");
+				Rf_error("number of items to replace is longer than replacement length");
 			}
 			switch(TYPEOF(value)) {
 				case RAWSXP:
@@ -356,6 +354,18 @@ class Matter2List : public Matter2 {
 		Matter2List(SEXP x) : Matter2(x) {}
 
 		template<typename T>
+		size_t getElement(index_t i, T * buffer)
+		{
+			return data()->get_region<T>(buffer, 0, dim(i), i);
+		}
+
+		template<typename T>
+		size_t setElement(index_t i, T * buffer)
+		{
+			return data()->set_region<T>(buffer, 0, dim(i), i);
+		}
+
+		template<typename T>
 		size_t getElement(index_t i, SEXP j, T * buffer)
 		{
 			return data()->get_elements<T>(buffer, j, i);
@@ -367,16 +377,76 @@ class Matter2List : public Matter2 {
 			return data()->set_elements<T>(buffer, j, i);
 		}
 
-		template<typename T>
-		size_t getElement(index_t i, T * buffer)
+		SEXP getElement(index_t i)
 		{
-			return data()->get_region<T>(buffer, 0, dim(i), i);
+			SEXP x;
+			switch(type(i)) {
+				case R_RAW:
+					PROTECT(x = Rf_allocVector(RAWSXP, dim(i)));
+					getElement(i, RAW(x));
+					break;
+				case R_LOGICAL:
+					PROTECT(x = Rf_allocVector(LGLSXP, dim(i)));
+					getElement(i, LOGICAL(x));
+					break;
+				case R_INTEGER:
+					PROTECT(x = Rf_allocVector(INTSXP, dim(i)));
+					getElement(i, INTEGER(x));
+					break;
+				case R_DOUBLE:
+					PROTECT(x = Rf_allocVector(REALSXP, dim(i)));
+					getElement(i, REAL(x));
+					break;
+				case R_CHARACTER:
+					{
+						char str [dim(i)];
+						getElement(i, str);
+						R_xlen_t len = strlen(str);
+						if ( len < dim(i) )
+							Rf_warning("truncating string with embedded nuls");
+						PROTECT(x = Rf_ScalarString(Rf_mkCharLen(str, len)));
+						break;
+					}
+				default:
+					self_destruct();
+					Rf_error("unsupported data type");
+			}
+			UNPROTECT(1);
+			return x;
 		}
 
-		template<typename T>
-		size_t setElement(index_t i, T * buffer)
+		void setElement(index_t i, SEXP value)
 		{
-			return data()->set_region<T>(buffer, 0, dim(i), i);
+			if ( !Rf_isString(value) && dim(i) > XLENGTH(value) ) {
+				self_destruct();
+				Rf_error("number of items to replace is longer than replacement length");
+			}
+			switch(TYPEOF(value)) {
+				case RAWSXP:
+					setElement(i, RAW(value));
+					break;
+				case LGLSXP:
+					setElement(i, LOGICAL(value));
+					break;
+				case INTSXP:
+					setElement(i, INTEGER(value));
+					break;
+				case REALSXP:
+					setElement(i, REAL(value));
+					break;
+				case STRSXP:
+					{
+						SEXP x = Rf_asChar(value);
+						const char * str = CHAR(x);
+						if ( LENGTH(x) != dim(i) )
+							Rf_error("replacement string is wrong length; is this a multibyte string?");
+						setElement(i, str);
+						break;
+					}
+				default:
+					self_destruct();
+					Rf_error("unsupported data type");
+			}
 		}
 
 		SEXP getElement(index_t i, SEXP j)
@@ -401,16 +471,14 @@ class Matter2List : public Matter2 {
 					break;
 				case R_CHARACTER:
 					{
-						PROTECT(x = Rf_allocVector(RAWSXP, XLENGTH(j)));
-						getElement(i, RAW(x));
-						const char * c = reinterpret_cast<const char *>(RAW(x));
-						R_xlen_t len = strlen(c);
-						if ( len < XLENGTH(j) )
+						char str [LENGTH(j)];
+						getElement(i, j, str);
+						R_xlen_t len = strlen(str);
+						if ( len < LENGTH(j) )
 							Rf_warning("truncating string with embedded nuls");
 						else
-							len = dim(i);
-						PROTECT(x = Rf_ScalarString(Rf_mkCharLen(c, len)));
-						UNPROTECT(1);
+							len = LENGTH(j);
+						PROTECT(x = Rf_ScalarString(Rf_mkCharLen(str, len)));
 						break;
 					}
 				default:
@@ -423,146 +491,36 @@ class Matter2List : public Matter2 {
 
 		void setElement(index_t i, SEXP j, SEXP value)
 		{
-			if ( XLENGTH(j) > XLENGTH(value) ) {
+			if ( !Rf_isString(value) && dim(i) > XLENGTH(value) ) {
 				self_destruct();
-				Rf_error("number of items to replace is ",
-					"longer than replacement length");
+				Rf_error("lengths of replacement value and items to replace are not equal");
 			}
 			switch(TYPEOF(value)) {
-				case R_RAW:
+				case RAWSXP:
 					setElement(i, j, RAW(value));
 					break;
-				case R_LOGICAL:
+				case LGLSXP:
 					setElement(i, j, LOGICAL(value));
 					break;
-				case R_INTEGER:
+				case INTSXP:
 					setElement(i, j, INTEGER(value));
 					break;
-				case R_DOUBLE:
+				case REALSXP:
 					setElement(i, j, REAL(value));
 					break;
-				case R_CHARACTER:
-					self_destruct();
-					Rf_error("character assignment not allowed here");
-					break;
+				case STRSXP:
+					{
+						SEXP x = Rf_asChar(value);
+						const char * str = CHAR(x);
+						if ( LENGTH(x) != LENGTH(value) )
+							Rf_error("replacement string is wrong length; is this a multibyte string?");
+						setElement(i, j, str);
+						break;
+					}
 				default:
 					self_destruct();
 					Rf_error("unsupported data type");
 			}
-		}
-
-		SEXP getElement(index_t i)
-		{
-			SEXP x;
-			switch(type(i)) {
-				case R_RAW:
-					PROTECT(x = Rf_allocVector(RAWSXP, dim(i)));
-					getElement(i, RAW(x));
-					break;
-				case R_LOGICAL:
-					PROTECT(x = Rf_allocVector(LGLSXP, dim(i)));
-					getElement(i, LOGICAL(x));
-					break;
-				case R_INTEGER:
-					PROTECT(x = Rf_allocVector(INTSXP, dim(i)));
-					getElement(i, INTEGER(x));
-					break;
-				case R_DOUBLE:
-					PROTECT(x = Rf_allocVector(REALSXP, dim(i)));
-					getElement(i, REAL(x));
-					break;
-				case R_CHARACTER:
-				{
-					PROTECT(x = Rf_allocVector(RAWSXP, dim(i)));
-					getElement(i, RAW(x));
-					const char * c = reinterpret_cast<const char *>(RAW(x));
-					R_xlen_t len = strlen(c);
-					if ( len < dim(i) )
-						Rf_warning("truncating string with embedded nuls");
-					else
-						len = dim(i);
-					PROTECT(x = Rf_ScalarString(Rf_mkCharLen(c, len)));
-					UNPROTECT(1);
-					break;
-				}
-				default:
-					self_destruct();
-					Rf_error("unsupported data type");
-			}
-			UNPROTECT(1);
-			return x;
-		}
-
-		void setElement(index_t i, SEXP value)
-		{
-			if ( dim(i) > XLENGTH(value) ) {
-				self_destruct();
-				Rf_error("number of items to replace is ",
-					"longer than replacement length");
-			}
-			switch(TYPEOF(value)) {
-				case R_RAW:
-					setElement(i, RAW(value));
-					break;
-				case R_LOGICAL:
-					setElement(i, LOGICAL(value));
-					break;
-				case R_INTEGER:
-					setElement(i, INTEGER(value));
-					break;
-				case R_DOUBLE:
-					setElement(i, REAL(value));
-					break;
-				case R_CHARACTER:
-					self_destruct();
-					Rf_error("character assignment not allowed here");
-					break;
-				default:
-					self_destruct();
-					Rf_error("unsupported data type");
-			}
-		}
-
-		SEXP getElements(SEXP i, SEXP j)
-		{
-			SEXP x;
-			PROTECT(x = Rf_allocVector(VECSXP, XLENGTH(i)));
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-				SET_VECTOR_ELT(x, k, getElement(IndexElt(i, k), j));
-			UNPROTECT(1);
-			return x;
-		}
-
-		void setElements(SEXP i, SEXP j, SEXP value)
-		{
-			if ( XLENGTH(i) != XLENGTH(value) ) {
-				self_destruct();
-				Rf_error("number of items to replace ",
-					"does not match replacement length");
-			}
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-				setElement(IndexElt(i, k), j, VECTOR_ELT(value, k));
-		}
-
-		SEXP getElements(SEXP i)
-		{
-			SEXP x;
-			PROTECT(x = Rf_allocVector(VECSXP, XLENGTH(i)));
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-				SET_VECTOR_ELT(x, k, getElement(IndexElt(i, k)));
-			UNPROTECT(1);
-			return x;
-		}
-
-		void setElements(SEXP i, SEXP value)
-		{
-			if ( XLENGTH(i) != XLENGTH(value) ) {
-				self_destruct();
-				Rf_error("number of items to replace ",
-					"does not match replacement length");
-			}
-			for ( size_t k = 0; k < XLENGTH(i); k++ )
-				setElement(IndexElt(i, k), VECTOR_ELT(value, k));
 		}
 
 };

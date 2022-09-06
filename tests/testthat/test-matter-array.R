@@ -1,7 +1,7 @@
 require(testthat)
 require(matter)
 
-context("matter-class")
+context("matter-array")
 
 test_that("matter array 1-D indexing", {
 

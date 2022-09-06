@@ -126,6 +126,12 @@ template<typename T>
 T NA();
 
 template<> inline
+char NA<char>()
+{
+	Rf_error("NAs not supported for type 'char'");
+}
+
+template<> inline
 Rbyte NA<Rbyte>()
 {
 	Rf_error("NAs not supported for type 'Rbyte'");

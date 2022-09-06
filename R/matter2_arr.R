@@ -46,6 +46,8 @@ matter2_arr <- function(data, type = "double", path = NULL,
 		} else if ( anyNA(dim) ) {
 			dim <- dim(data)
 		}
+		if ( is.null(dimnames) )
+			dimnames <- dimnames(data)
 	}
 	if ( is.null(path) )
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
@@ -142,6 +144,8 @@ matter2_vec <- function(data, type = "double", path = NULL,
 			type <- typeof(data)
 		if ( is.na(length) )
 			length <- length(data)
+		if ( is.null(names) )
+			names <- names(data)
 	}
 	x <- matter2_arr(data, type=type, path=path, dim=length,
 		names=names, offset=offset, extent=extent,
@@ -209,7 +213,7 @@ set_matter_arr_subarray <- function(x, index, value)
 	set_matter_arr_elts(x, i, value)
 }
 
-setMethod("[", c(x="matter2_arr"),
+setMethod("[", c(x = "matter2_arr"),
 	function(x, i, j, ..., drop = TRUE) {
 		narg <- nargs() - 1L - !missing(drop)
 		if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
@@ -236,7 +240,7 @@ setMethod("[", c(x="matter2_arr"),
 		}
 	})
 
-setReplaceMethod("[", c(x="matter2_arr"),
+setReplaceMethod("[", c(x = "matter2_arr"),
 	function(x, i, j, ..., value) {
 		narg <- nargs() - 2L
 		if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {

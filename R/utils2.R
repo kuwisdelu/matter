@@ -5,17 +5,14 @@
 as_subscripts <- function(i, x, exact = TRUE) {
 	if ( missing(i) )
 		return(NULL)
-	if ( is.null(i) ) {
-		i <- seq_len(length(x))
-	} else if ( is.logical(i) ) {
+	if ( is.logical(i) )
 		i <- which(rep_len(i, length(x)))
-	} else if ( !is.numeric(i) ) {
+	if ( !is.numeric(i) )
 		if ( exact ) {
 			i <- match(i, names(x))
 		} else {
 			i <- pmatch(i, names(x))
 		}
-	}
 	i
 }
 
@@ -51,6 +48,8 @@ as_col_subscripts <- function(i, x, exact = TRUE) {
 
 # export
 linear_ind <- function(index, dim, rowMaj = FALSE) {
+	if ( is.null(index) )
+		return(seq_len(prod(dim)))
 	if ( is.list(index) ) {
 		for ( j in seq_along(dim) ) {
 			if ( is.null(index[[j]]) )
@@ -174,7 +173,7 @@ is_Ctype <- function(x, strict = FALSE) {
 }
 
 to_Rtype <- function(x) {
-	codes <- c(char = "raw", uchar = "raw",
+	codes <- c(char = "character", uchar = "raw",
 		short = "integer", ushort = "integer",
 		int = "integer", uint = "integer",
 		long = "double", ulong = "double",
@@ -185,7 +184,7 @@ to_Rtype <- function(x) {
 to_Ctype <- function(x) {
 	codes <- c(raw = "uchar", logical = "int",
 		integer = "int", numeric = "double",
-		character = "uchar", list = NA_character_)
+		character = "char", list = NA_character_)
 	as_Ctype(codes[as.integer(as_Rtype(x))])
 }
 

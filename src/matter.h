@@ -57,7 +57,9 @@ template<typename T>
 T coerce_log(T x);
 
 template<typename T1, typename T2>
-T2 coerce_cast(T1 x);
+T2 coerce_cast(T1 x) {
+    return static_cast<T2>(x);
+}
 
 template<typename RType>
 void fillNA(RType * ptr, size_t count, size_t skip = 1) {

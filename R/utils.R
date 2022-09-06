@@ -153,7 +153,7 @@ show_matter_memory_and_storage <- function(object) {
 preview_vector_data <- function(x, n = getOption("matter.show.head.n")) {
 	hdr <- head(x, n=n)
 	out <- as.character(hdr)
-	more <- length(x) - length(hdr) > 0
+	more <- length(x) > length(hdr)
 	if ( !is.null(names(hdr)) ) {
 		nms <- names(hdr)
 	} else {
@@ -258,8 +258,7 @@ preview_Nd_array <- function(x, n = getOption("matter.show.head.n")) {
 preview_list <- function(x, n = getOption("matter.show.head.n")) {
 	n1 <- min(n, length(x))
 	for ( i in 1:n1 ) {
-		y <- subListElementAsVector(x, i)
-		fmt <- preview_vector_data(y, n)
+		fmt <- preview_vector_data(x[[i]], n)
 		if ( !is.null(names(x)) ) {
 			rownames(fmt) <- paste0("$", names(x)[i])
 		} else {
