@@ -525,5 +525,85 @@ class Matter2List : public Matter2 {
 
 };
 
+class Matter2StringList : public Matter2List {
+
+	public:
+
+		Matter2StringList(SEXP x) : Matter2List(x) {}
+
+		SEXP getStrings(SEXP i)
+		{
+			SEXP x;
+			if ( type() != R_CHARACTER )
+				Rf_error("attempt to extract strings from non-character vector");
+			PROTECT(x = Rf_allocVector(STRSXP, XLENGTH(i)));
+			for ( size_t k = 0; k < XLENGTH(i); k++ )
+			{
+				index_t indk = IndexElt(i, k);
+				char str [dim(indk)];
+				getElement(indk, str);
+				R_xlen_t len = strlen(str);
+				if ( len < dim(indk) )
+					Rf_warning("truncating string with embedded nuls");
+				SET_STRING_ELT(x, k, Rf_mkCharLen(str, len));
+			}
+			UNPROTECT(1);
+			return x;
+		}
+
+		void setStrings(SEXP i, SEXP value)
+		{
+			if ( type() != R_CHARACTER )
+				Rf_error("attempt to assign strings to non-character vector");
+			for ( size_t k = 0; k < XLENGTH(i); k++ )
+			{
+				index_t indk = IndexElt(i, k);
+				SEXP x = STRING_ELT(value, indk);
+				const char * str = CHAR(x);
+				if ( LENGTH(x) != dim(indk) )
+					Rf_error("replacement string is wrong length; is this a multibyte string?");
+				setElement(indk, str);
+			}
+			UNPROTECT(1);
+		}
+
+		SEXP getStrings(SEXP i, SEXP j)
+		{
+			SEXP x;
+			if ( type() != R_CHARACTER )
+				Rf_error("attempt to extract strings from non-character vector");
+			PROTECT(x = Rf_allocVector(STRSXP, XLENGTH(i)));
+			for ( size_t k = 0; k < XLENGTH(i); k++ )
+			{
+				index_t indk = IndexElt(i, k);
+				char str [LENGTH(j)];
+				getElement(indk, j, str);
+				R_xlen_t len = strlen(str);
+				if ( len < LENGTH(j) )
+					Rf_warning("truncating string with embedded nuls");
+				SET_STRING_ELT(x, k, Rf_mkCharLen(str, len));
+			}
+			UNPROTECT(1);
+			return x;
+		}
+
+		void setStrings(SEXP i, SEXP j, SEXP value)
+		{
+			if ( type() != R_CHARACTER )
+				Rf_error("attempt to assign strings to non-character vector");
+			for ( size_t k = 0; k < XLENGTH(i); k++ )
+			{
+				index_t indk = IndexElt(i, k);
+				SEXP x = STRING_ELT(value, indk);
+				const char * str = CHAR(x);
+				if ( LENGTH(x) != LENGTH(j) )
+					Rf_error("replacement string is wrong length; is this a multibyte string?");
+				setElement(indk, j, str);
+			}
+			UNPROTECT(1);
+		}
+
+};
+
 
 #endif // MATTER2

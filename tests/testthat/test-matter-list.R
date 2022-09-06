@@ -17,6 +17,7 @@ test_that("matter list indexing", {
 	expect_equal(x[1], y[1])
 	expect_equal(x[[1]], y[[1]])
 	expect_equal(x[1:3], y[1:3])
+	expect_equal(x[3:1], y[3:1])
 	expect_equal(x[[3]][1:3], y[[3,1:3]])
 	expect_equal(x[[3]][3:1], y[[3,3:1]])
 	expect_equal(x[[5]], y[[5]])
