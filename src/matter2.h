@@ -54,13 +54,6 @@ class Matter2 {
 				return NA_INTEGER;
 		}
 
-		R_xlen_t length() {
-			R_xlen_t size = 1;
-			for ( size_t i = 0; i < rank(); i++ )
-				size *= dim(i);
-			return size;
-		}
-
 		SEXP names() {
 			return _names;
 		}
@@ -101,6 +94,13 @@ class Matter2Array : public Matter2 {
 		{
 			_ops = R_do_slot(x, Rf_install("ops"));
 			_transpose = Rf_asLogical(R_do_slot(x, Rf_install("transpose")));
+		}
+
+		R_xlen_t length() {
+			R_xlen_t size = 1;
+			for ( size_t i = 0; i < rank(); i++ )
+				size *= dim(i);
+			return size;
 		}
 
 		bool is_transposed() {
@@ -353,10 +353,14 @@ class Matter2List : public Matter2 {
 
 		Matter2List(SEXP x) : Matter2(x) {}
 
-		SEXP getElement(index_t i)
+		R_xlen_t length() {
+			return rank();
+		}
+
+		SEXP get(index_t i)
 		{
 			SEXP x;
-			if ( i < 0 || i >= rank() )
+			if ( i < 0 || i >= length() )
 				Rf_error("subscript out of bounds");
 			switch(type(i)) {
 				case R_RAW:
@@ -393,11 +397,11 @@ class Matter2List : public Matter2 {
 			return x;
 		}
 
-		void setElement(index_t i, SEXP value)
+		void set(index_t i, SEXP value)
 		{
-			if ( i < 0 || i >= rank() )
+			if ( i < 0 || i >= length() )
 				Rf_error("subscript out of bounds");
-			if ( !Rf_isString(value) && dim(i) > LENGTH(value) ) {
+			if ( !Rf_isString(value) && dim(i) != LENGTH(value) ) {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
@@ -428,12 +432,12 @@ class Matter2List : public Matter2 {
 			}
 		}
 
-		SEXP getElement(index_t i, SEXP j)
+		SEXP get(index_t i, SEXP j)
 		{
 			SEXP x;
 			if ( Rf_isNull(j) )
-				return getElement(i);
-			if ( i < 0 || i >= rank() )
+				return get(i);
+			if ( i < 0 || i >= length() )
 				Rf_error("subscript out of bounds");
 			switch(type(i)) {
 				case R_RAW:
@@ -470,13 +474,13 @@ class Matter2List : public Matter2 {
 			return x;
 		}
 
-		void setElement(index_t i, SEXP j, SEXP value)
+		void set(index_t i, SEXP j, SEXP value)
 		{
 			if ( Rf_isNull(j) )
-				return setElement(i, value);
-			if ( i < 0 || i >= rank() )
+				return set(i, value);
+			if ( i < 0 || i >= length() )
 				Rf_error("subscript out of bounds");
-			if ( !Rf_isString(value) && LENGTH(j) > LENGTH(value) ) {
+			if ( !Rf_isString(value) && LENGTH(j) != LENGTH(value) ) {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
@@ -504,6 +508,136 @@ class Matter2List : public Matter2 {
 				default:
 					self_destruct();
 					Rf_error("unsupported data type");
+			}
+		}
+
+		SEXP getElements(SEXP i, SEXP j)
+		{
+			SEXP x;
+			R_xlen_t len;
+			if ( Rf_isNull(i) )
+				len = length();
+			else
+				len = XLENGTH(i);
+			PROTECT(x = Rf_allocVector(VECSXP, len));
+			for ( size_t k = 0; k < len; k++ )
+			{
+				index_t indk;
+				if ( Rf_isNull(i) )
+					indk = k;
+				else
+					indk = IndexElt(i, k) - 1;
+				SET_VECTOR_ELT(x, k, get(indk, j));
+			}
+			UNPROTECT(1);
+			return x;
+		}
+
+		void setElements(SEXP i, SEXP j, SEXP value)
+		{
+			R_xlen_t len;
+			if ( Rf_isNull(i) )
+				len = length();
+			else
+				len = XLENGTH(i);
+			if ( len != LENGTH(value) ) {
+				self_destruct();
+				Rf_error("length of replacement value and items to replace are not equal");
+			}
+			for ( size_t k = 0; k < len; k++ )
+			{
+				index_t indk;
+				if ( Rf_isNull(i) )
+					indk = k;
+				else
+					indk = IndexElt(i, k) - 1;
+				set(indk, j, VECTOR_ELT(value, k));
+			}
+		}
+
+};
+
+class Matter2StringList : public Matter2List {
+
+	public:
+
+		Matter2StringList(SEXP x) : Matter2List(x)
+		{
+			if ( type() != R_CHARACTER ) {
+				self_destruct();
+				Rf_error("matter object is not a string");
+			}
+		}
+
+		SEXP getChar(index_t i)
+		{
+			return Rf_asChar(get(i));
+		}
+
+		void setChar(index_t i, SEXP value)
+		{
+			if ( TYPEOF(value) != CHARSXP ) {
+				self_destruct();
+				Rf_error("replacement value is not a string");
+			}
+			set(i, Rf_ScalarString(value));
+		}
+
+		SEXP getChar(index_t i, SEXP j)
+		{
+			return Rf_asChar(get(i, j));
+		}
+
+		void setChar(index_t i, SEXP j, SEXP value)
+		{
+			if ( TYPEOF(value) != CHARSXP ) {
+				self_destruct();
+				Rf_error("replacement value is not a string");
+			}
+			set(i, j, Rf_ScalarString(value));
+		}
+
+		SEXP getStrings(SEXP i, SEXP j)
+		{
+			SEXP x;
+			R_xlen_t len;
+			if ( Rf_isNull(i) )
+				len = length();
+			else
+				len = XLENGTH(i);
+			PROTECT(x = Rf_allocVector(STRSXP, len));
+			for ( size_t k = 0; k < len; k++ )
+			{
+				index_t indk;
+				if ( Rf_isNull(i) )
+					indk = k;
+				else
+					indk = IndexElt(i, k) - 1;
+				SET_STRING_ELT(x, k, getChar(indk, j));
+			}
+			UNPROTECT(1);
+			return x;
+		}
+
+		void setStrings(SEXP i, SEXP j, SEXP value)
+		{
+			R_xlen_t len;
+			if ( Rf_isNull(i) )
+				len = length();
+			else
+				len = XLENGTH(i);
+			if ( len != LENGTH(value) ) {
+				self_destruct();
+				Rf_error("length of replacement value and items to replace are not equal");
+			}
+			for ( size_t k = 0; k < len; k++ )
+			{
+				index_t indk;
+				if ( Rf_isNull(i) )
+					indk = k;
+				else
+					indk = IndexElt(i, k) - 1;
+				setChar(indk, j, STRING_ELT(value, k));
 			}
 		}
 

@@ -79,33 +79,20 @@ setMethod("describe_for_display", "matter2_list", function(x) {
 setMethod("preview_for_display", "matter2_list", function(x) preview_list(x))
 
 get_matter_list_elt <- function(x, i = NULL, j = NULL) {
-	.Call("C_getMatterListElt", x, i, j)
+	.Call("C_getMatterListElt", x, i, j, PACKAGE="matter")
 }
 
 set_matter_list_elt <- function(x, i = NULL, j = NULL, value = NULL) {
-	.Call("C_setMatterListElt", x, i, j, value)
+	.Call("C_setMatterListElt", x, i, j, value, PACKAGE="matter")
 }
 
 get_matter_list_sublist <- function(x, i = NULL, j = NULL) {
-	if ( is.null(i) )
-		i <- seq_along(x)
-	y <- vector("list", length(i))
-	for ( k in seq_along(i) ) {
-		if ( !is.na(k) ) {
-			y[[k]] <- get_matter_list_elt(x, i[[k]], j)
-		} else {
-			y[k] <- list(NULL)
-		}
-	}
+	y <- .Call("C_getMatterListSubset", x, i, j, PACKAGE="matter")
 	set_names(y, names(x), i)
 }
 
 set_matter_list_sublist <- function(x, i = NULL, j = NULL, value = NULL) {
-	if ( is.null(i) )
-		i <- seq_along(x)
-	for ( k in seq_along(i) )
-		set_matter_list_elt(x, i[[k]], j, value[[k]])
-	x
+	.Call("C_setMatterListSubset", x, i, j, value, PACKAGE="matter")
 }
 
 subset_matter_list_elt <- function(x, i = NULL) {

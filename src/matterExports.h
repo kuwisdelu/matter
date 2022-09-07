@@ -210,19 +210,39 @@ extern "C" {
 	static inline SEXP getMatterListElt(SEXP x, SEXP i, SEXP j)
 	{
 		Matter2List y(x);
-		if ( Rf_isNull(j) )
-			return y.getElement(Rf_asInteger(i) - 1);
-		else
-			return y.getElement(Rf_asInteger(i) - 1, j);
+		return y.get(Rf_asInteger(i) - 1, j);
 	}
 
 	static inline SEXP setMatterListElt(SEXP x, SEXP i, SEXP j, SEXP value)
 	{
 		Matter2List y(x);
-		if ( Rf_isNull(j) )
-			y.setElement(Rf_asInteger(i) - 1, value);
-		else
-			y.setElement(Rf_asInteger(i) - 1, j, value);
+		y.set(Rf_asInteger(i) - 1, j, value);
+		return x;
+	}
+
+	static inline SEXP getMatterListSubset(SEXP x, SEXP i, SEXP j)
+	{
+		Matter2List y(x);
+		return y.getElements(i, j);
+	}
+
+	static inline SEXP setMatterListSubset(SEXP x, SEXP i, SEXP j, SEXP value)
+	{
+		Matter2List y(x);
+		y.setElements(i, j, value);
+		return x;
+	}
+
+	static inline SEXP getMatterStrings(SEXP x, SEXP i, SEXP j)
+	{
+		Matter2StringList y(x);
+		return y.getStrings(i, j);
+	}
+
+	static inline SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value)
+	{
+		Matter2StringList y(x);
+		y.setStrings(i, j, value);
 		return x;
 	}
 

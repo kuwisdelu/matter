@@ -81,26 +81,13 @@ setMethod("describe_for_display", "matter2_chr", function(x) {
 setMethod("preview_for_display", "matter2_chr", function(x) preview_vector(x))
 
 get_matter_chr_elts <- function(x, i = NULL, j = NULL) {
-	if ( is.null(i) )
-		i <- seq_along(x)
-	y <- vector("character", length(i))
-	for ( k in seq_along(i) ) {
-		if ( !is.na(k) ) {
-			y[[k]] <- get_matter_list_elt(x, i[[k]], j)
-		} else {
-			y[[k]] <- NA_character_
-		}
-	}
+	y <- .Call("C_getMatterStrings", x, i, j, PACKAGE="matter")
 	Encoding(y) <- Encoding(x)
 	set_names(y, names(x), i)
 }
 
 set_matter_chr_elts <- function(x, i = NULL, j = NULL, value = NULL) {
-	if ( is.null(i) )
-		i <- seq_along(x)
-	for ( k in seq_along(i) )
-		set_matter_list_elt(x, i[[k]], j, value[[k]])
-	x
+	.Call("C_setMatterStrings", x, i, j, value, PACKAGE="matter")
 }
 
 subset_matter_chr_elts <- function(x, i = NULL) {
