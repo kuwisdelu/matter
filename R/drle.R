@@ -25,14 +25,10 @@ setClass("drle_fct",
 
 drle <- function(x, cr_threshold = 0)
 {
-	if ( !is.numeric(x) && !is.logical(x) )
-	{
-		if ( is.drle(x) )
-			x <- as.vector(x)
-		x <- as.factor(x)
-	}
 	if ( is.drle(x) )
 		return(x)
+	if ( !is.numeric(x) && !is.logical(x) )
+		x <- as.factor(x)
 	y <- .Call("C_encodeDRLE", x, cr_threshold, PACKAGE="matter")
 	if ( is.factor(x) && is.drle(y) )
 		y <- new("drle_fct", y, levels=levels(x))
@@ -187,23 +183,4 @@ setMethod("c", "drle", function(x, ...)
 	if ( validObject(x) )
 		x
 })
-
-# doCompressedOp <- function(e1, e2, Generic) {
-# 	check <- check_comformable_lengths(e1, e2)
-# 	if ( isTRUE(check) ) {
-# 		.Call("C_doCompressedOp", e1, e2, Generic)
-# 	} else {
-# 		stop(check)
-# 	}
-# })
-
-# setMethod("Ops", c("drle", "drle"),
-# 	function(e1, e2) doCompressedOp(e1, e2, as_Op(.Generic[2L])))
-
-# setMethod("Ops", c("drle", "ANY"),
-# 	function(e1, e2) doCompressedOp(e1, e2, as_Op(.Generic[2L])))
-
-# setMethod("Ops", c("ANY", "drle"),
-# 	function(e1, e2) doCompressedOp(e1, e2, as_Op(.Generic[2L])))
-
 
