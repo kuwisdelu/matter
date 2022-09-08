@@ -7,7 +7,7 @@ setClass("matter2_str",
 	contains = "matter2_",
 	validity = function(object) {
 		errors <- NULL
-		if ( !all(object@type %in% "character") )
+		if ( !setequal(object@type, "character") )
 			errors <- c(errors, "'type' must be 'character'")
 		if ( length(object@encoding) != 1L )
 			errors <- c(errors, "'encoding' must be a scalar (length 1)")
@@ -80,17 +80,17 @@ setMethod("describe_for_display", "matter2_str", function(x) {
 
 setMethod("preview_for_display", "matter2_str", function(x) preview_vector(x))
 
-get_matter_chr_elts <- function(x, i = NULL, j = NULL) {
+get_matter_str_elts <- function(x, i = NULL, j = NULL) {
 	y <- .Call("C_getMatterStrings", x, i, j, PACKAGE="matter")
 	Encoding(y) <- Encoding(x)
 	set_names(y, names(x), i)
 }
 
-set_matter_chr_elts <- function(x, i = NULL, j = NULL, value = NULL) {
+set_matter_str_elts <- function(x, i = NULL, j = NULL, value = NULL) {
 	.Call("C_setMatterStrings", x, i, j, value, PACKAGE="matter")
 }
 
-subset_matter_chr_elts <- function(x, i = NULL) {
+subset_matter_str_elts <- function(x, i = NULL) {
 	if ( is.null(i) )
 		return(x)
 	new("matter2_str",
@@ -105,7 +105,7 @@ setMethod("[", c(x = "matter2_str"),
 	function(x, i, j, ..., drop = TRUE) {
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
-		get_matter_chr_elts(x, i, j)
+		get_matter_str_elts(x, i, j)
 	})
 
 setReplaceMethod("[", c(x = "matter2_str"),
@@ -114,7 +114,7 @@ setReplaceMethod("[", c(x = "matter2_str"),
 		j <- as_subscripts(j, x)
 		if ( !is.character(value) )
 			value <- as.character(value)
-		set_matter_chr_elts(x, i, j, value)
+		set_matter_str_elts(x, i, j, value)
 	})
 
 setMethod("Encoding", "matter2_str", function(x) x@encoding)

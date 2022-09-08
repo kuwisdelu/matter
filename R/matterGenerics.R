@@ -11,6 +11,7 @@ setGeneric("scale", signature="x")
 
 setGeneric("subset")
 
+setGeneric("labels")
 setGeneric("levels")
 setGeneric("levels<-")
 

@@ -11,6 +11,8 @@ setClass("matter2_arr",
 		errors <- NULL
 		if ( is.null(object@dim) )
 			errors <- c(errors, "array must have non-NULL 'dim'")
+			if ( length(object@type) != 1L )
+			errors <- c(errors, "'type' must be a scalar (length 1)")
 		if ( length(object@transpose) != 1L )
 			errors <- c(errors, "'transpose' must be a scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
@@ -60,13 +62,9 @@ matter2_arr <- function(data, type = "double", path = NULL,
 			paste0(sQuote(path[exists]), collapse=", "))
 	if ( all(exists) && missing(data) ) {
 		if ( anyNA(dim) && anyNA(extent) ) {
-			# FIXME: can we infer the NA dims instead of overriding?
 			sizes <- file.size(path)
-			if ( length(type) == 1L ) {
-				dim <- sum(sizes - offset) %/% sizeof(type)
-			} else {
-				dim <- sum((sizes - offset) %/% sizeof(type))
-			}
+			# FIXME: can we infer the NA dims instead of overwriting?
+			dim <- sum((sizes - offset) %/% sizeof(type))
 		}
 	}
 	if ( anyNA(dim) && anyNA(extent) ) {
@@ -74,11 +72,12 @@ matter2_arr <- function(data, type = "double", path = NULL,
 	} else if ( anyNA(extent) ) {
 		extent <- prod(dim)
 	} else if ( anyNA(dim) ) {
-		dim <- max(extent)
+		dim <- sum(extent)
 	}
-	if ( length(offset) != length(extent) && length(path) == 1L )
-		offset <- cumsum(c(offset,
-			sizeof(type) * extent[-length(extent)]))
+	if ( length(offset) != length(extent) && length(path) == 1L ) {
+		sizes <- sizeof(type) * extent
+		offset <- cumsum(c(offset, sizes[-length(sizes)]))
+	}
 	if ( any(!exists) ) {
 		if ( missing(data) && any(extent > 0) )
 			warning("creating uninitialized backing file(s): ",

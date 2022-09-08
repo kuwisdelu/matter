@@ -184,6 +184,7 @@ exportMethods(
 	"names<-",
 	"dimnames",
 	"dimnames<-",
+	"labels",
 	"levels",
 	"levels<-",
 	"Encoding",
