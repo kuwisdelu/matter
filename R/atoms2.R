@@ -4,7 +4,7 @@
 
 setClassUnion("integer_OR_drle", c("integer", "drle"))
 setClassUnion("numeric_OR_drle", c("numeric", "drle"))
-setClassUnion("factor_OR_drle", c("factor", "drle_fc"))
+setClassUnion("factor_OR_drle", c("factor", "drle_fct"))
 
 setClass("atoms2",
 	slots = c(
@@ -169,7 +169,7 @@ subset_atoms_1d <- function(x, i = NULL) {
 		return(x)
 	if ( any(i < 1 | i > length(x)) )
 		stop("subscript out of bounds")
-	# FIXME: Make sure drle_fc supports droplevels()
+	# FIXME: Make sure drle_fct supports droplevels()
 	atoms2(source=droplevels(x@source[i]),
 		type=x@type[i],
 		offset=x@offset[i],
@@ -196,7 +196,7 @@ subset_atoms <- function(x, i = NULL, j = NULL) {
 		if ( any(i < 1 | i > min(dms)) )
 			stop("subscript out of bounds")
 		sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
-		# FIXME: Make sure drle_fc supports droplevels()
+		# FIXME: Make sure drle_fct supports droplevels()
 		x <- atoms2(source=droplevels(x@source[sub$index]),
 			type=x@type[sub$index],
 			offset=sub$offset,
@@ -210,7 +210,7 @@ subset_atoms <- function(x, i = NULL, j = NULL) {
 
 regroup_atoms <- function(x, ngroups) {
 	sub <- .Call("C_regroupAtoms", x, ngroups, PACKAGE="matter")
-	# FIXME: Make sure drle_fc supports droplevels()
+	# FIXME: Make sure drle_fct supports droplevels()
 	x <- atoms2(source=droplevels(x@source[sub$index]),
 		type=x@type[sub$index],
 		offset=sub$offset,

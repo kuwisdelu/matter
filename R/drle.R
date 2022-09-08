@@ -19,7 +19,7 @@ setClass("drle",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setClass("drle_fc",
+setClass("drle_fct",
 	slots = c(levels = "character"),
 	contains = "drle")
 
@@ -35,7 +35,7 @@ drle <- function(x, cr_threshold = 0)
 		return(x)
 	y <- .Call("C_encodeDRLE", x, cr_threshold, PACKAGE="matter")
 	if ( is.factor(x) && is.drle(y) )
-		y <- new("drle_fc", y, levels=levels(x))
+		y <- new("drle_fct", y, levels=levels(x))
 	if ( validObject(y) )
 		y
 }
@@ -46,7 +46,7 @@ setMethod("describe_for_display", "drle", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
-setMethod("describe_for_display", "drle_fc", function(x) {
+setMethod("describe_for_display", "drle_fct", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("compressed factor")
 	paste0(desc1, " :: ", desc2)
@@ -62,7 +62,7 @@ setMethod("show", "drle", function(object) {
 	cat("with", length(object@values), "delta-encoded runs\n")
 })
 
-setMethod("show", "drle_fc", function(object) {
+setMethod("show", "drle_fct", function(object) {
 	callNextMethod()
 	cat("Levels(", nlevels(object), "): ", sep="")
 	cat(paste_head(object@levels), "\n")
@@ -89,7 +89,7 @@ setAs("drle", "integer", function(from) as.integer(from[]))
 
 setAs("drle", "numeric", function(from) as.numeric(from[]))
 
-setAs("drle_fc", "factor", function(from) from[])
+setAs("drle_fct", "factor", function(from) from[])
 
 setMethod("as.vector", "drle", function(x) as(x, "vector"))
 
@@ -97,7 +97,7 @@ setMethod("as.integer", "drle", function(x) as(x, "integer"))
 
 setMethod("as.numeric", "drle", function(x) as(x, "numeric"))
 
-setMethod("as.factor", "drle_fc", function(x) as(x, "factor"))
+setMethod("as.factor", "drle_fct", function(x) as(x, "factor"))
 
 setMethod("as.list", "drle", function(x) as(x, "list"))
 
@@ -118,7 +118,7 @@ setMethod("[",
 	})
 
 setMethod("[",
-	c(x = "drle_fc", i = "ANY", j = "ANY", drop = "ANY"),
+	c(x = "drle_fct", i = "ANY", j = "ANY", drop = "ANY"),
 	function(x, i, ..., drop)
 	{
 		y <- callNextMethod()
@@ -129,9 +129,9 @@ setMethod("[",
 
 setMethod("length", "drle", function(x) sum(x@lengths))
 
-setMethod("levels", "drle_fc", function(x) x@levels)
+setMethod("levels", "drle_fct", function(x) x@levels)
 
-setReplaceMethod("levels", "drle_fc",
+setReplaceMethod("levels", "drle_fct",
 	function(x, value) {
 		x@levels <- value
 		x
@@ -162,7 +162,7 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 		deltas=c(x@deltas, y@deltas))
 })
 
-setMethod("combine", c("drle_fc", "drle_fc"), function(x, y, ...) {
+setMethod("combine", c("drle_fct", "drle_fct"), function(x, y, ...) {
 	if ( isTRUE(all.equal(levels(x), levels(y))) ) {
 		y <- combine(as(x, "drle"), as(y, "drle"))
 		y <- new(class(x), y, levels=levels(x))

@@ -53,7 +53,7 @@ importFrom("utils",
 
 exportClasses(
 	"drle",
-	"drle_fc",
+	"drle_fct",
 	"matter",
 	"matter_vec",
 	"matter_mat",
@@ -93,8 +93,8 @@ export(
 	"matter2_arr",
 	"matter2_mat",
 	"matter2_vec",
-	"matter2_chr",
 	"matter2_list",
+	"matter2_str",
 	"matter_list",
 	"matter_str",
 	"matter_fc",

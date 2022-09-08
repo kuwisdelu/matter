@@ -2,7 +2,7 @@
 #### 'matter_chr' class for file-based character vectors ####
 ## ----------------------------------------------------------
 
-setClass("matter2_chr",
+setClass("matter2_str",
 	slots = c(encoding = "character"),
 	contains = "matter2_",
 	validity = function(object) {
@@ -14,7 +14,7 @@ setClass("matter2_chr",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter2_chr <- function(data, type = "character", path = NULL,
+matter2_str <- function(data, type = "character", path = NULL,
 	lengths = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, encoding = "unknown", ...)
 {
@@ -55,7 +55,7 @@ matter2_chr <- function(data, type = "character", path = NULL,
 			stop("error creating file(s): ",
 				paste0(sQuote(path[!success]), collapse=", "))
 	}
-	x <- new("matter2_chr",
+	x <- new("matter2_str",
 		data=atoms2(
 			source=path,
 			type=as_Ctype(type),
@@ -72,13 +72,13 @@ matter2_chr <- function(data, type = "character", path = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter2_chr", function(x) {
+setMethod("describe_for_display", "matter2_str", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
-	desc2 <- paste0("out-of-memory character vector")
+	desc2 <- paste0("out-of-memory strings")
 	paste0(desc1, " :: ", desc2)
 })
 
-setMethod("preview_for_display", "matter2_chr", function(x) preview_vector(x))
+setMethod("preview_for_display", "matter2_str", function(x) preview_vector(x))
 
 get_matter_chr_elts <- function(x, i = NULL, j = NULL) {
 	y <- .Call("C_getMatterStrings", x, i, j, PACKAGE="matter")
@@ -93,7 +93,7 @@ set_matter_chr_elts <- function(x, i = NULL, j = NULL, value = NULL) {
 subset_matter_chr_elts <- function(x, i = NULL) {
 	if ( is.null(i) )
 		return(x)
-	new("matter2_chr",
+	new("matter2_str",
 		data=x@data[,i],
 		type=x@type[i],
 		dim=x@dim[i],
@@ -101,14 +101,14 @@ subset_matter_chr_elts <- function(x, i = NULL) {
 		encoding=x@encoding)
 }
 
-setMethod("[", c(x = "matter2_chr"),
+setMethod("[", c(x = "matter2_str"),
 	function(x, i, j, ..., drop = TRUE) {
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
 		get_matter_chr_elts(x, i, j)
 	})
 
-setReplaceMethod("[", c(x = "matter2_chr"),
+setReplaceMethod("[", c(x = "matter2_str"),
 	function(x, i, j, ..., value) {
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
@@ -117,19 +117,19 @@ setReplaceMethod("[", c(x = "matter2_chr"),
 		set_matter_chr_elts(x, i, j, value)
 	})
 
-setMethod("Encoding", "matter2_chr", function(x) x@encoding)
+setMethod("Encoding", "matter2_str", function(x) x@encoding)
 
-setReplaceMethod("Encoding", "matter2_chr",
+setReplaceMethod("Encoding", "matter2_str",
 	function(x, value) {
 		x@encoding <- value
 		if ( validObject(x) )
 			x
 	})
 
-setMethod("dim", "matter2_chr", function(x) NULL)
+setMethod("dim", "matter2_str", function(x) NULL)
 
-setMethod("length", "matter2_chr", function(x) length(x@dim))
+setMethod("length", "matter2_str", function(x) length(x@dim))
 
-setMethod("lengths", "matter2_chr", function(x) x@dim)
+setMethod("lengths", "matter2_str", function(x) x@dim)
 
 
