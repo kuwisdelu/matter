@@ -23,13 +23,15 @@ matter2_fct <- function(data, levels, type = "integer", path = NULL,
 	readonly = NA, labels = as.character(levels), ...)
 {
 	if ( !missing(data) ) {
-		if ( missing(levels) )
-			levels <- sort(unique(data))
 		if ( is.na(length) )
 			length <- length(data)
 		if ( is.null(names) )
 			names <- names(data)
+		if ( missing(levels) )
+			levels <- sort(unique(data))
 		data <- factor(data, levels=levels, labels=labels)
+		levels <- seq_len(nlevels(data))
+		labels <- levels(data)
 	}
 	if ( is.null(path) )
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
@@ -70,15 +72,16 @@ matter2_fct <- function(data, levels, type = "integer", path = NULL,
 		data=atoms2(
 			source=path,
 			type=as_Ctype(type),
-			offset=offset,
-			extent=extent,
+			offset=as.double(offset),
+			extent=as.double(extent),
 			group=0L,
 			readonly=readonly),
 		type=collapse_Rtype(type),
 		dim=length,
 		names=names,
 		levels=levels,
-		labels=labels, ...)
+		labels=labels,
+		transpose=FALSE, ...)
 	if ( !missing(data) && !is.null(data) )
 		x[] <- data
 	x
@@ -92,39 +95,35 @@ setMethod("describe_for_display", "matter2_fct", function(x) {
 
 setMethod("preview_for_display", "matter2_fct", function(x) {
 	preview_vector(x)
-	cat("Levels(", nlevels(object), "): ", sep="")
-	cat(paste_head(object@levels), "\n")
+	cat("Levels(", nlevels(x), "): ", sep="")
+	cat(paste_head(x@labels), "\n")
 })
 
 get_matter_fct_elts <- function(x, i = NULL) {
 	y <- get_matter_arr_elts(x, i)
-	factor(y, levels=levels(x), labels=labels(x))
+	factor(y, levels=x@levels, labels=x@labels)
 }
 
 set_matter_fct_elts <- function(x, i = NULL, value = NULL) {
 	if ( is.factor(value) )
-		value <- labels(x)[value]
-	value <- levels(x)[match(value, labels(x))]
+		value <- x@labels[value]
+	value <- x@levels[match(value, x@labels)]
 	set_matter_arr_elts(x, i, value)
 }
 
 setMethod("[", c(x = "matter2_fct"),
-	function(x, i, j, ..., drop = TRUE) {
+	function(x, i, ...) {
 		i <- as_subscripts(i, x)
-		j <- as_subscripts(j, x)
-		get_matter_fct_elts(x, i, j)
+		get_matter_fct_elts(x, i)
 	})
 
 setReplaceMethod("[", c(x = "matter2_fct"),
-	function(x, i, j, ..., value) {
+	function(x, i, ..., value) {
 		i <- as_subscripts(i, x)
-		j <- as_subscripts(j, x)
-		set_matter_fct_elts(x, i, j, value)
+		set_matter_fct_elts(x, i, value)
 	})
 
-setMethod("labels", "matter2_fct", function(object, ...) x@labels)
-
-setMethod("levels", "matter2_fct", function(x) x@levels)
+setMethod("levels", "matter2_fct", function(x) x@labels)
 
 setReplaceMethod("levels", "matter2_fct",
 	function(x, value) {

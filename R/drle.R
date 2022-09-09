@@ -64,6 +64,8 @@ setMethod("show", "drle_fct", function(object) {
 	cat(paste_head(object@levels), "\n")
 })
 
+setMethod("type", "drle", function(x) typeof(x@values))
+
 is.drle <- function(x) is(x, "drle")
 
 get_drle_elts <- function(x, i = NULL) {

@@ -1,9 +1,9 @@
 require(testthat)
 require(matter)
 
-context("matter-strings")
+context("matter-string")
 
-test_that("matter strings indexing", {
+test_that("matter string indexing", {
 
 	x <- c("neon", "genesis", "evangelion")
 	y <- matter2_str(x)

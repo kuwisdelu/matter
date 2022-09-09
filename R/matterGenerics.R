@@ -11,7 +11,6 @@ setGeneric("scale", signature="x")
 
 setGeneric("subset")
 
-setGeneric("labels")
 setGeneric("levels")
 setGeneric("levels<-")
 
@@ -110,6 +109,10 @@ setGeneric("nchunks", function(object, ...) standardGeneric("nchunks"))
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------
+
+setMethod("type", "vector", function(x) typeof(x))
+
+setMethod("type", "array", function(x) typeof(x))
 
 setMethod("combine", c("ANY", "ANY"),
 	function(x, y, ...) c(x, y))
