@@ -10,6 +10,8 @@ extern "C"
   #include <R_ext/Altrep.h>
 }
 
+#define MATTER_PKG "matter"
+
 //// MatterAlt class
 //------------------
 

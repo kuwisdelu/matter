@@ -1,6 +1,6 @@
 
-#ifndef UTILS
-#define UTILS
+#ifndef MATTER_DEFINES
+#define MATTER_DEFINES
 
 #define R_NO_REMAP
 
@@ -68,14 +68,34 @@
 #define STAT_VAR		10	// var
 #define STAT_NNZ		11	// nnzero
 
-//// Indexing types
+// Limits
+#define NA_CHAR CHAR_MIN
+#define R_CHAR_MIN (1+CHAR_MIN)
+#define R_CHAR_MAX CHAR_MAX
+
+#define NA_SHORT INT16_MIN
+#define R_SHORT_MIN (1+INT16_MIN)
+#define R_SHORT_MAX INT16_MAX
+
+#define R_INT_MIN (1+INT32_MIN)
+#define R_INT_MAX INT32_MAX
+
+#define R_DOUBLE_MIN R_NegInf
+#define R_DOUBLE_MAX R_PosInf
+
+#define R_UCHAR_MAX UCHAR_MAX
+#define R_USHORT_MAX UINT16_MAX
+#define R_UINT_MAX UINT32_MAX
+#define R_ULONG_MAX UINT64_MAX
+
+#define NA_LONG INT64_MIN
+#define R_LONG_MIN (1+INT64_MIN)
+#define R_LONG_MAX INT64_MAX
+
+//// Typedefs
 //-------------------
 
 typedef ptrdiff_t index_t;
-
-typedef double Rindex_t;
-
-#define INDEX_PTR(x) ((Rindex_t *)(DATAPTR(x)))
 
 //// Pair of values
 //------------------
@@ -117,76 +137,6 @@ inline index_t IndexElt(SEXP indx, index_t i)
 		default:
 			Rf_error("invalid index type");
 	}
-}
-
-//// Generate NA
-//---------------
-
-template<typename T>
-T NA();
-
-template<> inline
-char NA<char>()
-{
-	Rf_error("NAs not supported for type 'char'");
-}
-
-template<> inline
-Rbyte NA<Rbyte>()
-{
-	Rf_error("NAs not supported for type 'Rbyte'");
-}
-
-template<> inline
-int NA<int>()
-{
-	return NA_INTEGER;
-}
-
-template<> inline
-double NA<double>()
-{
-	return NA_REAL;
-}
-
-template<> inline
-SEXP NA<SEXP>()
-{
-	return NA_STRING;
-}
-
-template<> inline
-index_t NA<index_t>()
-{
-	return NA_INTEGER;
-}
-
-//// Check for NA
-//----------------
-
-inline bool isNA(Rbyte x)
-{
-    return FALSE;
-}
-
-inline bool isNA(int x)
-{
-    return x == NA_INTEGER || x == NA_LOGICAL;
-}
-
-inline bool isNA(double x)
-{
-    return ISNA(x) || ISNAN(x);
-}
-
-inline bool isNA(index_t x)
-{
-    return ((int)(x)) == NA_INTEGER || ((int)(x)) == NA_LOGICAL;
-}
-
-inline bool isNA(SEXP x)
-{
-    return x == NA_STRING;
 }
 
 //// Comparison
@@ -285,6 +235,76 @@ inline bool equal(T x, T y, double tol = DBL_EPSILON)
 	return rel_diff<T>(x, y) <= tol;
 }
 
+//// Generate NA
+//---------------
+
+template<typename T>
+T NA();
+
+template<> inline
+char NA<char>()
+{
+	Rf_error("NAs not supported for type 'char'");
+}
+
+template<> inline
+Rbyte NA<Rbyte>()
+{
+	Rf_error("NAs not supported for type 'Rbyte'");
+}
+
+template<> inline
+int NA<int>()
+{
+	return NA_INTEGER;
+}
+
+template<> inline
+double NA<double>()
+{
+	return NA_REAL;
+}
+
+template<> inline
+SEXP NA<SEXP>()
+{
+	return NA_STRING;
+}
+
+template<> inline
+index_t NA<index_t>()
+{
+	return NA_INTEGER;
+}
+
+//// Check for NA
+//----------------
+
+inline bool isNA(Rbyte x)
+{
+	return FALSE;
+}
+
+inline bool isNA(int x)
+{
+	return x == NA_INTEGER || x == NA_LOGICAL;
+}
+
+inline bool isNA(double x)
+{
+	return ISNA(x) || ISNAN(x);
+}
+
+inline bool isNA(index_t x)
+{
+	return ((int)(x)) == NA_INTEGER || ((int)(x)) == NA_LOGICAL;
+}
+
+inline bool isNA(SEXP x)
+{
+	return x == NA_STRING;
+}
+
 //// Misc utilities
 //--------------------
 
@@ -294,14 +314,6 @@ void fill(T * buffer, size_t size, T val, int stride = 1)
 {
 	for ( size_t i = 0; i < size; i++ )
 		buffer[stride * i] = val;
-}
-
-// copy src buffer to dest at permuted indices
-template<typename T>
-void perm_copy(T * dest, T * src, size_t size, int * indx)
-{
-	for ( size_t i = 0; i < size; i++ )
-		dest[indx[i]] = src[i];
 }
 
 // FIXME: Temporary (slow) solution as R_compact_seq_range() is non-API
@@ -344,4 +356,4 @@ inline SEXP extract_range(SEXP x, size_t start, size_t end)
 	}
 }
 
-#endif // UTILS
+#endif // MATTER_DEFINES

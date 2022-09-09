@@ -5,10 +5,8 @@
 #include <fstream>
 
 #include "matterDefines.h"
+#include "coerce.h"
 #include "drle.h"
-
-// FIXME: matter.h used for coerce_cast() for now, remove later
-#include "matter.h"
 
 //// DataSources class
 //---------------------
