@@ -6,6 +6,7 @@ NEW FEATURES
 
     o Added 'asearch()' for approximate search with interpolation
     o Complete re-implementation of sparse matrix code in C++
+    o Complete re-implementation of matter object C++ backends
 
 CHANGES IN VERSION 1.19.1 [2021-10-20]
 -----------------------------------
