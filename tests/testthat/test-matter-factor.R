@@ -6,7 +6,7 @@ context("matter-factor")
 test_that("matter factor indexing", {
 
 	x <- factor(c("A", "A", "B", "B", "A", "C", "A"))
-	y <- matter2_fct(x)
+	y <- matter_fct(x)
 
 	expect_equal(x, y[])
 	expect_equal(x[1], y[1])

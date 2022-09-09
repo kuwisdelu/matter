@@ -1,444 +1,296 @@
 
-#### Define matter<array> class for array-like data ####
-## -------------------------------------------------------
+#### 'matter_arr' class for file-based arrays ####
+## ------------------------------------------------
 
 setClass("matter_arr",
-	slots = c(data = "atoms"),
-	prototype = prototype(
-		data = new("atoms"),
-		datamode = make_datamode("numeric", type="R"),
-		paths = character(),
-		filemode = make_filemode("r"),
-		chunksize = 1e6L,
-		length = 0,
-		dim = 0L,
-		names = NULL,
-		dimnames = NULL,
-		ops = NULL),
-	contains = "matter",
+	slots = c(
+		ops = "list_OR_NULL",
+		transpose = "logical"),
+	contains = "matter_",
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )
 			errors <- c(errors, "array must have non-NULL 'dim'")
-		if ( prod(object@dim) != object@length )
-			errors <- c(errors, paste0("dims [product ", prod(object@dim),
-				"] do not match the length of array [", object@length, "]"))
+			if ( length(object@type) != 1L )
+			errors <- c(errors, "'type' must be a scalar (length 1)")
+		if ( length(object@transpose) != 1L )
+			errors <- c(errors, "'transpose' must be a scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_arr <- function(data, datamode = "double", paths = NULL,
-					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
-					offset = 0, extent = prod(dim), dim = 0, dimnames = NULL,
-					chunksize = getOption("matter.default.chunksize"), ...)
+setClass("matter_mat",
+	contains = "matter_arr",
+	validity = function(object) {
+		errors <- NULL
+		if ( length(object@dim) != 2L )
+			errors <- c(errors, "matrix must have exactly 2 dimensions")
+		if ( is.null(errors) ) TRUE else errors
+	})
+
+setClass("matter_vec",
+	contains = "matter_arr",
+	validity = function(object) {
+		errors <- NULL
+		if ( length(object@dim) != 1L )
+			errors <- c(errors, "vector can't have more than 1 dimension")
+		if ( is.null(errors) ) TRUE else errors
+	})
+
+matter_arr <- function(data, type = "double", path = NULL,
+	dim = NA_integer_, dimnames = NULL, offset = 0, extent = NA_real_,
+	readonly = NA, rowMaj = FALSE, ...)
 {
 	if ( !missing(data) ) {
-		if ( missing(datamode) )
-			datamode <- typeof(data)
-		if ( missing(dim) ) {
-			if ( !is.array(data) ) {
-				stop("data is not an array")
-			} else {
-				dim <- dim(data)
-			}
+		if ( anyNA(type) )
+			type <- typeof(data)
+		if ( anyNA(dim) && is.vector(data) ) {
+			dim <- length(data)
+		} else if ( anyNA(dim) ) {
+			dim <- dim(data)
+		}
+		if ( is.null(dimnames) )
+			dimnames <- dimnames(data)
+	}
+	if ( is.null(path) )
+		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
+	path <- normalizePath(path, mustWork=FALSE)
+	exists <- file.exists(path)
+	if ( is.na(readonly) )
+		readonly <- all(exists)
+	if ( any(exists) && !readonly && !missing(data) )
+		warning("data may overwrite existing file(s): ",
+			paste0(sQuote(path[exists]), collapse=", "))
+	if ( all(exists) && missing(data) ) {
+		if ( anyNA(dim) && anyNA(extent) ) {
+			sizes <- file.size(path)
+			# FIXME: can we infer the NA dims instead of overwriting?
+			dim <- sum((sizes - offset) %/% sizeof(type))
 		}
 	}
-	if ( all(dim == 0) && all(extent == 0) )
-		return(new("matter_arr"))
-	if ( length(offset) != length(extent) )
-		stop("length of 'offset' [", length(offset), "] ",
-			"must equal length of 'extent' [", length(extent), "]")
-	if ( length(datamode) != length(extent) )
-		datamode <- rep(datamode, length.out=length(extent))
-	if ( is.null(paths) )
-		paths <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
-	paths <- normalizePath(paths, mustWork=FALSE)
-	if ( !file.exists(paths) ) {
-		if ( missing(data) )
-			data <- vector(as.character(widest_datamode(datamode)), length=1)
-		filemode <- force(filemode)
-		result <- file.create(paths)
-		if ( !all(result) )
-			stop("error creating file(s)")
-	} else if ( !missing(data) && missing(filemode) ) {
-		warning("file already exists")
+	if ( anyNA(dim) && anyNA(extent) ) {
+		extent <- dim <- rep.int(0, length(dim))
+	} else if ( anyNA(extent) ) {
+		extent <- prod(dim)
+	} else if ( anyNA(dim) ) {
+		dim <- sum(extent)
 	}
-	if ( length(paths) != length(extent) )
-		paths <- rep(paths, length.out=length(extent))
+	if ( length(offset) != length(extent) && length(path) == 1L ) {
+		sizes <- sizeof(type) * extent
+		offset <- cumsum(c(offset, sizes[-length(sizes)]))
+	}
+	if ( any(!exists) ) {
+		if ( missing(data) && any(extent > 0) )
+			warning("creating uninitialized backing file(s): ",
+				paste0(sQuote(path[!exists]), collapse=", "))
+		success <- file.create(path)
+		if ( !all(success) )
+			stop("error creating file(s): ",
+				paste0(sQuote(path[!success]), collapse=", "))
+	}
 	x <- new("matter_arr",
 		data=atoms(
-			group_id=rep.int(1L, length(extent)),
-			source_id=as.integer(factor(paths)),
-			datamode=as.integer(make_datamode(datamode, type="C")),
-			offset=as.numeric(offset),
-			extent=as.numeric(extent)),
-		datamode=widest_datamode(datamode),
-		paths=levels(factor(paths)),
-		filemode=make_filemode(filemode),
-		chunksize=as.integer(chunksize),
-		length=as.numeric(prod(dim)),
-		dim=as.integer(dim),
-		names=NULL,
+			source=path,
+			type=as_Ctype(type),
+			offset=as.double(offset),
+			extent=as.double(extent),
+			group=0L,
+			readonly=readonly),
+		type=collapse_Rtype(type),
+		dim=dim,
 		dimnames=dimnames,
-		ops=NULL, ...)
-	if ( !missing(data) )
+		ops=NULL,
+		transpose=rowMaj, ...)
+	if ( !missing(data) && is.vector(data) ) {
+		x <- as(x, "matter_vec")
+	} else if ( length(dim) == 2L ) {
+		x <- as(x, "matter_mat")
+	}
+	if ( !missing(data) && !is.null(data) )
 		x[] <- data
 	x
 }
 
+matter_mat <- function(data, type = "double", path = NULL,
+	nrow = NA_integer_, ncol = NA_integer_, dimnames = NULL,
+	offset = 0, extent = NA_real_, readonly = NA, rowMaj = FALSE, ...)
+{
+	if ( !missing(data) ) {
+		if ( anyNA(type) )
+			type <- typeof(data)
+		if ( is.na(nrow) && is.na(ncol) ) {
+			nrow <- nrow(data)
+			ncol <- ncol(data)
+		} else if ( is.na(nrow) ) {
+			nrow <- length(data) / ncol
+		} else if ( is.na(ncol) ) {
+			ncol <- length(data) / nrow
+		}
+	}
+	x <- matter_arr(data, type=type, path=path, dim=c(nrow, ncol),
+		dimnames=dimnames, offset=offset, extent=extent,
+		readonly=readonly, rowMaj=rowMaj, ...)
+	as(x, "matter_mat")
+	if ( validObject(x) )
+		x
+}
+
+matter_vec <- function(data, type = "double", path = NULL,
+	length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
+	readonly = NA, rowMaj = FALSE, ...)
+{
+	if ( !missing(data) ) {
+		if ( anyNA(type) )
+			type <- typeof(data)
+		if ( is.na(length) )
+			length <- length(data)
+		if ( is.null(names) )
+			names <- names(data)
+	}
+	x <- matter_arr(data, type=type, path=path, dim=length,
+		names=names, offset=offset, extent=extent,
+		readonly=readonly, rowMaj=rowMaj, ...)
+	x <- as(x, "matter_vec")
+	if ( validObject(x) )
+		x
+}
+
 setMethod("describe_for_display", "matter_arr", function(x) {
-	desc1 <- paste0("<", paste0(x@dim, collapse=" x "), " dim> ", class(x))
-	desc2 <- paste0("out-of-memory ", x@datamode, " array")
+	desc1 <- paste0("<", paste0(dim(x), collapse=" x "), " dim> ", class(x))
+	desc2 <- paste0("out-of-memory ", type(x), " array")
+	paste0(desc1, " :: ", desc2)
+})
+
+setMethod("describe_for_display", "matter_mat", function(x) {
+	desc1 <- paste0("<", nrow(x), " row x ", ncol(x), " col> ", class(x))
+	desc2 <- paste0("out-of-memory ", type(x), " matrix")
+	paste0(desc1, " :: ", desc2)
+})
+
+setMethod("describe_for_display", "matter_vec", function(x) {
+	desc1 <- paste0("<", length(x), " length> ", class(x))
+	desc2 <- paste0("out-of-memory ", type(x), " vector")
 	paste0(desc1, " :: ", desc2)
 })
 
 setMethod("preview_for_display", "matter_arr", function(x) {
-	if ( length(dim(x)) < 2L ) {
+	if ( length(dim(x)) <= 1L ) {
 		preview_vector(x)
 	} else if ( length(dim(x)) == 2L ) {
 		preview_matrix(x)
-	} else if ( length(dim(x)) > 2L ) {
-		preview_Nd_array(x)
 	} else {
-		stop("ill-formed array dimensions")
+		preview_Nd_array(x)
 	}
 })
 
-setAs("array", "matter_arr", function(from) matter_arr(from, dimnames=dimnames(from)))
+get_matter_arr_elts <- function(x, i = NULL) {
+	.Call("C_getMatterArray", x, i, PACKAGE="matter")
+}
 
-as.matter_arr <- function(x) as(x, "matter_arr")
+set_matter_arr_elts <- function(x, i = NULL, value = 0L) {
+	.Call("C_setMatterArray", x, i, value, PACKAGE="matter")
+}
+
+get_matter_arr_subarray <- function(x, index, drop = FALSE)
+{
+	index <- as_array_subscripts(index, x)
+	i <- linear_ind(index, dim(x))
+	y <- get_matter_arr_elts(x, i)
+	dim(y) <- vapply(seq_along(index), function(j)
+		if (is.null(index[[j]])) dim(x)[j]
+		else length(index[[j]]), numeric(1))
+	y <- set_dimnames(y, dimnames(x), index)
+	y <- set_names(y, names(x), i)
+	if ( drop )
+		y <- drop(y)
+	y
+}
+
+set_matter_arr_subarray <- function(x, index, value)
+{
+	index <- as_array_subscripts(index, x)
+	i <- linear_ind(index, dim(x))
+	set_matter_arr_elts(x, i, value)
+}
+
+setMethod("[", c(x = "matter_arr"),
+	function(x, i, j, ..., drop = TRUE) {
+		narg <- nargs() - 1L - !missing(drop)
+		if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
+			if ( missing(i) ) i <- NULL
+			get_matter_arr_elts(x, i)
+		} else {
+			if ( narg != 1L && narg != length(dim(x)) )
+				stop("incorrect number of dimensions")
+			if ( missing(i) ) i <- NULL
+			if ( missing(j) ) j <- NULL
+			if ( ...length() > 0 ) {
+				more.ind <- eval(substitute(alist(...)))
+				more.ind <- lapply(more.ind, function(elt) 
+					if (identical(elt, quote(expr=))) NULL else eval(elt))
+			} else {
+				more.ind <- NULL
+			}
+			if ( length(dim(x)) >= 2 ) {
+				index <- c(list(i, j), more.ind)
+			} else {
+				index <- list(i)
+			}
+			get_matter_arr_subarray(x, index, drop)
+		}
+	})
+
+setReplaceMethod("[", c(x = "matter_arr"),
+	function(x, i, j, ..., value) {
+		narg <- nargs() - 2L
+		if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
+			if ( missing(i) ) i <- NULL
+			set_matter_arr_elts(x, i, value)
+		} else {
+			if ( narg != 1L && narg != length(dim(x)) )
+				stop("incorrect number of dimensions")
+			if ( missing(i) ) i <- NULL
+			if ( missing(j) ) j <- NULL
+			if ( ...length() > 0 ) {
+				more.ind <- eval(substitute(alist(...)))
+				more.ind <- lapply(more.ind, function(elt) 
+					if (identical(elt, quote(expr=))) NULL else eval(elt))
+			} else {
+				more.ind <- NULL
+			}
+			if ( length(dim(x)) >= 2 ) {
+				index <- c(list(i, j), more.ind)
+			} else {
+				index <- list(i)
+			}
+			set_matter_arr_subarray(x, index, value)
+		}
+	})
+
+setMethod("t", "matter_arr", function(x)
+{
+	x@transpose <- !x@transpose
+	x@dim <- rev(x@dim)
+	x@dimnames <- rev(x@dimnames)
+	if ( validObject(x) )
+		x
+})
+
+setMethod("dim", "matter_vec", function(x) NULL)
 
 setReplaceMethod("dim", "matter_arr", function(x, value) {
 	if ( is.null(value) ) {
+		x@transpose <- FALSE
+		x@dim <- prod(x@dim)
+		x@dimnames <- NULL
 		as(x, "matter_vec")
 	} else {
 		callNextMethod()
 	}
 })
 
-getArray <- function(x) {
-	y <- .Call("C_getVector", x, PACKAGE="matter")
-	dim(y) <- dim(x)
-	if ( !is.null(dimnames(x)) )
-		dimnames(y) <- dimnames(x)
-	y
-}
-
-setArray <- function(x, value) {
-	if ( length(x) %% length(value) != 0 )
-		warning("number of items to replace is not ",
-			"a multiple of replacement length")
-	if ( length(value) != 1 )
-		value <- rep(value, length.out=length(x))
-	if ( is.logical(value) )
-		value <- as.integer(value)
-	if ( is.character(value) )
-		value <- as.double(value)
-	.Call("C_setVector", x, value, PACKAGE="matter")
-	if ( validObject(x) )
-		invisible(x)
-}
-
-getArrayElements <- function(x, ind, drop) {
-	for ( k in seq_along(ind) ) {
-		if ( is.numeric(ind[[k]]) ) {
-			next
-		} else if ( is.logical(ind[[k]]) ) {
-			ind[[k]] <- logical2index(x, ind[[k]])
-		} else if ( is.character(ind[[k]]) ) {
-			ind[[k]] <- names2index(x, ind[[k]])
-		} else if ( is.null(ind[[k]]) ) {
-			ind[[k]] <- seq_len(dim(x)[k])
-		}
-	}
-	dims <- sapply(ind, length)
-	if ( any( dims == 0) ) {
-		y <- array(vector(mode=as.character(datamode(x))), dim=dims)
-	} else {
-		i <- linearInd(ind, dim(x))
-		y <- .Call("C_getVectorElements", x, i - 1, PACKAGE="matter")
-		dim(y) <- sapply(ind, length)
-	}
-	if ( !is.null(dimnames(x)) )
-		dimnames(y) <- mapply(function(dnm, i) dnm[i], dimnames(x), ind)
-	if ( drop )
-		y <- drop(y)
-	y	
-}
-
-setArrayElements <- function(x, ind, value) {
-	for ( i in seq_along(ind) )
-		if ( is.logical(ind[i]) )
-			ind[i] <- logical2index(x, ind[i])
-	for ( i in seq_along(ind) )
-		if ( is.character(ind[i]) )
-			ind[i] <- names2index(x, ind[i])
-	i <- linearInd(ind, dim(x))
-	if ( length(x) %% length(value) != 0 )
-		warning("number of items to replace is not ",
-			"a multiple of replacement length")
-	if ( length(value) != 1 )
-		value <- rep(value, length.out=length(i))
-	if ( is.logical(value) )
-		value <- as.integer(value)
-	if ( is.character(value) )
-		value <- as.double(value)
-	.Call("C_setVectorElements", x, i - 1, value, PACKAGE="matter")
-	if ( validObject(x) )
-		invisible(x)	
-}
-
-setMethod("[",
-	c(x = "matter_arr", i = "ANY", j = "ANY", drop = "ANY"),
-	function(x, i, j, ..., drop = TRUE) {
-		if ( !missing(drop) && is.null(drop) )
-			stop("endomorphic subsetting not supported")
-		narg <- nargs() - 1 - !missing(drop)
-		if ( missing(i) && missing(j) && narg == 1 ) {
-			return(getArray(x))
-		} else if ( !missing(i) && narg == 1 ) {
-			return(as(x, "matter_vec")[i])
-		} else if ( narg > 1 && narg != length(dim(x)) ) {
-			stop("incorrect number of dimensions")
-		}
-		ind <- list()
-		call <- as.list(match.call(expand.dots=TRUE))[-c(1,2)]
-		call$drop <- NULL
-		if ( "i" %in% names(call) ) {
-			wh <- which(names(call) == "i")
-			i <- eval(call[[wh]])
-			if ( is.null(i) )
-				i <- integer(0)
-			ind[[1]] <- i
-			call <- call[-wh]
-		} else if ( length(dim(x)) >= 1 ) {
-			ind[[1]] <- seq_len(dim(x)[1])
-		}
-		if ( "j" %in% names(call) ) {
-			wh <- which(names(call) == "j")
-			j <- eval(call[[wh]])
-			if ( is.null(j) )
-				j <- integer(0)
-			ind[[2]] <- j
-			call <- call[-wh]
-		} else if ( length(dim(x)) >= 2 ) {
-			ind[[2]] <- seq_len(dim(x)[2])
-		}
-		ind <- c(ind, call)
-		names(ind) <- names(dim)
-		for ( k in seq_along(ind) ) {
-			if ( is.vector(ind[[k]]) || is.null(ind[[k]]) ) {
-				next
-			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) == 0 ) {
-				ind[[k]] <- seq_len(dim(x)[k])
-			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) > 0 ) {
-				ind[[k]] <- eval(ind[[k]])
-			} else if ( is.call(ind[[k]]) ) {
-				ind[[k]] <- eval(ind[[k]])
-			}
-		}
-		getArrayElements(x, ind, drop)
+setReplaceMethod("dim", "matter_vec", function(x, value) {
+	if ( !is.null(value) )
+		x <- as(x, "matter_arr")
+	callNextMethod(x, value)
 })
-
-setReplaceMethod("[",
-	c(x = "matter_arr", i = "ANY", j = "ANY", value = "ANY"),
-	function(x, i, j, ..., value) {
-		dots <- match.call(expand.dots=FALSE)$...
-		narg <- nargs() - 2
-		if ( !missing(i) && narg == 1 ) {
-			y <- as(x, "matter_vec")
-			y[i] <- value
-			return(x)
-		}
-		if ( narg > 1 && narg != length(dim(x)) )
-			stop("incorrect number of dimensions")
-		if ( missing(i) && missing(j) && length(dots) == 0 )
-			return(setArray(x, value))
-		if ( missing(i) && length(dim(x)) >= 1 ) {
-			i <- seq_len(dim(x)[1])
-		} else if ( missing(i) ) {
-			stop("subscript out of bounds")
-		}
-		if ( length(dim(x)) == 1 && missing(j) )
-			return(setArrayElements(x, list(i), value))
-		if ( missing(j) && length(dim(x)) >= 2 ) {
-			j <- seq_len(dim(x)[2])
-		} else if ( missing(j) ) {
-			stop("subscript out of bounds")
-		}
-		ind <- c(list(i), list(j), dots)
-		for ( k in seq_along(ind) ) {
-			if ( is.vector(ind[[k]]) ) {
-				next
-			} else if ( is.null(ind[[k]])) {
-				ind[[k]] <- integer(0)
-			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) == 0 ) {
-				ind[[k]] <- seq_len(dim(x)[k])
-			} else if ( is.name(ind[[k]]) && nchar(ind[[k]]) > 0 ) {
-				ind[[k]] <- eval(ind[[k]])
-			} else if ( is.call(ind[[k]]) ) {
-				ind[[k]] <- eval(ind[[k]])
-			}
-		}
-		dims <- sapply(ind, length)
-		if ( any( dims == 0L) ) {
-			x
-		} else {
-			setArrayElements(x, ind, value)
-		}
-})
-
-
-#### Delayed operations on 'matter_arr' ####
-## ----------------------------------------
-
-# Arith
-
-setMethod("Arith", c("matter_arr", "matter_arr"),
-	function(e1, e2) {
-		if ( all(dim(e1) == dim(e2)) ) {
-			register_op(e1, NULL, e2, .Generic)
-		} else {
-			stop("array dims must match exactly for delayed operation")
-		}
-})
-
-setMethod("Arith", c("matter_arr", "numeric"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) ) {
-			e1 <- register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1)[1] != "numeric" && typeof(e2) == "double" )
-				datamode(e1) <- "numeric"
-			e1
-		}
-})
-
-setMethod("Arith", c("numeric", "matter_arr"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) ) {
-			e2 <- register_op(e2, e1, NULL, .Generic)
-			if ( datamode(e2)[1] != "numeric" && typeof(e1) == "double" )
-				datamode(e2) <- "numeric"
-			e2
-		}
-})
-
-# Compare
-
-setMethod("Compare", c("matter_arr", "matter_arr"),
-	function(e1, e2) {
-		if ( all(dim(e1) == dim(e2)) ) {
-			register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- "logical"
-			e1
-		} else {
-			stop("array dims must match exactly for delayed operation")
-		}
-})
-
-setMethod("Compare", c("matter_arr", "raw"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) ) {
-			e1 <- register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- "logical"
-			e1
-		}
-})
-
-setMethod("Compare", c("raw", "matter_arr"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) ) {
-			e2 <- register_op(e2, e1, NULL, .Generic)
-			if ( datamode(e2)[1] != "logical" )
-				datamode(e2) <- "logical"
-			e2
-		}
-})
-
-setMethod("Compare", c("matter_arr", "numeric"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) ) {
-			e1 <- register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1)[1] != "logical" )
-				datamode(e1) <- "logical"
-			e1
-		}
-})
-
-setMethod("Compare", c("numeric", "matter_arr"),
-	function(e1, e2) {
-		if ( check_comformable_lengths(e1, e2) ) {
-			e2 <- register_op(e2, e1, NULL, .Generic)
-			if ( datamode(e2)[1] != "logical" )
-				datamode(e2) <- "logical"
-			e2
-		}
-})
-
-# Logic
-
-setMethod("Logic", c("matter_arr", "matter_arr"),
-	function(e1, e2) {
-		if ( datamode(e1) != "logical" || datamode(e2) != "logical" )
-			warning("datamode is not logical")
-		if ( all(dim(e1) == dim(e2)) ) {
-			register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1) != "logical" )
-				datamode(e1) <- "logical"
-			e1
-		} else {
-			stop("array dims must match exactly for delayed operation")
-		}
-})
-
-setMethod("Logic", c("matter_arr", "logical"),
-	function(e1, e2) {
-		if ( datamode(e1) != "logical" )
-			warning("datamode is not logical")
-		if ( check_comformable_lengths(e1, e2) ) {
-			e1 <- register_op(e1, NULL, e2, .Generic)
-			if ( datamode(e1) != "logical" )
-				datamode(e1) <- "logical"
-			e1
-		}
-})
-
-setMethod("Logic", c("logical", "matter_arr"),
-	function(e1, e2) {
-		if ( datamode(e2) != "logical" )
-			warning("datamode is not logical")
-		if ( check_comformable_lengths(e1, e2) ) {
-			e2 <- register_op(e2, e1, NULL, .Generic)
-			if ( datamode(e2)[1] != "logical" )
-				datamode(e2) <- "logical"
-			e2
-		}
-})
-
-# Math
-
-setMethod("exp", "matter_arr",
-	function(x) {
-		x <- register_op(x, NULL, NULL, "^")
-		if ( datamode(x) != "numeric" )
-			datamode(x) <- "numeric"
-		x
-})
-
-setMethod("log", "matter_arr",
-	function(x, base) {
-		if ( missing(base) ) {
-			x <- register_op(x, NULL, NULL, "log")
-		} else if ( check_comformable_lengths(x, base) ) {
-			x <- register_op(x, base, NULL, "log")
-		}
-		if ( datamode(x) != "numeric" )
-			datamode(x) <- "numeric"
-		x
-})
-
-setMethod("log2", "matter_arr", function(x) log(x, base=2))
-
-setMethod("log10", "matter_arr", function(x) log(x, base=10))
 

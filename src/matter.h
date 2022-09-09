@@ -1,5 +1,5 @@
-#ifndef MATTER2
-#define MATTER2
+#ifndef MATTER
+#define MATTER
 
 #include "matterDefines.h"
 #include "atoms.h"
@@ -7,11 +7,11 @@
 //// Matter class
 //----------------
 
-class Matter2 {
+class Matter {
 
 	public:
 
-		Matter2(SEXP x) : _data(R_do_slot(x, Rf_install("data")))
+		Matter(SEXP x) : _data(R_do_slot(x, Rf_install("data")))
 		{
 			_type = R_do_slot(x, Rf_install("type"));
 			_dim = R_do_slot(x, Rf_install("dim"));
@@ -19,7 +19,7 @@ class Matter2 {
 			_dimnames = R_do_slot(x, Rf_install("dimnames"));
 		}
 
-		~Matter2() {
+		~Matter() {
 			_data.self_destruct();
 		}
 
@@ -27,7 +27,7 @@ class Matter2 {
 			_data.self_destruct();
 		}
 
-		Atoms2 * data() {
+		Atoms * data() {
 			return &_data;
 		}
 
@@ -78,7 +78,7 @@ class Matter2 {
 
 	protected:
 
-		Atoms2 _data;
+		Atoms _data;
 		SEXP _type;
 		SEXP _dim;
 		SEXP _names;
@@ -86,11 +86,11 @@ class Matter2 {
 
 };
 
-class Matter2Array : public Matter2 {
+class MatterArray : public Matter {
 
 	public:
 
-		Matter2Array(SEXP x) : Matter2(x)
+		MatterArray(SEXP x) : Matter(x)
 		{
 			_ops = R_do_slot(x, Rf_install("ops"));
 			_transpose = Rf_asLogical(R_do_slot(x, Rf_install("transpose")));
@@ -347,11 +347,11 @@ class Matter2Array : public Matter2 {
 
 };
 
-class Matter2List : public Matter2 {
+class MatterList : public Matter {
 
 	public:
 
-		Matter2List(SEXP x) : Matter2(x) {}
+		MatterList(SEXP x) : Matter(x) {}
 
 		R_xlen_t length() {
 			return rank();
@@ -557,11 +557,11 @@ class Matter2List : public Matter2 {
 
 };
 
-class Matter2StringList : public Matter2List {
+class MatterStringList : public MatterList {
 
 	public:
 
-		Matter2StringList(SEXP x) : Matter2List(x)
+		MatterStringList(SEXP x) : MatterList(x)
 		{
 			if ( type() != R_CHARACTER ) {
 				self_destruct();
@@ -643,4 +643,4 @@ class Matter2StringList : public Matter2List {
 
 };
 
-#endif // MATTER2
+#endif // MATTER

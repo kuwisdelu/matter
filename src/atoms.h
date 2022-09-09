@@ -11,11 +11,11 @@
 //// DataSources class
 //---------------------
 
-class DataSources2 {
+class DataSources {
 
 	public:
 
-		DataSources2(SEXP x)
+		DataSources(SEXP x)
 		{
 			SEXP sources = R_do_slot(x, Rf_install("source"));
 			_paths = Rf_getAttrib(sources, R_LevelsSymbol);
@@ -30,7 +30,7 @@ class DataSources2 {
 			init_streams();
 		}
 
-		~DataSources2() {
+		~DataSources() {
 			exit_streams();
 		}
 
@@ -85,13 +85,13 @@ class DataSources2 {
 			return _streams[_current];
 		}
 
-		DataSources2 * rseek(int src, index_t off = 0)
+		DataSources * rseek(int src, index_t off = 0)
 		{
 			select(src)->seekg(off, std::ios::beg);
 			return this;
 		}
 
-		DataSources2 * wseek(int src, index_t off = 0)
+		DataSources * wseek(int src, index_t off = 0)
 		{
 			select(src)->seekp(off, std::ios::beg);
 			return this;
@@ -139,11 +139,11 @@ struct AtomInfo {
 //// Atoms class
 //----------------
 
-class Atoms2 {
+class Atoms {
 
 	public:
 
-		Atoms2(SEXP x) : _io(x),
+		Atoms(SEXP x) : _io(x),
 			_sources(R_do_slot(x, Rf_install("source"))),
 			_types(R_do_slot(x, Rf_install("type"))),
 			_offsets(R_do_slot(x, Rf_install("offset"))),
@@ -151,7 +151,7 @@ class Atoms2 {
 			_groups(R_do_slot(x, Rf_install("group"))),
 			_pointers(R_do_slot(x, Rf_install("pointers"))) {}
 
-		~Atoms2() {
+		~Atoms() {
 			_io.exit_streams();
 		}
 
@@ -207,7 +207,7 @@ class Atoms2 {
 			return _flatten;
 		}
 
-		Atoms2 * flatten(bool flat = true) {
+		Atoms * flatten(bool flat = true) {
 			_flatten = flat;
 			return this;
 		}
@@ -665,7 +665,7 @@ class Atoms2 {
 
 	protected:
 
-		DataSources2 _io;
+		DataSources _io;
 		CompressedFactor _sources; // return as 0-based (internally 1-based)
 		CompressedFactor _types; // int type codes for data types
 		CompressedVector<double> _offsets; // byte offset in file

@@ -1,269 +1,101 @@
 
-
 #### Define atoms class ####
 ## -------------------------
 
 setClassUnion("integer_OR_drle", c("integer", "drle"))
 setClassUnion("numeric_OR_drle", c("numeric", "drle"))
+setClassUnion("factor_OR_drle", c("factor", "drle_fct"))
 
 setClass("atoms",
 	slots = c(
-		natoms = "integer",
-		ngroups = "integer",
-		group_id = "integer_OR_drle",
-		source_id = "integer_OR_drle",
-		datamode = "integer_OR_drle",
-		offset = "numeric_OR_drle", # byte offset from start of file
+		source = "factor_OR_drle",  # data sources
+		type = "factor_OR_drle",    # data types
+		offset = "numeric_OR_drle", # byte offset in data source
 		extent = "numeric_OR_drle", # number of elements
-		index_offset = "numeric_OR_drle", # cumulative index of first element
-		index_extent = "numeric_OR_drle"), # cumulative index of one-past-the-end
-	prototype = c(
-		natoms = 1L,
-		ngroups = 1L,
-		group_id = 1L,
-		source_id = as.integer(NA),
-		datamode = make_datamode("double", type="C"),
-		offset = numeric(1),
-		extent = numeric(1),
-		index_extent = numeric(1),
-		index_offset = numeric(1)),
+		group = "integer_OR_drle",  # organize atoms
+		pointers = "integer_OR_drle", # find groups
+		readonly = "logical"),
 	validity = function(object) {
 		errors <- NULL
-		group_id <- object@group_id[]
-		lens <- c(group_id=length(object@group_id),
-			source_id=length(object@source_id),
-			datamode=length(object@datamode),
+		lens <- c(
+			source=length(object@source),
+			type=length(object@type),
 			offset=length(object@offset),
 			extent=length(object@extent),
-			index_offset=length(object@index_offset),
-			index_extent=length(object@index_extent))
+			group=length(object@group))
 		if ( length(unique(lens)) != 1 )
-			stop("lengths of 'source_id' [", lens["source_id"], "], ",
-				"'datamode' [", lens["datamode"], "], ",
+			errors <- c(errors, paste0("lengths of ",
+				"'source' [", lens["source"], "], ",
+				"'type' [", lens["type"], "], ",
 				"'offset' [", lens["offset"], "], ",
 				"'extent' [", lens["extent"], "], ",
-				"'index_offset' [", lens["index_offset"], "], ",
-				"and 'index_extent' [", lens["index_extent"], "], ",
-				"must all be equal")
-		if ( object@natoms != unique(lens) )
-			errors <- c(errors, "'natoms' not equal to the number of elements")
-		if ( object@ngroups != max(group_id) )
-			errors <- c(errors, "'ngroups' not equal to the number of groups")
-		if ( is.unsorted(group_id) || any(group_id <= 0) )
-			errors <- c(errors, "'group_id' must be positive and increasing")
-		if ( object@index_offset[1] != 0 )
-			errors <- c(errors, "'index_offset' must begin at 0")
-		if ( object@offset[object@natoms] < 0 )
-			errors <- c(errors, "'offset' contains negative indices")
-		if ( object@extent[object@natoms] < 0 )
-			errors <- c(errors, "'extent' contains negative indices")
-		if ( object@index_offset[object@natoms] < 0 )
-			errors <- c(errors, "'index_offset' contains negative indices")
-		if ( object@index_extent[object@natoms] < 0 )
-			errors <- c(errors, "'index_extent' contains negative indices")
+				"and 'group' [", lens["group"], "] ",
+				"must all be equal"))
+		# FIXME: shouldn't need to realize drle vectors[]
+		# (add support for these functions on drle directly)
+		if ( any(levels(object@type) != get_Ctypes()) )
+			errors <- c(errors, "invalid 'type' factor levels")
+		if ( type(object@offset) != "double" )
+			errors <- c(errors, "offset must be of type 'double'")
+		if ( type(object@extent) != "double" )
+			errors <- c(errors, "extent must be of type 'double'")
+		if ( any(object@offset[] < 0) )
+			errors <- c(errors, "'offset' must be non-negative")
+		if ( any(object@extent[] < 0) )
+			errors <- c(errors, "'extent' must be non-negative")
+		if ( object@group[1] != 0 )
+			errors <- c(errors, "'group' must start at 0")
+		if ( is.unsorted(object@group[]) || any(object@group[] < 0) )
+			errors <- c(errors, "'group' must be sorted and non-negative")
+		if ( max(object@group[]) + 1 != length(object@pointers) - 1 )
+			errors <- c(errors, "'pointers' does not conform with 'group'")
+		if ( length(object@readonly) != 1L )
+			errors <- c(errors, "'readonly' must be a scalar logical")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-atoms <- function(group_id = 1L, source_id = as.integer(NA),
-					datamode=make_datamode("double", type="C"),
-					offset = numeric(1), extent = numeric(1),
-					..., compress = TRUE, cr_threshold = 3)
+atoms <- function(source = tempfile(), type = "int",
+	offset = 0, extent = 0, group = 0L, readonly = TRUE)
 {
-	n <- max(length(group_id), length(source_id),
-		length(datamode), length(offset), length(extent))
-	if ( length(group_id) < n )
-		group_id <- rep(group_id[], length.out=n)
-	if ( length(source_id) < n )
-		source_id <- rep(source_id[], length.out=n)
-	if ( length(datamode) < n )
-		datamode <- rep(datamode[], length.out=n)
-	if ( length(offset) < n )
-		offset <- rep(offset[], length.out=n)
-	if ( length(extent) < n )
-		extent <- rep(extent[], length.out=n)
-	if ( !(is.integer(datamode) || is.drle(datamode)) )
-		datamode <- as.integer(datamode)
-	if ( is.unsorted(group_id[]) ) {
-		o <- order(group_id[])
-		group_id <- group_id[o]
-		source_id <- source_id[o]
-		datamode <- datamode[o]
-		offset <- offset[o]
-		extent <- extent[o]
+	n <- max(length(source), length(type),
+		length(offset), length(extent), length(group))
+	if ( length(source) != n )
+		source <- rep_len(source, n)
+	if ( length(type) != n )
+		type <- rep_len(type, n)
+	if ( length(offset) != n )
+		offset <- rep_len(offset, n)
+	if ( length(extent) != n )
+		extent <- rep_len(extent, n)
+	if ( length(group) != n )
+		group <- rep_len(group, n)
+	if ( !is(source, "factor_OR_drle") )
+		source <- as.factor(source)
+	if ( !is(type, "factor_OR_drle") )
+		type <- as_Ctype(type)
+	group <- as.logical(diff(as.integer(group)))
+	pointers <- c(0L, which(group), n)
+	group <- cumsum(c(0L, group))
+	compress <- getOption("matter.compress.atoms")
+	if ( compress && n > 1 ) {
+		source <- drle(source, cr_threshold=compress)
+		type <- drle(type, cr_threshold=compress)
+		offset <- drle(offset, cr_threshold=compress)
+		extent <- drle(extent, cr_threshold=compress)
+		group <- drle(group, cr_threshold=compress)
+		pointers <- drle(pointers, cr_threshold=compress)
 	}
-	x <- .Call("C_createAtoms", group_id, source_id,
-		datamode, offset, extent, PACKAGE="matter")
-	if ( compress && x@natoms > 1 ) {
-		x@group_id <- drle(x@group_id, cr_threshold=cr_threshold)
-		x@source_id <- drle(x@source_id, cr_threshold=cr_threshold)
-		x@datamode <- drle(x@datamode, cr_threshold=cr_threshold)
-		x@offset <- drle(x@offset, cr_threshold=cr_threshold)
-		x@extent <- drle(x@extent, cr_threshold=cr_threshold)
-		x@index_offset <- drle(x@index_offset, cr_threshold=cr_threshold)
-		x@index_extent <- drle(x@index_extent, cr_threshold=cr_threshold)
-	}
+	x <- new("atoms", source=source, type=type,
+		offset=offset, extent=extent, group=group,
+		pointers=pointers, readonly=readonly)
 	if ( validObject(x) )
 		x
 }
 
-subset_atoms_by_index_offset <- function(x, i) {
-	if ( anyNA(i) )
-		stop("NAs not allowed when subsetting atoms")
-	il <- as.list(drle(i))
-	io <- x@index_offset[] + 1
-	ie <- x@index_extent[]
-	y <- mapply(function(val, len, del) {
-		if ( del == 1 ) {
-			lo <- val
-			hi <- val + (len - 1) * del
-			wh <- lo <= ie & io <= hi
-			if ( !any(wh) )
-				stop("subscript out of bounds")
-			new_io <- pmax(lo, io[wh])
-			new_ie <- pmin(hi, ie[wh])
-			datamode <- x@datamode[wh]
-			byte_offset <- (new_io - io[wh]) * sizeof(datamode)
-			offset <- x@offset[wh] + byte_offset
-			extent <- new_ie - new_io + 1
-			data.frame(
-				group_id=x@group_id[wh],
-				source_id=x@source_id[wh],
-				datamode=datamode,
-				offset=offset,
-				extent=extent)
-		} else {
-			ii <- seq(from=val, by=del, length.out=len)
-			yi <- lapply(ii, function(k) {
-				wh <- io <= k & k <= ie
-				if ( !any(wh) )
-					stop("subscript out of bounds")
-				new_io <- pmax(k, io[wh])
-				datamode <- x@datamode[wh]
-				byte_offset <- (new_io - io[wh]) * sizeof(datamode)
-				offset <- x@offset[wh] + byte_offset
-				extent <- rep(1, length.out=sum(wh))
-				data.frame(
-					group_id=x@group_id[wh],
-					source_id=x@source_id[wh],
-					datamode=datamode,
-					offset=offset,
-					extent=extent)
-			})
-			do.call("rbind", yi)
-		}
-	}, il$values, il$lengths, il$deltas, SIMPLIFY=FALSE)
-	y <- do.call("rbind", y)
-	atoms(
-		group_id=y$group_id,
-		source_id=y$source_id,
-		datamode=y$datamode,
-		offset=y$offset,
-		extent=y$extent)
-}
-
-drop_groups_from_atoms <- function(x) {
-	atoms(group_id=rep(1L, x@natoms),
-		source_id=x@source_id,
-		datamode=x@datamode,
-		offset=x@offset,
-		extent=x@extent)
-}
-
-combine_atoms <- function(x, y, x.paths, y.paths, new.groups = FALSE) {
-	if ( new.groups )
-		y@group_id <- y@group_id[] + max(x@group_id[])
-	if ( !missing(x.paths) && !missing(y.paths) ) {
-		paths <- levels(factor(c(x.paths, y.paths)))
-		x@source_id <- as.integer(factor(x.paths[x@source_id[]],
-			levels=paths))
-		y@source_id <- as.integer(factor(y.paths[y@source_id[]],
-			levels=paths))
-	}
-	atoms(group_id=combine(x@group_id, y@group_id),
-		source_id=combine(x@source_id, y@source_id),
-		datamode=combine(x@datamode, y@datamode),
-		offset=combine(x@offset, y@offset),
-		extent=combine(x@extent, y@extent))
-}
-
-setMethod("as.data.frame", "atoms", function(x, ...){
-	adata <- data.frame(
-		group_id=x@group_id[],
-		source_id=x@source_id[],
-		datamode=make_datamode(x@datamode[], type="C"),
-		offset=x@offset[],
-		extent=x@extent[],
-		index_offset=x@index_offset[],
-		index_extent=x@index_extent[])	
-})
-
-setMethod("as.list", "atoms", function(x, ...)
-	as.list(as.data.frame(x, ...)))
-
-setMethod("dim", "atoms", function(x) c(x@natoms, x@ngroups))
-
-setMethod("length", "atoms", function(x) x@ngroups)
-
-setMethod("datamode", "atoms", function(x) x@datamode)
-
-setMethod("combine", "atoms", function(x, y, ...)
-	combine_atoms(x, y, new.groups=FALSE))
-
-setMethod("[", c(x="atoms", j="missing"),
-	function(x, i, ...) {
-		if ( anyNA(i) )
-			stop("NAs not allowed when subsetting atoms")
-		atoms(group_id=x@group_id[i],
-			source_id=x@source_id[i],
-			datamode=x@datamode[i],
-			offset=x@offset[i],
-			extent=x@extent[i])
-})
-
-setMethod("[", c(x="atoms", i="missing"),
-	function(x, j, ...) {
-		if ( anyNA(j) )
-			stop("NAs not allowed when subsetting atoms")
-		groups <- x@group_id[]
-		j2 <- lapply(j, function(g) which(groups == g))
-		j <- unlist(j2)
-		g <- seq_len(length(j2))
-		times <- lengths(j2)
-		if ( any(times == 0) )
-			stop("subscript out of bounds")
-		atoms(group_id=rep.int(g, times),
-			source_id=x@source_id[j],
-			datamode=x@datamode[j],
-			offset=x@offset[j],
-			extent=x@extent[j])
-})
-
-setMethod("[", c(x="atoms"),
-	function(x, i, j, ...) {
-		x[i,][,j]
-})
-
-setMethod("[[", "atoms",
-	function(x, i, ...) {
-		if ( length(i) > 1 )
-			stop("attempt to select more than one element")
-		x[,i]
-})
-
-setMethod("c", "atoms", function(x, ..., recursive=FALSE)
-{
-	dots <- list(...)
-	if ( length(dots) == 0 ) {
-		x
-	} else if ( length(dots) == 1 ) {
-		combine(x, dots[[1]])
-	} else {
-		do.call(combine, list(x, ...))
-	}
-})
-
 setMethod("describe_for_display", "atoms", function(x) {
-	desc1 <- paste0("<", x@natoms, " length, ", x@ngroups, " group> ", class(x))
+	natoms <- length(x@offset)
+	ngroups <- length(x@pointers) - 1L
+	desc1 <- paste0("<", natoms, " length> ", class(x))
 	desc2 <- paste0("units of data")
 	paste0(desc1, " :: ", desc2)
 })
@@ -271,9 +103,229 @@ setMethod("describe_for_display", "atoms", function(x) {
 setMethod("show", "atoms", function(object) {
 	cat(describe_for_display(object), "\n", sep="")
 	n <- getOption("matter.show.head.n")
-	adata <- as.data.frame(object)
-	print(head(adata, n=n))
-	if ( nrow(adata) > n )
-		cat("... and", nrow(adata) - n, "more atoms\n")
+	x <- as.data.frame(object)
+	x$source <- basename(as.character(x$source))
+	print(head(x, n=n))
+	if ( nrow(x) > n )
+		cat("... and", nrow(x) - n, "more atoms\n")
+	dms <- as.vector(dims(object))
+	n <- sum(as.numeric(object@extent))
+	nrows <- min(dms)
+	ncols <- length(dms)
+	desc1 <- paste0(n, " element", if (n > 1) "s")
+	desc2 <- paste0(nrows, if (length(unique(dms)) > 1) "+" else "", " per group")
+	desc3 <- paste0(ncols, " group", if (ncols > 1) "s" else "")
+	cat("(", desc1, " | ", desc2, " | ", desc3, ")\n", sep="")
 })
+
+setMethod("path", "atoms", function(object, ...) levels(object@source))
+
+setReplaceMethod("path", "atoms",
+	function(object, ..., value) {
+		levels(object@source) <- value
+		if ( validObject(object) )
+			object
+	})
+
+setMethod("readonly", "atoms", function(x) x@readonly)
+
+setReplaceMethod("readonly", "atoms",
+	function(x, value) {
+		x@readonly <- value
+		if ( validObject(x) )
+			x
+	})
+
+setMethod("checksum", "atoms",
+	function(x, algo="sha1", ...) {
+		hash <- sapply(path(x), function(filename)
+			digest(filename, algo=algo, file=TRUE, ...))
+		attr(hash, "algo") <- algo
+		hash
+	})
+
+read_atom <- function(x, atom, type = "double")
+{
+	.Call("C_readAtom", x, as.integer(atom - 1),
+		as_Rtype(type), PACKAGE="matter")
+}
+
+write_atom <- function(x, atom, value)
+{
+	.Call("C_writeAtom", x, as.integer(atom - 1),
+		value, PACKAGE="matter")
+}
+
+read_atoms <- function(x, i, type = "double", group = 0L)
+{
+	.Call("C_readAtoms", x, i, as_Rtype(type),
+		as.integer(group), PACKAGE="matter")
+}
+
+write_atoms <- function(x, i, value, group = 0L)
+{
+	.Call("C_writeAtoms", x, i, value,
+		as.integer(group), PACKAGE="matter")
+}
+
+subset_atoms_1d <- function(x, i = NULL) {
+	if ( is.null(i) )
+		return(x)
+	if ( any(i < 1 | i > length(x)) )
+		stop("subscript out of bounds")
+	# FIXME: Make sure drle_fct supports droplevels()
+	atoms(source=droplevels(x@source[i]),
+		type=x@type[i],
+		offset=x@offset[i],
+		extent=x@extent[i],
+		group=x@group[i],
+		readonly=x@readonly)
+}
+
+subset_atoms <- function(x, i = NULL, j = NULL) {
+	dms <- dims(x)
+	if ( !is.null(j) ) {
+		if ( anyNA(j) )
+			stop("NAs not allowed when subsetting atoms")
+		if ( any(j < 1 | j > length(dms)) )
+			stop("subscript out of bounds")
+		grp <- as.integer(x@group) + 1L
+		j <- lapply(j, function(g) which(grp %in% g))
+		j <- unlist(j)
+		x <- subset_atoms_1d(x, j)
+	}
+	if ( !is.null(i) ) {
+		if ( anyNA(i) )
+			stop("NAs not allowed when subsetting atoms")
+		if ( any(i < 1 | i > min(dms)) )
+			stop("subscript out of bounds")
+		sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
+		# FIXME: Make sure drle_fct supports droplevels()
+		x <- atoms(source=droplevels(x@source[sub$index]),
+			type=x@type[sub$index],
+			offset=sub$offset,
+			extent=sub$extent,
+			group=x@group[sub$index],
+			readonly=x@readonly)
+	}
+	if ( validObject(x) )
+		x
+}
+
+regroup_atoms <- function(x, ngroups) {
+	sub <- .Call("C_regroupAtoms", x, ngroups, PACKAGE="matter")
+	# FIXME: Make sure drle_fct supports droplevels()
+	x <- atoms(source=droplevels(x@source[sub$index]),
+		type=x@type[sub$index],
+		offset=sub$offset,
+		extent=sub$extent,
+		group=sub$group,
+		readonly=x@readonly)
+	if ( validObject(x) )
+		x
+}
+
+setMethod("as.data.frame", "atoms",
+	function(x, ...){
+		data.frame(
+			source=x@source,
+			type=x@type,
+			offset=x@offset,
+			extent=x@extent,
+			group=x@group)
+	})
+
+setMethod("as.list", "atoms",
+	function(x, ...) as.list(as.data.frame(x, ...)))
+
+setMethod("length", "atoms", function(x) length(x@offset))
+
+setMethod("lengths", "atoms",
+	function(x, use.names = TRUE) as.double(x@extent))
+
+setMethod("dim", "atoms",
+	function(x) {
+		extents <- as.double(x@extent)
+		groups <- as.integer(x@group)
+		ncols <- length(x@pointers) - 1
+		nrows <- unique(tapply(extents, groups, sum))
+		if ( length(nrows) > 1 ) {
+			nrows <- NA_integer_ # if jagged array
+		} else {
+			nrows <- as.vector(nrows) # drop names
+		}
+		c(nrows, ncols)
+	})
+
+setMethod("dims", "atoms",
+	function(x, use.names = TRUE) {
+		extents <- as.double(x@extent)
+		groups <- as.integer(x@group)
+		nrows <- tapply(extents, groups, sum)
+		if ( use.names ) {
+			nms <- seq_along(nrows) - 1L
+		} else {
+			nms <- NULL
+		}
+		t(set_names(nrows, nms))
+	})
+
+setMethod("cbind2", "atoms",
+	function(x, y, ...) {
+		x@group <- as.integer(x@group)
+		y@group <- as.integer(y@group)
+		y@group <- y@group + max(x@group) + 1L
+		atoms(source=c(x@source, y@source),
+			type=c(x@type, y@type),
+			offset=c(x@offset, y@offset),
+			extent=c(x@extent, y@extent),
+			group=c(x@group, y@group),
+			readonly=x@readonly || y@readonly)
+	})
+
+setMethod("rbind2", "atoms",
+	function(x, y, ...) {
+		groups <- c(x@group, y@group)
+		ind <- order(groups, method="radix")
+		atoms(source=c(x@source, y@source)[ind],
+			type=c(x@type, y@type)[ind],
+			offset=c(x@offset, y@offset)[ind],
+			extent=c(x@extent, y@extent)[ind],
+			group=groups[ind],
+			readonly=x@readonly || y@readonly)
+	})
+
+setMethod("[", c(x="atoms"),
+	function(x, i, j, ..., drop = TRUE) {
+		narg <- nargs() - 1L - !missing(drop)
+		if ( ...length() > 0 )
+			stop("incorrect number of dimensions")
+		i <- as_subscripts(i, x)
+		j <- as_subscripts(j, x)
+		if ( narg == 1L ) {
+			subset_atoms_1d(x, i)
+		} else {
+			subset_atoms(x, i, j)
+		}
+	})
+
+setMethod("[[", "atoms",
+	function(x, i, ...) {
+		if ( length(i) > 1 ) {
+			stop("attempt to select more than one element")
+		} else {
+			x[i]
+		}
+	})
+
+setMethod("c", "atoms", function(x, ...)
+{
+	if ( ...length() > 0 ) {
+		do.call(rbind, list(x, ...))
+	} else {
+		x
+	}
+})
+
+
 

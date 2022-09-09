@@ -2,11 +2,11 @@
 #### 'matter_chr' class for file-based character vectors ####
 ## ----------------------------------------------------------
 
-setClass("matter2_fct",
+setClass("matter_fct",
 	slots = c(
 		levels = "ANY",
 		labels = "character"),
-	contains = "matter2_vec",
+	contains = "matter_vec",
 	validity = function(object) {
 		errors <- NULL
 		if ( !is.null(object@levels) ) {
@@ -18,7 +18,7 @@ setClass("matter2_fct",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter2_fct <- function(data, levels, type = "integer", path = NULL,
+matter_fct <- function(data, levels, type = "integer", path = NULL,
 	length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, labels = as.character(levels), ...)
 {
@@ -68,8 +68,8 @@ matter2_fct <- function(data, levels, type = "integer", path = NULL,
 			stop("error creating file(s): ",
 				paste0(sQuote(path[!success]), collapse=", "))
 	}
-	x <- new("matter2_fct",
-		data=atoms2(
+	x <- new("matter_fct",
+		data=atoms(
 			source=path,
 			type=as_Ctype(type),
 			offset=as.double(offset),
@@ -87,13 +87,13 @@ matter2_fct <- function(data, levels, type = "integer", path = NULL,
 	x
 }
 
-setMethod("describe_for_display", "matter2_fct", function(x) {
+setMethod("describe_for_display", "matter_fct", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("out-of-memory factor")
 	paste0(desc1, " :: ", desc2)
 })
 
-setMethod("preview_for_display", "matter2_fct", function(x) {
+setMethod("preview_for_display", "matter_fct", function(x) {
 	preview_vector(x)
 	cat("Levels(", nlevels(x), "): ", sep="")
 	cat(paste_head(x@labels), "\n")
@@ -111,21 +111,21 @@ set_matter_fct_elts <- function(x, i = NULL, value = NULL) {
 	set_matter_arr_elts(x, i, value)
 }
 
-setMethod("[", c(x = "matter2_fct"),
+setMethod("[", c(x = "matter_fct"),
 	function(x, i, ...) {
 		i <- as_subscripts(i, x)
 		get_matter_fct_elts(x, i)
 	})
 
-setReplaceMethod("[", c(x = "matter2_fct"),
+setReplaceMethod("[", c(x = "matter_fct"),
 	function(x, i, ..., value) {
 		i <- as_subscripts(i, x)
 		set_matter_fct_elts(x, i, value)
 	})
 
-setMethod("levels", "matter2_fct", function(x) x@labels)
+setMethod("levels", "matter_fct", function(x) x@labels)
 
-setReplaceMethod("levels", "matter2_fct",
+setReplaceMethod("levels", "matter_fct",
 	function(x, value) {
 		if ( is.null(names(value)) ) {
 			x@labels <- value

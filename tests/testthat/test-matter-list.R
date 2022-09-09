@@ -11,7 +11,7 @@ test_that("matter list indexing", {
 		int=c(1L, 2L, 3L, 4L, 5L, 6L),
 		dbl=c(1.11, 2.22, 3.33),
 		chr="hello, world!")
-	y <- matter2_list(x)
+	y <- matter_list(x)
 
 	expect_equal(x, y[])
 	expect_equal(x[1], y[1])

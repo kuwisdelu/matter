@@ -6,7 +6,7 @@ context("matter-string")
 test_that("matter string indexing", {
 
 	x <- c("neon", "genesis", "evangelion")
-	y <- matter2_str(x)
+	y <- matter_str(x)
 
 	expect_equal(x, y[])
 	expect_equal(x[1], y[1])

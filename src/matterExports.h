@@ -67,7 +67,7 @@ extern "C" {
 	static inline SEXP readAtom(SEXP x, SEXP i, SEXP type)
 	{
 		SEXP ans;
-		Atoms2 y(x);
+		Atoms y(x);
 		int j = Rf_asInteger(i);
 		R_xlen_t len = static_cast<R_xlen_t>(y.extent(j));
 		switch(Rf_asInteger(type)) {
@@ -93,7 +93,7 @@ extern "C" {
 
 	static inline SEXP writeAtom(SEXP x, SEXP i, SEXP value)
 	{
-		Atoms2 y(x);
+		Atoms y(x);
 		int j = Rf_asInteger(i);
 		R_xlen_t len = static_cast<R_xlen_t>(y.extent(j));
 		if ( len != XLENGTH(value) ) {
@@ -120,7 +120,7 @@ extern "C" {
 	static inline SEXP readAtoms(SEXP x, SEXP indx, SEXP type, SEXP grp)
 	{
 		SEXP ans;
-		Atoms2 y(x);
+		Atoms y(x);
 		int g = Rf_asInteger(grp);
 		R_xlen_t len = XLENGTH(indx);
 		switch(Rf_asInteger(type)) {
@@ -146,7 +146,7 @@ extern "C" {
 
 	static inline SEXP writeAtoms(SEXP x, SEXP indx, SEXP value, SEXP grp)
 	{
-		Atoms2 y(x);
+		Atoms y(x);
 		int g = Rf_asInteger(grp);
 		R_xlen_t len = XLENGTH(indx);
 		if ( len != XLENGTH(value) ) {
@@ -172,7 +172,7 @@ extern "C" {
 
 	static inline SEXP subsetAtoms(SEXP x, SEXP indx)
 	{
-		Atoms2 y(x);
+		Atoms y(x);
 		R_xlen_t size = XLENGTH(indx);
 		switch(TYPEOF(indx)) {
 			case INTSXP:
@@ -187,7 +187,7 @@ extern "C" {
 
 	static inline SEXP regroupAtoms(SEXP x, SEXP n)
 	{
-		Atoms2 y(x);
+		Atoms y(x);
 		return y.regroup_index(Rf_asInteger(n));
 	}
 
@@ -196,52 +196,52 @@ extern "C" {
 
 	static inline SEXP getMatterArray(SEXP x, SEXP i)
 	{
-		Matter2Array y(x);
+		MatterArray y(x);
 		return y.getElements(i);
 	}
 
 	static inline SEXP setMatterArray(SEXP x, SEXP i, SEXP value)
 	{
-		Matter2Array y(x);
+		MatterArray y(x);
 		y.setElements(i, value);
 		return x;
 	}
 
 	static inline SEXP getMatterListElt(SEXP x, SEXP i, SEXP j)
 	{
-		Matter2List y(x);
+		MatterList y(x);
 		return y.get(Rf_asInteger(i) - 1, j);
 	}
 
 	static inline SEXP setMatterListElt(SEXP x, SEXP i, SEXP j, SEXP value)
 	{
-		Matter2List y(x);
+		MatterList y(x);
 		y.set(Rf_asInteger(i) - 1, j, value);
 		return x;
 	}
 
 	static inline SEXP getMatterListSubset(SEXP x, SEXP i, SEXP j)
 	{
-		Matter2List y(x);
+		MatterList y(x);
 		return y.getElements(i, j);
 	}
 
 	static inline SEXP setMatterListSubset(SEXP x, SEXP i, SEXP j, SEXP value)
 	{
-		Matter2List y(x);
+		MatterList y(x);
 		y.setElements(i, j, value);
 		return x;
 	}
 
 	static inline SEXP getMatterStrings(SEXP x, SEXP i, SEXP j)
 	{
-		Matter2StringList y(x);
+		MatterStringList y(x);
 		return y.getStrings(i, j);
 	}
 
 	static inline SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value)
 	{
-		Matter2StringList y(x);
+		MatterStringList y(x);
 		y.setStrings(i, j, value);
 		return x;
 	}

@@ -1,213 +1,135 @@
 
-#### Define matter<str> class for string data ####
-## -----------------------------------------------
+#### 'matter_chr' class for file-based character vectors ####
+## ----------------------------------------------------------
 
 setClass("matter_str",
-	slots = c(
-		data = "atoms",
-		encoding = "character"),
-	prototype = prototype(
-		data = new("atoms"),
-		datamode = make_datamode("character", type="R"),
-		paths = character(),
-		filemode = make_filemode("r"),
-		chunksize = 1e6L,
-		length = 0,
-		dim = 0,
-		names = NULL,
-		dimnames = NULL,
-		ops = NULL,
-		encoding = "unknown"),
-	contains = "matter",
+	slots = c(encoding = "character"),
+	contains = "matter_",
 	validity = function(object) {
 		errors <- NULL
-		if ( object@datamode != "character" )
-			errors <- c(errors, "'datamode' must be 'character'")
+		if ( !setequal(object@type, "character") )
+			errors <- c(errors, "'type' must be 'character'")
+		if ( length(object@encoding) != 1L )
+			errors <- c(errors, "'encoding' must be a scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_str <- function(data, datamode = "uchar", paths = NULL,
-					filemode = ifelse(all(file.exists(paths)), "r", "rw"),
-					offset = c(0, cumsum(sizeof("uchar") * extent)[-length(extent)]),
-					extent = nchar, nchar = 0, names = NULL, encoding = "unknown",
-					chunksize = getOption("matter.default.chunksize"), ...)
+matter_str <- function(data, type = "character", path = NULL,
+	lengths = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
+	readonly = NA, encoding = "unknown", ...)
 {
 	if ( !missing(data) ) {
-		if ( missing(nchar) ) {
-			nchar <- nchar(data, type="bytes")
-			nchar[is.na(nchar)] <- length(char2raw(NA_character_))
-		}
 		if ( !is.character(data) )
 			data <- as.character(data)
-		if ( missing(encoding) ) {
-			encoding <- unique(Encoding(data))
-			if ( length(encoding) != 1 )
-				encoding <- "unknown"
-		}
+		if ( anyNA(lengths) )
+			lengths <- as.vector(vapply(data, nchar, numeric(1), "bytes"))
+		if ( is.null(names) )
+			names <- names(data)
 	}
-	if ( all(extent == 0) )
-		return(new("matter_str"))
-	if ( length(offset) != length(extent) )
-		stop("length of 'offset' [", length(offset), "] ",
-			"must equal length of 'extent' [", length(extent), "]")
-	if ( is.null(paths) )
-		paths <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
-	paths <- normalizePath(paths, mustWork=FALSE)
-	if ( !file.exists(paths) ) {
-		if ( missing(data) )
-			data <- rep(list(" "), length(extent))
-		filemode <- force(filemode)
-		result <- file.create(paths)
-		if ( !all(result) )
-			stop("error creating file(s)")
-	} else if ( !missing(data) && missing(filemode) ) {
-		warning("file already exists")
+	if ( is.null(path) )
+		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
+	path <- normalizePath(path, mustWork=FALSE)
+	exists <- file.exists(path)
+	if ( is.na(readonly) )
+		readonly <- all(exists)
+	if ( any(exists) && !readonly && !missing(data) )
+		warning("data may overwrite existing file(s): ",
+			paste0(sQuote(path[exists]), collapse=", "))
+	if ( anyNA(lengths) && anyNA(extent) ) {
+		extent <- lengths <- rep.int(0, length(lengths))
+	} else if ( anyNA(extent) ) {
+		extent <- lengths
+	} else if ( anyNA(lengths) ) {
+		lengths <- extent
 	}
-	if ( length(paths) != length(extent) )
-		paths <- rep(paths, length.out=length(extent))
+	if ( length(offset) != length(extent) && length(path) == 1L ) {
+		sizes <- sizeof(type) * extent
+		offset <- cumsum(c(offset, sizes[-length(sizes)]))
+	}
+	if ( any(!exists) ) {
+		if ( missing(data) && any(extent > 0) )
+			warning("creating uninitialized backing file(s): ",
+				paste0(sQuote(path[!exists]), collapse=", "))
+		success <- file.create(path)
+		if ( !all(success) )
+			stop("error creating file(s): ",
+				paste0(sQuote(path[!success]), collapse=", "))
+	}
 	x <- new("matter_str",
 		data=atoms(
-			group_id=seq_along(extent),
-			source_id=as.integer(factor(paths)),
-			datamode=as.integer(
-				rep(make_datamode("character", type="C"),
-					length.out=length(extent))),
-			offset=as.numeric(offset),
-			extent=as.numeric(extent)),
-		datamode=make_datamode("character", type="R"),
-		paths=levels(factor(paths)),
-		filemode=make_filemode(filemode),
-		chunksize=as.integer(chunksize),
-		length=length(extent),
-		dim=as.integer(extent),
+			source=path,
+			type=as_Ctype(type),
+			offset=as.double(offset),
+			extent=as.double(extent),
+			group=seq_along(extent) - 1L,
+			readonly=readonly),
+		type=as_Rtype(type),
+		dim=lengths,
 		names=names,
-		dimnames=NULL,
-		ops=NULL,
 		encoding=encoding, ...)
-	if ( !missing(data) )
+	if ( !missing(data) && !is.null(data) )
 		x[] <- data
 	x
 }
 
 setMethod("describe_for_display", "matter_str", function(x) {
-	desc1 <- paste0("<", x@length, " length> ", class(x))
-	desc2 <- paste0("out-of-memory ", x@datamode, " vector")
+	desc1 <- paste0("<", length(x), " length> ", class(x))
+	desc2 <- paste0("out-of-memory strings")
 	paste0(desc1, " :: ", desc2)
 })
 
 setMethod("preview_for_display", "matter_str", function(x) preview_vector(x))
 
-setAs("character", "matter_str", function(from) matter_str(from, names=names(from)))
+get_matter_str_elts <- function(x, i = NULL, j = NULL) {
+	y <- .Call("C_getMatterStrings", x, i, j, PACKAGE="matter")
+	Encoding(y) <- Encoding(x)
+	set_names(y, names(x), i)
+}
 
-setAs("factor", "matter_str",
-	function(from) as(as.character(from), "matter_str"))
+set_matter_str_elts <- function(x, i = NULL, j = NULL, value = NULL) {
+	.Call("C_setMatterStrings", x, i, j, value, PACKAGE="matter")
+}
 
-as.matter_str <- function(x) as(x, "matter_str")
+subset_matter_str_elts <- function(x, i = NULL) {
+	if ( is.null(i) )
+		return(x)
+	new("matter_str",
+		data=x@data[,i],
+		type=x@type[i],
+		dim=x@dim[i],
+		names=x@names[i],
+		encoding=x@encoding)
+}
 
-setAs("matter_str", "vector", function(from) from[])
+setMethod("[", c(x = "matter_str"),
+	function(x, i, j, ..., drop = TRUE) {
+		i <- as_subscripts(i, x)
+		j <- as_subscripts(j, x)
+		get_matter_str_elts(x, i, j)
+	})
 
-setMethod("as.vector", "matter_str", function(x) as(x, "vector"))
+setReplaceMethod("[", c(x = "matter_str"),
+	function(x, i, j, ..., value) {
+		i <- as_subscripts(i, x)
+		j <- as_subscripts(j, x)
+		if ( !is.character(value) )
+			value <- as.character(value)
+		set_matter_str_elts(x, i, j, value)
+	})
 
 setMethod("Encoding", "matter_str", function(x) x@encoding)
 
 setReplaceMethod("Encoding", "matter_str",
 	function(x, value) {
 		x@encoding <- value
-		x
-	})
-
-# subsetting
-
-getString <- function(x) {
-	y <- .Call("C_getString", x, PACKAGE="matter")
-	if ( !is.null(names(x)) )
-		names(y) <- names(x)
-	Encoding(y) <- x@encoding
-	y
-}
-
-getStringElements <- function(x, i, j, exact) {
-	if ( is.logical(i) )
-		i <- logical2index(x, i)
-	if ( is.character(i) )
-		i <- names2index(x, i, exact)
-	y <- .Call("C_getStringElements", x, i - 1, PACKAGE="matter")
-	if ( !is.null(names(x)) )
-		names(y) <- names(x)
-	Encoding(y) <- x@encoding
-	y	
-}
-
-setMethod("[",
-	c(x = "matter_str", i = "ANY", j = "missing", drop = "ANY"),
-	function(x, i, ..., drop) {
-		if ( !missing(i) ) {
-			getStringElements(x, i)
-		} else {
-			getString(x)
-		}
-	})
-
-setMethod("[",
-	c(x = "matter_str", i = "ANY", j = "missing", drop = "NULL"),
-	function(x, i, ..., drop) {
-		y <- subList(x, i)
-		y@encoding <- x@encoding
-		if ( validObject(y) )
-			y
-	})
-
-setReplaceMethod("[",
-	c(x = "matter_str", i = "ANY", j = "missing", value = "ANY"),
-	function(x, i, ..., value) {
-		if ( is.character(value) || is.factor(value) ) {
-			value <- lapply(value, char2raw)
-		} else {
-			if ( !is.list(value) )
-				value <- list(value)
-			value <- lapply(value, as.raw)
-		}
-		if ( !missing(i) ) {
-			for ( k in seq_along(i) )
-				x <- setListElements(x, i[k], NULL, value[[k]])
+		if ( validObject(x) )
 			x
-		} else {
-			setList(x, value)
-		}
 	})
 
-# additional methods
+setMethod("dim", "matter_str", function(x) NULL)
 
-setMethod("combine", "matter_str", function(x, y, ...) {
-	if ( !is.null(x@ops) || !is.null(y@ops) )
-		warning("dropping delayed operations")
-	data <- combine_atoms(x@data, y@data,
-		x.paths=x@paths, y.paths=y@paths, new.groups=TRUE)
-	if ( is.null(names(x)) && is.null(names(y)) ) {
-		names <- NULL
-	} else {
-		if ( is.null(names(x)) ) names(x) <- character(length(x))
-		if ( is.null(names(y)) ) names(y) <- character(length(y))
-		names <- c(names(x), names(y))
-	}
-	new(class(x),
-		data=data,
-		datamode=make_datamode("character", type="R"),
-		paths=levels(factor(c(x@paths, y@paths))),
-		filemode=common_filemode(x@filemode, y@filemode),
-		length=x@length + y@length,
-		dim=c(x@dim, y@dim),
-		names=names,
-		dimnames=NULL,
-		ops=NULL)
-})
+setMethod("length", "matter_str", function(x) length(x@dim))
 
-setMethod("lengths", "matter_str", function(x, use.names = TRUE) {
-	if ( use.names ) {
-		set_names(x@dim, x@names)
-	} else {
-		set_names(x@dim, NULL)
-	}
-})
+setMethod("lengths", "matter_str", function(x) x@dim)
 
 

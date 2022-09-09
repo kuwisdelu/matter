@@ -5,8 +5,8 @@ context("atoms-class")
 
 test_that("atoms combining/subsetting", {
 
-	x <- atoms2(type="integer", extent=10)
-	y <- atoms2(type="double", extent=10)
+	x <- atoms(type="integer", extent=10)
+	y <- atoms(type="double", extent=10)
 
 	a <- cbind(x, y)
 	expect_equal(c(10,2), dim(a))
@@ -36,7 +36,7 @@ test_that("atoms read/write - raw", {
 
 	path <- tempfile()
 	file.create(path)
-	x <- atoms2(path, "raw", extent=10, readonly=FALSE)
+	x <- atoms(path, "raw", extent=10, readonly=FALSE)
 	value <- as.raw(1:10)
 	i <- c(1,3,5:9)
 	write_atom(x, 1L, value)
@@ -58,7 +58,7 @@ test_that("atoms read/write - integer", {
 
 	path <- tempfile()
 	file.create(path)
-	x <- atoms2(path, "integer", extent=10, readonly=FALSE)
+	x <- atoms(path, "integer", extent=10, readonly=FALSE)
 	value <- 1:10
 	i <- c(1,3,5:9)
 	write_atom(x, 1L, value)
@@ -80,7 +80,7 @@ test_that("atoms read/write - double", {
 
 	path <- tempfile()
 	file.create(path)
-	y <- atoms2(path, "double", extent=10, readonly=FALSE)
+	y <- atoms(path, "double", extent=10, readonly=FALSE)
 	value <- (1:10 + 1:10 * 0.11)
 	i <- c(1,3,5:9)
 	write_atom(y, 1L, value)
