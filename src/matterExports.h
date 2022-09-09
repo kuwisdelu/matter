@@ -4,7 +4,7 @@
 
 #include "drle.h"
 #include "atoms.h"
-#include "matter2.h"
+#include "matter.h"
 #include "search.h"
 #include "sparse.h"
 

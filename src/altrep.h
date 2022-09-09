@@ -2,13 +2,10 @@
 #ifndef MATTER_ALT
 #define MATTER_ALT
 
+#include <R_ext/Altrep.h>
+
 #include "matterDefines.h"
 #include "matter.h"
-
-extern "C"
-{
-  #include <R_ext/Altrep.h>
-}
 
 #define MATTER_PKG "matter"
 
@@ -137,21 +134,21 @@ struct MatterAlt {
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			Matter mVec(R_altrep_data1(x));
-		    PROTECT(result = Rf_allocVector(RAWSXP, XLENGTH(indx)));
-		    Rbyte * presult = RAW(result);
-		    if ( TYPEOF(indx) == INTSXP )
-		    {
-		    	const int * pindx = INTEGER_RO(indx);
-		    	mVec.data().read_indices<Rbyte>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    else
-		    {
-		    	const double * pindx = REAL_RO(indx);
-		    	mVec.data().read_indices<Rbyte>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    UNPROTECT(1);
+				PROTECT(result = Rf_allocVector(RAWSXP, XLENGTH(indx)));
+				Rbyte * presult = RAW(result);
+				if ( TYPEOF(indx) == INTSXP )
+				{
+					const int * pindx = INTEGER_RO(indx);
+					mVec.data().read_indices<Rbyte>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				else
+				{
+					const double * pindx = REAL_RO(indx);
+					mVec.data().read_indices<Rbyte>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				UNPROTECT(1);
 		}
-	    return result;
+			return result;
 	}
 
 	// ALTLOGICAL methods
@@ -185,21 +182,21 @@ struct MatterAlt {
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			Matter mVec(R_altrep_data1(x));
-		    PROTECT(result = Rf_allocVector(LGLSXP, XLENGTH(indx)));
-		    int * presult = LOGICAL(result);
-		    if ( TYPEOF(indx) == INTSXP )
-		    {
-		    	const int * pindx = INTEGER_RO(indx);
-		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    else
-		    {
-		    	const double * pindx = REAL_RO(indx);
-		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    UNPROTECT(1);
+				PROTECT(result = Rf_allocVector(LGLSXP, XLENGTH(indx)));
+				int * presult = LOGICAL(result);
+				if ( TYPEOF(indx) == INTSXP )
+				{
+					const int * pindx = INTEGER_RO(indx);
+					mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				else
+				{
+					const double * pindx = REAL_RO(indx);
+					mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				UNPROTECT(1);
 		}
-	    return result;
+			return result;
 	}
 
 	// ALTINTEGER methods
@@ -233,21 +230,21 @@ struct MatterAlt {
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			Matter mVec(R_altrep_data1(x));
-		    PROTECT(result = Rf_allocVector(INTSXP, XLENGTH(indx)));
-		    int * presult = INTEGER(result);
-		    if ( TYPEOF(indx) == INTSXP )
-		    {
-		    	const int * pindx = INTEGER_RO(indx);
-		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    else
-		    {
-		    	const double * pindx = REAL_RO(indx);
-		    	mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    UNPROTECT(1);
+				PROTECT(result = Rf_allocVector(INTSXP, XLENGTH(indx)));
+				int * presult = INTEGER(result);
+				if ( TYPEOF(indx) == INTSXP )
+				{
+					const int * pindx = INTEGER_RO(indx);
+					mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				else
+				{
+					const double * pindx = REAL_RO(indx);
+					mVec.data().read_indices<int>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				UNPROTECT(1);
 		}
-	    return result;
+			return result;
 	}
 
 	// ALTREAL methods
@@ -281,21 +278,21 @@ struct MatterAlt {
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			Matter mVec(R_altrep_data1(x));
-		    PROTECT(result = Rf_allocVector(REALSXP, XLENGTH(indx)));
-		    double * presult = REAL(result);
-		    if ( TYPEOF(indx) == INTSXP )
-		    {
-		    	const int * pindx = INTEGER_RO(indx);
-		    	mVec.data().read_indices<double>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    else
-		    {
-		    	const double * pindx = REAL_RO(indx);
-		    	mVec.data().read_indices<double>(presult, pindx, XLENGTH(indx), 1, 1);
-		    }
-		    UNPROTECT(1);
+				PROTECT(result = Rf_allocVector(REALSXP, XLENGTH(indx)));
+				double * presult = REAL(result);
+				if ( TYPEOF(indx) == INTSXP )
+				{
+					const int * pindx = INTEGER_RO(indx);
+					mVec.data().read_indices<double>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				else
+				{
+					const double * pindx = REAL_RO(indx);
+					mVec.data().read_indices<double>(presult, pindx, XLENGTH(indx), 1, 1);
+				}
+				UNPROTECT(1);
 		}
-	    return result;
+			return result;
 	}
 
 	// ALTSTRING methods
@@ -309,19 +306,19 @@ struct MatterAlt {
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			Matter mVec(R_altrep_data1(x));
-	        PROTECT(result = Rf_allocVector(STRSXP, 1));
+					PROTECT(result = Rf_allocVector(STRSXP, 1));
 			if ( i == NA_INTEGER )
 				SET_STRING_ELT(result, 0, NA_STRING);
 			else
 			{
-	    		PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(i)));
-	    		mVec.data().set_group(i);
-		    	mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(i));
-		    	SET_STRING_ELT(result, 0, raw_to_char(tmp));
-		    	UNPROTECT(1);
+					PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(i)));
+					mVec.data().set_group(i);
+					mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(i));
+					SET_STRING_ELT(result, 0, raw_to_char(tmp));
+					UNPROTECT(1);
 			}
-	        UNPROTECT(1);
-	    }
+					UNPROTECT(1);
+			}
 		return result;
 	}
 
@@ -334,44 +331,44 @@ struct MatterAlt {
 		if ( R_altrep_data2(x) == R_NilValue )
 		{
 			Matter mVec(R_altrep_data1(x));
-	        PROTECT(result = Rf_allocVector(STRSXP, XLENGTH(indx)));
-	    	if ( TYPEOF(indx) == INTSXP )
-		    {
-		    	const int * pindx = INTEGER_RO(indx);
-		    	for ( int i = 0; i < XLENGTH(indx); i++ )
-		    	{
-		    		if ( isNA(pindx[i]) )
-		    			SET_STRING_ELT(result, i, NA_STRING);
-		    		else
-		    		{
-		    			index_t ii = static_cast<index_t>(pindx[i] - 1);
-			    		PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(ii)));
-			    		mVec.data().set_group(ii);
-				    	mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(ii));
-				    	SET_STRING_ELT(result, i, raw_to_char(tmp));
-				    	UNPROTECT(1);
-		    		}
-		    	}
-		    }
-		    else
-		    {
-		    	const double * pindx = REAL_RO(indx);
-		    	for ( int i = 0; i < XLENGTH(indx); i++ )
-		    	{
-		    		if ( isNA(pindx[i]) )
-		    			SET_STRING_ELT(result, i, NA_STRING);
-		    		else
-		    		{
-		    			index_t ii = static_cast<index_t>(pindx[i] - 1);
-			    		PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(ii)));
-			    		mVec.data().set_group(ii);
-				    	mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(ii));
-				    	SET_STRING_ELT(result, i, raw_to_char(tmp));
-				    	UNPROTECT(1);
-		    		}
-		    	}
-		    }
-	        UNPROTECT(1);
+					PROTECT(result = Rf_allocVector(STRSXP, XLENGTH(indx)));
+				if ( TYPEOF(indx) == INTSXP )
+				{
+					const int * pindx = INTEGER_RO(indx);
+					for ( int i = 0; i < XLENGTH(indx); i++ )
+					{
+						if ( isNA(pindx[i]) )
+							SET_STRING_ELT(result, i, NA_STRING);
+						else
+						{
+							index_t ii = static_cast<index_t>(pindx[i] - 1);
+							PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(ii)));
+							mVec.data().set_group(ii);
+							mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(ii));
+							SET_STRING_ELT(result, i, raw_to_char(tmp));
+							UNPROTECT(1);
+						}
+					}
+				}
+				else
+				{
+					const double * pindx = REAL_RO(indx);
+					for ( int i = 0; i < XLENGTH(indx); i++ )
+					{
+						if ( isNA(pindx[i]) )
+							SET_STRING_ELT(result, i, NA_STRING);
+						else
+						{
+							index_t ii = static_cast<index_t>(pindx[i] - 1);
+							PROTECT(tmp = Rf_allocVector(RAWSXP, mVec.dim(ii)));
+							mVec.data().set_group(ii);
+							mVec.data().read<Rbyte>(RAW(tmp), 0, mVec.dim(ii));
+							SET_STRING_ELT(result, i, raw_to_char(tmp));
+							UNPROTECT(1);
+						}
+					}
+				}
+					UNPROTECT(1);
 		}
 		return result;
 	}

@@ -269,7 +269,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 // }
 
 // template<typename Tx, typename Tout>
-// SEXP locmax(Tx * x, int width, int len, Tout * buffer) {
+// SEXP local_maxima(Tx * x, int width, int len, Tout * buffer) {
 // 	size_t n = 0, a = 0, b = len, r = abs(width / 2);
 // 	for ( int i = 0; i < len; i++ )
 // 	{
@@ -299,6 +299,25 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 // 		}
 // 	}
 // 	return n;
+// }
+
+// template<typename T>
+// SEXP bin_means(T * x, int * lower, int * upper, int length, int nbin)
+// {
+//     SEXP ret;
+//     PROTECT(ret = Rf_allocVector(REALSXP, nbin));
+//     double * pRet = REAL(ret);
+//     for ( int i = 0; i < nbin; i++ ) {
+//     	pRet[i] = 0;
+//     	if ( lower[i] < 1 || upper[i] < 1 )
+//     		Rf_error("bin limits must be positive");
+//         for ( int j = lower[i] - 1; j < upper[i] && j < length; j++ )
+//         	pRet[i] += x[j];
+//         int n = (upper[i] - lower[i]) + 1;
+//         pRet[i] /= n;
+//     }
+//     UNPROTECT(1);
+//     return ret;
 // }
 
 #endif // SIGNAL

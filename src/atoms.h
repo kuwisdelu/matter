@@ -283,7 +283,7 @@ class Atoms2 {
 				Rf_error("failed to read data elements");
 			}
 			for ( index_t i = 0; i < size; i++ )
-				ptr[stride * i] = coerce_cast<Tin,Tout>(tmp[i]);
+				ptr[stride * i] = coerce_cast<Tout>(tmp[i]);
 			R_Free(tmp);
 			return size;
 		}
@@ -296,7 +296,7 @@ class Atoms2 {
 				size = extent(atom) - pos; 
 			Tout * tmp = (Tout *) R_Calloc(size, Tout);
 			for ( index_t i = 0; i < size; i++ )
-				tmp[i] = coerce_cast<Tin,Tout>(ptr[stride * i]);
+				tmp[i] = coerce_cast<Tout>(ptr[stride * i]);
 			index_t off = offset(atom, pos);
 			bool success = _io.wseek(source(atom), off)->write<Tout>(tmp, size);
 			if ( !success ) {

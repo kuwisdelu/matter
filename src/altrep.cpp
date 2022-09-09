@@ -14,28 +14,28 @@ extern "C" {
 			PROTECT(x);
 			Matter mVec(x);
 			if ( mVec.S4class() != MATTER_VEC && mVec.S4class() != MATTER_STR )
-		    	Rf_error("ALTREP not supported for this matter object");
-		    switch(mVec.datamode()) {
-		    	case R_RAW:
-		            cls = MatterAlt_raw;
-		            break;
-		        case R_LOGICAL:
-		            cls = MatterAlt_logical;
-		            break;
-		        case R_INTEGER:
-		            cls = MatterAlt_integer;
-		            break;
-		        case R_NUMERIC:
-		            cls = MatterAlt_real;
-		            break;
-		        case R_CHARACTER:
-		            cls = MatterAlt_string;
-		            break;
-		        default:
-		            Rf_error("ALTREP not supported for this matter datamode");
-		    }
-		    ret = R_new_altrep(cls, x, R_NilValue);
-		    MARK_NOT_MUTABLE(ret);
+				Rf_error("ALTREP not supported for this matter object");
+			switch(mVec.datamode()) {
+				case R_RAW:
+					cls = MatterAlt_raw;
+					break;
+				case R_LOGICAL:
+					cls = MatterAlt_logical;
+					break;
+				case R_INTEGER:
+					cls = MatterAlt_integer;
+					break;
+				case R_NUMERIC:
+					cls = MatterAlt_real;
+					break;
+				case R_CHARACTER:
+					cls = MatterAlt_string;
+					break;
+				default:
+					Rf_error("ALTREP not supported for this matter datamode");
+			}
+			ret = R_new_altrep(cls, x, R_NilValue);
+			MARK_NOT_MUTABLE(ret);
 		}
 		else if ( Rf_isVector(x) )
 		{
@@ -53,31 +53,31 @@ extern "C" {
 		{
 			Rf_error("SEXP type not supported");
 		}
-	    Rboolean has_attr = FALSE, has_special = FALSE; 
-	    if ( attr != R_NilValue && XLENGTH(attr) > 0 )
-	    	has_attr = TRUE;
-	    if ( nm != R_NilValue || dm != R_NilValue || dnm != R_NilValue )
-	    	has_special = TRUE;
-	    if ( has_attr || has_special || Rf_asLogical(wrap) )
-	    	ret = R_tryWrap(ret);
-	    PROTECT(ret);
-	    if ( nm != R_NilValue )
-	    	Rf_setAttrib(ret, R_NamesSymbol, nm);
-	    if ( dm != R_NilValue )
-	    	Rf_setAttrib(ret, R_DimSymbol, dm);
-	    if ( dnm != R_NilValue )
-	    	Rf_setAttrib(ret, R_DimNamesSymbol, dnm);
-	    if ( has_attr )
-	    {
-	    	SEXP tags = Rf_getAttrib(attr, R_NamesSymbol);
-	    	for ( int i = 0; i < XLENGTH(attr); i++ )
-	    	{
-	    		SEXP ikey = STRING_ELT(tags, i);
-	    		SEXP ival = VECTOR_ELT(attr, i);
-	    		Rf_setAttrib(ret, Rf_install(CHAR(ikey)), ival);
-	    	}
-	    }
-	    UNPROTECT(2);
+		Rboolean has_attr = FALSE, has_special = FALSE; 
+		if ( attr != R_NilValue && XLENGTH(attr) > 0 )
+			has_attr = TRUE;
+		if ( nm != R_NilValue || dm != R_NilValue || dnm != R_NilValue )
+			has_special = TRUE;
+		if ( has_attr || has_special || Rf_asLogical(wrap) )
+			ret = R_tryWrap(ret);
+		PROTECT(ret);
+		if ( nm != R_NilValue )
+			Rf_setAttrib(ret, R_NamesSymbol, nm);
+		if ( dm != R_NilValue )
+			Rf_setAttrib(ret, R_DimSymbol, dm);
+		if ( dnm != R_NilValue )
+			Rf_setAttrib(ret, R_DimNamesSymbol, dnm);
+		if ( has_attr )
+		{
+			SEXP tags = Rf_getAttrib(attr, R_NamesSymbol);
+			for ( int i = 0; i < XLENGTH(attr); i++ )
+			{
+				SEXP ikey = STRING_ELT(tags, i);
+				SEXP ival = VECTOR_ELT(attr, i);
+				Rf_setAttrib(ret, Rf_install(CHAR(ikey)), ival);
+			}
+		}
+		UNPROTECT(2);
 		return ret;
 	}
 
