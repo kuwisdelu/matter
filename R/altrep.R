@@ -76,7 +76,7 @@ setMethod("as.altrep", "matter_str",
 		as_ALTREP(x, attr=attr)
 	})
 
-setMethod("as.altrep", "matter_fc",
+setMethod("as.altrep", "matter_fct",
 	function(x, ...)
 	{
 		attr <- list(names=names(x), class="factor", levels=levels(x))
@@ -88,24 +88,3 @@ setMethod("as.altrep", "matter_list",
 	{
 		lapply(seq_along(x), function(i) as.altrep(subListElementAsVector(x, i)))
 	})
-
-setMethod("as.altrep", "matter_df",
-	function(x, ...)
-	{
-		if ( is.null(rownames(x)) ) {
-			row.names <- as.character(seq_len(nrow(x)))
-		} else {
-			row.names <- rownames(x)
-		}
-		attr <- list(class="data.frame", row.names=row.names)
-		.Call("C_makeAltrep", as.altrep(atomdata(x)),
-			attr, names(x), NULL, NULL, TRUE, PACKAGE="matter")
-	})
-
-setMethod("as.altrep", "virtual_df",
-	function(x, ...)
-	{
-		as.altrep(as(x, "matter_df"))
-	})
-
-

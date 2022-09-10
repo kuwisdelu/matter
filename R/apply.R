@@ -406,11 +406,6 @@ setMethod("apply", "sparse_mat",
 		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
 })
 
-setMethod("apply", "virtual_mat",
-	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
-		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
-})
-
 #### List-Apply functions over matter lists and data frames ####
 ## ------------------------------------------------------------
 
@@ -428,19 +423,3 @@ setMethod("sapply", "matter_list",
 		chunk_apply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
 	}
 )
-
-setMethod("lapply", "virtual_df",
-	function(X, FUN, ..., BPPARAM = bpparam())
-	{
-		chunk_apply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
-	}
-)
-
-setMethod("sapply", "virtual_df",
-	function(X, FUN, ..., BPPARAM = bpparam(),
-		simplify = TRUE, USE.NAMES = TRUE)
-	{
-		chunk_apply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
-	}
-)
-

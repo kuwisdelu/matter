@@ -2,6 +2,10 @@
 #### VIRTUAL 'matter' class ####
 ## ------------------------------
 
+setClassUnion("numeric_OR_NULL", c("numeric", "NULL"))
+setClassUnion("character_OR_NULL", c("numeric", "NULL"))
+setClassUnion("list_OR_NULL", c("numeric", "NULL"))
+
 setClass("matter",
 	slots = c(
 		data = "ANY",

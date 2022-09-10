@@ -231,8 +231,10 @@ class SparseVector : public Sparse
 
 		SEXP data() {
 			SEXP data0;
-			if ( Rf_isS4(_data) )
-				data0 = getVector(_data);
+			if ( Rf_isS4(_data) ) {
+				MatterArray tmp(_data);
+				data0 = tmp.getElements(R_NilValue);
+			}
 			else
 				data0 = _data;
 			PROTECT(data0);
@@ -243,8 +245,10 @@ class SparseVector : public Sparse
 
 		SEXP index() {
 			SEXP index0;
-			if ( Rf_isS4(_index) )
-				index0 = getVector(_index);
+			if ( Rf_isS4(_index) ) {
+				MatterArray tmp(_index);
+				index0 = tmp.getElements(R_NilValue);
+			}
 			else
 				index0 = _index;
 			PROTECT(index0);
@@ -429,7 +433,8 @@ class SparseMatrix : public Sparse
 				SEXP dims = R_do_slot(_data, Rf_install("dim"));
 				if ( dims != R_NilValue ) {
 					// matter list
-					data0 = getListElements(_data, Rf_ScalarReal(i), R_NilValue);
+					MatterList tmp(_data);
+					data0 = tmp.get(i);
 				}
 				else {
 					// matter vector
@@ -441,9 +446,9 @@ class SparseMatrix : public Sparse
 					}
 					PROTECT(indx);
 					// FIXME: double indexing only for now...
-					PROTECT(indx = Rf_coerceVector(indx, REALSXP));
-					data0 = getVectorElements(_data, indx);
-					UNPROTECT(2);
+					MatterList tmp(_data);
+					data0 = tmp.getElements(indx);
+					UNPROTECT(1);
 				}
 			}
 			else if ( Rf_isVectorList(_data) ) {
@@ -478,19 +483,22 @@ class SparseMatrix : public Sparse
 				SEXP dims = R_do_slot(_index, Rf_install("dim"));
 				if ( dims != R_NilValue ) {
 					// matter list
-					index0 = getListElements(_index, Rf_ScalarReal(i), R_NilValue);
+					MatterList tmp(_index);
+					index0 = tmp.get(i);
 				}
 				else {
 					// matter vector
 					if ( has_pointers() ) {
 						PROTECT(indx = seq_range(p.first, p.second - 1));
 						// FIXME: double indexing only for now...
-						PROTECT(indx = Rf_coerceVector(indx, REALSXP));
-						index0 = getVectorElements(_index, indx);
-						UNPROTECT(2);
+						MatterArray tmp(_index);
+						index0 = tmp.getElements(indx);
+						UNPROTECT(1);
 					}
-					else
-						index0 = getVector(_index);
+					else {
+						MatterArray tmp(_index);
+						index0 = tmp.getElements(R_NilValue);
+					}
 				}
 			}
 			else if ( Rf_isVectorList(_index) ) {

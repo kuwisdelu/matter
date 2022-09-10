@@ -555,6 +555,16 @@ class MatterList : public Matter {
 			}
 		}
 
+		SEXP getElements(SEXP i)
+		{
+			return getElements(i, R_NilValue);
+		}
+
+		void setElements(SEXP i, SEXP value)
+		{
+			setElements(i, R_NilValue, value);
+		}
+
 };
 
 class MatterStringList : public MatterList {

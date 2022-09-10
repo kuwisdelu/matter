@@ -2,38 +2,6 @@
 #### Linear regression for matter matrices and data frames ####
 ## -----------------------------------------------------------
 
-setMethod("biglm", c("formula", "virtual_df"),
-	function(formula, data, weights = NULL, sandwich = FALSE)
-{
-		n <- nrow(data)
-		vars <- all.vars(formula)
-		p <- length(vars)
-		chunksize <- chunksize(data) %/% p
-		current <- 1
-		getNextDataChunk <- virtual_df_chunker(formula, data, chunksize)
-		data <- getNextDataChunk(FALSE)
-		blm <- biglm(formula=formula, data=data,
-			weights=weights, sandwich=sandwich)
-		data <- getNextDataChunk(FALSE)
-		while ( !is.null(data) ) {
-			blm <- update(blm, data)
-			data <- getNextDataChunk(FALSE)
-		}
-		blm
-})
-
-setMethod("bigglm", c("formula", "virtual_df"),
-	function(formula, data, ..., chunksize = NULL)
-{
-		n <- nrow(data)
-		vars <- all.vars(formula)
-		p <- length(vars)
-		if ( is.null(chunksize) )
-			chunksize <- chunksize(data) %/% p
-		getNextDataChunk <- virtual_df_chunker(formula, data, chunksize)
-		bigglm(formula, getNextDataChunk, ...)
-})
-
 setMethod("bigglm", c("formula", "matter_mat"),
 	function(formula, data, ..., chunksize = NULL, fc = NULL)
 {
@@ -42,12 +10,6 @@ setMethod("bigglm", c("formula", "matter_mat"),
 		
 
 setMethod("bigglm", c("formula", "sparse_mat"),
-	function(formula, data, ..., chunksize = NULL, fc = NULL)
-{
-		do_matrix_bigglm(formula, data, ..., chunksize=chunksize, fc=fc)
-})
-
-setMethod("bigglm", c("formula", "virtual_mat"),
 	function(formula, data, ..., chunksize = NULL, fc = NULL)
 {
 		do_matrix_bigglm(formula, data, ..., chunksize=chunksize, fc=fc)

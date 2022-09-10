@@ -37,8 +37,6 @@ importFrom("BiocGenerics",
 	"path",
 	"path<-",
 	"combine",
-	"cbind",
-	"rbind",
 	"which",
 	"lapply",
 	"sapply")
@@ -55,25 +53,16 @@ exportClasses(
 	"drle",
 	"drle_fct",
 	"matter",
-	"matter_vec",
-	"matter_mat",
-	"matter_matc",
-	"matter_matr",
 	"matter_arr",
+	"matter_mat",
+	"matter_vec",
 	"matter_list",
 	"matter_str",
-	"matter_fc",
-	"matter_df",
-	"rep_vt",
+	"matter_fct",
 	"sparse_vec",
 	"sparse_mat",
 	"sparse_matc",
-	"sparse_matr",
-	"virtual_mat",
-	"virtual_matc",
-	"virtual_matr",
-	"virtual_tbl",
-	"virtual_df")
+	"sparse_matr")
 
 export(
 	"drle",
@@ -86,32 +75,16 @@ export(
 	"write_atoms")
 
 export(
-	"matter",
-	"matter_vec",
-	"matter_mat",
-	"matter_arr",
 	"matter_arr",
 	"matter_mat",
 	"matter_vec",
 	"matter_fct",
 	"matter_list",
 	"matter_str",
-	"matter_list",
-	"matter_str",
-	"matter_fc",
-	"matter_df",
-	"rep_vt",
 	"sparse_vec",
 	"sparse_mat",
-	"is.matter",
-	"as.matter",
 	"is.sparse",
-	"as.sparse",
-	"is.virtual",
-	"as.virtual",
-	"virtual_mat",
-	"virtual_df",
-	"struct")
+	"as.sparse")
 
 exportMethods(
 	"as.altrep",
@@ -171,13 +144,10 @@ exportMethods(
 	"$<-",
 	"c",
 	"combine",
-	"cbind",
-	"rbind",
 	"cbind2",
 	"rbind2",
 	"lengths",
 	"length",
-	"length<-",
 	"dims",
 	"dim",
 	"dim<-",
@@ -196,15 +166,9 @@ exportMethods(
 exportMethods(
 	"Arith",
 	"Compare",
-	"Logic",
-	"exp",
-	"log",
-	"log2",
-	"log10")
+	"Logic")
 
 exportMethods(
-	"head",
-	"tail",
 	"range",
 	"min",
 	"max",
@@ -222,8 +186,7 @@ exportMethods(
 	"rowSums",
 	"rowMeans",
 	"rowVars",
-	"rowSds",
-	"which")
+	"rowSds")
 
 export(
 	"s_range",

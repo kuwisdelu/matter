@@ -67,24 +67,24 @@ static inline SEXP decodeDRLE(SEXP x, SEXP i)
 static inline SEXP readAtom(SEXP x, SEXP i, SEXP type)
 {
 	SEXP ans;
-	Atoms y(x);
+	Atoms xm(x);
 	int j = Rf_asInteger(i);
-	R_xlen_t len = static_cast<R_xlen_t>(y.extent(j));
+	R_xlen_t len = static_cast<R_xlen_t>(xm.extent(j));
 	switch(Rf_asInteger(type)) {
 		case R_RAW:
 			PROTECT(ans = Rf_allocVector(RAWSXP, len));
-			y.get_atom<Rbyte>(RAW(ans), j, 0, len);
+			xm.get_atom<Rbyte>(RAW(ans), j, 0, len);
 			break;
 		case R_INTEGER:
 			PROTECT(ans = Rf_allocVector(INTSXP, len));
-			y.get_atom<int>(INTEGER(ans), j, 0, len);
+			xm.get_atom<int>(INTEGER(ans), j, 0, len);
 			break;
 		case R_DOUBLE:
 			PROTECT(ans = Rf_allocVector(REALSXP, len));
-			y.get_atom<double>(REAL(ans), j, 0, len);
+			xm.get_atom<double>(REAL(ans), j, 0, len);
 			break;
 		default:
-			y.self_destruct();
+			xm.self_destruct();
 			Rf_error("data type must be raw, integer, or double");
 	}
 	UNPROTECT(1);
@@ -93,25 +93,25 @@ static inline SEXP readAtom(SEXP x, SEXP i, SEXP type)
 
 static inline SEXP writeAtom(SEXP x, SEXP i, SEXP value)
 {
-	Atoms y(x);
+	Atoms xa(x);
 	int j = Rf_asInteger(i);
-	R_xlen_t len = static_cast<R_xlen_t>(y.extent(j));
+	R_xlen_t len = static_cast<R_xlen_t>(xa.extent(j));
 	if ( len != XLENGTH(value) ) {
-		y.self_destruct();
+		xa.self_destruct();
 		Rf_error("length of value does not match atom extent");
 	}
 	switch(TYPEOF(value)) {
 		case RAWSXP:
-			y.set_atom<Rbyte>(RAW(value), j, 0, len);
+			xa.set_atom<Rbyte>(RAW(value), j, 0, len);
 			break;
 		case INTSXP:
-			y.set_atom<int>(INTEGER(value), j, 0, len);
+			xa.set_atom<int>(INTEGER(value), j, 0, len);
 			break;
 		case REALSXP:
-			y.set_atom<double>(REAL(value), j, 0, len);
+			xa.set_atom<double>(REAL(value), j, 0, len);
 			break;
 		default:
-			y.self_destruct();
+			xa.self_destruct();
 			Rf_error("data type must be raw, integer, or double");
 	}
 	return x;
@@ -120,24 +120,24 @@ static inline SEXP writeAtom(SEXP x, SEXP i, SEXP value)
 static inline SEXP readAtoms(SEXP x, SEXP indx, SEXP type, SEXP grp)
 {
 	SEXP ans;
-	Atoms y(x);
+	Atoms xa(x);
 	int g = Rf_asInteger(grp);
 	R_xlen_t len = XLENGTH(indx);
 	switch(Rf_asInteger(type)) {
 		case R_RAW:
 			PROTECT(ans = Rf_allocVector(RAWSXP, len));
-			y.get_elements<Rbyte>(RAW(ans), indx, g);
+			xa.get_elements<Rbyte>(RAW(ans), indx, g);
 			break;
 		case R_INTEGER:
 			PROTECT(ans = Rf_allocVector(INTSXP, len));
-			y.get_elements<int>(INTEGER(ans), indx, g);
+			xa.get_elements<int>(INTEGER(ans), indx, g);
 			break;
 		case R_DOUBLE:
 			PROTECT(ans = Rf_allocVector(REALSXP, len));
-			y.get_elements<double>(REAL(ans), indx, g);
+			xa.get_elements<double>(REAL(ans), indx, g);
 			break;
 		default:
-			y.self_destruct();
+			xa.self_destruct();
 			Rf_error("data type must be raw, integer, or double");
 	}
 	UNPROTECT(1);
@@ -146,25 +146,25 @@ static inline SEXP readAtoms(SEXP x, SEXP indx, SEXP type, SEXP grp)
 
 static inline SEXP writeAtoms(SEXP x, SEXP indx, SEXP value, SEXP grp)
 {
-	Atoms y(x);
+	Atoms xa(x);
 	int g = Rf_asInteger(grp);
 	R_xlen_t len = XLENGTH(indx);
 	if ( len != XLENGTH(value) ) {
-		y.self_destruct();
+		xa.self_destruct();
 		Rf_error("length of value does not match atom extent");
 	}
 	switch(TYPEOF(value)) {
 		case RAWSXP:
-			y.set_elements<Rbyte>(RAW(value), indx, g);
+			xa.set_elements<Rbyte>(RAW(value), indx, g);
 			break;
 		case INTSXP:
-			y.set_elements<int>(INTEGER(value), indx, g);
+			xa.set_elements<int>(INTEGER(value), indx, g);
 			break;
 		case REALSXP:
-			y.set_elements<double>(REAL(value), indx, g);
+			xa.set_elements<double>(REAL(value), indx, g);
 			break;
 		default:
-			y.self_destruct();
+			xa.self_destruct();
 			Rf_error("data type must be raw, integer, or double");
 	}
 	return x;
@@ -172,23 +172,23 @@ static inline SEXP writeAtoms(SEXP x, SEXP indx, SEXP value, SEXP grp)
 
 static inline SEXP subsetAtoms(SEXP x, SEXP indx)
 {
-	Atoms y(x);
+	Atoms xa(x);
 	R_xlen_t size = XLENGTH(indx);
 	switch(TYPEOF(indx)) {
 		case INTSXP:
-			return y.subset_index<int>(INTEGER(indx), size, true);
+			return xa.subset_index<int>(INTEGER(indx), size, true);
 		case REALSXP:
-			return y.subset_index<double>(REAL(indx), size, true);
+			return xa.subset_index<double>(REAL(indx), size, true);
 		default:
-			y.self_destruct();
+			xa.self_destruct();
 			Rf_error("invalid index type");
 	}
 }
 
 static inline SEXP regroupAtoms(SEXP x, SEXP n)
 {
-	Atoms y(x);
-	return y.regroup_index(Rf_asInteger(n));
+	Atoms xa(x);
+	return xa.regroup_index(Rf_asInteger(n));
 }
 
 // Matter data structures
@@ -196,53 +196,53 @@ static inline SEXP regroupAtoms(SEXP x, SEXP n)
 
 static inline SEXP getMatterArray(SEXP x, SEXP i)
 {
-	MatterArray y(x);
-	return y.getElements(i);
+	MatterArray xm(x);
+	return xm.getElements(i);
 }
 
 static inline SEXP setMatterArray(SEXP x, SEXP i, SEXP value)
 {
-	MatterArray y(x);
-	y.setElements(i, value);
+	MatterArray xm(x);
+	xm.setElements(i, value);
 	return x;
 }
 
 static inline SEXP getMatterListElt(SEXP x, SEXP i, SEXP j)
 {
-	MatterList y(x);
-	return y.get(Rf_asInteger(i) - 1, j);
+	MatterList xm(x);
+	return xm.get(Rf_asInteger(i) - 1, j);
 }
 
 static inline SEXP setMatterListElt(SEXP x, SEXP i, SEXP j, SEXP value)
 {
-	MatterList y(x);
-	y.set(Rf_asInteger(i) - 1, j, value);
+	MatterList xm(x);
+	xm.set(Rf_asInteger(i) - 1, j, value);
 	return x;
 }
 
 static inline SEXP getMatterListSubset(SEXP x, SEXP i, SEXP j)
 {
-	MatterList y(x);
-	return y.getElements(i, j);
+	MatterList xm(x);
+	return xm.getElements(i, j);
 }
 
 static inline SEXP setMatterListSubset(SEXP x, SEXP i, SEXP j, SEXP value)
 {
-	MatterList y(x);
-	y.setElements(i, j, value);
+	MatterList xm(x);
+	xm.setElements(i, j, value);
 	return x;
 }
 
 static inline SEXP getMatterStrings(SEXP x, SEXP i, SEXP j)
 {
-	MatterStringList y(x);
-	return y.getStrings(i, j);
+	MatterStringList xm(x);
+	return xm.getStrings(i, j);
 }
 
 static inline SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value)
 {
-	MatterStringList y(x);
-	y.setStrings(i, j, value);
+	MatterStringList xm(x);
+	xm.setStrings(i, j, value);
 	return x;
 }
 
@@ -251,20 +251,20 @@ static inline SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value)
 
 static inline SEXP getSparseVector(SEXP x, SEXP i)
 {
-	SparseVector y(x);
-	return y.getElements(i);
+	SparseVector xm(x);
+	return xm.getElements(i);
 }
 
 static inline SEXP getSparseMatrixC(SEXP x, SEXP i, SEXP j)
 {
-	SparseMatrixC y(x);	
-	return y.getSubMatrix(i, j);
+	SparseMatrixC xm(x);	
+	return xm.getSubMatrix(i, j);
 }
 
 static inline SEXP getSparseMatrixR(SEXP x, SEXP i, SEXP j)
 {
-	SparseMatrixR y(x);	
-	return y.getSubMatrix(i, j);
+	SparseMatrixR xm(x);	
+	return xm.getSubMatrix(i, j);
 }
 
 } // extern "C"

@@ -5,6 +5,9 @@
 
 extern "C" {
 
+//// Matter ALTREP
+//-----------------
+
 SEXP newMatterAltrep(SEXP x, SEXP attr,
 	SEXP nm, SEXP dm, SEXP dnm, SEXP wrap)
 {
@@ -83,22 +86,43 @@ SEXP newMatterAltrep(SEXP x, SEXP attr,
 	return ans;
 }
 
+//// Matter ALTREP classes
+//------------------------
+
+/* Matter-backed ALTREP objects
+	---------------------------
+	data1: the original matter object (as a SEXP)
+	data2: either NULL or a SEXP of the in-memory R object
+	---------------------------
+*/
+
+static SEXP matter_altrep_Serialized_state(SEXP x)
+{
+	return R_altrep_data1(x);
+}
+
+static SEXP matter_altrep_Unserialize(SEXP cls, SEXP state)
+{
+	return newMatterAltrep(state, R_NilValue, R_NilValue,
+		R_NilValue, R_NilValue, Rf_ScalarLogical(FALSE));
+}
+
 //// Matter ALTARRAY classes
 //----------------------------
 
 static Rboolean matter_altarray_Inspect(SEXP x, int pre, int deep, int pvec,
 	void (*inspect_subtree)(SEXP, int, int, int))
 {
-	MatterArray mx(R_altrep_data1(x));
+	MatterArray xm(R_altrep_data1(x));
 	int mem = Rf_isNull(R_altrep_data2(x));
-	Rprintf("matter array (mode=%d, len=%d, mem=%d)\n", mx.type(), mx.length(), mem);
+	Rprintf("matter array (mode=%d, len=%d, mem=%d)\n", xm.type(), xm.length(), mem);
 	return TRUE;
 }
 
 static R_xlen_t matter_altarray_Length(SEXP x)
 {
-	MatterArray mx(R_altrep_data1(x));
-	return mx.length();
+	MatterArray xm(R_altrep_data1(x));
+	return xm.length();
 }
 
 static SEXP matter_altarray_Realize(SEXP x)
@@ -107,8 +131,8 @@ static SEXP matter_altarray_Realize(SEXP x)
 	if ( R_altrep_data2(x) == R_NilValue )
 	{
 		SEXP data;
-		MatterArray mx(R_altrep_data1(x));
-		PROTECT(data = mx.getElements(R_NilValue));
+		MatterArray xm(R_altrep_data1(x));
+		PROTECT(data = xm.getElements(R_NilValue));
 		R_set_altrep_data2(x, data);
 		UNPROTECT(1);
 	}
@@ -133,8 +157,8 @@ static const void * matter_altarray_Dataptr_or_null(SEXP x)
 static SEXP matter_altarray_Extract_subset(SEXP x, SEXP indx, SEXP call)
 {
 	MTDEBUG0("matter: raw_Extract_subset() access\n");
-	MatterArray mx(x);
-	return mx.getElements(indx);
+	MatterArray xm(x);
+	return xm.getElements(indx);
 }
 
 // ALTRAW
@@ -142,9 +166,9 @@ static SEXP matter_altarray_Extract_subset(SEXP x, SEXP indx, SEXP call)
 static Rbyte matter_altraw_Elt(SEXP x, R_xlen_t i)
 {
 	MTDEBUG1("matter: raw_Elt(%d) access\n", i);
-	MatterArray mx(x);
+	MatterArray xm(x);
 	Rbyte ans;
-	mx.getRegion(i, 1, &ans);
+	xm.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -152,8 +176,8 @@ static R_xlen_t matter_altraw_Get_region(SEXP x,
 	R_xlen_t i, R_xlen_t size, Rbyte * buffer)
 {
 	MTDEBUG2("matter: raw_Get_region(%d, %d) access\n", i, size);
-	MatterArray mx(x);
-	return mx.getRegion(i, size, buffer);
+	MatterArray xm(x);
+	return xm.getRegion(i, size, buffer);
 }
 
 // ALTLOGICAL
@@ -161,9 +185,9 @@ static R_xlen_t matter_altraw_Get_region(SEXP x,
 static int matter_altlogical_Elt(SEXP x, R_xlen_t i)
 {
 	MTDEBUG1("matter: logical_Elt(%d) access\n", i);
-	MatterArray mx(x);
+	MatterArray xm(x);
 	int ans;
-	mx.getRegion(i, 1, &ans);
+	xm.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -171,8 +195,8 @@ static R_xlen_t matter_altlogical_Get_region(SEXP x,
 	R_xlen_t i, R_xlen_t size, int * buffer)
 {
 	MTDEBUG2("matter: logical_Get_region(%d, %d) access\n", i, size);
-	MatterArray mx(x);
-	return mx.getRegion(i, size, buffer);
+	MatterArray xm(x);
+	return xm.getRegion(i, size, buffer);
 }
 
 // ALTINTEGER
@@ -180,9 +204,9 @@ static R_xlen_t matter_altlogical_Get_region(SEXP x,
 static int matter_altinteger_Elt(SEXP x, R_xlen_t i)
 {
 	MTDEBUG1("matter: integer_Elt(%d) access\n", i);
-	MatterArray mx(x);
+	MatterArray xm(x);
 	int ans;
-	mx.getRegion(i, 1, &ans);
+	xm.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -190,8 +214,8 @@ static R_xlen_t matter_altinteger_Get_region(SEXP x,
 	R_xlen_t i, R_xlen_t size, int * buffer)
 {
 	MTDEBUG2("matter: integer_Get_region(%d, %d) access\n", i, size);
-	MatterArray mx(x);
-	return mx.getRegion(i, size, buffer);
+	MatterArray xm(x);
+	return xm.getRegion(i, size, buffer);
 }
 
 // ALTREAL
@@ -199,9 +223,9 @@ static R_xlen_t matter_altinteger_Get_region(SEXP x,
 static double matter_altreal_Elt(SEXP x, R_xlen_t i)
 {
 	MTDEBUG1("matter: real_Elt(%d) access\n", i);
-	MatterArray mx(x);
+	MatterArray xm(x);
 	double ans;
-	mx.getRegion(i, 1, &ans);
+	xm.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -209,8 +233,8 @@ static R_xlen_t matter_altreal_Get_region(SEXP x,
 	R_xlen_t i, R_xlen_t size, double * buffer)
 {
 	MTDEBUG2("matter: real_Get_region(%d, %d) access\n", i, size);
-	MatterArray mx(x);
-	return mx.getRegion(i, size, buffer);
+	MatterArray xm(x);
+	return xm.getRegion(i, size, buffer);
 }
 
 //// Matter ALTSTRING class
@@ -219,16 +243,16 @@ static R_xlen_t matter_altreal_Get_region(SEXP x,
 static Rboolean matter_altstring_Inspect(SEXP x, int pre, int deep, int pvec,
 	void (*inspect_subtree)(SEXP, int, int, int))
 {
-	MatterStringList mx(R_altrep_data1(x));
+	MatterStringList xm(R_altrep_data1(x));
 	int mem = Rf_isNull(R_altrep_data2(x));
-	Rprintf("matter strings (mode=%d, len=%d, mem=%d)\n", mx.type(), mx.length(), mem);
+	Rprintf("matter strings (mode=%d, len=%d, mem=%d)\n", xm.type(), xm.length(), mem);
 	return TRUE;
 }
 
 static R_xlen_t matter_altstring_Length(SEXP x)
 {
-	MatterStringList mx(R_altrep_data1(x));
-	return mx.length();
+	MatterStringList xm(R_altrep_data1(x));
+	return xm.length();
 }
 
 static SEXP matter_altstring_Realize(SEXP x)
@@ -237,8 +261,8 @@ static SEXP matter_altstring_Realize(SEXP x)
 	if ( R_altrep_data2(x) == R_NilValue )
 	{
 		SEXP data;
-		MatterStringList mx(R_altrep_data1(x));
-		PROTECT(data = mx.getStrings(R_NilValue));
+		MatterStringList xm(R_altrep_data1(x));
+		PROTECT(data = xm.getStrings(R_NilValue));
 		R_set_altrep_data2(x, data);
 		UNPROTECT(1);
 	}
@@ -263,15 +287,15 @@ static const void * matter_altstring_Dataptr_or_null(SEXP x)
 static SEXP matter_altstring_Extract_subset(SEXP x, SEXP indx, SEXP call)
 {
 	MTDEBUG0("matter: raw_Extract_subset() access\n");
-	MatterStringList mx(x);
-	return mx.getStrings(indx);
+	MatterStringList xm(x);
+	return xm.getStrings(indx);
 }
 
 static SEXP matter_altstring_Elt(SEXP x, R_xlen_t i)
 {
 	MTDEBUG1("matter: string_Elt(%d) access\n", i);
-	MatterStringList mx(x);
-	return mx.getChar(i);
+	MatterStringList xm(x);
+	return xm.getChar(i);
 }
 
 //// Initialize Matter ALTREP classes

@@ -81,47 +81,6 @@ setMethod("as.matrix", "matter_vec",
 setMethod("as.array", "matter_vec",
 	function(x, ...) as.array(as(x, "matter_arr"), ...))
 
-setAs("matter_vec", "matter_mat", function(from) {
-	new("matter_matc",
-		data=from@data,
-		datamode=from@datamode,
-		paths=from@paths,
-		filemode=from@filemode,
-		length=from@length,
-		dim=c(as.integer(from@length), 1L),
-		names=NULL,
-		dimnames=if ( !is.null(from@names) ) list(NULL, from@names) else NULL,
-		ops=from@ops)
-})
-
-setAs("matter_vec", "matter_arr", function(from) {
-	new("matter_arr",
-		data=from@data,
-		datamode=from@datamode,
-		paths=from@paths,
-		filemode=from@filemode,
-		length=from@length,
-		dim=as.integer(from@length),
-		names=NULL,
-		dimnames=if ( !is.null(from@names) ) list(from@names) else NULL,
-		ops=from@ops)
-})
-
-setAs("matter_vec", "matter_list", function(from) {
-	if ( !is.null(from@ops) )
-		warning("dropping delayed operations")
-	new("matter_list",
-		data=from@data,
-		datamode=from@datamode,
-		paths=from@paths,
-		filemode=from@filemode,
-		length=1,
-		dim=as.integer(from@length),
-		names=NULL,
-		dimnames=if ( !is.null(from@names) ) list(from@names) else NULL,
-		ops=NULL)
-})
-
 #### matter_mat ####
 
 setAs("matter_mat", "matrix", function(from) as.native(from))
@@ -139,43 +98,6 @@ setMethod("as.logical", "matter_mat", function(x, ...) as.logical(as(x, "matter_
 setMethod("as.integer", "matter_mat", function(x, ...) as.integer(as(x, "matter_vec"), ...))
 
 setMethod("as.numeric", "matter_mat", function(x, ...) as.numeric(as(x, "matter_vec"), ...))
-
-setAs("matter_mat", "matter_arr", function(from) {
-	to <- as(as(from, "matter_vec"), "matter_arr")
-	dim(to) <- dim(from)
-	to
-})
-
-setAs("matter_mat", "matter_vec", function(from) {
-	if ( !is.null(from@ops) )
-		warning("dropping delayed operations")
-	new("matter_vec",
-		data=drop_groups_from_atoms(from@data),
-		datamode=from@datamode,
-		paths=from@paths,
-		filemode=from@filemode,
-		length=from@length,
-		dim=NULL,
-		names=NULL,
-		dimnames=NULL,
-		ops=NULL)
-})
-
-setAs("matter_mat", "matter_list", function(from) {
-	if ( !is.null(from@ops) )
-		warning("dropping delayed operations")
-	new("matter_list",
-		data=from@data,
-		datamode=rep(from@datamode, length(from@data)),
-		paths=from@paths,
-		filemode=from@filemode,
-		length=length(from@data),
-		dim=rep(as.integer(prod(from@dim) / length(from@data)),
-			length(from@data)),
-		names=NULL,
-		dimnames=NULL,
-		ops=NULL)
-})
 
 #### matter_arr ####
 
@@ -195,88 +117,21 @@ setMethod("as.integer", "matter_arr", function(x, ...) as.integer(as(x, "matter_
 
 setMethod("as.numeric", "matter_arr", function(x, ...) as.numeric(as(x, "matter_vec"), ...))
 
-setAs("matter_arr", "matter_vec", function(from) {
-	new("matter_vec",
-		data=from@data,
-		datamode=from@datamode,
-		paths=from@paths,
-		filemode=from@filemode,
-		length=from@length,
-		dim=NULL,
-		names=NULL,
-		dimnames=NULL,
-		ops=from@ops)
-})
-
 #### matter_str ####
 
 setAs("matter_str", "character", function(from) as.native(from))
 
 setMethod("as.character", "matter_str", function(x, ...) as.native(x, ...))
 
-#### matter_fc ####
+#### matter_fct ####
 
-setAs("matter_fc", "factor", function(from) as.native(from))
+setAs("matter_fct", "factor", function(from) as.native(from))
 
-setMethod("as.factor", "matter_fc", function(x) as.native(x))
+setMethod("as.factor", "matter_fct", function(x) as.native(x))
 
 #### matter_list ####
 
 setAs("matter_list", "list", function(from) as.nativelist(from))
 
 setMethod("as.list", "matter_list", function(x, ...) as.nativelist(x, ...))
-
-setAs("matter_list", "matter_vec", function(from) {
-	new("matter_vec",
-		data=drop_groups_from_atoms(from@data),
-		datamode=widest_datamode(from@datamode),
-		paths=from@paths,
-		filemode=from@filemode,
-		length=as.numeric(sum(from@dim)),
-		dim=NULL,
-		names=NULL,
-		dimnames=NULL,
-		ops=NULL)
-})
-
-setAs("matter_list", "matter_matc", function(from) {
-	if ( length(unique(from@dim)) != 1L )
-		stop("all elements must be the same length")
-	new("matter_matc",
-		data=from@data,
-		datamode=widest_datamode(from@datamode),
-		paths=from@paths,
-		filemode=from@filemode,
-		length=as.numeric(sum(from@dim)),
-		dim=c(from@dim[1L], from@length),
-		names=NULL,
-		dimnames=if ( !is.null(from@names) ) list(NULL, from@names) else NULL,
-		ops=NULL)
-})
-
-setAs("matter_list", "matter_matr", function(from) {
-	if ( length(unique(from@dim)) != 1L )
-		stop("all elements must be the same length")
-	new("matter_matr",
-		data=from@data,
-		datamode=widest_datamode(from@datamode),
-		paths=from@paths,
-		filemode=from@filemode,
-		length=as.numeric(sum(from@dim)),
-		dim=c(from@length, from@dim[1L]),
-		names=NULL,
-		dimnames=if ( !is.null(from@names) ) list(from@names, NULL) else NULL,
-		ops=NULL)
-})
-
-#### virtual_df + matter_df ####
-
-setAs("virtual_df", "data.frame", function(from) from[])
-
-setMethod("as.data.frame", "virtual_df", function(x) as(x, "data.frame"))
-
-setAs("matter_df", "data.frame", function(from) as.native(from))
-
-setMethod("as.data.frame", "matter_df", function(x, ...) as.native(x, ...))
-
 
