@@ -25,7 +25,6 @@ class Sparse
 			_tol = Rf_asReal(tol);
 			_tol_type = Rf_asInteger(tol_type);
 			_sampler = Rf_asInteger(R_do_slot(x, Rf_install("sampler")));
-			set_matter_options();
 		}
 
 		~Sparse() {}
@@ -38,7 +37,7 @@ class Sparse
 			switch(_datamode[0]) {
 				case R_INTEGER:
 					return INTSXP;
-				case R_NUMERIC:
+				case R_DOUBLE:
 					return REALSXP;
 				default:
 					Rf_error("unsupported 'datamode'");
@@ -58,7 +57,7 @@ class Sparse
 				switch(Rf_asInteger(mode)) {
 					case R_INTEGER:
 						return INTSXP;
-					case R_NUMERIC:
+					case R_DOUBLE:
 						return REALSXP;
 					default:
 						Rf_error("unsupported index type");
@@ -98,9 +97,8 @@ class Sparse
 			Pair<index_t,index_t> p;
 			if ( has_pointers() )
 			{
-				Rindex_t * ptr = DataPtr<Rindex_t>(_pointers);
-				p.first = static_cast<index_t>(ptr[i]);
-				p.second = static_cast<index_t>(ptr[i + 1]);
+				p.first = IndexElt(_pointers, i);
+				p.second = IndexElt(_pointers, i + 1);
 			}
 			else
 			{
@@ -143,7 +141,7 @@ class Sparse
 		}
 
 		int tol_ref() {
-			return _tol_type == ABS_COMPARE ? ABS_DIFF : REL_DIFF_Y;
+			return _tol_type == ABS_DIFF ? ABS_DIFF : REL_DIFF_Y;
 		}
 
 		int sampler() {

@@ -42,11 +42,11 @@ extern "C" {
 
 	void R_init_matter(DllInfo * info)
 	{
-		init_MatterAlt_raw(info);
-		init_MatterAlt_logical(info);
-		init_MatterAlt_integer(info);
-		init_MatterAlt_real(info);
-		init_MatterAlt_string(info);
+		init_matter_altraw(info);
+		init_matter_altlogical(info);
+		init_matter_altinteger(info);
+		init_matter_altreal(info);
+		init_matter_altstring(info);
 		R_registerRoutines(info, NULL, callMethods, NULL, NULL);
 	}
 

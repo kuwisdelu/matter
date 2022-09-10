@@ -82,7 +82,7 @@ class Matter {
 		SEXP _type;
 		SEXP _dim;
 		SEXP _names;
-		SEXP _dimnames
+		SEXP _dimnames;
 
 };
 
@@ -639,6 +639,16 @@ class MatterStringList : public MatterList {
 					indk = IndexElt(i, k) - 1;
 				setChar(indk, j, STRING_ELT(value, k));
 			}
+		}
+
+		SEXP getStrings(SEXP i)
+		{
+			return getStrings(i, R_NilValue);
+		}
+
+		void setStrings(SEXP i, SEXP value)
+		{
+			setStrings(i, R_NilValue, value);
 		}
 
 };

@@ -252,7 +252,7 @@ int32_t coerce_cast(uint64_t x) {
 }
 
 template<> inline
-int32_t coerce_cast<float,int32_t>(float x) {
+int32_t coerce_cast(float x) {
 	if ( std::isnan(x) )
 		return NA_INTEGER;
 	else

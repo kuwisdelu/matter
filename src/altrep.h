@@ -11,11 +11,11 @@ extern "C" {
 //// ALTREP matter class
 //-----------------------
 
-static R_altrep_class_t MatterAlt_raw;
-static R_altrep_class_t MatterAlt_logical;
-static R_altrep_class_t MatterAlt_integer;
-static R_altrep_class_t MatterAlt_real;
-static R_altrep_class_t MatterAlt_string;
+static R_altrep_class_t matter_altraw;
+static R_altrep_class_t matter_altlogical;
+static R_altrep_class_t matter_altinteger;
+static R_altrep_class_t matter_altreal;
+static R_altrep_class_t matter_altstring;
 
 /* Matter-backed ALTREP objects
 	---------------------------
@@ -60,13 +60,13 @@ static Rbyte matter_altraw_Elt(SEXP x, R_xlen_t i);
 static R_xlen_t matter_altraw_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, Rbyte * buffer);
 
 static int matter_altlogical_Elt(SEXP x, R_xlen_t i);
-static R_xlen_t matter_altlogical_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, Rbyte * buffer);
+static R_xlen_t matter_altlogical_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, int * buffer);
 
 static int matter_altinteger_Elt(SEXP x, R_xlen_t i);
-static R_xlen_t matter_altinteger_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, Rbyte * buffer);
+static R_xlen_t matter_altinteger_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, int * buffer);
 
 static double matter_altreal_Elt(SEXP x, R_xlen_t i);
-static R_xlen_t matter_altreal_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, Rbyte * buffer);
+static R_xlen_t matter_altreal_Get_region(SEXP x, R_xlen_t i, R_xlen_t size, double * buffer);
 
 //// Matter ALTSTRING class
 //--------------------------
@@ -78,7 +78,6 @@ static const void * matter_altstring_Dataptr_or_null(SEXP x);
 static SEXP matter_altstring_Extract_subset(SEXP x, SEXP indx, SEXP call);
 
 static SEXP matter_altstring_Elt(SEXP x, R_xlen_t i);
-static R_xlen_t matter_altstring_Get_region(SEXP x,R_xlen_t i, R_xlen_t size, Rbyte * buffer);
 
 
 } // extern "C"

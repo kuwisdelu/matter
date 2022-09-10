@@ -11,7 +11,6 @@ SEXP newMatterAltrep(SEXP x, SEXP attr,
 	SEXP ans;
 	R_altrep_class_t cls;
 	PROTECT(x);
-	PROTECT(ans);
 	if ( Rf_inherits(x, "matter") )
 	{
 		if ( MAYBE_REFERENCED(x) )
@@ -29,7 +28,7 @@ SEXP newMatterAltrep(SEXP x, SEXP attr,
 				case R_INTEGER:
 					cls = matter_altinteger;
 					break;
-				case R_NUMERIC:
+				case R_DOUBLE:
 					cls = matter_altreal;
 					break;
 				default:
@@ -40,7 +39,7 @@ SEXP newMatterAltrep(SEXP x, SEXP attr,
 			cls = matter_altstring;
 		else
 			Rf_error("ALTREP not supported for this matter class");
-		ans = R_new_altrep(cls, x, R_NilValue);
+		PROTECT(ans = R_new_altrep(cls, x, R_NilValue));
 		MARK_NOT_MUTABLE(ans);
 	}
 	else if ( Rf_isVector(x) )
@@ -52,7 +51,7 @@ SEXP newMatterAltrep(SEXP x, SEXP attr,
 			else
 				x = Rf_duplicate(x);
 		}
-		ans = x;
+		PROTECT(ans = x);
 	}
 	else {
 		Rf_error("ALTREP not supported for this class");
@@ -113,7 +112,7 @@ static SEXP matter_altarray_Realize(SEXP x)
 		R_set_altrep_data2(x, data);
 		UNPROTECT(1);
 	}
-	return R_altrep_data2(x)
+	return R_altrep_data2(x);
 }
 
 static void * matter_altarray_Dataptr(SEXP x, Rboolean writeable)
@@ -125,7 +124,7 @@ static void * matter_altarray_Dataptr(SEXP x, Rboolean writeable)
 static const void * matter_altarray_Dataptr_or_null(SEXP x)
 {
 	MTDEBUG0("matter: Dataptr_or_null() access\n");
-	if ( Rf_isNULL(R_altrep_data2(x)) )
+	if ( Rf_isNull(R_altrep_data2(x)) )
 		return NULL;
 	else
 		return DATAPTR(R_altrep_data2(x));
@@ -145,7 +144,7 @@ static Rbyte matter_altraw_Elt(SEXP x, R_xlen_t i)
 	MTDEBUG1("matter: raw_Elt(%d) access\n", i);
 	MatterArray mx(x);
 	Rbyte ans;
-	mx.getRegion(i, 1 &ans);
+	mx.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -164,7 +163,7 @@ static int matter_altlogical_Elt(SEXP x, R_xlen_t i)
 	MTDEBUG1("matter: logical_Elt(%d) access\n", i);
 	MatterArray mx(x);
 	int ans;
-	mx.getRegion(i, 1 &ans);
+	mx.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -183,7 +182,7 @@ static int matter_altinteger_Elt(SEXP x, R_xlen_t i)
 	MTDEBUG1("matter: integer_Elt(%d) access\n", i);
 	MatterArray mx(x);
 	int ans;
-	mx.getRegion(i, 1 &ans);
+	mx.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -202,7 +201,7 @@ static double matter_altreal_Elt(SEXP x, R_xlen_t i)
 	MTDEBUG1("matter: real_Elt(%d) access\n", i);
 	MatterArray mx(x);
 	double ans;
-	mx.getRegion(i, 1 &ans);
+	mx.getRegion(i, 1, &ans);
 	return ans;
 }
 
@@ -243,7 +242,7 @@ static SEXP matter_altstring_Realize(SEXP x)
 		R_set_altrep_data2(x, data);
 		UNPROTECT(1);
 	}
-	return R_altrep_data2(x)
+	return R_altrep_data2(x);
 }
 
 static void * matter_altstring_Dataptr(SEXP x, Rboolean writeable)
@@ -255,7 +254,7 @@ static void * matter_altstring_Dataptr(SEXP x, Rboolean writeable)
 static const void * matter_altstring_Dataptr_or_null(SEXP x)
 {
 	MTDEBUG0("matter: Dataptr_or_null() access\n");
-	if ( Rf_isNULL(R_altrep_data2(x)) )
+	if ( Rf_isNull(R_altrep_data2(x)) )
 		return NULL;
 	else
 		return DATAPTR(R_altrep_data2(x));
