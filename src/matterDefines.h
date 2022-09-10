@@ -7,6 +7,19 @@
 #include <R.h>
 #include <Rinternals.h>
 
+// uncomment to get debug messages
+// #define MATTER_DEBUG
+
+#ifdef MATTER_DEBUG
+	#define MTDEBUG0(x) Rprintf((x))
+	#define MTDEBUG1(x, i) Rprintf((x), (i))
+	#define MTDEBUG2(x, i, j) Rprintf((x), (i), (j))
+#else
+	#define MTDEBUG0(x)
+	#define MTDEBUG1(x, i)
+	#define MTDEBUG2(x, i, j)
+#endif
+
 //// Constants
 //--------------
 
@@ -38,23 +51,29 @@
 #define C_DOUBLE	10
 
 // Ops
-// #define OP_ADD		1	// +
-// #define OP_SUB		2	// -
-// #define OP_MUL		3	// *
-// #define OP_EXP		4	// ^
-// #define OP_MOD		5	// %%
-// #define OP_IDIV		6	// %/%
-// #define OP_DIV		7	// /
-// #define OP_EQ		8	// ==
-// #define OP_GT		9	// >
-// #define OP_LT		10	// <
-// #define OP_NE		11	// !=
-// #define OP_LE		12	// <=
-// #define OP_GE		13	// >=
-// #define OP_AND		14	// &
-// #define OP_OR		15	// |
+#define OP_ADD		1	// +
+#define OP_SUB		2	// -
+#define OP_MUL		3	// *
+#define OP_EXP		4	// ^
+#define OP_MOD		5	// %%
+#define OP_IDIV		6	// %/%
+#define OP_DIV		7	// /
+#define OP_EQ		8	// ==
+#define OP_GT		9	// >
+#define OP_LT		10	// <
+#define OP_NE		11	// !=
+#define OP_LE		12	// <=
+#define OP_GE		13	// >=
+#define OP_AND		14	// &
+#define OP_OR		15	// |
 
-// Summary + Stats
+// Math
+#define MATH_LOG	1	// log
+#define MATH_LOG10	2	// log10
+#define MATH_LOG2	3	// log2
+#define MATH_EXP	4	// exp
+
+// Summary
 #define STAT_MAX		1	// max
 #define STAT_MIN		2	// min
 #define STAT_RANGE		3	// range
@@ -62,11 +81,10 @@
 #define STAT_SUM		5	// sum
 #define STAT_ANY		6	// any
 #define STAT_ALL		7	// all
-// Stats (matter defined)
-#define STAT_MEAN		8	// mean
-#define STAT_SD			9	// sd
-#define STAT_VAR		10	// var
-#define STAT_NNZ		11	// nnzero
+#define STAT_MEAN		8	// mean (matter)
+#define STAT_SD			9	// sd (matter)
+#define STAT_VAR		10	// var (matter)
+#define STAT_NNZ		11	// nnzero (matter)
 
 // Limits
 #define NA_CHAR CHAR_MIN

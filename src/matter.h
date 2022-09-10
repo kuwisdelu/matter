@@ -82,7 +82,7 @@ class Matter {
 		SEXP _type;
 		SEXP _dim;
 		SEXP _names;
-		SEXP _dimnames;
+		SEXP _dimnames
 
 };
 
