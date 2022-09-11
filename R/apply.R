@@ -368,7 +368,7 @@ remote_collect <- function(ans, path, simplify) {
 	nms <- names(ans)
 	dnm <- list(NULL, nms)
 	ans <- do.call(rbind, ans)
-	mode <- make_datamode(ans[,1], type="R")
+	mode <- as_Rtype(ans[,1])
 	mode <- as.character(mode)
 	offset <- ans[,2]
 	extent <- ans[,3]

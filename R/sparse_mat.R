@@ -9,17 +9,6 @@ setClass("sparse_mat",
 		dim = "integer",
 		names = "NULL",
 		length = "NULL"),
-	prototype = prototype(
-		data = numeric(),
-		datamode = make_datamode("numeric", type="R"),
-		index = integer(),
-		domain = NULL,
-		offset = 0L,
-		pointers = NULL,
-		dim = c(0L,0L),
-		dimnames = NULL,
-		tolerance = make_tolerance(0),
-		sampler = make_sampler("none")),
 	contains = c("sparse_", "VIRTUAL"),
 	validity = function(object) {
 		errors <- NULL
@@ -193,18 +182,17 @@ sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 	}
 	new(if (rowMaj) "sparse_matr" else "sparse_matc",
 		data=data,
-		datamode=make_datamode(datamode, type="R"),
+		datamode=as_Rtype(datamode),
 		index=index,
 		domain=domain,
 		offset=as.integer(offset),
 		pointers=pointers,
 		paths=character(),
-		filemode=make_filemode(),
 		chunksize=as.integer(chunksize),
 		dim=as.integer(c(nrow, ncol)),
 		dimnames=dimnames,
-		tolerance=make_tolerance(tolerance),
-		sampler=make_sampler(sampler))
+		tolerance=as_tol(tolerance),
+		sampler=as_kernel(sampler))
 }
 
 setMethod("describe_for_display", "sparse_mat", function(x) {

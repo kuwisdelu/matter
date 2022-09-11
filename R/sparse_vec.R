@@ -9,16 +9,6 @@ setClass("sparse_vec",
 		pointers = "NULL",
 		dim = "NULL",
 		dimnames = "NULL"),
-	prototype = prototype(
-		data = numeric(),
-		datamode = make_datamode("numeric", type="R"),
-		index = integer(),
-		domain = NULL,
-		offset = 0L,
-		length = 0,
-		names = NULL,
-		tolerance = make_tolerance(0),
-		sampler = make_sampler("none")),
 	contains = "sparse_",
 	validity = function(object) {
 		errors <- NULL
@@ -55,17 +45,15 @@ sparse_vec <- function(data, index, datamode = "double", length = 0,
 	}
 	new("sparse_vec",
 		data=data,
-		datamode=make_datamode(datamode, type="R"),
+		datamode=as_Rtype(datamode),
 		index=index,
 		domain=domain,
 		offset=as.integer(offset),
 		paths=character(),
-		filemode=make_filemode(),
-		chunksize=as.integer(chunksize),
 		length=length,
 		names=names,
-		tolerance=make_tolerance(tolerance),
-		sampler=make_sampler(sampler))
+		tolerance=as_tol(tolerance),
+		sampler=as_kernel(sampler))
 }
 
 setMethod("describe_for_display", "sparse_vec", function(x) {

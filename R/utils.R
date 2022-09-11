@@ -15,124 +15,305 @@
 	options(matter.dump.dir = tempdir())
 }
 
-#### Find local maxima and local minima ####
-## -----------------------------------------
+#### Normalize subscripts ####
+## ----------------------------
 
-locmax <- function(x, halfWindow = 2, findLimits = FALSE)
-{
-	if ( halfWindow <= 0 )
-		stop("'halfWindow' must be a positive integer")
-	halfWindow <- as.integer(halfWindow)
-	ans <- .Call("C_localMaxima", x, halfWindow, PACKAGE="matter")
-	ans <- which(ans)
-	if ( findLimits ) {
-		lims <- .Call("C_regionMaxima", x, ans, halfWindow, PACKAGE="matter")
-		attr(ans, "lower") <- lims[[1]]
-		attr(ans, "upper") <- lims[[2]]
-	}
-	ans
+as_subscripts <- function(i, x, exact = TRUE) {
+	if ( missing(i) )
+		return(NULL)
+	if ( is.logical(i) )
+		i <- which(rep_len(i, length(x)))
+	if ( !is.numeric(i) )
+		if ( exact ) {
+			i <- match(i, names(x))
+		} else {
+			i <- pmatch(i, names(x))
+		}
+	i
 }
 
-#### Binning ####
-## ---------------
-
-binvec <- function(x, u, v, method = "sum")
-{
-	if ( length(u) == length(x) ) {
-		u <- as.factor(u)
-		group <- as.integer(u)
-		ngroup <- nlevels(u)
-		if ( is.function(method) ) {
-			groupCombiner(method)(x, group, ngroup, NA)
+as_array_subscripts <- function(i, x, margin, exact = TRUE) {
+	if ( missing(i) )
+		return(NULL)
+	if ( is.list(i) || missing(margin) ) {
+		i <- rep_len(i, length(dim(x)))
+		return(lapply(seq_along(i), function(j)
+			as_array_subscripts(i[[j]], x, j, exact)))
+	}
+	if ( is.null(i) ) {
+		i <- seq_len(dim(x)[margin])
+	} else if ( is.logical(i) ) {
+		i <- which(rep_len(i, dim(x)[[margin]]))
+	} else if ( !is.numeric(i) ) {
+		if ( exact ) {
+			i <- match(i, dimnames(x)[[margin]])
 		} else {
-			method <- pmatch(method, c("sum", "mean", "min", "max"))
-			switch(method,
-				.Call("C_groupSums", x, group, ngroup, NA, PACKAGE="matter"),
-				.Call("C_groupMeans", x, group, ngroup, NA, PACKAGE="matter"),
-				.Call("C_groupMins", x, group, ngroup, NA, PACKAGE="matter"),
-				.Call("C_groupMaxs", x, group, ngroup, NA, PACKAGE="matter"))
+			i <- pmatch(i, dimnames(x)[[margin]])
+		}
+	}
+	i
+}
+
+as_row_subscripts <- function(i, x, exact = TRUE) {
+	as_array_subscripts(i, x, 1L, exact)
+}
+
+as_col_subscripts <- function(i, x, exact = TRUE) {
+	as_array_subscripts(i, x, 2L, exact)
+}
+
+# export
+linear_ind <- function(index, dim, rowMaj = FALSE) {
+	if ( is.null(index) )
+		return(seq_len(prod(dim)))
+	if ( is.list(index) ) {
+		for ( j in seq_along(dim) ) {
+			if ( is.null(index[[j]]) )
+				index[[j]] <- seq_len(dim[j])
+		}
+		ans.dim <- lengths(index)
+		if ( rowMaj ) {
+			index <- as.matrix(rev(expand.grid(rev(index))))
+		} else {
+			index <- as.matrix(expand.grid(index))
 		}
 	} else {
-		if ( missing(v) ) {
-			v <- u[-1] - 1L
-			u <- u[-length(u)]
-		}
-		if ( length(u) != length(v) )
-			stop("'u' and 'v' must be the same length")
-		u <- as.integer(u)
-		v <- as.integer(v)
-		if ( is.function(method) ) {
-			binFun(method)(x, u, v)
+		ans.dim <- NULL
+	}
+	index <- as.matrix(index)
+	for ( j in seq_along(dim) ) {
+		i <- index[,j]
+		if ( any(!is.na(i) & (i <= 0 | i > dim[j])) )
+			stop("subscript out of bounds")
+	}
+	if ( rowMaj ) {
+		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
+	} else {
+		strides <- c(1L, cumprod(dim[-length(dim)]))
+	}
+	index <- ((index - 1L) %*% strides) + 1L
+	if ( !is.null(ans.dim) ) {
+		if ( rowMaj ) {
+			ord <- aperm(array(seq_along(index), rev(ans.dim)))
 		} else {
-			method <- pmatch(method, c("sum", "mean", "min", "max"))
-			switch(method,
-				.Call("C_binSums", x, u, v, PACKAGE="matter"),
-				.Call("C_binMeans", x, u, v, PACKAGE="matter"),
-				.Call("C_binMins", x, u, v, PACKAGE="matter"),
-				.Call("C_binMaxs", x, u, v, PACKAGE="matter"))
+			ord <- array(seq_along(index), ans.dim)
 		}
+		storage.mode(ord) <- typeof(index)
+		attr(index, "order") <- ord
 	}
+	index
 }
 
-#### Summarise vectors based on bin intervals ####
-## -----------------------------------------------
-
-binMeans <- function(x, lower, upper) {
-	.Call("C_binMeans", x, lower, upper, PACKAGE="matter")
-}
-
-binSums <- function(x, lower, upper) {
-	.Call("C_binSums", x, lower, upper, PACKAGE="matter")
-}
-
-binMins <- function(x, lower, upper) {
-	.Call("C_binMins", x, lower, upper, PACKAGE="matter")
-}
-
-binMaxs <- function(x, lower, upper) {
-	.Call("C_binMaxs", x, lower, upper, PACKAGE="matter")
-}
-
-binFun <- function(fun) {
-	function(x, u, v) {
-		mapply(function(i, j) fun(x[i:j]), u, v, SIMPLIFY=TRUE)
+# export
+array_ind <- function(i, dim, rowMaj = FALSE) {
+	i <- i - 1L
+	if ( rowMaj ) {
+		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
+	} else {
+		strides <- c(1L, cumprod(dim[-length(dim)]))
 	}
-}
-
-#### Summarise vectors based on integer groupings ####
-## --------------------------------------------------
-
-groupMeans <- function(x, group, ngroup, default=NA) {
-	.Call("C_groupMeans", x, group, ngroup, default, PACKAGE="matter")
-}
-
-groupSums <- function(x, group, ngroup, default=NA) {
-	.Call("C_groupSums", x, group, ngroup, default, PACKAGE="matter")
-}
-
-groupMins <- function(x, group, ngroup, default=NA) {
-	.Call("C_groupMins", x, group, ngroup, default, PACKAGE="matter")
-}
-
-groupMaxs <- function(x, group, ngroup, default=NA) {
-	.Call("C_groupMaxs", x, group, ngroup, default, PACKAGE="matter")
-}
-
-groupIds <- function(x, group, ngroup, default=NA) {
-	vals <- vector(mode=typeof(x), length=ngroup)
-	if ( anyDuplicated(group, incomparables=NA) > 0 )
-		stop("duplicate key matches, can't resolve collision")
-	vals[] <- default
-	na_rm <- !is.na(group)
-	vals[group[na_rm]] <- x[na_rm]
-	vals
-}
-
-groupCombiner <- function(fun) {
-	function(x, group, ngroup, default=NA) {
-		group <- factor(group, levels=seq_len(ngroup))
-		as.vector(tapply(x, group, fun, default=default))
+	index <- matrix(nrow=length(i), ncol=length(dim))
+	for ( j in seq_along(dim) ) {
+		nextind <- i %/% strides[j]
+		index[,j] <- nextind %% dim[j]
 	}
+	index + 1L
+}
+
+#### Data type codes and type conversions ####
+## ---------------------------------------------
+
+make_code <- function(codes, x, nomatch = NA_integer_) {
+	if ( missing(x) )
+		x <- character()
+	if ( is.factor(x) && setequal(levels(x), codes) )
+		return(x)
+	if ( !is.numeric(x) )
+		x <- pmatch(tolower(x), codes, nomatch, TRUE)
+	factor(x, levels=seq_along(codes), labels=codes)
+}
+
+# export
+get_Rtypes <- function() {
+	codes <- c("raw", "logical", "integer",
+		"double", "character", "list")
+}
+
+# export
+get_Ctypes <- function() {
+	codes <- c("char", "uchar", "short", "ushort",
+		"int", "uint", "long", "ulong",
+		"float", "double")
+}
+
+# export
+as_Rtype <- function(x) {
+	if ( !missing(x) ) {
+		if ( is_Rtype(x, strict=TRUE) )
+			return(x)
+		if ( is_Ctype(x) && !is_Rtype(x) )
+			return(to_Rtype(as_Ctype(x)))
+	}
+	if ( !missing(x) && is.character(x) ) {
+		# allow 'numeric' as synonym for 'double'
+		i <- pmatch(x, "numeric", 0L, TRUE)
+		i <- which(as.logical(i))
+		if ( length(i) > 0 )
+			x[i] <- "double"
+	}
+	make_code(get_Rtypes(), x)
+}
+
+# export
+as_Ctype <- function(x) {
+	if ( !missing(x) ) {
+		if ( is_Ctype(x, strict=TRUE) )
+			return(x)
+		if ( is_Rtype(x) && !is_Ctype(x) )
+			return(to_Ctype(as_Rtype(x)))
+	}
+	
+	make_code(get_Ctypes(), x)
+}
+
+is_Rtype <- function(x, strict = FALSE) {
+	codes <- get_Rtypes()
+	valid <- is.factor(x) && setequal(levels(x), codes)
+	valid || (all(x %in% codes) && !strict)
+}
+
+is_Ctype <- function(x, strict = FALSE) {
+	codes <- get_Ctypes()
+	valid <- is.factor(x) && setequal(levels(x), codes)
+	valid || (all(x %in% codes) && !strict)
+}
+
+to_Rtype <- function(x) {
+	codes <- c(char = "character", uchar = "raw",
+		short = "integer", ushort = "integer",
+		int = "integer", uint = "integer",
+		long = "double", ulong = "double",
+		float = "double", double = "double")
+	as_Rtype(codes[as.integer(as_Ctype(x))])
+}
+
+to_Ctype <- function(x) {
+	codes <- c(raw = "uchar", logical = "int",
+		integer = "int", numeric = "double",
+		character = "char", list = NA_character_)
+	as_Ctype(codes[as.integer(as_Rtype(x))])
+}
+
+# export
+sizeof <- function(x) {
+	sizes <- c(char = 1L, uchar = 1L, short = 2L, ushort = 2L,
+		int = 4L, uint = 4L, long = 8L, ulong = 8L,
+		float = 4L, double = 8L)
+	sizes[as.integer(as_Ctype(x))]
+}
+
+topmode_Rtype <- function(x) {
+	x <- as_Rtype(x)
+	codes <- levels(x)
+	as_Rtype(codes[max(as.integer(x))])
+}
+
+#### Codes for C-level switch statements ####
+## ------------------------------------------
+
+as_Op <- function(x) {
+	codes <- c(
+		# Arith (1-7)
+		"+", "-", "*", "^", "%%", "%/%", "/",
+		# Compare (8-13)
+		"==", ">", "<", "!=", "<=", ">=",
+		# Logic (14-15)
+		"&", "|",
+		# Math (16+)
+		"log", "log10", "log2", "log1p", "exp")
+	make_code(codes, x)
+}
+
+as_Summary <- function(x) {
+	codes <- c(
+		# Summary (1-7)
+		"max", "min", "range", "prod", "sum", "any", "all",
+		# Statistics (8-11)
+		"mean", "var", "sd", "nnzero")
+	make_code(codes, x)
+}
+
+# export
+as_tol <- function(x) {
+	tol <- x[1L]
+	codes <- c("absolute", "relative")
+	if ( !is.null(names(tol)) ) {
+		tol_type <- pmatch(names(tol), codes, nomatch=1L)
+	} else {
+		tol_type <- 1L
+	}
+	tol_type <- factor(type, levels=c(1L, 2L), labels=codes)
+	structure(as.integer(tol), tol_type=tol_type)
+}
+
+as_tol_ref <- function(x) {
+	codes <- c("abs", "x", "y")
+	make_code(codes, x[1L], nomatch=1L)
+}
+
+# export
+as_kernel <- function(x) {
+	codes <- c(
+		# simple interp (1-5)
+		"none", "mean", "sum", "max", "min",
+		# peak-based (6)
+		"auc",
+		# spline interp (7-8)
+		"linear", "cubic",
+		# kernel interp (9-10)
+		"gaussian", "lanczos")
+	make_code(codes, x)
+}
+
+#### Miscellaneous utility functions ####
+## --------------------------------------
+
+is_nil <- function(x) is.na(x) || is.null(x)
+
+set_names <- function(x, nm, i) {
+	if ( !missing(i) && !is.null(i) )
+		nm <- nm[i]
+	names(x) <- nm
+	x
+}
+
+set_dimnames <- function(x, dnm, index) {
+	if ( !missing(index) && !is.null(index) )
+		for ( i in seq_along(index) ) {
+			j <- index[[i]]
+			if ( !is.null(dnm[[i]]) && !is.null(j) )
+				dnm[[i]] <- dnm[[i]][j]
+		}
+	dimnames(x) <- dnm
+	x
+}
+
+check_comformable_lengths <- function(x, y) {
+	if ( is.vector(x) ) {
+		return(check_comformable_lengths(y, x))
+	} else if ( length(y) != 1 && length(y) != length(x) ) {
+		return("argument length is non-conformable with array length")
+	}
+	TRUE
+}
+
+check_comformable_dims <- function(x, y, margin = 1L) {
+	if ( is.vector(x) ) {
+		return(check_comformable_dims(y, x))
+	} else if ( length(y) != 1 && length(y) != dim(x)[margin] ) {
+		return("argument length is non-conformable with array dimensions")
+	}
+	TRUE
 }
 
 #### Show utility functions ####
@@ -140,13 +321,21 @@ groupCombiner <- function(fun) {
 
 show_matter_memory_and_storage <- function(object) {
 	object.memory <- object.size(object)
-	class(object.memory) <- "num_bytes"
+	class(object.memory) <- "size_bytes"
 	rmem <- format(object.memory, units="auto")
 	if ( is.matter(object) ) {
 		vmem <- format(vm_used(object), units="auto")
 		cat("(", rmem, " real", " | ", vmem, " virtual)\n", sep="")
 	} else {
 		cat("(", rmem, " real)\n", sep="")
+	}
+}
+
+paste_head <- function(x, n=getOption("matter.show.head.n"), collapse=" ") {
+	if ( length(x) > n ) {
+		paste0(paste0(head(x, n=n), collapse=collapse), " ...")
+	} else {
+		paste0(x, collapse=collapse)
 	}
 }
 
@@ -328,36 +517,6 @@ apply_int <- function(x, margin, fun, fun.value, ...) {
 	}
 }
 
-check_compatible_classes <- function(x, y) {
-	if ( !inherits(y, class(x)) ) {
-		stop("incompatible classes: ",
-			class(x)[1L], ", ", class(y)[1L])
-	} else {
-		TRUE
-	}
-}
-
-stringsToFactors <- function(x) {
-	if ( is.character(x) ) {
-		as.factor(x)
-	} else {
-		x
-	}
-}
-
-returnWithWarning <- function(x, ...) {
-	warning(...)
-	x
-}
-
-paste_head <- function(x, n=getOption("matter.show.head.n"), collapse=" ") {
-	if ( length(x) > n ) {
-		paste0(paste0(head(x, n=n), collapse=collapse), " ...")
-	} else {
-		paste0(x, collapse=collapse)
-	}
-}
-
 collect_by_key <- function(x, reduce) {
 	keys <- unique(names(x))
 	ans <- lapply(keys, function(k) {
@@ -367,174 +526,8 @@ collect_by_key <- function(x, reduce) {
 	ans
 }
 
-logical2index <- function(x, i, margin) {
-	if ( missing(margin) ) {
-		len <- length(x)
-	} else {
-		len <- dim(x)[margin]
-	}
-	as.numeric(which(rep(i, length.out=len)))
-}
-
-names2index <- function(x, i, exact) {
-	if ( missing(exact) )
-		exact <- TRUE
-	if ( exact ) {
-		as.numeric(match(i, names(x)))
-	} else {
-		as.numeric(pmatch(i, names(x)))
-	}
-}
-
-dimnames2index <- function(x, i, margin, exact) {
-	if ( missing(exact) )
-		exact <- TRUE
-	if ( exact ) {
-		as.numeric(match(i, dimnames(x)[[margin]]))
-	} else {
-		as.numeric(pmatch(i, dimnames(x)[[margin]]))
-	}
-}
-
-allIndices <- function(x, i, margin) {
-	if ( missing(margin) ) {
-		all(i == seq_len(length(x)))
-	} else {
-		all(i == seq_len(dim(x)[margin]))
-	}
-}
-
-do_recursive <- function(fun, args) {
-	if ( length(args) > 2 ) {
-		fun(args[[1]], do_recursive(fun, args[-1]))
-	} else {
-		fun(args[[1]], args[[2]])
-	}
-}
-
-bind_elements <- function(x, y) {
-	if ( !identical(names(x), intersect(names(x), names(y))) )
-		stop("names do not match previous names")
-	y <- y[names(x)]
-	try_c <- function(e1, e2, label) {
-		tryCatch(c(e1, e2), error=function(e)
-			stop("couldn't combine element '", label, "'"))
-	}
-	mapply(try_c, x, y, names(x))
-}
-
 combine_list <- function(list) {
 	Reduce(match.fun("c"), list)
-}
-
-combine_colnames <- function(x, y, ...) {
-	if ( length(list(...)) > 0 )
-		y <- combine_colnames(y, ...)
-	if ( is.null(dimnames(x)[[2]]) && is.null(dimnames(y)[[2]]) ) {
-		colnames <- NULL
-	} else if ( is.null(dimnames(x)[[2]]) ) {
-		colnames <- c(character(dim(x)[2]), dimnames(y)[[2]])
-	} else if ( is.null(dimnames(y)[[2]]) ) {
-		colnames <- c(dimnames(x)[[2]], character(dim(y)[2]))
-	} else {
-		colnames <- c(dimnames(x)[[2]], dimnames(y)[[2]])
-	}
-	if ( !is.null(dimnames(x)[[1]]) ) {
-		rownames <- dimnames(x)[[1]]
-	} else {
-		rownames <- dimnames(y)[[1]]
-	}
-	if ( is.null(rownames) && is.null(colnames) ) {
-		NULL
-	} else {
-		list(rownames, colnames)
-	}
-}
-
-combine_rownames <- function(x, y, ...) {
-	if ( length(list(...)) > 0 )
-		y <- combine_rownames(y, ...)
-	if ( is.null(dimnames(x)[[1]]) && is.null(dimnames(y)[[1]]) ) {
-		rownames <- NULL
-	} else if ( is.null(dimnames(x)[[1]]) ) {
-		rownames <- c(character(dim(x)[1]), dimnames(y)[[1]])
-	} else if ( is.null(dimnames(y)[[1]]) ) {
-		rownames <- c(dimnames(x)[[1]], character(dim(y)[1]))
-	} else {
-		rownames <- c(dimnames(x)[[1]], dimnames(y)[[1]])
-	}
-	if ( !is.null(dimnames(x)[[2]]) ) {
-		colnames <- dimnames(x)[[2]]
-	} else {
-		colnames <- dimnames(y)[[2]]
-	}
-	if ( is.null(rownames) && is.null(colnames) ) {
-		NULL
-	} else {
-		list(rownames, colnames)
-	}
-}
-
-# convert array indices to linear indices
-linearInd <- function(ind, .dim) {
-	if ( is.list(ind) ) {
-		ind <- expand.grid(ind)
-		apply(ind, 1, linearInd, .dim=.dim)
-	} else {
-		if ( any(ind <= 0 | ind > .dim) )
-			stop("subscript out of bounds")
-		mult <- c(1, cumprod(.dim[-length(.dim)]))
-		sum((ind - 1) * mult) + 1
-	}
-}
-
-# convert linear indices to matrix indices
-matrixInd <- function(ind, .dim) {
-	i <- as.integer(ind - 1L) %% .dim[1]
-	j <- as.integer(ind - 1L) %/% .dim[1]	
-	list(i=i + 1L, j=j + 1L)
-}
-
-# convert linear indices to row-major indices
-rowMajInd <- function(ind, .dim) {
-	ind <- matrixInd(ind, .dim)
-	.dim[2] * (ind$i - 1L) + ind$j
-}
-
-#### Define allowed delayed operation types ####
-## -----------------------------------------------
-
-make_op <- function(x) {
-	levels <- c(
-		"+",
-		"-",
-		"*",
-		"/",
-		"^",
-		"%%",
-		"%/%",
-		"==",
-		"!=",
-		">",
-		"<",
-		">=",
-		"<=",
-		"&",
-		"|",
-		"log")
-	if ( missing(x) )
-		return(factor(levels=levels))
-	if ( is.numeric(x) ) {
-		x <- as.integer(x)
-		factor(x, levels=seq_along(levels), labels=levels)
-	} else if ( is.character(x) ) {
-		x <- tolower(x)
-		if ( any(!x %in% levels) )
-			stop("unsupported delayed operation type")
-		factor(x, levels=levels)
-	} else {
-		as.factor(x)
-	}
 }
 
 register_op <- function(x, lhs, rhs, op,
@@ -547,190 +540,6 @@ register_op <- function(x, lhs, rhs, op,
 	op <- list(lhs=lhs, rhs=rhs, op=op, where=where)
 	x@ops <- c(x@ops, list(op))
 	x
-}
-
-#### File read/write mode functions and utilities ####
-## ---------------------------------------------------
-
-make_filemode <- function(x) {
-	levels <- c("r", "w", "rw")
-	if ( missing(x) )
-		return(factor(NA_character_, levels=levels))
-	if ( !is.numeric(x) )
-		x <- as.character(x)
-	switch(x,
-		"r" = factor("r", levels=levels),
-		"w" = factor("w", levels=levels),
-		"rw" = factor("rw", levels=levels),
-		stop("unsupported I/O mode"))
-}
-
-common_filemode <- function(x, y) {
-	if ( x == "rw" && y == "rw" ) {
-		make_filemode("rw")
-	} else if ( x %in% c("w", "rw") && y %in% c("w", "rw") ) {
-		make_filemode("w")
-	} else {
-		make_filemode("r")
-	}
-}
-
-#### Define data types and utility functions for them ####
-## -------------------------------------------------------
-
-# --> R , --> C
-
-make_datamode <- function(x, type=c("C", "R")) {
-	type <- match.arg(type)
-	levels <- switch(type,
-		C = c(
-			"char",
-			"uchar",
-			"short",
-			"ushort",
-			"int",
-			"uint",
-			"long",
-			"ulong",
-			"float",
-			"double"),
-		R = c(
-			"raw",
-			"logical",
-			"integer",
-			"numeric",
-			"character",
-			"list",
-			"virtual"))
-	if ( missing(x) )
-		return(factor(levels=levels))
-	if ( is.numeric(x) ) {
-		x <- as.integer(x)
-		factor(x, levels=seq_along(levels), labels=levels)
-	} else if ( is.character(x) ) {
-		x <- tolower(x)
-		if ( any(!x %in% levels) ) {
-			if ( type == "C" ) {
-				if ( all(x %in% levels(make_datamode(type="R"))) ) {
-					x <- convert_datamode(x, to="C")
-				} else {
-					stop("unsupported data type")
-				}
-			} else if ( type == "R" ) {
-				if ( all(x %in% levels(make_datamode(type="C"))) ) {
-					x <- convert_datamode(x, to="R")
-				} else {
-					stop("unsupported data type")
-				}
-			} else {
-				stop("unsupported data type")
-			}
-		}
-		factor(x, levels=levels)
-	} else {
-		as.factor(x)
-	}
-}
-
-# R <--> C
-
-convert_datamode <- function(x, to=c("C", "R")) {
-	if ( to == "R" ) {
-		x <- vapply(as.character(x), switch, character(1),
-			char = "raw",
-			uchar = "raw",
-			short = "integer",
-			ushort = "integer",
-			int = "integer",
-			uint = "integer",
-			long = "numeric",
-			ulong = "numeric",
-			float = "numeric",
-			double = "numeric")
-	} else {
-		x <- vapply(as.character(x), switch, character(1),
-			raw = "uchar",
-			logical = "int",
-			integer = "int",
-			numeric = "double",
-			character = "uchar",
-			list = stop("cannot convert data mode 'list' to C data type"),
-			virtual = stop("cannot convert data mode 'virtual' to C data type"))
-	}
-	names(x) <- NULL
-	x
-}
-
-# --> R
-
-widest_datamode <- function(x) {
-	if ( is.drle(x) )
-		x <- x[]
-	if ( is.integer(x) )
-		x <- make_datamode(x, type="C")
-	x <- as.character(unique(x))
-	if ( all(x %in% levels(make_datamode(type="R"))) ) {
-		x <- max(as.integer(make_datamode(x, type="R")))
-		make_datamode(switch(x,
-			raw = "raw",
-			logical = "logical",
-			integer = "integer",
-			numeric = "numeric",
-			character = stop("data mode 'character' not expected here"),
-			list = stop("data mode 'list' not expected here"),
-			virtual = stop("data mode 'virtual' not expected here")),
-		type="R")
-	} else if ( all(x %in% levels(make_datamode(type="C"))) ) {
-		x <- max(as.integer(make_datamode(x, type="C")))
-		make_datamode(switch(x,
-			char = "raw",
-			uchar = "raw",
-			short = "integer",
-			ushort = "integer",
-			int = "integer",
-			uint = "integer",
-			long = "numeric",
-			ulong = "numeric",
-			float = "numeric",
-			double = "numeric"), type="R")
-	} else {
-		stop("unsupported data type")
-	}
-}
-
-#### Sparse key-value search resolution utilities ####
-## ---------------------------------------------------
-
-make_sampler <- function(x) {
-	levels <- c("none", "mean",
-		"sum", "max", "min", "area",
-		"linear", "cubic",
-		"gaussian", "lanczos")
-	if ( !is.numeric(x) )
-		x <- as.character(x)
-	factor(switch(x,
-		"none" = "none",
-		"mean" = "mean",
-		"sum" = "sum",
-		"max" = "max",
-		"min" = "min",
-		"area" = "area",
-		"linear" = "linear",
-		"cubic" = "cubic",
-		"gaussian" = "gaussian",
-		"lanczos" = "lanczos",
-		NA_character_), levels=levels)
-}
-
-make_tolerance <- function(tolerance) {
-	tol <- tolerance[1L]
-	if ( !is.null(names(tol)) ) {
-		type <- pmatch(names(tol), c("absolute", "relative"), nomatch=1L)
-	} else {
-		type <- 1L
-	}
-	structure(as.vector(tol), tol_type=factor(type,
-		levels=c(1, 2), labels=c("absolute", "relative")))
 }
 
 #### Utilities for working with raw bytes and memory ####
@@ -796,10 +605,10 @@ uuid <- function(uppercase = FALSE) {
 	list(string=string, bytes=bytes)
 }
 
-# creates internal S3 class 'num_bytes'
+# creates internal S3 class 'size_bytes'
 
-num_bytes <- function(x) {
-	class(x) <- "num_bytes"
+size_bytes <- function(x) {
+	class(x) <- "size_bytes"
 	x
 }
 
@@ -817,12 +626,12 @@ vm_used <- function(x) {
 	} else {
 		size <- 0
 	}
-	num_bytes(size)
+	size_bytes(size)
 }
 
 # based on utils::format.object_size
 
-fmt_num_bytes <- function(x, units = "auto") {
+format_bytes <- function(x, units = "auto") {
 	units <- match.arg(units, c("auto",
 				"B", "KB", "MB", "GB", "TB", "PB"))
     if (units == "auto")
@@ -844,12 +653,12 @@ fmt_num_bytes <- function(x, units = "auto") {
         PB = c("PB"=round(x/1000^5, 1L)))
 }
 
-print.num_bytes <- function (x, units = "auto", ...)  {
-	print(fmt_num_bytes(x, units=units))
+print.size_bytes <- function (x, units = "auto", ...)  {
+	print(format_bytes(x, units=units))
 }
 
-format.num_bytes <- function(x, units = "auto", ...) {
-	x <- fmt_num_bytes(x, units=units)
+format.size_bytes <- function(x, units = "auto", ...) {
+	x <- format_bytes(x, units=units)
 	paste(x, names(x))
 }
 
@@ -857,7 +666,7 @@ format.num_bytes <- function(x, units = "auto", ...) {
 
 mem <- function(x, reset = FALSE) {
 	if ( !missing(x) ) {
-		mem <- num_bytes(as.numeric(object.size(x)))
+		mem <- size_bytes(as.numeric(object.size(x)))
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
 		mem <- round(colSums(gc(reset=reset)[,c(1,3,6)] * cell.size) / 1000^2, 1)
@@ -879,3 +688,22 @@ profmem <- function(expr) {
 		"max used (MB)", "overhead (MB)", "time (sec)")
 	mem
 }
+
+#### Find local maxima and local minima ####
+## -----------------------------------------
+
+locmax <- function(x, halfWindow = 2, findLimits = FALSE)
+{
+	if ( halfWindow <= 0 )
+		stop("'halfWindow' must be a positive integer")
+	halfWindow <- as.integer(halfWindow)
+	ans <- .Call("C_localMaxima", x, halfWindow, PACKAGE="matter")
+	ans <- which(ans)
+	if ( findLimits ) {
+		lims <- .Call("C_regionMaxima", x, ans, halfWindow, PACKAGE="matter")
+		attr(ans, "lower") <- lims[[1]]
+		attr(ans, "upper") <- lims[[2]]
+	}
+	ans
+}
+

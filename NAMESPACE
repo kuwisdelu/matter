@@ -242,23 +242,14 @@ export(
 	"hex2raw",
 	"raw2hex")
 
-S3method("print", "num_bytes")
-S3method("format", "num_bytes")
-
-export(
-	"make_filemode",
-	"common_filemode")
+S3method("print", "size_bytes")
+S3method("format", "size_bytes")
 
 export(
 	"sizeof",
-	"make_datamode",
-	"convert_datamode",
-	"widest_datamode",
 	"vm_used")
 
-export(
-	"binvec",
-	"locmax")
+export("locmax")
 
 exportMethods(
 	"apply",
