@@ -281,4 +281,4 @@ export(
 	"mem",
 	"profmem")
 
-useDynLib("matter", .registration=TRUE)
+useDynLib("matter", .registration=TRUE, .fixes="C_")

@@ -4,39 +4,41 @@
 #include "matterExports.h"
 #include "altrep.h"
 
+#define CALLDEF(name, n)  {#name, (DL_FUNC) &name, n}
+
 extern "C" {
 
 static const R_CallMethodDef callMethods[] = {
 	// search
-	{"C_relativeDiff", (DL_FUNC) &relativeDiff, 3},
-	{"C_binarySearch", (DL_FUNC) &binarySearch, 6},
-	{"C_approxSearch", (DL_FUNC) &approxSearch, 8},
+	CALLDEF(relativeDiff, 3),
+	CALLDEF(binarySearch, 6),
+	CALLDEF(approxSearch, 8),
 	// compression
-	{"C_encodeDRLE", (DL_FUNC) &encodeDRLE, 2},
-	{"C_decodeDRLE", (DL_FUNC) &decodeDRLE, 2},
-	{"C_recodeDRLE", (DL_FUNC) &recodeDRLE, 2},
+	CALLDEF(encodeDRLE, 2),
+	CALLDEF(decodeDRLE, 2),
+	CALLDEF(recodeDRLE, 2),
 	// internal
-	{"C_readAtom", (DL_FUNC) &readAtom, 3},
-	{"C_writeAtom", (DL_FUNC) &writeAtom, 3},
-	{"C_readAtoms", (DL_FUNC) &readAtoms, 4},
-	{"C_writeAtoms", (DL_FUNC) &writeAtoms, 4},
-	{"C_subsetAtoms", (DL_FUNC) &subsetAtoms, 2},
-	{"C_regroupAtoms", (DL_FUNC) &regroupAtoms, 2},
+	CALLDEF(readAtom, 3),
+	CALLDEF(writeAtom, 3),
+	CALLDEF(readAtoms, 4),
+	CALLDEF(writeAtoms, 4),
+	CALLDEF(subsetAtoms, 2),
+	CALLDEF(regroupAtoms, 2),
 	// matter data structures
-	{"C_getMatterArray", (DL_FUNC) &getMatterArray, 2},
-	{"C_setMatterArray", (DL_FUNC) &setMatterArray, 3},
-	{"C_getMatterListElt", (DL_FUNC) &getMatterListElt, 3},
-	{"C_setMatterListElt", (DL_FUNC) &setMatterListElt, 4},
-	{"C_getMatterListSubset", (DL_FUNC) &getMatterListSubset, 3},
-	{"C_setMatterListSubset", (DL_FUNC) &setMatterListSubset, 4},
-	{"C_getMatterStrings", (DL_FUNC) &getMatterStrings, 3},
-	{"C_setMatterStrings", (DL_FUNC) &setMatterStrings, 4},
+	CALLDEF(getMatterArray, 2),
+	CALLDEF(setMatterArray, 3),
+	CALLDEF(getMatterListElt, 3),
+	CALLDEF(setMatterListElt, 4),
+	CALLDEF(getMatterListSubset, 3),
+	CALLDEF(setMatterListSubset, 4),
+	CALLDEF(getMatterStrings, 3),
+	CALLDEF(setMatterStrings, 4),
 	// sparse data structures
-	{"C_getSparseVector", (DL_FUNC) &getSparseVector, 2},
-	{"C_getSparseMatrixC", (DL_FUNC) &getSparseMatrixC, 3},
-	{"C_getSparseMatrixR", (DL_FUNC) &getSparseMatrixR, 3},
+	CALLDEF(getSparseVector, 2),
+	CALLDEF(getSparseMatrixC, 3),
+	CALLDEF(getSparseMatrixR, 3),
 	// matter altrep
-	{"C_newMatterAltrep", (DL_FUNC) &newMatterAltrep, 6},
+	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}
 };
 

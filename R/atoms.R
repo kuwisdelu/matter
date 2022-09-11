@@ -199,7 +199,7 @@ subset_atoms <- function(x, i = NULL, j = NULL) {
 			stop("NAs not allowed when subsetting atoms")
 		if ( any(i < 1 | i > min(dms)) )
 			stop("subscript out of bounds")
-		sub <- .Call("C_subsetAtoms", x, i, PACKAGE="matter")
+		sub <- .Call(C_subsetAtoms, x, i, PACKAGE="matter")
 		# FIXME: Make sure drle_fct supports droplevels()
 		x <- atoms(source=droplevels(x@source[sub$index]),
 			type=x@type[sub$index],
@@ -213,7 +213,7 @@ subset_atoms <- function(x, i = NULL, j = NULL) {
 }
 
 regroup_atoms <- function(x, ngroups) {
-	sub <- .Call("C_regroupAtoms", x, ngroups, PACKAGE="matter")
+	sub <- .Call(C_regroupAtoms, x, ngroups, PACKAGE="matter")
 	# FIXME: Make sure drle_fct supports droplevels()
 	x <- atoms(source=droplevels(x@source[sub$index]),
 		type=x@type[sub$index],
