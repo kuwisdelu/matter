@@ -183,11 +183,11 @@ setMethod("preview_for_display", "matter_arr", function(x) {
 })
 
 get_matter_arr_elts <- function(x, i = NULL) {
-	.Call("C_getMatterArray", x, i, PACKAGE="matter")
+	.Call(C_getMatterArray, x, i, PACKAGE="matter")
 }
 
 set_matter_arr_elts <- function(x, i = NULL, value = 0L) {
-	.Call("C_setMatterArray", x, i, value, PACKAGE="matter")
+	.Call(C_setMatterArray, x, i, value, PACKAGE="matter")
 }
 
 get_matter_arr_subarray <- function(x, index, drop = FALSE)

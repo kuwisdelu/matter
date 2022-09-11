@@ -14,7 +14,7 @@ reldiff <- function(x, y, ref = "abs")
 	n <- max(length(x), length(y))
 	x <- rep_len(x, n)
 	y <- rep_len(y, n)
-	fun <- function(a, b) .Call("C_relativeDiff", a, b, ref, PACKAGE="matter")
+	fun <- function(a, b) .Call(C_relativeDiff, a, b, ref, PACKAGE="matter")
 	mapply(fun, x, y, USE.NAMES=FALSE)
 }
 
@@ -36,7 +36,7 @@ asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
 asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
 					nomatch = NA_integer_, interp = 1L, sorted = TRUE)
 {
-	.Call("C_approxSearch", x, keys, values, tol, tol.ref,
+	.Call(C_approxSearch, x, keys, values, tol, tol.ref,
 		nomatch, interp, sorted, PACKAGE="matter")
 }
 
@@ -60,7 +60,7 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 					nomatch = NA_integer_, nearest = FALSE)
 {
-	.Call("C_binarySearch", x, table, tol, tol.ref,
+	.Call(C_binarySearch, x, table, tol, tol.ref,
 		nomatch, nearest, PACKAGE="matter")
 }
 

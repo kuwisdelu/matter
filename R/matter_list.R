@@ -79,20 +79,20 @@ setMethod("describe_for_display", "matter_list", function(x) {
 setMethod("preview_for_display", "matter_list", function(x) preview_list(x))
 
 get_matter_list_elt <- function(x, i = NULL, j = NULL) {
-	.Call("C_getMatterListElt", x, i, j, PACKAGE="matter")
+	.Call(C_getMatterListElt, x, i, j, PACKAGE="matter")
 }
 
 set_matter_list_elt <- function(x, i = NULL, j = NULL, value = NULL) {
-	.Call("C_setMatterListElt", x, i, j, value, PACKAGE="matter")
+	.Call(C_setMatterListElt, x, i, j, value, PACKAGE="matter")
 }
 
 get_matter_list_sublist <- function(x, i = NULL, j = NULL) {
-	y <- .Call("C_getMatterListSubset", x, i, j, PACKAGE="matter")
+	y <- .Call(C_getMatterListSubset, x, i, j, PACKAGE="matter")
 	set_names(y, names(x), i)
 }
 
 set_matter_list_sublist <- function(x, i = NULL, j = NULL, value = NULL) {
-	.Call("C_setMatterListSubset", x, i, j, value, PACKAGE="matter")
+	.Call(C_setMatterListSubset, x, i, j, value, PACKAGE="matter")
 }
 
 subset_matter_list_elt <- function(x, i = NULL) {

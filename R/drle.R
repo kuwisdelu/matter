@@ -29,7 +29,7 @@ drle <- function(x, cr_threshold = 0)
 		return(x)
 	if ( !is.numeric(x) && !is.logical(x) )
 		x <- as.factor(x)
-	y <- .Call("C_encodeDRLE", x, cr_threshold, PACKAGE="matter")
+	y <- .Call(C_encodeDRLE, x, cr_threshold, PACKAGE="matter")
 	if ( is.factor(x) && is.drle(y) )
 		y <- new("drle_fct", y, levels=levels(x))
 	if ( validObject(y) )
@@ -69,11 +69,11 @@ setMethod("type", "drle", function(x) typeof(x@values))
 is.drle <- function(x) is(x, "drle")
 
 get_drle_elts <- function(x, i = NULL) {
-	.Call("C_decodeDRLE", x, i, PACKAGE="matter")
+	.Call(C_decodeDRLE, x, i, PACKAGE="matter")
 }
 
 subset_drle <- function(x, i = NULL) {
-	.Call("C_recodeDRLE", x, i, PACKAGE="matter")
+	.Call(C_recodeDRLE, x, i, PACKAGE="matter")
 }
 
 setAs("drle", "list", function(from)

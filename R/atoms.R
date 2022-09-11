@@ -146,25 +146,25 @@ setMethod("checksum", "atoms",
 
 read_atom <- function(x, atom, type = "double")
 {
-	.Call("C_readAtom", x, as.integer(atom - 1),
+	.Call(C_readAtom, x, as.integer(atom - 1),
 		as_Rtype(type), PACKAGE="matter")
 }
 
 write_atom <- function(x, atom, value)
 {
-	.Call("C_writeAtom", x, as.integer(atom - 1),
+	.Call(C_writeAtom, x, as.integer(atom - 1),
 		value, PACKAGE="matter")
 }
 
 read_atoms <- function(x, i, type = "double", group = 0L)
 {
-	.Call("C_readAtoms", x, i, as_Rtype(type),
+	.Call(C_readAtoms, x, i, as_Rtype(type),
 		as.integer(group), PACKAGE="matter")
 }
 
 write_atoms <- function(x, i, value, group = 0L)
 {
-	.Call("C_writeAtoms", x, i, value,
+	.Call(C_writeAtoms, x, i, value,
 		as.integer(group), PACKAGE="matter")
 }
 

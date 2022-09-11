@@ -81,13 +81,13 @@ setMethod("describe_for_display", "matter_str", function(x) {
 setMethod("preview_for_display", "matter_str", function(x) preview_vector(x))
 
 get_matter_str_elts <- function(x, i = NULL, j = NULL) {
-	y <- .Call("C_getMatterStrings", x, i, j, PACKAGE="matter")
+	y <- .Call(C_getMatterStrings, x, i, j, PACKAGE="matter")
 	Encoding(y) <- Encoding(x)
 	set_names(y, names(x), i)
 }
 
 set_matter_str_elts <- function(x, i = NULL, j = NULL, value = NULL) {
-	.Call("C_setMatterStrings", x, i, j, value, PACKAGE="matter")
+	.Call(C_setMatterStrings, x, i, j, value, PACKAGE="matter")
 }
 
 subset_matter_str_elts <- function(x, i = NULL) {
