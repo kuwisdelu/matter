@@ -196,10 +196,10 @@ sizeof <- function(x) {
 	sizes[as.integer(as_Ctype(x))]
 }
 
-collapse_Rtype <- function(x) {
-	sizes <- sizeof(x)
-	x <- to_Rtype(x)
-	x[which.max(sizes)]
+topmode_Rtype <- function(x) {
+	x <- as_Rtype(x)
+	codes <- levels(x)
+	as_Rtype(codes[max(as.integer(x))])
 }
 
 #### Codes for C-level switch statements ####

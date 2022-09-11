@@ -41,7 +41,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 	readonly = NA, rowMaj = FALSE, ...)
 {
 	if ( !missing(data) ) {
-		if ( anyNA(type) )
+		if ( missing(type) )
 			type <- typeof(data)
 		if ( anyNA(dim) && is.vector(data) ) {
 			dim <- length(data)
@@ -95,7 +95,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 			extent=as.double(extent),
 			group=0L,
 			readonly=readonly),
-		type=collapse_Rtype(type),
+		type=topmode_Rtype(type),
 		dim=dim,
 		dimnames=dimnames,
 		ops=NULL,
@@ -115,7 +115,7 @@ matter_mat <- function(data, type = "double", path = NULL,
 	offset = 0, extent = NA_real_, readonly = NA, rowMaj = FALSE, ...)
 {
 	if ( !missing(data) ) {
-		if ( anyNA(type) )
+		if ( missing(type) )
 			type <- typeof(data)
 		if ( is.na(nrow) && is.na(ncol) ) {
 			nrow <- nrow(data)
@@ -139,7 +139,7 @@ matter_vec <- function(data, type = "double", path = NULL,
 	readonly = NA, rowMaj = FALSE, ...)
 {
 	if ( !missing(data) ) {
-		if ( anyNA(type) )
+		if ( missing(type) )
 			type <- typeof(data)
 		if ( is.na(length) )
 			length <- length(data)

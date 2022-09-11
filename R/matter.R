@@ -45,6 +45,10 @@ setMethod("show", "matter", function(object) {
 		try(preview_for_display(object), silent=TRUE)
 })
 
+is.matter <- function(x) {
+	is(x, "matter")
+}
+
 setMethod("adata", "matter", function(object) atomdata(object))
 
 setMethod("atomdata", "matter", function(object) object@data)

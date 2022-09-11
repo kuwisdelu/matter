@@ -3,6 +3,50 @@ require(matter)
 
 context("matter-array")
 
+test_that("matter array raw", {
+
+	x <- as.raw(1:10)
+	y <- matter_arr(x)
+
+	expect_equal(x[], y[])
+	expect_equal(x[1:10], y[1:10])
+	expect_equal(x[10:1], y[10:1])
+
+})
+
+test_that("matter array logical", {
+
+	x <- rep_len(c(TRUE, FALSE), 10L)
+	y <- matter_arr(x)
+
+	expect_equal(x[], y[])
+	expect_equal(x[1:10], y[1:10])
+	expect_equal(x[10:1], y[10:1])
+
+})
+
+test_that("matter array integer", {
+
+	x <- 1:10
+	y <- matter_arr(x)
+
+	expect_equal(x[], y[])
+	expect_equal(x[1:10], y[1:10])
+	expect_equal(x[10:1], y[10:1])
+
+})
+
+test_that("matter array double", {
+
+	x <- 1:10 + 1:10 * 0.11
+	y <- matter_arr(x)
+
+	expect_equal(x[], y[])
+	expect_equal(x[1:10], y[1:10])
+	expect_equal(x[10:1], y[10:1])
+
+})
+
 test_that("matter array 1-D indexing", {
 
 	set.seed(1)

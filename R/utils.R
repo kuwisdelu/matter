@@ -807,7 +807,7 @@ num_bytes <- function(x) {
 
 vm_used <- function(x) {
 	if ( is(x, "atoms") ) {
-		size <- sum(x@extent[] * sizeof(datamode(x)[]))
+		size <- sum(x@extent[] * sizeof(type(x)[]))
 	} else if ( is.matter(x) ) {
 		if ( inherits(adata(x), c("atoms", "matter")) ) {
 			size <- vm_used(adata(x))

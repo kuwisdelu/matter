@@ -127,6 +127,8 @@ setReplaceMethod("path", "atoms",
 			object
 	})
 
+setMethod("type", "atoms", function(x) x@type)
+
 setMethod("readonly", "atoms", function(x) x@readonly)
 
 setReplaceMethod("readonly", "atoms",
@@ -168,7 +170,7 @@ write_atoms <- function(x, i, value, group = 0L)
 		as.integer(group), PACKAGE="matter")
 }
 
-subset_atoms_1d <- function(x, i = NULL) {
+subset_atoms1 <- function(x, i = NULL) {
 	if ( is.null(i) )
 		return(x)
 	if ( any(i < 1 | i > length(x)) )
@@ -182,7 +184,7 @@ subset_atoms_1d <- function(x, i = NULL) {
 		readonly=x@readonly)
 }
 
-subset_atoms <- function(x, i = NULL, j = NULL) {
+subset_atoms2 <- function(x, i = NULL, j = NULL) {
 	dms <- dims(x)
 	if ( !is.null(j) ) {
 		if ( anyNA(j) )
@@ -192,7 +194,7 @@ subset_atoms <- function(x, i = NULL, j = NULL) {
 		grp <- as.integer(x@group) + 1L
 		j <- lapply(j, function(g) which(grp %in% g))
 		j <- unlist(j)
-		x <- subset_atoms_1d(x, j)
+		x <- subset_atoms1(x, j)
 	}
 	if ( !is.null(i) ) {
 		if ( anyNA(i) )
@@ -303,9 +305,9 @@ setMethod("[", c(x="atoms"),
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
 		if ( narg == 1L ) {
-			subset_atoms_1d(x, i)
+			subset_atoms1(x, i)
 		} else {
-			subset_atoms(x, i, j)
+			subset_atoms2(x, i, j)
 		}
 	})
 

@@ -75,6 +75,7 @@ export(
 	"write_atoms")
 
 export(
+	"is.matter",
 	"matter_arr",
 	"matter_mat",
 	"matter_vec",
