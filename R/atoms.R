@@ -100,6 +100,10 @@ setMethod("describe_for_display", "atoms", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
+setMethod("vm_used", "atoms", function(x) {
+	size_bytes(sum(x@extent[] * sizeof(x@type[])))
+})
+
 setMethod("show", "atoms", function(object) {
 	cat(describe_for_display(object), "\n", sep="")
 	n <- getOption("matter.show.head.n")
@@ -328,6 +332,3 @@ setMethod("c", "atoms", function(x, ...)
 		x
 	}
 })
-
-
-

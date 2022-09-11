@@ -89,22 +89,9 @@ setGeneric("describe_for_display", function(x) standardGeneric("describe_for_dis
 
 setGeneric("preview_for_display", function(x) standardGeneric("preview_for_display"))
 
-setGeneric("combine_by_cols", function(x, y, ...) {
-	if ( length(list(...)) > 0L ) {
-		combine_by_cols(x, do.call(combine_by_cols, list(y, ...)))
-	} else {
-		standardGeneric("combine_by_cols")
-	}
-})
+setGeneric("vm_used", function(x) standardGeneric("vm_used"))
 
-setGeneric("combine_by_rows", function(x, y, ...) {
-	if ( length(list(...)) > 0L ) {
-		combine_by_rows(x, do.call(combine_by_rows, list(y, ...)))
-	} else {
-		standardGeneric("combine_by_rows")
-	}
-})
-
+# FIXME: Probably best to either export this or remove it?
 setGeneric("nchunks", function(object, ...) standardGeneric("nchunks"))
 
 #### Implement basic generics from BiocGenerics ####

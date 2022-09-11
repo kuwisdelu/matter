@@ -319,12 +319,11 @@ check_comformable_dims <- function(x, y, margin = 1L) {
 #### Show utility functions ####
 ## -----------------------------
 
-show_matter_memory_and_storage <- function(object) {
-	object.memory <- object.size(object)
-	class(object.memory) <- "size_bytes"
-	rmem <- format(object.memory, units="auto")
-	if ( is.matter(object) ) {
-		vmem <- format(vm_used(object), units="auto")
+show_matter_mem <- function(x) {
+	rmem <- size_bytes(object.size(x))
+	rmem <- format(rmem, units="auto")
+	if ( is.matter(x) ) {
+		vmem <- format(vm_used(x), units="auto")
 		cat("(", rmem, " real", " | ", vmem, " virtual)\n", sep="")
 	} else {
 		cat("(", rmem, " real)\n", sep="")
@@ -561,10 +560,10 @@ char2raw <- function(x) {
 
 hex2raw <- function(x) {
 	x <- tolower(gsub("[^[:alnum:] ]", "", x))
-    sst <- strsplit(x, "")[[1]]
-    hex <- paste0(sst[c(TRUE, FALSE)], sst[c(FALSE, TRUE)])
-    codes <- factor(hex, levels=as.character(as.raw(0:255)))
-    as.raw(as.integer(codes) - 1L)
+	sst <- strsplit(x, "")[[1]]
+	hex <- paste0(sst[c(TRUE, FALSE)], sst[c(FALSE, TRUE)])
+	codes <- factor(hex, levels=as.character(as.raw(0:255)))
+	as.raw(as.integer(codes) - 1L)
 }
 
 raw2hex <- function(x, uppercase = FALSE) {
@@ -606,76 +605,67 @@ uuid <- function(uppercase = FALSE) {
 }
 
 # creates internal S3 class 'size_bytes'
-
+# (similar to 'object_size' but works w/ vectors)
 size_bytes <- function(x) {
 	class(x) <- "size_bytes"
 	x
 }
 
-# calculates vm used by a matter object
-
-vm_used <- function(x) {
-	if ( is(x, "atoms") ) {
-		size <- sum(x@extent[] * sizeof(type(x)[]))
-	} else if ( is.matter(x) ) {
-		if ( inherits(adata(x), c("atoms", "matter")) ) {
-			size <- vm_used(adata(x))
-		} else {
-			size <- sum(vapply(adata(x), vm_used, numeric(1)))
-		}
-	} else {
-		size <- 0
-	}
-	size_bytes(size)
-}
-
-# based on utils::format.object_size
-
-format_bytes <- function(x, units = "auto") {
+# based on utils:::format.object_size
+format.size_bytes <- function(x, units = "auto", ...)
+{
 	units <- match.arg(units, c("auto",
-				"B", "KB", "MB", "GB", "TB", "PB"))
-    if (units == "auto")
-        units <- if (x >= 1000^4) 
-            "TB"
-        else if (x >= 1000^3) 
-            "GB"
-        else if (x >= 1000^2) 
-            "MB"
-        else if (x >= 1000) 
-            "KB"
-        else "B"
-    switch(units,
-    	B = c("bytes"=x),
-    	KB = c("KB"=round(x/1000, 1L)),
-    	MB = c("MB"=round(x/1000^2, 1L)), 
-        GB = c("GB"=round(x/1000^3, 1L)),
-        TB = c("TB"=round(x/1000^4, 1L)),
-        PB = c("PB"=round(x/1000^5, 1L)))
+		"B", "KB", "MB", "GB", "TB", "PB"))
+	mx <- min(x, na.rm=TRUE)
+	if ( units == "auto" )
+		units <- if ( is.na(mx) )
+			" "
+		else if ( mx >= 1000^4 )
+			"TB"
+		else if ( mx >= 1000^3 )
+			"GB"
+		else if ( mx >= 1000^2 )
+			"MB"
+		else if ( mx >= 1000 )
+			"KB"
+		else "B"
+	sizes <- switch(units,
+		" " = , "B" = x,
+		"KB" = round(x/1000, 2L),
+		"MB" = round(x/1000^2, 2L),
+		"GB" = round(x/1000^3, 2L),
+		"TB" = round(x/1000^4, 2L),
+		"PB" = round(x/1000^5, 2L))
+	label <- switch(units, "B"="bytes", units)
+	set_names(paste(sizes, label), names(x))
 }
 
-print.size_bytes <- function (x, units = "auto", ...)  {
-	print(format_bytes(x, units=units))
-}
-
-format.size_bytes <- function(x, units = "auto", ...) {
-	x <- format_bytes(x, units=units)
-	paste(x, names(x))
+print.size_bytes <- function(x, units = "auto",
+	quote = FALSE, right = TRUE, ...) 
+{
+	print.default(format(x, units=units),
+		quote=quote, right=right, ...)
 }
 
 # based on pryr::mem_used and pryr::mem_change
-
-mem <- function(x, reset = FALSE) {
+mem <- function(x, reset = FALSE)
+{
 	if ( !missing(x) ) {
-		mem <- size_bytes(as.numeric(object.size(x)))
+		rmem <- as.numeric(object.size(x))
+		vmem <- as.numeric(vm_used(x))
+		mem <- c("real"=rmem, "virtual"=vmem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
-		mem <- round(colSums(gc(reset=reset)[,c(1,3,6)] * cell.size) / 1000^2, 1)
-		names(mem) <- c("used (MB)", "gc trigger (MB)", "max used (MB)")
+		gc.result <- gc(reset=reset)
+		gc.cols <- c(1L, 3L, ncol(gc.result) - 1L)
+		mem <- colSums(gc.result[,gc.cols] * cell.size)
+		names(mem) <- c("used", "gc", "max")
 	}
-	mem
+	size_bytes(mem)
 }
 
-profmem <- function(expr) {
+profmem <- function(expr)
+{
 	start <- mem(reset = TRUE)
 	t.start <- proc.time()
 	expr <- substitute(expr)
@@ -683,10 +673,13 @@ profmem <- function(expr) {
 	rm(expr)
 	t.end <- proc.time()
 	end <- mem(reset = FALSE)
-	mem <- c(start[1], end[1], end[3], end[3] - end[1], t.end[3] - t.start[3])
-	names(mem) <- c("start (MB)", "finish (MB)",
-		"max used (MB)", "overhead (MB)", "time (sec)")
-	mem
+	mem <- c(start[1], end[1], end[3])
+	mem <- c(format(size_bytes(mem)),
+		format(size_bytes(end[3] - end[1])),
+		paste0(round(t.end[3] - t.start[3], 4L), " sec"))
+	names(mem) <- c("start", "finish",
+		"max", "overhead", "time")
+	print.default(mem, quote=FALSE, right=TRUE)
 }
 
 #### Find local maxima and local minima ####

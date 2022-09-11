@@ -116,9 +116,17 @@ setMethod("describe_for_display", "ANY", function(x) class(x))
 
 setMethod("preview_for_display", "ANY", function(x) head(x))
 
+setMethod("vm_used", "ANY", function(x) {
+	size_bytes(NA_real_)
+})
+
+setMethod("vm_used", "matter_", function(x) {
+	vm_used(atomdata(x))
+})
+
 setMethod("show", "matter_", function(object) {
 	callNextMethod()
-	show_matter_memory_and_storage(object)
+	show_matter_mem(object)
 })
 
 setMethod("path", "matter_", function(object, ...) path(object@data))
