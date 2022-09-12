@@ -221,7 +221,7 @@ topmode_Rtype <- function(x) {
 #### Codes for C-level switch statements ####
 ## ------------------------------------------
 
-as_Op <- function(x) {
+as_Ops <- function(x) {
 	codes <- c(
 		# Arith (1-7)
 		"+", "-", "*", "^", "%%", "%/%", "/",
@@ -262,7 +262,7 @@ as_tol_ref <- function(x) {
 }
 
 # export
-as_kernel <- function(x) {
+as_kern <- function(x) {
 	codes <- c(
 		# simple interp (1-5)
 		"none", "mean", "sum", "max", "min",
@@ -527,18 +527,6 @@ collect_by_key <- function(x, reduce) {
 
 combine_list <- function(list) {
 	Reduce(match.fun("c"), list)
-}
-
-register_op <- function(x, lhs, rhs, op,
-	where = c("by_group", "by_each_group"))
-{
-	op <- make_op(op)
-	where <- match.arg(where)
-	where <- switch(where,
-		by_group=1L, by_each_group=2L)
-	op <- list(lhs=lhs, rhs=rhs, op=op, where=where)
-	x@ops <- c(x@ops, list(op))
-	x
 }
 
 #### Utilities for working with raw bytes and memory ####

@@ -60,16 +60,16 @@
 #define OP_DIV		7	// /
 
 // Compare
-#define OP_EQ		8	// ==
-#define OP_GT		9	// >
-#define OP_LT		10	// <
-#define OP_NE		11	// !=
-#define OP_LE		12	// <=
-#define OP_GE		13	// >=
+#define CMP_EQ		8	// ==
+#define CMP_GT		9	// >
+#define CMP_LT		10	// <
+#define CMP_NE		11	// !=
+#define CMP_LE		12	// <=
+#define CMP_GE		13	// >=
 
 // Logic
-#define OP_AND		14	// &
-#define OP_OR		15	// |
+#define LGL_AND		14	// &
+#define LGL_OR		15	// |
 
 // Math
 #define MATH_LOG	16

@@ -53,7 +53,7 @@ sparse_vec <- function(data, index, datamode = "double", length = 0,
 		length=length,
 		names=names,
 		tolerance=as_tol(tolerance),
-		sampler=as_kernel(sampler))
+		sampler=as_kern(sampler))
 }
 
 setMethod("describe_for_display", "sparse_vec", function(x) {

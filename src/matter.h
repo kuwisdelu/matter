@@ -175,7 +175,7 @@ class MatterArray : public Matter {
 		}
 
 		template<typename T>
-		size_t getRegion(index_t i, size_t size, T * buffer, int stride = 1)
+		size_t get_region(index_t i, size_t size, T * buffer, int stride = 1)
 		{
 			if ( is_transposed() )
 			{
@@ -188,7 +188,7 @@ class MatterArray : public Matter {
 		}
 
 		template<typename T>
-		size_t setRegion(index_t i, size_t size, T * buffer, int stride = 1)
+		size_t set_region(index_t i, size_t size, T * buffer, int stride = 1)
 		{
 			if ( is_transposed() )
 			{
@@ -201,7 +201,7 @@ class MatterArray : public Matter {
 		}
 
 		template<typename T>
-		size_t getElements(SEXP indx, T * buffer, int stride = 1)
+		size_t get_elements(SEXP indx, T * buffer, int stride = 1)
 		{
 			if ( is_transposed() )
 			{
@@ -215,7 +215,7 @@ class MatterArray : public Matter {
 		}
 
 		template<typename T>
-		size_t setElements(SEXP indx, T * buffer, int stride = 1)
+		size_t set_elements(SEXP indx, T * buffer, int stride = 1)
 		{
 			if ( is_transposed() )
 			{
@@ -228,25 +228,25 @@ class MatterArray : public Matter {
 				return data()->flatten()->set_elements<T>(buffer, indx, 0, stride);
 		}
 
-		SEXP getRegion(index_t i, size_t size)
+		SEXP get_region(index_t i, size_t size)
 		{
 			SEXP x;
 			switch(type()) {
 				case R_RAW:
 					PROTECT(x = Rf_allocVector(RAWSXP, size));
-					getRegion(i, size, RAW(x));
+					get_region(i, size, RAW(x));
 					break;
 				case R_LOGICAL:
 					PROTECT(x = Rf_allocVector(LGLSXP, size));
-					getRegion(i, size, LOGICAL(x));
+					get_region(i, size, LOGICAL(x));
 					break;
 				case R_INTEGER:
 					PROTECT(x = Rf_allocVector(INTSXP, size));
-					getRegion(i, size, INTEGER(x));
+					get_region(i, size, INTEGER(x));
 					break;
 				case R_DOUBLE:
 					PROTECT(x = Rf_allocVector(REALSXP, size));
-					getRegion(i, size, REAL(x));
+					get_region(i, size, REAL(x));
 					break;
 				default:
 					self_destruct();
@@ -256,7 +256,7 @@ class MatterArray : public Matter {
 			return x;
 		}
 
-		void setRegion(index_t i, size_t size, SEXP value)
+		void set_region(index_t i, size_t size, SEXP value)
 		{
 			int stride = XLENGTH(value) == 1 ? 0 : 1;
 			if ( size > XLENGTH(value) && stride != 0 ) {
@@ -265,16 +265,16 @@ class MatterArray : public Matter {
 			}
 			switch(TYPEOF(value)) {
 				case RAWSXP:
-					setRegion(i, size, RAW(value), stride);
+					set_region(i, size, RAW(value), stride);
 					break;
 				case LGLSXP:
-					setRegion(i, size, LOGICAL(value), stride);
+					set_region(i, size, LOGICAL(value), stride);
 					break;
 				case INTSXP:
-					setRegion(i, size, INTEGER(value), stride);
+					set_region(i, size, INTEGER(value), stride);
 					break;
 				case REALSXP:
-					setRegion(i, size, REAL(value), stride);
+					set_region(i, size, REAL(value), stride);
 					break;
 				default:
 					self_destruct();
@@ -282,27 +282,27 @@ class MatterArray : public Matter {
 			}
 		}
 
-		SEXP getElements(SEXP indx)
+		SEXP get_elements(SEXP indx)
 		{
 			SEXP x;
 			if ( Rf_isNull(indx) )
-				return getRegion(0, length());
+				return get_region(0, length());
 			switch(type()) {
 				case R_RAW:
 					PROTECT(x = Rf_allocVector(RAWSXP, XLENGTH(indx)));
-					getElements(indx, RAW(x));
+					get_elements(indx, RAW(x));
 					break;
 				case R_LOGICAL:
 					PROTECT(x = Rf_allocVector(LGLSXP, XLENGTH(indx)));
-					getElements(indx, LOGICAL(x));
+					get_elements(indx, LOGICAL(x));
 					break;
 				case R_INTEGER:
 					PROTECT(x = Rf_allocVector(INTSXP, XLENGTH(indx)));
-					getElements(indx, INTEGER(x));
+					get_elements(indx, INTEGER(x));
 					break;
 				case R_DOUBLE:
 					PROTECT(x = Rf_allocVector(REALSXP, XLENGTH(indx)));
-					getElements(indx, REAL(x));
+					get_elements(indx, REAL(x));
 					break;
 				default:
 					self_destruct();
@@ -312,10 +312,10 @@ class MatterArray : public Matter {
 			return x;
 		}
 
-		void setElements(SEXP indx, SEXP value)
+		void set_elements(SEXP indx, SEXP value)
 		{
 			if ( Rf_isNull(indx) )
-				return setRegion(0, length(), value);
+				return set_region(0, length(), value);
 			int stride = XLENGTH(value) == 1 ? 0 : 1;
 			if ( XLENGTH(indx) > XLENGTH(value) && stride != 0 ) {
 				self_destruct();
@@ -323,16 +323,16 @@ class MatterArray : public Matter {
 			}
 			switch(TYPEOF(value)) {
 				case RAWSXP:
-					setElements(indx, RAW(value), stride);
+					set_elements(indx, RAW(value), stride);
 					break;
 				case LGLSXP:
-					setElements(indx, LOGICAL(value), stride);
+					set_elements(indx, LOGICAL(value), stride);
 					break;
 				case INTSXP:
-					setElements(indx, INTEGER(value), stride);
+					set_elements(indx, INTEGER(value), stride);
 					break;
 				case REALSXP:
-					setElements(indx, REAL(value), stride);
+					set_elements(indx, REAL(value), stride);
 					break;
 				default:
 					self_destruct();
@@ -511,7 +511,7 @@ class MatterList : public Matter {
 			}
 		}
 
-		SEXP getElements(SEXP i, SEXP j)
+		SEXP get_elements(SEXP i, SEXP j)
 		{
 			SEXP x;
 			R_xlen_t len;
@@ -533,7 +533,7 @@ class MatterList : public Matter {
 			return x;
 		}
 
-		void setElements(SEXP i, SEXP j, SEXP value)
+		void set_elements(SEXP i, SEXP j, SEXP value)
 		{
 			R_xlen_t len;
 			if ( Rf_isNull(i) )
@@ -555,14 +555,14 @@ class MatterList : public Matter {
 			}
 		}
 
-		SEXP getElements(SEXP i)
+		SEXP get_elements(SEXP i)
 		{
-			return getElements(i, R_NilValue);
+			return get_elements(i, R_NilValue);
 		}
 
-		void setElements(SEXP i, SEXP value)
+		void set_elements(SEXP i, SEXP value)
 		{
-			setElements(i, R_NilValue, value);
+			set_elements(i, R_NilValue, value);
 		}
 
 };
@@ -579,12 +579,12 @@ class MatterStringList : public MatterList {
 			}
 		}
 
-		SEXP getChar(index_t i)
+		SEXP get_char(index_t i)
 		{
 			return Rf_asChar(get(i));
 		}
 
-		void setChar(index_t i, SEXP value)
+		void set_char(index_t i, SEXP value)
 		{
 			if ( TYPEOF(value) != CHARSXP ) {
 				self_destruct();
@@ -593,12 +593,12 @@ class MatterStringList : public MatterList {
 			set(i, Rf_ScalarString(value));
 		}
 
-		SEXP getChar(index_t i, SEXP j)
+		SEXP get_char(index_t i, SEXP j)
 		{
 			return Rf_asChar(get(i, j));
 		}
 
-		void setChar(index_t i, SEXP j, SEXP value)
+		void set_char(index_t i, SEXP j, SEXP value)
 		{
 			if ( TYPEOF(value) != CHARSXP ) {
 				self_destruct();
@@ -607,7 +607,7 @@ class MatterStringList : public MatterList {
 			set(i, j, Rf_ScalarString(value));
 		}
 
-		SEXP getStrings(SEXP i, SEXP j)
+		SEXP get_strings(SEXP i, SEXP j)
 		{
 			SEXP x;
 			R_xlen_t len;
@@ -623,13 +623,13 @@ class MatterStringList : public MatterList {
 					indk = k;
 				else
 					indk = IndexElt(i, k) - 1;
-				SET_STRING_ELT(x, k, getChar(indk, j));
+				SET_STRING_ELT(x, k, get_char(indk, j));
 			}
 			UNPROTECT(1);
 			return x;
 		}
 
-		void setStrings(SEXP i, SEXP j, SEXP value)
+		void set_strings(SEXP i, SEXP j, SEXP value)
 		{
 			R_xlen_t len;
 			if ( Rf_isNull(i) )
@@ -647,18 +647,18 @@ class MatterStringList : public MatterList {
 					indk = k;
 				else
 					indk = IndexElt(i, k) - 1;
-				setChar(indk, j, STRING_ELT(value, k));
+				set_char(indk, j, STRING_ELT(value, k));
 			}
 		}
 
-		SEXP getStrings(SEXP i)
+		SEXP get_strings(SEXP i)
 		{
-			return getStrings(i, R_NilValue);
+			return get_strings(i, R_NilValue);
 		}
 
-		void setStrings(SEXP i, SEXP value)
+		void set_strings(SEXP i, SEXP value)
 		{
-			setStrings(i, R_NilValue, value);
+			set_strings(i, R_NilValue, value);
 		}
 
 };

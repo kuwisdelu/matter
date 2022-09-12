@@ -1,4 +1,3 @@
-
 #ifndef COERCE
 #define COERCE
 

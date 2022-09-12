@@ -233,7 +233,7 @@ class SparseVector : public Sparse
 			SEXP data0;
 			if ( Rf_isS4(_data) ) {
 				MatterArray tmp(_data);
-				data0 = tmp.getElements(R_NilValue);
+				data0 = tmp.get_elements(R_NilValue);
 			}
 			else
 				data0 = _data;
@@ -247,7 +247,7 @@ class SparseVector : public Sparse
 			SEXP index0;
 			if ( Rf_isS4(_index) ) {
 				MatterArray tmp(_index);
-				index0 = tmp.getElements(R_NilValue);
+				index0 = tmp.get_elements(R_NilValue);
 			}
 			else
 				index0 = _index;
@@ -447,7 +447,7 @@ class SparseMatrix : public Sparse
 					PROTECT(indx);
 					// FIXME: double indexing only for now...
 					MatterList tmp(_data);
-					data0 = tmp.getElements(indx);
+					data0 = tmp.get_elements(indx);
 					UNPROTECT(1);
 				}
 			}
@@ -492,12 +492,12 @@ class SparseMatrix : public Sparse
 						PROTECT(indx = seq_range(p.first, p.second - 1));
 						// FIXME: double indexing only for now...
 						MatterArray tmp(_index);
-						index0 = tmp.getElements(indx);
+						index0 = tmp.get_elements(indx);
 						UNPROTECT(1);
 					}
 					else {
 						MatterArray tmp(_index);
-						index0 = tmp.getElements(R_NilValue);
+						index0 = tmp.get_elements(R_NilValue);
 					}
 				}
 			}

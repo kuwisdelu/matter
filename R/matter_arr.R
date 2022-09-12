@@ -2,9 +2,11 @@
 #### 'matter_arr' class for file-based arrays ####
 ## ------------------------------------------------
 
+setClassUnion("ops_OR_NULL", c("deferred_ops", "NULL"))
+
 setClass("matter_arr",
 	slots = c(
-		ops = "list_OR_NULL",
+		ops = "ops_OR_NULL",
 		transpose = "logical"),
 	contains = "matter_",
 	validity = function(object) {
@@ -293,4 +295,46 @@ setReplaceMethod("dim", "matter_vec", function(x, value) {
 		x <- as(x, "matter_arr")
 	callNextMethod(x, value)
 })
+
+setMethod("Arith", c(e1 = "matter_vec", e2 = "vector"),
+	function(e1, e2) {
+		if ( !is.numeric(e2) && !is.logical(e2) )
+			stop("arguments must be numeric or logical")
+		register_op(e1, .Generic, e2, FALSE)
+	})
+
+setMethod("Arith", c(e1 = "matter_arr", e2 = "vector"),
+	function(e1, e2) {
+		if ( !is.numeric(e2) && !is.logical(e2) )
+			stop("arguments must be numeric or logical")
+		register_op(e1, .Generic, as.matrix(e2), FALSE)
+	})
+
+setMethod("Arith", c(e1 = "matter_arr", e2 = "array"),
+	function(e1, e2) {
+		if ( !is.numeric(e2) && !is.logical(e2) )
+			stop("arguments must be numeric or logical")
+		register_op(e1, .Generic, e2, FALSE)
+	})
+
+setMethod("Arith", c(e1 = "vector", e2 = "matter_vec"),
+	function(e1, e2) {
+		if ( !is.numeric(e1) && !is.logical(e1) )
+			stop("arguments must be numeric or logical")
+		register_op(e2, .Generic, e1, TRUE)
+	})
+
+setMethod("Arith", c(e1 = "vector", e2 = "matter_arr"),
+	function(e1, e2) {
+		if ( !is.numeric(e1) && !is.logical(e1) )
+			stop("arguments must be numeric or logical")
+		register_op(e2, .Generic, as.matrix(e1), TRUE)
+	})
+
+setMethod("Arith", c(e1 = "array", e2 = "matter_arr"),
+	function(e1, e2) {
+		if ( !is.numeric(e1) && !is.logical(e1) )
+			stop("arguments must be numeric or logical")
+		register_op(e2, .Generic, e1, TRUE)
+	})
 

@@ -192,7 +192,7 @@ sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 		dim=as.integer(c(nrow, ncol)),
 		dimnames=dimnames,
 		tolerance=as_tol(tolerance),
-		sampler=as_kernel(sampler))
+		sampler=as_kern(sampler))
 }
 
 setMethod("describe_for_display", "sparse_mat", function(x) {

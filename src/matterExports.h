@@ -197,13 +197,13 @@ static inline SEXP regroupAtoms(SEXP x, SEXP n)
 static inline SEXP getMatterArray(SEXP x, SEXP i)
 {
 	MatterArray xm(x);
-	return xm.getElements(i);
+	return xm.get_elements(i);
 }
 
 static inline SEXP setMatterArray(SEXP x, SEXP i, SEXP value)
 {
 	MatterArray xm(x);
-	xm.setElements(i, value);
+	xm.set_elements(i, value);
 	return x;
 }
 
@@ -223,26 +223,26 @@ static inline SEXP setMatterListElt(SEXP x, SEXP i, SEXP j, SEXP value)
 static inline SEXP getMatterListSubset(SEXP x, SEXP i, SEXP j)
 {
 	MatterList xm(x);
-	return xm.getElements(i, j);
+	return xm.get_elements(i, j);
 }
 
 static inline SEXP setMatterListSubset(SEXP x, SEXP i, SEXP j, SEXP value)
 {
 	MatterList xm(x);
-	xm.setElements(i, j, value);
+	xm.set_elements(i, j, value);
 	return x;
 }
 
 static inline SEXP getMatterStrings(SEXP x, SEXP i, SEXP j)
 {
 	MatterStringList xm(x);
-	return xm.getStrings(i, j);
+	return xm.get_strings(i, j);
 }
 
 static inline SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value)
 {
 	MatterStringList xm(x);
-	xm.setStrings(i, j, value);
+	xm.set_strings(i, j, value);
 	return x;
 }
 

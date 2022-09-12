@@ -52,6 +52,6 @@ setReplaceMethod("tolerance", "sparse_", function(object, value) {
 setMethod("sampler", "sparse_", function(object) object@sampler)
 
 setReplaceMethod("sampler", "sparse_", function(object, value) {
-	object@sampler <- as_kernel(value)
+	object@sampler <- as_kern(value)
 	object
 })
