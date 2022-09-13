@@ -60,6 +60,8 @@ test_that("matter array 1-D indexing", {
 	expect_equal(x[c(1,3,5,7)], y[c(1,3,5,7)])
 	expect_equal(x[c(7,5,3,1)], y[c(7,5,3,1)])
 	expect_equal(x[c(1,NA,2,NA,3)], y[c(1,NA,2,NA,3)])
+	expect_error(y[-1])
+	expect_error(y[length(y) + 1])
 
 	x[1:5] <- x[1:5] + 100
 	y[1:5] <- y[1:5] + 100
@@ -109,6 +111,10 @@ test_that("matter array 2-D indexing (col major)", {
 	expect_equal(x[1:3,1:4], y[1:3,1:4])
 	expect_equal(x[3:1,4:1], y[3:1,4:1])
 	expect_equal(x[,c(1,NA,7)], y[,c(1,NA,7)])
+	expect_error(y[,-1])
+	expect_error(y[-1,])
+	expect_error(y[,ncol(y) + 1])
+	expect_error(y[nrow(y) + 1,])
 
 	x[1,] <- x[1,] + 100
 	y[1,] <- y[1,] + 100
@@ -146,6 +152,10 @@ test_that("matter array 2-D indexing (row major)", {
 	expect_equal(x[1:3,1:4], y[1:3,1:4])
 	expect_equal(x[3:1,4:1], y[3:1,4:1])
 	expect_equal(x[,c(1,NA,7)], y[,c(1,NA,7)])
+	expect_error(y[,-1])
+	expect_error(y[-1,])
+	expect_error(y[,ncol(y) + 1])
+	expect_error(y[nrow(y) + 1,])
 
 	x[1,] <- x[1,] + 100
 	y[1,] <- y[1,] + 100

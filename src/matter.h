@@ -3,7 +3,7 @@
 
 #include "matterDefines.h"
 #include "atoms.h"
-#include "dops.h"
+#include "ops.h"
 
 //// Matter class
 //----------------
@@ -112,7 +112,7 @@ class MatterArray : public Matter {
 		}
 
 		bool has_ops() {
-			return ops()->nops() > 0;
+			return ops()->nops() != 0;
 		}
 
 		// convert col-major to row-major index

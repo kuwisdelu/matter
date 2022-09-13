@@ -11,27 +11,29 @@ class DeferredOps {
 
 	public:
 
-		DeferredOps(SEXP x, SEXP dim)
-		{
-			if ( !Rf_isNull(x) )
-			{
-				_ops = INTEGER(R_do_slot(x, Rf_install("ops")));
-				_arg = R_do_slot(x, Rf_install("arg"));
-				_rhs = INTEGER(R_do_slot(x, Rf_install("rhs")));
-				_margin = INTEGER(R_do_slot(x, Rf_install("margin")));
-				_group = R_do_slot(x, Rf_install("group"));
-				_nops = LENGTH(R_do_slot(x, Rf_install("ops")));
-			}
-			else
-				_nops = 0;	
-			_dim = dim;
-		}
-
 		DeferredOps(SEXP x)
 		{
-			DeferredOps(
-				R_do_slot(x, Rf_install("ops")),
-				R_do_slot(x, Rf_install("dim")));
+			SEXP ops = R_do_slot(x, Rf_install("ops"));
+			SEXP dim = R_do_slot(x, Rf_install("dim"));
+			if ( !Rf_isNull(ops) )
+			{
+				_ops = INTEGER(R_do_slot(ops, Rf_install("ops")));
+				_arg = R_do_slot(ops, Rf_install("arg"));
+				_rhs = INTEGER(R_do_slot(ops, Rf_install("rhs")));
+				_margin = INTEGER(R_do_slot(ops, Rf_install("margin")));
+				_group = R_do_slot(ops, Rf_install("group"));
+				_nops = LENGTH(R_do_slot(ops, Rf_install("ops")));
+			}
+			else
+			{
+				_ops = NULL;
+				_arg = NULL;
+				_rhs = NULL;
+				_margin = NULL;
+				_group = NULL;
+				_nops = 0;	
+			}
+			_dim = dim;
 		}
 
 		~DeferredOps() {}
@@ -107,10 +109,7 @@ class DeferredOps {
 		}
 
 		SEXP group(int i) {
-			if ( has_groups(i) )
-				return VECTOR_ELT(_group, i);
-			else
-				return R_NilValue;
+			return VECTOR_ELT(_group, i);
 		}
 
 		int group(int i, int j) {

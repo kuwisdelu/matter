@@ -72,10 +72,17 @@ append_op <- function(object, op, arg = NULL,
 register_op <- function(x, op, arg = NULL, rhs = FALSE)
 {
 	op <- as_Ops(op)
+	if ( !is.null(arg) && !is.numeric(arg) && !is.logical(arg) )
+		stop("arguments must be numeric or logical")
 	if ( is.null(arg) ) {
 		margin <- NA_integer_
 	} else if ( is.null(dim(x)) || is.null(dim(arg)) ) {
 		margin <- 1L
+		if ( is.null(dim(arg)) && !is.null(dim(x)) ) {
+			dm <- rep_len(1L, length(dim(x)))
+			dm[1L] <- length(arg)
+			dim(arg) <- dm
+		}
 	} else {
 		if ( rhs ) {
 			rdim <- dim(x)
@@ -93,7 +100,8 @@ register_op <- function(x, op, arg = NULL, rhs = FALSE)
 		margin <- 1L
 	if ( length(margin) != 1L )
 		stop("only a single dim of argument may be unequal to 1")
-	arg <- as.vector(arg)
+	if ( !is.null(arg) )
+		arg <- as.vector(arg)
 	xlen <- if (is.null(dim(x))) length(x) else dim(x)[margin]
 	if ( !is.na(margin) && length(arg) != 1L ) {
 		if ( rhs ) {
@@ -117,6 +125,8 @@ register_group_op <- function(x, op, group, arg = NULL,
 	rhs = FALSE, margin = NA_integer_)
 {
 	op <- as_Ops(op)
+	if ( !is.null(arg) && !is.numeric(arg) && !is.logical(arg) )
+		stop("arguments must be numeric or logical")
 	if ( is.na(margin) || length(margin) != 1L )
 		stop("margin must be a non-missing scalar (length-1)")
 	xlen <- if (is.null(dim(x))) length(x) else dim(x)[margin]
