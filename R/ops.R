@@ -108,6 +108,7 @@ register_op <- function(x, op, arg = NULL, rhs = FALSE)
 				"lhs [", lext, "] and rhs [", rext, "]"))
 	}
 	x@ops <- append_op(x@ops, op=op, arg=arg, rhs=rhs, margin=margin)
+	x@type <- as_Rtype("double")
 	if ( validObject(x) )
 		x
 }
@@ -131,6 +132,7 @@ register_group_op <- function(x, op, group, arg = NULL,
 			"lhs [", lext, "] and rhs [", rext, "]"))
 	x@ops <- append_op(x@ops, op=op, arg=arg,
 		rhs=rhs, margin=margin, group=group)
+	x@type <- as_Rtype("double")
 	if ( validObject(x) )
 		x
 }

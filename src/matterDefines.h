@@ -54,7 +54,7 @@
 #define OP_ADD		1	// +
 #define OP_SUB		2	// -
 #define OP_MUL		3	// *
-#define OP_EXP		4	// ^
+#define OP_POW		4	// ^
 #define OP_MOD		5	// %%
 #define OP_IDIV		6	// %/%
 #define OP_DIV		7	// /
@@ -70,13 +70,14 @@
 // Logic
 #define LGL_AND		14	// &
 #define LGL_OR		15	// |
+#define LGL_NOT		16	// !
 
 // Math
-#define MATH_LOG	16
-#define MATH_LOG10	17
-#define MATH_LOG2	18
-#define MATH_LOG1P	18
-#define MATH_EXP	19
+#define MATH_LOG	17
+#define MATH_LOG10	18
+#define MATH_LOG2	19
+#define MATH_LOG1P	20
+#define MATH_EXP	21
 
 // Summary
 #define STAT_MAX		1

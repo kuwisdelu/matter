@@ -3,6 +3,7 @@
 
 #include "matterDefines.h"
 #include "atoms.h"
+#include "dops.h"
 
 //// Matter class
 //----------------
@@ -90,9 +91,8 @@ class MatterArray : public Matter {
 
 	public:
 
-		MatterArray(SEXP x) : Matter(x)
+		MatterArray(SEXP x) : Matter(x), _ops(x)
 		{
-			_ops = R_do_slot(x, Rf_install("ops"));
 			_transpose = Rf_asLogical(R_do_slot(x, Rf_install("transpose")));
 		}
 
@@ -107,6 +107,14 @@ class MatterArray : public Matter {
 			return _transpose;
 		}
 
+		DeferredOps * ops() {
+			return &_ops;
+		}
+
+		bool has_ops() {
+			return ops()->nops() > 0;
+		}
+
 		// convert col-major to row-major index
 		template<typename T>
 		size_t transpose_range(T * tindx, index_t i, size_t size, bool ind1 = false)
@@ -115,24 +123,19 @@ class MatterArray : public Matter {
 			int s1 [rank()], s2 [rank()];
 			int arr_ind [rank()];
 			s1[0] = 1, s2[rank() - 1] = 1;
-			for ( int j = 1; j < rank(); j++ ) {
-				s1[j] = s1[j - 1] * dim(j - 1);
-				// Rprintf("stride[%d] = %d\n", j, s1[j]);
-			}
-			for ( int j = rank() - 2; j >= 0; j-- ) {
-				s2[j] = s2[j + 1] * dim(j + 1);
-				// Rprintf("trans stride[%d] = %d\n", j, s2[j]);
-			}
-			for ( size_t k = 0; k < size; k++ )
+			for ( int k = 1; k < rank(); k++ )
+				s1[k] = s1[k - 1] * dim(k - 1);
+			for ( int k = rank() - 2; k >= 0; k-- )
+				s2[k] = s2[k + 1] * dim(k + 1);
+			for ( size_t j = 0; j < size; j++ )
 			{
-				tindx[k] = 0;
-				for ( int j = 0; j < rank(); j++ )
-					arr_ind[j] = ((i + k) / s1[j]) % dim(j);
-				for ( int j = 0; j < rank(); j++ )
-					tindx[k] += arr_ind[j] * s2[j];
-				tindx[k] += ind1;
+				tindx[j] = 0;
+				for ( int k = 0; k < rank(); k++ )
+					arr_ind[k] = ((i + j) / s1[k]) % dim(k);
+				for ( int k = 0; k < rank(); k++ )
+					tindx[j] += arr_ind[k] * s2[k];
+				tindx[j] += ind1;
 				nind++;
-				// Rprintf("i = %d, trans i = %d\n", i + k, tindx[k]);
 			}
 			return nind;
 		}
@@ -146,30 +149,25 @@ class MatterArray : public Matter {
 			index_t s2 [rank()];
 			index_t arr_ind [rank()];
 			s1[0] = 1, s2[rank() - 1] = 1;
-			for ( int j = 1; j < rank(); j++ ) {
-				s1[j] = s1[j - 1] * dim(j - 1);
-				// Rprintf("stride[%d] = %d\n", j, s1[j]);
-			}
-			for ( int j = rank() - 2; j >= 0; j-- ) {
-				s2[j] = s2[j + 1] * dim(j + 1);
-				// Rprintf("trans stride[%d] = %d\n", j, s2[j]);
-			}
-			for ( size_t k = 0; k < XLENGTH(indx); k++ )
+			for ( int k = 1; k < rank(); k++ )
+				s1[k] = s1[k - 1] * dim(k - 1);
+			for ( int k = rank() - 2; k >= 0; k-- )
+				s2[k] = s2[k + 1] * dim(k + 1);
+			for ( size_t j = 0; j < XLENGTH(indx); j++ )
 			{
-				index_t i = IndexElt(indx, k);
+				index_t i = IndexElt(indx, j);
 				if ( isNA(i) ) {
-					tindx[k] = NA<T>();
+					tindx[j] = NA<T>();
 					nind++;
 					continue;
 				}
-				tindx[k] = 0;
-				for ( int j = 0; j < rank(); j++ )
-					arr_ind[j] = ((i - ind1) / s1[j]) % dim(j);
-				for ( int j = 0; j < rank(); j++ )
-					tindx[k] += arr_ind[j] * s2[j];
-				tindx[k] += ind1;
+				tindx[j] = 0;
+				for ( int k = 0; k < rank(); k++ )
+					arr_ind[k] = ((i - ind1) / s1[k]) % dim(k);
+				for ( int k = 0; k < rank(); k++ )
+					tindx[j] += arr_ind[k] * s2[k];
+				tindx[j] += ind1;
 				nind++;
-				// Rprintf("i = %d, trans i = %d\n", i, tindx[k]);
 			}
 			return nind;
 		}
@@ -177,55 +175,75 @@ class MatterArray : public Matter {
 		template<typename T>
 		size_t get_region(index_t i, size_t size, T * buffer, int stride = 1)
 		{
+			R_xlen_t len = length();
+			size = len - i > size ? size : len - i;
 			if ( is_transposed() )
 			{
 				index_t tindx [size];
 				transpose_range(tindx, i, size);
-				return data()->flatten()->get_elements<index_t,T>(buffer, tindx, size, 0, stride);
+				data()->flatten()->get_elements<index_t,T>(buffer, tindx, size, 0, stride);
 			}
 			else
-				return data()->flatten()->get_region<T>(buffer, i, size, 0, stride);
+				data()->flatten()->get_region<T>(buffer, i, size, 0, stride);
+			if ( has_ops() )
+				ops()->apply<T>(buffer, i, size, stride);
+			return size;
 		}
 
 		template<typename T>
 		size_t set_region(index_t i, size_t size, T * buffer, int stride = 1)
 		{
+			if ( has_ops() ) {
+				self_destruct();
+				Rf_error("can't assign to array with deferred operations");
+			}
+			R_xlen_t len = length();
+			size = len - i > size ? size : len - i;
 			if ( is_transposed() )
 			{
 				index_t tindx [size];
 				transpose_range(tindx, i, size);
-				return data()->flatten()->set_elements<index_t,T>(buffer, tindx, size, 0, stride);
+				data()->flatten()->set_elements<index_t,T>(buffer, tindx, size, 0, stride);
 			}
 			else
-				return data()->flatten()->set_region<T>(buffer, i, size, 0, stride);
+				data()->flatten()->set_region<T>(buffer, i, size, 0, stride);
+			return size;
 		}
 
 		template<typename T>
 		size_t get_elements(SEXP indx, T * buffer, int stride = 1)
 		{
+			R_xlen_t size = XLENGTH(indx);
 			if ( is_transposed() )
 			{
-				R_xlen_t size = XLENGTH(indx);
 				index_t tindx [size];
 				transpose_index(tindx, indx, true);
-				return data()->flatten()->get_elements<index_t,T>(buffer, tindx, size, 0, stride, true);
+				data()->flatten()->get_elements<index_t,T>(buffer, tindx, size, 0, stride, true);
 			}
 			else
-				return data()->flatten()->get_elements<T>(buffer, indx, 0, stride);
+				data()->flatten()->get_elements<T>(buffer, indx, 0, stride);
+			if ( has_ops() )
+				ops()->apply<T>(buffer, indx, stride);
+			return size;
 		}
 
 		template<typename T>
 		size_t set_elements(SEXP indx, T * buffer, int stride = 1)
 		{
+			if ( has_ops() ) {
+				self_destruct();
+				Rf_error("can't assign to array with deferred operations");
+			}
+			R_xlen_t size = XLENGTH(indx);
 			if ( is_transposed() )
 			{
-				R_xlen_t size = XLENGTH(indx);
 				index_t tindx [size];
 				transpose_index(tindx, indx, true);
-				return data()->flatten()->set_elements<index_t,T>(buffer, tindx, size, 0, stride, true);
+				data()->flatten()->set_elements<index_t,T>(buffer, tindx, size, 0, stride, true);
 			}
 			else
-				return data()->flatten()->set_elements<T>(buffer, indx, 0, stride);
+				data()->flatten()->set_elements<T>(buffer, indx, 0, stride);
+			return size;
 		}
 
 		SEXP get_region(index_t i, size_t size)
@@ -342,7 +360,7 @@ class MatterArray : public Matter {
 
 	protected:
 
-		SEXP _ops;
+		DeferredOps _ops;
 		bool _transpose;
 
 };

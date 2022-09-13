@@ -173,11 +173,11 @@ static Rbyte matter_altraw_Elt(SEXP x, R_xlen_t i)
 }
 
 static R_xlen_t matter_altraw_Get_region(SEXP x,
-	R_xlen_t i, R_xlen_t size, Rbyte * buffer)
+	R_xlen_t i, R_xlen_t n, Rbyte * buffer)
 {
 	MTDEBUG2("matter: raw_Get_region(%d, %d) access\n", i, size);
 	MatterArray xm(x);
-	return xm.get_region(i, size, buffer);
+	return xm.get_region(i, n, buffer);
 }
 
 // ALTLOGICAL
@@ -192,11 +192,11 @@ static int matter_altlogical_Elt(SEXP x, R_xlen_t i)
 }
 
 static R_xlen_t matter_altlogical_Get_region(SEXP x,
-	R_xlen_t i, R_xlen_t size, int * buffer)
+	R_xlen_t i, R_xlen_t n, int * buffer)
 {
 	MTDEBUG2("matter: logical_Get_region(%d, %d) access\n", i, size);
 	MatterArray xm(x);
-	return xm.get_region(i, size, buffer);
+	return xm.get_region(i, n, buffer);
 }
 
 // ALTINTEGER
@@ -211,11 +211,11 @@ static int matter_altinteger_Elt(SEXP x, R_xlen_t i)
 }
 
 static R_xlen_t matter_altinteger_Get_region(SEXP x,
-	R_xlen_t i, R_xlen_t size, int * buffer)
+	R_xlen_t i, R_xlen_t n, int * buffer)
 {
 	MTDEBUG2("matter: integer_Get_region(%d, %d) access\n", i, size);
 	MatterArray xm(x);
-	return xm.get_region(i, size, buffer);
+	return xm.get_region(i, n, buffer);
 }
 
 // ALTREAL
@@ -230,11 +230,11 @@ static double matter_altreal_Elt(SEXP x, R_xlen_t i)
 }
 
 static R_xlen_t matter_altreal_Get_region(SEXP x,
-	R_xlen_t i, R_xlen_t size, double * buffer)
+	R_xlen_t i, R_xlen_t n, double * buffer)
 {
 	MTDEBUG2("matter: real_Get_region(%d, %d) access\n", i, size);
 	MatterArray xm(x);
-	return xm.get_region(i, size, buffer);
+	return xm.get_region(i, n, buffer);
 }
 
 //// Matter ALTSTRING class
