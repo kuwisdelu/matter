@@ -10,6 +10,8 @@ test_that("delayed ops - logical", {
 
 	expect_equal(x + 1, (y + 1)[])
 	expect_equal(x + 1:10, (y + 1:10)[])
+	expect_equal((x + 1:10)[1:5], (y + 1:10)[1:5])
+	expect_equal(x + c(NA,2:9,NA), (y + c(NA,2:9,NA))[])
 	expect_error(y + 1:5)
 	expect_error(y + "foo")
 
@@ -22,6 +24,8 @@ test_that("delayed ops - integer", {
 
 	expect_equal(x + 1, (y + 1)[])
 	expect_equal(x + 1:10, (y + 1:10)[])
+	expect_equal((x + 1:10)[1:5], (y + 1:10)[1:5])
+	expect_equal(x + c(NA,2:9,NA), (y + c(NA,2:9,NA))[])
 	expect_error(y + 1:5)
 	expect_error(y + "foo")
 
@@ -34,6 +38,8 @@ test_that("delayed ops - double", {
 
 	expect_equal(x + 1, (y + 1)[])
 	expect_equal(x + 1:10, (y + 1:10)[])
+	expect_equal((x + 1:10)[1:5], (y + 1:10)[1:5])
+	expect_equal(x + c(NA,2:9,NA), (y + c(NA,2:9,NA))[])
 	expect_error(y + 1:5)
 	expect_error(y + "foo")
 
@@ -53,8 +59,13 @@ test_that("delayed ops - matrix", {
 
 	expect_equal(x + 1, (y + 1)[])
 	expect_equal(x + 1:5, (y + 1:5)[])
+	expect_equal(x + c(NA,2:4,NA), (y + c(NA,2:4,NA))[])
 	expect_equal(x + a, (y + a1)[])
+	expect_equal((x + a)[1,], (y + a1)[1,])
+	expect_equal((x + a)[,1], (y + a1)[,1])
 	expect_equal(x + b, (y + b1)[])
+	expect_equal((x + b)[1,], (y + b1)[1,])
+	expect_equal((x + b)[,1], (y + b1)[,1])
 	expect_equal(x + a + b, (y + a1 + b1)[])
 	expect_equal(a - x + b, (a1 - y + b1)[])
 	expect_equal(a * x - b, (a1 * y - b1)[])
@@ -74,6 +85,9 @@ test_that("delayed ops - array", {
 	expect_equal(x + 1, (y + 1)[])
 	expect_equal(x + 1:4, (y + 1:4)[])
 	expect_equal(x + a, (y + a11)[])
+	expect_equal((x + a)[1,,], (y + a11)[1,,])
+	expect_equal((x + a)[,1,], (y + a11)[,1,])
+	expect_equal((x + a)[,,1], (y + a11)[,,1])
 	expect_equal(x - a, (y - a11)[])
 	expect_equal(a * x - a, (a11 * y - a11)[])
 

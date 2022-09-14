@@ -15,12 +15,23 @@ class DeferredOps {
 		{
 			SEXP ops = R_do_slot(x, Rf_install("ops"));
 			SEXP dim = R_do_slot(x, Rf_install("dim"));
+			init(ops, dim);
+		}
+
+		DeferredOps(SEXP ops, SEXP dim)
+		{
+			init(ops, dim);
+		}
+
+		~DeferredOps() {}
+
+		void init(SEXP ops, SEXP dim) {
 			if ( !Rf_isNull(ops) )
 			{
 				_ops = INTEGER(R_do_slot(ops, Rf_install("ops")));
 				_arg = R_do_slot(ops, Rf_install("arg"));
 				_rhs = INTEGER(R_do_slot(ops, Rf_install("rhs")));
-				_margin = INTEGER(R_do_slot(ops, Rf_install("margin")));
+				_margins = INTEGER(R_do_slot(ops, Rf_install("margins")));
 				_group = R_do_slot(ops, Rf_install("group"));
 				_nops = LENGTH(R_do_slot(ops, Rf_install("ops")));
 			}
@@ -29,14 +40,12 @@ class DeferredOps {
 				_ops = NULL;
 				_arg = NULL;
 				_rhs = NULL;
-				_margin = NULL;
+				_margins = NULL;
 				_group = NULL;
 				_nops = 0;	
 			}
 			_dim = dim;
 		}
-
-		~DeferredOps() {}
 
 		int rank() {
 			return LENGTH(_dim);
@@ -57,16 +66,21 @@ class DeferredOps {
 			return _ops[i];
 		}
 
+		bool is_unary(int i) {
+			return Rf_isNull(arg(i));
+		}
+
 		SEXP arg(int i) {
 			return VECTOR_ELT(_arg, i);
 		}
 
 		template<typename T>
-		T arg(int i, int j) {
+		T arg(int i, int j, int grp = 0) {
+			if ( is_unary(i) )
+				return NA<T>();
 			if ( arglen(i) == 1 )
 				j = 0;
 			int s = arglen(i);
-			int grp = group(i, j);
 			switch(argtype(i)) {
 				case RAWSXP:
 					return coerce_cast<T>(RAW(arg(i))[s * grp + j]);
@@ -86,25 +100,26 @@ class DeferredOps {
 		}
 
 		R_xlen_t arglen(int i) {
-			if ( has_groups(i) )
+			if ( is_unary(i) )
+				return 0;
+			if ( is_grouped(i) )
 				return Rf_nrows(arg(i));
 			else
 				return XLENGTH(arg(i));
 		}
 
-		bool is_unary(int i) {
-			return Rf_isNull(arg(i));
+		int argdim(int i) {
+			if ( is_unary(i) )
+				return 0;
+			else
+				return _margins[i] - 1;
 		}
 
 		bool is_rhs(int i) {
 			return _rhs[i];
 		}
 
-		int margin(int i) {
-			return _margin[i] - 1;
-		}
-
-		bool has_groups(int i) {
+		bool is_grouped(int i) {
 			return !Rf_isNull(group(i));
 		}
 
@@ -113,8 +128,22 @@ class DeferredOps {
 		}
 
 		int group(int i, int j) {
-			if ( has_groups(i) )
+			if ( is_grouped(i) )
 				return INTEGER(group(i))[j];
+			else
+				return 0;
+		}
+
+		int grouplen(int i) {
+			if ( is_grouped(i) )
+				return XLENGTH(group(i));
+			else
+				return 0;
+		}
+
+		int groupdim(int i) {
+			if ( is_grouped(i) )
+				return _margins[nops() + i] - 1;
 			else
 				return 0;
 		}
@@ -162,7 +191,8 @@ class DeferredOps {
 					{
 						for ( int k = 0; k < rank(); k++ )
 							arr_ind[k] = ((i + j) / s[k]) % dim(k);
-						yj = arg<T>(l, arr_ind[margin(l)]);
+						int grp = group(l, arr_ind[groupdim(l)]);
+						yj = arg<T>(l, arr_ind[argdim(l)], grp);
 						if ( isNA(yj) ) {
 							x[stride * j] = NA<T>();
 							continue;
@@ -249,7 +279,8 @@ class DeferredOps {
 						index_t i = IndexElt(indx, j) - 1;
 						for ( int k = 0; k < rank(); k++ )
 							arr_ind[k] = (i / s[k]) % dim(k);
-						yj = arg<T>(l, arr_ind[margin(l)]);
+						int grp = group(l, arr_ind[groupdim(l)]);
+						yj = arg<T>(l, arr_ind[argdim(l)], grp);
 						if ( isNA(yj) ) {
 							x[stride * j] = NA<T>();
 							continue;
@@ -298,7 +329,7 @@ class DeferredOps {
 		int * _ops;
 		SEXP _arg;
 		int * _rhs;
-		int * _margin;
+		int * _margins;
 		SEXP _group;
 		SEXP _dim;
 
