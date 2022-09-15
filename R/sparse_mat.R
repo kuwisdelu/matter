@@ -192,7 +192,7 @@ sparse_mat <- function(data, index, datamode = "double", nrow = 0, ncol = 0,
 		dim=as.integer(c(nrow, ncol)),
 		dimnames=dimnames,
 		tolerance=as_tol(tolerance),
-		sampler=as_kern(sampler))
+		sampler=as_interp(sampler))
 }
 
 setMethod("describe_for_display", "sparse_mat", function(x) {
@@ -242,18 +242,18 @@ setAs("sparse_mat", "matrix", function(from) from[])
 
 setMethod("as.matrix", "sparse_mat", function(x) as(x, "matrix"))
 
-setReplaceMethod("domain", "sparse_matc", function(object, value) {
-	object@domain <- value
-	object@dim[1L] <- length(value)
-	if ( validObject(object) )
-		object
+setReplaceMethod("domain", "sparse_matc", function(x, value) {
+	x@domain <- value
+	x@dim[1L] <- length(value)
+	if ( validObject(x) )
+		x
 })
 
-setReplaceMethod("domain", "sparse_matr", function(object, value) {
-	object@domain <- value
-	object@dim[2L] <- length(value)
-	if ( validObject(object) )
-		object
+setReplaceMethod("domain", "sparse_matr", function(x, value) {
+	x@domain <- value
+	x@dim[2L] <- length(value)
+	if ( validObject(x) )
+		x
 })
 
 setMethod("length", "sparse_mat",

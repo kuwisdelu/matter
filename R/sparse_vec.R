@@ -53,7 +53,7 @@ sparse_vec <- function(data, index, datamode = "double", length = 0,
 		length=length,
 		names=names,
 		tolerance=as_tol(tolerance),
-		sampler=as_kern(sampler))
+		sampler=as_interp(sampler))
 }
 
 setMethod("describe_for_display", "sparse_vec", function(x) {
@@ -77,11 +77,11 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 		round(nnzero(x) / length(x), 4) * 100, "% density)\n", sep="")
 })
 
-setReplaceMethod("domain", "sparse_vec", function(object, value) {
-	object@domain <- value
-	object@length <- length(value)
-	if ( validObject(object) )
-		object
+setReplaceMethod("domain", "sparse_vec", function(x, value) {
+	x@domain <- value
+	x@length <- length(value)
+	if ( validObject(x) )
+		x
 })
 
 setMethod("nnzero", "sparse_vec",

@@ -102,14 +102,8 @@ exportMethods(
 	"atomdata<-",
 	"type",
 	"type<-",
-	"datamode",
-	"datamode<-",
-	"paths",
-	"paths<-",
 	"path",
 	"path<-",
-	"filemode",
-	"filemode<-",
 	"readonly",
 	"readonly<-",
 	"chunksize",
@@ -121,15 +115,23 @@ exportMethods(
 	"atomindex<-",
 	"domain",
 	"domain<-",
-	"keys",
-	"keys<-",
 	"tolerance",
 	"tolerance<-",
 	"sampler",
 	"sampler<-",
+	"nnzero")
+
+exportMethods(
+	"paths",
+	"paths<-",
+	"datamode",
+	"datamode<-",
+	"filemode",
+	"filemode<-",
 	"combiner",
 	"combiner<-",
-	"nnzero")
+	"keys",
+	"keys<-")
 
 exportMethods("checksum")
 
@@ -180,14 +182,16 @@ exportMethods(
 	"sd",
 	"any",
 	"all",
-	"colSums",
-	"colMeans",
-	"colVars",
-	"colSds",
 	"rowSums",
 	"rowMeans",
+	"colSums",
+	"colMeans")
+
+exportMethods(
 	"rowVars",
-	"rowSds")
+	"rowSds",
+	"colVars",
+	"colSds")
 
 export(
 	"s_range",
@@ -226,8 +230,12 @@ S3method("stat_c", "stream_all")
 S3method("stat_c", "stream_nnzero")
 
 exportMethods(
-	"colStats",
-	"rowStats")
+	"rowsweep",
+	"colsweep",
+	"rowscale",
+	"colscale",
+	"rowStats",
+	"colStats")
 
 export(
 	"chunk_apply",

@@ -262,7 +262,7 @@ as_tol_ref <- function(x) {
 }
 
 # export
-as_kern <- function(x) {
+as_interp <- function(x) {
 	codes <- c(
 		# simple interp (1-5)
 		"none", "mean", "sum", "max", "min",

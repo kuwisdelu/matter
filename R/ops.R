@@ -37,11 +37,15 @@ setClass("deferred_ops",
 						"'margins' can't be missing for non-NULL 'arg'")
 			}
 			if ( !is.null(object@group[[i]]) ) {
-				ngroups <- length(unique(object@group[[i]]))
-				if ( ngroups != ncol(object@arg[[i]]) )
+				ugroup <- unique(object@group[[i]])
+				if ( length(ugroup) != ncol(object@arg[[i]]) )
 					errors <- c(errors,
 						paste0("number of groups [", ngroups, "] ",
 						"does not match ncol of 'arg'",
+						" [", ncol(object@arg[[i]]), "]"))
+				if ( any(ugroup < 0 | ugroup >= ncol(object@arg[[i]])) )
+					errors <- c(errors,
+						paste0("groups do not match ncol of 'arg'",
 						" [", ncol(object@arg[[i]]), "]"))
 				if ( is.na(object@margins[i,2]) )
 					errors <- c(errors,
@@ -133,8 +137,6 @@ register_group_op <- function(x, op, arg, group,
 	op <- as_Ops(op)
 	if ( !is.null(arg) && !is.numeric(arg) && !is.logical(arg) )
 		stop("arguments must be numeric or logical")
-	if ( is.na(margin) || length(margin) != 1L )
-		stop("margin must be a non-missing scalar (length-1)")
 	xlen1 <- if (is.null(dim(x))) length(x) else dim(x)[margins[1L]]
 	if ( rhs ) {
 		rext <- xlen1

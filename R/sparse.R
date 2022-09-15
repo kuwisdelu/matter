@@ -34,24 +34,24 @@ setReplaceMethod("atomindex", "sparse_", function(object, value) {
 		object
 })
 
-setMethod("domain", "sparse_", function(object) object@domain)
+setMethod("domain", "sparse_", function(x) object@domain)
 
-setReplaceMethod("domain", "sparse_", function(object, value) {
-	object@domain <- value
-	if ( validObject(object) )
-		object
+setReplaceMethod("domain", "sparse_", function(x, value) {
+	x@domain <- value
+	if ( validObject(x) )
+		x
 })
 
-setMethod("tolerance", "sparse_", function(object) object@tolerance)
+setMethod("tolerance", "sparse_", function(object, ...) object@tolerance)
 
-setReplaceMethod("tolerance", "sparse_", function(object, value) {
+setReplaceMethod("tolerance", "sparse_", function(object, ..., value) {
 	object@tolerance <- as_tol(value)
 	object
 })
 
-setMethod("sampler", "sparse_", function(object) object@sampler)
+setMethod("sampler", "sparse_", function(object, ...) object@sampler)
 
-setReplaceMethod("sampler", "sparse_", function(object, value) {
-	object@sampler <- as_kern(value)
+setReplaceMethod("sampler", "sparse_", function(object, ..., value) {
+	object@sampler <- as_interp(value)
 	object
 })
