@@ -73,6 +73,8 @@ setGeneric("pointers<-", function(x, value) standardGeneric("pointers<-"))
 setGeneric("tolerance<-", function(object, ..., value) standardGeneric("tolerance<-"))
 setGeneric("sampler", function(object, ...) standardGeneric("sampler"))
 setGeneric("sampler<-", function(object, ..., value) standardGeneric("sampler<-"))
+setGeneric("keys", function(object) standardGeneric("keys"))
+setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 
 #### Additional generic functions ####
 ## ------------------------------------
@@ -106,8 +108,6 @@ setGeneric("filemode", function(x) standardGeneric("filemode"))
 setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
 setGeneric("combiner", function(object) standardGeneric("combiner"))
 setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
-setGeneric("keys", function(object) standardGeneric("keys"))
-setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 
 # FIXME: Probably best to either export this or remove it?
 setGeneric("nchunks", function(object, ...) standardGeneric("nchunks"))

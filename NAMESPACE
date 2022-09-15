@@ -19,30 +19,9 @@ importFrom("stats",
 
 import("BiocParallel")
 
-importFrom("BiocGenerics",
-	"as.data.frame",
-	"as.list",
-	"as.vector",
-	"mean",
-	"sd",
-	"var",
-	"colMeans",
-	"colSums",
-	"rowMeans",
-	"rowSums",
-	"t",
-	"dims",
-	"type",
-	"type<-",
-	"path",
-	"path<-",
-	"combine",
-	"which",
-	"lapply",
-	"sapply")
+import("BiocGenerics")
 
-importFrom("ProtGenerics",
-	"tolerance")
+import("ProtGenerics")
 
 importFrom("utils",
 	"head",
@@ -115,10 +94,14 @@ exportMethods(
 	"atomindex<-",
 	"domain",
 	"domain<-",
+	"pointers",
+	"pointers<-",
 	"tolerance",
 	"tolerance<-",
 	"sampler",
 	"sampler<-",
+	"keys",
+	"keys<-"
 	"nnzero")
 
 exportMethods(
@@ -129,9 +112,7 @@ exportMethods(
 	"filemode",
 	"filemode<-",
 	"combiner",
-	"combiner<-",
-	"keys",
-	"keys<-")
+	"combiner<-")
 
 exportMethods("checksum")
 
