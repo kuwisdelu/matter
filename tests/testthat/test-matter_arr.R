@@ -51,7 +51,7 @@ test_that("matter array 1-D indexing", {
 
 	set.seed(1)
 	x <- sort(round(10 * runif(10), 2))
-	y <- matter_arr(x)
+	y <- matter_vec(x)
 
 	expect_equal(x[], y[])
 	expect_equal(x[1], y[1])
@@ -101,7 +101,7 @@ test_that("matter array 2-D indexing (col major)", {
 	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
-	y <- matter_arr(x)
+	y <- matter_mat(x)
 
 	expect_equal(x, y[])
 	expect_equal(x[1,], y[1,])
@@ -142,7 +142,7 @@ test_that("matter array 2-D indexing (row major)", {
 	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
-	y <- matter_arr(x, rowMaj=TRUE)
+	y <- matter_mat(x, rowMaj=TRUE)
 
 	expect_equal(x, y[])
 	expect_equal(x[1,], y[1,])

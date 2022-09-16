@@ -27,6 +27,8 @@ setClass("matter_mat",
 		errors <- NULL
 		if ( length(object@dim) != 2L )
 			errors <- c(errors, "matrix must have exactly 2 dimensions")
+		if ( length(object@indexed) != 1L )
+			errors <- c(errors, "'indexed' must be a scalar (length 1)")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -64,19 +66,18 @@ matter_arr <- function(data, type = "double", path = NULL,
 		warning("data may overwrite existing file(s): ",
 			paste0(sQuote(path[exists]), collapse=", "))
 	if ( all(exists) && missing(data) ) {
+		# FIXME: can we infer the NA dims instead of overwriting all?
 		if ( anyNA(dim) && anyNA(extent) ) {
 			sizes <- file.size(path)
-			# FIXME: can we infer the NA dims instead of overwriting?
 			dim <- sum((sizes - offset) %/% sizeof(type))
 		}
 	}
-	if ( anyNA(dim) && anyNA(extent) ) {
-		extent <- dim <- rep.int(0, length(dim))
-	} else if ( anyNA(extent) ) {
+	if ( anyNA(dim) && anyNA(extent) )
+		dim <- rep.int(0, length(dim))
+	if ( anyNA(extent) )
 		extent <- prod(dim)
-	} else if ( anyNA(dim) ) {
+	if ( anyNA(dim) )
 		dim <- sum(extent)
-	}
 	if ( length(offset) != length(extent) && length(path) == 1L ) {
 		sizes <- sizeof(type) * extent
 		offset <- cumsum(c(offset, sizes[-length(sizes)]))
@@ -103,11 +104,10 @@ matter_arr <- function(data, type = "double", path = NULL,
 		dimnames=dimnames,
 		ops=NULL,
 		transpose=rowMaj, ...)
-	if ( !missing(data) && is.vector(data) ) {
+	if ( length(dim) == 1L )
 		x <- as(x, "matter_vec")
-	} else if ( length(dim) == 2L ) {
+	if ( length(dim) == 2L )
 		x <- as(x, "matter_mat")
-	}
 	if ( !missing(data) && !is.null(data) )
 		x[] <- data
 	x
@@ -133,11 +133,12 @@ matter_mat <- function(data, type = "double", path = NULL,
 		dimnames=dimnames, offset=offset, extent=extent,
 		readonly=readonly, rowMaj=rowMaj, ...)
 	x <- as(x, "matter_mat")
-	# if ( x@transpose ) {
-	# 	x@data <- regroup_atoms(x@data, nrow(x))
-	# } else {
-	# 	x@data <- regroup_atoms(x@data, ncol(x))
-	# }
+	if ( x@transpose ) {
+		x@data <- regroup_atoms(x@data, nrow(x))
+	} else {
+		x@data <- regroup_atoms(x@data, ncol(x))
+	}
+	x@indexed <- TRUE
 	if ( validObject(x) )
 		x
 }

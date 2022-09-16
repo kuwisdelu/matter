@@ -31,14 +31,14 @@ setClass("atoms",
 				"'extent' [", lens["extent"], "], ",
 				"and 'group' [", lens["group"], "] ",
 				"must all be equal"))
-		# FIXME: shouldn't need to realize drle vectors[]
-		# (add support for these functions on drle directly)
 		if ( any(levels(object@type) != get_Ctypes()) )
 			errors <- c(errors, "invalid 'type' factor levels")
 		if ( type(object@offset) != "double" )
 			errors <- c(errors, "offset must be of type 'double'")
 		if ( type(object@extent) != "double" )
 			errors <- c(errors, "extent must be of type 'double'")
+		# FIXME: shouldn't need to realize drle vectors[]
+		# (add support for these functions on drle directly)
 		if ( any(object@offset[] < 0) )
 			errors <- c(errors, "'offset' must be non-negative")
 		if ( any(object@extent[] < 0) )
@@ -116,9 +116,9 @@ setMethod("show", "atoms", function(object) {
 	n <- sum(as.numeric(object@extent))
 	nrows <- min(dms)
 	ncols <- length(dms)
-	desc1 <- paste0(n, " element", if (n > 1) "s")
+	desc1 <- paste0(n, " element", if (n != 1) "s")
 	desc2 <- paste0(nrows, if (length(unique(dms)) > 1) "+" else "", " per group")
-	desc3 <- paste0(ncols, " group", if (ncols > 1) "s" else "")
+	desc3 <- paste0(ncols, " group", if (ncols != 1) "s" else "")
 	cat("(", desc1, " | ", desc2, " | ", desc3, ")\n", sep="")
 })
 
@@ -217,6 +217,8 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 }
 
 regroup_atoms <- function(x, ngroups) {
+	if ( length(x) <= 1L )
+		return(x)
 	sub <- .Call(C_regroupAtoms, x, ngroups, PACKAGE="matter")
 	x <- atoms(source=droplevels(x@source[sub$index]),
 		type=x@type[sub$index],
@@ -229,6 +231,8 @@ regroup_atoms <- function(x, ngroups) {
 }
 
 ungroup_atoms <- function(x) {
+	if ( length(x) <= 1L )
+		return(x)
 	sub <- .Call(C_ungroupAtoms, x, PACKAGE="matter")
 	x <- atoms(source=droplevels(x@source[sub$index]),
 		type=x@type[sub$index],

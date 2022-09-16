@@ -630,6 +630,10 @@ class Atoms {
 			SEXP ans, nms, atomids, offsets, extents, groups;
 			index_t n, atom, pos;
 			AtomInfo ap;
+			if ( ngroups < 1 ) {
+				self_destruct();
+				Rf_error("number of groups is less than 1");
+			}
 			int k = 0, num_atoms = 0;
 			R_xlen_t nelt = nelements();
 			R_xlen_t groupsize = nelt / ngroups;
