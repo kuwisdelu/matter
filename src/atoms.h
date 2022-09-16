@@ -498,7 +498,7 @@ class Atoms {
 			}
 		}
 
-		int span(index_t i, size_t size, int grp = 0)
+		int compute_span(index_t i, size_t size, int grp = 0)
 		{
 			// how many atoms does a region span?
 			AtomInfo ap = find_atom(i, grp);
@@ -514,6 +514,26 @@ class Atoms {
 				pos = 0;
 				atom++;
 				num_atoms++;
+			}
+			return num_atoms;
+		}
+
+		int compute_block(int atom)
+		{
+			// how many atoms in a contiguous block of data?
+			int num_atoms = 0;
+			while ( TRUE )
+			{
+				num_atoms++;
+				if ( atom + 1 >= natoms() )
+					break;
+				if ( source(atom) != source(atom + 1) )
+					break;
+				if ( type(atom) != type(atom + 1) )
+					break;
+				if ( offset(atom, extent(atom)) != offset(atom + 1) )
+					break;
+				atom++;
 			}
 			return num_atoms;
 		}
@@ -534,7 +554,7 @@ class Atoms {
 					run = compute_run<T>(pindx, i, size, true);
 					n = run.length;
 					if ( run.delta == 1 )
-						num_atoms += span(pindx[i] - ind1, n, grp);
+						num_atoms += compute_span(pindx[i] - ind1, n, grp);
 					else
 						num_atoms += n;
 					i += n;
@@ -618,7 +638,7 @@ class Atoms {
 				Rf_error("number of elements is not a multiple of 'ngroups'");
 			}
 			for ( index_t i = 0; i < ngroups; i++ )
-				num_atoms += flatten()->span(i * groupsize, groupsize);
+				num_atoms += flatten()->compute_span(i * groupsize, groupsize);
 			PROTECT(atomids = Rf_allocVector(INTSXP, num_atoms));
 			PROTECT(offsets = Rf_allocVector(REALSXP, num_atoms));
 			PROTECT(extents = Rf_allocVector(REALSXP, num_atoms));
@@ -658,6 +678,49 @@ class Atoms {
 			SET_STRING_ELT(nms, 1, Rf_mkChar("offset"));
 			SET_STRING_ELT(nms, 2, Rf_mkChar("extent"));
 			SET_STRING_ELT(nms, 3, Rf_mkChar("groups"));
+			Rf_setAttrib(ans, R_NamesSymbol, nms);
+			UNPROTECT(6);
+			return ans;
+		}
+
+		SEXP ungroup_index()
+		{
+			SEXP ans, nms, atomids, offsets, extents;
+			int atom = 0, num_atoms = 0;
+			while ( atom < natoms() )
+			{
+				atom += compute_block(atom);
+				num_atoms++;
+			}
+			PROTECT(atomids = Rf_allocVector(INTSXP, num_atoms));
+			PROTECT(offsets = Rf_allocVector(REALSXP, num_atoms));
+			PROTECT(extents = Rf_allocVector(REALSXP, num_atoms));
+			int * pids = INTEGER(atomids);
+			double * poff = REAL(offsets);
+			double * pext = REAL(extents);
+			atom = 0;
+			for ( int k = 0; k < num_atoms; k++ )
+			{
+				if ( atom >= natoms() ) {
+					self_destruct();
+					Rf_error("ungrouping atoms failed");
+				}
+				pids[k] = atom + 1;
+				poff[k] = offset(atom);
+				pext[k] = 0;
+				int n = compute_block(atom);
+				for ( int j = 0; j < n; j++ )
+					pext[k] += extent(atom + j);
+				atom += n;
+			}
+			PROTECT(ans = Rf_allocVector(VECSXP, 3));
+			PROTECT(nms = Rf_allocVector(STRSXP, 3));
+			SET_VECTOR_ELT(ans, 0, atomids);
+			SET_VECTOR_ELT(ans, 1, offsets);
+			SET_VECTOR_ELT(ans, 2, extents);
+			SET_STRING_ELT(nms, 0, Rf_mkChar("index"));
+			SET_STRING_ELT(nms, 1, Rf_mkChar("offset"));
+			SET_STRING_ELT(nms, 2, Rf_mkChar("extent"));
 			Rf_setAttrib(ans, R_NamesSymbol, nms);
 			UNPROTECT(6);
 			return ans;

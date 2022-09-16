@@ -101,7 +101,7 @@ exportMethods(
 	"sampler",
 	"sampler<-",
 	"keys",
-	"keys<-"
+	"keys<-",
 	"nnzero")
 
 exportMethods(

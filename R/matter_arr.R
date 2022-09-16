@@ -21,6 +21,7 @@ setClass("matter_arr",
 	})
 
 setClass("matter_mat",
+	slots = c(indexed = "logical"),
 	contains = "matter_arr",
 	validity = function(object) {
 		errors <- NULL
@@ -131,7 +132,12 @@ matter_mat <- function(data, type = "double", path = NULL,
 	x <- matter_arr(data, type=type, path=path, dim=c(nrow, ncol),
 		dimnames=dimnames, offset=offset, extent=extent,
 		readonly=readonly, rowMaj=rowMaj, ...)
-	as(x, "matter_mat")
+	x <- as(x, "matter_mat")
+	# if ( x@transpose ) {
+	# 	x@data <- regroup_atoms(x@data, nrow(x))
+	# } else {
+	# 	x@data <- regroup_atoms(x@data, ncol(x))
+	# }
 	if ( validObject(x) )
 		x
 }

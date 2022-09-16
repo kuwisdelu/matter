@@ -179,7 +179,6 @@ subset_atoms1 <- function(x, i = NULL) {
 		return(x)
 	if ( any(i < 1 | i > length(x)) )
 		stop("subscript out of bounds")
-	# FIXME: Make sure drle_fct supports droplevels()
 	atoms(source=droplevels(x@source[i]),
 		type=x@type[i],
 		offset=x@offset[i],
@@ -206,7 +205,6 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 		if ( any(i < 1 | i > min(dms)) )
 			stop("subscript out of bounds")
 		sub <- .Call(C_subsetAtoms, x, i, PACKAGE="matter")
-		# FIXME: Make sure drle_fct supports droplevels()
 		x <- atoms(source=droplevels(x@source[sub$index]),
 			type=x@type[sub$index],
 			offset=sub$offset,
@@ -220,12 +218,23 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 
 regroup_atoms <- function(x, ngroups) {
 	sub <- .Call(C_regroupAtoms, x, ngroups, PACKAGE="matter")
-	# FIXME: Make sure drle_fct supports droplevels()
 	x <- atoms(source=droplevels(x@source[sub$index]),
 		type=x@type[sub$index],
 		offset=sub$offset,
 		extent=sub$extent,
 		group=sub$group,
+		readonly=x@readonly)
+	if ( validObject(x) )
+		x
+}
+
+ungroup_atoms <- function(x) {
+	sub <- .Call(C_ungroupAtoms, x, PACKAGE="matter")
+	x <- atoms(source=droplevels(x@source[sub$index]),
+		type=x@type[sub$index],
+		offset=sub$offset,
+		extent=sub$extent,
+		group=0L,
 		readonly=x@readonly)
 	if ( validObject(x) )
 		x

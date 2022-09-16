@@ -24,6 +24,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(writeAtoms, 4),
 	CALLDEF(subsetAtoms, 2),
 	CALLDEF(regroupAtoms, 2),
+	CALLDEF(ungroupAtoms, 1),
 	// matter data structures
 	CALLDEF(getMatterArray, 2),
 	CALLDEF(setMatterArray, 3),

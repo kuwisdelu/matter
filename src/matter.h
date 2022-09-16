@@ -365,6 +365,17 @@ class MatterArray : public Matter {
 
 };
 
+// class MatterMatrix : public MatterArray {
+
+// 	public:
+
+// 		MatterMatrix(SEXP x) : MatterArray(x)
+// 		{
+// 			_indexed = Rf_asLogical(R_do_slot(x, Rf_install("indexed")));
+// 		}
+
+// };
+
 class MatterList : public Matter {
 
 	public:

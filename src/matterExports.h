@@ -191,6 +191,12 @@ static inline SEXP regroupAtoms(SEXP x, SEXP n)
 	return xa.regroup_index(Rf_asInteger(n));
 }
 
+static inline SEXP ungroupAtoms(SEXP x)
+{
+	Atoms xa(x);
+	return xa.ungroup_index();
+}
+
 // Matter data structures
 //-----------------------
 
