@@ -1,6 +1,5 @@
 #include <R_ext/Rdynload.h>
 
-#include "matter.h"
 #include "matterExports.h"
 #include "altrep.h"
 

@@ -266,16 +266,62 @@ class MatterArray : public Matter {
 
 };
 
-// class MatterMatrix : public MatterArray {
+class MatterMatrix : public MatterArray {
 
-// 	public:
+	public:
 
-// 		MatterMatrix(SEXP x) : MatterArray(x)
-// 		{
-// 			_indexed = Rf_asLogical(R_do_slot(x, Rf_install("indexed")));
-// 		}
+		MatterMatrix(SEXP x) : MatterArray(x)
+		{
+			_indexed = Rf_asLogical(R_do_slot(x, Rf_install("indexed")));
+		}
 
-// };
+		bool is_indexed() {
+			return _indexed;
+		}
+
+		template<typename T>
+		size_t get_submatrix(SEXP i, SEXP j, T * buffer, int stride = 1)
+		{
+			if ( !is_indexed() ) {
+				self_destruct();
+				Rf_error("matter matrix is not indexed for matrix subscripting");
+			}
+			return 0;
+		}
+
+		template<typename T>
+		size_t set_submatrix(SEXP i, SEXP j, T * buffer, int stride = 1)
+		{
+			if ( !is_indexed() ) {
+				self_destruct();
+				Rf_error("matter matrix is not indexed for matrix subscripting");
+			}
+			return 0;
+		}
+
+		SEXP get_submatrix(SEXP i, SEXP j)
+		{
+			if ( !is_indexed() ) {
+				self_destruct();
+				Rf_error("matter matrix is not indexed for matrix subscripting");
+			}
+			return R_NilValue;
+		}
+
+		void set_submatrix(SEXP i, SEXP j, SEXP value)
+		{
+			if ( !is_indexed() ) {
+				self_destruct();
+				Rf_error("matter matrix is not indexed for matrix subscripting");
+			}
+			return void();
+		}
+
+	protected:
+
+		bool _indexed;
+
+};
 
 class MatterList : public Matter {
 
