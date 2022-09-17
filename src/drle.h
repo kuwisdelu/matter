@@ -266,7 +266,7 @@ class CompressedVector {
 
 		R_xlen_t lengths(index_t i) {
 			if ( !is_compressed() )
-				return NA_INTEGER;
+				return 0;
 			if ( i < 0 || i >= truelength() )
 				Rf_error("subscript out of bounds");
 			switch(TYPEOF(_lengths)) {

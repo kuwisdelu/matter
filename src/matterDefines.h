@@ -163,6 +163,170 @@ inline index_t IndexElt(SEXP indx, index_t i)
 	}
 }
 
+//// Generate NA
+//---------------
+
+template<typename T>
+T NA();
+
+template<> inline
+char NA<char>()
+{
+	Rf_error("NAs not supported for type 'char'");
+}
+
+template<> inline
+Rbyte NA<Rbyte>()
+{
+	Rf_error("NAs not supported for type 'Rbyte'");
+}
+
+template<> inline
+int NA<int>()
+{
+	return NA_INTEGER;
+}
+
+template<> inline
+double NA<double>()
+{
+	return NA_REAL;
+}
+
+template<> inline
+SEXP NA<SEXP>()
+{
+	return NA_STRING;
+}
+
+template<> inline
+index_t NA<index_t>()
+{
+	return NA_INTEGER;
+}
+
+//// Check for NA
+//----------------
+
+inline bool isNA(Rbyte x)
+{
+	return FALSE;
+}
+
+inline bool isNA(int x)
+{
+	return x == NA_INTEGER || x == NA_LOGICAL;
+}
+
+inline bool isNA(double x)
+{
+	return ISNA(x) || ISNAN(x);
+}
+
+inline bool isNA(index_t x)
+{
+	return ((int)(x)) == NA_INTEGER || ((int)(x)) == NA_LOGICAL;
+}
+
+inline bool isNA(SEXP x)
+{
+	return x == NA_STRING;
+}
+
+//// Array interface
+//-------------------
+
+class ArrayInterface {
+
+	public:
+
+		ArrayInterface() {}
+
+		ArrayInterface(SEXP x)
+		{
+			_dim = R_do_slot(x, Rf_install("dim"));
+		}
+
+		~ArrayInterface() {}
+
+		int rank() {
+			return LENGTH(_dim);
+		}
+
+		SEXP dim() {
+			return _dim;
+		}
+
+		R_xlen_t dim(int i) {
+			if ( i < rank() )
+				return IndexElt(_dim, i);
+			else
+				return 0;
+		}
+
+		// convert col-major to row-major index
+		template<typename T>
+		size_t transpose_range(T * tindx, index_t i, size_t size, bool ind1 = false)
+		{
+			size_t nind = 0;
+			int s1 [rank()], s2 [rank()];
+			int arr_ind [rank()];
+			s1[0] = 1, s2[rank() - 1] = 1;
+			for ( int k = 1; k < rank(); k++ )
+				s1[k] = s1[k - 1] * dim(k - 1);
+			for ( int k = rank() - 2; k >= 0; k-- )
+				s2[k] = s2[k + 1] * dim(k + 1);
+			for ( size_t j = 0; j < size; j++ )
+			{
+				tindx[j] = 0;
+				for ( int k = 0; k < rank(); k++ )
+					arr_ind[k] = ((i + j) / s1[k]) % dim(k);
+				for ( int k = 0; k < rank(); k++ )
+					tindx[j] += arr_ind[k] * s2[k];
+				tindx[j] += ind1;
+				nind++;
+			}
+			return nind;
+		}
+
+		// convert col-major to row-major index
+		template<typename T>
+		size_t transpose_index(T * tindx, SEXP indx, bool ind1 = false)
+		{
+			size_t nind = 0;
+			index_t s1 [rank()];
+			index_t s2 [rank()];
+			index_t arr_ind [rank()];
+			s1[0] = 1, s2[rank() - 1] = 1;
+			for ( int k = 1; k < rank(); k++ )
+				s1[k] = s1[k - 1] * dim(k - 1);
+			for ( int k = rank() - 2; k >= 0; k-- )
+				s2[k] = s2[k + 1] * dim(k + 1);
+			for ( size_t j = 0; j < XLENGTH(indx); j++ )
+			{
+				index_t i = IndexElt(indx, j);
+				if ( isNA(i) ) {
+					tindx[j] = NA<T>();
+					nind++;
+					continue;
+				}
+				tindx[j] = 0;
+				for ( int k = 0; k < rank(); k++ )
+					arr_ind[k] = ((i - ind1) / s1[k]) % dim(k);
+				for ( int k = 0; k < rank(); k++ )
+					tindx[j] += arr_ind[k] * s2[k];
+				tindx[j] += ind1;
+				nind++;
+			}
+			return nind;
+		}
+
+	protected:
+
+		SEXP _dim = R_NilValue;
+
+};
+
 //// Comparison
 //--------------
 
@@ -257,76 +421,6 @@ template<typename T>
 inline bool equal(T x, T y, double tol = DBL_EPSILON)
 {
 	return rel_diff<T>(x, y) <= tol;
-}
-
-//// Generate NA
-//---------------
-
-template<typename T>
-T NA();
-
-template<> inline
-char NA<char>()
-{
-	Rf_error("NAs not supported for type 'char'");
-}
-
-template<> inline
-Rbyte NA<Rbyte>()
-{
-	Rf_error("NAs not supported for type 'Rbyte'");
-}
-
-template<> inline
-int NA<int>()
-{
-	return NA_INTEGER;
-}
-
-template<> inline
-double NA<double>()
-{
-	return NA_REAL;
-}
-
-template<> inline
-SEXP NA<SEXP>()
-{
-	return NA_STRING;
-}
-
-template<> inline
-index_t NA<index_t>()
-{
-	return NA_INTEGER;
-}
-
-//// Check for NA
-//----------------
-
-inline bool isNA(Rbyte x)
-{
-	return FALSE;
-}
-
-inline bool isNA(int x)
-{
-	return x == NA_INTEGER || x == NA_LOGICAL;
-}
-
-inline bool isNA(double x)
-{
-	return ISNA(x) || ISNAN(x);
-}
-
-inline bool isNA(index_t x)
-{
-	return ((int)(x)) == NA_INTEGER || ((int)(x)) == NA_LOGICAL;
-}
-
-inline bool isNA(SEXP x)
-{
-	return x == NA_STRING;
 }
 
 //// Misc utilities

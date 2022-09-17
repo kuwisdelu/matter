@@ -7,7 +7,7 @@
 //// DeferredOps class
 //---------------------
 
-class DeferredOps {
+class DeferredOps : public ArrayInterface {
 
 	public:
 
@@ -45,17 +45,6 @@ class DeferredOps {
 				_nops = 0;	
 			}
 			_dim = dim;
-		}
-
-		int rank() {
-			return LENGTH(_dim);
-		}
-
-		R_xlen_t dim(int i) {
-			if ( i < rank() )
-				return IndexElt(_dim, i);
-			else
-				return NA_INTEGER;
 		}
 
 		int nops() {
@@ -331,7 +320,6 @@ class DeferredOps {
 		int * _rhs;
 		int * _margins;
 		SEXP _group;
-		SEXP _dim;
 
 };
 

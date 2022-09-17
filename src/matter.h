@@ -8,7 +8,7 @@
 //// Matter class
 //----------------
 
-class Matter {
+class Matter : public ArrayInterface {
 
 	public:
 
@@ -16,8 +16,6 @@ class Matter {
 		{
 			_type = R_do_slot(x, Rf_install("type"));
 			_dim = R_do_slot(x, Rf_install("dim"));
-			_names = R_do_slot(x, Rf_install("names"));
-			_dimnames = R_do_slot(x, Rf_install("dimnames"));
 		}
 
 		~Matter() {
@@ -40,50 +38,10 @@ class Matter {
 			return INTEGER_ELT(_type, i % XLENGTH(_type));
 		}
 
-		int rank() {
-			return LENGTH(_dim);
-		}
-
-		SEXP dim() {
-			return _dim;
-		}
-
-		R_xlen_t dim(int i) {
-			if ( i < rank() )
-				return IndexElt(_dim, i);
-			else
-				return NA_INTEGER;
-		}
-
-		SEXP names() {
-			return _names;
-		}
-
-		SEXP names(int i) {
-			if ( XLENGTH(_names) > i && !Rf_isNull(_names) )
-				return STRING_ELT(_names, i);
-			else
-				return NA_STRING;
-		}
-
-		SEXP dimnames() {
-			return _dimnames;
-		}
-
-		SEXP dimnames(int i) {
-			if ( i < rank() && !Rf_isNull(_dimnames) )
-				return VECTOR_ELT(_dimnames, i);
-			else
-				return R_NilValue;
-		}
-
 	protected:
 
 		Atoms _data;
 		SEXP _type;
-		SEXP _dim;
-		SEXP _names;
-		SEXP _dimnames;
 
 };
 
@@ -113,63 +71,6 @@ class MatterArray : public Matter {
 
 		bool has_ops() {
 			return ops()->nops() != 0;
-		}
-
-		// convert col-major to row-major index
-		template<typename T>
-		size_t transpose_range(T * tindx, index_t i, size_t size, bool ind1 = false)
-		{
-			size_t nind = 0;
-			int s1 [rank()], s2 [rank()];
-			int arr_ind [rank()];
-			s1[0] = 1, s2[rank() - 1] = 1;
-			for ( int k = 1; k < rank(); k++ )
-				s1[k] = s1[k - 1] * dim(k - 1);
-			for ( int k = rank() - 2; k >= 0; k-- )
-				s2[k] = s2[k + 1] * dim(k + 1);
-			for ( size_t j = 0; j < size; j++ )
-			{
-				tindx[j] = 0;
-				for ( int k = 0; k < rank(); k++ )
-					arr_ind[k] = ((i + j) / s1[k]) % dim(k);
-				for ( int k = 0; k < rank(); k++ )
-					tindx[j] += arr_ind[k] * s2[k];
-				tindx[j] += ind1;
-				nind++;
-			}
-			return nind;
-		}
-
-		// convert col-major to row-major index
-		template<typename T>
-		size_t transpose_index(T * tindx, SEXP indx, bool ind1 = false)
-		{
-			size_t nind = 0;
-			index_t s1 [rank()];
-			index_t s2 [rank()];
-			index_t arr_ind [rank()];
-			s1[0] = 1, s2[rank() - 1] = 1;
-			for ( int k = 1; k < rank(); k++ )
-				s1[k] = s1[k - 1] * dim(k - 1);
-			for ( int k = rank() - 2; k >= 0; k-- )
-				s2[k] = s2[k + 1] * dim(k + 1);
-			for ( size_t j = 0; j < XLENGTH(indx); j++ )
-			{
-				index_t i = IndexElt(indx, j);
-				if ( isNA(i) ) {
-					tindx[j] = NA<T>();
-					nind++;
-					continue;
-				}
-				tindx[j] = 0;
-				for ( int k = 0; k < rank(); k++ )
-					arr_ind[k] = ((i - ind1) / s1[k]) % dim(k);
-				for ( int k = 0; k < rank(); k++ )
-					tindx[j] += arr_ind[k] * s2[k];
-				tindx[j] += ind1;
-				nind++;
-			}
-			return nind;
 		}
 
 		template<typename T>
