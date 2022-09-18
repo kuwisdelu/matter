@@ -4,15 +4,12 @@ TODO for matter package
 
 - Add Lanczos (sinc) interpolation filter
 - Add AUC (integration-based) interpolation filter
-- Implement row/col grouped 'matter_mat' matrices
 - Implement combining using 'cbind2()' and 'rbind2()'
 - Implement and test combining vectors/matrices/etc.
 - Add deferred operations for sparse matrices
-- For deferred arithmetic: "non-matter object can't have more than one dimension not equal to 1"
 
 - Refactor original matter S4 data structures R/C++ code
 - Clean up generics and remove unneeded methods/functions
-	- Switch from 'sampler()' -> 'kernel()' (?)
 	- Deprecate 'keys()' -> 'domain()'
 	- Deprecate 'datamode()' -> 'type()' (but maybe not?)
 	- Deprecate 'pull()' and 'push()' (no replacements?)

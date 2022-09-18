@@ -264,6 +264,21 @@ class ArrayInterface {
 				return 0;
 		}
 
+		int nrow() {
+			return dim(0);
+		}
+
+		int ncol() {
+			return dim(1);
+		}
+
+		R_xlen_t length() {
+			R_xlen_t len = 1;
+			for ( int i = 0; i < rank(); i++ )
+				len *= dim(i);
+			return len;
+		}
+
 		// convert col-major to row-major index
 		template<typename T>
 		size_t transpose_range(T * tindx, index_t i, size_t size, bool ind1 = false)
@@ -428,10 +443,11 @@ inline bool equal(T x, T y, double tol = DBL_EPSILON)
 
 // fill a buffer with a value
 template<typename T>
-void fill(T * buffer, size_t size, T val, int stride = 1)
+size_t fill(T * buffer, size_t size, T val, int stride = 1)
 {
 	for ( size_t i = 0; i < size; i++ )
 		buffer[stride * i] = val;
+	return size;
 }
 
 // FIXME: Temporary (slow) solution as R_compact_seq_range() is non-API

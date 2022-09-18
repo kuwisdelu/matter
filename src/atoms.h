@@ -418,18 +418,15 @@ class Atoms {
 			{
 				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
 				size = run.length;
-				if ( isNA(run.value) ) {
-					for ( size_t j = 0; j < size; j++ )
-						ptr[j] = NA<Tval>();
-					n = size;
-				}
+				if ( isNA(run.value) )
+					n = fill<Tval>(ptr, size, NA<Tval>(), stride);
 				else if ( run.delta >= 0 ) {
 					i = (*pindx) - ind1;
 					n = get_region<Tval>(ptr, i, size, grp, stride);
 				}
 				else {
 					i = (*(pindx + size - 1)) - ind1;
-					n = get_region<Tval>(ptr + size - 1, i, size, grp, -stride);
+					n = get_region<Tval>(ptr + stride * (size - 1), i, size, grp, -stride);
 				}
 				num_read += n;
 				num_toread -= n;
@@ -458,7 +455,7 @@ class Atoms {
 				}
 				else {
 					i = (*(pindx + size - 1)) - ind1;
-					n = set_region<Tval>(ptr + size - 1, i, size, grp, -stride);
+					n = set_region<Tval>(ptr + stride * (size - 1), i, size, grp, -stride);
 				}
 				num_read += n;
 				num_toread -= n;

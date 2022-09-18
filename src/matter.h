@@ -54,21 +54,6 @@ class MatterArray : public Matter {
 			_transpose = Rf_asLogical(R_do_slot(x, Rf_install("transpose")));
 		}
 
-		R_xlen_t length() {
-			R_xlen_t size = 1;
-			for ( size_t i = 0; i < rank(); i++ )
-				size *= dim(i);
-			return size;
-		}
-
-		int nrow() {
-			return dim(0);
-		}
-
-		int ncol() {
-			return dim(1);
-		}
-
 		bool is_transposed() {
 			return _transpose;
 		}
@@ -292,7 +277,7 @@ class MatterMatrix : public MatterArray {
 		}
 
 		template<typename T>
-		size_t get_submatrix(SEXP i, SEXP j, T * buffer)
+		size_t get_submatrix(SEXP i, SEXP j, T * buffer, int stride = 1)
 		{
 			if ( !is_indexed() ) {
 				self_destruct();
@@ -301,19 +286,23 @@ class MatterMatrix : public MatterArray {
 			size_t n = 0;
 			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
 			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
-			int stride = is_transposed() ? nr : 1;
+			int s1 = is_transposed() ? (nr * stride) : stride;
+			int s2 = is_transposed() ? stride : (nr * stride);
 			if ( is_transposed() )
 			{
 				for ( size_t k = 0; k < nr; k++ )
 				{
 					index_t row = k;
-					if ( !Rf_isNull(i) )
-						row = IndexElt(i, k) - 1;
-					if ( Rf_isNull(j) )
-						n += data()->get_region<T>(buffer, 0, ncol(), row, stride);
+					if ( !Rf_isNull(i) ) {
+						row = IndexElt(i, k);
+						row = isNA(row) ? row : row - 1;
+					}
+					if ( isNA(row) )
+						n += fill<T>(buffer + k * s2, nc, NA<T>(), s1);
+					else if ( Rf_isNull(j) )
+						n += data()->get_region<T>(buffer + k * s2, 0, ncol(), row, s1);
 					else
-						n += data()->get_elements<T>(buffer, j, row, stride);
-					buffer += 1;
+						n += data()->get_elements<T>(buffer + k * s2, j, row, s1);
 				}
 			}
 			else
@@ -321,41 +310,56 @@ class MatterMatrix : public MatterArray {
 				for ( size_t k = 0; k < nc; k++ )
 				{
 					index_t col = k;
-					if ( !Rf_isNull(j) )
-						col = IndexElt(j, k) - 1;
-					if ( Rf_isNull(i) )
-						n += data()->get_region<T>(buffer, 0, nrow(), col, stride);
+					if ( !Rf_isNull(j) ) {
+						col = IndexElt(j, k);
+						col = isNA(col) ? col : col - 1;
+					}
+					if ( isNA(col) )
+						n += fill<T>(buffer + k * s2, nr, NA<T>(), s1);
+					else if ( Rf_isNull(i) )
+						n += data()->get_region<T>(buffer + k * s2, 0, nrow(), col, s1);
 					else
-						n += data()->get_elements<T>(buffer, i, col, stride);
-					buffer += nr;
+						n += data()->get_elements<T>(buffer + k * s2, i, col, s1);
 				}
 			}
+			if ( has_ops() )
+				ops()->apply<T>(buffer, i, j, stride);
 			return n;
 		}
 
 		template<typename T>
-		size_t set_submatrix(SEXP i, SEXP j, T * buffer)
+		size_t set_submatrix(SEXP i, SEXP j, T * buffer, int stride = 1)
 		{
 			if ( !is_indexed() ) {
 				self_destruct();
 				Rf_error("matter array is not indexed for matrix subscripting");
 			}
+			if ( has_ops() ) {
+				self_destruct();
+				Rf_error("can't assign to array with deferred operations");
+			}
 			size_t n = 0;
 			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
 			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
-			int stride = is_transposed() ? nr : 1;
+			int s1 = is_transposed() ? (nr * stride) : stride;
+			int s2 = is_transposed() ? stride : (nr * stride);
 			if ( is_transposed() )
 			{
 				for ( size_t k = 0; k < nr; k++ )
 				{
 					index_t row = k;
-					if ( !Rf_isNull(i) )
-						row = IndexElt(i, k) - 1;
+					if ( !Rf_isNull(i) ) {
+						row = IndexElt(i, k);
+						if ( isNA(row) ) {
+							self_destruct();
+							Rf_error("NAs are not allowed in subscripted assignments");
+						}
+						row = row - 1;
+					}
 					if ( Rf_isNull(j) )
-						n += data()->set_region<T>(buffer, 0, ncol(), row, stride);
+						n += data()->set_region<T>(buffer + k * s2, 0, ncol(), row, s1);
 					else
-						n += data()->set_elements<T>(buffer, j, row, stride);
-					buffer += 1;
+						n += data()->set_elements<T>(buffer + k * s2, j, row, s1);
 				}
 			}
 			else
@@ -363,13 +367,18 @@ class MatterMatrix : public MatterArray {
 				for ( size_t k = 0; k < nc; k++ )
 				{
 					index_t col = k;
-					if ( !Rf_isNull(j) )
-						col = IndexElt(j, k) - 1;
+					if ( !Rf_isNull(j) ) {
+						col = IndexElt(j, k);
+						if ( isNA(col) ) {
+							self_destruct();
+							Rf_error("NAs are not allowed in subscripted assignments");
+						}
+						col = col - 1;
+					}
 					if ( Rf_isNull(i) )
-						n += data()->set_region<T>(buffer, 0, nrow(), col, stride);
+						n += data()->set_region<T>(buffer + k * s2, 0, nrow(), col, s1);
 					else
-						n += data()->set_elements<T>(buffer, i, col, stride);
-					buffer += nr;
+						n += data()->set_elements<T>(buffer + k * s2, i, col, s1);
 				}
 			}
 			return n;
@@ -411,30 +420,29 @@ class MatterMatrix : public MatterArray {
 
 		void set_submatrix(SEXP i, SEXP j, SEXP value)
 		{
-			if ( XLENGTH(value) == 1 )
-				return set_region(0, length(), value);
 			if ( !is_indexed() ) {
 				self_destruct();
 				Rf_error("matter array is not indexed for matrix subscripting");
 			}
 			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
 			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
-			if ( (nr * nc) > XLENGTH(value) ) {
+			int stride = (XLENGTH(value) == 1) ? 0 : 1;
+			if ( (nr * nc) > XLENGTH(value) && stride != 0 ) {
 				self_destruct();
 				Rf_error("number of items to replace is longer than replacement length");
 			}
 			switch(TYPEOF(value)) {
 				case RAWSXP:
-					set_submatrix(i, j, RAW(value));
+					set_submatrix(i, j, RAW(value), stride);
 					break;
 				case LGLSXP:
-					set_submatrix(i, j, LOGICAL(value));
+					set_submatrix(i, j, LOGICAL(value), stride);
 					break;
 				case INTSXP:
-					set_submatrix(i, j, INTEGER(value));
+					set_submatrix(i, j, INTEGER(value), stride);
 					break;
 				case REALSXP:
-					set_submatrix(i, j, REAL(value));
+					set_submatrix(i, j, REAL(value), stride);
 					break;
 				default:
 					self_destruct();

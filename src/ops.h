@@ -123,13 +123,6 @@ class DeferredOps : public ArrayInterface {
 				return 0;
 		}
 
-		int grouplen(int i) {
-			if ( is_grouped(i) )
-				return XLENGTH(group(i));
-			else
-				return 0;
-		}
-
 		int groupdim(int i) {
 			if ( is_grouped(i) )
 				return _margins[nops() + i] - 1;
@@ -138,43 +131,69 @@ class DeferredOps : public ArrayInterface {
 		}
 
 		template<typename T>
+		T do_unop(T x, int opcode)
+		{
+			switch(opcode) {
+				case MATH_LOG:
+					return std::log(x);
+				case MATH_LOG10:
+					return std::log10(x);
+				case MATH_LOG2:
+					return std::log2(x);
+				case MATH_LOG1P:
+					return std::log1p(x);
+				case MATH_EXP:
+					return std::exp(x);
+				default:
+					return NA<T>();
+			}
+		}
+
+		template<typename T>
+		T do_binop(T x, T y, int opcode)
+		{
+			switch(opcode) {
+				case OP_ADD:
+					return x + y;
+				case OP_SUB:
+					return x - y;
+				case OP_MUL:
+					return x * y;
+				case OP_POW:
+					return std::pow(x, y);
+				case OP_MOD:
+					return std::fmod(x, y);
+				case OP_IDIV:
+					return std::floor(x / y);
+				case OP_DIV:
+					return x / y;
+				default:
+					return NA<T>();
+			}
+		}
+
+		template<typename T>
 		size_t apply(T * x, index_t i, size_t size, int stride = 1)
 		{
 			size_t n = 0;
 			int s [rank()];
 			int arr_ind [rank()];
-			s[0] = 1;
-			for ( int k = 1; k < rank(); k++ )
-				s[k] = s[k - 1] * dim(k - 1);
+			for ( int k = 0; k < rank(); k++ ) {
+				if ( k )
+					s[k] = s[k - 1] * dim(k - 1);
+				else
+					s[k] = 1;
+			}
 			for ( index_t j = 0; j < size; j++ )
 			{
 				for ( int l = 0; l < nops(); l++ )
 				{
 					T yj, xj = x[stride * j];
-					T xjnew;
 					if ( isNA(xj) )
 						continue;
 					if ( is_unary(l) )
 					{
-						switch(op(l)) {
-							case MATH_LOG:
-								xjnew = std::log(xj);
-								break;
-							case MATH_LOG10:
-								xjnew = std::log10(xj);
-								break;
-							case MATH_LOG2:
-								xjnew = std::log2(xj);
-								break;
-							case MATH_LOG1P:
-								xjnew = std::log1p(xj);
-								break;
-							case MATH_EXP:
-								xjnew = std::exp(xj);
-								break;
-							default:
-								xjnew = NA<T>();
-						}
+						x[stride * j] = do_unop(xj, op(l));
 					}
 					else
 					{
@@ -191,33 +210,8 @@ class DeferredOps : public ArrayInterface {
 							xj = yj;
 							yj = tmp;
 						}
-						switch(op(l)) {
-							case OP_ADD:
-								xjnew = xj + yj;
-								break;
-							case OP_SUB:
-								xjnew = xj - yj;
-								break;
-							case OP_MUL:
-								xjnew = xj * yj;
-								break;
-							case OP_POW:
-								xjnew = std::pow(xj, yj);
-								break;
-							case OP_MOD:
-								xjnew = std::fmod(xj, yj);
-								break;
-							case OP_IDIV:
-								xjnew = std::floor(xj / yj);
-								break;
-							case OP_DIV:
-								xjnew = xj / yj;
-								break;
-							default:
-								xjnew = NA<T>();
-						}
+						x[stride * j] = do_binop(xj, yj, op(l));
 					}
-					x[stride * j] = xjnew;
 				}
 				n++;
 			}
@@ -228,44 +222,31 @@ class DeferredOps : public ArrayInterface {
 		size_t apply(T * x, SEXP indx, int stride = 1)
 		{
 			size_t n = 0;
+			R_xlen_t len = Rf_isNull(indx) ? length() : XLENGTH(indx);
 			int s [rank()];
 			int arr_ind [rank()];
-			s[0] = 1;
-			for ( int k = 1; k < rank(); k++ )
-				s[k] = s[k - 1] * dim(k - 1);
-			for ( index_t j = 0; j < XLENGTH(indx); j++ )
+			for ( int k = 0; k < rank(); k++ ) {
+				if ( k )
+					s[k] = s[k - 1] * dim(k - 1);
+				else
+					s[k] = 1;
+			}
+			for ( index_t j = 0; j < len; j++ )
 			{
 				for ( int l = 0; l < nops(); l++ )
 				{
 					T yj, xj = x[stride * j];
-					T xjnew;
 					if ( isNA(xj) )
-						continue;
+						continue; // this should also catch NA index
 					if ( is_unary(l) )
 					{
-						switch(op(l)) {
-							case MATH_LOG:
-								xjnew = std::log(xj);
-								break;
-							case MATH_LOG10:
-								xjnew = std::log10(xj);
-								break;
-							case MATH_LOG2:
-								xjnew = std::log2(xj);
-								break;
-							case MATH_LOG1P:
-								xjnew = std::log1p(xj);
-								break;
-							case MATH_EXP:
-								xjnew = std::exp(xj);
-								break;
-							default:
-								xjnew = NA<T>();
-						}
+						x[stride * j]  = do_unop(xj, op(l));
 					}
 					else
 					{
-						index_t i = IndexElt(indx, j) - 1;
+						index_t i = j;
+						if ( !Rf_isNull(indx) )
+							i = IndexElt(indx, j) - 1;
 						for ( int k = 0; k < rank(); k++ )
 							arr_ind[k] = (i / s[k]) % dim(k);
 						int grp = group(l, arr_ind[groupdim(l)]);
@@ -279,35 +260,58 @@ class DeferredOps : public ArrayInterface {
 							xj = yj;
 							yj = tmp;
 						}
-						switch(op(l)) {
-							case OP_ADD:
-								xjnew = xj + yj;
-								break;
-							case OP_SUB:
-								xjnew = xj - yj;
-								break;
-							case OP_MUL:
-								xjnew = xj * yj;
-								break;
-							case OP_POW:
-								xjnew = std::pow(xj, yj);
-								break;
-							case OP_MOD:
-								xjnew = std::fmod(xj, yj);
-								break;
-							case OP_IDIV:
-								xjnew = std::floor(xj / yj);
-								break;
-							case OP_DIV:
-								xjnew = xj / yj;
-								break;
-							default:
-								xjnew = NA<T>();
-						}
+						x[stride * j]  = do_binop(xj, yj, op(l));
 					}
-					x[stride * j] = xjnew;
 				}
 				n++;
+			}
+			return n;
+		}
+
+		template<typename T>
+		size_t apply(T * x, SEXP i, SEXP j, int stride = 1)
+		{
+			size_t n = 0;
+			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
+			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
+			stride = stride * nr;
+			for ( index_t jj = 0; jj < nc; jj++ )
+			{
+				for ( index_t ii = 0; ii < nr; ii++ )
+				{
+					for ( int l = 0; l < nops(); l++ )
+					{
+						T yij, xij = x[ii + stride * jj];
+						if ( isNA(xij) )
+							continue;  // this should also catch NA index
+						if ( is_unary(l) )
+						{
+							x[ii + stride * jj] = do_unop(xij, op(l));
+						}
+						else
+						{
+							index_t row = ii;
+							index_t col = jj;
+							if ( !Rf_isNull(i) )
+								row = IndexElt(i, ii) - 1;
+							if ( !Rf_isNull(j) )
+								col = IndexElt(j, jj) - 1;
+							int grp = groupdim(l) ? group(l, col) : group(l, row);
+							yij = argdim(l) ? arg<T>(l, col, grp) : arg<T>(l, row, grp);
+							if ( isNA(yij) ) {
+								x[ii + stride * jj] = NA<T>();
+								continue;
+							}
+							if ( is_rhs(l) ) {
+								T tmp = xij;
+								xij = yij;
+								yij = tmp;
+							}
+							x[ii + stride * jj] = do_binop(xij, yij, op(l));
+						}
+					}
+					n++;
+				}
 			}
 			return n;
 		}

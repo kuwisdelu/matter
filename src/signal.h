@@ -21,10 +21,10 @@
 
 inline double sinc(double x)
 {
-	if ( x == 0 )
-		return 1;
-	else
+	if ( x )
 		return std::sin(x) / x;
+	else
+		return 1;
 }
 
 // Lanczos kernel
@@ -76,7 +76,6 @@ template<typename Tx, typename Ty>
 Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = true)
 {
-	// Rprintf("inside interp(%f)\n", xi);
 	double delta, diff, diff_min = DBL_MAX;
 	index_t pos = NA_INTEGER;
 	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // knots
@@ -220,7 +219,6 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 			}
 		}
 	}
-	// Rprintf("interp(%f) = %d | n = %d\n", xi, val, nxi);
 	return val;
 }
 

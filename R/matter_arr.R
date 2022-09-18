@@ -45,7 +45,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 	dim = NA_integer_, dimnames = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, rowMaj = FALSE, ...)
 {
-	if ( !missing(data) ) {
+	if ( !missing(data) && !is.null(data) ) {
 		if ( missing(type) )
 			type <- typeof(data)
 		if ( anyNA(dim) && is.vector(data) ) {
