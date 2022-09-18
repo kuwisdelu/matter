@@ -217,7 +217,7 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 }
 
 regroup_atoms <- function(x, ngroups) {
-	if ( length(x) <= 1L )
+	if ( ngroups <= 1L )
 		return(x)
 	sub <- .Call(C_regroupAtoms, x, ngroups, PACKAGE="matter")
 	x <- atoms(source=droplevels(x@source[sub$index]),

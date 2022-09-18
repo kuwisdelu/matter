@@ -27,6 +27,8 @@ static const R_CallMethodDef callMethods[] = {
 	// matter data structures
 	CALLDEF(getMatterArray, 2),
 	CALLDEF(setMatterArray, 3),
+	CALLDEF(getMatterMatrix, 3),
+	CALLDEF(setMatterMatrix, 4),
 	CALLDEF(getMatterListElt, 3),
 	CALLDEF(setMatterListElt, 4),
 	CALLDEF(getMatterListSubset, 3),

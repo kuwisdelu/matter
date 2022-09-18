@@ -92,6 +92,9 @@ test_that("matter array 1-D indexing", {
 	expect_equal(x, z[])
 	expect_null(dim(z))
 
+	z <- matter_vec(0, length=10)
+	expect_equal(rep(0, 10), z[])
+
 	expect_is(matter_vec(), "matter_vec")
 
 })
@@ -132,6 +135,9 @@ test_that("matter array 2-D indexing (col major)", {
 	expect_equal(x, y[])
 	
 	expect_equal(t(x), t(y)[])
+
+	z <- matter_mat(0, nrow=5, ncol=7)
+	expect_equal(matrix(0, nrow=5, ncol=7), z[])
 
 	expect_is(matter_mat(), "matter_mat")
 
@@ -174,6 +180,9 @@ test_that("matter array 2-D indexing (row major)", {
 
 	expect_equal(t(x), t(y)[])
 
+	z <- matter_mat(0, nrow=5, ncol=7, rowMaj=TRUE)
+	expect_equal(matrix(0, nrow=5, ncol=7), z[])
+
 })
 
 test_that("matter array N-D indexing (col major)", {
@@ -200,6 +209,9 @@ test_that("matter array N-D indexing (col major)", {
 	expect_equal(x, y[])
 
 	expect_equal(aperm(x), t(y)[])
+
+	z <- matter_arr(0, dim=c(4,3,2))
+	expect_equal(array(0, dim=c(4,3,2)), z[])
 
 	expect_is(matter_arr(), "matter_arr")
 
@@ -229,6 +241,9 @@ test_that("matter array N-D indexing (row major)", {
 	expect_equal(x, y[])
 
 	expect_equal(aperm(x), t(y)[])
+
+	z <- matter_arr(0, dim=c(4,3,2), rowMaj=TRUE)
+	expect_equal(array(0, dim=c(4,3,2)), z[])
 
 })
 

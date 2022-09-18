@@ -61,6 +61,14 @@ class MatterArray : public Matter {
 			return size;
 		}
 
+		int nrow() {
+			return dim(0);
+		}
+
+		int ncol() {
+			return dim(1);
+		}
+
 		bool is_transposed() {
 			return _transpose;
 		}
@@ -78,7 +86,7 @@ class MatterArray : public Matter {
 		{
 			R_xlen_t len = length();
 			size = len - i > size ? size : len - i;
-			if ( is_transposed() )
+			if ( is_transposed() && stride != 0 )
 			{
 				index_t tindx [size];
 				transpose_range(tindx, i, size);
@@ -88,6 +96,7 @@ class MatterArray : public Matter {
 				data()->flatten()->get_region<T>(buffer, i, size, 0, stride);
 			if ( has_ops() )
 				ops()->apply<T>(buffer, i, size, stride);
+			data()->flatten(false);
 			return size;
 		}
 
@@ -100,7 +109,7 @@ class MatterArray : public Matter {
 			}
 			R_xlen_t len = length();
 			size = len - i > size ? size : len - i;
-			if ( is_transposed() )
+			if ( is_transposed() && stride != 0 )
 			{
 				index_t tindx [size];
 				transpose_range(tindx, i, size);
@@ -108,6 +117,7 @@ class MatterArray : public Matter {
 			}
 			else
 				data()->flatten()->set_region<T>(buffer, i, size, 0, stride);
+			data()->flatten(false);
 			return size;
 		}
 
@@ -125,6 +135,7 @@ class MatterArray : public Matter {
 				data()->flatten()->get_elements<T>(buffer, indx, 0, stride);
 			if ( has_ops() )
 				ops()->apply<T>(buffer, indx, stride);
+			data()->flatten(false);
 			return size;
 		}
 
@@ -144,6 +155,7 @@ class MatterArray : public Matter {
 			}
 			else
 				data()->flatten()->set_elements<T>(buffer, indx, 0, stride);
+			data()->flatten(false);
 			return size;
 		}
 
@@ -177,7 +189,7 @@ class MatterArray : public Matter {
 
 		void set_region(index_t i, size_t size, SEXP value)
 		{
-			int stride = XLENGTH(value) == 1 ? 0 : 1;
+			int stride = (XLENGTH(value) == 1) ? 0 : 1;
 			if ( size > XLENGTH(value) && stride != 0 ) {
 				self_destruct();
 				Rf_error("number of items to replace is longer than replacement length");
@@ -235,7 +247,7 @@ class MatterArray : public Matter {
 		{
 			if ( Rf_isNull(indx) )
 				return set_region(0, length(), value);
-			int stride = XLENGTH(value) == 1 ? 0 : 1;
+			int stride = (XLENGTH(value) == 1) ? 0 : 1;
 			if ( XLENGTH(indx) > XLENGTH(value) && stride != 0 ) {
 				self_destruct();
 				Rf_error("number of items to replace is longer than replacement length");
@@ -280,41 +292,154 @@ class MatterMatrix : public MatterArray {
 		}
 
 		template<typename T>
-		size_t get_submatrix(SEXP i, SEXP j, T * buffer, int stride = 1)
+		size_t get_submatrix(SEXP i, SEXP j, T * buffer)
 		{
 			if ( !is_indexed() ) {
 				self_destruct();
-				Rf_error("matter matrix is not indexed for matrix subscripting");
+				Rf_error("matter array is not indexed for matrix subscripting");
 			}
-			return 0;
+			size_t n = 0;
+			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
+			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
+			int stride = is_transposed() ? nr : 1;
+			if ( is_transposed() )
+			{
+				for ( size_t k = 0; k < nr; k++ )
+				{
+					index_t row = k;
+					if ( !Rf_isNull(i) )
+						row = IndexElt(i, k) - 1;
+					if ( Rf_isNull(j) )
+						n += data()->get_region<T>(buffer, 0, ncol(), row, stride);
+					else
+						n += data()->get_elements<T>(buffer, j, row, stride);
+					buffer += 1;
+				}
+			}
+			else
+			{
+				for ( size_t k = 0; k < nc; k++ )
+				{
+					index_t col = k;
+					if ( !Rf_isNull(j) )
+						col = IndexElt(j, k) - 1;
+					if ( Rf_isNull(i) )
+						n += data()->get_region<T>(buffer, 0, nrow(), col, stride);
+					else
+						n += data()->get_elements<T>(buffer, i, col, stride);
+					buffer += nr;
+				}
+			}
+			return n;
 		}
 
 		template<typename T>
-		size_t set_submatrix(SEXP i, SEXP j, T * buffer, int stride = 1)
+		size_t set_submatrix(SEXP i, SEXP j, T * buffer)
 		{
 			if ( !is_indexed() ) {
 				self_destruct();
-				Rf_error("matter matrix is not indexed for matrix subscripting");
+				Rf_error("matter array is not indexed for matrix subscripting");
 			}
-			return 0;
+			size_t n = 0;
+			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
+			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
+			int stride = is_transposed() ? nr : 1;
+			if ( is_transposed() )
+			{
+				for ( size_t k = 0; k < nr; k++ )
+				{
+					index_t row = k;
+					if ( !Rf_isNull(i) )
+						row = IndexElt(i, k) - 1;
+					if ( Rf_isNull(j) )
+						n += data()->set_region<T>(buffer, 0, ncol(), row, stride);
+					else
+						n += data()->set_elements<T>(buffer, j, row, stride);
+					buffer += 1;
+				}
+			}
+			else
+			{
+				for ( size_t k = 0; k < nc; k++ )
+				{
+					index_t col = k;
+					if ( !Rf_isNull(j) )
+						col = IndexElt(j, k) - 1;
+					if ( Rf_isNull(i) )
+						n += data()->set_region<T>(buffer, 0, nrow(), col, stride);
+					else
+						n += data()->set_elements<T>(buffer, i, col, stride);
+					buffer += nr;
+				}
+			}
+			return n;
 		}
 
 		SEXP get_submatrix(SEXP i, SEXP j)
 		{
 			if ( !is_indexed() ) {
 				self_destruct();
-				Rf_error("matter matrix is not indexed for matrix subscripting");
+				Rf_error("matter array is not indexed for matrix subscripting");
 			}
-			return R_NilValue;
+			SEXP x;
+			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
+			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
+			switch(type()) {
+				case R_RAW:
+					PROTECT(x = Rf_allocMatrix(RAWSXP, nr, nc));
+					get_submatrix(i, j, RAW(x));
+					break;
+				case R_LOGICAL:
+					PROTECT(x = Rf_allocMatrix(LGLSXP, nr, nc));
+					get_submatrix(i, j, LOGICAL(x));
+					break;
+				case R_INTEGER:
+					PROTECT(x = Rf_allocMatrix(INTSXP, nr, nc));
+					get_submatrix(i, j, INTEGER(x));
+					break;
+				case R_DOUBLE:
+					PROTECT(x = Rf_allocMatrix(REALSXP, nr, nc));
+					get_submatrix(i, j, REAL(x));
+					break;
+				default:
+					self_destruct();
+					Rf_error("invalid matter array data type");
+			}
+			UNPROTECT(1);
+			return x;
 		}
 
 		void set_submatrix(SEXP i, SEXP j, SEXP value)
 		{
+			if ( XLENGTH(value) == 1 )
+				return set_region(0, length(), value);
 			if ( !is_indexed() ) {
 				self_destruct();
-				Rf_error("matter matrix is not indexed for matrix subscripting");
+				Rf_error("matter array is not indexed for matrix subscripting");
 			}
-			return void();
+			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
+			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
+			if ( (nr * nc) > XLENGTH(value) ) {
+				self_destruct();
+				Rf_error("number of items to replace is longer than replacement length");
+			}
+			switch(TYPEOF(value)) {
+				case RAWSXP:
+					set_submatrix(i, j, RAW(value));
+					break;
+				case LGLSXP:
+					set_submatrix(i, j, LOGICAL(value));
+					break;
+				case INTSXP:
+					set_submatrix(i, j, INTEGER(value));
+					break;
+				case REALSXP:
+					set_submatrix(i, j, REAL(value));
+					break;
+				default:
+					self_destruct();
+					Rf_error("invalid replacement data type");
+			}
 		}
 
 	protected:

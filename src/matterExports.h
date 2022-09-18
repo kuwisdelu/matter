@@ -43,6 +43,8 @@ SEXP ungroupAtoms(SEXP x);
 
 SEXP getMatterArray(SEXP x, SEXP i);
 SEXP setMatterArray(SEXP x, SEXP i, SEXP value);
+SEXP getMatterMatrix(SEXP x, SEXP i, SEXP j);
+SEXP setMatterMatrix(SEXP x, SEXP i, SEXP j, SEXP value);
 SEXP getMatterListElt(SEXP x, SEXP i, SEXP j);
 SEXP setMatterListElt(SEXP x, SEXP i, SEXP j, SEXP value);
 SEXP getMatterListSubset(SEXP x, SEXP i, SEXP j);

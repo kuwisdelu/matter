@@ -206,6 +206,19 @@ SEXP setMatterArray(SEXP x, SEXP i, SEXP value)
 	return x;
 }
 
+SEXP getMatterMatrix(SEXP x, SEXP i, SEXP j)
+{
+	MatterMatrix xm(x);
+	return xm.get_submatrix(i, j);
+}
+
+SEXP setMatterMatrix(SEXP x, SEXP i, SEXP j, SEXP value)
+{
+	MatterMatrix xm(x);
+	xm.set_submatrix(i, j, value);
+	return x;
+}
+
 SEXP getMatterListElt(SEXP x, SEXP i, SEXP j)
 {
 	MatterList xm(x);
