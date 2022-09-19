@@ -261,22 +261,16 @@ SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value)
 // Sparse data structures
 //-----------------------
 
-SEXP getSparseVector(SEXP x, SEXP i)
+SEXP getSparseArray(SEXP x, SEXP i)
 {
-	SparseVector xm(x);
-	return xm.getElements(i);
+	SparseArray xm(x);
+	return xm.get_elements(i);
 }
 
-SEXP getSparseMatrixC(SEXP x, SEXP i, SEXP j)
+SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j)
 {
-	SparseMatrixC xm(x);	
-	return xm.getSubMatrix(i, j);
-}
-
-SEXP getSparseMatrixR(SEXP x, SEXP i, SEXP j)
-{
-	SparseMatrixR xm(x);	
-	return xm.getSubMatrix(i, j);
+	SparseMatrix xm(x);	
+	return xm.get_submatrix(i, j);
 }
 
 } // extern "C"

@@ -36,9 +36,8 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(getMatterStrings, 3),
 	CALLDEF(setMatterStrings, 4),
 	// sparse data structures
-	CALLDEF(getSparseVector, 2),
-	CALLDEF(getSparseMatrixC, 3),
-	CALLDEF(getSparseMatrixR, 3),
+	CALLDEF(getSparseArray, 2),
+	CALLDEF(getSparseMatrix, 3),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}

@@ -64,10 +64,10 @@ setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 setGeneric("aindex", function(object) standardGeneric("aindex"))
 setGeneric("atomindex", function(object) standardGeneric("atomindex"))
 setGeneric("atomindex<-", function(object, value) standardGeneric("atomindex<-"))
+setGeneric("pointers", function(object) standardGeneric("pointers"))
+setGeneric("pointers<-", function(object, value) standardGeneric("pointers<-"))
 setGeneric("domain", function(x) standardGeneric("domain"))
 setGeneric("domain<-", function(x, value) standardGeneric("domain<-"))
-setGeneric("pointers", function(x) standardGeneric("pointers"))
-setGeneric("pointers<-", function(x, value) standardGeneric("pointers<-"))
 
 # setGeneric("tolerance", function(object, ...) standardGeneric("tolerance")) # use ProtGenerics
 setGeneric("tolerance<-", function(object, ..., value) standardGeneric("tolerance<-"))

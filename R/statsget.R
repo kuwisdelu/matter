@@ -27,32 +27,6 @@ setMethod("colStats", "ANY", function(x, stat, groups,
 			drop=drop, BPPARAM=BPPARAM, ...)
 	})
 
-setMethod("rowStats", "sparse_matc", function(x, stat, groups,
-								na.rm = FALSE, tform = identity,
-								col.center = NULL, col.scale = NULL,
-								row.center = NULL, row.scale = NULL,
-								drop = TRUE, BPPARAM = bpparam(), ...)
-	{
-		getStats(x, stat=stat, groups=groups,
-			na.rm=na.rm, tform=tform, along = "rows",
-			col.center=col.center, col.scale=col.scale,
-			row.center=row.center, row.scale=row.scale,
-			drop=drop, iter.dim="cols", BPPARAM=BPPARAM, ...)
-	})
-
-setMethod("colStats", "sparse_matr", function(x, stat, groups,
-								na.rm = FALSE, tform = identity,
-								col.center = NULL, col.scale = NULL,
-								row.center = NULL, row.scale = NULL,
-								drop = TRUE, BPPARAM = bpparam(), ...)
-	{
-		getStats(x, stat=stat, groups=groups,
-			na.rm=na.rm, tform=tform, along = "cols",
-			col.center=col.center, col.scale=col.scale,
-			row.center=row.center, row.scale=row.scale,
-			drop=drop, iter.dim="rows", BPPARAM=BPPARAM, ...)
-	})
-
 getStats <- function(x, stat, groups, along = c("rows", "cols"),
 						na.rm = FALSE, tform = identity,
 						col.center = NULL, col.scale = NULL,

@@ -4,22 +4,19 @@
 #include "matter.h"
 #include "search.h"
 
-class Sparse
-{
+class Sparse : public ArrayInterface {
+
 	public:
 
 		Sparse(SEXP x)
 		{
 			_data = R_do_slot(x, Rf_install("data"));
-			_datamode = INTEGER(R_do_slot(x, Rf_install("datamode")));
+			_type = Rf_asInteger(R_do_slot(x, Rf_install("type")));
 			_index = R_do_slot(x, Rf_install("index"));
-			_offset = Rf_asInteger(R_do_slot(x, Rf_install("offset")));
-			_domain = R_do_slot(x, Rf_install("domain"));
 			_pointers = R_do_slot(x, Rf_install("pointers"));
-			_length = static_cast<index_t>(Rf_asReal(R_do_slot(x, Rf_install("length"))));
+			_domain = R_do_slot(x, Rf_install("domain"));
+			_offset = Rf_asInteger(R_do_slot(x, Rf_install("offset")));
 			_dim = R_do_slot(x, Rf_install("dim"));
-			_dimnames = R_do_slot(x, Rf_install("dimnames"));
-			_names = R_do_slot(x, Rf_install("names"));
 			SEXP tol = R_do_slot(x, Rf_install("tolerance"));
 			SEXP tol_type = Rf_getAttrib(tol, Rf_install("tol_type"));
 			_tol = Rf_asReal(tol);
@@ -34,13 +31,13 @@ class Sparse
 		}
 
 		SEXPTYPE datatype() {
-			switch(_datamode[0]) {
+			switch(_type) {
 				case R_INTEGER:
 					return INTSXP;
 				case R_DOUBLE:
 					return REALSXP;
 				default:
-					Rf_error("unsupported 'datamode'");
+					Rf_error("unsupported sparse data type");
 			}
 		}
 
@@ -50,17 +47,17 @@ class Sparse
 
 		SEXPTYPE indextype() {
 			if ( Rf_isReal(domain()) )
-				return REALSXP;
+				return REALSXP; // promote if domain is double
 			if ( Rf_isS4(_index) )
 			{
-				SEXP mode = R_do_slot(_index, Rf_install("datamode"));
+				SEXP mode = R_do_slot(_index, Rf_install("type"));
 				switch(Rf_asInteger(mode)) {
 					case R_INTEGER:
 						return INTSXP;
 					case R_DOUBLE:
 						return REALSXP;
 					default:
-						Rf_error("unsupported index type");
+						Rf_error("unsupported sparse index type");
 				}
 			}
 			else
@@ -72,16 +69,12 @@ class Sparse
 			}
 		}
 
-		int offset() {
-			return _offset;
-		}
-
 		SEXP domain() {
 			return _domain;
 		}
 
 		bool has_domain() {
-			return _domain != R_NilValue;
+			return !Rf_isNull(_domain);
 		}
 
 		SEXP pointers() {
@@ -89,10 +82,10 @@ class Sparse
 		}
 
 		bool has_pointers() {
-			return _pointers != R_NilValue;
+			return !Rf_isNull(_pointers);
 		}
 
-		Pair<index_t,index_t> pointers(size_t i)
+		Pair<index_t,index_t> pointers(index_t i)
 		{
 			Pair<index_t,index_t> p;
 			if ( has_pointers() )
@@ -101,39 +94,12 @@ class Sparse
 				p.second = IndexElt(_pointers, i + 1);
 			}
 			else
-			{
-				p.first = NA_INTEGER;
-				p.second = NA_INTEGER;
-			}
+				p = {0, 0};
 			return p;
 		}
 
-		index_t length() {
-			return _length;
-		}
-
-		index_t majordim() {
-			return _majordim;
-		}
-
-		index_t minordim() {
-			return _minordim;
-		}
-
-		int dim(int i) {
-			return INTEGER(_dim)[i];
-		}
-
-		bool has_dims() {
-			return _dim != R_NilValue;
-		}
-
-		SEXP dimnames() {
-			return _dimnames;
-		}
-
-		SEXP names() {
-			return _names;
+		int offset() {
+			return _offset;
 		}
 
 		double tol() {
@@ -141,7 +107,7 @@ class Sparse
 		}
 
 		int tol_ref() {
-			return _tol_type == ABS_DIFF ? ABS_DIFF : REL_DIFF_Y;
+			return (_tol_type == ABS_DIFF) ? ABS_DIFF : REL_DIFF_Y;
 		}
 
 		int sampler() {
@@ -153,15 +119,75 @@ class Sparse
 			return static_cast<T>(0);
 		}
 
+	protected:
+
+		SEXP _data;
+		int _type;
+		SEXP _index;
+		SEXP _pointers;
+		SEXP _domain;
+		int _offset;
+		double _tol;
+		int _tol_type;
+		int _sampler;
+};
+
+
+class SparseArray : public Sparse {
+
+	public:
+
+		SparseArray(SEXP x) : Sparse(x), _ops(x)
+		{
+			_transpose = Rf_asLogical(R_do_slot(x, Rf_install("transpose")));
+			if ( _transpose )
+			{
+				_dense_extent = dim(0);
+				_sparse_extent = length() / dim(0);
+			}
+			else
+			{
+				_dense_extent = dim(rank() - 1);
+				_sparse_extent = length() / dim(rank() - 1);
+			}
+		}
+
+		bool is_transposed() {
+			return _transpose;
+		}
+
+		index_t dense_extent() {
+			return _dense_extent;
+		}
+
+		index_t sparse_extent() {
+			return _sparse_extent;
+		}
+
+		DeferredOps * ops() {
+			return &_ops;
+		}
+
+		bool has_ops() {
+			return ops()->nops() != 0;
+		}
+
+		bool has_list_storage() {
+			if ( Rf_isS4(_data) )
+				return Rf_inherits(_data, "matter_list");
+			else
+				return Rf_isVectorList(_data);
+		}
+
 		template<typename T>
 		void copy_domain(index_t i, size_t size, T * buffer)
 		{
-			if ( i < 0 || i + size > minordim() )
+			if ( i < 0 || i + size > sparse_extent() )
 				Rf_error("subscript out of bounds");
 			for ( size_t j = 0; j < size; i++, j++ ) {
 				switch(TYPEOF(domain())) {
 					case NILSXP:
-						buffer[j] = i + offset();
+						buffer[j] = i + j + offset();
 						break;
 					case INTSXP:
 						buffer[j] = INTEGER_ELT(domain(), i);
@@ -184,7 +210,7 @@ class Sparse
 					buffer[j] = NA<T>();
 					continue;
 				}
-				if ( i - ind1 < 0 || i - ind1 >= minordim() )
+				if ( i - ind1 < 0 || i - ind1 >= sparse_extent() )
 					Rf_error("subscript out of bounds");
 				switch(TYPEOF(domain())) {
 					case NILSXP:
@@ -200,572 +226,361 @@ class Sparse
 			}
 		}
 
-	protected:
-
-		SEXP _data;
-		int * _datamode;
-		SEXP _index;
-		int _offset;
-		SEXP _domain;
-		SEXP _pointers;
-		index_t _length;
-		index_t _majordim = 0; // set in derived class
-		index_t _minordim = 0; // set in derived class
-		SEXP _dim;
-		SEXP _dimnames;
-		SEXP _names;
-		double _tol;
-		int _tol_type;
-		int _sampler;
-};
-
-class SparseVector : public Sparse
-{
-	public:
-
-		SparseVector(SEXP x) : Sparse(x)
-		{
-			_majordim = 1;
-			_minordim = length();
-		}
-
-		SEXP data() {
-			SEXP data0;
-			if ( Rf_isS4(_data) ) {
-				MatterArray tmp(_data);
-				data0 = tmp.get_elements(R_NilValue);
-			}
-			else
-				data0 = _data;
-			PROTECT(data0);
-			data0 = Rf_coerceVector(data0, datatype());
-			UNPROTECT(1);
-			return data0;
-		}
-
-		SEXP index() {
-			SEXP index0;
-			if ( Rf_isS4(_index) ) {
-				MatterArray tmp(_index);
-				index0 = tmp.get_elements(R_NilValue);
-			}
-			else
-				index0 = _index;
-			PROTECT(index0);
-			index0 = Rf_coerceVector(index0, indextype());
-			UNPROTECT(1);
-			return index0;
-		}
-
-		template<typename Tind, typename Tval>
-		Tval get(index_t i)
-		{
-			SEXP index0, data0;
-			Tind x = NA_INTEGER;
-			if ( i < 0 || i >= length() )
-				Rf_error("subscript out of bounds");
-			switch(TYPEOF(domain())) {
-				case NILSXP:
-					x = i;
-					break;
-				case INTSXP:
-					x = INTEGER_ELT(domain(), i);
-					break;
-				case REALSXP:
-					x = REAL_ELT(domain(), i);
-					break;
-			}
-			PROTECT(index0 = index());
-			PROTECT(data0 = data());
-			Tval val = approx_search(x, index0, data0, 0, XLENGTH(index0),
-				tol(), tol_ref(), zero<Tval>(), sampler()).second;
-			UNPROTECT(2);
-			return val;
-		}
-
-		template<typename Tind, typename Tval>
-		size_t getRegion(index_t i, size_t size, Tval * buffer)
-		{
-			SEXP index0, data0;
-			PROTECT(index0 = index());
-			PROTECT(data0 = data());
-			size_t num_nz = 0;
-			if ( has_domain() ) {
-				Tind subscripts [size];
-				copy_domain<Tind>(i, size, subscripts);
-				num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, size,
-					index0, data0, tol(), tol_ref(), zero<Tval>(), sampler());
-			}
-			else {
-				if ( i < 0 || i + size > length() )
-					Rf_error("subscript out of bounds");
-				for ( size_t j = 0; j < size; j++ )
-					buffer[j] = zero<Tval>();
-				for ( size_t k = 0; k < XLENGTH(index0); k++ )
-				{
-					Tind * pindex = DataPtr<Tind>(index0);
-					Tval * pdata = DataPtr<Tval>(data0);
-					index_t indk = static_cast<index_t>(pindex[k]);
-					buffer[indk + i - offset()] = pdata[k];
-					num_nz++;
-				}
-			}
-			UNPROTECT(2);
-			return num_nz;
-		}
-
-		SEXP getRegion(index_t i, size_t size)
-		{
-			SEXP result;
-			PROTECT(result = Rf_allocVector(datatype(), size));
-			switch(datatype()) {
-				case INTSXP:
-				{
-					switch(indextype()) {
-						case INTSXP:
-							getRegion<int,int>(i, size, INTEGER(result));
-							break;
-						case REALSXP:
-							getRegion<double,int>(i, size, INTEGER(result));
-							break;
-					}
-					break;
-				}
-				case REALSXP:
-				{
-					switch(indextype()) {
-						case INTSXP:
-							getRegion<int,double>(i, size, REAL(result));
-							break;
-						case REALSXP:
-							getRegion<double,double>(i, size, REAL(result));
-							break;
-					}
-					break;
-				}
-				default:
-					Rf_error("unsupported 'datamode'");
-			}
-			UNPROTECT(1);
-			return result;
-		}
-
-		template<typename Tind, typename Tval>
-		size_t getElements(SEXP indx, Tval * buffer)
-		{
-			SEXP index0, data0;
-			PROTECT(index0 = index());
-			PROTECT(data0 = data());
-			R_xlen_t size = XLENGTH(indx);
-			Tind subscripts [size];
-			copy_domain<Tind>(indx, subscripts, true);
-			size_t num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, size,
-				index0, data0, tol(), tol_ref(), zero<Tval>(), sampler());
-			UNPROTECT(2);
-			return num_nz;
-		}
-
-		SEXP getElements(SEXP indx)
-		{
-			SEXP result;
-			if ( indx == R_NilValue )
-				return getRegion(0, length());
-			PROTECT(result = Rf_allocVector(datatype(), XLENGTH(indx)));
-			switch(datatype()) {
-				case INTSXP:
-				{
-					switch(indextype()) {
-						case INTSXP:
-							getElements<int,int>(indx, INTEGER(result));
-							break;
-						case REALSXP:
-							getElements<double,int>(indx, INTEGER(result));
-							break;
-					}
-					break;
-				}
-				break;
-				case REALSXP:
-				{
-					switch(indextype()) {
-						case INTSXP:
-							getElements<int,double>(indx, REAL(result));
-							break;
-						case REALSXP:
-							getElements<double,double>(indx, REAL(result));
-							break;
-					}
-					break;
-				}
-				default:
-					Rf_error("unsupported 'datamode'");
-			}
-			UNPROTECT(1);
-			return result;
-		}
-
-};
-
-class SparseMatrix : public Sparse
-{
-	public:
-
-		SparseMatrix(SEXP x) : Sparse(x) {}
-
-		int nrow() {
-			return dim(0);
-		}
-
-		int ncol() {
-			return dim(1);
-		}
-
 		SEXP data(index_t i)
 		{
-			SEXP indx, data0;
-			if ( i < 0 || i >= majordim() )
+			SEXP ans;
+			if ( i < 0 || i >= dense_extent() )
 				Rf_error("subscript out of bounds");
 			Pair<index_t,index_t> p = pointers(i);
 			if ( has_pointers() && p.first == p.second )
 				return Rf_allocVector(datatype(), 0);
-			if ( Rf_isS4(_data) )
+			if ( has_list_storage() )
 			{
-				SEXP dims = R_do_slot(_data, Rf_install("dim"));
-				if ( dims != R_NilValue ) {
-					// matter list
-					MatterList tmp(_data);
-					data0 = tmp.get(i);
+				if ( Rf_isS4(_data) )
+				{
+					MatterList x(_data);
+					ans = x.get(i);
 				}
-				else {
-					// matter vector
-					if ( has_pointers() )
-						indx = seq_range(p.first, p.second - 1);
-					else {
-						size_t n = XLENGTH(_index);
-						indx = seq_range(i * n + 1, (i + 1) * n);
-					}
-					PROTECT(indx);
-					// FIXME: double indexing only for now...
-					MatterList tmp(_data);
-					data0 = tmp.get_elements(indx);
-					UNPROTECT(1);
+				else
+					ans = VECTOR_ELT(_data, i);
+			}
+			else if ( has_pointers() )
+			{
+				if ( Rf_isS4(_data) )
+				{
+					MatterArray x(_data);
+					ans = x.get_region(p.first, p.second - p.first);
 				}
+				else
+					ans = extract_region(_data, p.first, p.second - p.first);
 			}
-			else if ( Rf_isVectorList(_data) ) {
-				// R list
-				data0 = VECTOR_ELT(_data, i);
-			}
-			else {
-				// R vector
-				if ( has_pointers() )
-					data0 = extract_range(_data, p.first + 1, p.second);
-				else {
-					size_t n = XLENGTH(_index);
-					data0 = extract_range(_data, i * n + 1, (i + 1) * n);
+			else
+			{
+				size_t n = XLENGTH(_index);
+				if ( Rf_isS4(_data) )
+				{
+					MatterArray x(_data);
+					ans = x.get_region(n * i, n);
 				}
+				else
+					ans = extract_region(_data, n * i, n);
 			}
-			PROTECT(data0);
-			data0 = Rf_coerceVector(data0, datatype());
+			PROTECT(ans);
+			ans = Rf_coerceVector(ans, datatype());
 			UNPROTECT(1);
-			return data0;
+			return ans;
 		}
 
 		SEXP index(index_t i)
 		{
-			SEXP indx, index0;
-			if ( i < 0 || i >= majordim() )
+			SEXP ans;
+			if ( i < 0 || i >= dense_extent() )
 				Rf_error("subscript out of bounds");
 			Pair<index_t,index_t> p = pointers(i);
 			if ( has_pointers() && p.first == p.second )
 				return Rf_allocVector(indextype(), 0);
-			if ( Rf_isS4(_index) )
+			if ( has_list_storage() )
 			{
-				SEXP dims = R_do_slot(_index, Rf_install("dim"));
-				if ( dims != R_NilValue ) {
-					// matter list
-					MatterList tmp(_index);
-					index0 = tmp.get(i);
+				if ( Rf_isS4(_index) )
+				{
+					MatterList x(_index);
+					ans = x.get(i);
 				}
-				else {
-					// matter vector
-					if ( has_pointers() ) {
-						PROTECT(indx = seq_range(p.first, p.second - 1));
-						// FIXME: double indexing only for now...
-						MatterArray tmp(_index);
-						index0 = tmp.get_elements(indx);
-						UNPROTECT(1);
-					}
-					else {
-						MatterArray tmp(_index);
-						index0 = tmp.get_elements(R_NilValue);
-					}
-				}
-			}
-			else if ( Rf_isVectorList(_index) ) {
-				// R list
-				index0 = VECTOR_ELT(_index, i);
-			}
-			else {
-				// R vector
-				if ( has_pointers() )
-					index0 = extract_range(_index, p.first + 1, p.second);
 				else
-					index0 = _index;
+					ans = VECTOR_ELT(_index, i);
 			}
-			PROTECT(index0);
-			index0 = Rf_coerceVector(index0, indextype());
+			else if ( has_pointers() )
+			{
+				if ( Rf_isS4(_index) )
+				{
+					MatterArray x(_index);
+					ans = x.get_region(p.first, p.second - p.first);
+				}
+				else
+					ans = extract_region(_index, p.first, p.second - p.first);
+			}
+			else
+			{
+				ans = _index;
+			}
+			PROTECT(ans);
+			ans = Rf_coerceVector(ans, indextype());
 			UNPROTECT(1);
-			return index0;
+			return ans;
 		}
 
 		template<typename Tind, typename Tval>
-		size_t getSubVector(index_t i, Tval * buffer, int stride = 1)
+		size_t get_compressed_region(index_t at,
+			index_t i, size_t size, Tval * buffer, int stride = 1)
 		{
-			if ( isNA(i) ) {
-				fill<Tval>(buffer, minordim(), NA<Tval>(), stride);
+			if ( at < 0 || at > dense_extent() )
+				Rf_error("subscript out of bounds");
+			if ( i < 0 || i + size > sparse_extent() )
+				Rf_error("subscript out of bounds");
+			if ( isNA(at) ) {
+				fill<Tval>(buffer, size, NA<Tval>(), stride);
 				return 0;
 			}
-			SEXP index0, data0;
-			PROTECT(index0 = index(i));
-			PROTECT(data0 = data(i));
-			size_t num_nz = LENGTH(data0);
-			if ( has_domain() ) {
-				Tind subscripts [minordim()];
-				copy_domain<Tind>(0, minordim(), subscripts);
-				num_nz = do_approx_search<Tind,Tval>(buffer, subscripts, minordim(),
-					index0, data0, tol(), tol_ref(), zero<Tval>(),
-					sampler(), true, stride);
+			SEXP j, x;
+			PROTECT(j = index(at));
+			PROTECT(x = data(at));
+			size_t nnz = 0;
+			if ( has_domain() )
+			{
+				Tind subscripts [size];
+				copy_domain<Tind>(i, size, subscripts);
+				nnz = do_approx_search<Tind,Tval>(buffer,
+					subscripts, size, j, x, tol(), tol_ref(),
+						zero<Tval>(), sampler(), true, stride);
 			}
-			else {
-				fill<Tval>(buffer, minordim(), zero<Tval>(), stride);
-				for ( size_t k = 0; k < num_nz; k++ )
+			else
+			{
+				fill<Tval>(buffer, size, zero<Tval>(), stride);
+				for ( index_t k = 0; k < XLENGTH(x); k++ )
 				{
-					Tind * pindex = DataPtr<Tind>(index0);
-					Tval * pdata = DataPtr<Tval>(data0);
-					index_t indk = static_cast<index_t>(pindex[k]);
-					buffer[(indk - offset()) * stride] = pdata[k];
+					Tind * pj = DataPtr<Tind>(j);
+					Tval * px = DataPtr<Tval>(x);
+					index_t ii = static_cast<index_t>(pj[k]) - i;
+					if ( ii < 0 || ii >= size )
+						continue;
+					buffer[(ii - offset()) * stride] = px[k];
+					nnz++;
 				}
 			}
 			UNPROTECT(2);
-			return num_nz;
+			return nnz;
 		}
+
+		template<typename Tind, typename Tval>
+		size_t get_compressed_elements(index_t at,
+			SEXP indx, Tval * buffer, int stride = 1)
+		{
+			if ( Rf_isNull(indx) )
+				return get_compressed_region<Tind,Tval>(at,
+					0, sparse_extent(), buffer, stride);
+			if ( at < 0 || at > dense_extent() )
+				Rf_error("subscript out of bounds");
+			if ( isNA(at) ) {
+				fill<Tval>(buffer, XLENGTH(indx), NA<Tval>(), stride);
+				return 0;
+			}
+			SEXP j, x;
+			PROTECT(j = index(at));
+			PROTECT(x = data(at));
+			Tind subscripts [XLENGTH(indx)];
+			copy_domain<Tind>(indx, subscripts);
+			size_t nnz = do_approx_search<Tind,Tval>(buffer,
+				subscripts, XLENGTH(indx), j, x, tol(), tol_ref(),
+					zero<Tval>(), sampler(), true, stride);
+			UNPROTECT(2);
+			return nnz;
+		}
+
+		template<typename Tind, typename Tval>
+		size_t get_region(index_t i, size_t size, Tval * buffer, int stride = 1)
+		{
+			size_t nnz;
+			if ( rank() == 1 )
+				nnz = get_compressed_region<Tind,Tval>(0, i, size, buffer, stride);
+			else
+				Rf_error("linear indexing for sparse arrays is not supported yet");
+			if ( has_ops() )
+				ops()->apply<Tval>(buffer, i, size, stride);
+			return nnz;
+		}
+
+		template<typename Tind, typename Tval>
+		size_t get_elements(SEXP indx, Tval * buffer, int stride = 1)
+		{
+			size_t nnz;
+			if ( rank() == 1 )
+				nnz = get_compressed_elements<Tind,Tval>(0, indx, buffer, stride);
+			else
+				Rf_error("linear indexing for sparse arrays is not supported yet");
+			if ( has_ops() )
+				ops()->apply<Tval>(buffer, indx, stride);
+			return nnz;
+		}
+
+		SEXP get_region(index_t i, size_t size)
+		{
+			SEXP x;
+			if ( rank() != 1 )
+				Rf_error("linear indexing for sparse arrays is not supported yet");
+			PROTECT(x = Rf_allocVector(datatype(), size));
+			switch(datatype()) {
+				case INTSXP:
+					switch(indextype()) {
+						case INTSXP:
+							get_region<int,int>(i, size, INTEGER(x));
+							break;
+						case REALSXP:
+							get_region<double,int>(i, size, INTEGER(x));
+							break;
+						default:
+							Rf_error("unsupported sparse index type");
+					}
+					break;
+				break;
+				case REALSXP:
+					switch(indextype()) {
+						case INTSXP:
+							get_region<int,double>(i, size, REAL(x));
+							break;
+						case REALSXP:
+							get_region<double,double>(i, size, REAL(x));
+							break;
+						default:
+							Rf_error("unsupported sparse index type");
+					}
+					break;
+				default:
+					Rf_error("unsupported sparse data type");
+			}
+			UNPROTECT(1);
+			return x;
+		}
+
+		SEXP get_elements(SEXP indx)
+		{
+			SEXP x;
+			if ( rank() != 1 )
+				Rf_error("linear indexing for sparse arrays is not supported yet");
+			if ( Rf_isNull(indx) )
+				return get_region(0, length());
+			PROTECT(x = Rf_allocVector(datatype(), XLENGTH(indx)));
+			switch(datatype()) {
+				case INTSXP:
+					switch(indextype()) {
+						case INTSXP:
+							get_elements<int,int>(indx, INTEGER(x));
+							break;
+						case REALSXP:
+							get_elements<double,int>(indx, INTEGER(x));
+							break;
+						default:
+							Rf_error("unsupported sparse index type");
+					}
+					break;
+				break;
+				case REALSXP:
+					switch(indextype()) {
+						case INTSXP:
+							get_elements<int,double>(indx, REAL(x));
+							break;
+						case REALSXP:
+							get_elements<double,double>(indx, REAL(x));
+							break;
+						default:
+							Rf_error("unsupported sparse index type");
+					}
+					break;
+				default:
+					Rf_error("unsupported sparse data type");
+			}
+			UNPROTECT(1);
+			return x;
+		}
+
+	protected:
+
+		DeferredOps _ops;
+		index_t _dense_extent;
+		index_t _sparse_extent;
+		bool _transpose;
 
 };
 
-class SparseMatrixC : public SparseMatrix
+class SparseMatrix : public SparseArray
 {
 	public:
 
-		SparseMatrixC(SEXP x) : SparseMatrix(x)
-		{
-			_majordim = ncol();
-			_minordim = nrow();
-		}
+		SparseMatrix(SEXP x) : SparseArray(x) {}
 
 		template<typename Tind, typename Tval>
-		size_t getCol(index_t i, Tval * buffer, int stride = 1)
+		size_t get_submatrix(SEXP i, SEXP j, Tval * buffer, int stride = 1)
 		{
-			return getSubVector<Tind,Tval>(i, buffer, stride);
-		}
-
-		template<typename Tind, typename Tval>
-		size_t getSubMatrix(SEXP i, SEXP j, Tval * buffer)
-		{
-			SEXP index0, data0;
-			size_t num_nz = 0;
-			size_t ni = i != R_NilValue ? LENGTH(i) : nrow();
-			size_t nj = j != R_NilValue ? LENGTH(j) : ncol();
-			if ( j == R_NilValue )
-				j = seq_range(1, nj);
-			PROTECT(j);
-			if ( i == R_NilValue && !has_domain() )
+			size_t nnz = 0;
+			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
+			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
+			int s1 = is_transposed() ? (nr * stride) : stride;
+			int s2 = is_transposed() ? stride : (nr * stride);
+			if ( is_transposed() )
 			{
-				// get full columns
-				for ( size_t k = 0; k < nj; k++ ) {
-					Tval * buffer0 = buffer + (k * ni);
-					index_t indk = IndexElt(j, k);
-					if ( isNA(indk) )
-						fill<Tval>(buffer0, nrow(), NA<Tval>(), 1);
+				for ( size_t k = 0; k < nr; k++ )
+				{
+					index_t row = k;
+					if ( !Rf_isNull(i) ) {
+						row = IndexElt(i, k);
+						row = isNA(row) ? row : row - 1;
+					}
+					if ( isNA(row) )
+						nnz += fill<Tval>(buffer + k * s2, nc, NA<Tval>(), s1);
+					else if ( Rf_isNull(j) )
+						nnz += get_compressed_region<Tind,Tval>(row, 0, ncol(), buffer + k * s2, s1);
 					else
-						num_nz += getCol<Tind,Tval>(indk - 1, buffer0, 1);
+						nnz += get_compressed_elements<Tind,Tval>(row, j, buffer + k * s2, s1);
 				}
 			}
 			else
 			{
-				// get indexed columns
-				Tind subscripts [ni];
-				if ( i == R_NilValue )
-					copy_domain<Tind>(0, ni, subscripts);
-				else
-					copy_domain<Tind>(i, subscripts, true);
-				for ( size_t k = 0; k < nj; k++ ) {
-					switch(TYPEOF(j)) {
-						case INTSXP:
-							PROTECT(index0 = index(INTEGER_ELT(j, k) - 1));
-							PROTECT(data0 = data(INTEGER_ELT(j, k) - 1));
-							break;
-						case REALSXP:
-							PROTECT(index0 = index(REAL_ELT(j, k) - 1));
-							PROTECT(data0 = data(REAL_ELT(j, k) - 1));
-							break;
-					}
-					Tval * buffer0 = buffer + (k * ni);
-					num_nz += do_approx_search<Tind,Tval>(buffer0, subscripts, ni,
-						index0, data0, tol(), tol_ref(), zero<Tval>(),
-						sampler(), true, 1);
-					UNPROTECT(2);
-				}
-			}
-			UNPROTECT(1);
-			return num_nz;
-		}
-
-		SEXP getSubMatrix(SEXP i, SEXP j)
-		{
-			SEXP result;
-			size_t ni = i != R_NilValue ? LENGTH(i) : dim(0);
-			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
-			PROTECT(result = Rf_allocMatrix(datatype(), ni, nj));
-			switch(datatype()) {
-				case INTSXP:
+				for ( size_t k = 0; k < nc; k++ )
 				{
-					switch(indextype()) {
-						case INTSXP:
-							getSubMatrix<int,int>(i, j, INTEGER(result));
-							break;
-						case REALSXP:
-							getSubMatrix<double,int>(i, j, INTEGER(result));
-							break;
+					index_t col = k;
+					if ( !Rf_isNull(j) ) {
+						col = IndexElt(j, k);
+						col = isNA(col) ? col : col - 1;
 					}
-					break;
-				}
-				break;
-				case REALSXP:
-				{
-					switch(indextype()) {
-						case INTSXP:
-							getSubMatrix<int,double>(i, j, REAL(result));
-							break;
-						case REALSXP:
-							getSubMatrix<double,double>(i, j, REAL(result));
-							break;
-					}
-					break;
-				}
-				default:
-					Rf_error("unsupported 'datamode'");
-			}
-			UNPROTECT(1);
-			return result;
-		}
-
-};
-
-class SparseMatrixR : public SparseMatrix
-{
-	public:
-
-		SparseMatrixR(SEXP x) : SparseMatrix(x)
-		{
-			_majordim = nrow();
-			_minordim = ncol();
-		}
-
-		template<typename Tind, typename Tval>
-		size_t getRow(index_t i, Tval * buffer, int stride = 1)
-		{
-			return getSubVector<Tind,Tval>(i, buffer, stride);
-		}
-
-		template<typename Tind, typename Tval>
-		size_t getSubMatrix(SEXP i, SEXP j, Tval * buffer)
-		{
-			SEXP index0, data0;
-			size_t num_nz = 0;
-			size_t ni = i != R_NilValue ? LENGTH(i) : nrow();
-			size_t nj = j != R_NilValue ? LENGTH(j) : ncol();
-			if ( i == R_NilValue )
-				i = seq_range(1, ni);
-			PROTECT(i);
-			if ( j == R_NilValue && !has_domain() )
-			{
-				// get full rows
-				for ( size_t k = 0; k < ni; k++ ) {
-					Tval * buffer0 = buffer + k;
-					index_t indk = IndexElt(i, k);
-					if ( isNA(indk) )
-						fill<Tval>(buffer0, ncol(), NA<Tval>(), ni);
+					if ( isNA(col) )
+						nnz += fill<Tval>(buffer + k * s2, nr, NA<Tval>(), s1);
+					else if ( Rf_isNull(i) )
+						nnz += get_compressed_region<Tind,Tval>(col, 0, nrow(), buffer + k * s2, s1);
 					else
-						num_nz += getRow<Tind,Tval>(indk - 1, buffer0, ni);
+						nnz += get_compressed_elements<Tind,Tval>(col, i, buffer + k * s2, s1);
 				}
 			}
-			else
-			{
-				// get indexed rows
-				Tind subscripts [nj];
-				if ( j == R_NilValue )
-					copy_domain<Tind>(0, nj, subscripts);
-				else
-					copy_domain<Tind>(j, subscripts, true);
-				for ( size_t k = 0; k < ni; k++ ) {
-					switch(TYPEOF(i)) {
-						case INTSXP:
-							PROTECT(index0 = index(INTEGER_ELT(i, k) - 1));
-							PROTECT(data0 = data(INTEGER_ELT(i, k) - 1));
-							break;
-						case REALSXP:
-							PROTECT(index0 = index(REAL_ELT(i, k) - 1));
-							PROTECT(data0 = data(REAL_ELT(i, k) - 1));
-							break;
-					}
-					Tval * buffer0 = buffer + k;
-					num_nz += do_approx_search<Tind,Tval>(buffer0, subscripts, nj,
-						index0, data0, tol(), tol_ref(), zero<Tval>(),
-						sampler(), true, ni);
-					UNPROTECT(2);
-				}
-			}
-			UNPROTECT(1);
-			return num_nz;
+			if ( has_ops() )
+				ops()->apply<Tval>(buffer, i, j, stride);
+			return nnz;
 		}
 
-		SEXP getSubMatrix(SEXP i, SEXP j)
+		SEXP get_submatrix(SEXP i, SEXP j)
 		{
-			SEXP result;
-			size_t ni = i != R_NilValue ? LENGTH(i) : dim(0);
-			size_t nj = j != R_NilValue ? LENGTH(j) : dim(1);
-			PROTECT(result = Rf_allocMatrix(datatype(), ni, nj));
+			SEXP x;
+			int nr = Rf_isNull(i) ? nrow() : LENGTH(i);
+			int nc = Rf_isNull(j) ? ncol() : LENGTH(j);
+			PROTECT(x = Rf_allocMatrix(datatype(), nr, nc));
 			switch(datatype()) {
 				case INTSXP:
-				{
 					switch(indextype()) {
 						case INTSXP:
-							getSubMatrix<int,int>(i, j, INTEGER(result));
+							get_submatrix<int,int>(i, j, INTEGER(x));
 							break;
 						case REALSXP:
-							getSubMatrix<double,int>(i, j, INTEGER(result));
+							get_submatrix<double,int>(i, j, INTEGER(x));
 							break;
+						default:
+							Rf_error("unsupported sparse index type");
 					}
 					break;
-				}
 				break;
 				case REALSXP:
-				{
 					switch(indextype()) {
 						case INTSXP:
-							getSubMatrix<int,double>(i, j, REAL(result));
+							get_submatrix<int,double>(i, j, REAL(x));
 							break;
 						case REALSXP:
-							getSubMatrix<double,double>(i, j, REAL(result));
+							get_submatrix<double,double>(i, j, REAL(x));
 							break;
+						default:
+							Rf_error("unsupported sparse index type");
 					}
 					break;
-				}
 				default:
-					Rf_error("unsupported 'datamode'");
+					Rf_error("unsupported sparse data type");
 			}
 			UNPROTECT(1);
-			return result;
+			return x;
 		}
 
 };

@@ -450,44 +450,31 @@ size_t fill(T * buffer, size_t size, T val, int stride = 1)
 	return size;
 }
 
-// FIXME: Temporary (slow) solution as R_compact_seq_range() is non-API
-inline SEXP seq_range(size_t start, size_t end)
+inline SEXP extract_region(SEXP x, R_xlen_t i, R_xlen_t n)
 {
 	SEXP ans;
-	size_t len = end - start + 1;
-	PROTECT(ans = Rf_allocVector(INTSXP, len));
-	int * pa = INTEGER(ans);
-	for ( size_t i = 0; i < len; i++ )
-		pa[i] = start + i;
-	UNPROTECT(1);
-	return ans;
-}
-
-// FIXME: Temporary solution as Rf_ExtractSubset() is non-API
-template<typename T>
-SEXP extract_range(SEXP x, size_t start, size_t end)
-{
-	SEXP ans;
-	size_t len = end - start + 1;
-	PROTECT(ans = Rf_allocVector(TYPEOF(x), len));
-	T * pa = DataPtr<T>(ans);
-	T * px = DataPtr<T>(x);
-	for ( size_t i = 0; i < len; i++ )
-		pa[i] = px[start + i - 1];
-	UNPROTECT(1);
-	return ans;
-}
-
-inline SEXP extract_range(SEXP x, size_t start, size_t end)
-{
 	switch(TYPEOF(x)) {
+		case RAWSXP:
+			PROTECT(ans = Rf_allocVector(RAWSXP, n));
+			RAW_GET_REGION(x, i, n, RAW(ans));
+			break;
+		case LGLSXP:
+			PROTECT(ans = Rf_allocVector(LGLSXP, n));
+			LOGICAL_GET_REGION(x, i, n, LOGICAL(ans));
+			break;
 		case INTSXP:
-			return extract_range<int>(x, start, end);
+			PROTECT(ans = Rf_allocVector(INTSXP, n));
+			INTEGER_GET_REGION(x, i, n, INTEGER(ans));
+			break;
 		case REALSXP:
-			return extract_range<double>(x, start, end);
+			PROTECT(ans = Rf_allocVector(REALSXP, n));
+			REAL_GET_REGION(x, i, n, REAL(ans));
+			break;
 		default:
 			Rf_error("unsupported data type");
 	}
+	UNPROTECT(1);
+	return ans;
 }
 
 #endif // MATTER_DEFINES

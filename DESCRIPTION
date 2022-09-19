@@ -15,8 +15,8 @@ Suggests: BiocStyle, testthat
 Collate: matterGenerics.R utils.R drle.R
 	atoms.R ops.R matter.R matter_arr.R 
 	matter_fct.R matter_list.R matter_str.R
-	search.R sparse.R sparse_vec.R sparse_mat.R
-	coerce.R stream_stat.R stats.R statsget.R
+	sparse_arr.R coerce.R search.R
+	stream_stat.R stats.R statsget.R
 	apply.R scale.R biglm.R prcomp.R altrep.R
 biocViews: Infrastructure, DataRepresentation
 URL: https://github.com/kuwisdelu/matter

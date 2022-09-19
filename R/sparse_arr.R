@@ -37,11 +37,11 @@ setClass("sparse_arr",
 		if ( is(object@data, "matter_OR_array") && !is(object@index, "matter_OR_array") )
 			errors <- c(errors, "'data' and 'index' are non-conformable classes")
 		if ( object@transpose ) {
-			sdim <- object@dim[length(object@dim)]
-			ddim <- prod(object@dim[-length(object@dim)])
+			ddim <- object@dim[1L]
+			sdim <- prod(object@dim[-1L])
 		} else {
-			sdim <- object@dim[1L]
-			ddim <- prod(object@dim[-1L])
+			ddim <- object@dim[length(object@dim)]
+			sdim <- prod(object@dim[-length(object@dim)])
 		}
 		if ( is(object@data, "matter_OR_list") ) {
 			# data and index are both lists
@@ -309,7 +309,7 @@ setReplaceMethod("pointers", "sparse_arr", function(object, value) {
 		object
 })
 
-setMethod("domain", "sparse_arr", function(object) object@domain)
+setMethod("domain", "sparse_arr", function(x) object@domain)
 
 setReplaceMethod("domain", "sparse_arr", function(x, value) {
 	x@domain <- value

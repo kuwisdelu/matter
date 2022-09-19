@@ -55,9 +55,8 @@ SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value);
 // Sparse data structures
 //-----------------------
 
-SEXP getSparseVector(SEXP x, SEXP i);
-SEXP getSparseMatrixC(SEXP x, SEXP i, SEXP j);
-SEXP getSparseMatrixR(SEXP x, SEXP i, SEXP j);
+SEXP getSparseArray(SEXP x, SEXP i);
+SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 
 } // extern "C"
 

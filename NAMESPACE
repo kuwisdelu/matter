@@ -38,10 +38,9 @@ exportClasses(
 	"matter_list",
 	"matter_str",
 	"matter_fct",
-	"sparse_vec",
+	"sparse_arr",
 	"sparse_mat",
-	"sparse_matc",
-	"sparse_matr")
+	"sparse_vec")
 
 export(
 	"drle",
@@ -92,10 +91,10 @@ exportMethods(
 	"aindex",
 	"atomindex",
 	"atomindex<-",
-	"domain",
-	"domain<-",
 	"pointers",
 	"pointers<-",
+	"domain",
+	"domain<-",
 	"tolerance",
 	"tolerance<-",
 	"sampler",
