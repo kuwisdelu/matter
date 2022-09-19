@@ -6,7 +6,6 @@ TODO for matter package
 - Add AUC (integration-based) interpolation filter
 - Implement combining using 'cbind2()' and 'rbind2()'
 - Implement and test combining vectors/matrices/etc.
-- Add deferred operations for sparse matrices
 
 - Refactor original matter S4 data structures R/C++ code
 - Clean up generics and remove unneeded methods/functions
