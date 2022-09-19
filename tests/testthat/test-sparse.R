@@ -17,13 +17,13 @@ test_that("sparse vector subsetting", {
 	expect_error(y[-1])
 	expect_error(y[length(y) + 1])
 
-	domain(y) <- seq_along(y)
+	domain(y) <- seq_along(y) - 1L
 	expect_equal(x, y[])
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
 
-	atomindex(y) <- as.matter(atomindex(y))
-	atomdata(y) <- as.matter(atomdata(y))
+	atomindex(y) <- matter_vec(atomindex(y))
+	atomdata(y) <- matter_vec(atomdata(y))
 	expect_equal(x, y[])
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
@@ -184,7 +184,7 @@ test_that("sparse matrix subsetting w/ shared index", {
 	set.seed(1)
 	x <- round(runif(200), 2)
 	dim(x) <- c(20, 10)
-	y <- sparse_mat(x, index=1:20)
+	y <- sparse_mat(x, index=seq_len(20L) - 1L)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -201,7 +201,7 @@ test_that("sparse matrix subsetting w/ shared index", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
-	y <- sparse_mat(x, index=1:10, rowMaj=TRUE)
+	y <- sparse_mat(x, index=seq_len(10L) - 1L, rowMaj=TRUE)
 
 	expect_equal(x, y[])
 	expect_equal(x[,1], y[,1])
@@ -226,7 +226,7 @@ test_that("sparse matrix subsetting w/ interpolation", {
 	x <- rbinom(200, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
-	d <- seq_len(nrow(x)) + round(runif(nrow(x))/4, 2)
+	d <- seq_len(nrow(x)) - 1 + round(runif(nrow(x))/4, 2)
 	y <- sparse_mat(x, domain=d, tolerance=0.5)
 
 	expect_equal(x, y[])
@@ -238,7 +238,7 @@ test_that("sparse matrix subsetting w/ interpolation", {
 	expect_equal(x[10:1,5:1], y[10:1,5:1])
 	expect_equal(x[11:20,6:10], y[11:20,6:10])
 
-	d <- seq_len(ncol(x)) + round(runif(ncol(x))/4, 2)
+	d <- seq_len(ncol(x)) - 1 + round(runif(ncol(x))/4, 2)
 	y <- sparse_mat(x, domain=d, tolerance=0.5, rowMaj=TRUE)
 
 	expect_equal(x, y[])

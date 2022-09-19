@@ -140,7 +140,12 @@ class SparseArray : public Sparse {
 		SparseArray(SEXP x) : Sparse(x), _ops(x)
 		{
 			_transpose = Rf_asLogical(R_do_slot(x, Rf_install("transpose")));
-			if ( _transpose )
+			if ( rank() == 1 )
+			{
+				_dense_extent = 1;
+				_sparse_extent = dim(0);
+			}
+			else if ( _transpose )
 			{
 				_dense_extent = dim(0);
 				_sparse_extent = length() / dim(0);
@@ -256,14 +261,21 @@ class SparseArray : public Sparse {
 			}
 			else
 			{
-				size_t n = XLENGTH(_index);
+				size_t n;
+				if ( Rf_isS4(_index) )
+				{
+					MatterArray x(_index);
+					n = x.length();
+				}
+				else
+					n = XLENGTH(_index);
 				if ( Rf_isS4(_data) )
 				{
 					MatterArray x(_data);
-					ans = x.get_region(n * i, n);
+					ans = x.get_region(i * n, n);
 				}
 				else
-					ans = extract_region(_data, n * i, n);
+					ans = extract_region(_data, i * n, n);
 			}
 			PROTECT(ans);
 			ans = Rf_coerceVector(ans, datatype());
@@ -301,7 +313,13 @@ class SparseArray : public Sparse {
 			}
 			else
 			{
-				ans = _index;
+				if ( Rf_isS4(_index) )
+				{
+					MatterArray x(_index);
+					ans = x.get_region(0, x.length());
+				}
+				else
+					ans = _index;
 			}
 			PROTECT(ans);
 			ans = Rf_coerceVector(ans, indextype());

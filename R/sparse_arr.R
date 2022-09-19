@@ -36,7 +36,10 @@ setClass("sparse_arr",
 			errors <- c(errors, "'data' and 'index' are non-conformable classes")
 		if ( is(object@data, "matter_OR_array") && !is(object@index, "matter_OR_array") )
 			errors <- c(errors, "'data' and 'index' are non-conformable classes")
-		if ( object@transpose ) {
+		if ( length(object@dim) == 1L ) {
+			ddim <- 1L
+			sdim <- object@dim
+		} else if ( object@transpose ) {
 			ddim <- object@dim[1L]
 			sdim <- prod(object@dim[-1L])
 		} else {
@@ -67,8 +70,6 @@ setClass("sparse_arr",
 					"] must match dense extent of array [", ddim, "] plus 1"))
 		} else {
 			# data is an array with shared index
-			if ( is.matter(object@index) )
-				errors <- c(errors, "shared 'index' must be in-memory (numeric or integer)")
 			if ( length(object@data) %% length(object@index) != 0 )
 				errors <- c(errors, "'index' and 'data' have non-conformable lengths")
 			if ( length(object@data) / length(object@index) != ddim )
@@ -225,14 +226,14 @@ sparse_mat <- function(data, index, type = "double",
 }
 
 setMethod("describe_for_display", "sparse_mat", function(x) {
-	desc1 <- paste0("<", x@dim[[1L]], " row x ", x@dim[[2L]], " col> ", class(x))
-	desc2 <- paste0("sparse ", x@datamode[1L], " matrix")
+	desc1 <- paste0("<", nrow(x), " row x ", ncol(x), " col> ", class(x))
+	desc2 <- paste0("sparse ", type(x), " matrix")
 	paste0(desc1, " :: ", desc2)
 })
 
 setMethod("describe_for_display", "sparse_vec", function(x) {
-	desc1 <- paste0("<", x@length, " length> ", class(x))
-	desc2 <- paste0("sparse ", x@datamode[1L], " vector")
+	desc1 <- paste0("<", length(x), " length> ", class(x))
+	desc2 <- paste0("sparse ", type(x), " vector")
 	paste0(desc1, " :: ", desc2)
 })
 
@@ -309,18 +310,24 @@ setReplaceMethod("pointers", "sparse_arr", function(object, value) {
 		object
 })
 
-setMethod("domain", "sparse_arr", function(x) object@domain)
+setMethod("domain", "sparse_arr", function(x) x@domain)
 
 setReplaceMethod("domain", "sparse_arr", function(x, value) {
 	x@domain <- value
-	if ( object@transpose ) {
-		smargin <- length(object@dim)
+	if ( length(x@dim) > 2L )
+		stop("more than 2 dimensions are not supported yet")
+	if ( length(x@dim) == 1L ) {
+		x@dim <- length(x@domain)
+		x@dimnames <- NULL
+	} else if ( x@transpose ) {
+		x@dim <- c(x@dim[1L], length(x@domain))
+		if ( !is.null(x@dimnames) )
+			x@dimnames <- list(x@dimnames[[1L]], NULL)
 	} else {
-		smargin <- 1L
+		x@dim <- c(length(x@domain), x@dim[length(x@dim)])
+		if ( !is.null(x@dimnames) )
+			x@dimnames <- list(NULL, x@dimnames[[length(x@dim)]])
 	}
-	x@dim[smargin] <- length(value)
-	if ( !is.null(x@dimnames) )
-		x@dimnames[smargin] <- list(NULL)
 	if ( validObject(x) )
 		x
 })
@@ -350,45 +357,59 @@ setMethod("nnzero", "sparse_arr",
 		}
 	})
 
+setMethod("dim", "sparse_vec", function(x) NULL)
+
+get_sparse_arr_elts <- function(x, i = NULL) {
+	y <- .Call(C_getSparseArray, x, i, PACKAGE="matter")
+	y <- set_names(y, names(x), i)
+	y
+}
+
+set_sparse_arr_elts <- function(x, i = NULL, value = 0) {
+	stop("assignment for sparse arrays is not supported yet")
+}
+
 get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE) {
-	stop("not implemented yet")
-	# y <- .Call(C_getSparseMatrix, x, i, j)
+	y <- .Call(C_getSparseMatrix, x, i, j)
 	y <- set_dimnames(y, dimnames(x), list(i, j))
 	if ( drop )
 		y <- drop(y)
 	y
 }
 
-set_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0)
-{
-	stop("not implemented yet")
-	# .Call(C_setSparseMatrix, x, i, j, value, PACKAGE="matter")
+set_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0) {
+	stop("assignment for sparse arrays is not supported yet")
 }
 
-setMethod("[",
-	c(x = "sparse_mat", i = "ANY", j = "ANY", drop = "ANY"),
-	function(x, i, j, ..., drop) {
-		if ( ...length() > 0 )
-			stop("incorrect number of dimensions")
-		if ( missing(i) )
-			i <- NULL
-		if ( missing(j) )
-			j <- NULL
-		y <- get_sparse_mat_elts(x, i, j)
-		if ( isTRUE(drop) )
-			y <- drop(y)
-		y
+setMethod("[", c(x = "sparse_arr"),
+	function(x, i, j, ..., drop = TRUE) {
+		narg <- nargs() - 1L - !missing(drop)
+		if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
+			i <- as_subscripts(i, x)
+			get_sparse_arr_elts(x, i)
+		} else {
+			if ( narg != 1L && narg != length(dim(x)) )
+				stop("incorrect number of dimensions")
+			i <- as_subscripts(i, x)
+			j <- as_subscripts(j, x)
+			get_sparse_mat_submatrix(x, i, j, drop)
+		}
 	})
 
 setReplaceMethod("[",
-	c(x = "sparse_mat", i = "ANY", j = "ANY", value = "ANY"),
+	c(x = "sparse_arr", i = "ANY", j = "ANY", value = "ANY"),
 	function(x, i, j, ..., value) {
-		narg <- nargs() - 2
-		if ( !missing(i) && narg == 1 )
-			stop("linear indexing not supported")
-		if ( narg > 1 && narg != length(dim(x)) )
-			stop("incorrect number of dimensions")
-		stop("assignment not implemented yet")
+		narg <- nargs() - 2L
+		if ( (narg == 1L && !missing(i)) ) {
+			i <- as_subscripts(i, x)
+			set_sparse_arr_elts(x, i, value)
+		} else {
+			if ( narg != 1L && narg != length(dim(x)) )
+				stop("incorrect number of dimensions")
+			i <- as_subscripts(i, x)
+			j <- as_subscripts(j, x)
+			set_sparse_mat_submatrix(x, i, j, value)
+		}
 	})
 
 setMethod("t", "sparse_arr", function(x)

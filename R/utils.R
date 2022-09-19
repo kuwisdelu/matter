@@ -252,8 +252,8 @@ as_tol <- function(x) {
 	} else {
 		tol_type <- 1L
 	}
-	tol_type <- factor(type, levels=c(1L, 2L), labels=codes)
-	structure(as.integer(tol), tol_type=tol_type)
+	tol_type <- factor(tol_type, levels=seq_len(2L), labels=codes)
+	structure(as.double(tol), tol_type=tol_type)
 }
 
 as_tol_ref <- function(x) {
