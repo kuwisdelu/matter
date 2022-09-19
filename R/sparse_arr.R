@@ -424,20 +424,19 @@ setMethod("t", "sparse_arr", function(x)
 setMethod("%*%", c("sparse_mat", "matrix"), function(x, y)
 {
 	if ( x@transpose ) {
-		rightMatrixMult(x, y, useOuter=FALSE)
+		rmatmul(x, y, useOuter=FALSE)
 	} else {
-		rightMatrixMult(x, y, useOuter=TRUE)
+		rmatmul(x, y, useOuter=TRUE)
 	}
 })
 
 setMethod("%*%", c("matrix", "sparse_mat"), function(x, y)
 {
 	if ( y@transpose ) {
-		leftMatrixMult(x, y, useOuter=TRUE)
+		lmatmul(x, y, useOuter=TRUE)
 	} else {
-		leftMatrixMult(x, y, useOuter=FALSE)
+		lmatmul(x, y, useOuter=FALSE)
 	}
-	
 })
 
 setMethod("Arith", c(e1 = "sparse_arr", e2 = "vector"),

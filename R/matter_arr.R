@@ -342,20 +342,19 @@ setMethod("t", "matter_arr", function(x)
 setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
 {
 	if ( x@transpose ) {
-		rightMatrixMult(x, y, useOuter=FALSE)
+		rmatmul(x, y, useOuter=FALSE)
 	} else {
-		rightMatrixMult(x, y, useOuter=TRUE)
+		rmatmul(x, y, useOuter=TRUE)
 	}
 })
 
 setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 {
 	if ( y@transpose ) {
-		leftMatrixMult(x, y, useOuter=TRUE)
+		lmatmul(x, y, useOuter=TRUE)
 	} else {
-		leftMatrixMult(x, y, useOuter=FALSE)
+		lmatmul(x, y, useOuter=FALSE)
 	}
-	
 })
 
 setMethod("dim", "matter_vec", function(x) NULL)

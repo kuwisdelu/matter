@@ -529,6 +529,30 @@ combine_list <- function(list) {
 	Reduce(match.fun("c"), list)
 }
 
+rmatmul <- function(x, y, useOuter = FALSE) {
+	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
+	if ( useOuter ) {
+		for ( i in 1:ncol(x) )
+			ans <- ans + outer(x[,i], y[i,])
+	} else {
+		for ( i in 1:nrow(x) )
+			ans[i,] <- x[i,,drop=FALSE] %*% y
+	}
+	ans
+}
+
+lmatmul <- function(x, y, useOuter = FALSE) {
+	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
+	if ( useOuter ) {
+		for ( i in 1:nrow(y) )
+			ans <- ans + outer(x[,i], y[i,])
+	} else {
+		for ( i in 1:ncol(y) )
+			ans[,i] <- x %*% y[,i,drop=FALSE]
+	}
+	ans
+}
+
 #### Utilities for working with raw bytes and memory ####
 ## ------------------------------------------------------
 
