@@ -55,10 +55,10 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 	}
 	if ( outfile ) {
 		ans.list <- remote_collect(ans.list, outpath, simplify)
+	} else if ( is.function(simplify) || is.character(simplify) ) {
+		ans.list <- match.fun(simplify)(ans.list)
 	} else if ( isTRUE(simplify) ) {
 		ans.list <- simplify2array(ans.list)
-	} else if ( is.function(simplify) ) {
-		ans.list <- simplify(ans.list)
 	}
 	ans.list
 }
@@ -148,10 +148,10 @@ chunkLapply <- function(X, FUN, ...,
 	names(ans.list) <- names(X)
 	if ( outfile ) {
 		ans.list <- remote_collect(ans.list, outpath, simplify)
+	} else if ( is.function(simplify) || is.character(simplify) ) {
+		ans.list <- match.fun(simplify)(ans.list)
 	} else if ( isTRUE(simplify) ) {
 		ans.list <- simplify2array(ans.list)
-	} else if ( is.function(simplify) ) {
-		ans.list <- simplify(ans.list)
 	}
 	ans.list
 }
@@ -217,10 +217,10 @@ chunkMapply <- function(FUN, ...,
 	names(ans.list) <- names(...elt(1L))
 	if ( outfile ) {
 		ans.list <- remote_collect(ans.list, outpath, simplify)
+	} else if ( is.function(simplify) || is.character(simplify) ) {
+		ans.list <- match.fun(simplify)(ans.list)
 	} else if ( isTRUE(simplify) ) {
 		ans.list <- simplify2array(ans.list)
-	} else if ( is.function(simplify) ) {
-		ans.list <- simplify(ans.list)
 	}
 	ans.list
 }

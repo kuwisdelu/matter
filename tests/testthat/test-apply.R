@@ -19,6 +19,7 @@ test_that("chunkLapply", {
 	expect_equal(
 		chunkLapply(a, mean, simplify=TRUE),
 		sapply(a, mean))
+	
 	expect_equal(
 		chunkMapply(`+`, a, b),
 		mapply(`+`, a, b, SIMPLIFY=FALSE))
@@ -39,6 +40,7 @@ test_that("chunkLapply", {
 	expect_equal(
 		chunkLapply(u, mean, depends=ind, simplify=TRUE, nchunks=10),
 		sapply(ind, function(i) mean(u[i])))
+	
 	expect_equal(
 		chunkMapply(f, u, v, depends=ind, simplify=TRUE),
 		sapply(ind, function(i) mean(u[i] + v[i])))
