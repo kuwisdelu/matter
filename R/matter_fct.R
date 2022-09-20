@@ -39,9 +39,12 @@ matter_fct <- function(data, levels, type = "integer", path = NULL,
 	exists <- file.exists(path)
 	if ( is.na(readonly) )
 		readonly <- all(exists)
-	if ( any(exists) && !readonly && !missing(data) )
-		warning("data may overwrite existing file(s): ",
-			paste0(sQuote(path[exists]), collapse=", "))
+	if ( any(exists) && !readonly && !missing(data) ) {
+		overwrite <- offset != file.size(path)
+		if ( any(overwrite) )
+			warning("data may overwrite existing file(s): ",
+				paste0(sQuote(path[overwrite]), collapse=", "))
+	}
 	if ( all(exists) && missing(data) ) {
 		if ( is.na(length) && anyNA(extent) ) {
 			sizes <- file.size(path)

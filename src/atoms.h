@@ -723,7 +723,7 @@ class Atoms {
 			SET_STRING_ELT(nms, 1, Rf_mkChar("offset"));
 			SET_STRING_ELT(nms, 2, Rf_mkChar("extent"));
 			Rf_setAttrib(ans, R_NamesSymbol, nms);
-			UNPROTECT(6);
+			UNPROTECT(5);
 			return ans;
 		}
 

@@ -3,7 +3,8 @@
 ## ----------------------------------------------------
 
 chunkApply <- function(X, MARGIN, FUN, ...,
-	simplify = FALSE, outpath = NULL)
+	simplify = FALSE, outpath = NULL,
+	verbose = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	if ( !MARGIN %in% c(1L, 2L) )
@@ -36,7 +37,6 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 					X[dp[[i]],,drop=FALSE],
 					X[,dp[[i]],drop=FALSE])
 			}
-			attr(xi, "index") <- di[i]
 			ans[[ii]] <- FUN(xi, ...)
 			if ( outfile )
 				ans[[ii]] <- put(ans[[ii]])
@@ -45,10 +45,12 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 		ans
 	}
 	if ( MARGIN == 1L ) {
-		ans.list <- chunk_rowapply(X, CHUNKFUN, ...)
+		ans.list <- chunk_rowapply(X, CHUNKFUN, ...,
+			verbose=verbose, BPPARAM=BPPARAM)
 		names(ans.list) <- dimnames(X)[[1L]]
 	} else {
-		ans.list <- chunk_colapply(X, CHUNKFUN, ...)
+		ans.list <- chunk_colapply(X, CHUNKFUN, ...,
+			verbose=verbose, BPPARAM=BPPARAM)
 		names(ans.list) <- dimnames(X)[[2L]]
 	}
 	if ( outfile ) {
@@ -108,7 +110,8 @@ chunk_colapply <- function(X, FUN, ...,
 }
 
 chunkLapply <- function(X, FUN, ...,
-	simplify = FALSE, outpath = NULL)
+	simplify = FALSE, outpath = NULL,
+	verbose = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	outfile <- !is.null(outpath)
@@ -134,7 +137,6 @@ chunkLapply <- function(X, FUN, ...,
 					next
 				xi <- X[dp[[i]]]
 			}
-			attr(xi, "index") <- di[i]
 			ans[[ii]] <- FUN(xi, ...)
 			if ( outfile )
 				ans[[ii]] <- put(ans[[ii]])
@@ -142,7 +144,7 @@ chunkLapply <- function(X, FUN, ...,
 		}
 		ans
 	}
-	ans.list <- chunk_lapply(X, CHUNKFUN, ...)
+	ans.list <- chunk_lapply(X, CHUNKFUN, ..., verbose=verbose, BPPARAM=BPPARAM)
 	names(ans.list) <- names(X)
 	if ( outfile ) {
 		ans.list <- remote_collect(ans.list, outpath, simplify)
@@ -176,7 +178,8 @@ chunk_lapply <- function(X, FUN, ...,
 }
 
 chunkMapply <- function(FUN, ...,
-	simplify = FALSE, outpath = NULL)
+	simplify = FALSE, outpath = NULL,
+	verbose = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	outfile <- !is.null(outpath)
@@ -203,7 +206,6 @@ chunkMapply <- function(FUN, ...,
 					next
 				xsi <- lapply(XS, `[`, dp[[i]])
 			}
-			attr(xsi, "index") <- di[i]
 			ans[[ii]] <- do.call(FUN, c(xsi, MoreArgs))
 			if ( outfile )
 				ans[[ii]] <- put(ans[[ii]])
@@ -211,7 +213,7 @@ chunkMapply <- function(FUN, ...,
 		}
 		ans
 	}
-	ans.list <- chunk_mapply(CHUNKFUN, ...)
+	ans.list <- chunk_mapply(CHUNKFUN, ..., verbose=verbose, BPPARAM=BPPARAM)
 	names(ans.list) <- names(...elt(1L))
 	if ( outfile ) {
 		ans.list <- remote_collect(ans.list, outpath, simplify)
@@ -317,7 +319,7 @@ remote_collect <- function(ans, path, simplify) {
 		x <- matter_vec(type=type, path=path,
 			offset=offset, extent=extent, names=nms)
 	} else if ( simplify && maybe_matrix ) {
-		x <- matter_mat(type=type, paths=path,
+		x <- matter_mat(type=type, path=path,
 			offset=offset, extent=extent, dimnames=dnm)
 	} else {
 		x <- matter_list(type=type, path=path,

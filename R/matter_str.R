@@ -32,9 +32,12 @@ matter_str <- function(data, type = "character", path = NULL,
 	exists <- file.exists(path)
 	if ( is.na(readonly) )
 		readonly <- all(exists)
-	if ( any(exists) && !readonly && !missing(data) )
-		warning("data may overwrite existing file(s): ",
-			paste0(sQuote(path[exists]), collapse=", "))
+	if ( any(exists) && !readonly && !missing(data) ) {
+		overwrite <- offset != file.size(path)
+		if ( any(overwrite) )
+			warning("data may overwrite existing file(s): ",
+				paste0(sQuote(path[overwrite]), collapse=", "))
+	}
 	if ( anyNA(lengths) && anyNA(extent) ) {
 		extent <- lengths <- rep.int(0, length(lengths))
 	} else if ( anyNA(extent) ) {

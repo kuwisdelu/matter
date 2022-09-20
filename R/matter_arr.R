@@ -62,9 +62,12 @@ matter_arr <- function(data, type = "double", path = NULL,
 	exists <- file.exists(path)
 	if ( is.na(readonly) )
 		readonly <- all(exists)
-	if ( any(exists) && !readonly && !missing(data) )
-		warning("data may overwrite existing file(s): ",
-			paste0(sQuote(path[exists]), collapse=", "))
+	if ( any(exists) && !readonly && !missing(data) ) {
+		overwrite <- offset != file.size(path)
+		if ( any(overwrite) )
+			warning("data may overwrite existing file(s): ",
+				paste0(sQuote(path[overwrite]), collapse=", "))
+	}
 	if ( all(exists) && missing(data) ) {
 		# FIXME: can we infer the NA dims instead of overwriting all?
 		if ( anyNA(dim) && anyNA(extent) ) {
@@ -129,6 +132,7 @@ matter_vec <- function(data, type = "double", path = NULL,
 		names=names, offset=offset, extent=extent,
 		readonly=readonly, rowMaj=rowMaj, ...)
 	x <- as(x, "matter_vec")
+	x@data <- ungroup_atoms(x@data) # FIXME: do this in as(x, "matter_vec")?
 	if ( validObject(x) )
 		x
 }
@@ -148,6 +152,15 @@ matter_mat <- function(data, type = "double", path = NULL,
 		} else if ( is.na(ncol) ) {
 			ncol <- length(data) / nrow
 		}
+	} else {
+		if ( is.na(nrow) && rowMaj )
+			nrow <- max(length(offset), length(extent))
+		if ( is.na(ncol) && rowMaj )
+			ncol <- max(extent)
+		if ( is.na(ncol) && !rowMaj )
+			ncol <- max(length(offset), length(extent))
+		if ( is.na(nrow) && !rowMaj )
+			nrow <- max(extent)
 	}
 	x <- matter_arr(data=NULL, type=type, path=path, dim=c(nrow, ncol),
 		dimnames=dimnames, offset=offset, extent=extent,
