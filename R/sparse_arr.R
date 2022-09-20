@@ -390,8 +390,8 @@ setMethod("[", c(x = "sparse_arr"),
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
 				stop("incorrect number of dimensions")
-			i <- as_subscripts(i, x)
-			j <- as_subscripts(j, x)
+			i <- as_row_subscripts(i, x)
+			j <- as_col_subscripts(j, x)
 			get_sparse_mat_submatrix(x, i, j, drop)
 		}
 	})
@@ -406,8 +406,8 @@ setReplaceMethod("[",
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
 				stop("incorrect number of dimensions")
-			i <- as_subscripts(i, x)
-			j <- as_subscripts(j, x)
+			i <- as_row_subscripts(i, x)
+			j <- as_col_subscripts(j, x)
 			set_sparse_mat_submatrix(x, i, j, value)
 		}
 	})

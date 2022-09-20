@@ -301,8 +301,8 @@ setMethod("[", c(x = "matter_mat"),
 		} else {
 			if ( narg != 1L && narg != 2L )
 				stop("incorrect number of dimensions")
-			i <- as_subscripts(i, x)
-			j <- as_subscripts(j, x)
+			i <- as_row_subscripts(i, x)
+			j <- as_col_subscripts(j, x)
 			if ( isTRUE(x@indexed) ) {
 				get_matter_mat_submatrix(x, i, j, drop)
 			} else {
@@ -320,8 +320,8 @@ setReplaceMethod("[", c(x = "matter_mat"),
 		} else {
 			if ( narg != 1L && narg != 2L )
 				stop("incorrect number of dimensions")
-			i <- as_subscripts(i, x)
-			j <- as_subscripts(j, x)
+			i <- as_row_subscripts(i, x)
+			j <- as_col_subscripts(j, x)
 			if ( isTRUE(x@indexed) ) {
 				set_matter_mat_submatrix(x, i, j, value)
 			} else {

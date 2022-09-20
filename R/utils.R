@@ -5,6 +5,7 @@
 .onLoad <- function(libname, pkgname) {
 	options(matter.cast.warning = TRUE)
 	options(matter.compress.atoms = 3)
+	options(matter.default.nchunks = 20L)
 	options(matter.default.chunksize = 1000000L)
 	options(matter.show.head = TRUE)
 	options(matter.show.head.n = 6L)
@@ -280,6 +281,12 @@ as_interp <- function(x) {
 
 is_nil <- function(x) is.na(x) || is.null(x)
 
+set_attr <- function(x, attr) {
+	for ( nm in names(attr) )
+		attr(x, nm) <- attr[[nm]]
+	x
+}
+
 set_names <- function(x, nm, i) {
 	if ( !missing(i) && !is.null(i) )
 		nm <- nm[i]
@@ -502,7 +509,7 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NU
 	print(out, quote=FALSE, right=TRUE)
 }
 
-#### Miscellaneous utility functions ####
+#### Miscellaneous internal functions ####
 ## --------------------------------------
 
 apply_int <- function(x, margin, fun, fun.value, ...) {
@@ -513,6 +520,14 @@ apply_int <- function(x, margin, fun, fun.value, ...) {
 		vapply(seq_len(ncol(x)), function(j) fun(x[,j,drop=TRUE], ...), fun.value)
 	} else {
 		stop("internal 'apply' error")
+	}
+}
+
+bplapply_int <- function(X, FUN, ..., BPPARAM = NULL) {
+	if ( is.null(BPPARAM) ) {
+		lapply(X, FUN, ...)
+	} else {
+		bplapply(X, FUN, ..., BPPARAM=BPPARAM)
 	}
 }
 
@@ -527,6 +542,19 @@ collect_by_key <- function(x, reduce) {
 
 combine_list <- function(list) {
 	Reduce(match.fun("c"), list)
+}
+
+roll <- function(x, width = 3L, na.drop = FALSE, fill = NA) {
+	r <- floor(width / 2)
+	x <- lapply(seq_along(x),
+		function(i) {
+			j <- (i - r):(i + r)
+			j[j < 1L | j > length(x)] <- NA
+			ifelse(!is.na(j), x[j], fill)
+		})
+	if ( na.drop )
+		x <- lapply(x, function(xi) xi[!is.na(xi)])
+	x
 }
 
 rmatmul <- function(x, y, useOuter = FALSE) {

@@ -171,8 +171,11 @@ s_nnzero <- function(x, ..., na.rm = FALSE) {
 # nnzero
 
 nnzero_na_rm <- function(x, na.rm = FALSE) {
-	na.counted <- ifelse(na.rm, FALSE, NA)
-	Matrix::nnzero(x, na.counted=na.counted)
+	if ( na.rm ) {
+		sum(x != 0 & !is.na(x))
+	} else {
+		sum(x != 0)
+	}
 }
 
 # length function
@@ -223,7 +226,7 @@ is.stream_stat <- function(x) is(x, "stream_stat")
 print.stream_stat <- function(x, ...) {
 	cat(class(x)[1L], "with n =", paste_head(nobs(x)), "\n")
 	print(drop_attr(x), ...)
-	cat("na.rm = ", na_rm(x), "\n")
+	cat("na.rm =", na_rm(x), "\n")
 }
 
 nobs.stream_stat <- function(object, ...) {
@@ -548,7 +551,17 @@ stream_stat_class <- function(name) {
 	c(f[[name, exact=TRUE]], "stream_stat")
 }
 
-rowstreamStats <- function(x, stat, na.rm = FALSE, ...) {
+rowstreamStats <- function(x, ...) {
+	.Deprecated("s_rowstats")
+	s_rowstats(x, ...)
+}
+
+colstreamStats <- function(x, ...) {
+	.Deprecated("s_colstats")
+	s_colstats(x, ...)
+}
+
+s_rowstats <- function(x, stat, na.rm = FALSE, ...) {
 	fun <- stream_stat_fun(stat)
 	template <- switch(stat, range=numeric(2),
 		any=logical(1), all=logical(1), numeric(1))
@@ -571,7 +584,7 @@ rowstreamStats <- function(x, stat, na.rm = FALSE, ...) {
 	ans
 }
 
-colstreamStats <- function(x, stat, na.rm = FALSE, ...) {
+s_colstats <- function(x, stat, na.rm = FALSE, ...) {
 	fun <- stream_stat_fun(stat)
 	template <- switch(stat, range=numeric(2),
 		any=logical(1), all=logical(1), numeric(1))

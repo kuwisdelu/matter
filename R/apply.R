@@ -2,114 +2,57 @@
 #### Chunk-Apply functions over vectors and arrays ####
 ## ----------------------------------------------------
 
-chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
-						chunks = NA, view = c("element", "chunk"),
-						attr = list(), alist = list(), pattern = NULL,
-						outfile = NULL, verbose = FALSE,
-						BPREDO = list(), BPPARAM = bpparam())
+chunkApply <- function(X, MARGIN, FUN, ...,
+	simplify = FALSE, outpath = NULL)
 {
 	FUN <- match.fun(FUN)
-	view <- match.arg(view)
-	if ( !is.null(dim(X)) && missing(MARGIN) )
-		stop("must specify MARGIN when X is array-like")
-	if ( !missing(MARGIN) && is.character(MARGIN) )
-		MARGIN <- match(MARGIN, names(dimnames(X)))
-	chunks <- get_nchunks(X, chunks, MARGIN)
-	if ( is.null(pattern) ) {
-		index <- chunk_along(X, chunks, MARGIN)
-	} else {
-		index <- chunk_pattern(pattern, chunks)
-	}
-	index <- chunk_label(index)
-	fout <- !is.null(outfile)
+	if ( !MARGIN %in% c(1L, 2L) )
+		stop("MARGIN must be 1 or 2")
+	outfile <- !is.null(outpath)
 	pid <- ipcid()
-	if ( fout ) {
-		if ( !is.character(outfile) || length(outfile) != 1L )
-			stop("outfile must be a length-1 character vector or NULL")
+	if ( outfile ) {
+		if ( !is.character(outpath) || length(outpath) != 1L )
+			stop("'outpath' must be a scalar string (or NULL)")
+		outpath <- normalizePath(outpath, mustWork=FALSE)
 		if ( verbose )
-			message("writing output to path = ", outfile)
-		rwrite <- remote_writer(pid, outfile)
+			message("writing output to path = ", sQuote(outpath))
+		put <- remote_writer(pid, outpath)
 	}
-	chunkfun <- function(i, ...) {
-		if ( verbose && !bpprogressbar(BPPARAM) )
-			message("processing chunk ", attr(i, "chunk_id"), "/", length(index))
-		if ( !is.null(dim(X)) ) {
-			if ( MARGIN == 1L ) {
-				xi <- X[i,,drop=FALSE]
-				dn <- dim(xi)[1L]
-			} else if ( MARGIN == 2L ) {
-				xi <- X[,i,drop=FALSE]
-				dn <- dim(xi)[2L]
+	CHUNKFUN <- function(X, ...) {
+		dn <- switch(MARGIN, nrow(X), ncol(X))
+		ans <- vector("list", attr(X, "chunksize"))
+		ii <- 1L
+		for ( i in seq_len(dn) ) {
+			di <- attr(X, "index")
+			dp <- attr(X, "depends")
+			if ( is.null(dp) ) {
+				xi <- switch(MARGIN,
+					X[i,,drop=TRUE],
+					X[,i,drop=TRUE])
 			} else {
-				stop("only MARGIN = 1 or 2 supported")
+				if ( is.null(dp[[i]]) )
+					next
+				xi <- switch(MARGIN,
+					X[dp[[i]],,drop=FALSE],
+					X[,dp[[i]],drop=FALSE])
 			}
-			xi <- as.matrix(xi)
-		} else {
-			xi <- X[i,drop=FALSE]
-			dn <- length(xi)
-		}
-		if ( is.null(pattern) ) {
-			ii <- i
-		} else {
-			ii <- attr(i, "pattern_id")
-		}
-		if ( view == "element" ) {
-			if ( is.null(pattern) ) {
-				ans <- vector("list", dn)
-				for ( j in 1L:dn ) {
-					if ( !is.null(dim(X)) ) {
-						xj <- switch(MARGIN, drop(xi[j,]), drop(xi[,j]))
-					} else {
-						xj <- xi[[j]]
-					}
-					xx <- chunk_attr(xj, i[j], attr, alist, view)
-					ans[[j]] <- FUN(xx, ...)
-				}
-			} else {
-				dp <- length(ii)
-				ans <- vector("list", dp)
-				for ( j in 1L:dp ) {
-					j2 <- match(attr(i, "pattern_elt")[[j]], i)
-					if ( !is.null(dim(X)) ) {
-						xj <- switch(MARGIN,
-							as.matrix(xi[j2,,drop=FALSE]),
-							as.matrix(xi[,j2,drop=FALSE]))
-					} else {
-						xj <- xi[j2]
-					}
-					xx <- chunk_attr(xj, ii[j], attr, alist, view)
-					ans[[j]] <- FUN(xx, ...)
-				}
-			}
-		} else {
-			attr <- c(attributes(i), list("chunk_elt"=c(i)), attr)
-			xx <- chunk_attr(xi, ii, attr, alist, view)
-			ans <- FUN(xx, ...)
-		}
-		if ( fout ) {
-			if ( view == "element" ) {
-				ans <- lapply(ans, rwrite)
-			} else {
-				ans <- rwrite(ans)
-			}
+			attr(xi, "index") <- di[i]
+			ans[[ii]] <- FUN(xi, ...)
+			if ( outfile )
+				ans[[ii]] <- put(ans[[ii]])
+			ii <- ii + 1L
 		}
 		ans
 	}
-	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
-	if ( view == "element" ) {
-		ans.list <- do.call(c, ans.list)
-		if ( !is.null(dim(X)) ) {
-			if ( MARGIN == 1L ) {
-				names(ans.list) <- dimnames(X)[[1L]]
-			} else if ( MARGIN == 2L ) {
-				names(ans.list) <- dimnames(X)[[2L]]
-			}
-		} else {
-			names(ans.list) <- names(X)
-		}
+	if ( MARGIN == 1L ) {
+		ans.list <- chunk_rowapply(X, CHUNKFUN, ...)
+		names(ans.list) <- dimnames(X)[[1L]]
+	} else {
+		ans.list <- chunk_colapply(X, CHUNKFUN, ...)
+		names(ans.list) <- dimnames(X)[[2L]]
 	}
-	if ( fout ) {
-		ans.list <- remote_collect(ans.list, outfile, simplify)
+	if ( outfile ) {
+		ans.list <- remote_collect(ans.list, outpath, simplify)
 	} else if ( isTRUE(simplify) ) {
 		ans.list <- simplify2array(ans.list)
 	} else if ( is.function(simplify) ) {
@@ -118,308 +61,268 @@ chunk_apply <- function(X, FUN, MARGIN, ..., simplify = FALSE,
 	ans.list
 }
 
-chunk_mapply <- function(FUN, ..., MoreArgs = NULL, simplify = FALSE,
-						chunks = NA, view = c("element", "chunk"),
-						attr = list(), alist = list(), pattern = NULL,
-						outfile = NULL, verbose = FALSE,
-						BPREDO = list(), BPPARAM = bpparam())
+chunk_rowapply <- function(X, FUN, ...,
+	simplify = "c", nchunks = NA, depends = NULL,
+	verbose = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
-	view <- match.arg(view)
-	dots <- list(...)
-	if ( length(dots) > 1L ) {
-		len <- vapply(dots, length, integer(1L))
-		if ( !all(len == len[1L]) ) {
+	BIND <- match.fun(simplify)
+	if ( is.null(dim(X)) || length(dim(X)) != 2L )
+		stop("X must have exactly 2 dimensions")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
+	INDEX <-  chunkify(seq_len(nrow(X)), nchunks, depends)
+	CHUNKFUN <- function(i, ...) {
+		if ( verbose && !bpprogressbar(BPPARAM) )
+			message("processing chunk ",
+				attr(i, "chunkid"), "/", length(INDEX))
+		xi <- as.matrix(X[i,,drop=FALSE])
+		xi <- set_attr(xi, attributes(i))
+		FUN(xi, ...)
+	}
+	ans <- bplapply_int(INDEX, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	do.call(BIND, ans)
+}
+
+chunk_colapply <- function(X, FUN, ...,
+	simplify = "c", nchunks = NA, depends = NULL,
+	verbose = FALSE, BPPARAM = bpparam())
+{
+	FUN <- match.fun(FUN)
+	BIND <- match.fun(simplify)
+	if ( is.null(dim(X)) || length(dim(X)) != 2L )
+		stop("X must have exactly 2 dimensions")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
+	INDEX <-  chunkify(seq_len(ncol(X)), nchunks, depends)
+	CHUNKFUN <- function(i, ...) {
+		if ( verbose && !bpprogressbar(BPPARAM) )
+			message("processing chunk ",
+				attr(i, "chunkid"), "/", length(INDEX))
+		xi <- as.matrix(X[,i,drop=FALSE])
+		xi <- set_attr(xi, attributes(i))
+		FUN(xi, ...)
+	}
+	ans <- bplapply_int(INDEX, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	do.call(BIND, ans)
+}
+
+chunkLapply <- function(X, FUN, ...,
+	simplify = FALSE, outpath = NULL)
+{
+	FUN <- match.fun(FUN)
+	outfile <- !is.null(outpath)
+	pid <- ipcid()
+	if ( outfile ) {
+		if ( !is.character(outpath) || length(outpath) != 1L )
+			stop("'outpath' must be a scalar string (or NULL)")
+		outpath <- normalizePath(outpath, mustWork=FALSE)
+		if ( verbose )
+			message("writing output to path = ", sQuote(outpath))
+		put <- remote_writer(pid, outpath)
+	}
+	CHUNKFUN <- function(X, ...) {
+		ans <- vector("list", attr(X, "chunksize"))
+		ii <- 1L
+		for ( i in seq_along(X) ) {
+			di <- attr(X, "index")
+			dp <- attr(X, "depends")
+			if ( is.null(dp) ) {
+				xi <- X[[i]]
+			} else {
+				if ( is.null(dp[[i]]) )
+					next
+				xi <- X[dp[[i]]]
+			}
+			attr(xi, "index") <- di[i]
+			ans[[ii]] <- FUN(xi, ...)
+			if ( outfile )
+				ans[[ii]] <- put(ans[[ii]])
+			ii <- ii + 1L
+		}
+		ans
+	}
+	ans.list <- chunk_lapply(X, CHUNKFUN, ...)
+	names(ans.list) <- names(X)
+	if ( outfile ) {
+		ans.list <- remote_collect(ans.list, outpath, simplify)
+	} else if ( isTRUE(simplify) ) {
+		ans.list <- simplify2array(ans.list)
+	} else if ( is.function(simplify) ) {
+		ans.list <- simplify(ans.list)
+	}
+	ans.list
+}
+
+chunk_lapply <- function(X, FUN, ...,
+	simplify = "c", nchunks = NA, depends = NULL,
+	verbose = FALSE, BPPARAM = bpparam())
+{
+	FUN <- match.fun(FUN)
+	BIND <- match.fun(simplify)
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
+	INDEX <-  chunkify(seq_len(length(X)), nchunks, depends)
+	CHUNKFUN <- function(i, ...) {
+		if ( verbose && !bpprogressbar(BPPARAM) )
+			message("processing chunk ",
+				attr(i, "chunkid"), "/", length(INDEX))
+		xi <- as.vector(X[i])
+		xi <- set_attr(xi, attributes(i))
+		FUN(xi, ...)
+	}
+	ans <- bplapply_int(INDEX, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	do.call(BIND, ans)
+}
+
+chunkMapply <- function(FUN, ...,
+	simplify = FALSE, outpath = NULL)
+{
+	FUN <- match.fun(FUN)
+	outfile <- !is.null(outpath)
+	pid <- ipcid()
+	if ( outfile ) {
+		if ( !is.character(outpath) || length(outpath) != 1L )
+			stop("'outpath' must be a scalar string (or NULL)")
+		outpath <- normalizePath(outpath, mustWork=FALSE)
+		if ( verbose )
+			message("writing output to path = ", sQuote(outpath))
+		put <- remote_writer(pid, outpath)
+	}
+	CHUNKFUN <- function(..., MoreArgs) {
+		XS <- list(...)
+		ans <- vector("list", attr(XS[[1L]], "chunksize"))
+		ii <- 1L
+		for ( i in seq_along(XS[[1L]]) ) {
+			di <- attr(XS[[1L]], "index")
+			dp <- attr(XS[[1L]], "depends")
+			if ( is.null(dp) ) {
+				xsi <- lapply(XS, `[[`, i)
+			} else {
+				if ( is.null(dp[[i]]) )
+					next
+				xsi <- lapply(XS, `[`, dp[[i]])
+			}
+			attr(xsi, "index") <- di[i]
+			ans[[ii]] <- do.call(FUN, c(xsi, MoreArgs))
+			if ( outfile )
+				ans[[ii]] <- put(ans[[ii]])
+			ii <- ii + 1L
+		}
+		ans
+	}
+	ans.list <- chunk_mapply(CHUNKFUN, ...)
+	names(ans.list) <- names(...elt(1L))
+	if ( outfile ) {
+		ans.list <- remote_collect(ans.list, outpath, simplify)
+	} else if ( isTRUE(simplify) ) {
+		ans.list <- simplify2array(ans.list)
+	} else if ( is.function(simplify) ) {
+		ans.list <- simplify(ans.list)
+	}
+	ans.list
+}
+
+chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
+	simplify = "c", nchunks = NA, depends = NULL,
+	verbose = FALSE, BPPARAM = bpparam())
+{
+	FUN <- match.fun(FUN)
+	BIND <- match.fun(simplify)
+	XS <- list(...)
+	if ( length(XS) > 1L ) {
+		len <- vapply(XS, length, integer(1L))
+		if ( length(unique(len)) != 1L ) {
 			max.len <- max(len)
 			if ( max.len && any(len == 0L) )
 				stop("zero-length and non-zero length inputs cannot be mixed")
 			if ( any(max.len %% len) ) 
 				warning("longer argument not a multiple of length of vector")
-			dots <- lapply(dots, rep_len, length.out = max.len)
+			XS <- lapply(XS, rep_len, length.out=max.len)
 		}
 	}
-	chunks <- get_nchunks(dots[[1L]], chunks)
-	if ( is.null(pattern) ) {
-		index <- chunk_along(dots[[1L]], chunks)
-	} else {
-		index <- chunk_pattern(pattern, chunks)
-	}
-	index <- chunk_label(index)
-	fout <- !is.null(outfile)
-	pid <- ipcid()
-	if ( fout ) {
-		if ( !is.character(outfile) || length(outfile) != 1L )
-			stop("outfile must be a length-1 character vector or NULL")
-		if ( verbose )
-			message("writing output to path = ", outfile)
-		rwrite <- remote_writer(pid, outfile)
-	}
-	chunkfun <- function(i, ...) {
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
+	INDEX <-  chunkify(seq_len(length(XS[[1L]])), nchunks, depends)
+	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
-			message("processing chunk ", attr(i, "chunk_id"), "/", length(index))
-		dd <- lapply(dots, `[`, i, drop=FALSE)
-		dn <- length(dd[[1L]])
-		if ( is.null(pattern) ) {
-			ii <- i
+			message("processing chunk ",
+				attr(i, "chunkid"), "/", length(INDEX))
+		xsi <- lapply(XS, `[`, i)
+		xsi[[1L]] <- set_attr(xsi[[1L]], attributes(i))
+		do.call(FUN, c(xsi, list(MoreArgs=MoreArgs)))
+	}
+	ans <- bplapply_int(INDEX, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	do.call(BIND, ans)
+}
+
+chunkify <- function(x, nchunks = 20L, depends = NULL) {
+	nchunks <- min(ceiling(length(x) / 2L), nchunks)
+	index <- seq_along(x)
+	index <- split(index, cut(index, nchunks))
+	ans <- vector("list", length(index))
+	for ( i in seq_along(index) ) {
+		if ( !is.null(depends) ) {
+			di <- depends[index[[i]]]
+			ind <- c(index[[i]], unlist(di))
+			ind <- sort(unique(ind))
+			dep <- lapply(di, match, ind)
+			dep <- dep[match(ind, index[[i]])]
 		} else {
-			ii <- attr(i, "pattern_id")
+			ind <- index[[i]]
+			dep <- NULL
 		}
-		if ( view == "element" ) {
-			if ( is.null(pattern) ) {
-				if ( length(attr) > 0L || length(alist) > 0L ) {
-					ans <- vector("list", dn)
-					for ( j in 1L:dn ) {
-						ddd <- lapply(dd, `[[`, j, drop=FALSE)
-						ddd[[1L]] <- chunk_attr(ddd[[1L]], i[j], attr, alist, view)
-						ans[[j]] <- do.call(FUN, c(ddd, MoreArgs))
-					}
-				} else {
-					ans <- .mapply(FUN, dd, MoreArgs)
-				}
-			} else {
-				dp <- length(ii)
-				dn <- length(dd[[1L]])
-				ans <- vector("list", dp)
-				for ( j in 1L:dp ) {
-					j2 <- match(attr(i, "pattern_elt")[[j]], i)
-					ddd <- lapply(dd, function(ddi) as.list(ddi[j2, drop=FALSE]))
-					if ( length(attr) > 0L || length(alist) > 0L )
-						ddd[[1L]] <- chunk_attr(ddd[[1L]], ii[j], attr, alist, view)
-					ans[[j]] <- do.call(FUN, c(ddd, MoreArgs))
-				}
-			}
-		} else {
-			attr <- c(attributes(i), list("chunk_elt"=c(i)), attr)
-			dd[[1L]] <- chunk_attr(dd[[1L]], ii, attr, alist, view)
-			ans <- .mapply(FUN, dd, MoreArgs)
-		}
-		if ( fout ) {
-			if ( view == "element" ) {
-				ans <- lapply(ans, rwrite)
-			} else {
-				ans <- rwrite(ans)
-			}
-		}
-		ans
+		n <- length(index[[i]])
+		ans[[i]] <- x[ind]
+		attr(ans[[i]], "index") <- c(ind)
+		attr(ans[[i]], "depends") <- c(dep)
+		attr(ans[[i]], "chunkid") <- i
+		attr(ans[[i]], "chunksize") <- n
 	}
-	ans.list <- bplapply(index, chunkfun, ..., BPREDO=BPREDO, BPPARAM=BPPARAM)
-	if ( view == "element" ) {
-		ans.list <- do.call(c, ans.list)
-		names(ans.list) <- names(dots[[1L]])
-	}
-	if ( fout ) {
-		ans.list <- remote_collect(ans.list, outfile, simplify)
-	} else if ( isTRUE(simplify) ) {
-		ans.list <- simplify2array(ans.list)
-	} else if ( is.function(simplify) ) {
-		ans.list <- simplify(ans.list)
-	}
-	ans.list
+	names(ans) <- names(x)
+	ans
 }
-
-#### Chunk-Apply chunking utilities ####
-## --------------------------------------
-
-chunk_len <- function(length.out, nchunks) {
-	size <- max(1L, length.out / nchunks)
-	n <- floor(length.out / size) + 1L
-	index <- floor(seq(from=1L, to=length.out + 1L, length.out=n))
-	i1 <- index[-length(index)]
-	i2 <- index[-1L] - 1L
-	mapply(`:`, i1, i2, SIMPLIFY=FALSE)
-}
-
-chunk_along <- function(x, nchunks, margin) {
-	if ( !is.null(dim(x)) ) {
-		if ( margin == 1L ) {
-			length.out <- nrow(x)
-		} else if ( margin == 2L ) {
-			length.out <- ncol(x)
-		} else {
-			stop("only MARGIN = 1 or 2 supported")
-		}
-	} else {
-		length.out <- length(x)
-	}
-	chunk_len(length.out, nchunks)
-}
-
-chunk_pattern <- function(pattern, nchunks) {
-	i <- chunk_len(length(pattern), nchunks)
-	lapply(i, function(j) {
-		pp <- pattern[j]
-		index <- sort(unique(unlist(pp)))
-		attr(index, "pattern_id") <- j
-		attr(index, "pattern_elt") <- pp
-		index
-	})
-}
-
-get_nchunks <- function(x, chunks, margin) {
-	if ( !is.numeric(chunks) || is.na(chunks) ) {
-		chunks <- nchunks(x, margin=margin)
-	} else {
-		chunks
-	}
-}
-
-setMethod("nchunks", "ANY",
-	function(object, size = NA, margin = NA, ...)
-	{
-		if ( is.na(size) )
-			size <- getOption("matter.default.chunksize")
-		if ( is.null(dim(object)) ) {
-			nchunk_list(object, size=size, ...)
-		} else {
-			nchunk_mat(object, size=size, margin=margin, ...)
-		}
-	}
-)
-
-setMethod("nchunks", "matter",
-	function(object, size = chunksize(object), margin = NA, ...)
-	{
-		if ( is.null(dim) ) {
-			nchunk_vec(object, size=size, ...)
-		} else {
-			nchunk_mat(object, size=size, margin = margin, ...)
-		}
-	}
-)
-
-setMethod("nchunks", "matter_list",
-	function(object, size = chunksize(object), margin = NA, ...)
-	{
-		nchunk_list(object, size=size, ...)
-	}
-)
-
-nchunk_list <- function(x, size) {
-	elts_per_chunk <- max(1L, floor(size / median(lengths(x))))
-	ceiling(length(x) / elts_per_chunk)
-}
-
-nchunk_vec <- function(x, size) {
-	ceiling(length(x) / size)
-}
-
-nchunk_mat <- function(x, size, margin) {
-	if ( is.na(margin) )
-		margin <- 1L
-	if ( margin == 1L ) {
-		elts_per_chunk <- max(1L, floor(size / ncol(x)))
-		n <- ceiling(nrow(x) / elts_per_chunk)
-	} else if ( margin == 2L ) {
-		elts_per_chunk <- max(1L, floor(size / nrow(x)))
-		n <- ceiling(ncol(x) / elts_per_chunk)
-	} else {
-		stop("only MARGIN = 1 or 2 supported")
-	}
-	n
-}
-
-chunk_split <- function(x, nchunks) {
-	i <- chunk_len(length(x), nchunks)
-	lapply(i, function(j) x[j])
-}
-
-chunk_label <- function(index, pattern) {
-	for ( i in seq_along(index) )
-		attr(index[[i]], "chunk_id") <- i
-	index
-}
-
-chunk_attr <- function(x, i, attr, alist, view) {
-	if ( length(attr) > 0L )
-		for ( nm in names(attr) )
-			attr(x, nm) <- attr[[nm]]
-	if ( length(alist) > 0L )
-		for ( nm in names(alist) ) {
-			if ( view == "element" ) {
-				attr(x, nm) <- alist[[nm]][[i]]
-			} else {
-				attr(x, nm) <- alist[[nm]][i,drop=FALSE]
-			}
-		}
-	x
-}
-
-#### Chunk-Apply i/o utilities ####
-## ---------------------------------
 
 remote_writer <- function(pid, path) {
 	fun <- function(x) {
 		ipclock(pid)
 		eof <- file.size(path)
-		eof <- ifelse(is.na(eof), 0, eof)
+		eof <- if (is.na(eof)) 0 else eof
 		if ( !is.atomic(x) || is.complex(x) || is.character(x) )
-			stop(paste0("output for remote writing must be of type ",
-				"'raw', 'logical', 'integer', or 'numeric'"))
-		res <- matter_vec(x, datamode=typeof(x), filemode="rw",
-							offset=eof, paths=path)
+			stop(paste0("file output must be of type ",
+				"'raw', 'logical', 'integer', or 'double' ",
+					"(", sQuote(class(x)), " provided)"))
+		ans <- matter_arr(x, type=typeof(x),
+			path=path, offset=eof, readonly=FALSE)
 		ipcunlock(pid)
-		# [,1] = mode; [,2] = offset; [,3] = extent
-		c(datamode(res), eof, length(res))
+		as.double(c(
+			type=type(ans),
+			offset=eof,
+			extent=length(ans)))
 	}
 	fun
 }
 
 remote_collect <- function(ans, path, simplify) {
 	nms <- names(ans)
-	dnm <- list(NULL, nms)
+	dnm <- if (is.null(nms)) NULL else list(NULL, nms)
 	ans <- do.call(rbind, ans)
-	mode <- as_Rtype(ans[,1])
-	mode <- as.character(mode)
+	type <- as_Rtype(ans[,1])
 	offset <- ans[,2]
 	extent <- ans[,3]
-	vector_ok <- all(extent == 1L)
-	matrix_ok <- length(unique(extent)) == 1L
+	maybe_vector <- all(extent == 1L)
+	maybe_matrix <- length(unique(extent)) == 1L
 	simplify <- isTRUE(simplify)
-	if ( simplify && vector_ok ) {
-		if ( !is.unsorted(offset) ) {
-			offset <- 0
-			extent <- nrow(ans)
-			mode <- mode[1L]
-		}
-		x <- matter_vec(datamode=mode, filemode="rw", names=nms,
-						offset=offset, extent=extent, paths=path)
-	} else if ( simplify && matrix_ok ) {
-		x <- matter_mat(datamode=mode, filemode="rw", dimnames=dnm,
-						offset=offset, extent=extent, paths=path)
+	if ( simplify && maybe_vector ) {
+		x <- matter_vec(type=type, path=path,
+			offset=offset, extent=extent, names=nms)
+	} else if ( simplify && maybe_matrix ) {
+		x <- matter_mat(type=type, paths=path,
+			offset=offset, extent=extent, dimnames=dnm)
 	} else {
-		x <- matter_list(datamode=mode, filemode="rw", names=nms,
-						offset=offset, extent=extent, paths=path)
+		x <- matter_list(type=type, path=path,
+			offset=offset, extent=extent, names=nms)
 	}
 	x
 }
 
-#### Apply functions over matter matrices ####
-## -------------------------------------------
-
-setMethod("apply", "matter_mat",
-	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
-		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
-})
-
-setMethod("apply", "sparse_mat",
-	function(X, MARGIN, FUN, ..., BPPARAM = bpparam(), simplify = TRUE) {
-		chunk_apply(X, FUN, MARGIN, ..., simplify=simplify, BPPARAM=BPPARAM)
-})
-
-#### List-Apply functions over matter lists and data frames ####
-## ------------------------------------------------------------
-
-setMethod("lapply", "matter_list",
-	function(X, FUN, ..., BPPARAM = bpparam())
-	{
-		chunk_apply(X, FUN, ..., simplify=FALSE, BPPARAM=BPPARAM)
-	}
-)
-
-setMethod("sapply", "matter_list",
-	function(X, FUN, ..., BPPARAM = bpparam(),
-		simplify = TRUE, USE.NAMES = TRUE)
-	{
-		chunk_apply(X, FUN, ..., simplify=simplify, BPPARAM=BPPARAM)
-	}
-)

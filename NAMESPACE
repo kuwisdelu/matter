@@ -31,6 +31,7 @@ importFrom("utils",
 exportClasses(
 	"drle",
 	"drle_fct",
+	"atoms",
 	"matter",
 	"matter_arr",
 	"matter_mat",
@@ -47,6 +48,7 @@ export(
 	"is.drle")
 
 export(
+	"atoms",
 	"read_atom",
 	"write_atom",
 	"read_atoms",
@@ -60,8 +62,8 @@ export(
 	"matter_fct",
 	"matter_list",
 	"matter_str",
-	"sparse_vec",
 	"sparse_mat",
+	"sparse_vec",
 	"is.sparse",
 	"as.sparse")
 
@@ -185,6 +187,8 @@ export(
 	"s_any",
 	"s_all",
 	"s_nnzero",
+	"s_colstats",
+	"s_rowstats",
 	"stat_c")
 
 export(
@@ -213,17 +217,22 @@ exportMethods(
 	"rowsweep",
 	"colsweep",
 	"rowscale",
-	"colscale",
+	"colscale")
+
+exportMethods(
 	"rowStats",
 	"colStats")
 
 export(
-	"chunk_apply",
+	"chunk_rowapply",
+	"chunk_colapply",
+	"chunk_lapply",
 	"chunk_mapply")
 
 export(
-	"atoms",
-	"atoms")
+	"chunkApply",
+	"chunkLapply",
+	"chunkMapply")
 
 export(
 	"uuid",
@@ -238,6 +247,8 @@ export(
 	"vm_used")
 
 export("locmax")
+
+export("roll")
 
 exportMethods(
 	"apply",
