@@ -287,6 +287,16 @@ set_attr <- function(x, attr) {
 	x
 }
 
+drop_attr <- function(x, keep.names = TRUE) {
+	y <- as.vector(x)
+	dim(y) <- dim(x)
+	if ( keep.names ) {
+		dimnames(y) <- dimnames(x)
+		names(y) <- names(x)
+	}
+	y
+}
+
 set_names <- function(x, nm, i) {
 	if ( !missing(i) && !is.null(i) )
 		nm <- nm[i]
@@ -347,7 +357,7 @@ paste_head <- function(x, n=getOption("matter.show.head.n"), collapse=" ") {
 
 preview_vector_data <- function(x, n = getOption("matter.show.head.n")) {
 	hdr <- head(x, n=n)
-	out <- as.character(hdr)
+	out <- format.default(hdr)
 	more <- length(x) > length(hdr)
 	if ( !is.null(names(hdr)) ) {
 		nms <- names(hdr)
@@ -379,7 +389,7 @@ preview_matrix_data <- function(x, n = getOption("matter.show.head.n")) {
 		j <- 1:ncol(x)
 	}
 	hdr <- x[i,j,drop=FALSE]
-	out <- matrix(as.character(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
+	out <- matrix(format.default(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
 	if ( !is.null(rownames(x)) ) {
 		rnm <- rownames(x)[i]
 	} else {
@@ -422,7 +432,7 @@ preview_Nd_array <- function(x, n = getOption("matter.show.head.n")) {
 	extra <- rep(1L, length(dim(x)) - 2L)
 	inds <- c(list(i, j), as.list(extra))
 	hdr <- do.call("[", c(list(x), inds, list(drop=FALSE)))
-	out <- matrix(as.character(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
+	out <- matrix(format.default(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
 	if ( !is.null(rownames(x)) ) {
 		rnm <- rownames(x)[i]
 	} else {

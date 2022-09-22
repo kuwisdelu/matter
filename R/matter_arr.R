@@ -197,9 +197,10 @@ setMethod("describe_for_display", "matter_vec", function(x) {
 })
 
 setMethod("preview_for_display", "matter_arr", function(x) {
-	if ( length(dim(x)) <= 1L ) {
+	rank <- length(dim(x))
+	if ( rank <= 1L ) {
 		preview_vector(x)
-	} else if ( length(dim(x)) == 2L ) {
+	} else if ( rank == 2L ) {
 		preview_matrix(x)
 	} else {
 		preview_Nd_array(x)

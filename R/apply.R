@@ -63,6 +63,15 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 	ans.list
 }
 
+chunk_apply <- function(X, MARGIN, FUN, ...)
+{
+	if ( !MARGIN %in% c(1L, 2L) )
+		stop("MARGIN must be 1 or 2")
+	switch(MARGIN,
+		chunk_rowapply(X, FUN, ...),
+		chunk_colapply(X, FUN, ...))
+}
+
 chunk_rowapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
 	verbose = FALSE, BPPARAM = bpparam())

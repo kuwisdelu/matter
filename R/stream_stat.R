@@ -2,7 +2,7 @@
 # streaming statistical summaries
 
 s_range <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_range(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -10,14 +10,14 @@ s_range <- function(x, ..., na.rm = FALSE) {
 		structure(range(x, na.rm=na.rm),
 			class=c("stream_range", "stream_stat"),
 			na.rm=na.rm,
-			nobs=na_length(x, na.rm))
+			nobs=rep.int(na_length(x, na.rm), 2L))
 	} else {
 		x
 	}
 }
 
 s_min <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_min(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -32,7 +32,7 @@ s_min <- function(x, ..., na.rm = FALSE) {
 }
 
 s_max <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_max(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -47,7 +47,7 @@ s_max <- function(x, ..., na.rm = FALSE) {
 }
 
 s_prod <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_prod(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -62,7 +62,7 @@ s_prod <- function(x, ..., na.rm = FALSE) {
 }
 
 s_sum <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_sum(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -77,7 +77,7 @@ s_sum <- function(x, ..., na.rm = FALSE) {
 }
 
 s_mean <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_mean(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -92,7 +92,7 @@ s_mean <- function(x, ..., na.rm = FALSE) {
 }
 
 s_var <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_var(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -108,7 +108,7 @@ s_var <- function(x, ..., na.rm = FALSE) {
 }
 
 s_sd <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_sd(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -124,7 +124,7 @@ s_sd <- function(x, ..., na.rm = FALSE) {
 }
 
 s_any <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_any(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -139,7 +139,7 @@ s_any <- function(x, ..., na.rm = FALSE) {
 }
 
 s_all <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_all(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -154,7 +154,7 @@ s_all <- function(x, ..., na.rm = FALSE) {
 }
 
 s_nnzero <- function(x, ..., na.rm = FALSE) {
-	if ( length(list(...)) > 0L ) {
+	if ( ...length() > 0L ) {
 		x <- s_nnzero(x, na.rm=na.rm)
 		return(stat_c(x, ...))
 	}
@@ -214,18 +214,18 @@ setOldClass(c("stream_nnzero", "stream_stat"))
 
 # streaming statistics methods
 
-drop_attr <- function(x, keep.names = TRUE) {
-	y <- as.vector(x)
-	if ( keep.names )
-		names(y) <- names(x)
-	y
-}
-
 is.stream_stat <- function(x) is(x, "stream_stat")
 
 print.stream_stat <- function(x, ...) {
 	cat(class(x)[1L], "with n =", paste_head(nobs(x)), "\n")
-	print(drop_attr(x), ...)
+	rank <- length(dim(x))
+	if ( rank <= 1L ) {
+		preview_vector(x)
+	} else if ( rank == 2L ) {
+		preview_matrix(x)
+	} else {
+		preview_Nd_array(x)
+	}
 	cat("na.rm =", na_rm(x), "\n")
 }
 
@@ -240,7 +240,7 @@ na_rm <- function(object, ...) UseMethod("na_rm")
 na_rm.default <- function(object, ...) attr(object, "na.rm")
 
 stat_c <- function(x, y, ...) {
-	if ( length(list(...)) > 0 ) {
+	if ( ...length() > 0 ) {
 		stat_c(x, do.call(stat_c, list(y, ...)))
 	} else {
 		UseMethod("stat_c")
@@ -254,12 +254,12 @@ setMethod("combine", "stream_stat",
 		structure(c(drop_attr(x), drop_attr(y)),
 			class=class(x),
 			na.rm=all(na_rm(x) & na_rm(y)),
-			nobs=c(nobs(x), nobs(y)))
+			nobs=c(nobs(x), nobs(y)),
+			mean=c(attr(x, "mean"), attr(y, "mean")))
 	})
 
 c.stream_stat <- function(x, ...) {
-	dots <- list(...)
-	if ( length(dots) > 0 ) {
+	if ( ...length() > 0L ) {
 		combine(x, ...)
 	} else {
 		x
@@ -267,26 +267,66 @@ c.stream_stat <- function(x, ...) {
 }
 
 `[.stream_stat` <- function(x, i, j, ..., drop = TRUE) {
-	structure(drop_attr(x)[i],
+	narg <- nargs() - 1L - !missing(drop)
+	if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
+		i <- as_subscripts(i, x)
+		u <- attr(x, "mean")
+		structure(drop_attr(x)[i],
 			class=class(x),
 			na.rm=na_rm(x),
-			nobs=nobs(x)[i])
+			nobs=nobs(x)[i],
+			mean=u[i])
+	} else {
+		i <- as_row_subscripts(i, x)
+		j <- as_col_subscripts(j, x)
+		u <- attr(x, "mean")
+		n <- nobs(x)
+		if ( !is.null(u) )
+			dim(u) <- dim(x)
+		dim(n) <- dim(x)
+		structure(drop_attr(x)[i, j, ..., drop=drop],
+			class=class(x),
+			na.rm=na_rm(x),
+			nobs=n[i, j, ..., drop=drop],
+			mean=u[i, j, ..., drop=drop])
+	}
 }
 
 `[[.stream_stat` <- function(x, i, exact = TRUE) {
+	i <- as_subscripts(i, x)
+	u <- attr(x, "mean")
 	structure(drop_attr(x)[[i]],
 			class=class(x),
 			na.rm=na_rm(x),
-			nobs=nobs(x)[[i]])
+			nobs=nobs(x)[[i]],
+			mean=u[[i]])
 }
+
+as.data.frame.stream_stat <- function(x,
+	row.names = NULL, optional = FALSE, ...)
+{
+	if ( is.null(row.names) ) {
+		if ( is.null(names(x)) ) {
+			row.names <- as.character(seq_along(x))
+		} else {
+			row.names <- names(x)
+		}
+	}
+	ans <- list(x)
+	if ( !optional )
+		names(ans) <- strsplit(class(x), "_")[[1L]][2L]
+	structure(ans, class="data.frame", row.names=row.names)
+}
+
+setMethod("as.data.frame", "stream_stat", as.data.frame.stream_stat)
 
 # create new stream_stat w/ inherited attributes
 
 stream_stat_attr <- function(value, x, y) {
 	if ( na_rm(x) != na_rm(y) )
 		warning("combining statistics with differing na.rm")
-	structure(value,
-		class=class(x), names=names(x),
+	structure(value, class=class(x),
+		names=names(x), dim=dim(x),
 		na.rm=all(na_rm(x) & na_rm(y)),
 		nobs=nobs(x) + nobs(y))
 }
@@ -306,13 +346,13 @@ stat_c.stream_range <- function(x, y, ...) {
 		y <- s_range(y, na.rm=na_rm(x))
 	xx <- drop_attr(x)
 	yy <- drop_attr(y)
-	xmin <- xx[c(TRUE, FALSE)]
-	xmax <- xx[c(FALSE, TRUE)]
-	ymin <- yy[c(TRUE, FALSE)]
-	ymax <- yy[c(FALSE, TRUE)]
+	xmin <- xx[1L:(length(x)/2L)]
+	xmax <- xx[(1L + length(x)/2L):length(x)]
+	ymin <- yy[1L:(length(x)/2L)]
+	ymax <- yy[(1L + length(x)/2L):length(x)]
 	val1 <- pmin(xmin, ymin, na.rm=na_rm(x) && na_rm(y))
 	val2 <- pmax(xmax, ymax, na.rm=na_rm(x) && na_rm(y))
-	val <- as.vector(matrix(c(val1, val2), nrow=2, byrow=TRUE))
+	val <- c(val1, val2)
 	stream_stat_attr(val, x, y)
 }
 
@@ -564,9 +604,13 @@ colstreamStats <- function(x, ...) {
 s_rowstats <- function(x, stat, na.rm = FALSE, ...) {
 	fun <- stream_stat_fun(stat)
 	template <- switch(stat, range=numeric(2),
-		any=logical(1), all=logical(1), numeric(1))
+		any=, all=logical(1), numeric(1))
 	val <- apply_int(x, 1, fun, template, na.rm=na.rm)
 	nobs <- apply_int(x, 1, na_length, numeric(1), na.rm=na.rm)
+	if ( stat %in% "range" ) {
+		nobs <- rep.int(nobs, 2L)
+		val <- matrix(val, ncol=2L, byrow=TRUE)
+	}
 	if ( stat %in% c("var", "sd") ) {
 		means <- rowMeans(x, na.rm=na.rm)
 		ans <- structure(val, class=stream_stat_class(stat),
@@ -577,7 +621,7 @@ s_rowstats <- function(x, stat, na.rm = FALSE, ...) {
 	}
 	nms <- rownames(x)
 	if ( stat %in% "range" ) {
-		names(ans) <- rep(nms, each=2)
+		names(ans) <- c(nms, nms)
 	} else {
 		names(ans) <- nms
 	}
@@ -587,9 +631,13 @@ s_rowstats <- function(x, stat, na.rm = FALSE, ...) {
 s_colstats <- function(x, stat, na.rm = FALSE, ...) {
 	fun <- stream_stat_fun(stat)
 	template <- switch(stat, range=numeric(2),
-		any=logical(1), all=logical(1), numeric(1))
+		any=, all=logical(1), numeric(1))
 	val <- apply_int(x, 2, fun, template, na.rm=na.rm)
 	nobs <- apply_int(x, 2, na_length, numeric(1), na.rm=na.rm)
+	if ( stat %in% "range" ) {
+		nobs <- rep.int(nobs, 2L)
+		val <- matrix(val, ncol=2L, byrow=TRUE)
+	}
 	if ( stat %in% c("var", "sd") ) {
 		means <- colMeans(x, na.rm=na.rm)
 		ans <- structure(val, class=stream_stat_class(stat),
@@ -600,7 +648,7 @@ s_colstats <- function(x, stat, na.rm = FALSE, ...) {
 	}
 	nms <- colnames(x)
 	if ( stat %in% "range" ) {
-		names(ans) <- rep(nms, each=2)
+		names(ans) <- c(nms, nms)
 	} else {
 		names(ans) <- nms
 	}
