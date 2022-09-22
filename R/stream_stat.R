@@ -280,9 +280,12 @@ cbind.stream_stat <- function(..., deparse.level = 1) {
 		return(cbind(drop_attr(x), drop_attr(y)))
 	nx <- nobs(x)
 	ny <- nobs(y)
+	dim(nx) <- dim(x)
 	dim(ny) <- dim(y)
 	ux <- attr(x, "mean")
 	uy <- attr(y, "mean")
+	if ( !is.null(ux) )
+		dim(ux) <- dim(x)
 	if ( !is.null(uy) )
 		dim(uy) <- dim(y)
 	structure(cbind(drop_attr(x), drop_attr(y)),
@@ -304,9 +307,12 @@ rbind.stream_stat <- function(..., deparse.level = 1) {
 		return(rbind(drop_attr(x), drop_attr(y)))
 	nx <- nobs(x)
 	ny <- nobs(y)
+	dim(nx) <- dim(x)
 	dim(ny) <- dim(y)
 	ux <- attr(x, "mean")
 	uy <- attr(y, "mean")
+	if ( !is.null(ux) )
+		dim(ux) <- dim(x)
 	if ( !is.null(uy) )
 		dim(uy) <- dim(y)
 	structure(rbind(drop_attr(x), drop_attr(y)),
@@ -329,11 +335,11 @@ rbind.stream_stat <- function(..., deparse.level = 1) {
 	} else {
 		i <- as_row_subscripts(i, x)
 		j <- as_col_subscripts(j, x)
-		u <- attr(x, "mean")
 		n <- nobs(x)
+		dim(n) <- dim(x)
+		u <- attr(x, "mean")
 		if ( !is.null(u) )
 			dim(u) <- dim(x)
-		dim(n) <- dim(x)
 		structure(drop_attr(x)[i, j, ..., drop=drop],
 			class=class(x),
 			na.rm=na_rm(x),
@@ -344,12 +350,11 @@ rbind.stream_stat <- function(..., deparse.level = 1) {
 
 `[[.stream_stat` <- function(x, i, exact = TRUE) {
 	i <- as_subscripts(i, x)
-	u <- attr(x, "mean")
 	structure(drop_attr(x)[[i]],
 			class=class(x),
 			na.rm=na_rm(x),
 			nobs=nobs(x)[[i]],
-			mean=u[[i]])
+			mean=attr(x, "mean")[[i]])
 }
 
 as.data.frame.stream_stat <- function(x,

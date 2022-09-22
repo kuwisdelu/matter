@@ -1,40 +1,29 @@
 
-getGroupStats <- function(x, stat, group, na.rm = FALSE)
-{
-	along <- match.arg(along)
-	if ( attr(x, "iter.dim") != along )
-		groups <- groups[attr(x, "idx")]
-	ret <- lapply(levels(groups), function(g) {
-		i <- which(groups == g)
-		xg <- switch(along,
-			"rows"=x[,i,drop=FALSE],
-			"cols"=x[i,,drop=FALSE])
-		if ( !is.null(tform) )
-			xg <- transformChunk(xg, attributes(x), g, i, along, tform)
-		getChunkStats(xg, stat=stat, along=along,
-			na.rm=na.rm, tform=NULL, ...)
+setMethod("rowStats", "ANY",
+	function(x, stat, group = NULL, na.rm = FALSE,
+		drop = TRUE, BPPARAM = bpparam(), ...)
+	{
+		BIND <- if(is.null(group)) "c" else "rbind"
+		ans <- lapply(stat, function(s)
+			chunk_rowapply(x, s_rowstats, stat=s, group=group,
+				na.rm=na.rm, simplify=BIND, BPPARAM=BPPARAM))
+		names(ans) <- stat
+		if ( drop && length(ans) == 1L )
+			ans <- ans[[1L]]
+		ans
 	})
-	names(ret) <- levels(groups)
-	ret
-}
 
-get_row_stats <- function(x, stat, group, na.rm = FALSE)
-{
-	ans <- lapply(stat, function(sx)
-		s_rowstats(x, stat=sx, na.rm=na.rm))
-	set_names(ans, stat)
-}
+setMethod("colStats", "ANY",
+	function(x, stat, group = NULL, na.rm = FALSE,
+		drop = TRUE, BPPARAM = bpparam(), ...)
+	{
+		BIND <- if(is.null(group)) "c" else "cbind"
+		ans <- lapply(stat, function(s)
+			chunk_colapply(x, s_colstats, stat=s, group=group,
+				na.rm=na.rm, simplify=BIND, BPPARAM=BPPARAM))
+		names(ans) <- stat
+		if ( drop && length(ans) == 1L )
+			ans <- ans[[1L]]
+		ans
+	})
 
-get_row_stats <- function(x, stat, na.rm = FALSE)
-{
-	ans <- lapply(stat, function(sx)
-		s_rowstats(x, stat=sx, na.rm=na.rm))
-	set_names(ans, stat)
-}
-
-get_col_stats <- function(x, stat, na.rm = FALSE)
-{
-	ans <- lapply(stat, function(sx)
-		s_rowstats(x, stat=sx, na.rm=na.rm))
-	set_names(ans, stat)
-}
