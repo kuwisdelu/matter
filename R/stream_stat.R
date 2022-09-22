@@ -217,7 +217,9 @@ setOldClass(c("stream_nnzero", "stream_stat"))
 is.stream_stat <- function(x) is(x, "stream_stat")
 
 print.stream_stat <- function(x, ...) {
-	cat(class(x)[1L], "with n =", paste_head(nobs(x)), "\n")
+	dn <- if(is.null(dim(x))) length(x) else dim(x)
+	dn <- paste0("[", paste0(dn, collapse=" x "), "]")
+	cat(class(x)[1L], dn, "with n =", paste_head(nobs(x)), "\n")
 	rank <- length(dim(x))
 	if ( rank <= 1L ) {
 		preview_vector(x)
@@ -240,7 +242,7 @@ na_rm <- function(object, ...) UseMethod("na_rm")
 na_rm.default <- function(object, ...) attr(object, "na.rm")
 
 stat_c <- function(x, y, ...) {
-	if ( ...length() > 0 ) {
+	if ( ...length() > 0L ) {
 		stat_c(x, do.call(stat_c, list(y, ...)))
 	} else {
 		UseMethod("stat_c")
@@ -249,7 +251,7 @@ stat_c <- function(x, y, ...) {
 
 setMethod("combine", "stream_stat",
 	function(x, y, ...) {
-		if ( class(x)[1L] != class(y)[1L] )
+		if ( !isa(y, class(x)) )
 			return(c(drop_attr(x), drop_attr(y)))
 		structure(c(drop_attr(x), drop_attr(y)),
 			class=class(x),
@@ -264,6 +266,54 @@ c.stream_stat <- function(x, ...) {
 	} else {
 		x
 	}
+}
+
+cbind.stream_stat <- function(..., deparse.level = 1) {
+	x <- ...elt(1L)
+	more <- list(...)[-1L]
+	if ( length(more) > 1L ) {
+		y <- do.call(cbind, more)
+	} else {
+		y <- more[[1L]]
+	}
+	if ( !isa(y, class(x)) )
+		return(cbind(drop_attr(x), drop_attr(y)))
+	nx <- nobs(x)
+	ny <- nobs(y)
+	dim(ny) <- dim(y)
+	ux <- attr(x, "mean")
+	uy <- attr(y, "mean")
+	if ( !is.null(uy) )
+		dim(uy) <- dim(y)
+	structure(cbind(drop_attr(x), drop_attr(y)),
+		class=class(x),
+		na.rm=all(na_rm(x) & na_rm(y)),
+		nobs=as.vector(cbind(nx, ny)),
+		mean=as.vector(cbind(ux, uy)))
+}
+
+rbind.stream_stat <- function(..., deparse.level = 1) {
+	x <- ...elt(1L)
+	more <- list(...)[-1L]
+	if ( length(more) > 1L ) {
+		y <- do.call(rbind, more)
+	} else {
+		y <- more[[1L]]
+	}
+	if ( !isa(y, class(x)) )
+		return(rbind(drop_attr(x), drop_attr(y)))
+	nx <- nobs(x)
+	ny <- nobs(y)
+	dim(ny) <- dim(y)
+	ux <- attr(x, "mean")
+	uy <- attr(y, "mean")
+	if ( !is.null(uy) )
+		dim(uy) <- dim(y)
+	structure(rbind(drop_attr(x), drop_attr(y)),
+		class=class(x),
+		na.rm=all(na_rm(x) & na_rm(y)),
+		nobs=as.vector(rbind(nx, ny)),
+		mean=as.vector(rbind(ux, uy)))
 }
 
 `[.stream_stat` <- function(x, i, j, ..., drop = TRUE) {
@@ -342,7 +392,7 @@ stat_c.default <- function(x, y, ...) {
 }
 
 stat_c.stream_range <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_range(y, na.rm=na_rm(x))
 	xx <- drop_attr(x)
 	yy <- drop_attr(y)
@@ -357,21 +407,21 @@ stat_c.stream_range <- function(x, y, ...) {
 }
 
 stat_c.stream_min <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_min(y, na.rm=na_rm(x))
 	val <- pmin(x, y, na.rm=na_rm(x) && na_rm(y))
 	stream_stat_attr(val, x, y)
 }
 
 stat_c.stream_max <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_max(y, na.rm=na_rm(x))
 	val <- pmax(x, y, na.rm=na_rm(x) && na_rm(y))
 	stream_stat_attr(val, x, y)
 }
 
 stat_c.stream_prod <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_prod(y, na.rm=na_rm(x))
 	if ( na_rm(x) && na_rm(y) ) {
 		xx <- ifelse(is.na(x), 1, x)
@@ -385,7 +435,7 @@ stat_c.stream_prod <- function(x, y, ...) {
 }
 
 stat_c.stream_sum <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_sum(y, na.rm=na_rm(x))
 	if ( na_rm(x) && na_rm(y) ) {
 		xx <- ifelse(is.na(x), 0, x)
@@ -399,7 +449,7 @@ stat_c.stream_sum <- function(x, y, ...) {
 }
 
 stat_c.stream_mean <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_mean(y, na.rm=na_rm(x))
 	nx <- nobs(x)
 	ny <- nobs(y)
@@ -415,7 +465,7 @@ stat_c.stream_mean <- function(x, y, ...) {
 }
 
 stat_c.stream_var <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_var(y, na.rm=na_rm(x))
 	nx <- nobs(x)
 	ny <- nobs(y)
@@ -465,7 +515,7 @@ stat_c.stream_var <- function(x, y, ...) {
 }
 
 stat_c.stream_sd <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_sd(y, na.rm=na_rm(x))
 	nx <- nobs(x)
 	ny <- nobs(y)
@@ -515,7 +565,7 @@ stat_c.stream_sd <- function(x, y, ...) {
 }
 
 stat_c.stream_any <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_any(y, na.rm=na_rm(x))
 	if ( na_rm(x) && na_rm(y) ) {
 		xx <- ifelse(is.na(x), FALSE, x)
@@ -529,7 +579,7 @@ stat_c.stream_any <- function(x, y, ...) {
 }
 
 stat_c.stream_all <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_all(y, na.rm=na_rm(x))
 	if ( na_rm(x) && na_rm(y) ) {
 		xx <- ifelse(is.na(x), TRUE, x)
@@ -543,7 +593,7 @@ stat_c.stream_all <- function(x, y, ...) {
 }
 
 stat_c.stream_nnzero <- function(x, y, ...) {
-	if ( !inherits(y, class(x)) )
+	if ( !isa(y, class(x)) )
 		y <- s_nnzero(y, na.rm=na_rm(x))
 	if ( na_rm(x) && na_rm(y) ) {
 		xx <- ifelse(is.na(x), 0, x)
@@ -601,56 +651,94 @@ colstreamStats <- function(x, ...) {
 	s_colstats(x, ...)
 }
 
-s_rowstats <- function(x, stat, na.rm = FALSE, ...) {
+s_rowstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
+	if ( is.null(group) ) {
+		ans <- s_rowstats_int(x, stat, na.rm)
+		if ( stat %in% "range" ) {
+			names(ans) <- c(rownames(x), rownames(x))
+		} else {
+			names(ans) <- rownames(x)
+		}
+	} else {
+		if ( stat %in% "range" )
+			stop("'range' stat not allowed with non-NULL group")
+		if ( length(group) %% ncol(x) != 0 )
+			stop(paste0("length of groups [", length(group), "] ",
+				"is not a multiple of column extent [", ncol(x), "]"))
+		group <- as.factor(rep_len(group, ncol(x)))
+		ans <- lapply(levels(group), function(g) {
+				xi <- x[,which(group == g),drop=FALSE]
+				s_rowstats_int(xi, stat, na.rm)
+			})
+		ans <- do.call(cbind, ans)
+		colnames(ans) <- levels(group)
+		rownames(ans) <- names(x)
+	}
+	ans
+}
+
+s_colstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
+	if ( is.null(group) ) {
+		ans <- s_colstats_int(x, stat, na.rm)
+		if ( stat %in% "range" ) {
+			names(ans) <- c(colnames(x), colnames(x))
+		} else {
+			names(ans) <- colnames(x)
+		}
+	} else {
+		if ( stat %in% "range" )
+			stop("'range' stat not allowed with non-NULL group")
+		if ( length(group) %% nrow(x) != 0 )
+			stop(paste0("length of groups [", length(group), "] ",
+				"is not a multiple of row extent [", nrow(x), "]"))
+		group <- as.factor(rep_len(group, nrow(x)))
+		ans <- lapply(levels(group), function(g) {
+				xi <- x[which(group == g),,drop=FALSE]
+				s_colstats_int(xi, stat, na.rm)
+			})
+		ans <- do.call(cbind, ans)
+		colnames(ans) <- levels(group)
+		rownames(ans) <- names(x)
+	}
+	ans
+}
+
+s_rowstats_int <- function(x, stat, na.rm) {
 	fun <- stream_stat_fun(stat)
-	template <- switch(stat, range=numeric(2),
-		any=, all=logical(1), numeric(1))
-	val <- apply_int(x, 1, fun, template, na.rm=na.rm)
-	nobs <- apply_int(x, 1, na_length, numeric(1), na.rm=na.rm)
+	template <- switch(stat, range=numeric(2L),
+		any=, all=logical(1L), numeric(1L))
+	val <- apply_int(x, 1L, fun, template, na.rm=na.rm)
+	nobs <- apply_int(x, 1L, na_length, numeric(1L), na.rm=na.rm)
 	if ( stat %in% "range" ) {
 		nobs <- rep.int(nobs, 2L)
 		val <- matrix(val, ncol=2L, byrow=TRUE)
 	}
 	if ( stat %in% c("var", "sd") ) {
 		means <- rowMeans(x, na.rm=na.rm)
-		ans <- structure(val, class=stream_stat_class(stat),
+		structure(val, class=stream_stat_class(stat),
 			na.rm=na.rm, nobs=nobs, mean=means)
 	} else {
-		ans <- structure(val, class=stream_stat_class(stat),
+		structure(val, class=stream_stat_class(stat),
 			na.rm=na.rm, nobs=nobs)
 	}
-	nms <- rownames(x)
-	if ( stat %in% "range" ) {
-		names(ans) <- c(nms, nms)
-	} else {
-		names(ans) <- nms
-	}
-	ans
 }
 
-s_colstats <- function(x, stat, na.rm = FALSE, ...) {
+s_colstats_int <- function(x, stat, na.rm) {
 	fun <- stream_stat_fun(stat)
-	template <- switch(stat, range=numeric(2),
-		any=, all=logical(1), numeric(1))
-	val <- apply_int(x, 2, fun, template, na.rm=na.rm)
-	nobs <- apply_int(x, 2, na_length, numeric(1), na.rm=na.rm)
+	template <- switch(stat, range=numeric(2L),
+		any=, all=logical(1L), numeric(1L))
+	val <- apply_int(x, 2L, fun, template, na.rm=na.rm)
+	nobs <- apply_int(x, 2L, na_length, numeric(1L), na.rm=na.rm)
 	if ( stat %in% "range" ) {
 		nobs <- rep.int(nobs, 2L)
 		val <- matrix(val, ncol=2L, byrow=TRUE)
 	}
-	if ( stat %in% c("var", "sd") ) {
+	if ( stat %in% c("sd", "var") ) {
 		means <- colMeans(x, na.rm=na.rm)
-		ans <- structure(val, class=stream_stat_class(stat),
+		structure(val, class=stream_stat_class(stat),
 			na.rm=na.rm, nobs=nobs, mean=means)
 	} else {
-		ans <- structure(val, class=stream_stat_class(stat),
+		structure(val, class=stream_stat_class(stat),
 			na.rm=na.rm, nobs=nobs)
 	}
-	nms <- colnames(x)
-	if ( stat %in% "range" ) {
-		names(ans) <- c(nms, nms)
-	} else {
-		names(ans) <- nms
-	}
-	ans
 }

@@ -196,6 +196,8 @@ export(
 	"rowstreamStats")
 
 S3method("c", "stream_stat")
+S3method("cbind", "stream_stat")
+S3method("rbind", "stream_stat")
 S3method("print", "stream_stat")
 S3method("nobs", "stream_stat")
 S3method("[", "stream_stat")
