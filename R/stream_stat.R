@@ -326,15 +326,17 @@ rbind.stream_stat <- function(..., deparse.level = 1) {
 	narg <- nargs() - 1L - !missing(drop)
 	if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
 		i <- as_subscripts(i, x)
-		u <- attr(x, "mean")
+		if (is.null(i)) i <- seq_along(x)
 		structure(drop_attr(x)[i],
 			class=class(x),
 			na.rm=na_rm(x),
 			nobs=nobs(x)[i],
-			mean=u[i])
+			mean=attr(x, "mean")[i])
 	} else {
 		i <- as_row_subscripts(i, x)
 		j <- as_col_subscripts(j, x)
+		if (is.null(i)) i <- seq_len(nrow(x))
+		if (is.null(j)) j <- seq_len(ncol(x))
 		n <- nobs(x)
 		dim(n) <- dim(x)
 		u <- attr(x, "mean")
@@ -350,6 +352,7 @@ rbind.stream_stat <- function(..., deparse.level = 1) {
 
 `[[.stream_stat` <- function(x, i, exact = TRUE) {
 	i <- as_subscripts(i, x)
+	if (is.null(i)) i <- seq_along(x)
 	structure(drop_attr(x)[[i]],
 			class=class(x),
 			na.rm=na_rm(x),
@@ -380,8 +383,10 @@ setMethod("as.data.frame", "stream_stat", as.data.frame.stream_stat)
 stream_stat_attr <- function(value, x, y) {
 	if ( na_rm(x) != na_rm(y) )
 		warning("combining statistics with differing na.rm")
-	structure(value, class=class(x),
-		names=names(x), dim=dim(x),
+	structure(value,
+		class=class(x),
+		names=names(x),
+		dim=dim(x), dimnames=dimnames(x),
 		na.rm=all(na_rm(x) & na_rm(y)),
 		nobs=nobs(x) + nobs(y))
 }
@@ -478,42 +483,46 @@ stat_c.stream_var <- function(x, y, ...) {
 		return(y)
 	if ( all(ny == 0) )
 		return(x)
-	mx <- attr(x, "mean")
-	my <- attr(y, "mean")
-	m <- (nx * mx + ny * my) / (nx + ny)
+	ux <- attr(x, "mean")
+	uy <- attr(y, "mean")
+	m <- (nx * ux + ny * uy) / (nx + ny)
 	if ( na_rm(x) && na_rm(y) ) {
-		mx <- ifelse(is.na(mx), 0, mx)
-		my <- ifelse(is.na(my), 0, my)
-		m <- ifelse(is.na(m), 0, m)
+		ux <- ifelse(is.na(ux), 0, ux)
+		uy <- ifelse(is.na(uy), 0, uy)
 	} else {
-		mx <- ifelse(nx == 0, 0, mx)
-		my <- ifelse(ny == 0, 0, my)
+		ux <- ifelse(nx == 0, 0, ux)
+		uy <- ifelse(ny == 0, 0, uy)
 	}
-	nn1 <- nx <= 1 | ny <= 1
-	nnN <- nx > 1 & ny > 1
-	if ( any(nn1) ) {
+	m <- ifelse(is.na(m), 0, m)
+	nle1 <- nx <= 1 | ny <= 1
+	val_1 <- rep(NA_real_, length(x))
+	if ( any(nle1) ) {
+		if ( any(n11 <- nx == 1 & ny == 1) ) {
+			v1 <- ((ux - uy) * (ux - m)) / (nx + ny - 1)
+			val_1[n11] <- v1[n11]
+		}
 		if ( any(nx > 1) ) {
 			ss1 <- (nx - 1) * x
 			ss1 <- ifelse(is.na(ss1), 0, ss1)
-			ss2 <- ss1 + (my - mx) * (my - m)
-			val_1 <- ss2 / (nx + ny - 1)
-		} else {
+			ss2 <- ss1 + (uy - ux) * (uy - m)
+			vx <- ss2 / (nx + ny - 1)
+			val_1[nx > 1] <- vx[nx > 1]
+		}
+		if ( any(ny > 1) ) {
 			ss1 <- (ny - 1) * y
 			ss1 <- ifelse(is.na(ss1), 0, ss1)
-			ss2 <- ss1 + (mx - my) * (mx - m)
-			val_1 <- ss2 / (nx + ny - 1)
+			ss2 <- ss1 + (ux - uy) * (ux - m)
+			vy <- ss2 / (nx + ny - 1)
+			val_1[ny > 1] <- vy[ny > 1]
 		}
-	} else {
-		val_1 <- rep(NA_real_, length(x))
 	}
-	if ( any(nnN) ) {
+	val_N <- rep(NA_real_, length(x))
+	if ( any(nx > 1 & ny > 1) ) {
 		num1 <- ((nx - 1) * x) + ((ny - 1) * y)
-		num2 <- (nx * ny / (nx + ny)) * (mx - my)^2
+		num2 <- (nx * ny / (nx + ny)) * (ux - uy)^2
 		val_N <- (num1 + num2) / (nx + ny - 1)
-	} else {
-		val_N <- rep(NA_real_, length(x))
 	}
-	val <- ifelse(nn1, val_1, val_N)
+	val <- ifelse(nle1, val_1, val_N)
 	ret <- stream_stat_attr(val, x, y)
 	attr(ret, "mean") <- m
 	ret
@@ -528,42 +537,46 @@ stat_c.stream_sd <- function(x, y, ...) {
 		return(y)
 	if ( all(ny == 0) )
 		return(x)
-	mx <- attr(x, "mean")
-	my <- attr(y, "mean")
-	m <- (nx * mx + ny * my) / (nx + ny)
+	ux <- attr(x, "mean")
+	uy <- attr(y, "mean")
+	m <- (nx * ux + ny * uy) / (nx + ny)
 	if ( na_rm(x) && na_rm(y) ) {
-		mx <- ifelse(is.na(mx), 0, mx)
-		my <- ifelse(is.na(my), 0, my)
-		m <- ifelse(is.na(m), 0, m)
+		ux <- ifelse(is.na(ux), 0, ux)
+		uy <- ifelse(is.na(uy), 0, uy)
 	} else {
-		mx <- ifelse(nx == 0, 0, mx)
-		my <- ifelse(ny == 0, 0, my)
+		ux <- ifelse(nx == 0, 0, ux)
+		uy <- ifelse(ny == 0, 0, uy)
 	}
-	nn1 <- nx <= 1 | ny <= 1
-	nnN <- nx > 1 & ny > 1
-	if ( any(nn1) ) {
+	m <- ifelse(is.na(m), 0, m)
+	nle1 <- nx <= 1 | ny <= 1
+	val_1 <- rep(NA_real_, length(m))
+	if ( any(nle1) ) {
+		if ( any(n11 <- nx == 1 & ny == 1) ) {
+			v1 <- sqrt(((ux - uy) * (ux - m)) / (nx + ny - 1))
+			val_1[n11] <- v1[n11]
+		}
 		if ( any(nx > 1) ) {
 			ss1 <- (nx - 1) * x^2
 			ss1 <- ifelse(is.na(ss1), 0, ss1)
-			ss2 <- ss1 + (my - mx) * (my - m)
-			val_1 <- sqrt(ss2 / (nx + ny - 1))
-		} else {
+			ss2 <- ss1 + (uy - ux) * (uy - m)
+			vx <- sqrt(ss2 / (nx + ny - 1))
+			val_1[nx > 1] <- vx[nx > 1]
+		}
+		if ( any(ny > 1) ) {
 			ss1 <- (ny - 1) * y^2
 			ss1 <- ifelse(is.na(ss1), 0, ss1)
-			ss2 <- ss1 + (mx - my) * (mx - m)
-			val_1 <- sqrt(ss2 / (nx + ny - 1))
+			ss2 <- ss1 + (ux - uy) * (ux - m)
+			vy <- sqrt(ss2 / (nx + ny - 1))
+			val_1[ny > 1] <- vy[ny > 1]
 		}
-	} else {
-		val_1 <- rep(NA_real_, length(m))
 	}
-	if ( any(nnN) ) {
+	val_N <- rep(NA_real_, length(m))
+	if ( any(nx > 1 & ny > 1) ) {
 		num1 <- ((nx - 1) * x^2) + ((ny - 1) * y^2)
-		num2 <- (nx * ny / (nx + ny)) * (mx - my)^2
+		num2 <- (nx * ny / (nx + ny)) * (ux - uy)^2
 		val_N <- sqrt((num1 + num2) / (nx + ny - 1))
-	} else {
-		val_N <- rep(NA_real_, length(m))
 	}
-	val <- ifelse(nn1, val_1, val_N)
+	val <- ifelse(nle1, val_1, val_N)
 	ret <- stream_stat_attr(val, x, y)
 	attr(ret, "mean") <- m
 	ret
@@ -627,11 +640,16 @@ stream_stat_fun <- function(name) {
 		any=base::any,
 		all=base::all,
 		nnzero=nnzero_na_rm)
+	if ( !is.character(name) )
+		stop("stat must be a string")
+	if ( !name %in% names(f) )
+		stop(paste0("stat = ", sQuote(name),
+			" not supported"))
 	f[[name, exact=TRUE]]
 }
 
 stream_stat_class <- function(name) {
-	f <- list(
+	cls <- list(
 		range="stream_range",
 		min="stream_min",
 		max="stream_max",
@@ -643,7 +661,7 @@ stream_stat_class <- function(name) {
 		any="stream_any",
 		all="stream_all",
 		nnzero="stream_nnzero")
-	c(f[[name, exact=TRUE]], "stream_stat")
+	c(cls[[name, exact=TRUE]], "stream_stat")
 }
 
 rowstreamStats <- function(x, ...) {
@@ -657,6 +675,8 @@ colstreamStats <- function(x, ...) {
 }
 
 s_rowstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
+	if ( !is.character(stat) )
+		stop("stat must be a string")
 	if ( is.null(group) ) {
 		ans <- s_rowstats_int(x, stat, na.rm)
 		if ( stat %in% "range" ) {
@@ -683,6 +703,8 @@ s_rowstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
 }
 
 s_colstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
+	if ( !is.character(stat) )
+		stop("stat must be a string")
 	if ( is.null(group) ) {
 		ans <- s_colstats_int(x, stat, na.rm)
 		if ( stat %in% "range" ) {

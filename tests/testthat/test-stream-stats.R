@@ -26,7 +26,7 @@ test_that("streaming univariate statistics", {
 	sx <- s_range(x)
 	sy <- s_range(y)
 	expect_equal(range(xy), as.numeric(stat_c(sx, sy)))
-	
+
 	sx <- s_min(x)
 	sy <- s_min(y)
 	expect_equal(min(xy), as.numeric(stat_c(sx, sy)))
@@ -82,6 +82,22 @@ test_that("streaming univariate statistics", {
 	sx <- s_var(x, na.rm=TRUE)
 	sy <- s_var(y, na.rm=TRUE)
 	expect_equal(var(xy, na.rm=TRUE), as.numeric(stat_c(sx, sy)))
+
+	set.seed(1)
+	x <- numeric(0)
+	y <- runif(10)
+	z <- runif(1)
+	xyz <- c(x, y, z)
+	
+	sx <- s_mean(x)
+	sy <- s_mean(y)
+	sz <- s_mean(z)
+	expect_equal(mean(xyz), as.numeric(stat_c(sx, sy, sz)))
+
+	sx <- s_var(x)
+	sy <- s_var(y)
+	sz <- s_var(z)
+	expect_equal(var(xyz), as.numeric(stat_c(sx, sy, sz)))
 
 })
 
@@ -194,6 +210,10 @@ test_that("streaming matrix statistics", {
 	sy <- s_rowstats(y, "var", na.rm=TRUE)
 	expect_equal(as.numeric(apply(xy, 1, var, na.rm=TRUE)), as.numeric(stat_c(sx, sy)))
 
+	sx <- s_rowstats(x, "sd", na.rm=TRUE)
+	sy <- s_rowstats(y, "sd", na.rm=TRUE)
+	expect_equal(as.numeric(apply(xy, 1, sd, na.rm=TRUE)), as.numeric(stat_c(sx, sy)))
+
 })
 
 test_that("streaming matrix statistics (grouped)", {
@@ -205,8 +225,8 @@ test_that("streaming matrix statistics (grouped)", {
 	cgroupx <- sample(4, ncol(x), replace=TRUE)
 	cgroupy <- sample(4, ncol(y), replace=TRUE)
 	
-	rgroupx <- sample(6, nrow(x), replace=TRUE)
-	rgroupy <- sample(6, nrow(y), replace=TRUE)
+	rgroupx <- sample(7, nrow(x), replace=TRUE)
+	rgroupy <- sample(7, nrow(y), replace=TRUE)
 
 	cxy <- cbind(x, y)
 	rxy <- rbind(x, y)
@@ -233,6 +253,27 @@ test_that("streaming matrix statistics (grouped)", {
 	sy <- s_colstats(y, "var", rgroupy)
 	ans1 <- stat_c(sx, sy)
 	ans2 <- t(aggregate(rxy, list(c(rgroupx, rgroupy)), "var")[-1L])
+	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+
+	set.seed(1)
+	x <- matrix(rnorm(50), nrow=5, ncol=10)
+	y <- matrix(rnorm(50), nrow=5, ncol=10)
+	
+	groupx <- sample(4, ncol(x), replace=TRUE)
+	groupy <- sample(4, ncol(y), replace=TRUE)
+
+	xy <- cbind(x, y)
+
+	sx <- s_rowstats(x, "var", groupx)
+	sy <- s_rowstats(y, "var", groupy)
+	ans1 <- stat_c(sx, sy)
+	ans2 <- t(aggregate(t(xy), list(c(groupx, groupy)), "var")[-1L])
+	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+
+	sx <- s_rowstats(x, "sd", groupx)
+	sy <- s_rowstats(y, "sd", groupy)
+	ans1 <- stat_c(sx, sy)
+	ans2 <- t(aggregate(t(xy), list(c(groupx, groupy)), "sd")[-1L])
 	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
 
 })
