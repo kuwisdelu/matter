@@ -3,7 +3,7 @@ require(matter)
 
 context("scale")
 
-test_that("sweep", {
+test_that("sweep - matter matrix", {
 
 	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))
@@ -19,15 +19,19 @@ test_that("sweep", {
 	cgroup <- as.integer(c(1, 1, 1, 1, 2, 2, 2))
 	rgroup <- as.integer(c(1, 1, 1, 2, 2))
 
-	expect_equal(rowsweep(x, 1, a1), rowsweep(y, 1, a1)[])
-	expect_equal(rowsweep(x, cgroup, a), rowsweep(y, cgroup, a)[])
+	expect_equal(rowsweep(x, a1), rowsweep(y, a1)[])
+	expect_equal(
+		rowsweep(x, a, group=cgroup),
+		rowsweep(y, a, group=cgroup)[])
 
-	expect_equal(colsweep(x, 1, b1), colsweep(y, 1, b1)[])
-	expect_equal(colsweep(x, rgroup, b), colsweep(y, rgroup, b)[])
+	expect_equal(colsweep(x, b1), colsweep(y, b1)[])
+	expect_equal(
+		colsweep(x, b, group=rgroup),
+		colsweep(y, b, group=rgroup)[])
 
 })
 
-test_that("sparse sweep", {
+test_that("sweep - sparse matrix", {
 
 	set.seed(2)
 	x <- rbinom(35, 1, 0.4)
@@ -44,11 +48,37 @@ test_that("sparse sweep", {
 	cgroup <- as.integer(c(1, 1, 1, 1, 2, 2, 2))
 	rgroup <- as.integer(c(1, 1, 1, 2, 2))
 
-	expect_equal(rowsweep(x, 1, a1), rowsweep(y, 1, a1)[])
-	expect_equal(rowsweep(x, cgroup, a), rowsweep(y, cgroup, a)[])
+	expect_equal(rowsweep(x, a1), rowsweep(y, a1)[])
+	expect_equal(
+		rowsweep(x, a, group=cgroup),
+		rowsweep(y, a, group=cgroup)[])
 
-	expect_equal(colsweep(x, 1, b1), colsweep(y, 1, b1)[])
-	expect_equal(colsweep(x, rgroup, b), colsweep(y, rgroup, b)[])
+	expect_equal(colsweep(x, b1), colsweep(y, b1)[])
+	expect_equal(
+		colsweep(x, b, group=rgroup),
+		colsweep(y, b, group=rgroup)[])
+
+})
+
+test_that("scale - matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	vals <- sort(round(10 * runif(35), 2))
+	x <- matrix(vals, nrow=5, ncol=7)
+
+	expect_equivalent(scale(x), colscale(x))
+	expect_equivalent(scale(x, scale=FALSE), colscale(x, scale=FALSE))
+	expect_equivalent(scale(x, center=FALSE), colscale(x, center=FALSE))
+
+	expect_equivalent(t(scale(t(x))), rowscale(x))
+	expect_equivalent(t(scale(t(x), scale=FALSE)), rowscale(x, scale=FALSE))
+	expect_equivalent(t(scale(t(x), center=FALSE)), rowscale(x, center=FALSE))
+
+	cgroup <- as.integer(c(1, 1, 1, 1, 2, 2, 2))
+	rgroup <- as.integer(c(1, 1, 1, 2, 2))
+
+	colscale(x, group=rgroup) # FIXME: test me!
 
 })
 

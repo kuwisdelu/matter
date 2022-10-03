@@ -522,36 +522,23 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NU
 #### Miscellaneous internal functions ####
 ## --------------------------------------
 
-apply_int <- function(x, margin, fun, fun.value, ...) {
-	fun <- match.fun(fun)
-	if ( margin == 1L ) {
-		vapply(seq_len(nrow(x)), function(i) fun(x[i,,drop=TRUE], ...), fun.value)
-	} else if ( margin == 2L ) {
-		vapply(seq_len(ncol(x)), function(j) fun(x[,j,drop=TRUE], ...), fun.value)
-	} else {
-		stop("internal 'apply' error")
-	}
+apply_int <- function(X, MARGIN, FUN, FUN.VALUE, ...) {
+	FUN <- match.fun(FUN)
+	if ( !MARGIN %in% c(1L, 2L) )
+		stop("MARGIN must be 1 or 2")
+	switch(MARGIN,
+		vapply(seq_len(nrow(X)), function(i)
+			FUN(X[i,,drop=TRUE], ...), FUN.VALUE),
+		vapply(seq_len(ncol(X)), function(j)
+			FUN(X[,j,drop=TRUE], ...), FUN.VALUE))
 }
 
 bplapply_int <- function(X, FUN, ..., BPPARAM = NULL) {
-	if ( is.null(BPPARAM) ) {
-		lapply(X, FUN, ...)
-	} else {
+	if ( !is.null(BPPARAM) ) {
 		bplapply(X, FUN, ..., BPPARAM=BPPARAM)
+	} else {
+		lapply(X, FUN, ...)
 	}
-}
-
-collect_by_key <- function(x, reduce) {
-	keys <- unique(names(x))
-	ans <- lapply(keys, function(k) {
-		Reduce(reduce, unname(x[names(x) %in% k]))
-	})
-	names(ans) <- keys
-	ans
-}
-
-combine_list <- function(list) {
-	Reduce(match.fun("c"), list)
 }
 
 roll <- function(x, width = 3L, na.drop = FALSE, fill = NA) {

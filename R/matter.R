@@ -62,7 +62,7 @@ setReplaceMethod("atomdata", "matter", function(object, value) {
 setMethod("type", "matter", function(x) x@type)
 
 setReplaceMethod("type", "matter", function(x, value) {
-	x@type <- value
+	x@type <- as_Rtype(value)
 	if ( validObject(x) )
 		x
 })

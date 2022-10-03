@@ -9,6 +9,42 @@ setMethod("colStats", "ANY",
 		colStats_int(x, ..., BPPARAM = bpparam())
 	})
 
+setMethod("rowStats", "matter_mat",
+	function(x, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			rowStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+		} else {
+			rowStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+		}
+	})
+
+setMethod("colStats", "matter_mat",
+	function(x, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			colStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+		} else {
+			colStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+		}
+	})
+
+setMethod("rowStats", "sparse_mat",
+	function(x, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			rowStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+		} else {
+			rowStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+		}
+	})
+
+setMethod("colStats", "sparse_mat",
+	function(x, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			colStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+		} else {
+			colStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+		}
+	})
+
 rowStats_int <- function(x, stat, group = NULL,
 	na.rm = FALSE, simplify = TRUE, drop = TRUE,
 	iter.dim = 1L, BPPARAM = bpparam(), ...)
@@ -39,18 +75,15 @@ rowStats_int <- function(x, stat, group = NULL,
 		function(s) {
 			if ( is.array(s) )
 				rownames(s) <- rownames(x)
-			drop_attr(s)
+			if ( simplify )
+				s <- drop_attr(s)
+			s
 		})
 	names(ans) <- stat
 	if ( simplify )
 		ans <- simplify2array(ans)
-	if ( drop ) {
-		if ( !is.list(ans) ) {
-			ans <- drop(ans)
-		} else if ( length(ans) == 1L ) {
-			ans <- ans[[1L]]
-		}
-	}
+	if ( drop && !is.list(ans) )
+		ans <- drop(ans)
 	ans
 }
 
@@ -84,18 +117,15 @@ colStats_int <- function(x, stat, group = NULL,
 		function(s) {
 			if ( is.array(s) )
 				rownames(s) <- colnames(x)
-			drop_attr(s)
+			if ( simplify )
+				s <- drop_attr(s)
+			s
 		})
 	names(ans) <- stat
 	if ( simplify )
 		ans <- simplify2array(ans)
-	if ( drop ) {
-		if ( !is.list(ans) ) {
-			ans <- drop(ans)
-		} else if ( length(ans) == 1L ) {
-			ans <- ans[[1L]]
-		}
-	}
+	if ( drop && !is.list(ans) )
+		ans <- drop(ans)
 	ans
 }
 

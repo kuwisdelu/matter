@@ -32,19 +32,19 @@ setGeneric("biglm", signature=c("formula", "data"))
 ## --------------------------------------------
 
 setGeneric("rowsweep", signature=c("x"),
-	function(x, group, STATS, FUN = "-", ...)
+	function(x, STATS, FUN = "-", ...)
 		standardGeneric("rowsweep"))
 
 setGeneric("colsweep", signature=c("x"),
-	function(x, group, STATS, FUN = "-", ...)
+	function(x, STATS, FUN = "-", ...)
 		standardGeneric("colsweep"))
 
 setGeneric("rowscale", signature=c("x"),
-	function(x, group, center = TRUE, scale = TRUE, ...)
+	function(x, center = TRUE, scale = TRUE, ...)
 		standardGeneric("rowscale"))
 
 setGeneric("colscale", signature=c("x"),
-	function(x, group, center = TRUE, scale = TRUE, ...)
+	function(x, center = TRUE, scale = TRUE, ...)
 		standardGeneric("colscale"))
 
 setGeneric("rowStats", function(x, ...) standardGeneric("rowStats"))

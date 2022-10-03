@@ -2,6 +2,12 @@
 TODO for matter package
 -------------------------
 
+- Add s_vecstats() and vecStats()
+- Implement summary statistics for matter
+- Implement rowscale() and colscale() for matter
+- Implement signal.R with locmax() and peaklimits()
+- Implement biglm() and prcomp() for matter
+
 - Add Lanczos (sinc) interpolation filter
 - Add AUC (integration-based) interpolation filter
 - Implement combining using 'cbind2()' and 'rbind2()'
@@ -19,9 +25,6 @@ TODO for matter package
 - Implement more 'drle' methods (e.g., Ops group)
 - Compare on 'matter' objects returns logical 'drle'?
 - Add support for in-memory atoms (via '@source_ext'?)
-- Implement 'row_chunk_apply()' and 'col_chunk_apply()'?
-- Implement 'chunkApply()' as higher-level 'chunk_apply()'
-- Simplify 'stream_stat' classes/functions
 
 - Write updated vignette + switch vignete to R Markdown
 - Investigate access efficiency of ALTREP matter objects

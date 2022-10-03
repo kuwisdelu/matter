@@ -235,25 +235,25 @@ test_that("streaming matrix statistics (grouped)", {
 	sy <- s_rowstats(y, "mean", cgroupy)
 	ans1 <- stat_c(sx, sy)
 	ans2 <- t(aggregate(t(cxy), list(c(cgroupx, cgroupy)), "mean")[-1L])
-	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+	expect_equivalent(unclass(ans1), ans2)
 
 	sx <- s_colstats(x, "mean", rgroupx)
 	sy <- s_colstats(y, "mean", rgroupy)
 	ans1 <- stat_c(sx, sy)
 	ans2 <- t(aggregate(rxy, list(c(rgroupx, rgroupy)), "mean")[-1L])
-	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+	expect_equivalent(unclass(ans1), ans2)
 
 	sx <- s_rowstats(x, "var", cgroupx)
 	sy <- s_rowstats(y, "var", cgroupy)
 	ans1 <- stat_c(sx, sy)
 	ans2 <- t(aggregate(t(cxy), list(c(cgroupx, cgroupy)), "var")[-1L])
-	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+	expect_equivalent(unclass(ans1), ans2)
 
 	sx <- s_colstats(x, "var", rgroupx)
 	sy <- s_colstats(y, "var", rgroupy)
 	ans1 <- stat_c(sx, sy)
 	ans2 <- t(aggregate(rxy, list(c(rgroupx, rgroupy)), "var")[-1L])
-	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+	expect_equivalent(unclass(ans1), ans2)
 
 	set.seed(1)
 	x <- matrix(rnorm(50), nrow=5, ncol=10)
@@ -268,13 +268,13 @@ test_that("streaming matrix statistics (grouped)", {
 	sy <- s_rowstats(y, "var", groupy)
 	ans1 <- stat_c(sx, sy)
 	ans2 <- t(aggregate(t(xy), list(c(groupx, groupy)), "var")[-1L])
-	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+	expect_equivalent(unclass(ans1), ans2)
 
 	sx <- s_rowstats(x, "sd", groupx)
 	sy <- s_rowstats(y, "sd", groupy)
 	ans1 <- stat_c(sx, sy)
 	ans2 <- t(aggregate(t(xy), list(c(groupx, groupy)), "sd")[-1L])
-	expect_equal(unclass(ans1), ans2, check.attributes=FALSE)
+	expect_equivalent(unclass(ans1), ans2)
 
 })
 
