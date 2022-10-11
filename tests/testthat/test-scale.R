@@ -78,7 +78,27 @@ test_that("scale - matrix", {
 	cgroup <- as.integer(c(1, 1, 1, 1, 2, 2, 2))
 	rgroup <- as.integer(c(1, 1, 1, 2, 2))
 
-	colscale(x, group=rgroup) # FIXME: test me!
+	center <- colStats(x, "mean", group=rgroup)
+	x2 <- t(sapply(1:nrow(x), function(i) x[i,] - center[,rgroup[i]]))
+	x3 <- colscale(x, scale=FALSE, group=rgroup)
+	expect_equivalent(x2, x3)
+
+	center <- rowStats(x, "mean", group=cgroup)
+	x2 <- sapply(1:ncol(x), function(i) x[,i] - center[,cgroup[i]])
+	x3 <- rowscale(x, scale=FALSE, group=cgroup)
+	expect_equivalent(x2, x3)
+
+	scale <- colStats(x^2, "sum", group=rgroup)
+	scale <- sqrt(scale / pmax(1, (rep(tabulate(rgroup), each=ncol(x)) - 1)))
+	x2 <- t(sapply(1:nrow(x), function(i) x[i,] / scale[,rgroup[i]]))
+	x3 <- colscale(x, center=FALSE, group=rgroup)
+	expect_equivalent(x2, x3)
+
+	scale <- rowStats(x^2, "sum", group=cgroup)
+	scale <- sqrt(scale / pmax(1, (rep(tabulate(cgroup), each=nrow(x)) - 1)))
+	x2 <- sapply(1:ncol(x), function(i) x[,i] / scale[,cgroup[i]])
+	x3 <- rowscale(x, center=FALSE, group=cgroup)
+	expect_equivalent(x2, x3)
 
 })
 
