@@ -3,20 +3,15 @@ require(matter)
 
 context("altrep")
 
-register(SerialParam())
-
 test_that("altrep raw", {
 
 	x <- charToRaw("hello, world!")
-
 	y <- matter_vec(x)
-
 	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
 	s <- serialize(z, NULL)
-
 	u <- unserialize(s)
 
 	expect_equal(head(x), head(u))
@@ -26,17 +21,13 @@ test_that("altrep raw", {
 test_that("altrep logical", {
 
 	x <- c(TRUE, TRUE, TRUE, FALSE, FALSE, TRUE)
-
 	y <- matter_vec(x)
-
 	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
-
 	expect_equal(sum(x), sum(z))
 
 	s <- serialize(z, NULL)
-
 	u <- unserialize(s)
 
 	expect_equal(head(x), head(u))
@@ -46,17 +37,13 @@ test_that("altrep logical", {
 test_that("altrep integer", {
 
 	x <- seq_len(100)
-
 	y <- matter_vec(x)
-
 	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
-
 	expect_equal(sum(x), sum(z))
 
 	s <- serialize(z, NULL)
-
 	u <- unserialize(s)
 
 	expect_equal(head(x), head(u))
@@ -66,17 +53,13 @@ test_that("altrep integer", {
 test_that("altrep real", {
 
 	x <- as.numeric(seq_len(100))
-
 	y <- matter_vec(x)
-
 	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
-
 	expect_equal(sum(x), sum(z))
 
 	s <- serialize(z, NULL)
-
 	u <- unserialize(s)
 
 	expect_equal(head(x), head(u))
@@ -86,15 +69,12 @@ test_that("altrep real", {
 test_that("altrep string", {
 
 	x <- c("hello", "world!")
-
 	y <- matter_str(x)
-
 	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
 
 	s <- serialize(z, NULL)
-
 	u <- unserialize(s)
 
 	expect_equal(head(x), head(u))
@@ -104,21 +84,16 @@ test_that("altrep string", {
 test_that("altrep matrix", {
 
 	x <- matrix(1:100, nrow=10, ncol=10)
-
 	y <- matter_mat(x)
-
 	z <- as.altrep(y)
 
 	expect_equal(x[1:3,1:3], z[1:3,1:3])
-
 	expect_equal(sum(x), sum(z))
 
 	s <- serialize(z, NULL)
-
 	u <- unserialize(s)
 
 	expect_equal(head(x), head(u))
-
 	expect_equal(dim(x), dim(u))
 
 })
@@ -126,21 +101,16 @@ test_that("altrep matrix", {
 test_that("altrep array", {
 
 	x <- array(1:125, dim=c(5,5,5))
-
 	y <- matter_arr(x)
-
 	z <- as.altrep(y)
 
 	expect_equal(x[1:3,1:3,1:3], z[1:3,1:3,1:3])
-
 	expect_equal(sum(x), sum(z))
 
 	s <- serialize(z, NULL)
-
 	u <- unserialize(s)
 
 	expect_equal(head(x), head(u))
-
 	expect_equal(dim(x), dim(u))
 
 })
@@ -149,26 +119,12 @@ test_that("altrep array", {
 test_that("altrep factor", {
 
 	x <- factor(c("neon", "genesis", "evangelion"))
-
-	y <- matter_fc(x)
-
+	y <- matter_fct(x)
 	z <- as.altrep(y)
 
 	expect_equal(head(x), head(z))
-
 	expect_equal(levels(x), levels(z))
 
 })
 
-test_that("altrep data frame", {
-
-	x <- data.frame(a=1:10, b=11:20, c=letters[1:10])
-
-	y <- matter_df(x)
-
-	z <- as.altrep(y)
-
-	expect_equivalent(head(x), head(z))
-
-})
 

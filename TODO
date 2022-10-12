@@ -4,16 +4,14 @@ TODO for matter package
 
 - Add s_vecstats() and vecStats()
 - Implement summary statistics for matter
-- Implement rowscale() and colscale() for matter
 - Implement signal.R with locmax() and peaklimits()
-- Implement biglm() and prcomp() for matter
+- Update biglm() and prcomp() for new matter objects
 
 - Add Lanczos (sinc) interpolation filter
 - Add AUC (integration-based) interpolation filter
 - Implement combining using 'cbind2()' and 'rbind2()'
 - Implement and test combining vectors/matrices/etc.
 
-- Refactor original matter S4 data structures R/C++ code
 - Clean up generics and remove unneeded methods/functions
 	- Deprecate 'keys()' -> 'domain()'
 	- Deprecate 'datamode()' -> 'type()' (but maybe not?)

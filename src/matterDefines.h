@@ -450,6 +450,17 @@ size_t fill(T * buffer, size_t size, T val, int stride = 1)
 	return size;
 }
 
+inline bool is_Rclass(SEXP x, const char * what)
+{
+	if ( Rf_isS4(x) )
+	{
+		const char * valid[] = {what, "\0"};
+		return R_check_class_etc(x, valid) >= 0;
+	}
+	else
+		return Rf_inherits(x, what);
+}
+
 inline SEXP extract_region(SEXP x, R_xlen_t i, R_xlen_t n)
 {
 	SEXP ans;
