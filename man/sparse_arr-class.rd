@@ -1,17 +1,15 @@
-\name{sparse_mat-class}
+\name{sparse_arr-class}
 \docType{class}
+
+\alias{class:sparse_arr}
+
+\alias{class:sparse_mat}
+\alias{sparse_mat}
+\alias{sparse_mat-class}
 
 \alias{class:sparse_vec}
 \alias{sparse_vec}
 \alias{sparse_vec-class}
-
-\alias{class:sparse_mat}
-\alias{sparse_mat}
-\alias{sparse_matc}
-\alias{sparse_matr}
-\alias{sparse_mat-class}
-\alias{sparse_matc-class}
-\alias{sparse_matr-class}
 
 \alias{aindex}
 \alias{aindex,sparse_-method}

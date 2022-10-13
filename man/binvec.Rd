@@ -29,15 +29,11 @@ binvec(x, u, v, method = "sum")
 \examples{
 set.seed(1)
 
-x <- runif(20)
+x <- sort(runif(20))
 
 binvec(x, c(1,6,11,16), c(5,10,15,20), method="mean")
 
 binvec(x, seq(from=1, to=21, by=5), method="mean")
-
-g <- rep(c("a","b","c","d"), each=5)
-
-binvec(x, g, method="mean")
 }
 
 \keyword{utilities}

@@ -55,17 +55,22 @@ export(
 	"write_atoms")
 
 export(
+	"matter",
 	"is.matter",
+	"as.matter",
 	"matter_arr",
 	"matter_mat",
 	"matter_vec",
 	"matter_fct",
 	"matter_list",
 	"matter_str",
-	"sparse_mat",
-	"sparse_vec",
+	"struct")
+
+export(
 	"is.sparse",
-	"as.sparse")
+	"as.sparse",
+	"sparse_mat",
+	"sparse_vec")
 
 exportMethods(
 	"as.altrep",
@@ -101,11 +106,11 @@ exportMethods(
 	"tolerance<-",
 	"sampler",
 	"sampler<-",
-	"keys",
-	"keys<-",
 	"nnzero")
 
 exportMethods(
+	"keys",
+	"keys<-",
 	"paths",
 	"paths<-",
 	"datamode",

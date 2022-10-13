@@ -15,14 +15,14 @@ setClass("matter_str",
 	})
 
 matter_str <- function(data, type = "character", path = NULL,
-	lengths = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
+	nchar = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, encoding = "unknown", ...)
 {
 	if ( !missing(data) ) {
 		if ( !is.character(data) )
 			data <- as.character(data)
-		if ( anyNA(lengths) )
-			lengths <- as.vector(vapply(data, nchar, numeric(1), "bytes"))
+		if ( anyNA(nchar) )
+			nchar <- as.vector(vapply(data, nchar, numeric(1), "bytes"))
 		if ( is.null(names) )
 			names <- names(data)
 	}
@@ -38,12 +38,12 @@ matter_str <- function(data, type = "character", path = NULL,
 			warning("data may overwrite existing file(s): ",
 				paste0(sQuote(path[overwrite]), collapse=", "))
 	}
-	if ( anyNA(lengths) && anyNA(extent) ) {
-		extent <- lengths <- rep.int(0, length(lengths))
+	if ( anyNA(nchar) && anyNA(extent) ) {
+		extent <- nchar <- rep.int(0, length(nchar))
 	} else if ( anyNA(extent) ) {
-		extent <- lengths
-	} else if ( anyNA(lengths) ) {
-		lengths <- extent
+		extent <- nchar
+	} else if ( anyNA(nchar) ) {
+		nchar <- extent
 	}
 	if ( length(offset) != length(extent) && length(path) == 1L ) {
 		sizes <- sizeof(type) * extent
@@ -67,7 +67,7 @@ matter_str <- function(data, type = "character", path = NULL,
 			group=seq_along(extent) - 1L,
 			readonly=readonly),
 		type=as_Rtype(type),
-		dim=lengths,
+		dim=nchar,
 		names=names,
 		encoding=encoding, ...)
 	if ( !missing(data) && !is.null(data) )

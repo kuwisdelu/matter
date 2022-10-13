@@ -73,6 +73,23 @@ matter_list <- function(data, type = "double", path = NULL,
 	x
 }
 
+struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
+{
+	args <- list(...)
+	if ( any(lengths(args) != 1L) )
+		stop("all arguments must be length 1")
+	if ( any(sapply(args, function(a) is.null(names(a)))) )
+		stop("all arguments must be a named scalar")
+	if ( !is.null(filename) && length(filename) != 1L )
+		stop("'filename' must be a scalar string")
+	names <- names(args)
+	types <- sapply(args, names, USE.NAMES=FALSE)
+	lens <- as.integer(unlist(args))
+	offset <- offset + c(0, cumsum(sizeof(types) * lens)[-length(lens)])
+	matter_list(path=filename, type=types, offset=offset,
+		lengths=lens, names=names, readonly=readonly)
+}
+
 setMethod("describe_for_display", "matter_list", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("out-of-memory list")
