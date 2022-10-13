@@ -58,6 +58,12 @@ SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value);
 SEXP getSparseArray(SEXP x, SEXP i);
 SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 
+// Signal processing
+//------------------
+
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP func);
+SEXP localMaxima(SEXP x, SEXP width);
+
 } // extern "C"
 
 #endif // MATTER_EXPORTS

@@ -94,7 +94,7 @@ setMethod("dimnames", "matter", function(x) x@dimnames)
 
 setReplaceMethod("dimnames", "matter", function(x, value) {
 	if ( !is.null(value) )
-		value <- lapply(value, as.character)
+		value <- lapply(value, function(v) if(!is.null(v)) as.character(v))
 	x@dimnames <- value
 	if ( validObject(x) )
 		x

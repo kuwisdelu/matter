@@ -353,6 +353,24 @@ setMethod("t", "matter_arr", function(x)
 		x
 })
 
+setMethod("%*%", c("matter_mat", "vector"), function(x, y)
+{
+	if ( x@transpose ) {
+		rmatmul(x, as.matrix(y), useOuter=FALSE)
+	} else {
+		rmatmul(x, as.matrix(y), useOuter=TRUE)
+	}
+})
+
+setMethod("%*%", c("vector", "matter_mat"), function(x, y)
+{
+	if ( y@transpose ) {
+		lmatmul(t(x), y, useOuter=TRUE)
+	} else {
+		lmatmul(t(x), y, useOuter=FALSE)
+	}
+})
+
 setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
 {
 	if ( x@transpose ) {

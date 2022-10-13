@@ -173,10 +173,10 @@ setMethod("combine", c("drle_fct", "drle_fct"), function(x, y, ...) {
 })
 
 setMethod("combine", c("drle", "numeric"),
-	function(x, y, ...) combine(x[], y))
+	function(x, y, ...) c(x[], y))
 
 setMethod("combine", c("numeric", "drle"),
-	function(x, y, ...) combine(x, y[]))
+	function(x, y, ...) c(x, y[]))
 
 setMethod("c", "drle", function(x, ...)
 {

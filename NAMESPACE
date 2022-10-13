@@ -251,7 +251,9 @@ export(
 	"sizeof",
 	"vm_used")
 
-export("locmax")
+export(
+	"binvec",
+	"locmax")
 
 export("roll")
 
@@ -262,11 +264,9 @@ exportMethods(
 
 exportMethods("scale")
 
-exportMethods(
-	"biglm",
-	"bigglm")
-
 exportMethods("prcomp")
+
+exportMethods("bigglm")
 
 export(
 	"reldiff",

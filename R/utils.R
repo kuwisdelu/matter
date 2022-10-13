@@ -276,6 +276,11 @@ as_interp <- function(x) {
 	make_code(codes, x)
 }
 
+as_binfun <- function(x) {
+	codes <- c("sum", "mean", "max", "min")
+	make_code(codes, x[1L], nomatch=1L)
+}
+
 #### Miscellaneous utility functions ####
 ## --------------------------------------
 
@@ -718,22 +723,3 @@ profmem <- function(expr)
 		"max", "overhead", "time")
 	print.default(mem, quote=FALSE, right=TRUE)
 }
-
-#### Find local maxima and local minima ####
-## -----------------------------------------
-
-locmax <- function(x, halfWindow = 2, findLimits = FALSE)
-{
-	if ( halfWindow <= 0 )
-		stop("'halfWindow' must be a positive integer")
-	halfWindow <- as.integer(halfWindow)
-	ans <- .Call("C_localMaxima", x, halfWindow, PACKAGE="matter")
-	ans <- which(ans)
-	if ( findLimits ) {
-		lims <- .Call("C_regionMaxima", x, ans, halfWindow, PACKAGE="matter")
-		attr(ans, "lower") <- lims[[1]]
-		attr(ans, "upper") <- lims[[2]]
-	}
-	ans
-}
-

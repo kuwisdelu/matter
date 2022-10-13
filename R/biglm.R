@@ -5,30 +5,29 @@
 setMethod("bigglm", c("formula", "matter_mat"),
 	function(formula, data, ..., chunksize = NULL, fc = NULL)
 {
-	do_matrix_bigglm(formula, data, ..., chunksize=chunksize, fc=fc)
+	bigglm_int(formula, data, ..., chunksize=chunksize, fc=fc)
 })
 		
 
 setMethod("bigglm", c("formula", "sparse_mat"),
 	function(formula, data, ..., chunksize = NULL, fc = NULL)
 {
-		do_matrix_bigglm(formula, data, ..., chunksize=chunksize, fc=fc)
+	bigglm_int(formula, data, ..., chunksize=chunksize, fc=fc)
 })
 
-do_matrix_bigglm <- function(formula, data, ..., chunksize = NULL, fc = NULL)
+bigglm_int <- function(formula, data, ..., chunksize = NULL, fc = NULL)
 {
-	n <- nrow(data)
-	vars <- unique(c(all.vars(formula), fc))
-	p <- length(vars)
+	if ( !require(biglm) )
+		stop("failed to load required package 'biglm'")
 	if ( is.null(chunksize) )
-		chunksize <- chunksize(data) %/% p
-	getNextDataChunk <- virtual_mat_chunker(formula, data, chunksize, fc)
+		chunksize <- getOption("matter.default.chunksize")
+	getNextDataChunk <- matrix_chunker(formula, data, chunksize, fc)
 	bigglm(formula, getNextDataChunk, ...)
 }
 
 # based on code from package:biglm and package:biganalytics
 
-virtual_mat_chunker <- function(formula, data, chunksize, fc) {
+matrix_chunker <- function(formula, data, chunksize, fc) {
 	n <- nrow(data)
 	vars <- unique(c(all.vars(formula), fc))
 	current <- 1
@@ -50,25 +49,6 @@ virtual_mat_chunker <- function(formula, data, chunksize, fc) {
 			for ( name in names(fclevels) )
 				chunk[,name] <- factor(chunk[,name], levels=fclevels[[name]])
 		}
-		current <<- max(chunkrange) + 1
-		chunk
-	}
-}
-
-virtual_df_chunker <- function(formula, data, chunksize) {
-	n <- nrow(data)
-	vars <- all.vars(formula)
-	current <- 1
-	function(reset = FALSE) {
-		if ( reset ) {
-			current <<- 1
-			return(NULL)
-		}
-		if ( current > n )
-			return(NULL)
-		chunkrange <- current:(current + min(chunksize, n - current))
-		chunk <- sapply(vars, function(v) data[chunkrange,v,drop=FALSE], simplify=FALSE)
-		chunk <- as.data.frame(chunk)
 		current <<- max(chunkrange) + 1
 		chunk
 	}

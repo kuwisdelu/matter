@@ -1,102 +1,127 @@
 
-# statistical summaries
+#### Summarize arrays ####
+## -----------------------
 
-setMethod("range", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getRange", x, na.rm, PACKAGE="matter")
-	ret
-})
+setMethod("range", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_range,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("min", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getRange", x, na.rm, PACKAGE="matter")
-	ret <- ret[1]
-	ret
-})
+setMethod("min", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_min,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("max", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getRange", x, na.rm, PACKAGE="matter")
-	ret <- ret[2]
-	ret
-})
+setMethod("max", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_max,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("prod", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getProd", x, na.rm, PACKAGE="matter")
-	ret
-})
+setMethod("prod", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_prod,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("sum", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getSum", x, na.rm, PACKAGE="matter")
-	ret
-})
+setMethod("sum", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_sum,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("mean", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getMean", x, na.rm, PACKAGE="matter")
-	ret
-})
+setMethod("mean", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_mean,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("var", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getVar", x, na.rm, PACKAGE="matter")
-	ret
-})
+setMethod("var", "matter_arr",
+	function(x, na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_var,
+			na.rm=na.rm, simplify=stat_c))
+	})
 
-setMethod("sd", "matter", function(x, na.rm = FALSE) {
-	ret <- sqrt(.Call("C_getVar", x, na.rm, PACKAGE="matter"))
-	ret
-})
+setMethod("sd", "matter_arr",
+	function(x, na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_sd,
+			na.rm=na.rm, simplify=stat_c))
+	})
 
-setMethod("any", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getAny", x, na.rm, PACKAGE="matter")
-	ret
-})
+setMethod("any", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_any,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("all", "matter", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getAll", x, na.rm, PACKAGE="matter")
-	ret
-})
+setMethod("all", "matter_arr",
+	function(x, ..., na.rm = FALSE)
+	{
+		drop_attr(chunk_lapply(x, FUN=s_all,
+			na.rm=na.rm, simplify=stat_c, ...))
+	})
 
-setMethod("colSums", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getColSums", x, na.rm, PACKAGE="matter")
-	names(ret) <- colnames(x)
-	ret
-})
+#### Summarize matrix rows ####
+## ----------------------------
 
-setMethod("colMeans", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getColMeans", x, na.rm, PACKAGE="matter")
-	names(ret) <- colnames(x)
-	ret	
-})
+setMethod("rowSums", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="sum", ..., na.rm=na.rm)
+	})
 
-setMethod("colVars", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getColVars", x, na.rm, PACKAGE="matter")
-	names(ret) <- colnames(x)
-	ret
-})
+setMethod("rowMeans", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="mean", ..., na.rm=na.rm)
+	})
 
-setMethod("colSds", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- sqrt(.Call("C_getColVars", x, na.rm, PACKAGE="matter"))
-	names(ret) <- colnames(x)
-	ret
-})
+setMethod("rowSums", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="sum", ..., na.rm=na.rm)
+	})
 
-setMethod("rowSums", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getRowSums", x, na.rm, PACKAGE="matter")
-	names(ret) <- rownames(x)
-	ret
-})
+setMethod("rowMeans", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="mean", ..., na.rm=na.rm)
+	})
 
-setMethod("rowMeans", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getRowMeans", x, na.rm, PACKAGE="matter")
-	names(ret) <- rownames(x)
-	ret
-})
+#### Summarize matrix columns ####
+## -------------------------------
 
-setMethod("rowVars", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- .Call("C_getRowVars", x, na.rm, PACKAGE="matter")
-	names(ret) <- rownames(x)
-	ret
-})
+setMethod("colSums", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="sum", ..., na.rm=na.rm)
+	})
 
-setMethod("rowSds", "matter_mat", function(x, na.rm = FALSE) {
-	ret <- sqrt(.Call("C_getRowVars", x, na.rm, PACKAGE="matter"))
-	names(ret) <- rownames(x)
-	ret
-})
+setMethod("colMeans", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="mean", ..., na.rm=na.rm)
+	})
+
+setMethod("colSums", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="sum", ..., na.rm=na.rm)
+	})
+
+setMethod("colMeans", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="mean", ..., na.rm=na.rm)
+	})

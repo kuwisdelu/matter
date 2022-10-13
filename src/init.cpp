@@ -38,6 +38,9 @@ static const R_CallMethodDef callMethods[] = {
 	// sparse data structures
 	CALLDEF(getSparseArray, 2),
 	CALLDEF(getSparseMatrix, 3),
+	// signal processing
+	CALLDEF(binVector, 4),
+	CALLDEF(localMaxima, 2),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}

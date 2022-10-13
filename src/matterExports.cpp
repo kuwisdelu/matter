@@ -273,4 +273,49 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j)
 	return xm.get_submatrix(i, j);
 }
 
+// Signal processing
+//------------------
+
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP func)
+{
+	SEXP ans;
+	if ( LENGTH(lower) != LENGTH(upper) )
+		Rf_error("lower and upper bounds must have equal length");
+	PROTECT(ans = Rf_allocVector(REALSXP, XLENGTH(upper)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			bin_vector(INTEGER(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
+				REAL(ans), LENGTH(upper), Rf_asInteger(func));
+			break;
+		case REALSXP:
+			bin_vector(REAL(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
+				REAL(ans), LENGTH(upper), Rf_asInteger(func));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
+SEXP localMaxima(SEXP x, SEXP width)
+{
+	SEXP ans;
+	PROTECT(ans = Rf_allocVector(LGLSXP, XLENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			local_maxima(INTEGER(x), LENGTH(x),
+				Rf_asInteger(width), LOGICAL(ans));
+			break;
+		case REALSXP:
+			local_maxima(REAL(x), LENGTH(x),
+				Rf_asInteger(width), LOGICAL(ans));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
 } // extern "C"

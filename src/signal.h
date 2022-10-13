@@ -16,6 +16,12 @@
 #define EST_GAUS	9
 #define EST_SINC	10 // Lanczos
 
+// binning scheme
+#define BIN_SUM		1
+#define BIN_AVG		2
+#define BIN_MAX		3
+#define BIN_MIN		4
+
 //// Kernels
 //-----------
 
@@ -222,100 +228,75 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	return val;
 }
 
+//// Binning
+//------------
+
+template<typename T>
+void bin_vector(T * x, int n, int * lower, int * upper,
+	double * buffer, int nbin, int func = BIN_SUM)
+{
+	double * buf = buffer;
+	for ( size_t i = 0; i < nbin; i++ ) {
+		buf[i] = NA_REAL;
+		if ( lower[i] < 1 || lower[i] > n )
+			Rf_error("lower bin limit out of range");
+		if ( upper[i] < 1 || upper[i] > n )
+			Rf_error("upper bin limit out of range");
+		for ( size_t j = lower[i] - 1; j < upper[i] && j < n; j++ )
+		{
+			switch(func) {
+				case BIN_SUM:
+				case BIN_AVG:
+					buf[i] = isNA(buf[i]) ? x[j] : buf[i] + x[j];
+					break;
+				case BIN_MAX:
+					buf[i] = isNA(buf[i]) ? x[j] : (x[j] > buf[i] ? x[j] : buf[i]);
+					break;
+				case BIN_MIN:
+					buf[i] = isNA(buf[i]) ? x[j] : (x[j] < buf[i] ? x[j] : buf[i]);
+					break;
+			}
+		}
+		if ( func == BIN_AVG )
+			buf[i] /= (upper[i] - lower[i]) + 1;
+	}
+}
+
 //// Peak detection
 //------------------
 
-// template<typename Tx, typename Ty>
-// double peakwidth(Ty * y, Tx * x, index_t i, size_t len)
-// {
-// 	index_t pj[] = {i, i};
-// 	double pH[] = {1, 1};
-// 	double H, dy, dx;
-// 	for ( index_t j = i; j < len; j++ )
-// 	{
-// 		H = y[j] / y[i];
-// 		if ( rel_diff(H, 0.5) < pH[0] ) {
-// 			pj[0] = j;
-// 			pH[0] = H;
-// 			if ( H < 0.5 )
-// 				break;
-// 		}
-// 		else if ( j + 1 < len ) {
-// 			dy = rel_change(y[j + 1], y[j]);
-// 			dx = rel_change(x[j + 1], x[j]);
-// 			if ( dy / dx >= 0 )
-// 				break;
-// 		}
-// 	}
-// 	for ( index_t j = i - 1; j >= 0; j-- )
-// 	{
-// 		H = y[j] / y[i];
-// 		if ( rel_diff(H, 0.5) < pH[1] ) {
-// 			pj[1] = j;
-// 			pH[1] = H;
-// 			if ( H < 0.5 )
-// 				break;
-// 		}
-// 		else if ( j - 1 >= 0 ) {
-// 			dy = rel_change(y[j], y[j - 1]);
-// 			dx = rel_change(x[j], x[j - 1]);
-// 			if ( dy / dx <= 0 )
-// 				break;
-// 		}
-// 	}
-// 	return rel_diff(x[pj[0]], x[pj[1]]);
-// }
-
-// template<typename Tx, typename Tout>
-// SEXP local_maxima(Tx * x, int width, int len, Tout * buffer) {
-// 	size_t n = 0, a = 0, b = len, r = abs(width / 2);
-// 	for ( int i = 0; i < len; i++ )
-// 	{
-// 		buffer[i] = FALSE;
-// 		a = (i - r) > 0 ? (i - r) : 0;
-// 		b = (i + r) < (len - 1) ? (i + r) : (len - 1);
-// 		for ( size_t j = a; j >= 0 && j <= b; j++ )
-// 		{
-// 			buffer[i] = true;
-// 			if ( j < i )
-// 			{
-// 				if ( x[j] >= x[i] )
-// 				{
-// 					buffer[i] = FALSE;
-// 					break;
-// 				}
-// 			}
-// 			if ( j > i )
-// 			{
-// 				if ( x[j] > x[i] )
-// 				{
-// 					buffer[i] = FALSE;
-// 					break;
-// 				}
-// 			}
-// 			n++;
-// 		}
-// 	}
-// 	return n;
-// }
-
-// template<typename T>
-// SEXP bin_means(T * x, int * lower, int * upper, int length, int nbin)
-// {
-//     SEXP ret;
-//     PROTECT(ret = Rf_allocVector(REALSXP, nbin));
-//     double * pRet = REAL(ret);
-//     for ( int i = 0; i < nbin; i++ ) {
-//     	pRet[i] = 0;
-//     	if ( lower[i] < 1 || upper[i] < 1 )
-//     		Rf_error("bin limits must be positive");
-//         for ( int j = lower[i] - 1; j < upper[i] && j < length; j++ )
-//         	pRet[i] += x[j];
-//         int n = (upper[i] - lower[i]) + 1;
-//         pRet[i] /= n;
-//     }
-//     UNPROTECT(1);
-//     return ret;
-// }
+template<typename T>
+size_t local_maxima(T * x, size_t n, int width, int * buffer)
+{
+	size_t nmax = 0, a = 0, b = n, r = abs(width / 2);
+	for ( size_t i = 0; i < n; i++ )
+	{
+		buffer[i] = false;
+		a = (i - r) > 0 ? (i - r) : 0;
+		b = (i + r) < (n - 1) ? (i + r) : (n - 1);
+		for ( size_t j = a; j >= 0 && j <= b; j++ )
+		{
+			buffer[i] = true;
+			if ( j < i )
+			{
+				if ( x[j] >= x[i] )
+				{
+					buffer[i] = false;
+					break;
+				}
+			}
+			if ( j > i )
+			{
+				if ( x[j] > x[i] )
+				{
+					buffer[i] = false;
+					break;
+				}
+			}
+			nmax++;
+		}
+	}
+	return nmax;
+}
 
 #endif // SIGNAL
