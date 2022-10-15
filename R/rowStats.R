@@ -87,6 +87,8 @@ rowStats_int <- function(x, stat, group = NULL,
 	ans
 }
 
+.rowStats <- rowStats_int
+
 colStats_int <- function(x, stat, group = NULL,
 	na.rm = FALSE, simplify = TRUE, drop = TRUE,
 	iter.dim = 2L, BPPARAM = bpparam(), ...)
@@ -128,4 +130,6 @@ colStats_int <- function(x, stat, group = NULL,
 		ans <- drop(ans)
 	ans
 }
+
+.colStats <- rowStats_int
 

@@ -18,7 +18,7 @@ matter_str <- function(data, type = "character", path = NULL,
 	nchar = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, encoding = "unknown", ...)
 {
-	if ( !missing(data) ) {
+	if ( !missing(data) && !is.null(data) ) {
 		if ( !is.character(data) )
 			data <- as.character(data)
 		if ( anyNA(nchar) )

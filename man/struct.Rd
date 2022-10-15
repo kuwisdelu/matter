@@ -9,7 +9,7 @@
 }
 
 \usage{
-struct(\dots, filename = NULL, filemode = "rw", offset = 0)
+struct(\dots, filename = NULL, readonly = FALSE, offset = 0)
 }
 
 \arguments{
@@ -17,7 +17,7 @@ struct(\dots, filename = NULL, filemode = "rw", offset = 0)
 
 	\item{filename}{A single string giving the name of the file.}
 
-	\item{filemode}{The mode to use to open the file.}
+	\item{readonly}{Should the file be treated as read-only?}
 
 	\item{offset}{A scalar integer giving the offset from the beginning of the file.}
 }

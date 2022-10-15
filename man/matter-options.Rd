@@ -10,6 +10,10 @@
 	\itemize{
 	    \item{\code{options(matter.cast.warning=TRUE)}:}{Should a warning be emitted when casting between data types results in a loss of precision?}
 
+	    \item{\code{options(matter.compress.atoms=3)}:}{The compression ratio threshold to be used to determine when to compress atoms in a matter object. Setting to 0 or \code{FALSE} means that atoms are never compressed.}
+
+	    \item{\code{options(matter.default.nchunks=20L)}:}{The default number of chunks to use when iterating over matter objects.}
+
 	    \item{\code{options(matter.default.chunksize=1000000L)}:}{The default chunksize for new \code{matter} objects. This is the (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset. Must be an integer.}
 
 	    \item{\code{options(matter.show.head=TRUE)}:}{Should a preview of the beginning of the data be displayed when the object is printed?}

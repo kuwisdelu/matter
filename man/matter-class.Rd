@@ -65,13 +65,8 @@
 
 \alias{combine,atoms,ANY-method}
 
-\alias{push}
-\alias{pull}
-
 \alias{c,atoms-method}
 \alias{c,matter-method}
-
-\alias{which,matter-method}
 
 \alias{is.matter}
 \alias{as.matter}
@@ -103,25 +98,15 @@ as.matter(x, \dots)
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within files.}
+        \item{\code{data}:}{This slot stores any information necessary to access the data for the object (which may include the data itself and/or paths to file locations, etc.).}
 
-        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
-
-        \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
-
-        \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'r' for read-only access, or 'rw' for read/write access.}
-
-        \item{\code{chunksize}:}{The maximum number of elements which should be loaded into memory at once. Used by methods implementing summary statistics and linear algebra. Ignored when explicitly subsetting the dataset.}
-
-        \item{\code{length}:}{The length of the data.}
+        \item{\code{type}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'factor' with levels 'raw', 'logical', 'integer', 'numeric', or 'character'.}
 
         \item{\code{dim}:}{Either 'NULL' for vectors, or an integer vector of length one of more giving the maximal indices in each dimension for matrices and arrays.}
 
         \item{\code{names}:}{The names of the data elements for vectors.}
 
         \item{\code{dimnames}:}{Either 'NULL' or the names for the dimensions. If not 'NULL', then this should be a list of character vectors of the length given by 'dim' for each dimension. This is always 'NULL' for vectors.}
-
-        \item{\code{ops}:}{Delayed operations to be applied on atoms.}
     }
 }
 
@@ -136,20 +121,12 @@ as.matter(x, \dots)
 
         \item{\code{adata(x)}:}{An alias for atomdata(x).}
 
-        \item{\code{datamode(x), datamode(x) <- value}:}{Get or set 'datamode'.}
-
-        \item{\code{paths(x), paths(x) <- value}:}{Get or set 'paths'.}
-
-        \item{\code{filemode(x), filemode(x) <- value}:}{Get or set 'filemode'.}
-
-        \item{\code{readonly(x), readonly(x) <- value}:}{A shortcut for getting or setting 'filemode'.}
-
-        \item{\code{chunksize(x), chunksize(x) <- value}:}{Get or set 'filemode'.}
+        \item{\code{type(x), type(x) <- value}:}{Get or set data 'type'.}
     }
 
     Standard generic methods:
     \describe{
-        \item{\code{length(x), length(x) <- value}:}{Get or set 'length'.}
+        \item{\code{length(x), length(x) <- value}:}{Get or set length.}
 
         \item{\code{dim(x), dim(x) <- value}:}{Get or set 'dim'.}
 
@@ -166,13 +143,12 @@ as.matter(x, \dots)
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\linkS4class{matter_vec}},
-    \code{\linkS4class{matter_mat}},
     \code{\linkS4class{matter_arr}},
+    \code{\linkS4class{matter_mat}},
+    \code{\linkS4class{matter_vec}},
+    \code{\linkS4class{matter_fct}},
     \code{\linkS4class{matter_list}},
-    \code{\linkS4class{matter_fc}},
-    \code{\linkS4class{matter_str}},
-    \code{\linkS4class{matter_df}}
+    \code{\linkS4class{matter_str}}
 }
 
 \examples{
@@ -181,8 +157,8 @@ x <- matter(1:100, length=100)
 x
 
 ## Create a matter_mat matrix
-x <- matter(1:100, nrow=10, ncol=10)
-x
+y <- matter(1:100, nrow=10, ncol=10)
+y
 }
 
 \keyword{classes}

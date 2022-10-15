@@ -8,7 +8,7 @@ matter_list <- function(data, type = "double", path = NULL,
 	lengths = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, ...)
 {
-	if ( !missing(data) ) {
+	if ( !missing(data) && !is.null(data) ) {
 		if ( !is.list(data) )
 			data <- list(data)
 		if ( missing(type) )
@@ -86,7 +86,7 @@ struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
 	types <- sapply(args, names, USE.NAMES=FALSE)
 	lens <- as.integer(unlist(args))
 	offset <- offset + c(0, cumsum(sizeof(types) * lens)[-length(lens)])
-	matter_list(path=filename, type=types, offset=offset,
+	matter_list(NULL, path=filename, type=types, offset=offset,
 		lengths=lens, names=names, readonly=readonly)
 }
 
@@ -145,7 +145,7 @@ setMethod("[[", c(x = "matter_list"),
 setReplaceMethod("[[", c(x = "matter_list"),
 	function(x, i, value) {
 		i <- as_subscripts(i, x)
-		set_matter_list_elt(x, i, value)
+		set_matter_list_elt(x, i, NULL, value)
 	})
 
 setMethod("[", c(x = "matter_list"),
@@ -178,7 +178,7 @@ setReplaceMethod("$", c(x = "matter_list"),
 	function(x, name, value) {
 		i <- match(name, names(x))
 		if ( !is.na(i) ) {
-			set_matter_list_elt(x, i)
+			set_matter_list_elt(x, i, NULL, value)
 		} else {
 			stop("item ", sQuote(name), " to be replaced not found")
 		}

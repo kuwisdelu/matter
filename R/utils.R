@@ -9,7 +9,6 @@
 	options(matter.default.chunksize = 1000000L)
 	options(matter.show.head = TRUE)
 	options(matter.show.head.n = 6L)
-	options(matter.show.string.n = 20L)
 	options(matter.coerce.altrep = FALSE)
 	options(matter.coerce.altrep.list = FALSE)
 	options(matter.wrap.altrep = FALSE)

@@ -1,35 +1,60 @@
-\name{chunk_apply}
+\name{chunkApply}
 \docType{methods}
 
-\alias{chunk_apply}
+\alias{chunkApply}
+\alias{chunkLapply}
+\alias{chunkMapply}
+
+\alias{chunk_rowapply}
+\alias{chunk_colapply}
+\alias{chunk_lapply}
 \alias{chunk_mapply}
 
 \title{Apply Functions Over Chunks of a List, Vector, or Matrix}
 
 \description{
-    Perform equivalents of \code{apply}, \code{lapply}, and \code{mapply}, but over parallelized chunks of the data. This is most useful if accessing the data is potentially time-consuming, such as for file-based \code{matter} objects. Operating on chunks reduces the number of I/O operations.
+    Perform equivalents of \code{apply}, \code{lapply}, and \code{mapply}, but over parallelized chunks of data. This is most useful if accessing the data is potentially time-consuming, such as for file-based \code{matter} objects. Operating on chunks reduces the number of I/O operations.
 }
 
 \usage{
-chunk_apply(X, FUN, MARGIN, \dots, simplify = FALSE,
-    chunks = NA, view = c("element", "chunk"),
-    attr = list(), alist = list(), pattern = NULL,
-    outfile = NULL, verbose = FALSE,
-    BPREDO = list(), BPPARAM = bpparam())
+## Operate on elements/rows/columns
+chunkApply(X, MARGIN, FUN, \dots,
+    simplify = FALSE, outpath = NULL,
+    verbose = FALSE, BPPARAM = bpparam())
 
-chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
-    chunks = NA, view = c("element", "chunk"),
-    attr = list(), alist = list(), pattern = NULL,
-    outfile = NULL, verbose = FALSE,
-    BPREDO = list(), BPPARAM = bpparam())
+chunkLapply(X, FUN, \dots,
+    simplify = FALSE, outpath = NULL,
+    verbose = FALSE, BPPARAM = bpparam())
+
+chunkMapply(FUN, \dots,
+    simplify = FALSE, outpath = NULL,
+    verbose = FALSE, BPPARAM = bpparam())
+
+
+## Operate on complete chunks
+chunk_rowapply(X, FUN, \dots,
+    simplify = "c", nchunks = NA, depends = NULL,
+    verbose = FALSE, BPPARAM = bpparam())
+
+chunk_colapply(X, FUN, \dots,
+    simplify = "c", nchunks = NA, depends = NULL,
+    verbose = FALSE, BPPARAM = bpparam())
+
+chunk_lapply(X, FUN, \dots,
+    simplify = "c", nchunks = NA, depends = NULL,
+    verbose = FALSE, BPPARAM = bpparam())
+
+chunk_mapply(FUN, \dots, MoreArgs = NULL,
+    simplify = "c", nchunks = NA, depends = NULL,
+    verbose = FALSE, BPPARAM = bpparam())
 }
 
 \arguments{
-    \item{X}{A list, vector, or matrix for \code{chunk_apply()}. These may be any class that implements suitable methods for \code{[}, \code{[[}, \code{dim}, and \code{length()}. Only lists are supported for \code{chunk_mapply()}.}
-    
-    \item{FUN}{The function to be applied.}
+    \item{X}{A matrix for \code{chunkApply()}, a list or vector for \code{chunkLapply()}, or lists for \code{chunkMapply()}. These may be any class that implements suitable methods for \code{[}, \code{[[}, \code{dim}, and \code{length()}.}
 
     \item{MARGIN}{If the object is matrix-like, which dimension to iterate over. Must be 1 or 2, where 1 indicates rows and 2 indicates columns. The dimension names can also be used if \code{X} has \code{dimnames} set.}
+    
+    \item{FUN}{The function to be applied.}
 
     \item{MoreArgs}{A list of other arguments to \code{FUN}.}
 
@@ -37,59 +62,49 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL, simplify = FALSE,
 
     \item{simplify}{Should the result be simplified into a vector, matrix, or higher dimensional array?}
 
-    \item{chunks}{The number of chunks to use. If \code{NA} (the default), this is inferred from \code{chunksize(X)} for \code{matter} objects, or from \code{getOption("matter.default.chunksize")} for non-\code{matter} classes. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
+    \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is inferred from \code{getOption("matter.default.chunksize")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-    \item{view}{What should be passed as the argment to \code{FUN}: "element" means the vector element, row, or column are passed (same as the behavior of \code{lapply} and \code{apply}), and "chunk" means to pass the entire chunk.}
+    \item{depends}{A list with length equal to the extent of \code{X}. Each element of \code{depends} should give a vector of indices which correspond to other elements of \code{X} on which each computation depends. These elements are passed to \code{FUN}. For time  efficiency, no attempt is made to verify these indices are valid.}
 
-    \item{attr}{A named list of attributes that will be attached to the argument passed to \code{FUN} as-is.}
-
-    \item{alist}{A named list of vector-like attributes that will be attached to the argument passed to \code{FUN}, subsetted to the current elements. Typically, each attribute should be as long as \code{X}, unless \code{pattern} is specified, in which case each attribute should be as long as \code{pattern}.}
-
-    \item{pattern}{A list of indices giving a pattern over which to apply \code{FUN} to \code{X}. Each element of \code{pattern} should give a vector of indices which can be used subscript \code{X}. For time and space efficiency, no attempt is made to verify these indices are valid.}
-
-    \item{outfile}{If non-NULL, a file path where the results should be written as they are processed. If specified, \code{FUN} must return a 'raw', 'logical', 'integer', or 'numeric' vector. The result will be returned as a \code{matter} object.}
+    \item{outpath}{If non-NULL, a file path where the results should be written as they are processed. If specified, \code{FUN} must return a 'raw', 'logical', 'integer', or 'numeric' vector. The result will be returned as a \code{matter} object.}
 
     \item{verbose}{Should user messages be printed with the current chunk being processed?}
-
-    \item{BPREDO}{See documentation for \code{\link{bplapply}}.}
 
     \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 }
 
 \details{
-    When \code{view = "element"}:
+    For \code{chunkApply()}, \code{chunkLapply()}, and \code{chunkMapply()}:
 
     For vectors and lists, the vector is broken into some number of chunks according to \code{chunks}. The individual elements of the chunk are then passed to \code{FUN}.
 
     For matrices, the matrix is chunked along rows or columns, based on the number of \code{chunks}. The individual rows or columns of the chunk are then passed to \code{FUN}.
 
-    In this way, the first argument of \code{FUN} is analogous to using the base \code{apply} and \code{lapply} functions.
+    In this way, the first argument of \code{FUN} is analogous to using the base \code{apply}, \code{lapply}, and \code{mapply} functions.
 
-    However, when \code{view = "chunk"}:
+    For \code{chunk_rowapply()}, \code{chunk_colapply()}, \code{chunk_lapply()}, and \code{chunk_mapply()}:
 
     In this situation, the entire chunk is passed to \code{FUN}, and \code{FUN} is responsible for knowing how to handle a sub-vector or sub-matrix of the original object. This may be useful if \code{FUN} is already a function that could be applied to the whole object such as \code{rowSums} or \code{colSums}.
 
-    When this is the case, it may be useful to provide a custom \code{simplify} function. Otherwise, the result will be returned as a list with length equal to the number of chunks, which must be post-processed to get into a desirable form.
+    When this is the case, it may be useful to provide a custom \code{simplify} function.
 
-    For convenience to the programmer, several attributes are made available when \code{view = "chunk"}.
+    For convenience to the programmer, several attributes are made available when operating on a chunk.
 
     \itemize{
 
-        \item{"chunk_id":}{The index of the chunk currently being processed by \code{FUN}.}
+        \item{"chunkid":}{The index of the chunk currently being processed by \code{FUN}.}
 
-        \item{"chunk_elt":}{The indices of the elements of the chunk, as rows/columns/elements in the original matrix/vector.}
+        \item{"index":}{The indices of the elements of the chunk, as elements/rows/columns in the original matrix/vector.}
 
-        \item{"pattern_id" (optional):}{The indices of the patterns that compose the current chunk.}
-
-        \item{"pattern_elt" (optional):}{The indices of the elements of the patterns, as rows/columns/elements in the original matrix/vector, that compose the current chunk.}
+        \item{"depends" (optional):}{If \code{depends} is given, then this is a list of indices within the chunk. The length of the list is equal to the number of elements/rows/columns that should be processed in the chunk. Each list element is a vector of indices giving the elements/rows/columns of the chunk that should be processed.}
 
     }
 
-    The \code{pattern} argument can be used to iterate over dependent elements of a vector, or dependent rows/columns of a matrix. This can be useful if the calculation for a particular row/column/element depends on the values of others.
+    The \code{depends} argument can be used to iterate over dependent elements of a vector, or dependent rows/columns of a matrix. This can be useful if the calculation for a particular row/column/element depends on the values of others.
 
-    When \code{pattern} is provided, multiple rows/columns/elements will be passed to \code{FUN}, even when \code{view="element"}. Each element of the \code{pattern} list should be a vector giving the indices that should be passed to \code{FUN}.
+    When \code{depends} is provided, multiple rows/columns/elements will be passed to \code{FUN}. Each element of the \code{depends} list should be a vector giving the indices that should be passed to \code{FUN}.
 
-    This can be used to implement a rolling apply function.
+    For example, this can be used to implement a rolling apply function.
 }
 
 \value{
@@ -110,7 +125,7 @@ register(SerialParam())
 set.seed(1)
 x <- matrix(rnorm(1000^2), nrow=1000, ncol=1000)
 
-out <- chunk_apply(x, mean, 1, chunks=20, verbose=TRUE)
+out <- chunkApply(x, 1L, mean, nchunks=10)
 }
 
 \keyword{methods}

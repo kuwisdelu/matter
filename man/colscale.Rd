@@ -1,26 +1,37 @@
-\name{scale}
+\name{colscale}
 \docType{methods}
 
-\alias{scale}
-\alias{scale.matter}
-\alias{scale,matter_mat-method}
+\alias{colscale}
+\alias{colscale,ANY-method}
+\alias{rowscale}
+\alias{rowscale,ANY-method}
 
-\title{Scaling and Centering of ``matter'' Matrices}
+\title{Scaling and Centering by Row or Column Based on Grouping}
 
 \description{
-    An implementation of \code{\link[base]{scale}} for \code{\linkS4class{matter_mat}} matrices.
+    Apply the equivalent of \code{\link[base]{scale}} to either columns or rows of a matrix, using a grouping variable.
 }
 
 \usage{
-\S4method{scale}{matter_mat}(x, center = TRUE, scale = TRUE)
+\S4method{colscale}{matter_mat}(x, center=TRUE, scale=TRUE,
+    group = NULL, \dots, BPPARAM = bpparam())
+
+\S4method{rowscale}{matter_mat}(x, center=TRUE, scale=TRUE,
+    group = NULL, \dots, BPPARAM = bpparam())
 }
 
 \arguments{
-    \item{x}{A \code{\linkS4class{matter_mat}} object.}
+    \item{x}{A matrix-like object.}
     
-    \item{center}{Either a logical value or a numeric vector of length equal to the number of columns of 'x'.}
+    \item{center}{Either a logical value or a numeric vector of length equal to the number of columns of 'x' (for \code{colscale()}) or the number of the rows of 'x' (for \code{rowscale()}). If a grouping variable is given, then this must be a matrix with number of columns equal to the number of groups.}
 
-    \item{scale}{Either a logical value or a numeric vector of length equal to the number of columns of 'x'.}
+    \item{scale}{Either a logical value or a numeric vector of length equal to the number of columns of 'x' (for \code{colscale()}) or the number of the rows of 'x' (for \code{rowscale()}). If a grouping variable is given, then this must be a matrix with number of columns equal to the number of groups.}
+
+    \item{group}{A vector or factor giving the groupings with length equal to the number of rows of 'x' (for \code{colscale()}) or the number of the columns of 'x' (for \code{rowscale()}).}
+
+    \item{\dots}{Arguments passed to \code{rowStats()} or \code{colStats()} respectively, if \code{center} or \code{scale} must be calculated.}
+
+    \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 }
 
 \details{
@@ -28,7 +39,7 @@
 }
 
 \value{
-	A \code{\linkS4class{matter_mat}} object with the appropriate `scaled:center' and `scaled:scale' attributes set. No data in virtual memory is changed, but the scaling will be applied any time the data is read. This includes but is not limited to loading data elements via subsetting, summary statistics methods, and matrix multiplication.
+	A matrix-like object (usually of the same class as \code{x}) with either `col-scaled:center' and `col-scaled:scale' attributes or `row-scaled:center' and `row-scaled:scale' attributes.
 }
 
 \author{Kylie A. Bemis}
@@ -40,7 +51,7 @@
 \examples{
 x <- matter(1:100, nrow=10, ncol=10)
 
-scale(x)
+colscale(x)
 }
 
 \keyword{methods}

@@ -20,8 +20,6 @@
 	    \item{\code{numeric}:}{\code{matter} objects represented as doubles in R.}
 
 	    \item{\code{character}:}{\code{matter} objects representated as character vectors in R.}
-
-	    \item{\code{virtual}:}{A number of \code{matter} objects do not necessarily represent out-of-memory data, or may include a number of components mixed between virtual memory and real memory; these will use this data mode.}
     }
 
     In virtual memory, \code{matter} objects may be composed of atomic units of the following data types:

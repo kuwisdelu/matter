@@ -99,13 +99,9 @@ sd(x)
 
 colSums(x)
 colMeans(x)
-colVars(x)
-colSds(x)
 
 rowSums(x)
 rowMeans(x)
-rowVars(x)
-rowSds(x)
 }
 
 \keyword{methods}

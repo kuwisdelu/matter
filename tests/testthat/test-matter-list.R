@@ -26,3 +26,13 @@ test_that("matter list indexing", {
 
 })
 
+test_that("matter struct", {
+
+	x <- struct(first=c(int=1), second=c(double=1))
+	x$first <- 2L
+	x$second <- 3.333
+
+	expect_equal(2L, x$first)
+	expect_equal(3.333, x$second)
+
+})

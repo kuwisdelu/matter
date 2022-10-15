@@ -56,20 +56,20 @@
 \title{Sparse Vectors and Matrices}
 
 \description{
-    The \code{sparse_mat} class implements sparse matrices, potentially stored out-of-memory. Both compressed-sparse-column (CSC) and compressed-sparse-row (CSR) formats are supported. Non-zero elements are internally represented as key-value pairs.
+    The \code{sparse_mat} class implements sparse matrices, potentially stored out-of-memory. Both compressed-sparse-column (CSC) and compressed-sparse-row (CSR) formats are supported. Sparse vectors are also supported through the \code{sparse_vec} class.
 }
 
 \usage{
 ## Instance creation
-sparse_vec(data, index, datamode = "double", length = 0,
-        names = NULL, domain = NULL, offset = 1L,
-        tolerance = c(abs=0), sampler = "none",
-        chunksize = getOption("matter.default.chunksize"), \dots)
+sparse_mat(data, index, type = "double",
+    nrow = NA_integer_, ncol = NA_integer_, dimnames = NULL,
+    pointers = NULL, domain = NULL, offset = 0L, rowMaj = FALSE,
+    tolerance = c(abs=0), sampler = "none", \dots)
 
-sparse_mat(data, index, datamode = "double", nrow = 0, ncol = 0,
-        rowMaj = FALSE, dimnames = NULL, domain = NULL, offset = 1L,
-        tolerance = c(abs=0), sampler = "none", pointers = NULL,
-        chunksize = getOption("matter.default.chunksize"), \dots)
+sparse_vec(data, index, type = "double",
+    length = NA_integer_, names = NULL,
+    domain = NULL, offset = 0L, rowMaj = FALSE,
+    tolerance = c(abs=0), sampler = "none", \dots)
 
 # Check if an object is a sparse matrix
 is.sparse(x)
@@ -85,13 +85,9 @@ as.sparse(x, \dots)
 
         \item{index}{TODO}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are R numeric and logical types ('logical', 'integer', 'numeric') and their C equivalents.}
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are R numeric and logical types ('logical', 'integer', 'numeric') and their C equivalents.}
 
-        \item{nrow}{An optional number giving the total number of rows.}
-
-        \item{ncol}{An optional number giving the total number of columns.}
-
-        \item{length}{An optional length giving the vector length.}
+        \item{nrow, ncol, length}{The number of rows and columns, or the length of the array.}
 
         \item{domain}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'.}
 
@@ -109,8 +105,6 @@ as.sparse(x, \dots)
 
         \item{pointers}{TODO}
 
-        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
-
         \item{x}{An object to check if it is a sparse matrix or coerce to a sparse matrix.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
@@ -118,17 +112,9 @@ as.sparse(x, \dots)
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{A length-2 'list' with elements 'keys' and 'values' which provide the halves of the key-value pairs of the non-zero elements.}
+        \item{\code{data}:}{This slot stores any information necessary to access the data for the object (which may include the data itself and/or paths to file locations, etc.).}
 
-        \item{\code{datamode}:}{The storage mode of the accessed data when read into R. This should a 'character' vector of length one with value 'integer' or 'numeric'.}
-
-        \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
-
-        \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'r' for read-only access, or 'rw' for read/write access.}
-
-        \item{\code{chunksize}:}{The maximum number of elements which should be loaded into memory at once. Used by methods implementing summary statistics and linear algebra. Ignored when explicitly subsetting the dataset.}
-
-        \item{\code{length}:}{The length of the data.}
+        \item{\code{type}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'factor' with levels 'raw', 'logical', 'integer', 'numeric', or 'character'.}
 
         \item{\code{dim}:}{Either 'NULL' for vectors, or an integer vector of length one of more giving the maximal indices in each dimension for matrices and arrays.}
 
@@ -136,13 +122,25 @@ as.sparse(x, \dots)
 
         \item{\code{dimnames}:}{Either 'NULL' or the names for the dimensions. If not 'NULL', then this should be a list of character vectors of the length given by 'dim' for each dimension. This is always 'NULL' for vectors.}
 
-        \item{\code{ops}:}{Delayed operations to be applied on atoms.}
+        \item{\code{index}:}{TODO}
 
-        \item{keys}{Either NULL or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If NULL, then the 'key' portion of the key-value pairs that make up the non-zero elements are assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The 'key' portion of each non-zero element is matched against this canonical set of keys using binary search. Allowed types for keys are 'integer', 'numeric', and 'character'.}
+        \item{\code{pointers}:}{TODO}
 
-        \item{\code{tolerance}:}{For 'numeric' keys, the tolerance used for floating-point equality when determining key matches. An attribute 'type' gives whether 'absolute' or 'relative' differences should be used for the comparison.}
+        \item{\code{domain}:}{TODO}
 
-        \item{\code{combiner}:}{This is a function determining how the row- or column-vectors should be combined (or not) when key matching collisions occur.}
+        \item{\code{offset}:}{TODO}
+
+        \item{\code{tolerance}:}{The tolerance to be used when matching indices from \code{index} to the \code{domain}. An attribute 'tol_type' gives whether 'absolute' or 'relative' differences should be used for the comparison.}
+
+        \item{\code{sampler}:}{This is a function determining how the row- or column-vectors should be combined (or not) when index matching collisions occur.}
+
+        \item{\code{ops}:}{Deferred arithmetic operations.}
+
+        \item{\code{transpose}}{Indicates whether the data is stored in row-major order (TRUE) or column-major order (FALSE). For a matrix, switching the order that the data is read is equivalent to transposing the matrix (without changing any data).}
+
+        
+
+        
     }
 }
 

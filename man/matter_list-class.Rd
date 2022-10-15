@@ -32,60 +32,44 @@
 
 \usage{
 ## Instance creation
-matter_list(data, datamode = "double", paths = NULL,
-            filemode = ifelse(all(file.exists(paths)), "r", "rw"),
-            offset = c(0, cumsum(sizeof(datamode) * extent)[-length(extent)]),
-            extent = lengths, lengths = 0, names = NULL, dimnames = NULL,
-            chunksize = getOption("matter.default.chunksize"), \dots)
+matter_list(data, type = "double", path = NULL,
+    lengths = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
+    readonly = NA, \dots)
 
 ## Additional methods documented below
 }
 
 \arguments{
-        \item{data}{An optional data list which will be initially written to the data in virtual memory if provided.}
+        \item{data}{An optional data vector which will be initially written to virtual memory if provided.}
 
-        \item{datamode}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric'). See \code{?datatypes} for details.}
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric'). See \code{?datatypes} for details.}
 
-        \item{paths}{A 'character' vector of the paths to the files where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
+        \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
-        \item{filemode}{The read/write mode of the files where the data are stored. This should be 'r' for read-only access, or 'rw' for read/write access.}
+        \item{lengths}{The lengths of the list elements.}
 
-        \item{offset}{A vector giving the offsets in number of bytes from the beginning of each file in 'paths', specifying the start of the data to be accessed for each file.}
+        \item{names}{The names of the list elements.}
 
-        \item{extent}{A vector giving the length of the data for each file in 'paths', specifying the number of elements of size 'datamode' to be accessed from each file.}
+        \item{offset}{A vector giving the offsets in number of bytes from the beginning of each file in 'path', specifying the start of the data to be accessed for each file.}
 
-        \item{lengths}{A vector giving the length of each element of the list.}
+        \item{extent}{A vector giving the length of the data for each file in 'path', specifying the number of elements of size 'type' to be accessed from each file.}
 
-        \item{names}{The names of the data elements.}
-
-        \item{dimnames}{The names of the data elements' data elements.}
-
-        \item{chunksize}{The (suggested) maximum number of elements which should be accessed at once by summary functions and linear algebra. Ignored when explicitly subsetting the dataset.}
+        \item{readonly}{Whether the data and file(s) should be treated as read-only or read/write.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }
 
 \section{Slots}{
     \describe{
-        \item{\code{data}:}{This slot stores the information about locations of the data in virtual memory and within the files.}
+        \item{\code{data}:}{This slot stores any information necessary to access the data for the object (which may include the data itself and/or paths to file locations, etc.).}
 
-        \item{\code{datamode}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'character' vector of with possible values 'raw', 'logical', 'integer', 'numeric', or 'virtual'.}
-
-        \item{\code{paths}:}{A 'character' vector of the paths to the files where the data are stored.}
-
-        \item{\code{filemode}:}{The read/write mode of the files where the data are stored. This should be 'r' for read-only access, or 'rw' for read/write access.}
-
-        \item{\code{chunksize}:}{The maximum number of elements which should be loaded into memory at once. Used by methods implementing summary statistics and linear algebra. Ignored when explicitly subsetting the dataset.}
-
-        \item{\code{length}:}{The length of the data.}
+        \item{\code{type}:}{The storage mode of the \emph{accessed} data when read into R. This is a 'factor' with levels 'raw', 'logical', 'integer', 'numeric', or 'character'.}
 
         \item{\code{dim}:}{Either 'NULL' for vectors, or an integer vector of length one of more giving the maximal indices in each dimension for matrices and arrays.}
 
         \item{\code{names}:}{The names of the data elements for vectors.}
 
         \item{\code{dimnames}:}{Either 'NULL' or the names for the dimensions. If not 'NULL', then this should be a list of character vectors of the length given by 'dim' for each dimension. This is always 'NULL' for vectors.}
-
-        \item{\code{ops}:}{Delayed operations to be applied on atoms.}
     }
 }
 

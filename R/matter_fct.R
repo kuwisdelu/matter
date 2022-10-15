@@ -22,7 +22,7 @@ matter_fct <- function(data, levels, type = "integer", path = NULL,
 	length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, labels = as.character(levels), ...)
 {
-	if ( !missing(data) ) {
+	if ( !missing(data) && !is.null(data) ) {
 		if ( is.na(length) )
 			length <- length(data)
 		if ( is.null(names) )
