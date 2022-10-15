@@ -1,6 +1,9 @@
 \name{colscale}
 \docType{methods}
 
+\alias{scale}
+\alias{scale,matter_mat-method}
+
 \alias{colscale}
 \alias{colscale,ANY-method}
 \alias{rowscale}
@@ -13,10 +16,10 @@
 }
 
 \usage{
-\S4method{colscale}{matter_mat}(x, center=TRUE, scale=TRUE,
+\S4method{colscale}{ANY}(x, center=TRUE, scale=TRUE,
     group = NULL, \dots, BPPARAM = bpparam())
 
-\S4method{rowscale}{matter_mat}(x, center=TRUE, scale=TRUE,
+\S4method{rowscale}{ANY}(x, center=TRUE, scale=TRUE,
     group = NULL, \dots, BPPARAM = bpparam())
 }
 

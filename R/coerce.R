@@ -1,16 +1,7 @@
 
 # coerce between matter subclasses and to base R types
 
-as.native <- function(x, ALTREP = getOption("matter.coerce.altrep"))
-{
-	if ( isTRUE(ALTREP) ) {
-		as.altrep(x)
-	} else {
-		x[]
-	}
-}
-
-as.nativelist <- function(x, ALTREP = getOption("matter.coerce.altrep.list"))
+as_native <- function(x, ALTREP = getOption("matter.coerce.altrep"))
 {
 	if ( isTRUE(ALTREP) ) {
 		as.altrep(x)
@@ -21,58 +12,58 @@ as.nativelist <- function(x, ALTREP = getOption("matter.coerce.altrep.list"))
 
 #### matter_vec ####
 
-setAs("matter_vec", "vector", function(from) as.native(from))
+setAs("matter_vec", "vector", function(from) as_native(from))
 
 setMethod("as.vector", "matter_vec",
 	function(x, mode = "any") {
 		switch(tolower(mode),
-			any=as.native(x),
+			any=as_native(x),
 			raw=as.raw(x),
 			logical=as.logical(x),
 			integer=as.integer(x),
 			double=as.double(x),
 			numeric=as.numeric(x),
-			altrep=as.native(x, ALTREP=TRUE),
+			altrep=as_native(x, ALTREP=TRUE),
 			stop("unsupported vector mode: '", mode, "'"))
 	})
 
 setMethod("as.raw", "matter_vec",
 	function(x)
 	{
-		datamode(x) <- "raw"
+		type(x) <- "raw"
 		names(x) <- NULL
-		as.native(x)
+		as_native(x)
 	})
 
 setMethod("as.logical", "matter_vec",
 	function(x, ...)
 	{
-		datamode(x) <- "logical"
+		type(x) <- "logical"
 		names(x) <- NULL
-		as.native(x, ...)
+		as_native(x, ...)
 	})
 
 setMethod("as.integer", "matter_vec",
 	function(x, ...)
 	{
-		datamode(x) <- "integer"
+		type(x) <- "integer"
 		names(x) <- NULL
-		as.native(x, ...)
+		as_native(x, ...)
 	})
 
 setMethod("as.numeric", "matter_vec",
 	function(x, ...)
 	{
-		datamode(x) <- "numeric"
+		type(x) <- "numeric"
 		names(x) <- NULL
-		as.native(x, ...)
+		as_native(x, ...)
 	})
 
 setMethod("as.character", "matter_vec",
 	function(x, ...)
 	{
 		names(x) <- NULL
-		as.character(as.native(x, ...))
+		as.character(as_native(x, ...))
 	})
 
 setMethod("as.matrix", "matter_vec",
@@ -83,11 +74,11 @@ setMethod("as.array", "matter_vec",
 
 #### matter_mat ####
 
-setAs("matter_mat", "matrix", function(from) as.native(from))
+setAs("matter_mat", "matrix", function(from) as_native(from))
 
-setMethod("as.matrix", "matter_mat", function(x, ...) as.native(x, ...))
+setMethod("as.matrix", "matter_mat", function(x, ...) as_native(x, ...))
 
-setMethod("as.array", "matter_arr", function(x, ...) as.native(as(x, "matter_arr"), ...))
+setMethod("as.array", "matter_arr", function(x, ...) as_native(as(x, "matter_arr"), ...))
 
 setMethod("as.vector", "matter_mat", function(x, mode = "any") as.vector(as(x, "matter_vec"), mode=mode))
 
@@ -101,11 +92,11 @@ setMethod("as.numeric", "matter_mat", function(x, ...) as.numeric(as(x, "matter_
 
 #### matter_arr ####
 
-setAs("matter_arr", "array", function(from) as.native(from))
+setAs("matter_arr", "array", function(from) as_native(from))
 
-setMethod("as.array", "matter_arr", function(x, ...) as.native(x, ...))
+setMethod("as.array", "matter_arr", function(x, ...) as_native(x, ...))
 
-setMethod("as.matrix", "matter_arr", function(x, ...) as.native(x, ...))
+setMethod("as.matrix", "matter_arr", function(x, ...) as_native(x, ...))
 
 setMethod("as.vector", "matter_arr", function(x, mode = "any") as.vector(as(x, "matter_vec"), mode=mode))
 
@@ -119,19 +110,13 @@ setMethod("as.numeric", "matter_arr", function(x, ...) as.numeric(as(x, "matter_
 
 #### matter_str ####
 
-setAs("matter_str", "character", function(from) as.native(from))
+setAs("matter_str", "character", function(from) as_native(from))
 
-setMethod("as.character", "matter_str", function(x, ...) as.native(x, ...))
+setMethod("as.character", "matter_str", function(x, ...) as_native(x, ...))
 
 #### matter_fct ####
 
-setAs("matter_fct", "factor", function(from) as.native(from))
+setAs("matter_fct", "factor", function(from) as_native(from))
 
-setMethod("as.factor", "matter_fct", function(x) as.native(x))
-
-#### matter_list ####
-
-setAs("matter_list", "list", function(from) as.nativelist(from))
-
-setMethod("as.list", "matter_list", function(x, ...) as.nativelist(x, ...))
+setMethod("as.factor", "matter_fct", function(x) as_native(x))
 

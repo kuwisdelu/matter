@@ -5,13 +5,17 @@
 \alias{matter_str}
 \alias{matter_str-class}
 
+\alias{dim,matter_str-method}
+\alias{length,matter_str-method}
 \alias{lengths,matter_str-method}
 
+\alias{Encoding,matter_str-method}
+\alias{Encoding<-,matter_str-method}
+
 \alias{[,matter_str-method}
-\alias{[,matter_str,ANY,missing,ANY-method}
-\alias{[,matter_str,ANY,missing,NULL-method}
+\alias{[,matter_str,ANY,ANY,ANY-method}
 \alias{[<-,matter_str-method}
-\alias{[<-,matter_str,ANY,missing,ANY-method}
+\alias{[<-,matter_str,ANY,ANY,ANY-method}
 
 \alias{combine,matter_str,ANY-method}
 
@@ -66,6 +70,8 @@ matter_str(data, type = "character", path = NULL,
         \item{\code{names}:}{The names of the data elements for vectors.}
 
         \item{\code{dimnames}:}{Either 'NULL' or the names for the dimensions. If not 'NULL', then this should be a list of character vectors of the length given by 'dim' for each dimension. This is always 'NULL' for vectors.}
+
+        \item{\code{encoding}:}{The string encoding used.}
     }
 }
 

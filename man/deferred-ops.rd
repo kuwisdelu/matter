@@ -11,6 +11,11 @@
 \alias{Arith,vector,matter_arr-method}
 \alias{Arith,array,matter_arr-method}
 
+\alias{Arith,sparse_arr,vector-method}
+\alias{Arith,sparse_arr,array-method}
+\alias{Arith,vector,sparse_arr-method}
+\alias{Arith,array,sparse_arr-method}
+
 \title{Deferred Operations on ``matter'' Objects}
 
 \description{

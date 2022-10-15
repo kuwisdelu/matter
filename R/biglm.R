@@ -17,7 +17,7 @@ setMethod("bigglm", c("formula", "sparse_mat"),
 
 bigglm_int <- function(formula, data, ..., chunksize = NULL, fc = NULL)
 {
-	if ( !require(biglm) )
+	if ( !requireNamespace("biglm") )
 		stop("failed to load required package 'biglm'")
 	if ( is.null(chunksize) )
 		chunksize <- getOption("matter.default.chunksize")

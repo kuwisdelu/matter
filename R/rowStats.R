@@ -131,5 +131,5 @@ colStats_int <- function(x, stat, group = NULL,
 	ans
 }
 
-.colStats <- rowStats_int
+.colStats <- colStats_int
 

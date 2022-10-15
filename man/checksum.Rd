@@ -2,7 +2,8 @@
 \docType{methods}
 
 \alias{checksum}
-\alias{checksum,matter-method}
+\alias{checksum,atoms-method}
+\alias{checksum,matter_-method}
 
 \title{Calculate Checksums and Cryptographic Hashes}
 
@@ -13,7 +14,7 @@
 \usage{
 checksum(x, \dots)
 
-\S4method{checksum}{matter}(x, algo = c("sha1", "md5"), \dots)
+\S4method{checksum}{matter_}(x, algo = "sha1", \dots)
 }
 
 \arguments{

@@ -18,6 +18,9 @@
 \alias{s_rowstats}
 \alias{s_colstats}
 
+\alias{rowstreamStats}
+\alias{colstreamStats}
+
 \alias{combine,stream_stat,ANY-method}
 \alias{stat_c}
 
@@ -54,9 +57,9 @@ s_all(x, \dots, na.rm = FALSE)
 s_nnzero(x, \dots, na.rm = FALSE)
 
 # calculate streaming matrix statistics
-s_rowstats(x, stat, na.rm = FALSE, \dots)
+s_rowstats(x, stat, group, na.rm = FALSE, \dots)
 
-s_colstats(x, stat, na.rm = FALSE, \dots)
+s_colstats(x, stat, group, na.rm = FALSE, \dots)
 
 # calculate combined summary statistics
 stat_c(x, y, \dots)
@@ -66,6 +69,8 @@ stat_c(x, y, \dots)
     \item{x, y, \dots}{Object(s) on which to calculate a summary statistic, or a summary statistic to combine.}
 
     \item{stat}{The name of a summary statistic to compute over the rows or columns of a matrix. Allowable values include: "range", "min", "max", "prod", "sum", "mean", "var", "sd", "any", "all", and "nnzero".}
+
+    \item{group}{A factor or vector giving the grouping. If not provided, no grouping will be used.}
 
     \item{na.rm}{If \code{TRUE}, remove \code{NA} values before summarizing.}
 }

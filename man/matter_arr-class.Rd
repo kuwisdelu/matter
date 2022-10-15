@@ -5,10 +5,26 @@
 \alias{matter_arr}
 \alias{matter_arr-class}
 
+\alias{class:matter_mat}
+\alias{matter_mat}
+\alias{matter_mat-class}
+
+\alias{class:matter_vec}
+\alias{matter_vec}
+\alias{matter_vec-class}
+
 \alias{[,matter_arr-method}
 \alias{[,matter_arr,ANY,ANY,ANY-method}
 \alias{[<-,matter_arr-method}
 \alias{[<-,matter_arr,ANY,ANY,ANY-method}
+
+\alias{[,matter_mat-method}
+\alias{[,matter_mat,ANY,ANY,ANY-method}
+\alias{[<-,matter_mat-method}
+\alias{[<-,matter_mat,ANY,ANY,ANY-method}
+
+\alias{dim,matter_vec-method}
+\alias{dim<-,matter_vec-method}
 
 \alias{dim<-,matter_arr-method}
 
@@ -19,6 +35,13 @@
 \alias{as.numeric,matter_arr-method}
 \alias{as.array,matter_arr-method}
 \alias{as.matrix,matter_arr-method}
+
+\alias{t,matter_arr-method}
+
+\alias{\%*\%,vector,matter_mat-method}
+\alias{\%*\%,matrix,matter_mat-method}
+\alias{\%*\%,matter_mat,vector-method}
+\alias{\%*\%,matter_mat,matrix-method}
 
 \title{Out-of-Memory Arrays}
 
@@ -52,7 +75,7 @@ matter_vec(data, type = "double", path = NULL,
 
         \item{dim, nrow, ncol, length}{The dimensions of the array, or the number of rows and columns, or the length.}
 
-        \item{dimnames}{The names of the matrix dimensions.}
+        \item{dimnames, names}{The names of the matrix dimensions or vector elements.}
 
         \item{offset}{A vector giving the offsets in number of bytes from the beginning of each file in 'path', specifying the start of the data to be accessed for each file.}
 

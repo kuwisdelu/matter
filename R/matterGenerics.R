@@ -144,15 +144,15 @@ setGeneric("combiner", function(object) standardGeneric("combiner"))
 setMethod("combiner", "ANY",
 	function(object) {
 		.Deprecated("sampler")
-		sampler(x)
+		sampler(object)
 	})
 
 setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
 setReplaceMethod("combiner", "ANY",
 	function(object, value) {
 		.Deprecated("sampler<-")
-		sampler(x) <- value
-		x
+		sampler(object) <- value
+		object
 	})
 
 setGeneric("rowVars", function(x, ...) standardGeneric("rowVars"))

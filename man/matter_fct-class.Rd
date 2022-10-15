@@ -6,10 +6,9 @@
 \alias{matter_fct-class}
 
 \alias{[,matter_fct-method}
-\alias{[,matter_fct,ANY,missing,ANY-method}
-\alias{[,matter_fct,ANY,missing,NULL-method}
+\alias{[,matter_fct,ANY,ANY,ANY-method}
 \alias{[<-,matter_fct-method}
-\alias{[<-,matter_fct,ANY,missing,ANY-method}
+\alias{[<-,matter_fct,ANY,ANY,ANY-method}
 
 \alias{combine,matter_fct,ANY-method}
 

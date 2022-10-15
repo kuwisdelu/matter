@@ -4,15 +4,16 @@
 \alias{colStats}
 \alias{rowStats}
 
+\alias{.colStats}
+\alias{.rowStats}
+
 \alias{colStats,ANY-method}
-\alias{colStats,matter_matr-method}
-\alias{colStats,sparse_matr-method}
-\alias{colStats,virtual_matr-method}
+\alias{colStats,matter_mat-method}
+\alias{colStats,sparse_mat-method}
 
 \alias{rowStats,ANY-method}
-\alias{rowStats,matter_matc-method}
-\alias{rowStats,sparse_matc-method}
-\alias{rowStats,virtual_matc-method}
+\alias{rowStats,matter_mat-method}
+\alias{rowStats,sparse_mat-method}
 
 \title{Row and Column Summary Statistics Based on Grouping}
 
@@ -63,7 +64,7 @@
 }
 
 \details{
-    The summary statistics methods are calculated over chunks of the matrix using \code{\link{s_colstats()}} and \code{\link{s_rowstats()}}. For \code{matter} objects, the iteration is performed over the major dimension for IO efficiency.
+    The summary statistics methods are calculated over chunks of the matrix using \code{\link{s_colstats}} and \code{\link{s_rowstats}}. For \code{matter} objects, the iteration is performed over the major dimension for IO efficiency.
 }
 
 \value{

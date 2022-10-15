@@ -16,8 +16,6 @@ locmax(x, width = 5)
 	\item{x}{A numeric vector.}
 
 	\item{width}{The number of vector elements to consider when determining if the center of the window is a local maximum.}
-
-	\item{findLimits}{If \code{TRUE}, then also return the approximate boundaries of the peak.}
 }
 
 \details{

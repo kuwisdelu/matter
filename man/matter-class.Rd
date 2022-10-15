@@ -1,6 +1,10 @@
 \name{matter-class}
 \docType{class}
 
+\alias{class:atoms}
+\alias{atoms}
+\alias{atoms-class}
+
 \alias{class:matter}
 \alias{matter}
 \alias{matter-class}
@@ -11,35 +15,24 @@
 \alias{atomdata,matter-method}
 \alias{atomdata<-}
 \alias{atomdata<-,matter-method}
-\alias{datamode}
-\alias{datamode<-}
-\alias{datamode,atoms-method}
-\alias{datamode<-,atoms-method}
-\alias{datamode,matter-method}
-\alias{datamode<-,matter-method}
-\alias{datamode<-,matter_vt-method}
-\alias{paths}
-\alias{paths<-}
-\alias{paths,matter-method}
-\alias{paths<-,matter-method}
-\alias{paths<-,matter_vt-method}
-\alias{path,matter-method}
-\alias{path<-,matter-method}
-\alias{filemode}
-\alias{filemode<-}
-\alias{filemode,matter-method}
-\alias{filemode<-,matter-method}
-\alias{filemode<-,matter_vt-method}
+\alias{type}
+\alias{type<-}
+\alias{type,atoms-method}
+\alias{type<-,atoms-method}
+\alias{type,matter-method}
+\alias{type<-,matter-method}
+\alias{path}
+\alias{path<-}
+\alias{path,atoms-method}
+\alias{path<-,atoms-method}
+\alias{path,matter_-method}
+\alias{path<-,matter_-method}
 \alias{readonly}
 \alias{readonly<-}
-\alias{readonly,matter-method}
-\alias{readonly<-,matter-method}
-\alias{readonly<-,matter_vt-method}
-\alias{chunksize}
-\alias{chunksize<-}
-\alias{chunksize,matter-method}
-\alias{chunksize<-,matter-method}
-\alias{chunksize<-,matter_vt-method}
+\alias{readonly,atoms-method}
+\alias{readonly<-,atoms-method}
+\alias{readonly,matter_-method}
+\alias{readonly<-,matter_-method}
 
 \alias{as.data.frame,atoms-method}
 \alias{as.list,atoms-method}
@@ -47,6 +40,7 @@
 \alias{length,atoms-method}
 \alias{length,matter-method}
 \alias{length<-,matter-method}
+\alias{dims,atoms-method}
 \alias{dim,atoms-method}
 \alias{dim,matter-method}
 \alias{dim<-,matter-method}
@@ -55,15 +49,22 @@
 \alias{dimnames,matter-method}
 \alias{dimnames<-,matter,ANY-method}
 
-\alias{lengths,matter-method}
+\alias{lengths,atoms-method}
 
-\alias{[,atoms,ANY,missing,ANY-method}
-\alias{[,atoms,missing,ANY,ANY-method}
+\alias{[,atoms-method}
 \alias{[,atoms,ANY,ANY,ANY-method}
 \alias{[[,atoms-method}
 \alias{[[,atoms,ANY,ANY-method}
 
 \alias{combine,atoms,ANY-method}
+\alias{cbind2,atoms,ANY-method}
+\alias{rbind2,atoms,ANY-method}
+
+\alias{read_atom}
+\alias{write_atom}
+
+\alias{read_atoms}
+\alias{write_atoms}
 
 \alias{c,atoms-method}
 \alias{c,matter-method}
@@ -85,7 +86,7 @@ matter(\dots)
 is.matter(x)
 
 # Coerce an object to a matter object
-as.matter(x, \dots)
+as.matter(x)
 
 ## Additional methods documented below
 }

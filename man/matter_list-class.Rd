@@ -6,15 +6,17 @@
 \alias{matter_list-class}
 
 \alias{dim,matter_list-method}
+\alias{length,matter_list-method}
 \alias{lengths,matter_list-method}
 
 \alias{[,matter_list-method}
-\alias{[,matter_list,ANY,missing,ANY-method}
-\alias{[,matter_list,ANY,missing,NULL-method}
+\alias{[,matter_list,ANY,ANY,ANY-method}
 \alias{[<-,matter_list-method}
-\alias{[<-,matter_list,ANY,missing,ANY-method}
+\alias{[<-,matter_list,ANY,ANY,ANY-method}
 
+\alias{[[,matter_list-method}
 \alias{[[,matter_list,ANY,ANY-method}
+\alias{[[<-,matter_list-method}
 \alias{[[<-,matter_list,ANY,ANY-method}
 
 \alias{$,matter_list-method}

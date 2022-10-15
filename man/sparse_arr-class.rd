@@ -2,6 +2,7 @@
 \docType{class}
 
 \alias{class:sparse_arr}
+\alias{sparse_arr-class}
 
 \alias{class:sparse_mat}
 \alias{sparse_mat}
@@ -12,41 +13,41 @@
 \alias{sparse_vec-class}
 
 \alias{aindex}
-\alias{aindex,sparse_-method}
+\alias{aindex,sparse_arr-method}
 \alias{atomindex}
-\alias{atomindex,sparse_-method}
+\alias{atomindex,sparse_arr-method}
 \alias{atomindex<-}
-\alias{atomindex<-,sparse_-method}
+\alias{atomindex<-,sparse_arr-method}
 \alias{domain}
-\alias{domain,sparse_-method}
+\alias{domain,sparse_arr-method}
 \alias{domain<-}
-\alias{domain<-,sparse_-method}
-\alias{domain<-,sparse_vec-method}
-\alias{domain<-,sparse_matc-method}
-\alias{domain<-,sparse_matr-method}
-\alias{tolerance,sparse_-method}
-\alias{tolerance<-,sparse_-method}
+\alias{domain<-,sparse_arr-method}
+\alias{pointers}
+\alias{pointers,sparse_arr-method}
+\alias{pointers<-}
+\alias{pointers<-,sparse_arr-method}
+\alias{tolerance,sparse_arr-method}
+\alias{tolerance<-,sparse_arr-method}
+\alias{tolerance<-}
 \alias{sampler}
-\alias{sampler,sparse_-method}
+\alias{sampler,sparse_arr-method}
 \alias{sampler<-}
-\alias{sampler<-,sparse_-method}
-\alias{nnzero,sparse_vec-method}
-\alias{nnzero,sparse_mat-method}
-\alias{length,sparse_mat-method}
+\alias{sampler<-,sparse_arr-method}
+\alias{nnzero,sparse_arr-method}
+\alias{length,sparse_arr-method}
 
-\alias{[,sparse_vec,ANY,ANY,ANY-method}
-\alias{[,sparse_matc,ANY,ANY,ANY-method}
-\alias{[,sparse_matr,ANY,ANY,ANY-method}
-\alias{[<-,sparse_mat-method}
-\alias{[<-,sparse_mat,ANY,ANY,ANY-method}
+\alias{dim,sparse_vec-method}
 
-\alias{t,sparse_matc-method}
-\alias{t,sparse_matr-method}
+\alias{[,sparse_arr,ANY,ANY,ANY-method}
+\alias{[<-,sparse_arr-method}
+\alias{[<-,sparse_arr,ANY,ANY,ANY-method}
 
-\alias{\%*\%,matrix,sparse_matc-method}
-\alias{\%*\%,matrix,sparse_matr-method}
-\alias{\%*\%,sparse_matc,matrix-method}
-\alias{\%*\%,sparse_matr,matrix-method}
+\alias{t,sparse_arr-method}
+
+\alias{\%*\%,vector,sparse_mat-method}
+\alias{\%*\%,matrix,sparse_mat-method}
+\alias{\%*\%,sparse_mat,vector-method}
+\alias{\%*\%,sparse_mat,matrix-method}
 
 \alias{as.matrix,sparse_mat-method}
 
