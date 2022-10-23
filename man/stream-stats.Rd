@@ -21,6 +21,7 @@
 \alias{rowstreamStats}
 \alias{colstreamStats}
 
+\alias{as.data.frame,stream_stat-method}
 \alias{combine,stream_stat,ANY-method}
 \alias{stat_c}
 

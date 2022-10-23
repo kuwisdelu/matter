@@ -90,6 +90,17 @@ struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
 		lengths=lens, names=names, readonly=readonly)
 }
 
+setMethod("as.list", "matter_list",
+	function(x, ...) {
+		names(x) <- NULL
+		dimnames(x) <- NULL
+		if ( getOption("matter.coerce.altrep") ) {
+			as.altrep(x)
+		} else {
+			x[]
+		}
+	})
+
 setMethod("describe_for_display", "matter_list", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("out-of-memory list")

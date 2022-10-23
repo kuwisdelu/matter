@@ -49,7 +49,7 @@
 \alias{\%*\%,sparse_mat,vector-method}
 \alias{\%*\%,sparse_mat,matrix-method}
 
-\alias{as.matrix,sparse_mat-method}
+\alias{as.matrix,sparse_arr-method}
 
 \alias{is.sparse}
 \alias{as.sparse}

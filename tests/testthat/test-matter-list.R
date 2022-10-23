@@ -14,6 +14,7 @@ test_that("matter list indexing", {
 	y <- matter_list(x)
 
 	expect_equal(x, y[])
+	# expect_equal(x, as.list(y)) # not implemented yet
 	expect_equal(x[1], y[1])
 	expect_equal(x[[1]], y[[1]])
 	expect_equal(x[1:3], y[1:3])

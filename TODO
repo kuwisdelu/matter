@@ -2,8 +2,7 @@
 TODO for matter package
 -------------------------
 
-- Add s_vecstats() and vecStats()
-- Implement summary statistics for matter
+- Implement cbind2(), rbind2(), and endomorphic subsetting
 - Implement signal.R with locmax() and peaklimits()
 - Update biglm() and prcomp() for new matter objects
 

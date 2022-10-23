@@ -90,6 +90,17 @@ matter_fct <- function(data, levels, type = "integer", path = NULL,
 	x
 }
 
+setMethod("as.factor", "matter_fct",
+	function(x) {
+		names(x) <- NULL
+		dimnames(x) <- NULL
+		if ( getOption("matter.coerce.altrep") ) {
+			as.altrep(x)
+		} else {
+			x[]
+		}
+	})
+
 setMethod("describe_for_display", "matter_fct", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("out-of-memory factor")

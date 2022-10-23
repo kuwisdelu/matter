@@ -75,6 +75,17 @@ matter_str <- function(data, type = "character", path = NULL,
 	x
 }
 
+setMethod("as.character", "matter_str",
+	function(x, ...) {
+		names(x) <- NULL
+		dimnames(x) <- NULL
+		if ( getOption("matter.coerce.altrep") ) {
+			as.altrep(x)
+		} else {
+			x[]
+		}
+	})
+
 setMethod("describe_for_display", "matter_str", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("out-of-memory strings")

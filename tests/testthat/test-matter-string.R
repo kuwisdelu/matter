@@ -9,6 +9,7 @@ test_that("matter string indexing", {
 	y <- matter_str(x)
 
 	expect_equal(x, y[])
+	expect_equal(x, as.character(y))
 	expect_equal(x[1], y[1])
 	expect_equal(x[1:3], y[1:3])
 	expect_equal(x[3:1], y[3:1])

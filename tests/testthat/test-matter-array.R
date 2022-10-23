@@ -8,7 +8,8 @@ test_that("matter array raw", {
 	x <- as.raw(1:10)
 	y <- matter_arr(x)
 
-	expect_equal(x[], y[])
+	expect_equal(x, y[])
+	expect_equal(x, as.raw(y))
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
 
@@ -19,7 +20,8 @@ test_that("matter array logical", {
 	x <- rep_len(c(TRUE, FALSE), 10L)
 	y <- matter_arr(x)
 
-	expect_equal(x[], y[])
+	expect_equal(x, y[])
+	expect_equal(x, as.logical(y))
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
 
@@ -30,7 +32,8 @@ test_that("matter array integer", {
 	x <- 1:10
 	y <- matter_arr(x)
 
-	expect_equal(x[], y[])
+	expect_equal(x, y[])
+	expect_equal(x, as.integer(y))
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
 
@@ -41,7 +44,8 @@ test_that("matter array double", {
 	x <- 1:10 + 1:10 * 0.11
 	y <- matter_arr(x)
 
-	expect_equal(x[], y[])
+	expect_equal(x, y[])
+	expect_equal(x, as.double(y))
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
 
@@ -244,6 +248,34 @@ test_that("matter array N-D indexing (row major)", {
 
 	z <- matter_arr(0, dim=c(4,3,2), rowMaj=TRUE)
 	expect_equal(array(0, dim=c(4,3,2)), z[])
+
+})
+
+test_that("matter array coercion", {
+
+	x <- array(1:24, dim=c(4,3,2))
+	y <- matter_arr(x)
+
+	expect_error(as(y, "matter_mat"))
+	expect_is(as(y, "matter_vec"), "matter_vec")
+	expect_equal(x, as.array(y))
+	expect_equal(as.vector(x), as.vector(y))
+
+	x <- 1:10
+	y <- matter_vec(x)
+
+	expect_is(as(y, "matter_arr"), "matter_arr")
+	expect_is(as(y, "matter_mat"), "matter_mat")
+	expect_equal(x, as.vector(y))
+	expect_equal(as.array(x), as.array(y))
+
+	x <- matrix(1:9, nrow=3, ncol=3)
+	y <- matter_mat(x)
+
+	expect_is(as(y, "matter_arr"), "matter_arr")
+	expect_is(as(y, "matter_vec"), "matter_vec")
+	expect_equal(x, as.matrix(y))
+	expect_equal(as.vector(x), as.vector(y))
 
 })
 

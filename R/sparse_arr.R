@@ -225,6 +225,20 @@ sparse_mat <- function(data, index, type = "double",
 		transpose=rowMaj, ...)
 }
 
+setAs("matrix", "sparse_mat",
+	function(from) sparse_mat(from, type=typeof(from), dimnames=dimnames(from)))
+
+setAs("array", "sparse_arr",
+	function(from) sparse_mat(as.matrix(from), type=typeof(from), dimnames=dimnames(from)))
+
+as.sparse <- function(x, ...) as(x, "sparse_arr")
+
+is.sparse <- function(x) is(x, "sparse_arr")
+
+setAs("sparse_arr", "matrix", function(from) from[])
+
+setMethod("as.matrix", "sparse_arr", function(x) as(x, "matrix"))
+
 setMethod("describe_for_display", "sparse_mat", function(x) {
 	desc1 <- paste0("<", nrow(x), " row x ", ncol(x), " col> ", class(x))
 	desc2 <- paste0("sparse ", type(x), " matrix")
@@ -277,20 +291,6 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 	cat("(", nnzero(x), "/", length(x), " non-zero elements: ",
 		round(nnzero(x) / length(x), 4) * 100, "% density)\n", sep="")
 })
-
-setAs("matrix", "sparse_mat",
-	function(from) sparse_mat(from, type=typeof(from), dimnames=dimnames(from)))
-
-setAs("array", "sparse_arr",
-	function(from) sparse_mat(as.matrix(from), type=typeof(from), dimnames=dimnames(from)))
-
-as.sparse <- function(x, ...) as(x, "sparse_arr")
-
-is.sparse <- function(x) is(x, "sparse_arr")
-
-setAs("sparse_arr", "matrix", function(from) from[])
-
-setMethod("as.matrix", "sparse_arr", function(x) as(x, "matrix"))
 
 setMethod("aindex", "sparse_arr", function(object) atomindex(object))
 

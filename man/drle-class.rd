@@ -24,8 +24,12 @@
 
 \alias{type,drle-method}
 
+\alias{as.data.frame,drle-method}
 \alias{as.vector,drle-method}
+\alias{as.integer,drle-method}
+\alias{as.numeric,drle-method}
 \alias{as.list,drle-method}
+\alias{as.factor,drle_fct-method}
 
 \alias{is.drle}
 

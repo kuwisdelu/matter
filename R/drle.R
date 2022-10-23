@@ -36,6 +36,31 @@ drle <- function(x, cr_threshold = 0)
 		y
 }
 
+setAs("drle", "list", function(from)
+	list(values=from@values,
+		deltas=from@deltas,
+		lengths=from@lengths))
+
+setAs("drle", "vector", function(from) from[])
+
+setAs("drle", "integer", function(from) as.integer(from[]))
+
+setAs("drle", "numeric", function(from) as.numeric(from[]))
+
+setAs("drle_fct", "factor", function(from) from[])
+
+setMethod("as.vector", "drle", function(x) as(x, "vector"))
+
+setMethod("as.integer", "drle", function(x) as(x, "integer"))
+
+setMethod("as.numeric", "drle", function(x) as(x, "numeric"))
+
+setMethod("as.factor", "drle_fct", function(x) as(x, "factor"))
+
+setMethod("as.list", "drle", function(x) as(x, "list"))
+
+setMethod("as.data.frame", "drle", function(x) as.data.frame(as.list(x)))
+
 setMethod("describe_for_display", "drle", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("compressed ", typeof(x@values), " vector")
@@ -75,31 +100,6 @@ get_drle_elts <- function(x, i = NULL) {
 subset_drle <- function(x, i = NULL) {
 	.Call(C_recodeDRLE, x, i, PACKAGE="matter")
 }
-
-setAs("drle", "list", function(from)
-	list(values=from@values,
-		deltas=from@deltas,
-		lengths=from@lengths))
-
-setAs("drle", "vector", function(from) from[])
-
-setAs("drle", "integer", function(from) as.integer(from[]))
-
-setAs("drle", "numeric", function(from) as.numeric(from[]))
-
-setAs("drle_fct", "factor", function(from) from[])
-
-setMethod("as.vector", "drle", function(x) as(x, "vector"))
-
-setMethod("as.integer", "drle", function(x) as(x, "integer"))
-
-setMethod("as.numeric", "drle", function(x) as(x, "numeric"))
-
-setMethod("as.factor", "drle_fct", function(x) as(x, "factor"))
-
-setMethod("as.list", "drle", function(x) as(x, "list"))
-
-setMethod("as.data.frame", "drle", function(x) as.data.frame(as.list(x)))
 
 setMethod("[",
 	c(x = "drle", i = "ANY", j = "ANY", drop = "ANY"),

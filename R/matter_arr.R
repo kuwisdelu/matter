@@ -131,10 +131,7 @@ matter_vec <- function(data, type = "double", path = NULL,
 	x <- matter_arr(data, type=type, path=path, dim=length,
 		names=names, offset=offset, extent=extent,
 		readonly=readonly, rowMaj=rowMaj, ...)
-	x <- as(x, "matter_vec")
-	x@data <- ungroup_atoms(x@data) # FIXME: do this in as(x, "matter_vec")?
-	if ( validObject(x) )
-		x
+	as(x, "matter_vec")
 }
 
 matter_mat <- function(data, type = "double", path = NULL,
@@ -177,6 +174,76 @@ matter_mat <- function(data, type = "double", path = NULL,
 	if ( validObject(x) )
 		x
 }
+
+setAs("matter_arr", "matter_vec",
+	function(from) new("matter_vec", from, dim=length(from)))
+
+setAs("matter_mat", "matter_vec",
+	function(from) new("matter_vec", from, dim=length(from)))
+
+setAs("matter_arr", "matter_mat",
+	function(from) {
+		x <- new("matter_mat", from, indexed=FALSE)
+		if ( validObject(x) )
+			x
+	})
+
+setAs("matter_vec", "matter_mat",
+	function(from) {
+		dm <- c(length(from), 1L)
+		x <- new("matter_mat", from, dim=dm, indexed=FALSE)
+		if ( validObject(x) )
+			x
+	})
+
+setMethod("as.vector", "matter_arr",
+	function(x, mode = "any") {
+		if ( mode != "any" )
+			type(x) <- mode
+		names(x) <- NULL
+		dimnames(x) <- NULL
+		y <- as(x, "matter_vec")
+		if ( getOption("matter.coerce.altrep") ) {
+			as.altrep(y)
+		} else {
+			y[]
+		}
+	})
+
+setMethod("as.raw", "matter_arr",
+	function(x) as.vector(x, "raw"))
+
+setMethod("as.logical", "matter_arr",
+	function(x, ...) as.vector(x, "logical"))
+
+setMethod("as.integer", "matter_arr",
+	function(x, ...) as.vector(x, "integer"))
+
+setMethod("as.double", "matter_arr",
+	function(x, ...) as.vector(x, "double"))
+
+setMethod("as.numeric", "matter_arr",
+	function(x, ...) as.vector(x, "double"))
+
+setMethod("as.matrix", "matter_arr",
+	function(x, ...) {
+		y <- as(x, "matter_mat")
+		if ( getOption("matter.coerce.altrep") ) {
+			as.altrep(y)
+		} else {
+			y[]
+		}
+	})
+
+setMethod("as.array", "matter_arr",
+	function(x, ...) {
+		y <- as(x, "matter_arr")
+		if ( getOption("matter.coerce.altrep") ) {
+			as.altrep(y)
+		} else {
+			y[]
+		}
+	})
 
 setMethod("describe_for_display", "matter_arr", function(x) {
 	desc1 <- paste0("<", paste0(dim(x), collapse=" x "), " dim> ", class(x))
@@ -351,6 +418,11 @@ setMethod("t", "matter_arr", function(x)
 	x@dimnames <- rev(x@dimnames)
 	if ( validObject(x) )
 		x
+})
+
+setMethod("t", "matter_vec", function(x)
+{
+	t(as(x, "matter_mat"))
 })
 
 setMethod("%*%", c("matter_mat", "vector"), function(x, y)

@@ -37,6 +37,7 @@
 \alias{as.matrix,matter_arr-method}
 
 \alias{t,matter_arr-method}
+\alias{t,matter_vec-method}
 
 \alias{\%*\%,vector,matter_mat-method}
 \alias{\%*\%,matrix,matter_mat-method}
