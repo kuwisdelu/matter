@@ -1,12 +1,32 @@
 
-CHANGES IN VERSION 1.23.1 [2022-8-23]
+CHANGES IN VERSION 1.99.0 [2022-10-23]
 -----------------------------------
 
 NEW FEATURES
 
-    o Added 'asearch()' for approximate search with interpolation
-    o Complete re-implementation of sparse matrix code in C++
+    o Complete re-implementation of sparse array code in C++
     o Complete re-implementation of matter object C++ backends
+    o New 'sparse_arr' class with 'sparse_mat' and 'sparse_vec'
+    o New 'matter_arr' class with 'matter_mat' and 'matter_vec'
+    o New 'asearch()' function for approximate search with interpolation
+    o New 'chunkApply()' function replacing 'chunk_apply()', etc.
+    o New 'colsweep()' and 'rowsweep()' functions w/ group parameter
+    o New 'colscale()' and 'rowscale()' functions w/ group parameter
+    o New 'drle_fct' class for delta-run-length encoded factors
+    o New interpolation options for 'sparse_arr' objects
+    o Simplified deferred arithmetic operations interface
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o New simplified constructors for most matter objects
+    o Updated S4 internals for most matter objects
+    o Updated S4 internals for sparse array objects
+    o Deprecated some rarely-used functions and classes
+    o Deprecated some S4 generic conflicts with core BioC packages
+
+BUG FIXES
+
+    o Fix to 'stream_var' and 'stream_sd' behavior when n=0 or n=1
 
 CHANGES IN VERSION 1.19.1 [2021-10-20]
 -----------------------------------

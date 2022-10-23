@@ -1,0 +1,75 @@
+---
+title: "_Matter 2_: User guide for flexible out-of-memory data structures"
+author: "Kylie Ariel Bemis"
+date: "Revised: October 23, 2022"
+output:
+  BiocStyle::html_document:
+  toc: true
+vignette: >
+  %\VignetteIndexEntry{1. Matter 2: User guide for flexible out-of-memory data structures}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r style, echo=FALSE, results='asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE, message=FALSE}
+library(matter)
+register(SerialParam())
+```
+
+# Introduction 
+
+
+*Matter 2* provides an updated and more robust C++ backend to `matter` objects, along with a completely new implementation of sparse arrays and new signal processing functions for nonuniform sparse signal data.
+
+Originally designed as a backend for the *Cardinal* package, The first version of *Matter* was constantly evolving to handle the ever-increasing demands of larger-than-memory mass spectrometry (MS) imaging experiments. While it was designed to be flexible from a user's point-of-view to handle a wide array for file structures beyond the niche of MS imaging, its codebase was becoming increasingly difficult to maintain and update.
+
+*Matter 2* was re-written from the ground up to simplify some features that were rarely needed in practice and to provide a more robust and future-proof codebase for further improvement. Some advancements include:
+
+- XXX
+
+- YYY
+
+- ZZZ
+
+
+
+# Installation
+
+*Matter* can be installed via the *BiocManager* package.
+
+```{r install, eval=FALSE}
+install.packages("BiocManager")
+BiocManager::install("matter")
+```
+
+The same function can be used to update *Matter* and other Bioconductor packages.
+
+Once installed, *Matter* can be loaded with `library()`:
+
+```{r library, eval=FALSE}
+library(matter)
+```
+
+
+# Usage
+
+Coming soon.....
+
+Coming soon.....
+
+Coming soon.....
+
+
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```
+
+
+

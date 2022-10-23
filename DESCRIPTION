@@ -1,7 +1,7 @@
 Package: matter
 Type: Package
 Title: A framework for rapid prototyping with file-based data structures
-Version: 1.23.1
+Version: 1.99.0
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
@@ -11,7 +11,8 @@ Description: Memory-efficient reading, writing, and manipulation of
 License: Artistic-2.0
 Depends: R (>= 3.5), BiocParallel, Matrix, methods, stats
 Imports: BiocGenerics, ProtGenerics, digest, irlba, biglm, utils
-Suggests: BiocStyle, testthat
+Suggests: BiocStyle, knitr, testthat
+VignetteBuilder: knitr
 Collate: matterGenerics.R utils.R drle.R
 	atoms.R ops.R matter.R matter_arr.R 
 	matter_fct.R matter_list.R matter_str.R
