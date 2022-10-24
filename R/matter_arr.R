@@ -274,6 +274,22 @@ setMethod("preview_for_display", "matter_arr", function(x) {
 	}
 })
 
+subset_matter_arr_elts <- function(x, i = NULL)
+{
+	if ( x@transpose ) {
+		index <- array_ind(i, dim(x))
+		i <- linear_ind(index, dim(x), rowMaj=TRUE)
+	}
+	data <- ungroup_atoms(x@data)
+	data <- subset_atoms2(data, i, NULL)
+	if ( !is.null(x@ops) )
+		warning("deferred operations will be dropped")
+	y <- new(class(x), x, data=data, dim=length(i),
+		names=x@names[i], dimnames=NULL, ops=NULL)
+	if ( validObject(y) )
+		y
+}
+
 get_matter_arr_elts <- function(x, i = NULL) {
 	y <- .Call(C_getMatterArray, x, i, PACKAGE="matter")
 	y <- set_names(y, names(x), i)
@@ -282,6 +298,28 @@ get_matter_arr_elts <- function(x, i = NULL) {
 
 set_matter_arr_elts <- function(x, i = NULL, value = 0) {
 	.Call(C_setMatterArray, x, i, value, PACKAGE="matter")
+}
+
+subset_matter_arr_subarray <- function(x, index)
+{
+	index <- as_array_subscripts(index, x)
+	if ( x@transpose ) {
+		i <- linear_ind(index, dim(x), rowMaj=TRUE)
+	} else {
+		i <- linear_ind(index, dim(x), rowMaj=FALSE)
+	}
+	data <- ungroup_atoms(x@data)
+	data <- subset_atoms2(data, i, NULL)
+	dm <- vapply(seq_along(index), function(j)
+		if (is.null(index[[j]])) dim(x)[j]
+		else length(index[[j]]), numeric(1))
+	dnm <- subset_dimnames(x@dimnames, index)
+	if ( !is.null(x@ops) )
+		warning("deferred operations will be dropped")
+	y <- new(class(x), x, data=data, dim=dm,
+		dimnames=dnm, ops=NULL)
+	if ( validObject(y) )
+		y
 }
 
 get_matter_arr_subarray <- function(x, index, drop = FALSE)
@@ -305,6 +343,27 @@ set_matter_arr_subarray <- function(x, index, value)
 	set_matter_arr_elts(x, i, value)
 }
 
+subset_matter_mat_submatrix <- function(x, i = NULL, j = NULL)
+{
+	if ( !x@indexed )
+		return(subset_matter_arr_subarray(x, list(i, j)))
+	if ( x@transpose ) {
+		data <- subset_atoms2(x@data, j, i)
+	} else {
+		data <- subset_atoms2(x@data, i, j)
+	}
+	nrow <- if (is.null(i)) x@dim[1L] else length(i)
+	ncol <- if (is.null(j)) x@dim[2L] else length(j)
+	dm <- c(nrow, ncol)
+	dnm <- subset_dimnames(x@dimnames, list(i, j))
+	if ( !is.null(x@ops) )
+		warning("deferred operations will be dropped")
+	y <- new(class(x), x, data=data, dim=dm,
+		dimnames=dnm, ops=NULL)
+	if ( validObject(y) )
+		y
+}
+
 get_matter_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE)
 {
 	y <- .Call(C_getMatterMatrix, x, i, j, PACKAGE="matter")
@@ -324,7 +383,11 @@ setMethod("[", c(x = "matter_arr"),
 		narg <- nargs() - 1L - !missing(drop)
 		if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
 			i <- as_subscripts(i, x)
-			get_matter_arr_elts(x, i)
+			if ( is_nil(drop) ) {
+				subset_matter_arr_elts(x, i)
+			} else {
+				get_matter_arr_elts(x, i)
+			}
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
 				stop("incorrect number of dimensions")
@@ -342,7 +405,11 @@ setMethod("[", c(x = "matter_arr"),
 			} else {
 				index <- list(i)
 			}
-			get_matter_arr_subarray(x, index, drop)
+			if ( is_nil(drop) ) {
+				subset_matter_arr_subarray(x, index)
+			} else {
+				get_matter_arr_subarray(x, index, drop)
+			}
 		}
 	})
 
@@ -385,9 +452,17 @@ setMethod("[", c(x = "matter_mat"),
 			i <- as_row_subscripts(i, x)
 			j <- as_col_subscripts(j, x)
 			if ( isTRUE(x@indexed) ) {
-				get_matter_mat_submatrix(x, i, j, drop)
+				if ( is_nil(drop) ) {
+					subset_matter_mat_submatrix(x, i, j)
+				} else {
+					get_matter_mat_submatrix(x, i, j, drop)
+				}
 			} else {
-				get_matter_arr_subarray(x, list(i, j), drop)
+				if ( is_nil(drop) ) {
+					subset_matter_arr_subarray(x, list(i, j))
+				} else {
+					get_matter_arr_subarray(x, list(i, j), drop)
+				}
 			}
 		}
 	})

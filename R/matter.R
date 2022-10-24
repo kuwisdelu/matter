@@ -153,6 +153,7 @@ setReplaceMethod("dim", "matter", function(x, value) {
 		stop("dims [product ", prod(value), "] do not match ",
 			"the length of object [", prod(x@dim), "]")
 	x@dim <- value
+	x@dimnames <- NULL
 	if ( validObject(x) )
 		x
 })

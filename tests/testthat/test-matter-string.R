@@ -18,5 +18,10 @@ test_that("matter string indexing", {
 	expect_equal(c("eva", "gen"), y[3:2,1:3])
 	expect_equal(c("ave", "neg"), y[3:2,3:1])
 
+	z <- y[1:2,drop=NULL]
+
+	expect_is(z, "matter_str")
+	expect_equal(x[1:2], z[])
+
 })
 

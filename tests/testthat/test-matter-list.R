@@ -25,6 +25,11 @@ test_that("matter list indexing", {
 	expect_equal("hello", y[[5,1:5]])
 	expect_equal(x$chr, y$chr)
 
+	z <- y[1:3,drop=NULL]
+
+	expect_is(z, "matter_list")
+	expect_equal(x[1:3], z[])
+
 })
 
 test_that("matter struct", {

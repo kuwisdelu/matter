@@ -109,12 +109,33 @@ setMethod("describe_for_display", "matter_list", function(x) {
 
 setMethod("preview_for_display", "matter_list", function(x) preview_list(x))
 
+subset_matter_list_elt <- function(x, i = NULL)
+{
+	if ( length(i) != 1 )
+		stop("attempt to select more than one element")
+	data <- subset_atoms2(x@data, NULL, i)
+	y <- new("matter_vec", x, data=data,
+		type=x@type[i], dim=x@dim[i],
+		names=x@names[i])
+	if ( validObject(y) )
+		y
+}
+
 get_matter_list_elt <- function(x, i = NULL, j = NULL) {
 	.Call(C_getMatterListElt, x, i, j, PACKAGE="matter")
 }
 
 set_matter_list_elt <- function(x, i = NULL, j = NULL, value = NULL) {
 	.Call(C_setMatterListElt, x, i, j, value, PACKAGE="matter")
+}
+
+subset_matter_list_sublist <- function(x, i = NULL)
+{
+	data <- subset_atoms1(x@data, i)
+	y <- new(class(x), x, data=data,
+		dim=x@dim[i], names=x@names[i])
+	if ( validObject(y) )
+		y
 }
 
 get_matter_list_sublist <- function(x, i = NULL, j = NULL) {
@@ -124,26 +145,6 @@ get_matter_list_sublist <- function(x, i = NULL, j = NULL) {
 
 set_matter_list_sublist <- function(x, i = NULL, j = NULL, value = NULL) {
 	.Call(C_setMatterListSubset, x, i, j, value, PACKAGE="matter")
-}
-
-subset_matter_list_elt <- function(x, i = NULL) {
-	if ( length(i) != 1 )
-		stop("attempt to select more than one element")
-	new("matter_vec",
-		data=x@data[,i],
-		type=x@type[i],
-		dim=x@dim[i],
-		names=x@names[i])
-}
-
-subset_matter_list_sublist <- function(x, i = NULL) {
-	if ( is.null(i) )
-		return(x)
-	new("matter_list",
-		data=x@data[,i],
-		type=x@type[i],
-		dim=x@dim[i],
-		names=x@names[i])
 }
 
 setMethod("[[", c(x = "matter_list"),
@@ -163,7 +164,13 @@ setMethod("[", c(x = "matter_list"),
 	function(x, i, j, ..., drop = TRUE) {
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
-		get_matter_list_sublist(x, i, j)
+		if ( is_nil(drop) ) {
+			if ( !is.null(j) )
+				warning("ignoring array subscripts")
+			subset_matter_list_sublist(x, i)
+		} else {
+			get_matter_list_sublist(x, i, j)
+		}
 	})
 
 setReplaceMethod("[", c(x = "matter_list"),

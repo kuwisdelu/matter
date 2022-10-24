@@ -57,7 +57,7 @@ test_that("matter array 1-D indexing", {
 	x <- sort(round(10 * runif(10), 2))
 	y <- matter_vec(x)
 
-	expect_equal(x[], y[])
+	expect_equal(x, y[])
 	expect_equal(x[1], y[1])
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
@@ -66,6 +66,11 @@ test_that("matter array 1-D indexing", {
 	expect_equal(x[c(1,NA,2,NA,3)], y[c(1,NA,2,NA,3)])
 	expect_error(y[-1])
 	expect_error(y[length(y) + 1])
+
+	z <- y[1:5,drop=NULL]
+
+	expect_is(z, "matter_vec")
+	expect_equal(x[1:5], z[])
 
 	x[1:5] <- x[1:5] + 100
 	y[1:5] <- y[1:5] + 100
@@ -123,6 +128,11 @@ test_that("matter array 2-D indexing (col major)", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
+	z <- y[1:3,1:3,drop=NULL]
+
+	expect_is(z, "matter_mat")
+	expect_equal(x[1:3,1:3], z[])
+
 	x[1,] <- x[1,] + 100
 	y[1,] <- y[1,] + 100
 	
@@ -167,6 +177,11 @@ test_that("matter array 2-D indexing (row major)", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
+	z <- y[1:3,1:3,drop=NULL]
+
+	expect_is(z, "matter_mat")
+	expect_equal(x[1:3,1:3], z[])
+
 	x[1,] <- x[1,] + 100
 	y[1,] <- y[1,] + 100
 	
@@ -207,6 +222,11 @@ test_that("matter array N-D indexing (col major)", {
 	expect_equal(x[i,i,], y[i,i,])
 	expect_equal(x[,i,i], y[,i,i])
 
+	z <- y[1:2,1:2,1,drop=NULL]
+
+	expect_is(z, "matter_arr")
+	expect_equal(x[1:2,1:2,1], z[])
+
 	x[,,1] <- x[,,1] + 100
 	y[,,1] <- y[,,1] + 100
 
@@ -238,6 +258,11 @@ test_that("matter array N-D indexing (row major)", {
 	expect_equal(x[,,2], y[,,2])
 	expect_equal(x[i,i,], y[i,i,])
 	expect_equal(x[,i,i], y[,i,i])
+
+	z <- y[1:2,1:2,1,drop=NULL]
+
+	expect_is(z, "matter_arr")
+	expect_equal(x[1:2,1:2,1], z[])
 
 	x[,,1] <- x[,,1] + 100
 	y[,,1] <- y[,,1] + 100
@@ -278,5 +303,4 @@ test_that("matter array coercion", {
 	expect_equal(as.vector(x), as.vector(y))
 
 })
-
 

@@ -14,6 +14,11 @@ test_that("matter factor indexing", {
 	expect_equal(x[1:7], y[1:7])
 	expect_equal(x[7:1], y[7:1])
 
+	z <- y[1:5,drop=NULL]
+
+	expect_is(z, "matter_fct")
+	expect_equal(x[1:5], z[])
+
 	x[c(1,7)] <- "C"
 	y[c(1,7)] <- "C"
 

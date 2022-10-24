@@ -310,13 +310,18 @@ set_names <- function(x, nm, i) {
 
 set_dimnames <- function(x, dnm, index) {
 	if ( !missing(index) && !is.null(index) )
-		for ( i in seq_along(index) ) {
-			j <- index[[i]]
-			if ( !is.null(dnm[[i]]) && !is.null(j) )
-				dnm[[i]] <- dnm[[i]][j]
-		}
+		dnm <- subset_dimnames(dnm, index)
 	dimnames(x) <- dnm
 	x
+}
+
+subset_dimnames <- function(dnm, index) {
+	for ( i in seq_along(index) ) {
+		j <- index[[i]]
+		if ( !is.null(dnm[[i]]) && !is.null(j) )
+			dnm[[i]] <- dnm[[i]][j]
+	}
+	dnm
 }
 
 check_comformable_lengths <- function(x, y) {

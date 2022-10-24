@@ -104,22 +104,17 @@ set_matter_str_elts <- function(x, i = NULL, j = NULL, value = NULL) {
 	.Call(C_setMatterStrings, x, i, j, value, PACKAGE="matter")
 }
 
-subset_matter_str_elts <- function(x, i = NULL) {
-	if ( is.null(i) )
-		return(x)
-	new("matter_str",
-		data=x@data[,i],
-		type=x@type[i],
-		dim=x@dim[i],
-		names=x@names[i],
-		encoding=x@encoding)
-}
-
 setMethod("[", c(x = "matter_str"),
 	function(x, i, j, ..., drop = TRUE) {
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
-		get_matter_str_elts(x, i, j)
+		if ( is_nil(drop) ) {
+			if ( !is.null(j) )
+				warning("ignoring array subscripts")
+			subset_matter_list_sublist(x, i)
+		} else {
+			get_matter_str_elts(x, i, j)
+		}
 	})
 
 setReplaceMethod("[", c(x = "matter_str"),
