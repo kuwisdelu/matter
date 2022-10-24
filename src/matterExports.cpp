@@ -301,7 +301,7 @@ SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP func)
 SEXP localMaxima(SEXP x, SEXP width)
 {
 	SEXP ans;
-	PROTECT(ans = Rf_allocVector(LGLSXP, XLENGTH(x)));
+	PROTECT(ans = Rf_allocVector(LGLSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			local_maxima(INTEGER(x), LENGTH(x),
@@ -315,6 +315,32 @@ SEXP localMaxima(SEXP x, SEXP width)
 			Rf_error("unsupported data type");
 	}
 	UNPROTECT(1);
+	return ans;
+}
+
+SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
+{
+	SEXP ans, left_bounds, right_bounds;
+	PROTECT(left_bounds = Rf_allocVector(INTSXP, LENGTH(peaks)));
+	PROTECT(right_bounds = Rf_allocVector(INTSXP, LENGTH(peaks)));
+	PROTECT(ans = Rf_allocVector(VECSXP, 2));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			peak_boundaries(INTEGER(x), LENGTH(x),
+				Rf_asInteger(width), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_bounds), INTEGER(right_bounds));
+			break;
+		case REALSXP:
+			peak_boundaries(REAL(x), LENGTH(x),
+				Rf_asInteger(width), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_bounds), INTEGER(right_bounds));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	SET_VECTOR_ELT(ans, 0, left_bounds);
+	SET_VECTOR_ELT(ans, 1, right_bounds);
+	UNPROTECT(3);
 	return ans;
 }
 

@@ -1,9 +1,9 @@
 require(testthat)
 require(matter)
 
-context("delayed-ops")
+context("deferred-ops")
 
-test_that("delayed ops - logical", {
+test_that("deferred ops - logical", {
 
 	x <- rep_len(c(TRUE, FALSE), 10L)
 	y <- matter_vec(x)
@@ -17,7 +17,7 @@ test_that("delayed ops - logical", {
 
 })
 
-test_that("delayed ops - integer", {
+test_that("deferred ops - integer", {
 
 	x <- seq_len(10)
 	y <- matter_vec(x)
@@ -31,7 +31,7 @@ test_that("delayed ops - integer", {
 
 })
 
-test_that("delayed ops - sparse integer", {
+test_that("deferred ops - sparse integer", {
 
 	set.seed(2)
 	x <- rbinom(10, 1, 0.4)
@@ -47,7 +47,7 @@ test_that("delayed ops - sparse integer", {
 
 })
 
-test_that("delayed ops - double", {
+test_that("deferred ops - double", {
 
 	x <- 1:10 + 1:10 * 0.11
 	y <- matter_vec(x)
@@ -61,7 +61,7 @@ test_that("delayed ops - double", {
 
 })
 
-test_that("delayed ops - sparse double", {
+test_that("deferred ops - sparse double", {
 
 	set.seed(2)
 	x <- rbinom(10, 1, 0.4)
@@ -77,7 +77,7 @@ test_that("delayed ops - sparse double", {
 
 })
 
-test_that("delayed ops - matrix", {
+test_that("deferred ops - matrix", {
 
 	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))
@@ -104,7 +104,7 @@ test_that("delayed ops - matrix", {
 
 })
 
-test_that("delayed ops - sparse matrix", {
+test_that("deferred ops - sparse matrix", {
 
 	set.seed(2)
 	x <- rbinom(35, 1, 0.4)
@@ -132,7 +132,7 @@ test_that("delayed ops - sparse matrix", {
 
 })
 
-test_that("delayed ops - array", {
+test_that("deferred ops - array", {
 
 	set.seed(1)
 	vals <- sort(round(10 * runif(24), 2))

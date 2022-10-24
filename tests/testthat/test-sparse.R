@@ -1,7 +1,7 @@
 require(testthat)
 require(matter)
 
-context("sparse-classes")
+context("sparse-array")
 
 test_that("sparse vector subsetting", {
 

@@ -3,13 +3,12 @@ TODO for matter package
 -------------------------
 
 - Implement cbind2(), rbind2(), and endomorphic subsetting
-- Implement signal.R with locmax() and peaklimits()
-- Update biglm() and prcomp() for new matter objects
+- Implement findpeaks(), etc.
 
 - Add Lanczos (sinc) interpolation filter
 - Add AUC (integration-based) interpolation filter
-- Implement combining using 'cbind2()' and 'rbind2()'
-- Implement and test combining vectors/matrices/etc.
+- Add low-level signal processing ('peakwidths()', etc.)
+- Add low-level spatial funcs ('dist()', 'kernels()', etc.)
 
 - Clean up generics and remove unneeded methods/functions
 	- Deprecate 'keys()' -> 'domain()'
@@ -22,12 +21,7 @@ TODO for matter package
 - Implement more 'drle' methods (e.g., Ops group)
 - Compare on 'matter' objects returns logical 'drle'?
 - Add support for in-memory atoms (via '@source_ext'?)
-
-- Write updated vignette + switch vignete to R Markdown
 - Investigate access efficiency of ALTREP matter objects
-- Infer length/dim from file in class constructors
 - Add wrappers for reading csv, tsv, etc. (?)
-- Deprecate old classes ('virtual_df', 'matter_df', etc.)
 
-- Add low-level signal processing ('peakwidths()', etc.)
-- Add low-level spatial funcs ('dist()', 'kernels()', etc.)
+

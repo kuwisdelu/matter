@@ -183,7 +183,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	}
 	if ( !isNA(pos) )
 	{
-		// additional calculation for interpolant
+		// additional calculations
 		switch(interp)
 		{
 			case EST_AVG:
@@ -214,7 +214,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 					else
 						val = y[pos];
 				}
-				if ( interp == EST_CUBIC )
+				else if ( interp == EST_CUBIC )
 				{
 					if ( dxs[1] > 0 && diff_min > 0 )
 						val = cubic(ys, dxs, tx / dxs[1]);
@@ -266,37 +266,89 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 //------------------
 
 template<typename T>
-size_t local_maxima(T * x, size_t n, int width, int * buffer)
+size_t local_maxima(T * x, size_t n, int width, int * peaks)
 {
-	size_t nmax = 0, a = 0, b = n, r = abs(width / 2);
-	for ( size_t i = 0; i < n; i++ )
+	int nmax = 0, a = 0, b = n, r = abs(width / 2);
+	for ( int i = 0; i < n; i++ )
 	{
-		buffer[i] = false;
+		peaks[i] = false;
+		if ( i < r || i > n - r )
+			continue;
 		a = (i - r) > 0 ? (i - r) : 0;
-		b = (i + r) < (n - 1) ? (i + r) : (n - 1);
-		for ( size_t j = a; j >= 0 && j <= b; j++ )
+		b = (i + r) < n - 1 ? (i + r) : n - 1;
+		for ( int j = a; j <= b; j++ )
 		{
-			buffer[i] = true;
-			if ( j < i )
+			peaks[i] = true;
+			if ( j < i && x[j] >= x[i] )
 			{
-				if ( x[j] >= x[i] )
-				{
-					buffer[i] = false;
-					break;
-				}
+				peaks[i] = false;
+				break;
 			}
-			if ( j > i )
+			if ( j > i && x[j] > x[i] )
 			{
-				if ( x[j] > x[i] )
-				{
-					buffer[i] = false;
-					break;
-				}
+				peaks[i] = false;
+				break;
 			}
 			nmax++;
 		}
 	}
 	return nmax;
+}
+
+template<typename T>
+size_t peak_boundaries(T * x, size_t n,
+	int width, int * peaks, size_t npeaks,
+	int * left_bounds, int * right_bounds)
+{
+	int r = abs(width / 2);
+	for ( int i = 0; i < npeaks; i++ )
+	{
+		left_bounds[i] = peaks[i];
+		for ( int j = peaks[i] - 1; j >= 0; j-- )
+		{
+			if ( x[j] < x[left_bounds[i]] )
+				left_bounds[i] = j;
+			else
+			{
+				int a = (j - r) > 0 ? (j - r) : 0;
+				int prev_bound = left_bounds[i];
+				while ( j >= a )
+				{
+					j--;
+					if ( x[j] < x[left_bounds[i]] )
+					{
+						left_bounds[i] = j;
+						break;
+					}
+				}
+				if ( prev_bound == left_bounds[i] )
+					break;
+			}
+		}
+		right_bounds[i] = peaks[i];
+		for ( int j = peaks[i] + 1; j < n; j++ )
+		{
+			if ( x[j] < x[right_bounds[i]] )
+				right_bounds[i] = j;
+			else
+			{
+				int b = (j + r) > 0 ? (j + r) : 0;
+				int prev_bound = right_bounds[i];
+				while ( j < b )
+				{
+					j++;
+					if ( x[j] < x[right_bounds[i]] )
+					{
+						right_bounds[i] = j;
+						break;
+					}
+				}
+				if ( prev_bound == right_bounds[i] )
+					break;
+			}
+		}
+	}
+	return npeaks;
 }
 
 #endif // SIGNAL

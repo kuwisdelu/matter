@@ -1,7 +1,7 @@
 require(testthat)
 require(matter)
 
-context("vectools")
+context("signal-processing")
 
 test_that("locmax", {
 
@@ -15,15 +15,41 @@ test_that("locmax", {
 	m2 <- which(locmax(x))
 
 	expect_equal(m2, c(4, 7, 11))
-	# expect_equal(attr(m1, "lower"), attr(m2, "lower"))
-	# expect_equal(attr(m1, "upper"), attr(m2, "upper"))
 
 	x <- c(0, 0, 0, 0, 1, 0, 0, 0, 0, 0)
 	m3 <- which(locmax(x))
 
 	expect_equal(m3, 5)
-	# expect_equal(attr(m3, "lower"), 4)
-	# expect_equal(attr(m3, "upper"), 6)
+
+})
+
+test_that("findpeaks", {
+
+	x <- c(0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 2, 2, 3, 0, 1)
+	names(x) <- seq_along(x)
+	p1 <- findpeaks(x)
+	l1 <- attr(p1, "left_bounds")
+	r1 <- attr(p1, "right_bounds")
+
+	expect_equivalent(p1, c(4, 7, 13))
+	expect_equal(l1, c(3, 6, 10))
+	expect_equal(r1, c(5, 10, 14))
+
+	x[11] <- 3
+	p2 <- findpeaks(x)
+	l2 <- attr(p2, "left_bounds")
+	r2 <- attr(p2, "right_bounds")
+
+	expect_equivalent(p2, c(4, 7, 11))
+	expect_equal(l2, c(3, 6, 10))
+	expect_equal(r2, c(5, 10, 14))
+
+	x <- c(0, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+	p3 <- findpeaks(x)
+
+	expect_equivalent(p3, 5)
+	expect_equal(attr(p3, "left_bounds"), 4)
+	expect_equal(attr(p3, "right_bounds"), 6)
 
 })
 
@@ -45,12 +71,5 @@ test_that("binvec", {
 	f <- seq(from=1, to=51, by=10)
 	
 	expect_equal(binvec(x, u, v), binvec(x, f))
-
-	# g <- rep(letters[1:5], each=10)
-	
-	# expect_equal(binvec(x, g, method="sum"), as.vector(tapply(x, g, sum)))
-	# expect_equal(binvec(x, g, method="mean"), as.vector(tapply(x, g, mean)))
-	# expect_equal(binvec(x, g, method="min"), as.vector(tapply(x, g, min)))
-	# expect_equal(binvec(x, g, method="max"), as.vector(tapply(x, g, max)))
 
 })

@@ -262,7 +262,8 @@ export(
 
 export(
 	"binvec",
-	"locmax")
+	"locmax",
+	"findpeaks")
 
 export("roll")
 

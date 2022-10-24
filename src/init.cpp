@@ -41,6 +41,7 @@ static const R_CallMethodDef callMethods[] = {
 	// signal processing
 	CALLDEF(binVector, 4),
 	CALLDEF(localMaxima, 2),
+	CALLDEF(peakBoundaries, 3),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}
