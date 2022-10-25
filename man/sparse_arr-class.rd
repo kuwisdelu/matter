@@ -50,6 +50,7 @@
 \alias{\%*\%,sparse_mat,matrix-method}
 
 \alias{as.matrix,sparse_arr-method}
+\alias{as.array,sparse_arr-method}
 
 \alias{is.sparse}
 \alias{as.sparse}

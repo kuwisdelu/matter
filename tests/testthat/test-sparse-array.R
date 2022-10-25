@@ -17,6 +17,11 @@ test_that("sparse vector subsetting", {
 	expect_error(y[-1])
 	expect_error(y[length(y) + 1])
 
+	z <- y[1:50,drop=NULL]
+
+	expect_is(z, "sparse_vec")
+	expect_equal(x[1:50], z[])
+
 	domain(y) <- seq_along(y) - 1L
 	expect_equal(x, y[])
 	expect_equal(x[1:10], y[1:10])
@@ -118,6 +123,11 @@ test_that("sparse matrix subsetting (csc)", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
+	z <- y[1:5,1:5,drop=NULL]
+
+	expect_is(z, "sparse_mat")
+	expect_equal(x[1:5,1:5], z[])
+
 	y <- sparse_mat(x, pointers=TRUE)
 
 	expect_equal(x, y[])
@@ -134,6 +144,11 @@ test_that("sparse matrix subsetting (csc)", {
 	expect_error(y[-1,])
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
+
+	z <- y[1:5,1:5,drop=NULL]
+
+	expect_is(z, "sparse_mat")
+	expect_equal(x[1:5,1:5], z[])
 
 })
 
@@ -160,6 +175,11 @@ test_that("sparse matrix subsetting (csr)", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
+	z <- y[1:5,1:5,drop=NULL]
+
+	expect_is(z, "sparse_mat")
+	expect_equal(x[1:5,1:5], z[])
+
 	y <- sparse_mat(x, pointers=TRUE, rowMaj=TRUE)
 
 	expect_equal(x, y[])
@@ -176,6 +196,11 @@ test_that("sparse matrix subsetting (csr)", {
 	expect_error(y[-1,])
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
+
+	z <- y[1:5,1:5,drop=NULL]
+
+	expect_is(z, "sparse_mat")
+	expect_equal(x[1:5,1:5], z[])
 
 })
 
@@ -201,6 +226,11 @@ test_that("sparse matrix subsetting w/ shared index", {
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
 
+	z <- y[1:5,1:5,drop=NULL]
+
+	expect_is(z, "sparse_mat")
+	expect_equal(x[1:5,1:5], z[])
+
 	y <- sparse_mat(x, index=seq_len(10L) - 1L, rowMaj=TRUE)
 
 	expect_equal(x, y[])
@@ -217,6 +247,11 @@ test_that("sparse matrix subsetting w/ shared index", {
 	expect_error(y[-1,])
 	expect_error(y[,ncol(y) + 1])
 	expect_error(y[nrow(y) + 1,])
+
+	z <- y[1:5,1:5,drop=NULL]
+
+	expect_is(z, "sparse_mat")
+	expect_equal(x[1:5,1:5], z[])
 
 })
 
