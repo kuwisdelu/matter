@@ -2,26 +2,12 @@
 TODO for matter package
 -------------------------
 
-- Implement cbind2(), rbind2(), and endomorphic subsetting
-- Implement findpeaks(), etc.
-
 - Add Lanczos (sinc) interpolation filter
 - Add AUC (integration-based) interpolation filter
 - Add low-level signal processing ('peakwidths()', etc.)
 - Add low-level spatial funcs ('dist()', 'kernels()', etc.)
-
-- Clean up generics and remove unneeded methods/functions
-	- Deprecate 'keys()' -> 'domain()'
-	- Deprecate 'datamode()' -> 'type()' (but maybe not?)
-	- Deprecate 'pull()' and 'push()' (no replacements?)
-	- Deprecate 'rowSds()', etc. -> 'rowStats()'
-	- Deprecate 'paths()' -> 'path()'
-	- Deprecate 'filemode()' -> 'readonly()'
-
-- Implement more 'drle' methods (e.g., Ops group)
+- Add more 'drle' methods (e.g., Ops group)
 - Compare on 'matter' objects returns logical 'drle'?
 - Add support for in-memory atoms (via '@source_ext'?)
 - Investigate access efficiency of ALTREP matter objects
 - Add wrappers for reading csv, tsv, etc. (?)
-
-
