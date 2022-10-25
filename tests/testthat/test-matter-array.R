@@ -276,6 +276,25 @@ test_that("matter array N-D indexing (row major)", {
 
 })
 
+test_that("matter matrix combining", {
+
+	set.seed(1)
+	vals <- sort(round(10 * runif(35), 2))
+	x <- matrix(vals, nrow=5, ncol=7)
+	y <- matter_mat(x)
+	a <- matter_vec(x[,1])
+
+	expect_equal(cbind(x, x), cbind(y, y)[])
+	expect_equal(cbind(x[,1], x), cbind(a, y)[])
+
+	y <- matter_mat(x, rowMaj=TRUE)
+	a <- matter_vec(x[1,])
+
+	expect_equal(rbind(x, x), rbind(y, y)[])
+	expect_equal(rbind(x[1,], x), rbind(a, y)[])
+
+})
+
 test_that("matter array coercion", {
 
 	x <- array(1:24, dim=c(4,3,2))

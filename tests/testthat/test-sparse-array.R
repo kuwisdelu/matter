@@ -293,3 +293,19 @@ test_that("sparse matrix subsetting w/ interpolation", {
 
 })
 
+test_that("sparse matrix combining", {
+
+	set.seed(1)
+	x <- rbinom(200, 1, 0.2)
+	x[x != 0] <- seq_len(sum(x != 0))
+	dim(x) <- c(20, 10)
+	y <- sparse_mat(x)
+
+	expect_equal(cbind(x, x), cbind(y, y)[])
+
+	y <- sparse_mat(x, rowMaj=TRUE)
+
+	expect_equal(rbind(x, x), rbind(y, y)[])
+
+})
+

@@ -353,6 +353,14 @@ setMethod("nnzero", "sparse_arr",
 
 setMethod("dim", "sparse_vec", function(x) NULL)
 
+is_sparse_arr_CSX <- function(x) {
+	is(x@data, "matter_OR_array")
+}
+
+is_sparse_arr_LIL <- function(x) {
+	is(x@data, "matter_OR_list")
+}
+
 convert_sparse_arr_CSX <- function(x) {
 	if ( is(x@data, "matter_OR_array") )
 		return(x)
@@ -483,6 +491,54 @@ get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE) {
 set_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0) {
 	stop("sparse array assignment is not implemented yet")
 }
+
+setMethod("cbind2", c("sparse_mat", "sparse_mat"),
+	function(x, y, ...) {
+		if ( nrow(x) != nrow(y) )
+			stop("number of rows of matrices must match")
+		if ( x@transpose || y@transpose )
+			stop("can't cbind row-major matrices")
+		if ( !is.null(x@ops) )
+			warning("deferred operations will be dropped")
+		data <- c(x@data, y@data)
+		index <- c(x@index, y@index)
+		if ( !is.null(x@pointers) ) {
+			pointers <- c(x@pointers, y@pointers + max(x@pointers))
+		} else {
+			pointers <- NULL
+		}
+		new(class(x), x, data=data,
+			index=index, pointers=pointers,
+			dim=c(nrow(x), ncol(x) + ncol(y)),
+			dimnames=cbind_dimnames(x, y),
+			ops=NULL)
+	})
+
+setMethod("rbind2", c("sparse_mat", "sparse_mat"),
+	function(x, y, ...) {
+		if ( ncol(x) != ncol(y) )
+			stop("number of columns of matrices must match")
+		if ( !x@transpose || !y@transpose )
+			stop("can't rbind column-major matrices")
+		if ( !is.null(x@ops) )
+			warning("deferred operations will be dropped")
+		data <- c(x@data, y@data)
+		index <- c(x@index, y@index)
+		if ( !is.null(x@pointers) ) {
+			pointers <- c(x@pointers, y@pointers + max(x@pointers))
+		} else {
+			pointers <- NULL
+		}
+		new(class(x), x, data=data,
+			index=index, pointers=pointers,
+			dim=c(nrow(x) + nrow(y), ncol(x)),
+			dimnames=rbind_dimnames(x, y),
+			ops=NULL)
+	})
+
+cbind.sparse_arr <- cbind_any
+
+rbind.sparse_arr <- rbind_any
 
 setMethod("[", c(x = "sparse_arr"),
 	function(x, i, j, ..., drop = TRUE) {

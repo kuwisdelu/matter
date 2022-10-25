@@ -153,6 +153,11 @@ exportMethods(
 	"crossprod",
 	"tcrossprod")
 
+S3method("cbind", "matter_arr")
+S3method("rbind", "matter_arr")
+S3method("cbind", "sparse_arr")
+S3method("rbind", "sparse_arr")
+
 exportMethods(
 	"Arith",
 	"Compare",

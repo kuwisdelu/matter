@@ -44,6 +44,9 @@
 
 \alias{t,sparse_arr-method}
 
+\alias{cbind2,sparse_mat,sparse_mat-method}
+\alias{rbind2,sparse_mat,sparse_mat-method}
+
 \alias{\%*\%,vector,sparse_mat-method}
 \alias{\%*\%,matrix,sparse_mat-method}
 \alias{\%*\%,sparse_mat,vector-method}

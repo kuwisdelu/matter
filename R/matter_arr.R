@@ -378,6 +378,59 @@ set_matter_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0)
 	.Call(C_setMatterMatrix, x, i, j, value, PACKAGE="matter")
 }
 
+setMethod("cbind2", c("matter_vec", "matter_vec"),
+	function(x, y, ...)
+		cbind2(as(x, "matter_mat"), as(y, "matter_mat")))
+
+setMethod("cbind2", c("matter_mat", "matter_vec"),
+	function(x, y, ...) cbind2(x, as(y, "matter_mat")))
+
+setMethod("cbind2", c("matter_vec", "matter_mat"),
+	function(x, y, ...) cbind2(as(x, "matter_mat"), y))
+
+setMethod("cbind2", c("matter_mat", "matter_mat"),
+	function(x, y, ...) {
+		if ( nrow(x) != nrow(y) )
+			stop("number of rows of matrices must match")
+		if ( x@transpose || y@transpose )
+			stop("can't cbind row-major matrices")
+		if ( !is.null(x@ops) )
+			warning("deferred operations will be dropped")
+		data <- cbind(x@data, y@data)
+		new(class(x), x, data=data,
+			dim=c(nrow(x), ncol(x) + ncol(y)),
+			dimnames=cbind_dimnames(x, y),
+			ops=NULL)
+	})
+
+setMethod("rbind2", c("matter_vec", "matter_vec"),
+	function(x, y, ...) rbind2(t(x), t(y)))
+
+setMethod("rbind2", c("matter_mat", "matter_vec"),
+	function(x, y, ...) rbind2(x, t(y)))
+
+setMethod("rbind2", c("matter_vec", "matter_mat"),
+	function(x, y, ...) rbind2(t(x), y))
+
+setMethod("rbind2", c("matter_mat", "matter_mat"),
+	function(x, y, ...) {
+		if ( ncol(x) != ncol(y) )
+			stop("number of columns of matrices must match")
+		if ( !x@transpose || !y@transpose )
+			stop("can't rbind column-major matrices")
+		if ( !is.null(x@ops) )
+			warning("deferred operations will be dropped")
+		data <- cbind(x@data, y@data)
+		new(class(x), x, data=data,
+			dim=c(nrow(x) + nrow(y), ncol(x)),
+			dimnames=rbind_dimnames(x, y),
+			ops=NULL)
+	})
+
+cbind.matter_arr <- cbind_any
+
+rbind.matter_arr <- rbind_any
+
 setMethod("[", c(x = "matter_arr"),
 	function(x, i, j, ..., drop = TRUE) {
 		narg <- nargs() - 1L - !missing(drop)
@@ -545,7 +598,10 @@ setReplaceMethod("dim", "matter_arr", function(x, value) {
 		x@dimnames <- NULL
 		as(x, "matter_vec")
 	} else {
-		callNextMethod()
+		y <- callNextMethod()
+		if ( length(value) == 2L )
+			y <- as(y, "matter_mat")
+		y
 	}
 })
 

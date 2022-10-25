@@ -39,6 +39,16 @@
 \alias{t,matter_arr-method}
 \alias{t,matter_vec-method}
 
+\alias{cbind2,matter_vec,matter_vec-method}
+\alias{cbind2,matter_vec,matter_mat-method}
+\alias{cbind2,matter_mat,matter_vec-method}
+\alias{cbind2,matter_mat,matter_mat-method}
+
+\alias{rbind2,matter_vec,matter_vec-method}
+\alias{rbind2,matter_vec,matter_mat-method}
+\alias{rbind2,matter_mat,matter_vec-method}
+\alias{rbind2,matter_mat,matter_mat-method}
+
 \alias{\%*\%,vector,matter_mat-method}
 \alias{\%*\%,matrix,matter_mat-method}
 \alias{\%*\%,matter_mat,vector-method}
