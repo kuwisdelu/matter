@@ -225,7 +225,7 @@ sparse_mat <- function(data, index, type = "double",
 		transpose=rowMaj, ...)
 }
 
-as.sparse <- function(x, ...) as(x, "sparse_arr")
+as.sparse <- function(x, ...) sparse_mat(x, ...)
 
 is.sparse <- function(x) is(x, "sparse_arr")
 
