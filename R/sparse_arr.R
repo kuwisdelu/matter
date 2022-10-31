@@ -484,7 +484,7 @@ subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL) {
 		x@domain <- domain
 	}
 	nrow <- if (is.null(i)) nrow(x) else length(i)
-	ncol <- if (is.null(j)) nrow(x) else length(j)
+	ncol <- if (is.null(j)) ncol(x) else length(j)
 	x@dim <- c(nrow, ncol)
 	x@dimnames <- subset_dimnames(x@dimnames, list(i, j))
 	if ( validObject(x) )
