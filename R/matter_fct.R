@@ -39,7 +39,7 @@ matter_fct <- function(data, levels, type = "integer", path = NULL,
 	exists <- file.exists(path)
 	if ( is.na(readonly) )
 		readonly <- all(exists)
-	if ( any(exists) && !readonly && !missing(data) ) {
+	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
 		overwrite <- offset != file.size(path)
 		if ( any(overwrite) )
 			warning("data may overwrite existing file(s): ",
@@ -63,7 +63,7 @@ matter_fct <- function(data, levels, type = "integer", path = NULL,
 		offset <- cumsum(c(offset, sizes[-length(sizes)]))
 	}
 	if ( any(!exists) ) {
-		if ( missing(data) && any(extent > 0) )
+		if ( missing(data) && any(extent > 0) && !is.null(data) )
 			warning("creating uninitialized backing file(s): ",
 				paste0(sQuote(path[!exists]), collapse=", "))
 		success <- file.create(path)

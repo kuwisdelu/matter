@@ -510,22 +510,23 @@ class MatterList : public Matter {
 		{
 			if ( i < 0 || i >= length() )
 				Rf_error("subscript out of bounds");
-			if ( !Rf_isString(value) && dim(i) != LENGTH(value) ) {
+			if ( dim(i) != LENGTH(value) && LENGTH(value) != 1 ) {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
+			int stride = (LENGTH(value) == 1) ? 0 : 1;
 			switch(TYPEOF(value)) {
 				case RAWSXP:
-					data()->set_region<Rbyte>(RAW(value), 0, dim(i), i);
+					data()->set_region<Rbyte>(RAW(value), 0, dim(i), i, stride);
 					break;
 				case LGLSXP:
-					data()->set_region<int>(LOGICAL(value), 0, dim(i), i);
+					data()->set_region<int>(LOGICAL(value), 0, dim(i), i, stride);
 					break;
 				case INTSXP:
-					data()->set_region<int>(INTEGER(value), 0, dim(i), i);
+					data()->set_region<int>(INTEGER(value), 0, dim(i), i, stride);
 					break;
 				case REALSXP:
-					data()->set_region<double>(REAL(value), 0, dim(i), i);
+					data()->set_region<double>(REAL(value), 0, dim(i), i, stride);
 					break;
 				case STRSXP: {
 					value = Rf_asChar(value);
@@ -589,22 +590,23 @@ class MatterList : public Matter {
 				return set(i, value);
 			if ( i < 0 || i >= length() )
 				Rf_error("subscript out of bounds");
-			if ( !Rf_isString(value) && LENGTH(j) != LENGTH(value) ) {
+			if ( LENGTH(j) != LENGTH(value) && LENGTH(value) != 1 ) {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
+			int stride = (LENGTH(value) == 1) ? 0 : 1;
 			switch(TYPEOF(value)) {
 				case RAWSXP:
-					data()->set_elements<Rbyte>(RAW(value), j, i);
+					data()->set_elements<Rbyte>(RAW(value), j, i, stride);
 					break;
 				case LGLSXP:
-					data()->set_elements<int>(LOGICAL(value), j, i);
+					data()->set_elements<int>(LOGICAL(value), j, i, stride);
 					break;
 				case INTSXP:
-					data()->set_elements<int>(INTEGER(value), j, i);
+					data()->set_elements<int>(INTEGER(value), j, i, stride);
 					break;
 				case REALSXP:
-					data()->set_elements<double>(REAL(value), j, i);
+					data()->set_elements<double>(REAL(value), j, i, stride);
 					break;
 				case STRSXP: {
 					value = Rf_asChar(value);
