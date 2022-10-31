@@ -36,6 +36,7 @@
 \alias{sampler<-,sparse_arr-method}
 \alias{nnzero,sparse_arr-method}
 \alias{length,sparse_arr-method}
+\alias{lengths,sparse_arr-method}
 
 \alias{keys,sparse_arr-method}
 \alias{keys<-,sparse_arr-method}

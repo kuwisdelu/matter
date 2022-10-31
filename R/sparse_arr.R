@@ -399,6 +399,22 @@ setMethod("nnzero", "sparse_arr",
 		}
 	})
 
+setMethod("lengths", "sparse_arr",
+	function(x, use.names = TRUE) {
+		if ( is(x@data, "matter_OR_list") ) {
+			lens <- lengths(x@data)
+		} else if ( !is.null(x@pointers) ) {
+			lens <- diff(x@pointers)
+		} else {
+			lens <- rep.int(length(x@index), length(x@data) / length(x@index))
+		}
+		if ( x@transpose ) {
+			set_names(lens, rownames(x))
+		} else {
+			set_names(lens, colnames(x))
+		}
+	})
+
 setMethod("dim", "sparse_vec", function(x) NULL)
 
 is_sparse_arr_CSX <- function(x) {
