@@ -65,7 +65,7 @@ class DeferredOps : public ArrayInterface {
 
 		template<typename T>
 		T arg(int i, int j, int grp = 0) {
-			if ( is_unary(i) )
+			if ( is_unary(i) || isNA(grp) )
 				return NA<T>();
 			if ( arglen(i) == 1 )
 				j = 0;
