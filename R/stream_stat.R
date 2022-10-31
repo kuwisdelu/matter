@@ -242,6 +242,8 @@ na_rm <- function(object, ...) UseMethod("na_rm")
 na_rm.default <- function(object, ...) attr(object, "na.rm")
 
 stat_c <- function(x, y, ...) {
+	if ( missing(y) )
+		return(x)
 	if ( ...length() > 0L ) {
 		stat_c(x, do.call(stat_c, list(y, ...)))
 	} else {
