@@ -310,7 +310,7 @@ size_t peak_boundaries(T * x, size_t n,
 				left_bounds[i] = j;
 			else
 			{
-				int a = (j - r) > 0 ? (j - r) : 0;
+				int a = (j - r) > 1 ? (j - r) : 1;
 				int prev_bound = left_bounds[i];
 				while ( j >= a )
 				{
@@ -332,7 +332,7 @@ size_t peak_boundaries(T * x, size_t n,
 				right_bounds[i] = j;
 			else
 			{
-				int b = (j + r) > 0 ? (j + r) : 0;
+				int b = (j + r) < n - 1 ? (j + r) : n - 1;
 				int prev_bound = right_bounds[i];
 				while ( j < b )
 				{

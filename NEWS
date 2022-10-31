@@ -6,6 +6,7 @@ BUG FIXES
 
     o Minor bug fixes to 'matter_list' and 'struct()' behavior
     o Minor bug fix to endomorphic subsetting of sparse matrices
+    o Minor bug fix to 'binvec()' behavior at vector endpoints
     o Properly ignore missing groups in 'rowsweep()' and 'colsweep()'
 
 CHANGES IN VERSION 1.99.0 [2022-10-23]
