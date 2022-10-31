@@ -258,6 +258,7 @@ export(
 	"hex2raw",
 	"raw2hex")
 
+S3method("[", "size_bytes")
 S3method("print", "size_bytes")
 S3method("format", "size_bytes")
 

@@ -741,6 +741,11 @@ print.size_bytes <- function(x, units = "auto",
 		quote=quote, right=right, ...)
 }
 
+`[.size_bytes` <- function(x, i, j, ..., drop=FALSE)
+{
+	structure(NextMethod(), class="size_bytes")
+}
+
 # based on pryr::mem_used and pryr::mem_change
 mem <- function(x, reset = FALSE)
 {
