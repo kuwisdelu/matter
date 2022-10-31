@@ -286,52 +286,59 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 		round(nnzero(x) / length(x), 4) * 100, "% density)\n", sep="")
 })
 
-setMethod("atomdata", "sparse_arr", function(object, i = NULL, ...) {
-	if ( !is.null(i) ) {
-		if ( is(object@data, "matter_OR_list") ) {
-			object@data[[i]]
-		} else if ( !is.null(object@pointers) ) {
-			j <- c(object@pointers[i], object@pointers[i + 1L])
-			if ( j[1L] != j[2L] ) {
-				object@data[j[1L]:j[2L]]
+setMethod("atomdata", "sparse_arr",
+	function(object, i = NULL, ...)
+	{
+		if ( !is.null(i) ) {
+			if ( is(object@data, "matter_OR_list") ) {
+				object@data[[i]]
+			} else if ( !is.null(object@pointers) ) {
+				j <- c(object@pointers[i] + 1L, object@pointers[i + 1L])
+				if ( j[1L] != j[2L] ) {
+					object@data[j[1L]:j[2L]]
+				} else {
+					vector(type(object))
+				}
 			} else {
-				vector(type(object))
+				j <- ((i - 1L) * length(object@index)) + 1L
+				object@data[j:(j + length(object@index) - 1L)]
 			}
 		} else {
-			j <- ((i - 1L) * length(object@index)) + 1L
-			object@data[j:(j + length(object@index))]
+			object@data
 		}
-	} else {
-		object@data
-	}
-})
+	})
 
-setMethod("aindex", "sparse_arr", function(object, ...) atomindex(object, ...))
+setMethod("aindex", "sparse_arr",
+	function(object, ...) atomindex(object, ...))
 
-setMethod("atomindex", "sparse_arr", function(object, i = NULL, ...) {
-	if ( !is.null(i) ) {
-		if ( is(object@index, "matter_OR_list") ) {
-			object@index[[i]]
-		} else if ( !is.null(object@pointers) ) {
-			j <- c(object@pointers[i], object@pointers[i + 1L])
-			if ( j[1L] != j[2L] ) {
-				object@index[j[1L]:j[2L]]
+setMethod("atomindex", "sparse_arr",
+	function(object, i = NULL, ...)
+	{
+		if ( !is.null(i) ) {
+			if ( is(object@index, "matter_OR_list") ) {
+				object@index[[i]]
+			} else if ( !is.null(object@pointers) ) {
+				j <- c(object@pointers[i] + 1L, object@pointers[i + 1L])
+				if ( j[1L] != j[2L] ) {
+					object@index[j[1L]:j[2L]]
+				} else {
+					vector(type(object))
+				}
 			} else {
-				vector(type(object))
+				object@index
 			}
 		} else {
 			object@index
 		}
-	} else {
-		object@index
-	}
-})
+	})
 
-setReplaceMethod("atomindex", "sparse_arr", function(object, ..., value) {
-	object@index <- value
-	if ( validObject(object) )
-		object
-})
+setReplaceMethod("atomindex", "sparse_arr",
+	function(object, ..., value)
+	{
+		object@index <- value
+		if ( validObject(object) )
+			object
+	})
 
 setMethod("pointers", "sparse_arr", function(object) object@pointers)
 

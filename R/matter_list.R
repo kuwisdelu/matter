@@ -44,6 +44,7 @@ matter_list <- function(data, type = "double", path = NULL,
 	} else if ( anyNA(lengths) ) {
 		lengths <- extent
 	}
+	type <- rep_len(type, length(extent))
 	if ( length(offset) != length(extent) && length(path) == 1L ) {
 		sizes <- sizeof(type) * extent
 		offset <- cumsum(c(offset, sizes[-length(sizes)]))
