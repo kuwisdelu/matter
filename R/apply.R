@@ -277,7 +277,11 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 chunkify <- function(x, nchunks = 20L, depends = NULL) {
 	nchunks <- min(ceiling(length(x) / 2L), nchunks)
 	index <- seq_along(x)
-	index <- split(index, cut(index, nchunks))
+	if ( nchunks > 1L ) {
+		index <- split(index, cut(index, nchunks))
+	} else {
+		index <- list(index)
+	}
 	ans <- vector("list", length(index))
 	for ( i in seq_along(index) ) {
 		if ( !is.null(depends) ) {
