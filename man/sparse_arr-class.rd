@@ -36,6 +36,9 @@
 \alias{nnzero,sparse_arr-method}
 \alias{length,sparse_arr-method}
 
+\alias{keys,sparse_arr-method}
+\alias{keys<-,sparse_arr-method}
+
 \alias{dim,sparse_vec-method}
 
 \alias{[,sparse_arr,ANY,ANY,ANY-method}
