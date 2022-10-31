@@ -126,11 +126,11 @@ as.matter <- function(x) {
 	}
 }
 
-setMethod("adata", "matter", function(object) atomdata(object))
+setMethod("adata", "matter", function(object, ...) atomdata(object, ...))
 
-setMethod("atomdata", "matter", function(object) object@data)
+setMethod("atomdata", "matter", function(object, ...) object@data)
 
-setReplaceMethod("atomdata", "matter", function(object, value) {
+setReplaceMethod("atomdata", "matter", function(object, ..., value) {
 	object@data <- value
 	if ( validObject(object) )
 		object

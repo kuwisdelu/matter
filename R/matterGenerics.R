@@ -48,17 +48,17 @@ setGeneric("colStats", function(x, ...) standardGeneric("colStats"))
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------
 
-setGeneric("adata", function(object) standardGeneric("adata"))
-setGeneric("atomdata", function(object) standardGeneric("atomdata"))
-setGeneric("atomdata<-", function(object, value) standardGeneric("atomdata<-"))
+setGeneric("adata", function(object, ...) standardGeneric("adata"))
+setGeneric("atomdata", function(object, ...) standardGeneric("atomdata"))
+setGeneric("atomdata<-", function(object, ..., value) standardGeneric("atomdata<-"))
 setGeneric("readonly", function(x) standardGeneric("readonly"))
 setGeneric("readonly<-", function(x, value) standardGeneric("readonly<-"))
 setGeneric("chunksize", function(x) standardGeneric("chunksize"))
 setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 
-setGeneric("aindex", function(object) standardGeneric("aindex"))
-setGeneric("atomindex", function(object) standardGeneric("atomindex"))
-setGeneric("atomindex<-", function(object, value) standardGeneric("atomindex<-"))
+setGeneric("aindex", function(object, ...) standardGeneric("aindex"))
+setGeneric("atomindex", function(object, ...) standardGeneric("atomindex"))
+setGeneric("atomindex<-", function(object, ..., value) standardGeneric("atomindex<-"))
 setGeneric("pointers", function(object) standardGeneric("pointers"))
 setGeneric("pointers<-", function(object, value) standardGeneric("pointers<-"))
 setGeneric("domain", function(x) standardGeneric("domain"))
