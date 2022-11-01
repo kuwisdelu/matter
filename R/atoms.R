@@ -247,11 +247,11 @@ ungroup_atoms <- function(x) {
 setMethod("as.data.frame", "atoms",
 	function(x, ...){
 		data.frame(
-			source=x@source,
-			type=x@type,
-			offset=x@offset,
-			extent=x@extent,
-			group=x@group)
+			source=x@source[],
+			type=x@type[],
+			offset=x@offset[],
+			extent=x@extent[],
+			group=x@group[])
 	})
 
 setMethod("as.list", "atoms",
