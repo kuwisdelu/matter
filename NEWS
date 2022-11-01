@@ -5,6 +5,7 @@ CHANGES IN VERSION 1.99.1 [2022-10-31]
 BUG FIXES
 
     o Fix 'chunkApply()' behavior for when nchunks == 1
+    o Fix 'atoms' failure when 'source' is a compressed 'drle'
     o Minor bug fixes to 'matter_list' and 'struct()' behavior
     o Minor bug fix to endomorphic subsetting of sparse matrices
     o Minor bug fix to 'binvec()' behavior at vector endpoints

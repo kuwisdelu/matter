@@ -18,11 +18,14 @@ class DataSources {
 		DataSources(SEXP x)
 		{
 			SEXP sources = R_do_slot(x, Rf_install("source"));
-			_paths = Rf_getAttrib(sources, R_LevelsSymbol);
+			if ( Rf_isS4(sources) )
+				_paths = R_do_slot(sources, Rf_install("levels"));
+			else
+				_paths = Rf_getAttrib(sources, R_LevelsSymbol);
 			_length = LENGTH(_paths);
-			_readonly = Rf_asLogical(R_do_slot(x, Rf_install("readonly")));
-			if ( LENGTH(sources) < 0 || _length < 0 )
+			if ( _length < 0 )
 				Rf_error("no data sources found");
+			_readonly = Rf_asLogical(R_do_slot(x, Rf_install("readonly")));
 			if ( _readonly )
 				_mode = std::ios::in | std::ios::binary;
 			else
