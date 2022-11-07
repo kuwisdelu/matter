@@ -203,6 +203,18 @@ setReplaceMethod("$", c(x = "matter_list"),
 		}
 	})
 
+setMethod("combine", "matter_list",
+	function(x, y, ...) {
+		data <- cbind(x@data, y@data)
+		new(class(x), data=data,
+			type=c(x@type, y@type),
+			dim=c(x@dim, y@dim),
+			names=combine_names(x, y),
+			dimnames=NULL)
+	})
+
+setMethod("c", "matter_list", combine_any)
+
 setMethod("dim", "matter_list", function(x) NULL)
 
 setMethod("length", "matter_list", function(x) length(x@dim))

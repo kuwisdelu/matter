@@ -308,6 +308,25 @@ set_names <- function(x, nm, i) {
 	x
 }
 
+combine_names <- function(x1, x2) {
+	nm1 <- names(x1)
+	nm2 <- names(x2)
+	if ( is.null(nm1) && is.null(nm2) )
+		return(names(x1))
+	nm1 <- if (is.null(nm1)) character(length(x1)) else nm1
+	nm2 <- if (is.null(nm2)) character(length(x2)) else nm2
+	c(nm1, nm2)
+}
+
+combine_any <- function(x, ...)
+{
+	if ( ...length() > 0 ) {
+		do.call(combine, list(x, ...))
+	} else {
+		x
+	}
+}
+
 set_dimnames <- function(x, dnm, index) {
 	if ( !missing(index) && !is.null(index) )
 		dnm <- subset_dimnames(dnm, index)

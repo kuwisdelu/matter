@@ -22,13 +22,23 @@ register(SerialParam())
 
 # Introduction 
 
+The *Matter* package provides flexible data structures for out-of-memory computing on dense and sparse arrays, with several features designed specifically for computing on nonuniform signals such as mass spectra and other spectral data.
 
-*Matter 2* provides an updated and more robust C++ backend to `matter` objects, along with a completely new implementation of sparse arrays and new signal processing functions for nonuniform sparse signal data.
+*Matter 2* has been updated to provide a more robust C++ backend to out-of-memory `matter` objects, along with a completely new implementation of sparse arrays and new signal processing functions for nonuniform sparse signal data.
 
 Originally designed as a backend for the *Cardinal* package, The first version of *Matter* was constantly evolving to handle the ever-increasing demands of larger-than-memory mass spectrometry (MS) imaging experiments. While it was designed to be flexible from a user's point-of-view to handle a wide array for file structures beyond the niche of MS imaging, its codebase was becoming increasingly difficult to maintain and update.
 
 *Matter 2* was re-written from the ground up to simplify some features that were rarely needed in practice and to provide a more robust and future-proof codebase for further improvement.
 
+Specific improvements include:
+
+- New sparse matrix backend re-implemented completely in C++ for greater efficiency and for planned public API and future ALTREP support
+
+- Rewritten sparse matrix frontend re-implemented with more options for resampling and interpolation (see section on sparse matrices for details)
+
+- Rewritten out-of-memory backend with improved and simplified C++ code designed with greater modularity for new features and planned public API
+
+- Deferred `colsweep()` and `rowsweep()` operations to supplement new `colscale()` and `rowscale()` functions for centering/scaling with a grouping variable
 
 
 # Installation
@@ -49,13 +59,46 @@ library(matter)
 ```
 
 
-# Usage
+# Out-of-memory data structures
 
-Coming soon.....
+*Matter* provides a number of data structures for out-of-memory computing. These are designed to flexibly support a variety of binary file structures, which can be computed on similarly to native R data structures.
 
-Coming soon.....
+## Atomic data units
 
-Coming soon.....
+The basis of out-of-memory data structures in *Matter* is a single contiguous chunk of data called an "atom". The basic idea is: an "atom" is a unit of data that can be pulled into memory in a single atomic read operation.
+
+An "atom" of data typically lives in a local file. It is defined by (1) its source (e.g., a file path), (2) its data type, (3) its offset within the source (in bytes), and (4) its extent (i.e., the number of elements).
+
+A `matter` object is composed of any number of atoms, from any number of files, that together make up the elements of the data structure.
+
+```{r}
+x <- matter_vec(1:10)
+y <- matter_vec(11:20)
+z <- cbind(x, y)
+atomdata(z)
+```
+
+Above, the two columns of the matrix `z` are composed of two different "atoms" from two different files.
+
+In this way, a `matter` object may be composed of data from any number of files, from any locations (i.e., byte offsets) within those files. This data can then be represented to the user as an array, matrix, vector, or list.
+
+
+## Arrays and matrices
+
+### Deferred arithmetic
+
+## Lists
+
+
+
+
+# Sparse data structures
+
+## Sparse matrices
+
+### Deferred arithmetic
+
+## Nonuniform signals
 
 
 

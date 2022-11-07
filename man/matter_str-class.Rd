@@ -18,6 +18,7 @@
 \alias{[<-,matter_str,ANY,ANY,ANY-method}
 
 \alias{combine,matter_str,ANY-method}
+\alias{c,matter_str-method}
 
 \alias{as.vector,matter_str-method}
 \alias{as.character,matter_str-method}

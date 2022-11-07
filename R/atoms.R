@@ -314,6 +314,9 @@ setMethod("rbind2", "atoms",
 			readonly=x@readonly || y@readonly)
 	})
 
+setMethod("combine", "atoms",
+	function(x, y, ...) rbind2(x, y, ...))
+
 setMethod("[", c(x="atoms"),
 	function(x, i, j, ..., drop = TRUE) {
 		narg <- nargs() - 1L - !missing(drop)
@@ -337,11 +340,3 @@ setMethod("[[", "atoms",
 		}
 	})
 
-setMethod("c", "atoms", function(x, ...)
-{
-	if ( ...length() > 0 ) {
-		do.call(rbind, list(x, ...))
-	} else {
-		x
-	}
-})

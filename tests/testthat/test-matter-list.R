@@ -3,7 +3,7 @@ require(matter)
 
 context("matter-list")
 
-test_that("matter list indexing", {
+test_that("matter list", {
 
 	x <- list(
 		raw=as.raw(0:5),
@@ -29,6 +29,8 @@ test_that("matter list indexing", {
 
 	expect_is(z, "matter_list")
 	expect_equal(x[1:3], z[])
+
+	expect_equal(c(x, x), c(y, y)[])
 
 })
 

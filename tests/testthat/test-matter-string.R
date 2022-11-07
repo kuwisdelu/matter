@@ -3,7 +3,7 @@ require(matter)
 
 context("matter-string")
 
-test_that("matter string indexing", {
+test_that("matter string", {
 
 	x <- c("neon", "genesis", "evangelion")
 	y <- matter_str(x)
@@ -23,5 +23,6 @@ test_that("matter string indexing", {
 	expect_is(z, "matter_str")
 	expect_equal(x[1:2], z[])
 
-})
+	expect_equal(c(x, x), c(y, y)[])
 
+})

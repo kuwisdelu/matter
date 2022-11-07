@@ -3,7 +3,7 @@ require(matter)
 
 context("matter-factor")
 
-test_that("matter factor indexing", {
+test_that("matter factor", {
 
 	x <- factor(c("A", "A", "B", "B", "A", "C", "A"))
 	y <- matter_fct(x)
@@ -28,5 +28,6 @@ test_that("matter factor indexing", {
 	expect_equal(x[1:7], y[1:7])
 	expect_equal(x[7:1], y[7:1])
 
-})
+	expect_equal(c(x, x), c(y, y)[])
 
+})
