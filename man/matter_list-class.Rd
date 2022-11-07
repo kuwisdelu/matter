@@ -23,6 +23,7 @@
 \alias{$<-,matter_list-method}
 
 \alias{combine,matter_list,ANY-method}
+\alias{c,matter_list-method}
 
 \alias{as.list,matter_list-method}
 

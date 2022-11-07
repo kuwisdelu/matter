@@ -39,6 +39,9 @@
 \alias{t,matter_arr-method}
 \alias{t,matter_vec-method}
 
+\alias{combine,matter_arr,ANY-method}
+\alias{c,matter_arr-method}
+
 \alias{cbind2,matter_vec,matter_vec-method}
 \alias{cbind2,matter_vec,matter_mat-method}
 \alias{cbind2,matter_mat,matter_vec-method}

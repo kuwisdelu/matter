@@ -279,11 +279,19 @@ test_that("matter array N-D indexing (row major)", {
 test_that("matter matrix combining", {
 
 	set.seed(1)
+	v1 <- sort(round(10 * runif(10)))
+	v2 <- sort(round(10 * runif(10)))
+	x <- matter_vec(v1)
+	y <- matter_vec(v2)
+	expect_equal(c(v1, v2), c(x, y)[])
+
+	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 	y <- matter_mat(x)
 	a <- matter_vec(x[,1])
 
+	expect_equal(c(x, x), c(y, y)[])
 	expect_equal(cbind(x, x), cbind(y, y)[])
 	expect_equal(cbind(x[,1], x), cbind(a, y)[])
 

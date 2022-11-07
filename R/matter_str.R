@@ -126,6 +126,19 @@ setReplaceMethod("[", c(x = "matter_str"),
 		set_matter_str_elts(x, i, j, value)
 	})
 
+setMethod("combine", "matter_str",
+	function(x, y, ...) {
+		data <- cbind(x@data, y@data)
+		new(class(x), data=data,
+			type=x@type,
+			dim=c(x@dim, y@dim),
+			names=combine_names(x, y),
+			dimnames=NULL,
+			encoding=x@encoding)
+	})
+
+setMethod("c", "matter_str", combine_any)
+
 setMethod("Encoding", "matter_str", function(x) x@encoding)
 
 setReplaceMethod("Encoding", "matter_str",

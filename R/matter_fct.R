@@ -141,6 +141,16 @@ setReplaceMethod("[", c(x = "matter_fct"),
 		set_matter_fct_elts(x, i, value)
 	})
 
+setMethod("combine", "matter_fct",
+	function(x, y, ...) {
+		if ( any(x@levels != y@levels) )
+			stop("factor levels must match")
+		if ( any(x@labels != y@labels) )
+			stop("factor labels must match")
+		new("matter_fct", callNextMethod(),
+			levels=x@levels, labels=x@labels)
+	})
+
 setMethod("levels", "matter_fct", function(x) x@labels)
 
 setReplaceMethod("levels", "matter_fct",
