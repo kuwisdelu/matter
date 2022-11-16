@@ -1,47 +1,47 @@
 
 setMethod("rowStats", "ANY",
 	function(x, ..., BPPARAM = bpparam()) {
-		rowStats_int(x, ..., BPPARAM = bpparam())
+		rowStats_int(x, ..., BPPARAM = BPPARAM)
 	})
 
 setMethod("colStats", "ANY",
 	function(x, ..., BPPARAM = bpparam()) {
-		colStats_int(x, ..., BPPARAM = bpparam())
+		colStats_int(x, ..., BPPARAM = BPPARAM)
 	})
 
 setMethod("rowStats", "matter_mat",
 	function(x, ..., BPPARAM = bpparam()) {
 		if ( x@transpose ) {
-			rowStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+			rowStats_int(x, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
-			rowStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+			rowStats_int(x, ..., iter.dim=2L, BPPARAM = BPPARAM)
 		}
 	})
 
 setMethod("colStats", "matter_mat",
 	function(x, ..., BPPARAM = bpparam()) {
 		if ( x@transpose ) {
-			colStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+			colStats_int(x, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
-			colStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+			colStats_int(x, ..., iter.dim=2L, BPPARAM = BPPARAM)
 		}
 	})
 
 setMethod("rowStats", "sparse_mat",
 	function(x, ..., BPPARAM = bpparam()) {
 		if ( x@transpose ) {
-			rowStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+			rowStats_int(x, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
-			rowStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+			rowStats_int(x, ..., iter.dim=2L, BPPARAM = BPPARAM)
 		}
 	})
 
 setMethod("colStats", "sparse_mat",
 	function(x, ..., BPPARAM = bpparam()) {
 		if ( x@transpose ) {
-			colStats_int(x, ..., iter.dim=1L, BPPARAM = bpparam())
+			colStats_int(x, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
-			colStats_int(x, ..., iter.dim=2L, BPPARAM = bpparam())
+			colStats_int(x, ..., iter.dim=2L, BPPARAM = BPPARAM)
 		}
 	})
 
