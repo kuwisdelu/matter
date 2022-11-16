@@ -6,6 +6,7 @@ BUG FIXES
 
     o Fixed combining for matter vectors and lists
     o Fixed slow 'matter_mat()' constructor for large # of atoms
+    o Fixed bug with BPPARAM not passed in 'rowStats()'/'colStats()'
 
 CHANGES IN VERSION 1.99.2 [2022-10-31]
 -----------------------------------
