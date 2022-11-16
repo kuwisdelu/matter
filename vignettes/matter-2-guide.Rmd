@@ -59,6 +59,7 @@ library(matter)
 ```
 
 
+
 # Out-of-memory data structures
 
 *Matter* provides a number of data structures for out-of-memory computing. These are designed to flexibly support a variety of binary file structures, which can be computed on similarly to native R data structures.
@@ -85,20 +86,35 @@ In this way, a `matter` object may be composed of data from any number of files,
 
 ## Arrays and matrices
 
+Coming soon...
+
 ### Deferred arithmetic
 
+Coming soon...
+
 ## Lists
+
+Coming soon...
 
 
 
 
 # Sparse data structures
 
+Coming soon...
+
 ## Sparse matrices
+
+Coming soon...
 
 ### Deferred arithmetic
 
+Coming soon...
+
 ## Nonuniform signals
+
+Coming soon...
+
 
 
 

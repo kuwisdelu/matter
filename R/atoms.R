@@ -217,31 +217,36 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 }
 
 regroup_atoms <- function(x, ngroups) {
-	if ( ngroups <= 1L )
-		return(x)
-	sub <- .Call(C_regroupAtoms, x, ngroups, PACKAGE="matter")
-	x <- atoms(source=droplevels(x@source[sub$index]),
-		type=x@type[sub$index],
-		offset=sub$offset,
-		extent=sub$extent,
-		group=sub$group,
-		readonly=x@readonly)
-	if ( validObject(x) )
-		x
+	if ( length(ngroups) == 1L ) {
+		if ( ngroups <= 1L )
+			return(x)
+		sub <- .Call(C_regroupAtoms, x, groups, PACKAGE="matter")
+		atoms(source=droplevels(x@source[sub$index]),
+			type=x@type[sub$index],
+			offset=sub$offset,
+			extent=sub$extent,
+			group=sub$group,
+			readonly=x@readonly)
+	} else {
+		atoms(source=x@source,
+			type=x@type,
+			offset=x@offset,
+			extent=x@extent,
+			group=ngroups,
+			readonly=x@readonly)
+	}
 }
 
 ungroup_atoms <- function(x) {
 	if ( length(x) <= 1L )
 		return(x)
 	sub <- .Call(C_ungroupAtoms, x, PACKAGE="matter")
-	x <- atoms(source=droplevels(x@source[sub$index]),
+	atoms(source=droplevels(x@source[sub$index]),
 		type=x@type[sub$index],
 		offset=sub$offset,
 		extent=sub$extent,
 		group=0L,
 		readonly=x@readonly)
-	if ( validObject(x) )
-		x
 }
 
 setMethod("as.data.frame", "atoms",
