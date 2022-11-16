@@ -164,9 +164,16 @@ matter_mat <- function(data, type = "double", path = NULL,
 		readonly=readonly, rowMaj=rowMaj, ...)
 	x <- as(x, "matter_mat")
 	if ( x@transpose ) {
-		x@data <- regroup_atoms(x@data, nrow(x))
+		n1 <- nrow(x)
+		n2 <- ncol(x)
 	} else {
-		x@data <- regroup_atoms(x@data, ncol(x))
+		n1 <- ncol(x) # number of atoms/groups
+		n2 <- nrow(x) # extent of each atom/group
+	}
+	if ( length(x@data) == n1 && all(unique(extent) == n2) ) {
+		x@data <- regroup_atoms(x@data, 0L:(n1 - 1L))
+	} else {
+		x@data <- regroup_atoms(ungroup_atoms(x@data), n1)
 	}
 	x@indexed <- TRUE
 	if ( !missing(data) && !is.null(data) )
