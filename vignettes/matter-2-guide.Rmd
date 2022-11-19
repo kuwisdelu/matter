@@ -3,12 +3,12 @@ title: "_Matter 2_: User guide for flexible out-of-memory data structures"
 author: "Kylie Ariel Bemis"
 date: "Revised: October 23, 2022"
 output:
-  BiocStyle::html_document:
-  toc: true
+    BiocStyle::html_document:
+    toc: true
 vignette: >
-  %\VignetteIndexEntry{1. Matter 2: User guide for flexible out-of-memory data structures}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+    %\VignetteIndexEntry{1. Matter 2: User guide for flexible out-of-memory data structures}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
 ---
 
 ```{r style, echo=FALSE, results='asis'}
@@ -72,7 +72,7 @@ An "atom" of data typically lives in a local file. It is defined by (1) its sour
 
 A `matter` object is composed of any number of atoms, from any number of files, that together make up the elements of the data structure.
 
-```{r}
+```{r atoms}
 x <- matter_vec(1:10)
 y <- matter_vec(11:20)
 z <- cbind(x, y)
@@ -86,35 +86,206 @@ In this way, a `matter` object may be composed of data from any number of files,
 
 ## Arrays and matrices
 
-Coming soon...
+### N-dimensional arrays
 
-### Deferred arithmetic
+File-based arrays can be constructed using `matter_arr()`.
 
-Coming soon...
+If a native R array is provided, then its data will be written to the file specified by `path`. A temporary file will be created if none is specified.
+
+```{r array-1}
+set.seed(1)
+a1 <- array(sort(runif(24)), dim=c(4,3,2))
+
+a2 <- matter_arr(a1)
+a2
+
+path(a2)
+```
+
+A `matter` array can be constructed from data in an existing file(s) by specifying the following:
+
+- `type` : the data type (see `?matter-datatypes`)
+- `path` : the file path(s)
+- `offset` : the byte offset(s) within the file(s)
+- `extent` : the number of data elements at each file/offset
+
+For example, we can specify a new vector (i.e., a 1-D array) that points to the same temporary data file that was created above, but only the first 10 data elements.
+
+```{r array-2}
+a3 <- matter_arr(type="double", path=path(a2), offset=0, extent=10)
+a3
+
+a1[1:10]
+```
+
+### Column-major and row-major matrices
+
+File-based matrices in *Matter* are a special case of 2-D arrays. By default, `matter` arrays and matrices follow standard R conventions by being stored in column-major order.
+
+```{r matrix-1}
+set.seed(1)
+m1 <- matrix(sort(runif(35)), nrow=5, ncol=7)
+
+m2 <- matter_mat(m1)
+m2
+```
+
+However, row-major storage is also supported.
+
+```{r matrix-2}
+m3 <- matter_mat(type="double", path=path(m2), nrow=7, ncol=5, rowMaj=TRUE)
+m3
+```
+
+Transposing a `matter` matrix simply switches whether it is treated as column-major or row-major, without changing any data.
+
+```{r matrix-3}
+t(m2)
+```
+
+
+## Deferred arithmetic
+
+*Matter* supports deferred arithmetic for arrays and matrices. 
+
+```{r deferred-1}
+m2 + 100
+```
+
+Deferred arithmetic is not applied to the data in storage. Instead, it is applied on-the-fly  to data elements that are read into memory (only when the are accessed).
+
+```{r deferred-2}
+as.matrix(1:5) + m2
+```
+
+If the argument is not a scalar, then it must be an array with dimensions that are compatible for *Matter*'s deferred arithmetic.
+
+Dimensions are compatible for deferred arithment when:
+
+- A single dimension is equal for both arrays
+- All other dimensions are 1
+
+The dimensions that are 1 are then recycled to match the dimensions of the `matter` array.
+
+```{r deferred-3}
+t(1:7) + m2
+```
 
 ## Lists
 
-Coming soon...
+File-based lists can be construced using `matter_list()`.
 
+Because they are not truly recursive like native R lists, `matter` lists are really more like jagged arrays.
+
+```{r lists-1}
+set.seed(1)
+l1 <- list(A=runif(10), B=rnorm(15), C=rlnorm(5), D="This is a string!")
+
+l2 <- matter_list(l1)
+l2
+```
+
+Due to the complexities of out-of-memory character vectors, character vector elements are limited to scalar strings.
 
 
 
 # Sparse data structures
 
-Coming soon...
+*Matter* provides sparse arrays that are compatible with out-of-memory storage. These sparse arrays are unique in allowing for on-the-fly reindexing of rows and columns. This is especially useful for storing nonuniform signals such as high-resolution mass spectra.
 
 ## Sparse matrices
 
-Coming soon...
+*Matter* supports several variants of both compressed sparse column (CSC) and compressed sparse row (CSR) formats. The variants include the traditional array-based CSC/CSR representations (with a pointer array) and a list-based representation (without a pointer array, for easier modification).
 
-### Deferred arithmetic
+Sparse matrices can be constructed using `sparse_mat()`.
 
-Coming soon...
+If a native R matrix is provided, then the corresponding sparse matrix will be constructed.
+
+```{r sparse-1}
+set.seed(1)
+s1 <- matrix(rbinom(35, 10, 0.05), nrow=5, ncol=7)
+
+s2 <- sparse_mat(s1)
+s2
+```
+
+The default format uses a CSC-like list representation for the nonzero entries.
+
+```{r sparse-2}
+atomdata(s2)
+atomindex(s2)
+```
+
+Sparse matrices can be constructed from the nonzero entries and the row/column indices.
+
+```{r sparse-3}
+s3 <- sparse_mat(atomdata(s2), index=atomindex(s2), nrow=5, ncol=7)
+s3
+```
+
+Alternatively, a `pointers` array can be requested to construct the more traditional array-based CSC/CSR format with a "pointers" array to the start of the rows/columns.
+
+```{r sparse-4}
+s4 <- sparse_mat(s1, pointers=TRUE)
+atomdata(s4)
+atomindex(s4)
+pointers(s4)
+```
+
+Sparse matrices can be constructed using the array-based representation with a "pointers" array to the start of the rows/columns as well.
+
+```{r sparse-5}
+s5 <- sparse_mat(atomdata(s2), index=atomindex(s2), pointers=pointers(s2), nrow=5, ncol=7)
+s5
+```
+
+Both the nonzero data entries and the row/column indices can be out-of-memory `matter` lists or arrays.
 
 ## Nonuniform signals
 
-Coming soon...
+Besides being able to handle out-of-memory data, sparse matrices in *Matter* are unique in supporting on-the-fly reindexing of their sparse dimension.
 
+This is especially useful for representing nonuniform signals such as high-dimensional spectral data.
+
+Consider mass spectra with intensity peaks collected at various (nonuniform) *m/z* values.
+
+```{r nonuniform-1}
+set.seed(1)
+mz <- replicate(5, 100 * sort(runif(sample(10, 1))), simplify=FALSE)
+intensity <- lapply(mz, function(m) 10 * runif(length(m)))
+
+layout(matrix(1:4, nrow=2))
+for (i in 1:4) plot(mz[[i]], intensity[[i]], type='h', xlim=c(1,100), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
+```
+
+Representing these spectra as columns of a matrix with a common *m/z* axis would typically require binning or resampling. But this would sacrifice the sparsity of the data.
+
+In *Matter*, we can accomplish this by using a sparse matrix that performs on-the-fly resampling.
+
+```{r nonuniform-2}
+spectra <- sparse_mat(intensity, index=mz, domain=1:100, sampler="max", tolerance=0.5)
+spectra
+```
+
+```{r nonuniform-3}
+layout(matrix(1:4, nrow=2))
+for (i in 1:4) plot(1:100, spectra[,i], type='h', xlim=c(1,100), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
+```
+
+
+## Deferred arithmetic
+
+Like out-of-memory arrays and matrices, sparse matrices in *Matter* also support deferred arithmetic.
+
+```{r sparse-deferred-1}
+spectra / t(colMeans(spectra))
+```
+
+# Future work
+
+*Matter 2* will continue to be developed to provide more flexible solutions to out-of-memory data in R, and to meet the needs of high-resolution mass spectrometry and other spectral data.
+
+For some domain-specific applications of *Matter*, see the Bioconductor package *Cardinal* for statistical analysis of mass spectrometry imaging experiments.
 
 
 
