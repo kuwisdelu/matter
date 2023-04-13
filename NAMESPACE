@@ -10,7 +10,11 @@ importFrom("irlba",
 	"irlba")
 
 importFrom("Matrix",
-	"nnzero")
+	"nnzero",
+	"rowSums",
+	"rowMeans",
+	"colSums",
+	"colMeans")
 
 importFrom("stats",
 	"median",
