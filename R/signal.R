@@ -11,7 +11,8 @@ findpeaks <- function(x, width = 5)
 {
 	peaks <- .Call(C_localMaxima, x, width, PACKAGE="matter")
 	peaks <- which(peaks)
-	bounds <- .Call(C_peakBoundaries, x, width, as.integer(peaks - 1L))
+	bounds <- .Call(C_peakBoundaries, x, width,
+		as.integer(peaks - 1L), PACKAGE="matter")
 	attr(peaks, "left_bounds") <- as.integer(bounds[[1L]] + 1L)
 	attr(peaks, "right_bounds") <- as.integer(bounds[[2L]] + 1L)
 	peaks
