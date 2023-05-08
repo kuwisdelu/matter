@@ -1,5 +1,5 @@
 
-#### 'matter_chr' class for file-based character vectors ####
+#### 'matter_str' class for file-based character vectors ####
 ## ----------------------------------------------------------
 
 setClass("matter_str",

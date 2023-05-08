@@ -3,16 +3,20 @@
 ## ----------------------------
 
 .onLoad <- function(libname, pkgname) {
-	options(matter.cast.warning = TRUE)
-	options(matter.compress.atoms = 3)
-	options(matter.default.nchunks = 20L)
-	options(matter.default.chunksize = 1000000L)
-	options(matter.show.head = TRUE)
-	options(matter.show.head.n = 6L)
-	options(matter.coerce.altrep = FALSE)
-	options(matter.coerce.altrep.list = FALSE)
-	options(matter.wrap.altrep = FALSE)
-	options(matter.dump.dir = tempdir())
+	options(
+		matter.cast.warning = TRUE,
+		matter.compress.atoms = 3,
+		matter.default.nchunks = 20L,
+		matter.default.chunksize = 1000000L,
+		matter.show.head = TRUE,
+		matter.show.head.n = 6L,
+		matter.coerce.altrep = FALSE,
+		matter.coerce.altrep.list = FALSE,
+		matter.wrap.altrep = FALSE,
+		matter.dump.dir = tempdir(),
+		matter.vizi.par=list(),
+		matter.vizi.panelgrid=NULL,
+		matter.vizi.style=NULL)
 }
 
 #### Normalize subscripts ####
