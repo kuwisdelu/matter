@@ -21,6 +21,11 @@ importFrom("stats",
 	"update",
 	"na.omit")
 
+importFrom("stats4",
+	"plot",
+	"update",
+	"summary")
+
 import("BiocParallel")
 
 import("BiocGenerics")

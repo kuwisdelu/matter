@@ -9,7 +9,7 @@ Description: Memory-efficient reading, writing, and manipulation of
         structured binary data as file-based vectors, matrices, arrays,
         lists, and data frames.
 License: Artistic-2.0
-Depends: R (>= 3.5), BiocParallel, Matrix, methods, stats
+Depends: R (>= 3.5), BiocParallel, Matrix, methods, stats, stats4
 Imports: BiocGenerics, ProtGenerics, digest, irlba, biglm, utils
 Suggests: BiocStyle, knitr, testthat
 VignetteBuilder: knitr
