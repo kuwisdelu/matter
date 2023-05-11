@@ -21,6 +21,9 @@
 #define BIN_AVG		2
 #define BIN_MAX		3
 #define BIN_MIN		4
+#define BIN_SD		5
+#define BIN_VAR		6
+#define BIN_SSE		7
 
 //// Kernels
 //-----------
@@ -233,7 +236,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 
 template<typename T>
 void bin_vector(T * x, int n, int * lower, int * upper,
-	double * buffer, int nbin, int func = BIN_SUM)
+	double * buffer, int nbin, int stat = BIN_SUM)
 {
 	double * buf = buffer;
 	for ( size_t i = 0; i < nbin; i++ ) {
@@ -242,23 +245,59 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 			Rf_error("lower bin limit out of range");
 		if ( upper[i] < 1 || upper[i] > n )
 			Rf_error("upper bin limit out of range");
+		int size = (upper[i] - lower[i]) + 1;
+		double sumx = 0;
 		for ( size_t j = lower[i] - 1; j < upper[i] && j < n; j++ )
 		{
-			switch(func) {
-				case BIN_SUM:
-				case BIN_AVG:
-					buf[i] = isNA(buf[i]) ? x[j] : buf[i] + x[j];
-					break;
+			// sum, mean, min, max
+			switch(stat) {
 				case BIN_MAX:
 					buf[i] = isNA(buf[i]) ? x[j] : (x[j] > buf[i] ? x[j] : buf[i]);
 					break;
 				case BIN_MIN:
 					buf[i] = isNA(buf[i]) ? x[j] : (x[j] < buf[i] ? x[j] : buf[i]);
 					break;
+				default:
+					sumx += x[j];
+					break;
 			}
 		}
-		if ( func == BIN_AVG )
-			buf[i] /= (upper[i] - lower[i]) + 1;
+		if ( stat == BIN_SD || stat == BIN_VAR || stat == BIN_SSE )
+		{
+			index_t start = lower[i] - 1, end = upper[i];
+			if ( stat == BIN_SSE )
+			{
+				// expand to adjacent bins
+				start = start - 1 < 0 ? 0 : start - 1;
+				end = end + 1 > n ? n : end + 1;
+			}
+			double ux = sumx / size, ut = (start + end) / 2;
+			double Sxx = 0, Stt = 0, Sxt = 0;
+			for ( index_t j = start; j < end; j++ )
+			{
+				// calculate linear regression
+				Sxx += (ux - x[j]) * (ux - x[j]);
+				Stt += (ut - j) * (ut - j);
+				Sxt += (ux - x[j]) * (ut - j);
+			}
+			if ( stat == BIN_SSE )
+				// sum of squared errors
+				buf[i] = Sxx * (1 - (Sxt * Sxt) / (Stt * Sxx));
+			else if ( size > 1 )
+				// variance
+				buf[i] = Sxx / (size - 1);
+		}
+		switch(stat) {
+			case BIN_SUM:
+				buf[i] = sumx;
+				break;
+			case BIN_AVG:
+				buf[i] = sumx / size;
+				break;
+			case BIN_SD:
+				buf[i] = std::sqrt(buf[i]);
+				break;
+		}
 	}
 }
 
@@ -295,6 +334,7 @@ size_t local_maxima(T * x, size_t n, int width, int * peaks)
 	return nmax;
 }
 
+// find local boundaries (minima) of peaks
 template<typename T>
 size_t peak_boundaries(T * x, size_t n,
 	int width, int * peaks, size_t npeaks,
@@ -310,18 +350,19 @@ size_t peak_boundaries(T * x, size_t n,
 				left_bounds[i] = j;
 			else
 			{
-				int a = (j - r) > 1 ? (j - r) : 1;
-				int prev_bound = left_bounds[i];
-				while ( j >= a )
+				int lmin = left_bounds[i];
+				int lwindow = (lmin - r) > 0 ? (lmin - r) : 0;
+				j--;
+				while ( j >= lwindow )
 				{
-					j--;
-					if ( x[j] < x[left_bounds[i]] )
+					if ( x[j] < x[lmin] )
 					{
 						left_bounds[i] = j;
 						break;
 					}
+					j--;
 				}
-				if ( prev_bound == left_bounds[i] )
+				if ( lmin == left_bounds[i] )
 					break;
 			}
 		}
@@ -332,20 +373,50 @@ size_t peak_boundaries(T * x, size_t n,
 				right_bounds[i] = j;
 			else
 			{
-				int b = (j + r) < n - 1 ? (j + r) : n - 1;
-				int prev_bound = right_bounds[i];
-				while ( j < b )
+				int rmin = right_bounds[i];
+				int rwindow = (rmin + r) < n - 1 ? (rmin + r) : n - 1;
+				j++;
+				while ( j <= rwindow )
 				{
-					j++;
-					if ( x[j] < x[right_bounds[i]] )
+					if ( x[j] < x[rmin] )
 					{
 						right_bounds[i] = j;
 						break;
 					}
+					j++;
 				}
-				if ( prev_bound == right_bounds[i] )
+				if ( rmin == right_bounds[i] )
 					break;
 			}
+		}
+	}
+	return npeaks;
+}
+
+// find baselines of peaks (relative to higher peaks)
+template<typename T>
+size_t peak_bases(T * x, size_t n,
+	int wlen, int * peaks, size_t npeaks,
+	int * left_bases, int * right_bases)
+{
+	int r = abs(wlen / 2);
+	for ( int i = 0; i < npeaks; i++ )
+	{
+		left_bases[i] = peaks[i];
+		for ( int j = peaks[i] - 1; j >= 0; j-- )
+		{
+			if ( x[j] > x[peaks[i]] || j < peaks[i] - r )
+				break;
+			if ( x[j] < x[left_bases[i]] )
+				left_bases[i] = j;
+		}
+		right_bases[i] = peaks[i];
+		for ( int j = peaks[i] + 1; j < n; j++ )
+		{
+			if ( x[j] > x[peaks[i]] || j > peaks[i] + r )
+				break;
+			if ( x[j] < x[right_bases[i]] )
+				right_bases[i] = j;
 		}
 	}
 	return npeaks;

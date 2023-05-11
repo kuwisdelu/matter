@@ -276,20 +276,20 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j)
 // Signal processing
 //------------------
 
-SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP func)
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 {
 	SEXP ans;
 	if ( LENGTH(lower) != LENGTH(upper) )
 		Rf_error("lower and upper bounds must have equal length");
-	PROTECT(ans = Rf_allocVector(REALSXP, XLENGTH(upper)));
+	PROTECT(ans = Rf_allocVector(REALSXP, XLENGTH(lower)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			bin_vector(INTEGER(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				REAL(ans), LENGTH(upper), Rf_asInteger(func));
+				REAL(ans), LENGTH(lower), Rf_asInteger(stat));
 			break;
 		case REALSXP:
 			bin_vector(REAL(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				REAL(ans), LENGTH(upper), Rf_asInteger(func));
+				REAL(ans), LENGTH(lower), Rf_asInteger(stat));
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -340,6 +340,32 @@ SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
 	}
 	SET_VECTOR_ELT(ans, 0, left_bounds);
 	SET_VECTOR_ELT(ans, 1, right_bounds);
+	UNPROTECT(3);
+	return ans;
+}
+
+SEXP peakBases(SEXP x, SEXP wlen, SEXP peaks)
+{
+	SEXP ans, left_bases, right_bases;
+	PROTECT(left_bases = Rf_allocVector(INTSXP, LENGTH(peaks)));
+	PROTECT(right_bases = Rf_allocVector(INTSXP, LENGTH(peaks)));
+	PROTECT(ans = Rf_allocVector(VECSXP, 2));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			peak_bases(INTEGER(x), LENGTH(x),
+				Rf_asInteger(wlen), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_bases), INTEGER(right_bases));
+			break;
+		case REALSXP:
+			peak_bases(REAL(x), LENGTH(x),
+				Rf_asInteger(wlen), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_bases), INTEGER(right_bases));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	SET_VECTOR_ELT(ans, 0, left_bases);
+	SET_VECTOR_ELT(ans, 1, right_bases);
 	UNPROTECT(3);
 	return ans;
 }

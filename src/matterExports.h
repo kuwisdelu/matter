@@ -61,9 +61,10 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 // Signal processing
 //------------------
 
-SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP func);
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP localMaxima(SEXP x, SEXP width);
 SEXP peakBoundaries(SEXP x, SEXP peaks, SEXP width);
+SEXP peakBases(SEXP x, SEXP peaks, SEXP wlen);
 
 } // extern "C"
 

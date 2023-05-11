@@ -1,33 +1,151 @@
 
+#### Binning ####
+## ---------------
+
+binvec <- function(x, lower, upper, stat = "sum")
+{
+	if ( missing(upper) ) {
+		upper <- lower[-1] - 1L
+		lower <- lower[-length(lower)]
+	}
+	.Call(C_binVector, x, as.integer(lower), as.integer(upper),
+		as_binstat(stat), PACKAGE="matter")
+}
+
+findbins <- function(x, n = length(x) / 10L, niter = NA)
+{
+	n <- floor(n)
+	bw <- ceiling(length(x) / n)
+	breaks <- floor(seq(from=bw, to=length(x) - bw, length.out=n - 1L))
+	lower <- c(1L, breaks + 1L)
+	upper <- c(breaks, length(x))
+	if ( is.na(niter) ) {
+		niter <- floor(10 * length(x) / n)
+		check <- TRUE
+	} else {
+		check <- FALSE
+	}
+	if ( niter >= 0 ) {
+		sse <- binvec(x, lower, upper, stat="sse")
+		trace <- sum(sse)
+		for ( i in seq_len(niter) ) {
+			merge <- which.min(sse[-n] + sse[-1])
+			lower_new <- lower[-(merge + 1L)]
+			upper_new <- upper[-merge]
+			split <- which.max(sse[-merge])
+			at <- ceiling((lower_new[split] + upper_new[split]) / 2)
+			lower_split <- c(lower_new[split], at)
+			upper_split <- c(at - 1L, upper_new[split])
+			if ( split == 1L ) {
+				lower_new <- c(lower_split, lower_new[-1L])
+				upper_new <- c(upper_split, upper_new[-1L])
+			} else if ( split == n ) {
+				lower_new <- c(lower_new[-n], lower_split)
+				upper_new <- c(upper_new[-n], upper_split)
+			} else {
+				lower_new <- c(lower_new[1:(split - 1L)], lower_split,
+					lower_new[(split + 1L):(n - 1L)])
+				upper_new <- c(upper_new[1:(split - 1L)], upper_split,
+					upper_new[(split + 1L):(n - 1L)])
+			}
+			sse <- binvec(x, lower_new, upper_new, stat="sse")
+			score <- sum(sse)
+			if ( score < trace[i] || !check ) {
+				trace <- c(trace, score)
+				lower <- lower_new
+				upper <- upper_new
+			} else {
+				break
+			}
+		}
+		structure(data.frame(lower=lower, upper=upper,
+			size=upper - lower + 1L, sse=sse), trace=trace)
+	} else {
+		data.frame(lower=lower, upper=upper, size=upper - lower + 1L)
+	}
+}
+
 #### Peak detection ####
 ## ---------------------
 
 locmax <- function(x, width = 5)
 {
-	.Call(C_localMaxima, x, width, PACKAGE="matter")
+	.Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
 }
 
 findpeaks <- function(x, width = 5)
 {
-	peaks <- .Call(C_localMaxima, x, width, PACKAGE="matter")
+	peaks <- .Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
 	peaks <- which(peaks)
-	bounds <- .Call(C_peakBoundaries, x, width,
+	bounds <- .Call(C_peakBoundaries, x, as.integer(width),
+		as.integer(peaks - 1L), PACKAGE="matter")
+	bases <- .Call(C_peakBases, x, as.integer(length(x)),
 		as.integer(peaks - 1L), PACKAGE="matter")
 	attr(peaks, "left_bounds") <- as.integer(bounds[[1L]] + 1L)
 	attr(peaks, "right_bounds") <- as.integer(bounds[[2L]] + 1L)
+	attr(peaks, "left_bases") <- as.integer(bases[[1L]] + 1L)
+	attr(peaks, "right_bases") <- as.integer(bases[[2L]] + 1L)
 	peaks
 }
 
-#### Binning ####
-## ---------------
+#### Simulation ####
+## -----------------
 
-binvec <- function(x, u, v, method = "sum")
+simspectra <- function(n = 1L, peaks = 50L,
+	x = rlnorm(peaks, 7, 0.3), y = rlnorm(peaks, 1, 0.9),
+	domain = c(0.9 * min(x), 1.1 * max(x)), size = 10000,
+	sdpeaks = sdpeakmult * log1p(y), sdpeakmult = 0.2,
+	sdnoise = 0.1, sdx = 1e-5, resolution = 1000, fmax = 0.5,
+	baseline = 0, decay = 10, units = "relative", ...)
 {
-	if ( missing(v) ) {
-		v <- u[-1] - 1L
-		u <- u[-length(u)]
+	if ( length(x) != length(y) )
+		stop("length of 'x' and 'y' must match")
+	if ( missing(x) && !missing(domain) ) {
+		to <- domain[2L]
+		from <- domain[1L]
+		x <- (x - min(x)) / max(x - min(x))
+		x <- (from + 0.1 * (to - from)) + (0.8 * (to - from)) * x
 	}
-	.Call(C_binVector, x, as.integer(u), as.integer(v),
-		as_binfun(method), PACKAGE="matter")
+	xout <- seq(from=domain[1L], to=domain[2L], length.out=size)
+	i <- order(x)
+	x <- x[i]
+	y <- y[i]
+	if ( n > 1L ) {
+		yout <- replicate(n, simspectra(x=x, y=y,
+			domain=domain, size=size, sdpeaks=sdpeaks, sdpeakmult=sdpeakmult,
+			sdnoise=sdnoise, sdx=sdx, resolution=resolution, fmax=fmax,
+			baseline=baseline, decay=decay))
+	} else {
+		dx <- x / resolution
+		sdwidth <- qnorm(1 - fmax / 2) * dx
+		sdpeaks <- rep_len(sdpeaks, peaks)
+		errtype <- pmatch(units, c("relative", "absolute"), nomatch=1L)
+		xerr <- rnorm(1) * c(x * sdx, sdx)[errtype]
+		x2 <- x + xerr
+		b <- baseline * exp(-(decay/max(xout)) * (xout - min(xout)))
+		yout <- simspectra_int(x2, y, xout=xout,
+			peakwidth=sdwidth, sdpeaks=sdpeaks, sdnoise=sdnoise)
+		yout <- yout + b
+	}
+	structure(yout, index=xout, peaks=x)
 }
 
+simspectra_int <- function(x, y, xout,
+	peakwidth, sdpeaks, sdnoise)
+{
+	yout <- numeric(length(xout))
+	xrange <- range(xout)
+	for ( i in seq_along(x) ) {
+		if ( y[i] <= 0 || x[i] < xrange[1L] || x[i] > xrange[2L] )
+			next
+		peak <- which(x[i] - 6 * peakwidth[i] < xout & xout < x[i] + 6 * peakwidth[i])
+		di <- dnorm(xout[peak], mean=x[i], sd=peakwidth[i])
+		yerr <- rlnorm(1, sdlog=sdpeaks[i])
+		yerr <- yerr - exp(sdpeaks[i]^2 / 2)
+		yi <- y[i] + yerr
+		yout[peak] <- yout[peak] + yi * (di / max(di))
+	}
+	noise <- rlnorm(length(yout), sdlog=sdnoise)
+	noise <- noise - exp(sdnoise^2 / 2)
+	yout + noise
+}

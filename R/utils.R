@@ -279,8 +279,12 @@ as_interp <- function(x) {
 	make_code(codes, x)
 }
 
-as_binfun <- function(x) {
-	codes <- c("sum", "mean", "max", "min")
+as_binstat <- function(x) {
+	codes <- c(
+		# location (1-4)
+		"sum", "mean", "max", "min",
+		# spread (5-7)
+		"sd", "var", "sse")
 	make_code(codes, x[1L], nomatch=1L)
 }
 
