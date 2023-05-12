@@ -21,14 +21,16 @@ findbins <- function(x, n = length(x) / 10L, niter = NA)
 	upper <- c(breaks, length(x))
 	if ( is.na(niter) ) {
 		niter <- floor(10 * length(x) / n)
-		check <- TRUE
+		check_converge <- TRUE
 	} else {
-		check <- FALSE
+		check_converge <- FALSE
 	}
 	if ( niter >= 0 ) {
 		sse <- binvec(x, lower, upper, stat="sse")
-		trace <- sum(sse)
-		for ( i in seq_len(niter) ) {
+		trace <-  numeric(niter + 1L)
+		trace[1L] <- sum(sse)
+		for ( i in seq_len(niter) )
+		{
 			merge <- which.min(sse[-n] + sse[-1])
 			lower_new <- lower[-(merge + 1L)]
 			upper_new <- upper[-merge]
@@ -50,11 +52,12 @@ findbins <- function(x, n = length(x) / 10L, niter = NA)
 			}
 			sse <- binvec(x, lower_new, upper_new, stat="sse")
 			score <- sum(sse)
-			if ( score < trace[i] || !check ) {
-				trace <- c(trace, score)
+			if ( score < trace[i] || !check_converge ) {
+				trace[i + 1L] <- score
 				lower <- lower_new
 				upper <- upper_new
 			} else {
+				trace <- trace[!is.na(trace)]
 				break
 			}
 		}
@@ -70,7 +73,7 @@ findbins <- function(x, n = length(x) / 10L, niter = NA)
 
 locmax <- function(x, window = 5L)
 {
-	.Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
+	.Call(C_localMaxima, x, as.integer(window), PACKAGE="matter")
 }
 
 findpeaks <- function(x, window = 5L, prominence = NULL)
@@ -79,15 +82,31 @@ findpeaks <- function(x, window = 5L, prominence = NULL)
 	peaks <- which(peaks)
 	bounds <- .Call(C_peakBoundaries, x, as.integer(window),
 		as.integer(peaks - 1L), PACKAGE="matter")
-	attr(peaks, "left_bounds") <- as.integer(bounds[[1L]] + 1L)
-	attr(peaks, "right_bounds") <- as.integer(bounds[[2L]] + 1L)
-	if ( !is.null(prominence) ) {
+	ann <- data.frame(row.names=seq_along(peaks))
+	ann$left_bounds <- as.integer(bounds[[1L]] + 1L)
+	ann$right_bounds <- as.integer(bounds[[2L]] + 1L)
+	if ( !is.null(prominence) && !isFALSE(prominence) )
+	{
 		bases <- .Call(C_peakBases, x, as.integer(length(x)),
 		as.integer(peaks - 1L), PACKAGE="matter")
-		attr(peaks, "left_bases") <- as.integer(bases[[1L]] + 1L)
-		attr(peaks, "right_bases") <- as.integer(bases[[2L]] + 1L)
+		ann$left_bases <- as.integer(bases[[1L]] + 1L)
+		ann$right_bases <- as.integer(bases[[2L]] + 1L)
+		contour <- pmax(x[ann$left_bases], x[ann$right_bases])
+		ann$prominence <- x[peaks] - contour
+		if ( is.numeric(prominence) )
+		{
+			keep <- ann$prominence > prominence
+			peaks <- peaks[keep]
+			ann <- ann[keep,,drop=FALSE]
+		}
 	}
+	attributes(peaks) <- as.list(ann)
 	peaks
+}
+
+peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5)
+{
+	# do something
 }
 
 #### Simulation ####

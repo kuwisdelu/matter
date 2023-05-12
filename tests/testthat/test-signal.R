@@ -3,6 +3,27 @@ require(matter)
 
 context("signal-processing")
 
+test_that("binvec", {
+
+	set.seed(1)
+	x <- runif(50)
+	u <- seq(from=1, to=50, by=10)
+	v <- seq(from=10, to=50, by=10)
+	binfun <- function(x, u, v, fun) {
+		mapply(function(i, j) fun(x[i:j]), u, v)
+	}
+
+	expect_equal(binfun(x, u, v, sum), binvec(x, u, v, "sum"))
+	expect_equal(binfun(x, u, v, mean), binvec(x, u, v, "mean"))
+	expect_equal(binfun(x, u, v, max), binvec(x, u, v, "max"))
+	expect_equal(binfun(x, u, v, min), binvec(x, u, v, "min"))
+
+	f <- seq(from=1, to=51, by=10)
+	
+	expect_equal(binvec(x, u, v), binvec(x, f))
+
+})
+
 test_that("locmax", {
 
 	x <- c(0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 2, 2, 3, 0, 1)
@@ -53,23 +74,3 @@ test_that("findpeaks", {
 
 })
 
-test_that("binvec", {
-
-	set.seed(1)
-	x <- runif(50)
-	u <- seq(from=1, to=50, by=10)
-	v <- seq(from=10, to=50, by=10)
-	binfun <- function(x, u, v, fun) {
-		mapply(function(i, j) fun(x[i:j]), u, v)
-	}
-
-	expect_equal(binfun(x, u, v, sum), binvec(x, u, v, "sum"))
-	expect_equal(binfun(x, u, v, mean), binvec(x, u, v, "mean"))
-	expect_equal(binfun(x, u, v, max), binvec(x, u, v, "max"))
-	expect_equal(binfun(x, u, v, min), binvec(x, u, v, "min"))
-
-	f <- seq(from=1, to=51, by=10)
-	
-	expect_equal(binvec(x, u, v), binvec(x, f))
-
-})

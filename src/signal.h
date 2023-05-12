@@ -346,9 +346,8 @@ size_t peak_boundaries(T * x, size_t n,
 		left_bounds[i] = peaks[i];
 		for ( int j = peaks[i] - 1; j >= 0; j-- )
 		{
-			if ( x[j] < x[left_bounds[i]] )
-				left_bounds[i] = j;
-			else
+			
+			if ( x[j] > x[left_bounds[i]] )
 			{
 				int lmin = left_bounds[i];
 				int lwindow = (lmin - r) > 0 ? (lmin - r) : 0;
@@ -365,13 +364,13 @@ size_t peak_boundaries(T * x, size_t n,
 				if ( lmin == left_bounds[i] )
 					break;
 			}
+			else if ( x[j] < x[left_bounds[i]] )
+				left_bounds[i] = j;
 		}
 		right_bounds[i] = peaks[i];
 		for ( int j = peaks[i] + 1; j < n; j++ )
 		{
-			if ( x[j] < x[right_bounds[i]] )
-				right_bounds[i] = j;
-			else
+			if ( x[j] > x[right_bounds[i]] )
 			{
 				int rmin = right_bounds[i];
 				int rwindow = (rmin + r) < n - 1 ? (rmin + r) : n - 1;
@@ -388,6 +387,8 @@ size_t peak_boundaries(T * x, size_t n,
 				if ( rmin == right_bounds[i] )
 					break;
 			}
+			else if ( x[j] < x[right_bounds[i]] )
+				right_bounds[i] = j;
 		}
 	}
 	return npeaks;
