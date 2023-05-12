@@ -43,6 +43,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(localMaxima, 2),
 	CALLDEF(peakBoundaries, 3),
 	CALLDEF(peakBases, 3),
+	CALLDEF(peakWidths, 6),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}

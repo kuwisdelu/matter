@@ -78,5 +78,36 @@ test_that("findpeaks", {
 	expect_equal(attr(p4, "right_bases"), c(7, 9))
 	expect_equal(attr(p4, "prominence"), c(3, 4))
 
+	t <- seq(from=0, to=6 * pi, length.out=1000)
+	x <- sin(t) + 0.6 * sin(2.6 * t)
+	p5 <- findpeaks(x, prominence=TRUE)
+
+	ref <- c(1.2415949, 0.4784017, 0.2847052, 3.1071679,
+		0.2846030, 0.4782249, 2.4834026, 0.4782249)
+
+	expect_equivalent(attr(p5, "prominences"), ref, tolerance=1e-3)
+
 })
 
+test_that("peakwidths", {
+
+	t <- seq(from=0, to=6 * pi, length.out=1000)
+	x <- sin(t) + 0.6 * sin(2.6 * t)
+	p <- findpeaks(x)
+	
+	w <- peakwidths(x, p, ref="prominence")
+
+	ref <- c(64.25172825, 41.29465463, 35.46943289, 104.71586081,
+        35.46729324, 41.30429622, 181.93835853, 45.37078546)
+
+	expect_equivalent(w, ref, tolerance=1e-3)
+
+	t2 <- seq(from=-4, to=4, length.out=1000)
+	x2 <- dnorm(t2)
+	p2 <- findpeaks(x2)
+
+	w2 <- peakwidths(x2, p2, domain=t2, ref="height")
+
+	expect_equivalent(w2, 2 * sqrt(2 * log(2)), tolerance=1e-3)
+
+})

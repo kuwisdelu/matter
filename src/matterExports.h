@@ -64,7 +64,9 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP localMaxima(SEXP x, SEXP window);
 SEXP peakBoundaries(SEXP x, SEXP peaks, SEXP window);
-SEXP peakBases(SEXP x, SEXP peaks, SEXP maxwidth);
+SEXP peakBases(SEXP x, SEXP peaks, SEXP maxspan);
+SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
+	 SEXP heights, SEXP left_end, SEXP right_end);
 
 } // extern "C"
 

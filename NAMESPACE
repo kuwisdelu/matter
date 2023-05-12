@@ -273,7 +273,10 @@ export(
 export(
 	"binvec",
 	"locmax",
-	"findpeaks")
+	"findbins",
+	"findpeaks",
+	"peakwidths",
+	"simspectra")
 
 export("roll")
 

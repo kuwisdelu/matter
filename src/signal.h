@@ -48,6 +48,17 @@ inline double kgaussian(double x, double sd)
 	return std::exp(-(x * x) / (2 * (sd * sd)));
 }
 
+//// Numeric Integration
+//-----------------------
+
+inline double trapz(double * x, double * y, size_t start, size_t end)
+{
+	double sum = 0;
+	for ( size_t i = start + 1; i < end; i++ )
+		sum += 0.5 * (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
+	return sum;
+}
+
 //// Interpolation
 //-----------------
 
@@ -87,10 +98,14 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 {
 	double delta, diff, diff_min = DBL_MAX;
 	index_t pos = NA_INTEGER;
-	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER}; // knots
-	double pdiff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX}; // dists to knots
-	double wt = 1, wtnorm = 0; // kernel weights and normalizing constant
-	size_t nxi = 0; // count of xi - x <= tol
+	// knots
+	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER};
+	// dists to knots
+	double pdiff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX};
+	// kernel weights and normalizing constant
+	double wt = 1, wtnorm = 0;
+	// count of xi - x <= tol
+	size_t nxi = 0;
 	Ty val = NA<Ty>();
 	// go right, then left
 	for ( int k = 1; k == 1 || k == -1; k -= 2 )
@@ -305,27 +320,27 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 //------------------
 
 template<typename T>
-size_t local_maxima(T * x, size_t n, int window, int * peaks)
+size_t local_maxima(T * x, size_t n, int window, int * buffer)
 {
 	int nmax = 0, a = 0, b = n, r = abs(window / 2);
 	for ( int i = 0; i < n; i++ )
 	{
-		peaks[i] = false;
+		buffer[i] = false;
 		if ( i < r || i > n - r )
 			continue;
 		a = (i - r) > 0 ? (i - r) : 0;
 		b = (i + r) < n - 1 ? (i + r) : n - 1;
 		for ( int j = a; j <= b; j++ )
 		{
-			peaks[i] = true;
+			buffer[i] = true;
 			if ( j < i && x[j] >= x[i] )
 			{
-				peaks[i] = false;
+				buffer[i] = false;
 				break;
 			}
 			if ( j > i && x[j] > x[i] )
 			{
-				peaks[i] = false;
+				buffer[i] = false;
 				break;
 			}
 			nmax++;
@@ -334,61 +349,65 @@ size_t local_maxima(T * x, size_t n, int window, int * peaks)
 	return nmax;
 }
 
-// find local boundaries (minima) of peaks
+// find boundaries (local minima) of peaks
 template<typename T>
 size_t peak_boundaries(T * x, size_t n,
-	int window, int * peaks, size_t npeaks,
-	int * left_bounds, int * right_bounds)
+	int * peaks, size_t npeaks, int window,
+	int * left_buffer, int * right_buffer)
 {
 	int r = abs(window / 2);
 	for ( int i = 0; i < npeaks; i++ )
 	{
-		left_bounds[i] = peaks[i];
+		left_buffer[i] = peaks[i];
+		// find left boundary
 		for ( int j = peaks[i] - 1; j >= 0; j-- )
 		{
 			
-			if ( x[j] > x[left_bounds[i]] )
+			if ( x[j] > x[left_buffer[i]] )
 			{
-				int lmin = left_bounds[i];
-				int lwindow = (lmin - r) > 0 ? (lmin - r) : 0;
+				int cand = left_buffer[i];
+				int lwindow = (cand - r) > 0 ? (cand - r) : 0;
 				j--;
+				// check if candidate is local minimum
 				while ( j >= lwindow )
 				{
-					if ( x[j] < x[lmin] )
+					if ( x[j] < x[cand] )
 					{
-						left_bounds[i] = j;
+						left_buffer[i] = j;
 						break;
 					}
 					j--;
 				}
-				if ( lmin == left_bounds[i] )
+				if ( cand == left_buffer[i] )
 					break;
 			}
-			else if ( x[j] < x[left_bounds[i]] )
-				left_bounds[i] = j;
+			else if ( x[j] < x[left_buffer[i]] )
+				left_buffer[i] = j;
 		}
-		right_bounds[i] = peaks[i];
+		right_buffer[i] = peaks[i];
+		// find right boundary
 		for ( int j = peaks[i] + 1; j < n; j++ )
 		{
-			if ( x[j] > x[right_bounds[i]] )
+			if ( x[j] > x[right_buffer[i]] )
 			{
-				int rmin = right_bounds[i];
-				int rwindow = (rmin + r) < n - 1 ? (rmin + r) : n - 1;
+				int cand = right_buffer[i];
+				int rwindow = (cand + r) < n - 1 ? (cand + r) : n - 1;
 				j++;
+				// check if candidate is local minimum
 				while ( j <= rwindow )
 				{
-					if ( x[j] < x[rmin] )
+					if ( x[j] < x[cand] )
 					{
-						right_bounds[i] = j;
+						right_buffer[i] = j;
 						break;
 					}
 					j++;
 				}
-				if ( rmin == right_bounds[i] )
+				if ( cand == right_buffer[i] )
 					break;
 			}
-			else if ( x[j] < x[right_bounds[i]] )
-				right_bounds[i] = j;
+			else if ( x[j] < x[right_buffer[i]] )
+				right_buffer[i] = j;
 		}
 	}
 	return npeaks;
@@ -397,27 +416,67 @@ size_t peak_boundaries(T * x, size_t n,
 // find baselines of peaks (relative to higher peaks)
 template<typename T>
 size_t peak_bases(T * x, size_t n,
-	int maxwidth, int * peaks, size_t npeaks,
-	int * left_bases, int * right_bases)
+	int * peaks, size_t npeaks, int maxspan,
+	int * left_buffer, int * right_buffer)
 {
-	int r = abs(maxwidth / 2);
+	int r = abs(maxspan / 2);
 	for ( int i = 0; i < npeaks; i++ )
 	{
-		left_bases[i] = peaks[i];
+		left_buffer[i] = peaks[i];
+		// find left base of peak
 		for ( int j = peaks[i] - 1; j >= 0; j-- )
 		{
 			if ( x[j] > x[peaks[i]] || j < peaks[i] - r )
 				break;
-			if ( x[j] < x[left_bases[i]] )
-				left_bases[i] = j;
+			if ( x[j] < x[left_buffer[i]] )
+				left_buffer[i] = j;
 		}
-		right_bases[i] = peaks[i];
+		right_buffer[i] = peaks[i];
+		// find right base of peak
 		for ( int j = peaks[i] + 1; j < n; j++ )
 		{
 			if ( x[j] > x[peaks[i]] || j > peaks[i] + r )
 				break;
-			if ( x[j] < x[right_bases[i]] )
-				right_bases[i] = j;
+			if ( x[j] < x[right_buffer[i]] )
+				right_buffer[i] = j;
+		}
+	}
+	return npeaks;
+}
+
+// find peak widths (where signal crosses cutoff heights)
+template<typename T>
+size_t peak_widths(T * x, double * t, size_t n,
+	int * peaks, size_t npeaks, double * heights,
+	double * left_buffer, double * right_buffer,
+	int * left_end, int * right_end)
+{
+	double pt;
+	for ( int i = 0; i < npeaks; i++ )
+	{
+		// find where signal crosses height to left of peak
+		for ( int j = peaks[i] - 1; j >= 0 && j >= left_end[i]; j-- )
+		{
+			if ( x[j] < heights[i] )
+			{
+				pt = (heights[i] - x[j]) / (x[j + 1] - x[j]);
+				left_buffer[i] = t[j] + pt * (t[j + 1] - t[j]);
+				break;
+			}
+			else
+				left_buffer[i] = t[j];
+		}
+		// find where signal crosses height to right of peak
+		for ( int j = peaks[i] + 1; j < n && j <= right_end[i]; j++ )
+		{
+			if ( x[j] < heights[i] )
+			{
+				pt = (heights[i] - x[j - 1]) / (x[j] - x[j - 1]);
+				right_buffer[i] = t[j - 1] + pt * (t[j] - t[j - 1]);
+				break;
+			}
+			else
+				right_buffer[i] = t[j];
 		}
 	}
 	return npeaks;

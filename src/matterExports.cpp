@@ -318,7 +318,7 @@ SEXP localMaxima(SEXP x, SEXP window)
 	return ans;
 }
 
-SEXP peakBoundaries(SEXP x, SEXP window, SEXP peaks)
+SEXP peakBoundaries(SEXP x, SEXP peaks, SEXP window)
 {
 	SEXP ans, left_bounds, right_bounds;
 	PROTECT(left_bounds = Rf_allocVector(INTSXP, LENGTH(peaks)));
@@ -327,12 +327,12 @@ SEXP peakBoundaries(SEXP x, SEXP window, SEXP peaks)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			peak_boundaries(INTEGER(x), LENGTH(x),
-				Rf_asInteger(window), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(peaks), LENGTH(peaks), Rf_asInteger(window),
 				INTEGER(left_bounds), INTEGER(right_bounds));
 			break;
 		case REALSXP:
 			peak_boundaries(REAL(x), LENGTH(x),
-				Rf_asInteger(window), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(peaks), LENGTH(peaks), Rf_asInteger(window),
 				INTEGER(left_bounds), INTEGER(right_bounds));
 			break;
 		default:
@@ -344,7 +344,7 @@ SEXP peakBoundaries(SEXP x, SEXP window, SEXP peaks)
 	return ans;
 }
 
-SEXP peakBases(SEXP x, SEXP maxwidth, SEXP peaks)
+SEXP peakBases(SEXP x, SEXP peaks, SEXP maxspan)
 {
 	SEXP ans, left_bases, right_bases;
 	PROTECT(left_bases = Rf_allocVector(INTSXP, LENGTH(peaks)));
@@ -353,12 +353,12 @@ SEXP peakBases(SEXP x, SEXP maxwidth, SEXP peaks)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			peak_bases(INTEGER(x), LENGTH(x),
-				Rf_asInteger(maxwidth), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(peaks), LENGTH(peaks), Rf_asInteger(maxspan),
 				INTEGER(left_bases), INTEGER(right_bases));
 			break;
 		case REALSXP:
 			peak_bases(REAL(x), LENGTH(x),
-				Rf_asInteger(maxwidth), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(peaks), LENGTH(peaks), Rf_asInteger(maxspan),
 				INTEGER(left_bases), INTEGER(right_bases));
 			break;
 		default:
@@ -366,6 +366,35 @@ SEXP peakBases(SEXP x, SEXP maxwidth, SEXP peaks)
 	}
 	SET_VECTOR_ELT(ans, 0, left_bases);
 	SET_VECTOR_ELT(ans, 1, right_bases);
+	UNPROTECT(3);
+	return ans;
+}
+
+SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
+	SEXP heights, SEXP left_end, SEXP right_end)
+{
+	SEXP ans, left_points, right_points;
+	PROTECT(left_points = Rf_allocVector(REALSXP, LENGTH(peaks)));
+	PROTECT(right_points = Rf_allocVector(REALSXP, LENGTH(peaks)));
+	PROTECT(ans = Rf_allocVector(VECSXP, 2));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			peak_widths(INTEGER(x), REAL(domain), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks), REAL(heights),
+				REAL(left_points), REAL(right_points),
+				INTEGER(left_end), INTEGER(right_end));
+			break;
+		case REALSXP:
+			peak_widths(REAL(x), REAL(domain), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks), REAL(heights),
+				REAL(left_points), REAL(right_points),
+				INTEGER(left_end), INTEGER(right_end));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	SET_VECTOR_ELT(ans, 0, left_points);
+	SET_VECTOR_ELT(ans, 1, right_points);
 	UNPROTECT(3);
 	return ans;
 }

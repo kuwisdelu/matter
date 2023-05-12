@@ -80,33 +80,74 @@ findpeaks <- function(x, window = 5L, prominence = NULL)
 {
 	peaks <- .Call(C_localMaxima, x, as.integer(window), PACKAGE="matter")
 	peaks <- which(peaks)
-	bounds <- .Call(C_peakBoundaries, x, as.integer(window),
-		as.integer(peaks - 1L), PACKAGE="matter")
+	bounds <- .Call(C_peakBoundaries, x, as.integer(peaks - 1L),
+		as.integer(window), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
 	ann$left_bounds <- as.integer(bounds[[1L]] + 1L)
 	ann$right_bounds <- as.integer(bounds[[2L]] + 1L)
-	if ( !is.null(prominence) && !isFALSE(prominence) )
+	if ( isTRUE(prominence) || is.numeric(prominence) )
 	{
-		bases <- .Call(C_peakBases, x, as.integer(length(x)),
-		as.integer(peaks - 1L), PACKAGE="matter")
+		bases <- .Call(C_peakBases, x, as.integer(peaks - 1L),
+			as.integer(length(x)), PACKAGE="matter")
 		ann$left_bases <- as.integer(bases[[1L]] + 1L)
 		ann$right_bases <- as.integer(bases[[2L]] + 1L)
 		contour <- pmax(x[ann$left_bases], x[ann$right_bases])
-		ann$prominence <- x[peaks] - contour
+		ann$prominences <- x[peaks] - contour
 		if ( is.numeric(prominence) )
 		{
-			keep <- ann$prominence > prominence
+			keep <- ann$prominence >= prominence
 			peaks <- peaks[keep]
 			ann <- ann[keep,,drop=FALSE]
 		}
 	}
-	attributes(peaks) <- as.list(ann)
+	attributes(peaks) <- ann
 	peaks
 }
 
-peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5)
+peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5, ref = "height")
 {
-	# do something
+	ref <- match.arg(ref, c("height", "prominence"))
+	if ( is.null(domain) )
+		domain <- seq_along(x)
+	if ( ref == "height" )
+	{
+		left_end <- attr(peaks, "left_bounds")
+		right_end <- attr(peaks, "right_bounds")
+		if ( is.null(left_end) || is.null(right_end) )
+		{
+			bounds <- .Call(C_peakBoundaries, x, as.integer(peaks - 1L),
+				as.integer(window), PACKAGE="matter")
+			left_end <- as.integer(bounds[[1L]] + 1L)
+			right_end <- as.integer(bounds[[2L]] + 1L)
+		}
+		p <- x[peaks] - min(x)
+		heights <- x[peaks] - (1 - fmax) * p
+	} else
+	{
+		p <- attr(peaks, "prominences")
+		left_end <- attr(peaks, "left_bases")
+		right_end <- attr(peaks, "right_bases")
+		if ( is.null(p) || is.null(left_end) || is.null(right_end) )
+		{
+			bases <- .Call(C_peakBases, x, as.integer(peaks - 1L),
+				as.integer(length(x)), PACKAGE="matter")
+			left_end <- as.integer(bases[[1L]] + 1L)
+			right_end <- as.integer(bases[[2L]] + 1L)
+			contour <- pmax(x[left_end], x[right_end])
+			p <- x[peaks] - contour
+		}
+		heights <- x[peaks] - (1 - fmax) * p
+	}
+	thresholds <- .Call(C_peakWidths, x, as.integer(peaks - 1L),
+		as.double(domain), as.double(heights),
+		left_end, right_end, PACKAGE="matter")
+	ann <- data.frame(row.names=seq_along(peaks))
+	ann$width_heights <- heights
+	ann$left_points <- thresholds[[1L]]
+	ann$right_points <- thresholds[[2L]]
+	widths <- ann$right_points - ann$left_points
+	attributes(widths) <- ann
+	widths
 }
 
 #### Simulation ####
@@ -144,15 +185,14 @@ simspectra <- function(n = 1L, peaks = 50L,
 		xerr <- rnorm(1) * c(x * sdx, sdx)[errtype]
 		x2 <- x + xerr
 		b <- baseline * exp(-(decay/max(xout)) * (xout - min(xout)))
-		yout <- simspectra_int(x2, y, xout=xout,
+		yout <- simspectrum(x2, y, xout=xout,
 			peakwidth=sdwidth, sdpeaks=sdpeaks, sdnoise=sdnoise)
 		yout <- yout + b
 	}
 	structure(yout, index=xout, peaks=x)
 }
 
-simspectra_int <- function(x, y, xout,
-	peakwidth, sdpeaks, sdnoise)
+simspectrum <- function(x, y, xout, peakwidth, sdpeaks, sdnoise)
 {
 	yout <- numeric(length(xout))
 	xrange <- range(xout)
