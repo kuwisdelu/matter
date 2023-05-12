@@ -121,7 +121,6 @@ peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5, ref = "height")
 			right_end <- as.integer(bounds[[2L]] + 1L)
 		}
 		p <- x[peaks] - min(x)
-		heights <- x[peaks] - (1 - fmax) * p
 	} else
 	{
 		p <- attr(peaks, "prominences")
@@ -136,8 +135,8 @@ peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5, ref = "height")
 			contour <- pmax(x[left_end], x[right_end])
 			p <- x[peaks] - contour
 		}
-		heights <- x[peaks] - (1 - fmax) * p
 	}
+	heights <- x[peaks] - (1 - fmax) * p
 	thresholds <- .Call(C_peakWidths, x, as.integer(peaks - 1L),
 		as.double(domain), as.double(heights),
 		left_end, right_end, PACKAGE="matter")
