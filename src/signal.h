@@ -305,9 +305,9 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 //------------------
 
 template<typename T>
-size_t local_maxima(T * x, size_t n, int width, int * peaks)
+size_t local_maxima(T * x, size_t n, int window, int * peaks)
 {
-	int nmax = 0, a = 0, b = n, r = abs(width / 2);
+	int nmax = 0, a = 0, b = n, r = abs(window / 2);
 	for ( int i = 0; i < n; i++ )
 	{
 		peaks[i] = false;
@@ -337,10 +337,10 @@ size_t local_maxima(T * x, size_t n, int width, int * peaks)
 // find local boundaries (minima) of peaks
 template<typename T>
 size_t peak_boundaries(T * x, size_t n,
-	int width, int * peaks, size_t npeaks,
+	int window, int * peaks, size_t npeaks,
 	int * left_bounds, int * right_bounds)
 {
-	int r = abs(width / 2);
+	int r = abs(window / 2);
 	for ( int i = 0; i < npeaks; i++ )
 	{
 		left_bounds[i] = peaks[i];
@@ -396,10 +396,10 @@ size_t peak_boundaries(T * x, size_t n,
 // find baselines of peaks (relative to higher peaks)
 template<typename T>
 size_t peak_bases(T * x, size_t n,
-	int wlen, int * peaks, size_t npeaks,
+	int maxwidth, int * peaks, size_t npeaks,
 	int * left_bases, int * right_bases)
 {
-	int r = abs(wlen / 2);
+	int r = abs(maxwidth / 2);
 	for ( int i = 0; i < npeaks; i++ )
 	{
 		left_bases[i] = peaks[i];

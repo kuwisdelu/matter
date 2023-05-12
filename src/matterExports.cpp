@@ -298,18 +298,18 @@ SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 	return ans;
 }
 
-SEXP localMaxima(SEXP x, SEXP width)
+SEXP localMaxima(SEXP x, SEXP window)
 {
 	SEXP ans;
 	PROTECT(ans = Rf_allocVector(LGLSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			local_maxima(INTEGER(x), LENGTH(x),
-				Rf_asInteger(width), LOGICAL(ans));
+				Rf_asInteger(window), LOGICAL(ans));
 			break;
 		case REALSXP:
 			local_maxima(REAL(x), LENGTH(x),
-				Rf_asInteger(width), LOGICAL(ans));
+				Rf_asInteger(window), LOGICAL(ans));
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -318,7 +318,7 @@ SEXP localMaxima(SEXP x, SEXP width)
 	return ans;
 }
 
-SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
+SEXP peakBoundaries(SEXP x, SEXP window, SEXP peaks)
 {
 	SEXP ans, left_bounds, right_bounds;
 	PROTECT(left_bounds = Rf_allocVector(INTSXP, LENGTH(peaks)));
@@ -327,12 +327,12 @@ SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			peak_boundaries(INTEGER(x), LENGTH(x),
-				Rf_asInteger(width), INTEGER(peaks), LENGTH(peaks),
+				Rf_asInteger(window), INTEGER(peaks), LENGTH(peaks),
 				INTEGER(left_bounds), INTEGER(right_bounds));
 			break;
 		case REALSXP:
 			peak_boundaries(REAL(x), LENGTH(x),
-				Rf_asInteger(width), INTEGER(peaks), LENGTH(peaks),
+				Rf_asInteger(window), INTEGER(peaks), LENGTH(peaks),
 				INTEGER(left_bounds), INTEGER(right_bounds));
 			break;
 		default:
@@ -344,7 +344,7 @@ SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
 	return ans;
 }
 
-SEXP peakBases(SEXP x, SEXP wlen, SEXP peaks)
+SEXP peakBases(SEXP x, SEXP maxwidth, SEXP peaks)
 {
 	SEXP ans, left_bases, right_bases;
 	PROTECT(left_bases = Rf_allocVector(INTSXP, LENGTH(peaks)));
@@ -353,12 +353,12 @@ SEXP peakBases(SEXP x, SEXP wlen, SEXP peaks)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			peak_bases(INTEGER(x), LENGTH(x),
-				Rf_asInteger(wlen), INTEGER(peaks), LENGTH(peaks),
+				Rf_asInteger(maxwidth), INTEGER(peaks), LENGTH(peaks),
 				INTEGER(left_bases), INTEGER(right_bases));
 			break;
 		case REALSXP:
 			peak_bases(REAL(x), LENGTH(x),
-				Rf_asInteger(wlen), INTEGER(peaks), LENGTH(peaks),
+				Rf_asInteger(maxwidth), INTEGER(peaks), LENGTH(peaks),
 				INTEGER(left_bases), INTEGER(right_bases));
 			break;
 		default:

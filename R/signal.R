@@ -68,23 +68,25 @@ findbins <- function(x, n = length(x) / 10L, niter = NA)
 #### Peak detection ####
 ## ---------------------
 
-locmax <- function(x, width = 5)
+locmax <- function(x, window = 5L)
 {
 	.Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
 }
 
-findpeaks <- function(x, width = 5)
+findpeaks <- function(x, window = 5L, prominence = NULL)
 {
-	peaks <- .Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
+	peaks <- .Call(C_localMaxima, x, as.integer(window), PACKAGE="matter")
 	peaks <- which(peaks)
-	bounds <- .Call(C_peakBoundaries, x, as.integer(width),
-		as.integer(peaks - 1L), PACKAGE="matter")
-	bases <- .Call(C_peakBases, x, as.integer(length(x)),
+	bounds <- .Call(C_peakBoundaries, x, as.integer(window),
 		as.integer(peaks - 1L), PACKAGE="matter")
 	attr(peaks, "left_bounds") <- as.integer(bounds[[1L]] + 1L)
 	attr(peaks, "right_bounds") <- as.integer(bounds[[2L]] + 1L)
-	attr(peaks, "left_bases") <- as.integer(bases[[1L]] + 1L)
-	attr(peaks, "right_bases") <- as.integer(bases[[2L]] + 1L)
+	if ( !is.null(prominence) ) {
+		bases <- .Call(C_peakBases, x, as.integer(length(x)),
+		as.integer(peaks - 1L), PACKAGE="matter")
+		attr(peaks, "left_bases") <- as.integer(bases[[1L]] + 1L)
+		attr(peaks, "right_bases") <- as.integer(bases[[2L]] + 1L)
+	}
 	peaks
 }
 
