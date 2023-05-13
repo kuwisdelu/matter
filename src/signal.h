@@ -51,7 +51,8 @@ inline double kgaussian(double x, double sd)
 //// Numeric Integration
 //-----------------------
 
-inline double trapz(double * x, double * y, size_t start, size_t end)
+template<typename Tx, typename Ty>
+double trapz(Tx * x, Ty * y, size_t start, size_t end)
 {
 	double sum = 0;
 	for ( size_t i = start + 1; i < end; i++ )
@@ -320,7 +321,7 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 //------------------
 
 template<typename T>
-size_t local_maxima(T * x, size_t n, int window, int * buffer)
+size_t local_maxima(T * x, size_t n, int * buffer, int window = 5)
 {
 	int nmax = 0, a = 0, b = n, r = abs(window / 2);
 	for ( int i = 0; i < n; i++ )
@@ -351,11 +352,9 @@ size_t local_maxima(T * x, size_t n, int window, int * buffer)
 
 // find boundaries (local minima) of peaks
 template<typename T>
-size_t peak_boundaries(T * x, size_t n,
-	int * peaks, size_t npeaks, int window,
+size_t peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
 {
-	int r = abs(window / 2);
 	for ( int i = 0; i < npeaks; i++ )
 	{
 		left_buffer[i] = peaks[i];
@@ -366,7 +365,7 @@ size_t peak_boundaries(T * x, size_t n,
 			if ( x[j] > x[left_buffer[i]] )
 			{
 				int cand = left_buffer[i];
-				int lwindow = (cand - r) > 0 ? (cand - r) : 0;
+				int lwindow = (cand - 2) > 0 ? (cand - 2) : 0;
 				j--;
 				// check if candidate is local minimum
 				while ( j >= lwindow )
@@ -391,7 +390,7 @@ size_t peak_boundaries(T * x, size_t n,
 			if ( x[j] > x[right_buffer[i]] )
 			{
 				int cand = right_buffer[i];
-				int rwindow = (cand + r) < n - 1 ? (cand + r) : n - 1;
+				int rwindow = (cand + 2) < n - 1 ? (cand + 2) : n - 1;
 				j++;
 				// check if candidate is local minimum
 				while ( j <= rwindow )
@@ -415,18 +414,16 @@ size_t peak_boundaries(T * x, size_t n,
 
 // find baselines of peaks (relative to higher peaks)
 template<typename T>
-size_t peak_bases(T * x, size_t n,
-	int * peaks, size_t npeaks, int maxspan,
+size_t peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
 {
-	int r = abs(maxspan / 2);
 	for ( int i = 0; i < npeaks; i++ )
 	{
 		left_buffer[i] = peaks[i];
 		// find left base of peak
 		for ( int j = peaks[i] - 1; j >= 0; j-- )
 		{
-			if ( x[j] > x[peaks[i]] || j < peaks[i] - r )
+			if ( x[j] > x[peaks[i]] )
 				break;
 			if ( x[j] < x[left_buffer[i]] )
 				left_buffer[i] = j;
@@ -435,7 +432,7 @@ size_t peak_bases(T * x, size_t n,
 		// find right base of peak
 		for ( int j = peaks[i] + 1; j < n; j++ )
 		{
-			if ( x[j] > x[peaks[i]] || j > peaks[i] + r )
+			if ( x[j] > x[peaks[i]] )
 				break;
 			if ( x[j] < x[right_buffer[i]] )
 				right_buffer[i] = j;
@@ -445,11 +442,10 @@ size_t peak_bases(T * x, size_t n,
 }
 
 // find peak widths (where signal crosses cutoff heights)
-template<typename T>
-size_t peak_widths(T * x, double * t, size_t n,
-	int * peaks, size_t npeaks, double * heights,
-	double * left_buffer, double * right_buffer,
-	int * left_end, int * right_end)
+template<typename Tx, typename Tt>
+size_t peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
+	int * left_end, int * right_end, double * heights,
+	double * left_buffer, double * right_buffer)
 {
 	double pt;
 	for ( int i = 0; i < npeaks; i++ )
@@ -479,6 +475,16 @@ size_t peak_widths(T * x, double * t, size_t n,
 				right_buffer[i] = t[j];
 		}
 	}
+	return npeaks;
+}
+
+// find peak areas by numeric integration (trapezoid rule)
+template<typename Tx, typename Tt>
+size_t peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
+	int * left_end, int * right_end, double * buffer)
+{
+	for ( int i = 0; i < npeaks; i++ )
+		buffer[i] = trapz(t, x, left_end[i], right_end[i]);
 	return npeaks;
 }
 

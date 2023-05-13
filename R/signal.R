@@ -76,21 +76,20 @@ locmax <- function(x, window = 5L)
 	.Call(C_localMaxima, x, as.integer(window), PACKAGE="matter")
 }
 
-findpeaks <- function(x, window = 5L, prominence = NULL)
+findpeaks <- function(x, prominence = NULL)
 {
-	peaks <- .Call(C_localMaxima, x, as.integer(window), PACKAGE="matter")
-	peaks <- which(peaks)
-	bounds <- .Call(C_peakBoundaries, x, as.integer(peaks - 1L),
-		as.integer(window), PACKAGE="matter")
+	peaks <- which(locmax(x))
+	bounds <- .Call(C_peakBoundaries, x,
+		as.integer(peaks - 1L), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
-	ann$left_bounds <- as.integer(bounds[[1L]] + 1L)
-	ann$right_bounds <- as.integer(bounds[[2L]] + 1L)
+	ann$left_bounds <- bounds[[1L]] + 1L
+	ann$right_bounds <- bounds[[2L]] + 1L
 	if ( isTRUE(prominence) || is.numeric(prominence) )
 	{
-		bases <- .Call(C_peakBases, x, as.integer(peaks - 1L),
-			as.integer(length(x)), PACKAGE="matter")
-		ann$left_bases <- as.integer(bases[[1L]] + 1L)
-		ann$right_bases <- as.integer(bases[[2L]] + 1L)
+		bases <- .Call(C_peakBases, x,
+			as.integer(peaks - 1L), PACKAGE="matter")
+		ann$left_bases <- bases[[1L]] + 1L
+		ann$right_bases <- bases[[2L]] + 1L
 		contour <- pmax(x[ann$left_bases], x[ann$right_bases])
 		ann$prominences <- x[peaks] - contour
 		if ( is.numeric(prominence) )
@@ -115,10 +114,10 @@ peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5, ref = "height")
 		right_end <- attr(peaks, "right_bounds")
 		if ( is.null(left_end) || is.null(right_end) )
 		{
-			bounds <- .Call(C_peakBoundaries, x, as.integer(peaks - 1L),
-				as.integer(window), PACKAGE="matter")
-			left_end <- as.integer(bounds[[1L]] + 1L)
-			right_end <- as.integer(bounds[[2L]] + 1L)
+			bounds <- .Call(C_peakBoundaries, x,
+				as.integer(peaks - 1L), PACKAGE="matter")
+			left_end <- bounds[[1L]] + 1L
+			right_end <- bounds[[2L]] + 1L
 		}
 		p <- x[peaks] - min(x)
 	} else
@@ -128,18 +127,18 @@ peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5, ref = "height")
 		right_end <- attr(peaks, "right_bases")
 		if ( is.null(p) || is.null(left_end) || is.null(right_end) )
 		{
-			bases <- .Call(C_peakBases, x, as.integer(peaks - 1L),
-				as.integer(length(x)), PACKAGE="matter")
-			left_end <- as.integer(bases[[1L]] + 1L)
-			right_end <- as.integer(bases[[2L]] + 1L)
+			bases <- .Call(C_peakBases, x,
+				as.integer(peaks - 1L), PACKAGE="matter")
+			left_end <- bases[[1L]] + 1L
+			right_end <- bases[[2L]] + 1L
 			contour <- pmax(x[left_end], x[right_end])
 			p <- x[peaks] - contour
 		}
 	}
 	heights <- x[peaks] - (1 - fmax) * p
 	thresholds <- .Call(C_peakWidths, x, as.integer(peaks - 1L),
-		as.double(domain), as.double(heights),
-		left_end, right_end, PACKAGE="matter")
+		as.double(domain), as.integer(left_end - 1L), as.integer(right_end - 1L),
+		as.double(heights), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
 	ann$width_heights <- heights
 	ann$left_points <- thresholds[[1L]]
@@ -147,6 +146,23 @@ peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5, ref = "height")
 	widths <- ann$right_points - ann$left_points
 	attributes(widths) <- ann
 	widths
+}
+
+peakareas <- function(x, peaks, domain = NULL)
+{
+	if ( is.null(domain) )
+		domain <- seq_along(x)
+	left_end <- as.integer(attr(peaks, "left_bounds") - 1L)
+	right_end <- as.integer(attr(peaks, "right_bounds") - 1L)
+	if ( is.null(left_end) || is.null(right_end) )
+	{
+		bounds <- .Call(C_peakBoundaries, x,
+			as.integer(peaks - 1L), PACKAGE="matter")
+		left_end <- bounds[[1L]]
+		right_end <- bounds[[2L]]
+	}
+	.Call(C_peakAreas, x, as.integer(peaks - 1L),
+		domain, left_end, right_end, PACKAGE="matter")
 }
 
 #### Simulation ####

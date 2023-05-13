@@ -111,3 +111,15 @@ test_that("peakwidths", {
 	expect_equivalent(w2, 2 * sqrt(2 * log(2)), tolerance=1e-3)
 
 })
+
+test_that("peakareas", {
+
+	t <- seq(from=-4, to=4, length.out=1000)
+	x <- dnorm(t)
+	p <- findpeaks(x)
+
+	a <- peakareas(x, p, domain=t)
+
+	expect_equivalent(a, 1, tolerance=1e-3)
+
+})

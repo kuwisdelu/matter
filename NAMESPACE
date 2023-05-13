@@ -276,6 +276,7 @@ export(
 	"findbins",
 	"findpeaks",
 	"peakwidths",
+	"peakareas",
 	"simspectra")
 
 export("roll")
