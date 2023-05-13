@@ -74,12 +74,28 @@ ltob <- function(x, t, lower, upper)
 		PACKAGE="matter")
 }
 
-downsample <- function(x, t, nbins = length(x) / 10L)
+lttb <- function(x, t, lower, upper)
+{
+	.Call(C_sampleLTTB, x, t, as.integer(lower - 1L), as.integer(upper - 1L),
+		PACKAGE="matter")
+}
+
+downsample <- function(x, t, n = length(x) / 10L,
+	method = c("dynamic", "lttb", "ltob"))
 {
 	if ( missing(t) || is.null(t) )
 		t <- as.numeric(seq_along(x))
-	buckets <- findbins(x, nbins - 2L, niter = -1L)
-	samples <- ltob(x, t, buckets$lower, buckets$upper)
+	method <- match.arg(method)
+	if ( method == "dynamic" ) {
+		buckets <- findbins(x, n - 2L, niter=NA)
+	} else {
+		buckets <- findbins(x, n - 2L, niter=-1)
+	}
+	if ( method == "ltob" ) {
+		samples <- ltob(x, t, buckets$lower, buckets$upper)
+	} else {
+		samples <- lttb(x, t, buckets$lower, buckets$upper)
+	}
 	samples <- c(1L, samples, length(x))
 	x[samples]
 }

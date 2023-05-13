@@ -360,15 +360,37 @@ void sample_lttb(Tx * x, Tt * t, int n,
 	for ( size_t i = 0; i < nbin; i++ )
 	{
 		buffer[i] = lower[i];
+		// select left point from previous bucket
+		if ( i == 0 ) {
+			xj[0] = x[0];
+			tj[0] = t[0];
+		}
+		else {
+			xj[0] = x[buffer[i - 1]];
+			tj[0] = t[buffer[i - 1]];
+		}
+		// select right point from average of next bucket
+		if ( i == nbin - 1 ) {
+			xj[2] = x[n - 1];
+			tj[2] = t[n - 1];
+		}
+		else {
+			xj[2] = 0;
+			tj[2] = 0;
+			for ( size_t j = lower[i + 1]; j <= upper[i + 1]; j++ )
+			{
+				xj[2] += x[j];
+				tj[2] += t[j];
+			}
+			xj[2] /= (upper[i + 1] - lower[i + 1] + 1);
+			tj[2] /= (upper[i + 1] - lower[i + 1] + 1);
+		}
+		// rank points in current bucket
 		double max_area = 0;
 		for ( size_t j = lower[i]; j <= upper[i]; j++ )
 		{
-			xj[0] = j > 0 ? x[j - 1] : x[0];
-			tj[0] = j > 0 ? t[j - 1] : t[0];
 			xj[1] = x[j];
 			tj[1] = t[j];
-			xj[2] = j < n - 1 ? x[j + 1] : x[n - 1];
-			tj[2] = j < n - 1 ? t[j + 1] : t[n - 1];
 			area = 0;
 			area += tj[0] * (xj[1] - xj[2]);
 			area += tj[1] * (xj[2] - xj[0]);
