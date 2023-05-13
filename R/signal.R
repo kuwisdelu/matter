@@ -1,6 +1,6 @@
 
-#### Binning ####
-## ---------------
+#### Binning and resampling ####
+## -----------------------------
 
 binvec <- function(x, lower, upper, stat = "sum")
 {
@@ -8,13 +8,13 @@ binvec <- function(x, lower, upper, stat = "sum")
 		upper <- lower[-1] - 1L
 		lower <- lower[-length(lower)]
 	}
-	.Call(C_binVector, x, as.integer(lower), as.integer(upper),
+	.Call(C_binVector, x, as.integer(lower - 1L), as.integer(upper - 1L),
 		as_binstat(stat), PACKAGE="matter")
 }
 
-findbins <- function(x, n = length(x) / 10L, niter = NA)
+findbins <- function(x, nbins, niter = NA)
 {
-	n <- floor(n)
+	n <- floor(nbins)
 	bw <- ceiling(length(x) / n)
 	breaks <- floor(seq(from=bw, to=length(x) - bw, length.out=n - 1L))
 	lower <- c(1L, breaks + 1L)
@@ -68,6 +68,22 @@ findbins <- function(x, n = length(x) / 10L, niter = NA)
 	}
 }
 
+ltob <- function(x, t, lower, upper)
+{
+	.Call(C_sampleLTOB, x, t, as.integer(lower - 1L), as.integer(upper - 1L),
+		PACKAGE="matter")
+}
+
+downsample <- function(x, t, nbins = length(x) / 10L)
+{
+	if ( missing(t) || is.null(t) )
+		t <- as.numeric(seq_along(x))
+	buckets <- findbins(x, nbins - 2L, niter = -1L)
+	samples <- ltob(x, t, buckets$lower, buckets$upper)
+	samples <- c(1L, samples, length(x))
+	x[samples]
+}
+
 #### Peak detection ####
 ## ---------------------
 
@@ -103,9 +119,10 @@ findpeaks <- function(x, prominence = NULL)
 	peaks
 }
 
-peakwidths <- function(x, peaks, domain = NULL, fmax = 0.5, ref = "height")
+peakwidths <- function(x, peaks, domain = NULL,
+	fmax = 0.5, ref = c("height", "prominence"))
 {
-	ref <- match.arg(ref, c("height", "prominence"))
+	ref <- match.arg(ref)
 	if ( is.null(domain) )
 		domain <- seq_along(x)
 	if ( ref == "height" )
@@ -204,7 +221,7 @@ simspectra <- function(n = 1L, peaks = 50L,
 			peakwidth=sdwidth, sdpeaks=sdpeaks, sdnoise=sdnoise)
 		yout <- yout + b
 	}
-	structure(yout, index=xout, peaks=x)
+	structure(yout, domain=xout, peaks=x)
 }
 
 simspectrum <- function(x, y, xout, peakwidth, sdpeaks, sdnoise)

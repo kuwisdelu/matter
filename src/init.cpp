@@ -40,6 +40,8 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(getSparseMatrix, 3),
 	// signal processing
 	CALLDEF(binVector, 4),
+	CALLDEF(sampleLTOB, 4),
+	CALLDEF(sampleLTTB, 4),
 	CALLDEF(localMaxima, 2),
 	CALLDEF(peakBoundaries, 2),
 	CALLDEF(peakBases, 2),

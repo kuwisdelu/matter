@@ -272,8 +272,9 @@ export(
 
 export(
 	"binvec",
-	"locmax",
 	"findbins",
+	"downsample",
+	"locmax",
 	"findpeaks",
 	"peakwidths",
 	"peakareas",

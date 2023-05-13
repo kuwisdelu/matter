@@ -17,10 +17,28 @@ test_that("binvec", {
 	expect_equal(binfun(x, u, v, mean), binvec(x, u, v, "mean"))
 	expect_equal(binfun(x, u, v, max), binvec(x, u, v, "max"))
 	expect_equal(binfun(x, u, v, min), binvec(x, u, v, "min"))
+	expect_equal(binfun(x, u, v, sd), binvec(x, u, v, "sd"))
+	expect_equal(binfun(x, u, v, var), binvec(x, u, v, "var"))
 
 	f <- seq(from=1, to=51, by=10)
 	
 	expect_equal(binvec(x, u, v), binvec(x, f))
+
+})
+
+test_that("downsample", {
+
+	n <- 200
+	t <- seq(from=0, to=6 * pi, length.out=5000)
+	x <- sin(t) + 0.6 * sin(2.6 * t)
+	x <- x + runif(length(x))
+
+	x2 <- downsample(x, t, nbins=n)
+	
+	expect_length(x2, n)
+	expect_equal(x[1L], x2[1L])
+	expect_equal(x[length(x)], x2[length(x2)])
+	expect_true(all(x2 %in% x))
 
 })
 

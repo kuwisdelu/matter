@@ -62,6 +62,8 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 //------------------
 
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
+SEXP sampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);
+SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper);
 SEXP localMaxima(SEXP x, SEXP window);
 SEXP peakBoundaries(SEXP x, SEXP peaks);
 SEXP peakBases(SEXP x, SEXP peaks);

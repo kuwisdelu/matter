@@ -285,11 +285,63 @@ SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			bin_vector(INTEGER(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				REAL(ans), LENGTH(lower), Rf_asInteger(stat));
+				LENGTH(lower), REAL(ans), Rf_asInteger(stat));
 			break;
 		case REALSXP:
 			bin_vector(REAL(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				REAL(ans), LENGTH(lower), Rf_asInteger(stat));
+				LENGTH(lower), REAL(ans), Rf_asInteger(stat));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
+SEXP sampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper)
+{
+	SEXP ans;
+	if ( LENGTH(x) != LENGTH(t) )
+		Rf_error("x and t must have equal length");
+	if ( LENGTH(lower) != LENGTH(upper) )
+		Rf_error("lower and upper bounds must have equal length");
+	PROTECT(ans = Rf_allocVector(INTSXP, XLENGTH(lower)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			sample_ltob(INTEGER(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans));
+			break;
+		case REALSXP:
+			sample_ltob(REAL(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
+SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper)
+{
+	SEXP ans;
+	if ( LENGTH(x) != LENGTH(t) )
+		Rf_error("x and t must have equal length");
+	if ( LENGTH(lower) != LENGTH(upper) )
+		Rf_error("lower and upper bounds must have equal length");
+	PROTECT(ans = Rf_allocVector(INTSXP, XLENGTH(lower)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			sample_lttb(INTEGER(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans));
+			break;
+		case REALSXP:
+			sample_lttb(REAL(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans));
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -374,6 +426,8 @@ SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
 	SEXP left_end, SEXP right_end, SEXP heights)
 {
 	SEXP ans, left_points, right_points;
+	if ( LENGTH(peaks) != LENGTH(domain) )
+		Rf_error("peaks and domain must have equal length");
 	PROTECT(left_points = Rf_allocVector(REALSXP, LENGTH(peaks)));
 	PROTECT(right_points = Rf_allocVector(REALSXP, LENGTH(peaks)));
 	PROTECT(ans = Rf_allocVector(VECSXP, 2));
@@ -403,6 +457,8 @@ SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 	SEXP left_end, SEXP right_end)
 {
 	SEXP ans;
+	if ( LENGTH(peaks) != LENGTH(domain) )
+		Rf_error("peaks and domain must have equal length");
 	PROTECT(ans = Rf_allocVector(REALSXP, LENGTH(peaks)));
 	switch(TYPEOF(x)) {
 		case INTSXP:

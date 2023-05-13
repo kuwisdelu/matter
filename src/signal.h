@@ -52,10 +52,10 @@ inline double kgaussian(double x, double sd)
 //-----------------------
 
 template<typename Tx, typename Ty>
-double trapz(Tx * x, Ty * y, size_t start, size_t end)
+double trapz(Tx * x, Ty * y, size_t lower, size_t upper)
 {
 	double sum = 0;
-	for ( size_t i = start + 1; i < end; i++ )
+	for ( size_t i = lower + 1; i <= upper; i++ )
 		sum += 0.5 * (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
 	return sum;
 }
@@ -247,23 +247,24 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	return val;
 }
 
-//// Binning
-//------------
+//// Binning and resampling
+//-------------------------
 
 template<typename T>
 void bin_vector(T * x, int n, int * lower, int * upper,
-	double * buffer, int nbin, int stat = BIN_SUM)
+	int nbin, double * buffer, int stat = BIN_SUM)
 {
 	double * buf = buffer;
-	for ( size_t i = 0; i < nbin; i++ ) {
+	for ( size_t i = 0; i < nbin; i++ )
+	{
 		buf[i] = NA_REAL;
-		if ( lower[i] < 1 || lower[i] > n )
+		if ( lower[i] < 0 || lower[i] >= n )
 			Rf_error("lower bin limit out of range");
-		if ( upper[i] < 1 || upper[i] > n )
+		if ( upper[i] < 0 || upper[i] >= n )
 			Rf_error("upper bin limit out of range");
 		int size = (upper[i] - lower[i]) + 1;
 		double sumx = 0;
-		for ( size_t j = lower[i] - 1; j < upper[i] && j < n; j++ )
+		for ( size_t j = lower[i]; j <= upper[i] && j < n; j++ )
 		{
 			// sum, mean, min, max
 			switch(stat) {
@@ -280,16 +281,16 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 		}
 		if ( stat == BIN_SD || stat == BIN_VAR || stat == BIN_SSE )
 		{
-			index_t start = lower[i] - 1, end = upper[i];
+			index_t a = lower[i], b = upper[i];
 			if ( stat == BIN_SSE )
 			{
 				// expand to adjacent bins
-				start = start - 1 < 0 ? 0 : start - 1;
-				end = end + 1 > n ? n : end + 1;
+				a = a - 1 < 0 ? 0 : a - 1;
+				b = b + 1 > n - 1 ? n - 1 : b + 1;
 			}
-			double ux = sumx / size, ut = (start + end) / 2;
+			double ux = sumx / size, ut = (a + b) / 2;
 			double Sxx = 0, Stt = 0, Sxt = 0;
-			for ( index_t j = start; j < end; j++ )
+			for ( index_t j = a; j <= b; j++ )
 			{
 				// calculate linear regression
 				Sxx += (ux - x[j]) * (ux - x[j]);
@@ -313,6 +314,70 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 			case BIN_SD:
 				buf[i] = std::sqrt(buf[i]);
 				break;
+		}
+	}
+}
+
+template<typename Tx, typename Tt>
+void sample_ltob(Tx * x, Tt * t, int n,
+	int * lower, int * upper, int nbin, int * buffer)
+{
+	double area;
+	Tx xj[3];
+	Tt tj[3];
+	for ( size_t i = 0; i < nbin; i++ )
+	{
+		buffer[i] = lower[i];
+		double max_area = 0;
+		for ( size_t j = lower[i]; j <= upper[i]; j++ )
+		{
+			xj[0] = j > 0 ? x[j - 1] : x[0];
+			tj[0] = j > 0 ? t[j - 1] : t[0];
+			xj[1] = x[j];
+			tj[1] = t[j];
+			xj[2] = j < n - 1 ? x[j + 1] : x[n - 1];
+			tj[2] = j < n - 1 ? t[j + 1] : t[n - 1];
+			area = 0;
+			area += tj[0] * (xj[1] - xj[2]);
+			area += tj[1] * (xj[2] - xj[0]);
+			area += tj[2] * (xj[0] - xj[1]);
+			area *= 0.5;
+			if ( area > max_area ) {
+				max_area = area;
+				buffer[i] = j;
+			}
+		}
+	}
+}
+
+template<typename Tx, typename Tt>
+void sample_lttb(Tx * x, Tt * t, int n,
+	int * lower, int * upper, int nbin, int * buffer)
+{
+	double area;
+	Tx xj[3];
+	Tt tj[3];
+	for ( size_t i = 0; i < nbin; i++ )
+	{
+		buffer[i] = lower[i];
+		double max_area = 0;
+		for ( size_t j = lower[i]; j <= upper[i]; j++ )
+		{
+			xj[0] = j > 0 ? x[j - 1] : x[0];
+			tj[0] = j > 0 ? t[j - 1] : t[0];
+			xj[1] = x[j];
+			tj[1] = t[j];
+			xj[2] = j < n - 1 ? x[j + 1] : x[n - 1];
+			tj[2] = j < n - 1 ? t[j + 1] : t[n - 1];
+			area = 0;
+			area += tj[0] * (xj[1] - xj[2]);
+			area += tj[1] * (xj[2] - xj[0]);
+			area += tj[2] * (xj[0] - xj[1]);
+			area *= 0.5;
+			if ( area > max_area ) {
+				max_area = area;
+				buffer[i] = j;
+			}
 		}
 	}
 }
@@ -352,7 +417,7 @@ size_t local_maxima(T * x, size_t n, int * buffer, int window = 5)
 
 // find boundaries (local minima) of peaks
 template<typename T>
-size_t peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
+void peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
 {
 	for ( int i = 0; i < npeaks; i++ )
@@ -409,12 +474,11 @@ size_t peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
 				right_buffer[i] = j;
 		}
 	}
-	return npeaks;
 }
 
 // find baselines of peaks (relative to higher peaks)
 template<typename T>
-size_t peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
+void peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
 {
 	for ( int i = 0; i < npeaks; i++ )
@@ -438,12 +502,11 @@ size_t peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
 				right_buffer[i] = j;
 		}
 	}
-	return npeaks;
 }
 
 // find peak widths (where signal crosses cutoff heights)
 template<typename Tx, typename Tt>
-size_t peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
+void peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	int * left_end, int * right_end, double * heights,
 	double * left_buffer, double * right_buffer)
 {
@@ -475,17 +538,15 @@ size_t peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 				right_buffer[i] = t[j];
 		}
 	}
-	return npeaks;
 }
 
 // find peak areas by numeric integration (trapezoid rule)
 template<typename Tx, typename Tt>
-size_t peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
+void peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	int * left_end, int * right_end, double * buffer)
 {
 	for ( int i = 0; i < npeaks; i++ )
 		buffer[i] = trapz(t, x, left_end[i], right_end[i]);
-	return npeaks;
 }
 
 #endif // SIGNAL
