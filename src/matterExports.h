@@ -61,6 +61,7 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 // Signal processing
 //------------------
 
+SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP sampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);
 SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper);

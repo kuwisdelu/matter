@@ -250,6 +250,88 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 //// Binning and resampling
 //-------------------------
 
+inline void bin_update(double * score, int * lower, int * upper,
+	int nbin, int * lower_buffer, int * upper_buffer)
+{
+	int merge = 0, split = 0;
+	double merge_score = DBL_MAX;
+	double split_score = score[0];
+	bool did_merge = false, did_split = false;
+	// find which bins to merge and split
+	for ( size_t i = 1; i < nbin; i++ )
+	{
+		if ( score[i - 1] + score[i] < merge_score )
+		{
+			merge = i - 1;
+			merge_score = score[i - 1] + score[i];
+		}
+		if ( score[i] > split_score )
+		{
+			split = i;
+			split_score = score[i];
+		}
+	}
+	// update the bins
+	for ( size_t i = 0; i < nbin; i++ )
+	{
+		if ( i != merge && i != split )
+		{
+			if ( did_merge && did_split )
+			{
+				lower_buffer[i] = lower[i];
+				upper_buffer[i] = upper[i];
+			}
+			else if ( did_merge && !did_split )
+			{
+				lower_buffer[i - 1] = lower[i];
+				upper_buffer[i - 1] = upper[i];
+			}
+			else if ( !did_merge && did_split )
+			{
+				lower_buffer[i + 1] = lower[i];
+				upper_buffer[i + 1] = upper[i];
+			}
+			else if ( !did_merge && !did_split )
+			{
+				lower_buffer[i] = lower[i];
+				upper_buffer[i] = upper[i];
+			}
+		}
+		else if ( i == split )
+		{
+			int at = (lower[i] + upper[i]) / 2;
+			if ( did_merge )
+			{
+				lower_buffer[i - 1] = lower[i];
+				upper_buffer[i - 1] = at;
+				lower_buffer[i] = at + 1;
+				upper_buffer[i] = upper[i];
+			}
+			else
+			{
+				lower_buffer[i] = lower[i];
+				upper_buffer[i] = at;
+				lower_buffer[i + 1] = at + 1;
+				upper_buffer[i + 1] = upper[i];
+			}
+			did_split = true;
+		}
+		else if ( i == merge )
+		{
+			if ( did_split ) {
+				lower_buffer[i + 1] = lower[i];
+				upper_buffer[i + 1] = upper[i + 1];
+			}
+			else {
+				lower_buffer[i] = lower[i];
+				upper_buffer[i] = upper[i + 1];
+			}
+			did_merge = true;
+			i++;
+		}
+	}
+}
+
 template<typename T>
 void bin_vector(T * x, int n, int * lower, int * upper,
 	int nbin, double * buffer, int stat = BIN_SUM)
@@ -319,15 +401,15 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 }
 
 template<typename Tx, typename Tt>
-void sample_ltob(Tx * x, Tt * t, int n,
-	int * lower, int * upper, int nbin, int * buffer)
+void sample_ltob(Tx * x, Tt * t, int n, int * lower, int * upper,
+	int nbin, int * buffer, bool ind1 = false)
 {
 	double area;
 	Tx xj[3];
 	Tt tj[3];
 	for ( size_t i = 0; i < nbin; i++ )
 	{
-		buffer[i] = lower[i];
+		buffer[i] = lower[i] + ind1;
 		double max_area = 0;
 		for ( size_t j = lower[i]; j <= upper[i]; j++ )
 		{
@@ -342,32 +424,33 @@ void sample_ltob(Tx * x, Tt * t, int n,
 			area += tj[1] * (xj[2] - xj[0]);
 			area += tj[2] * (xj[0] - xj[1]);
 			area *= 0.5;
+			area = std::fabs(area);
 			if ( area > max_area ) {
 				max_area = area;
-				buffer[i] = j;
+				buffer[i] = j + ind1;
 			}
 		}
 	}
 }
 
 template<typename Tx, typename Tt>
-void sample_lttb(Tx * x, Tt * t, int n,
-	int * lower, int * upper, int nbin, int * buffer)
+void sample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
+	int nbin, int * buffer, bool ind1 = false)
 {
 	double area;
 	Tx xj[3];
 	Tt tj[3];
 	for ( size_t i = 0; i < nbin; i++ )
 	{
-		buffer[i] = lower[i];
+		buffer[i] = lower[i] + ind1;
 		// select left point from previous bucket
 		if ( i == 0 ) {
 			xj[0] = x[0];
 			tj[0] = t[0];
 		}
 		else {
-			xj[0] = x[buffer[i - 1]];
-			tj[0] = t[buffer[i - 1]];
+			xj[0] = x[buffer[i - 1] - ind1];
+			tj[0] = t[buffer[i - 1] - ind1];
 		}
 		// select right point from average of next bucket
 		if ( i == nbin - 1 ) {
@@ -396,9 +479,10 @@ void sample_lttb(Tx * x, Tt * t, int n,
 			area += tj[1] * (xj[2] - xj[0]);
 			area += tj[2] * (xj[0] - xj[1]);
 			area *= 0.5;
+			area = std::fabs(area);
 			if ( area > max_area ) {
 				max_area = area;
-				buffer[i] = j;
+				buffer[i] = j + ind1;
 			}
 		}
 	}
@@ -444,6 +528,8 @@ void peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
 {
 	for ( int i = 0; i < npeaks; i++ )
 	{
+		if ( peaks[i] < 0 || peaks[i] >= n )
+			Rf_error("peak index out of range");
 		left_buffer[i] = peaks[i];
 		// find left boundary
 		for ( int j = peaks[i] - 1; j >= 0; j-- )
@@ -505,6 +591,8 @@ void peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
 {
 	for ( int i = 0; i < npeaks; i++ )
 	{
+		if ( peaks[i] < 0 || peaks[i] >= n )
+			Rf_error("peak index out of range");
 		left_buffer[i] = peaks[i];
 		// find left base of peak
 		for ( int j = peaks[i] - 1; j >= 0; j-- )
@@ -535,6 +623,10 @@ void peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	double pt;
 	for ( int i = 0; i < npeaks; i++ )
 	{
+		if ( peaks[i] < 0 || peaks[i] >= n )
+			Rf_error("peak index out of range");
+		if ( left_end[i] < 0 || right_end[i] >= n )
+			Rf_error("search limits out of range");
 		// find where signal crosses height to left of peak
 		for ( int j = peaks[i] - 1; j >= 0 && j >= left_end[i]; j-- )
 		{
@@ -568,7 +660,15 @@ void peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	int * left_end, int * right_end, double * buffer)
 {
 	for ( int i = 0; i < npeaks; i++ )
+	{
+		if ( peaks[i] < 0 || peaks[i] >= n )
+			Rf_error("peak index out of range");
+		if ( left_end[i] > peaks[i] || peaks[i] > right_end[i] )
+			Rf_error("peak index outside of search limits");
+		if ( left_end[i] < 0 || right_end[i] >= n )
+			Rf_error("search limits out of range");
 		buffer[i] = trapz(t, x, left_end[i], right_end[i]);
+	}
 }
 
 #endif // SIGNAL

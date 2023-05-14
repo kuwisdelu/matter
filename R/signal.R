@@ -31,25 +31,10 @@ findbins <- function(x, nbins, niter = NA)
 		trace[1L] <- sum(sse)
 		for ( i in seq_len(niter) )
 		{
-			merge <- which.min(sse[-n] + sse[-1])
-			lower_new <- lower[-(merge + 1L)]
-			upper_new <- upper[-merge]
-			split <- which.max(sse[-merge])
-			at <- ceiling((lower_new[split] + upper_new[split]) / 2)
-			lower_split <- c(lower_new[split], at)
-			upper_split <- c(at - 1L, upper_new[split])
-			if ( split == 1L ) {
-				lower_new <- c(lower_split, lower_new[-1L])
-				upper_new <- c(upper_split, upper_new[-1L])
-			} else if ( split == n ) {
-				lower_new <- c(lower_new[-n], lower_split)
-				upper_new <- c(upper_new[-n], upper_split)
-			} else {
-				lower_new <- c(lower_new[1:(split - 1L)], lower_split,
-					lower_new[(split + 1L):(n - 1L)])
-				upper_new <- c(upper_new[1:(split - 1L)], upper_split,
-					upper_new[(split + 1L):(n - 1L)])
-			}
+			update <- .Call(C_binUpdate, sse, as.integer(lower - 1L),
+				as.integer(upper - 1L), PACKAGE="matter")
+			lower_new <- update[[1L]] + 1L
+			upper_new <- update[[2L]] + 1L
 			sse <- binvec(x, lower_new, upper_new, stat="sse")
 			score <- sum(sse)
 			if ( score < trace[i] || !check_converge ) {
@@ -57,7 +42,7 @@ findbins <- function(x, nbins, niter = NA)
 				lower <- lower_new
 				upper <- upper_new
 			} else {
-				trace <- trace[!is.na(trace)]
+				trace <- trace[seq_len(i)]
 				break
 			}
 		}
@@ -92,12 +77,12 @@ downsample <- function(x, t, n = length(x) / 10L,
 		buckets <- findbins(x, n - 2L, niter=-1)
 	}
 	if ( method == "ltob" ) {
-		samples <- ltob(x, t, buckets$lower, buckets$upper)
+		sample <- ltob(x, t, buckets$lower, buckets$upper)
 	} else {
-		samples <- lttb(x, t, buckets$lower, buckets$upper)
+		sample <- lttb(x, t, buckets$lower, buckets$upper)
 	}
-	samples <- c(1L, samples, length(x))
-	x[samples]
+	sample <- c(1L, sample, length(x))
+	structure(x[sample], sample=sample)
 }
 
 #### Peak detection ####
