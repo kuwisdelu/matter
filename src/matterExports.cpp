@@ -368,6 +368,30 @@ SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper)
 	return ans;
 }
 
+SEXP convexHull(SEXP x, SEXP y, SEXP upper)
+{
+	SEXP ans;
+	if ( LENGTH(x) != LENGTH(y) )
+		Rf_error("x and y must have equal length");
+	PROTECT(ans = Rf_allocVector(INTSXP, LENGTH(x)));
+	size_t h;
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			h = convex_hull(INTEGER(x), INTEGER(y), LENGTH(x),
+				INTEGER(ans), Rf_asLogical(upper));
+			break;
+		case REALSXP:
+			h = convex_hull(REAL(x), REAL(y), LENGTH(x),
+				INTEGER(ans), Rf_asLogical(upper));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	PROTECT(ans = extract_region(ans, 0, h));
+	UNPROTECT(2);
+	return ans;
+}
+
 SEXP localMaxima(SEXP x, SEXP width)
 {
 	SEXP ans;

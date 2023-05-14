@@ -121,8 +121,8 @@ resample_int <- function(x, y, xout, width, interp = "linear")
 #### Continuum estimation ####
 ## ----------------------------
 
-estbase <- function(x, interp = c("linear", "spline"),
-	multipass = FALSE, upper = FALSE)
+estbase <- function(x, multipass = FALSE,
+	interp = c("linear", "spline"), upper = FALSE)
 {
 	if ( upper ) {
 		# find local maxima
@@ -153,6 +153,21 @@ estbase <- function(x, interp = c("linear", "spline"),
 		}
 	}
 	continuum
+}
+
+estbase_hull <- function(x, upper = FALSE)
+{
+	t <- seq_along(x)
+	if ( !is.integer(x) ) {
+		x <- as.double(x)
+		t <- as.double(t)
+	}
+	if ( length(x) >= 3 ) {
+		hull <- .Call(C_convexHull, t, x, isTRUE(upper), PACKAGE="matter")
+	} else {
+		hull <- t - 1L
+	}
+	approx(hull, x[hull + 1L], xout=t)$y
 }
 
 #### Peak detection ####

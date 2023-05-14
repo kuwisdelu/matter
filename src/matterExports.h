@@ -65,6 +65,7 @@ SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP sampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);
 SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper);
+SEXP convexHull(SEXP x, SEXP y, SEXP upper);
 SEXP localMaxima(SEXP x, SEXP width);
 SEXP peakBoundaries(SEXP x, SEXP peaks);
 SEXP peakBases(SEXP x, SEXP peaks);

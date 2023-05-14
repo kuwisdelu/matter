@@ -491,7 +491,47 @@ void sample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
 //// Continuum estimation
 //-----------------------
 
-// add functions here
+// cross > 0 is ccw; cross < 0 is cw; 0 is collinear
+template<typename T>
+T cross(T ox, T oy, T ax, T ay, T bx, T by)
+{
+	return (ax - ox) * (by - oy) - (ay - oy) * (bx - ox);
+}
+
+// monotonic chain algorithm by A. M. Andrew (1979)
+template<typename T>
+size_t convex_hull(T * x, T * y, size_t n, int * buffer, bool upper = false)
+{
+	size_t h = 0;
+	int * b = buffer;
+	if ( upper )
+	{
+		for ( index_t i = n - 1; i >= 0; i-- )
+		{
+			while ( h >= 2 && cross(x[b[h - 2]], y[b[h - 2]],
+				x[b[h - 1]], y[b[h - 1]], x[i], y[i]) <= 0 )
+			{
+				h--;
+			}
+			b[h] = i;
+			h++;
+		}
+	}
+	else
+	{
+		for ( index_t i = 0; i < n; i++ )
+		{
+			while ( h >= 2 && cross(x[b[h - 2]], y[b[h - 2]],
+				x[b[h - 1]], y[b[h - 1]], x[i], y[i]) <= 0 )
+			{
+				h--;
+			}
+			b[h] = i;
+			h++;
+		}
+	}
+	return h;
+}
 
 //// Peak detection
 //------------------
