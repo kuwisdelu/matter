@@ -26,15 +26,18 @@ findbins <- function(x, nbins, niter = NA)
 		check_converge <- FALSE
 	}
 	if ( niter >= 0 ) {
+		# calculate SSE from linear regression in each bin
 		sse <- binvec(x, lower, upper, stat="sse")
 		trace <-  numeric(niter + 1L)
 		trace[1L] <- sum(sse)
 		for ( i in seq_len(niter) )
 		{
+			# update bins by merging min SSE's and splitting max SSE
 			update <- .Call(C_binUpdate, sse, as.integer(lower - 1L),
 				as.integer(upper - 1L), PACKAGE="matter")
 			lower_new <- update[[1L]] + 1L
 			upper_new <- update[[2L]] + 1L
+			# check if new bins are better (lower sum of SSE)
 			sse <- binvec(x, lower_new, upper_new, stat="sse")
 			score <- sum(sse)
 			if ( score < trace[i] || !check_converge ) {
@@ -71,11 +74,13 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 	method <- match.arg(method)
 	if ( missing(domain) || is.null(domain) )
 		domain <- as.numeric(seq_along(x))
+	# calculate dynamic bin widths if requested
 	if ( method == "dynamic" ) {
 		buckets <- findbins(x, n - 2L, niter=NA)
 	} else {
 		buckets <- findbins(x, n - 2L, niter=-1)
 	}
+	# use largest-triangle-1-bucket or largest-triangle-3-buckets
 	if ( method == "ltob" ) {
 		sample <- ltob(x, domain, buckets$lower, buckets$upper)
 	} else {
@@ -87,8 +92,8 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 
 # exported version with argument checking (safer, easier)
 
-resample <- function(x, y, xout, width = 5 * median(diff(x)),
-	interp = c("linear", "cubic", "none"))
+resample <- function(x, y, xout, width = 5 * max(diff(x)),
+	interp = c("linear", "cubic", "mean", "gaussian", "none"))
 {
 	interp <- match.arg(interp)
 	if ( !is.double(x) )
@@ -113,10 +118,42 @@ resample_int <- function(x, y, xout, width, interp = "linear")
 		NA_real_, as_interp(interp), TRUE, PACKAGE="matter")
 }
 
-#### Continuum removal ####
-## -------------------------
+#### Continuum estimation ####
+## ----------------------------
 
-# add functions here
+estbase <- function(x, interp = c("linear", "spline"),
+	multipass = FALSE, upper = FALSE)
+{
+	if ( upper ) {
+		# find local maxima
+		bases <- which(locmax(x))
+		if ( multipass && length(bases) > 50L )
+			bases <- bases[which(locmax(x[bases]))]
+	} else {
+		# find local minima
+		bases <- which(locmin(x))
+		if ( multipass && length(bases) > 50L )
+			bases <- bases[which(locmin(x[bases]))]
+	}
+	if ( length(bases) > 0 ) {
+		# interpolate baseline from local min/max
+		interp <- match.arg(interp)
+		bases <- c(1L, bases, length(x))
+		if ( interp == "linear" ) {
+			continuum <- approx(bases, x[bases], xout=seq_along(x))$y
+		} else {
+			continuum <- spline(bases, x[bases], xout=seq_along(x))$y
+		}
+	} else {
+		# set baseline to global min/max if no local min/max
+		if ( upper ) {
+			continuum <- rep.int(max(x, na.rm=TRUE), length(x))
+		} else {
+			continuum <- rep.int(min(x, na.rm=TRUE), length(x))
+		}
+	}
+	continuum
+}
 
 #### Peak detection ####
 ## ---------------------
@@ -126,9 +163,15 @@ locmax <- function(x, width = 5L)
 	.Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
 }
 
+locmin <- function(x, width = 5L)
+{
+	.Call(C_localMaxima, -x, as.integer(width), PACKAGE="matter")
+}
+
 findpeaks <- function(x, prominence = NULL)
 {
 	peaks <- which(locmax(x))
+	# find peak boundaries (nearest local maxima)
 	bounds <- .Call(C_peakBoundaries, x,
 		as.integer(peaks - 1L), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
@@ -136,14 +179,18 @@ findpeaks <- function(x, prominence = NULL)
 	ann$right_bounds <- bounds[[2L]] + 1L
 	if ( isTRUE(prominence) || is.numeric(prominence) )
 	{
+		# find peak bases (minima between peaks and next higher peaks)
 		bases <- .Call(C_peakBases, x,
 			as.integer(peaks - 1L), PACKAGE="matter")
 		ann$left_bases <- bases[[1L]] + 1L
 		ann$right_bases <- bases[[2L]] + 1L
+		# lower of peak bases is lowest contour line (key col)
 		contour <- pmax(x[ann$left_bases], x[ann$right_bases])
+		# prominence is height of peak above lowest contour line
 		ann$prominences <- x[peaks] - contour
 		if ( is.numeric(prominence) )
 		{
+			# filter based on prominence if requested
 			keep <- ann$prominence >= prominence
 			peaks <- peaks[keep]
 			ann <- ann[keep,,drop=FALSE]
@@ -161,6 +208,7 @@ peakwidths <- function(x, peaks, domain = NULL,
 		domain <- seq_along(x)
 	if ( ref == "height" )
 	{
+		# find peak boundaries if not provided
 		left_end <- attr(peaks, "left_bounds")
 		right_end <- attr(peaks, "right_bounds")
 		if ( is.null(left_end) || is.null(right_end) )
@@ -173,6 +221,7 @@ peakwidths <- function(x, peaks, domain = NULL,
 		p <- x[peaks] - min(x)
 	} else
 	{
+		# find peak bases if not provided
 		p <- attr(peaks, "prominences")
 		left_end <- attr(peaks, "left_bases")
 		right_end <- attr(peaks, "right_bases")
@@ -186,11 +235,13 @@ peakwidths <- function(x, peaks, domain = NULL,
 			p <- x[peaks] - contour
 		}
 	}
+	# descend peaks to find height at fraction of max
 	heights <- x[peaks] - (1 - fmax) * p
 	thresholds <- .Call(C_peakWidths, x, as.integer(peaks - 1L),
 		as.double(domain), as.integer(left_end - 1L), as.integer(right_end - 1L),
 		as.double(heights), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
+	# calculate widths at thresholds of height
 	ann$width_heights <- heights
 	ann$left_points <- thresholds[[1L]]
 	ann$right_points <- thresholds[[2L]]
@@ -207,11 +258,13 @@ peakareas <- function(x, peaks, domain = NULL)
 	right_end <- as.integer(attr(peaks, "right_bounds") - 1L)
 	if ( is.null(left_end) || is.null(right_end) )
 	{
+		# find peak boundaries if not provided
 		bounds <- .Call(C_peakBoundaries, x,
 			as.integer(peaks - 1L), PACKAGE="matter")
 		left_end <- bounds[[1L]]
 		right_end <- bounds[[2L]]
 	}
+	# calculate peak areas by numeric integration
 	.Call(C_peakAreas, x, as.integer(peaks - 1L),
 		domain, left_end, right_end, PACKAGE="matter")
 }

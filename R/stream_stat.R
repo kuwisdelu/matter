@@ -498,6 +498,7 @@ stat_c.stream_var <- function(x, y, ...) {
 	m <- ifelse(is.na(m), 0, m)
 	nle1 <- nx <= 1 | ny <= 1
 	val_1 <- rep(NA_real_, length(x))
+	# handle single observations using Welford (1962)
 	if ( any(nle1) ) {
 		if ( any(n11 <- nx == 1 & ny == 1) ) {
 			v1 <- ((ux - uy) * (ux - m)) / (nx + ny - 1)
@@ -519,6 +520,7 @@ stat_c.stream_var <- function(x, y, ...) {
 		}
 	}
 	val_N <- rep(NA_real_, length(x))
+	# combine variances for the n > 1 samples
 	if ( any(nx > 1 & ny > 1) ) {
 		num1 <- ((nx - 1) * x) + ((ny - 1) * y)
 		num2 <- (nx * ny / (nx + ny)) * (ux - uy)^2
@@ -552,6 +554,7 @@ stat_c.stream_sd <- function(x, y, ...) {
 	m <- ifelse(is.na(m), 0, m)
 	nle1 <- nx <= 1 | ny <= 1
 	val_1 <- rep(NA_real_, length(m))
+	# handle single observations using Welford (1962)
 	if ( any(nle1) ) {
 		if ( any(n11 <- nx == 1 & ny == 1) ) {
 			v1 <- sqrt(((ux - uy) * (ux - m)) / (nx + ny - 1))
@@ -573,6 +576,7 @@ stat_c.stream_sd <- function(x, y, ...) {
 		}
 	}
 	val_N <- rep(NA_real_, length(m))
+	# combine standard deviations for the n > 1 samples
 	if ( any(nx > 1 & ny > 1) ) {
 		num1 <- ((nx - 1) * x^2) + ((ny - 1) * y^2)
 		num2 <- (nx * ny / (nx + ny)) * (ux - uy)^2

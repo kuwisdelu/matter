@@ -488,6 +488,11 @@ void sample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
 	}
 }
 
+//// Continuum estimation
+//-----------------------
+
+// add functions here
+
 //// Peak detection
 //------------------
 

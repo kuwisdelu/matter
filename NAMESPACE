@@ -276,6 +276,8 @@ export(
 	"downsample",
 	"resample",
 	"locmax",
+	"locmin",
+	"estbase",
 	"findpeaks",
 	"peakwidths",
 	"peakareas",
