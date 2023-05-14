@@ -33,26 +33,38 @@ test_that("downsample", {
 	x <- sin(t) + 0.6 * sin(2.6 * t)
 	x <- x + runif(length(x))
 
-	x2 <- downsample(x, t, n, method="lttb")
+	x2 <- downsample(x, n, method="lttb")
 	
 	expect_length(x2, n)
 	expect_equal(x[1L], x2[1L])
 	expect_equal(x[length(x)], x2[length(x2)])
 	expect_true(all(x2 %in% x))
 
-	x3 <- downsample(x, t, n, method="ltob")
+	x3 <- downsample(x, n, method="ltob")
 	
 	expect_length(x3, n)
 	expect_equal(x[1L], x3[1L])
 	expect_equal(x[length(x)], x3[length(x3)])
 	expect_true(all(x3 %in% x))
 
-	x4 <- downsample(x, t, n, method="dynamic")
+	x4 <- downsample(x, n, method="dynamic")
 	
 	expect_length(x4, n)
 	expect_equal(x[1L], x4[1L])
 	expect_equal(x[length(x)], x4[length(x4)])
 	expect_true(all(x4 %in% x))
+
+})
+
+test_that("resample", {
+
+	t <- seq(from=0, to=6 * pi, length.out=500)
+	x <- sin(t) + 0.6 * sin(2.6 * t)
+	tout <- seq(from=0, to=6 * pi, length.out=200)
+	
+	xout <- resample(t, x, tout, interp="linear")
+	
+	expect_equal(xout, approx(t, x, tout)$y, tolerance=1e-6)
 
 })
 

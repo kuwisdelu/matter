@@ -21,7 +21,7 @@ reldiff <- function(x, y, ref = "abs")
 # exported version with argument checking (safer, easier)
 
 asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
-					nomatch = NA_integer_, interp = "none")
+	nomatch = NA_integer_, interp = "none")
 {
 	if ( is.integer(x) && is.double(keys) )
 		x <- as.double(x)
@@ -34,7 +34,7 @@ asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
 # internal version with no argument checking
 
 asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
-					nomatch = NA_integer_, interp = 1L, sorted = TRUE)
+	nomatch = NA_integer_, interp = 1L, sorted = TRUE)
 {
 	.Call(C_approxSearch, x, keys, values, tol, tol.ref,
 		nomatch, interp, sorted, PACKAGE="matter")
@@ -43,7 +43,7 @@ asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
 # exported version with argument checking (safer, easier)
 
 bsearch <- function(x, table, tol = 0, tol.ref = "abs",
-					nomatch = NA_integer_, nearest = FALSE)
+	nomatch = NA_integer_, nearest = FALSE)
 {
 	if ( is.integer(x) && is.double(table) )
 		x <- as.double(x)
@@ -58,7 +58,7 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 # internal version with no argument checking
 
 bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
-					nomatch = NA_integer_, nearest = FALSE)
+	nomatch = NA_integer_, nearest = FALSE)
 {
 	.Call(C_binarySearch, x, table, tol, tol.ref,
 		nomatch, nearest, PACKAGE="matter")

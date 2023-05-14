@@ -65,30 +65,58 @@ lttb <- function(x, t, lower, upper)
 		PACKAGE="matter")
 }
 
-downsample <- function(x, t, n = length(x) / 10L,
+downsample <- function(x, n = length(x) / 10L, domain = NULL,
 	method = c("dynamic", "lttb", "ltob"))
 {
-	if ( missing(t) || is.null(t) )
-		t <- as.numeric(seq_along(x))
 	method <- match.arg(method)
+	if ( missing(domain) || is.null(domain) )
+		domain <- as.numeric(seq_along(x))
 	if ( method == "dynamic" ) {
 		buckets <- findbins(x, n - 2L, niter=NA)
 	} else {
 		buckets <- findbins(x, n - 2L, niter=-1)
 	}
 	if ( method == "ltob" ) {
-		sample <- ltob(x, t, buckets$lower, buckets$upper)
+		sample <- ltob(x, domain, buckets$lower, buckets$upper)
 	} else {
-		sample <- lttb(x, t, buckets$lower, buckets$upper)
+		sample <- lttb(x, domain, buckets$lower, buckets$upper)
 	}
 	sample <- c(1L, sample, length(x))
 	structure(x[sample], sample=sample)
 }
 
+# exported version with argument checking (safer, easier)
+
+resample <- function(x, y, xout, width = 5 * median(diff(x)),
+	interp = c("linear", "cubic", "none"))
+{
+	interp <- match.arg(interp)
+	if ( !is.double(x) )
+		x <- as.double(x)
+	if ( !is.double(y) )
+		y <- as.double(y)
+	if ( !is.double(xout) )
+		xout <- as.double(xout)
+	if ( is.unsorted(x) ) {
+		ord <- order(x)
+		x <- x[ord]
+		y <- y[ord]
+	}
+	resample_int(x, y, xout, width=width, interp=interp)
+}
+
+# internal version with no argument checking
+
+resample_int <- function(x, y, xout, width, interp = "linear")
+{
+	.Call(C_approxSearch, xout, x, y, width / 2, as_tol_ref("abs"),
+		NA_real_, as_interp(interp), TRUE, PACKAGE="matter")
+}
+
 #### Continuum removal ####
 ## -------------------------
 
-# add some functions here
+# add functions here
 
 #### Peak detection ####
 ## ---------------------
