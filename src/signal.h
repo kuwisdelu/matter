@@ -492,9 +492,9 @@ void sample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
 //------------------
 
 template<typename T>
-size_t local_maxima(T * x, size_t n, int * buffer, int window = 5)
+size_t local_maxima(T * x, size_t n, int * buffer, int width = 5)
 {
-	int nmax = 0, a = 0, b = n, r = abs(window / 2);
+	int nmax = 0, a = 0, b = n, r = abs(width / 2);
 	for ( int i = 0; i < n; i++ )
 	{
 		buffer[i] = false;

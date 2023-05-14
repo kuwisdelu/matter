@@ -368,18 +368,18 @@ SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper)
 	return ans;
 }
 
-SEXP localMaxima(SEXP x, SEXP window)
+SEXP localMaxima(SEXP x, SEXP width)
 {
 	SEXP ans;
 	PROTECT(ans = Rf_allocVector(LGLSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			local_maxima(INTEGER(x), LENGTH(x),
-				LOGICAL(ans), Rf_asInteger(window));
+				LOGICAL(ans), Rf_asInteger(width));
 			break;
 		case REALSXP:
 			local_maxima(REAL(x), LENGTH(x),
-				LOGICAL(ans), Rf_asInteger(window));
+				LOGICAL(ans), Rf_asInteger(width));
 			break;
 		default:
 			Rf_error("unsupported data type");

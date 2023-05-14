@@ -85,12 +85,17 @@ downsample <- function(x, t, n = length(x) / 10L,
 	structure(x[sample], sample=sample)
 }
 
+#### Continuum removal ####
+## -------------------------
+
+# add some functions here
+
 #### Peak detection ####
 ## ---------------------
 
-locmax <- function(x, window = 5L)
+locmax <- function(x, width = 5L)
 {
-	.Call(C_localMaxima, x, as.integer(window), PACKAGE="matter")
+	.Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
 }
 
 findpeaks <- function(x, prominence = NULL)
