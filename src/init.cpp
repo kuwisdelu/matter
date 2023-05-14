@@ -44,6 +44,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(sampleLTOB, 4),
 	CALLDEF(sampleLTTB, 4),
 	CALLDEF(convexHull, 3),
+	CALLDEF(smoothSNIP, 3),
 	CALLDEF(localMaxima, 2),
 	CALLDEF(peakBoundaries, 2),
 	CALLDEF(peakBases, 2),

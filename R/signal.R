@@ -170,6 +170,12 @@ estbase_hull <- function(x, upper = FALSE)
 	approx(hull, x[hull + 1L], xout=t)$y
 }
 
+estbase_snip <- function(x, width = 50, decreasing = TRUE)
+{
+	.Call(C_smoothSNIP, x, as.integer(width),
+		isTRUE(decreasing), PACKAGE="matter")
+}
+
 #### Peak detection ####
 ## ---------------------
 

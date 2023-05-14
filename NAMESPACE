@@ -279,6 +279,7 @@ export(
 	"locmin",
 	"estbase",
 	"estbase_hull",
+	"estbase_snip",
 	"findpeaks",
 	"peakwidths",
 	"peakareas",

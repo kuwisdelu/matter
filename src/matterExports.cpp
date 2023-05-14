@@ -392,6 +392,26 @@ SEXP convexHull(SEXP x, SEXP y, SEXP upper)
 	return ans;
 }
 
+SEXP smoothSNIP(SEXP x, SEXP m, SEXP decreasing)
+{
+	SEXP ans;
+	PROTECT(ans = Rf_allocVector(TYPEOF(x), LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			smooth_snip(INTEGER(x), LENGTH(x), INTEGER(ans),
+				Rf_asInteger(m), Rf_asLogical(decreasing));
+			break;
+		case REALSXP:
+			smooth_snip(REAL(x), LENGTH(x), REAL(ans),
+				Rf_asInteger(m), Rf_asLogical(decreasing));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
 SEXP localMaxima(SEXP x, SEXP width)
 {
 	SEXP ans;

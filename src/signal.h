@@ -533,6 +533,46 @@ size_t convex_hull(T * x, T * y, size_t n, int * buffer, bool upper = false)
 	return h;
 }
 
+// SNIP with adaptive clipping window by M. Morhac (2009)
+template<typename T>
+void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
+{
+	T a1, a2;
+	T * y = buffer;
+	T * z = (T *) R_Calloc(n, T);
+	for ( size_t i = 0; i < n; i++ )
+		y[i] = x[i];
+	if ( decreasing )
+	{
+		for ( size_t p = m; p >= 1; p-- )
+		{
+			for ( size_t i = p; i < n - p; i++ )
+			{
+				a1 = y[i];
+				a2 = (y[i - p] + y[i + p]) / 2;
+				z[i] = a1 < a2 ? a1 : a2;
+			}
+			for ( size_t i = p; i < n - p; i++ )
+				y[i] = z[i];
+		}
+	}
+	else
+	{
+		for ( size_t p = 1; p <= m; p++ )
+		{
+			for ( size_t i = p; i < n - p; i++ )
+			{
+				a1 = y[i];
+				a2 = (y[i - p] + y[i + p]) / 2;
+				z[i] = a1 < a2 ? a1 : a2;
+			}
+			for ( size_t i = p; i < n - p; i++ )
+				y[i] = z[i];
+		}
+	}
+	Free(z);
+}
+
 //// Peak detection
 //------------------
 
