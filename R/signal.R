@@ -90,34 +90,6 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 	structure(x[sample], sample=sample)
 }
 
-# exported version with argument checking (safer, easier)
-
-resample <- function(x, y, xout, width = 5 * max(diff(x)),
-	interp = c("linear", "cubic", "mean", "gaussian", "none"))
-{
-	interp <- match.arg(interp)
-	if ( !is.double(x) )
-		x <- as.double(x)
-	if ( !is.double(y) )
-		y <- as.double(y)
-	if ( !is.double(xout) )
-		xout <- as.double(xout)
-	if ( is.unsorted(x) ) {
-		ord <- order(x)
-		x <- x[ord]
-		y <- y[ord]
-	}
-	resample_int(x, y, xout, width=width, interp=interp)
-}
-
-# internal version with no argument checking
-
-resample_int <- function(x, y, xout, width, interp = "linear")
-{
-	.Call(C_approxSearch, xout, x, y, width / 2, as_tol_ref("abs"),
-		NA_real_, as_interp(interp), TRUE, PACKAGE="matter")
-}
-
 #### Continuum estimation ####
 ## ----------------------------
 

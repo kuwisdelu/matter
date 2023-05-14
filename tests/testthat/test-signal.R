@@ -56,18 +56,6 @@ test_that("downsample", {
 
 })
 
-test_that("resample", {
-
-	t <- seq(from=0, to=6 * pi, length.out=500)
-	x <- sin(t) + 0.6 * sin(2.6 * t)
-	tout <- seq(from=0, to=6 * pi, length.out=200)
-	
-	xout <- resample(t, x, tout, interp="linear")
-	
-	expect_equal(xout, approx(t, x, tout)$y, tolerance=1e-6)
-
-})
-
 test_that("locmax", {
 
 	x <- c(0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 2, 2, 3, 0, 1)
