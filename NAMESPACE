@@ -17,6 +17,7 @@ importFrom("Matrix",
 	"colMeans")
 
 importFrom("stats",
+	"runmed",
 	"median",
 	"update",
 	"na.omit")
@@ -279,6 +280,7 @@ export(
 	"estbase",
 	"estbase_hull",
 	"estbase_snip",
+	"estbase_med",
 	"findpeaks",
 	"peakwidths",
 	"peakareas",

@@ -93,38 +93,33 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 #### Continuum estimation ####
 ## ----------------------------
 
-estbase <- function(x, multipass = FALSE,
-	interp = c("linear", "spline"), upper = FALSE)
+estbase <- function(x, interp = c("linear", "loess", "spline"),
+	span = 1/10, spar = NULL, upper = FALSE)
 {
 	if ( upper ) {
-		# find local maxima
 		bases <- which(locmax(x))
-		if ( multipass && length(bases) > 50L )
-			bases <- bases[which(locmax(x[bases]))]
 	} else {
-		# find local minima
 		bases <- which(locmin(x))
-		if ( multipass && length(bases) > 50L )
-			bases <- bases[which(locmin(x[bases]))]
 	}
-	if ( length(bases) > 0 ) {
-		# interpolate baseline from local min/max
+	if ( length(bases) >= 2 ) {
 		interp <- match.arg(interp)
 		bases <- c(1L, bases, length(x))
-		if ( interp == "linear" ) {
-			continuum <- approx(bases, x[bases], xout=seq_along(x))$y
+		if ( interp == "loess" ) {
+			y <- lowess(bases, x[bases], f=span)$y
+		} else if ( interp == "spline" ) {
+			y <- smooth.spline(bases, x[bases], spar=spar)$y
 		} else {
-			continuum <- spline(bases, x[bases], xout=seq_along(x))$y
+			y <- x[bases]
 		}
+		y <- approx(bases, y, xout=seq_along(x))$y
 	} else {
-		# set baseline to global min/max if no local min/max
 		if ( upper ) {
-			continuum <- rep.int(max(x, na.rm=TRUE), length(x))
+			y <- rep.int(max(x, na.rm=TRUE), length(x))
 		} else {
-			continuum <- rep.int(min(x, na.rm=TRUE), length(x))
+			y <- rep.int(min(x, na.rm=TRUE), length(x))
 		}
 	}
-	continuum
+	y
 }
 
 estbase_hull <- function(x, upper = FALSE)
@@ -142,10 +137,15 @@ estbase_hull <- function(x, upper = FALSE)
 	approx(hull, x[hull + 1L], xout=t)$y
 }
 
-estbase_snip <- function(x, width = 50, decreasing = TRUE)
+estbase_snip <- function(x, width = 100L, decreasing = TRUE)
 {
 	.Call(C_smoothSNIP, x, as.integer(width),
 		isTRUE(decreasing), PACKAGE="matter")
+}
+
+estbase_med <- function(x, width = 100L, decreasing = TRUE)
+{
+	runmed(x, k = 1L + 2L * (width %/% 2L))
 }
 
 #### Peak detection ####
