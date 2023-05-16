@@ -271,7 +271,7 @@ as_interp <- function(x) {
 		# simple interp (1-5)
 		"none", "mean", "sum", "max", "min",
 		# peak-based (6)
-		"auc",
+		"area",
 		# spline interp (7-8)
 		"linear", "cubic",
 		# kernel interp (9-10)

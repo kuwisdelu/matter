@@ -419,9 +419,9 @@ double rel_diff(T x, T y, int ref = ABS_DIFF)
 	return std::fabs(rel_change<T>(x, y, ref));
 }
 
-inline int switch_tol_ref(int tol_ref)
+inline int switch_diff_ref(int ref)
 {
-	switch(tol_ref) {
+	switch(ref) {
 		case ABS_DIFF:
 			return ABS_DIFF;
 		case REL_DIFF_X:

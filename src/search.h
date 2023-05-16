@@ -208,10 +208,10 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 	index_t num_matches;
 	if ( xlen > 2 * (end - start) && is_sorted(x, xlen) )
 	{
-		// x >> keys -> iterate keys (upsampling)
+		// len(x) >> len(keys) so iterate keys (upsampling)
 		int pos [end];
 		num_matches = do_binary_search(pos, keys, end,
-			x, 0, xlen, tol, switch_tol_ref(tol_ref), NA_INTEGER);
+			x, 0, xlen, tol, switch_diff_ref(tol_ref), NA_INTEGER);
 		for ( size_t i = 0; i < xlen; i++ ) {
 			if ( isNA(x[i]) )
 				ptr[i * stride] = NA<Tval>();
@@ -240,7 +240,7 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 	}
 	else
 	{
-		// keys >> x -> iterate x (downsampling)
+		// len(keys) >> len(x) so iterate x (downsampling)
 		int pos [xlen];
 		if ( sorted )
 		{

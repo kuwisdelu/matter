@@ -10,7 +10,7 @@
 #define EST_SUM		3
 #define EST_MAX		4
 #define EST_MIN		5
-#define EST_AUC		6
+#define EST_AREA	6
 #define EST_LERP	7
 #define EST_CUBIC	8
 #define EST_GAUS	9
@@ -155,8 +155,8 @@ Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 							val += wt * y[i];
 						wtnorm += wt;
 						break;
-					case EST_AUC:
-						Rf_error("interp = 'auc' not implemented yet");
+					case EST_AREA:
+						Rf_error("interp = 'area' not implemented yet");
 					case EST_MAX:
 						if ( nxi == 1 || y[i] > val )
 							val = y[i];
