@@ -485,38 +485,38 @@ SEXP peakBases(SEXP x, SEXP peaks)
 }
 
 SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
-	SEXP left_end, SEXP right_end, SEXP heights)
+	SEXP left_limits, SEXP right_limits, SEXP heights)
 {
-	SEXP ans, left_points, right_points;
+	SEXP ans, left_ips, right_ips;
 	if ( LENGTH(x) != LENGTH(domain) )
 		Rf_error("signal and domain must have equal length");
-	PROTECT(left_points = Rf_allocVector(REALSXP, LENGTH(peaks)));
-	PROTECT(right_points = Rf_allocVector(REALSXP, LENGTH(peaks)));
+	PROTECT(left_ips = Rf_allocVector(REALSXP, LENGTH(peaks)));
+	PROTECT(right_ips = Rf_allocVector(REALSXP, LENGTH(peaks)));
 	PROTECT(ans = Rf_allocVector(VECSXP, 2));
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			peak_widths(INTEGER(x), REAL(domain), LENGTH(x),
 				INTEGER(peaks), LENGTH(peaks),
-				INTEGER(left_end), INTEGER(right_end), REAL(heights),
-				REAL(left_points), REAL(right_points));
+				INTEGER(left_limits), INTEGER(right_limits), REAL(heights),
+				REAL(left_ips), REAL(right_ips));
 			break;
 		case REALSXP:
 			peak_widths(REAL(x), REAL(domain), LENGTH(x),
 				INTEGER(peaks), LENGTH(peaks),
-				INTEGER(left_end), INTEGER(right_end), REAL(heights),
-				REAL(left_points), REAL(right_points));
+				INTEGER(left_limits), INTEGER(right_limits), REAL(heights),
+				REAL(left_ips), REAL(right_ips));
 			break;
 		default:
 			Rf_error("unsupported data type");
 	}
-	SET_VECTOR_ELT(ans, 0, left_points);
-	SET_VECTOR_ELT(ans, 1, right_points);
+	SET_VECTOR_ELT(ans, 0, left_ips);
+	SET_VECTOR_ELT(ans, 1, right_ips);
 	UNPROTECT(3);
 	return ans;
 }
 
 SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
-	SEXP left_end, SEXP right_end)
+	SEXP left_limits, SEXP right_limits)
 {
 	SEXP ans;
 	if ( LENGTH(x) != LENGTH(domain) )
@@ -526,13 +526,13 @@ SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 		case INTSXP:
 			peak_areas(INTEGER(x), REAL(domain), LENGTH(x),
 				INTEGER(peaks), LENGTH(peaks),
-				INTEGER(left_end), INTEGER(right_end),
+				INTEGER(left_limits), INTEGER(right_limits),
 				REAL(ans));
 			break;
 		case REALSXP:
 			peak_areas(REAL(x), REAL(domain), LENGTH(x),
 				INTEGER(peaks), LENGTH(peaks),
-				INTEGER(left_end), INTEGER(right_end),
+				INTEGER(left_limits), INTEGER(right_limits),
 				REAL(ans));
 			break;
 		default:

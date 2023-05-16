@@ -71,9 +71,9 @@ SEXP localMaxima(SEXP x, SEXP width);
 SEXP peakBoundaries(SEXP x, SEXP peaks);
 SEXP peakBases(SEXP x, SEXP peaks);
 SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
-	 SEXP left_end, SEXP right_end, SEXP heights);
+	 SEXP left_limits, SEXP right_limits, SEXP heights);
 SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
-	 SEXP left_end, SEXP right_end);
+	 SEXP left_limits, SEXP right_limits);
 
 } // extern "C"
 

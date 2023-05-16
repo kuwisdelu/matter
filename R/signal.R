@@ -234,11 +234,11 @@ peakwidths <- function(x, peaks, domain = NULL,
 		as.double(domain), as.integer(left_end - 1L), as.integer(right_end - 1L),
 		as.double(heights), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
-	# calculate widths at thresholds of height
 	ann$width_heights <- heights
-	ann$left_points <- thresholds[[1L]]
-	ann$right_points <- thresholds[[2L]]
-	widths <- ann$right_points - ann$left_points
+	# calculate widths at intersections of reference height
+	ann$left_ips <- thresholds[[1L]]
+	ann$right_ips <- thresholds[[2L]]
+	widths <- ann$right_ips - ann$left_ips
 	attributes(widths) <- ann
 	widths
 }

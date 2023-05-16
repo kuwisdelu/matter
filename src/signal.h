@@ -606,7 +606,83 @@ size_t local_maxima(T * x, size_t n, int * buffer, int width = 5)
 	return nmax;
 }
 
-// find boundaries (local minima) of peaks
+// find left boundary of a peak
+template<typename T>
+index_t peak_lbound(T * x, index_t peak, size_t n)
+{
+	index_t lbound = peak;
+	// account for mis-centered peaks
+	bool is_left_of_peak = false;
+	// find left boundary of peak (first local minimum)
+	for ( index_t i = peak - 1; i >= 0; i-- )
+	{
+		if ( x[i] < x[lbound] )
+		{
+			// update left boundary
+			lbound = i;
+			is_left_of_peak = true;
+		}
+		else if ( x[i] > x[lbound] && is_left_of_peak )
+		{
+			index_t cand = lbound;
+			index_t lwindow = (cand - 2) > 0 ? (cand - 2) : 0;
+			i--;
+			// check if candidate is local minimum
+			while ( i >= lwindow )
+			{
+				if ( x[i] < x[cand] )
+				{
+					lbound = i;
+					break;
+				}
+				i--;
+			}
+			if ( cand == lbound )
+				break;
+		}
+	}
+	return lbound;
+}
+
+// find right boundary of a peak
+template<typename T>
+index_t peak_rbound(T * x, index_t peak, size_t n)
+{
+	index_t rbound = peak;
+	// account for mis-centered peaks
+	bool is_right_of_peak = false;
+	// find right boundary of peak (first local minimum)
+	for ( index_t i = peak + 1; i < n; i++ )
+	{
+		if ( x[i] < x[rbound] )
+		{
+			// update right boundary
+			rbound = i;
+			is_right_of_peak = true;
+		}
+		else if ( x[i] > x[rbound] && is_right_of_peak )
+		{
+			index_t cand = rbound;
+			index_t rwindow = (cand + 2) < n - 1 ? (cand + 2) : n - 1;
+			i++;
+			// check if candidate is local minimum
+			while ( i <= rwindow )
+			{
+				if ( x[i] < x[cand] )
+				{
+					rbound = i;
+					break;
+				}
+				i++;
+			}
+			if ( cand == rbound )
+				break;
+		}
+	}
+	return rbound;
+}
+
+// find boundaries (nearest local minima) of peaks
 template<typename T>
 void peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
@@ -615,61 +691,12 @@ void peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
 	{
 		if ( peaks[i] < 0 || peaks[i] >= n )
 			Rf_error("peak index out of range");
-		left_buffer[i] = peaks[i];
-		// find left boundary
-		for ( int j = peaks[i] - 1; j >= 0; j-- )
-		{
-			
-			if ( x[j] > x[left_buffer[i]] )
-			{
-				int cand = left_buffer[i];
-				int lwindow = (cand - 2) > 0 ? (cand - 2) : 0;
-				j--;
-				// check if candidate is local minimum
-				while ( j >= lwindow )
-				{
-					if ( x[j] < x[cand] )
-					{
-						left_buffer[i] = j;
-						break;
-					}
-					j--;
-				}
-				if ( cand == left_buffer[i] )
-					break;
-			}
-			else if ( x[j] < x[left_buffer[i]] )
-				left_buffer[i] = j;
-		}
-		right_buffer[i] = peaks[i];
-		// find right boundary
-		for ( int j = peaks[i] + 1; j < n; j++ )
-		{
-			if ( x[j] > x[right_buffer[i]] )
-			{
-				int cand = right_buffer[i];
-				int rwindow = (cand + 2) < n - 1 ? (cand + 2) : n - 1;
-				j++;
-				// check if candidate is local minimum
-				while ( j <= rwindow )
-				{
-					if ( x[j] < x[cand] )
-					{
-						right_buffer[i] = j;
-						break;
-					}
-					j++;
-				}
-				if ( cand == right_buffer[i] )
-					break;
-			}
-			else if ( x[j] < x[right_buffer[i]] )
-				right_buffer[i] = j;
-		}
+		left_buffer[i] = peak_lbound(x, peaks[i], n);
+		right_buffer[i] = peak_rbound(x, peaks[i], n);
 	}
 }
 
-// find baselines of peaks (relative to higher peaks)
+// find baselines of peaks (minima from next higher peaks)
 template<typename T>
 void peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
@@ -702,7 +729,7 @@ void peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
 // find peak widths (where signal crosses cutoff heights)
 template<typename Tx, typename Tt>
 void peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
-	int * left_end, int * right_end, double * heights,
+	int * left_limit, int * right_limit, double * heights,
 	double * left_buffer, double * right_buffer)
 {
 	double pt;
@@ -710,10 +737,10 @@ void peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	{
 		if ( peaks[i] < 0 || peaks[i] >= n )
 			Rf_error("peak index out of range");
-		if ( left_end[i] < 0 || right_end[i] >= n )
+		if ( left_limit[i] < 0 || right_limit[i] >= n )
 			Rf_error("search limits out of range");
 		// find where signal crosses height to left of peak
-		for ( int j = peaks[i] - 1; j >= 0 && j >= left_end[i]; j-- )
+		for ( int j = peaks[i] - 1; j >= 0 && j >= left_limit[i]; j-- )
 		{
 			if ( x[j] < heights[i] )
 			{
@@ -725,7 +752,7 @@ void peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 				left_buffer[i] = t[j];
 		}
 		// find where signal crosses height to right of peak
-		for ( int j = peaks[i] + 1; j < n && j <= right_end[i]; j++ )
+		for ( int j = peaks[i] + 1; j < n && j <= right_limit[i]; j++ )
 		{
 			if ( x[j] < heights[i] )
 			{
@@ -742,17 +769,17 @@ void peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 // find peak areas by numeric integration (trapezoid rule)
 template<typename Tx, typename Tt>
 void peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
-	int * left_end, int * right_end, double * buffer)
+	int * left_limit, int * right_limit, double * buffer)
 {
 	for ( int i = 0; i < npeaks; i++ )
 	{
 		if ( peaks[i] < 0 || peaks[i] >= n )
 			Rf_error("peak index out of range");
-		if ( left_end[i] > peaks[i] || peaks[i] > right_end[i] )
-			Rf_error("peak index outside of search limits");
-		if ( left_end[i] < 0 || right_end[i] >= n )
-			Rf_error("search limits out of range");
-		buffer[i] = trapz(t, x, left_end[i], right_end[i]);
+		if ( left_limit[i] > peaks[i] || peaks[i] > right_limit[i] )
+			Rf_error("peak index outside of integration limits");
+		if ( left_limit[i] < 0 || right_limit[i] >= n )
+			Rf_error("integration limits out of range");
+		buffer[i] = trapz(t, x, left_limit[i], right_limit[i]);
 	}
 }
 
