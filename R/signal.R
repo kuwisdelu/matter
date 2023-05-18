@@ -58,14 +58,16 @@ findbins <- function(x, nbins, niter = NA)
 
 ltob <- function(x, t, lower, upper)
 {
-	.Call(C_sampleLTOB, x, t, as.integer(lower - 1L), as.integer(upper - 1L),
-		PACKAGE="matter")
+	lower <- as.integer(lower - 1L)
+	upper <- as.integer(upper - 1L)
+	.Call(C_downsampleLTOB, x, t, lower, upper, PACKAGE="matter")
 }
 
 lttb <- function(x, t, lower, upper)
 {
-	.Call(C_sampleLTTB, x, t, as.integer(lower - 1L), as.integer(upper - 1L),
-		PACKAGE="matter")
+	lower <- as.integer(lower - 1L)
+	upper <- as.integer(upper - 1L)
+	.Call(C_downsampleLTTB, x, t, lower, upper, PACKAGE="matter")
 }
 
 downsample <- function(x, n = length(x) / 10L, domain = NULL,

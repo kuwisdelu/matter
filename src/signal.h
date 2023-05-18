@@ -2,6 +2,7 @@
 #define SIGNAL
 
 #include "matterDefines.h"
+#include "coerce.h"
 
 // interpolation scheme
 // (must match factor levels)
@@ -24,6 +25,18 @@
 #define BIN_SD		5
 #define BIN_VAR		6
 #define BIN_SSE		7
+
+//// Numeric Integration
+//-----------------------
+
+template<typename Tx, typename Ty>
+double trapz(Tx * x, Ty * y, size_t lower, size_t upper)
+{
+	double sum = 0;
+	for ( size_t i = lower + 1; i <= upper; i++ )
+		sum += 0.5 * (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
+	return sum;
+}
 
 //// Kernels
 //-----------
@@ -48,18 +61,6 @@ inline double kgaussian(double x, double sd)
 	return std::exp(-(x * x) / (2 * (sd * sd)));
 }
 
-//// Numeric Integration
-//-----------------------
-
-template<typename Tx, typename Ty>
-double trapz(Tx * x, Ty * y, size_t lower, size_t upper)
-{
-	double sum = 0;
-	for ( size_t i = lower + 1; i <= upper; i++ )
-		sum += 0.5 * (x[i] - x[i - 1]) * (y[i] + y[i - 1]);
-	return sum;
-}
-
 //// Interpolation
 //-----------------
 
@@ -70,7 +71,7 @@ inline double lerp(double y0, double y1, double t)
 }
 
 // cubic hermite spline interpolation
-inline double cubic(double y[4], double dx[3], double t)
+inline double chip(double y[4], double dx[3], double t)
 {
 	double dy[] = {y[1] - y[0], y[2] - y[1], y[3] - y[2]};
 	double m1, m2;
@@ -93,162 +94,257 @@ inline double cubic(double y[4], double dx[3], double t)
 	return p00 + p10 + p01 + p11;
 }
 
+//// Resample within an Interval
+//------------------------------
+
+// linear interpolation in interval defined by |x[i] - xi| < tol
 template<typename Tx, typename Ty>
-Ty interp1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
-	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = true)
+Ty resample1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
 {
-	double delta, diff, diff_min = DBL_MAX;
-	index_t pos = NA_INTEGER;
-	// knots
-	index_t pj[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER};
-	// dists to knots
-	double pdiff[] = {DBL_MAX, DBL_MAX, DBL_MAX, DBL_MAX};
-	// kernel weights and normalizing constant
-	double wt = 1, wtnorm = 0;
-	// count of xi - x <= tol
-	size_t nxi = 0;
-	Ty val = NA<Ty>();
-	// go right, then left
-	for ( int k = 1; k == 1 || k == -1; k -= 2 )
-	{
-		// search for xi - x <= tol
-		index_t init = k > 0 ? start : start - 1;
-		for ( index_t i = init; i < end && i >= 0; i += k )
-		{
-			delta = rel_change<Tx>(xi, x[i], tol_ref);
-			diff = std::fabs(delta);
-			if ( diff > tol ) {
-				if ( i > 0 && delta < 0 && sorted )
-					break;
-				if ( i < 0 && delta > 0 && sorted )
-					break;
-			}
-			else
-			{
-				if ( diff < diff_min )
-				{
-					diff_min = diff;
-					pos = i;
-				}
-				nxi++;
-				// update interpolant
-				switch(interp)
-				{
-					case EST_NEAR:
-						if ( diff <= diff_min ) {
-							val = y[i];
-							if ( diff == 0 )
-								return val;
-						}
-						break;
-					case EST_SUM:
-					case EST_AVG:
-					case EST_GAUS:
-					case EST_SINC:
-						if ( interp == EST_GAUS )
-							wt = kgaussian(diff, (2 * tol + 1) / 4);
-						if ( interp == EST_SINC )
-							Rf_error("interp = 'lanczos' not implemented yet");
-						if ( nxi == 1 )
-							val = wt * y[i];
-						else
-							val += wt * y[i];
-						wtnorm += wt;
-						break;
-					case EST_AREA:
-						Rf_error("interp = 'area' not implemented yet");
-					case EST_MAX:
-						if ( nxi == 1 || y[i] > val )
-							val = y[i];
-						break;
-					case EST_MIN:
-						if ( nxi == 1 || y[i] < val )
-							val = y[i];
-						break;
-					case EST_LERP:
-					case EST_CUBIC:
-					{
-						if ( delta > 0 )
-						{
-							if ( diff < pdiff[1] ) {
-								pdiff[1] = diff;
-								pj[1] = i;
-							}
-							if ( (diff > pdiff[1] && diff < pdiff[0]) ||
-								(pj[1] == pj[0] || isNA(pj[0])) )
-							{
-								pdiff[0] = diff;
-								pj[0] = i;
-							}
-						}
-						if ( delta < 0 )
-						{
-							if ( diff < pdiff[2] ) {
-								pdiff[2] = diff;
-								pj[2] = i;
-							}
-							if ( (diff > pdiff[2] && diff < pdiff[3]) ||
-								(pj[2] == pj[3] || isNA(pj[3])) )
-							{
-								pdiff[3] = diff;
-								pj[3] = i;
-							}
-						}
-						break;
-					}
-				}
-			}
+	double y0, y1, t;
+	if ( sdiff(x[i], xi, tol_ref) < 0 ) {
+		// x[i] < xi < x[i + 1]
+		y0 = static_cast<double>(y[i]);
+		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) < tol ) {
+			y1 = static_cast<double>(y[i + 1]);
+			t = sdiff(xi, x[i]) / sdiff(x[i + 1], x[i]);
 		}
+		else
+			return y0;
 	}
-	if ( !isNA(pos) )
-	{
-		// additional calculations
-		switch(interp)
-		{
-			case EST_AVG:
-			case EST_GAUS:
-			case EST_SINC:
-				val = val / wtnorm;
-				break;
-			case EST_LERP:
-			case EST_CUBIC:
-			{
-				double tx, dxs[3], ys[4];
-				pj[1] = !isNA(pj[1]) ? pj[1] : pos;
-				pj[0] = !isNA(pj[0]) ? pj[0] : pj[1];
-				pj[2] = !isNA(pj[2]) ? pj[2] : pos;
-				pj[3] = !isNA(pj[3]) ? pj[3] : pj[2];
-				tx = rel_change(xi, x[pj[1]]);
-				dxs[0] = rel_change(x[pj[1]], x[pj[0]]);
-				dxs[1] = rel_change(x[pj[2]], x[pj[1]]);
-				dxs[2] = rel_change(x[pj[3]], x[pj[2]]);
-				ys[0] = static_cast<double>(y[pj[0]]);
-				ys[1] = static_cast<double>(y[pj[1]]);
-				ys[2] = static_cast<double>(y[pj[2]]);
-				ys[3] = static_cast<double>(y[pj[3]]);
-				if ( interp == EST_LERP )
-				{
-					if ( dxs[1] > 0 && diff_min > 0 )
-						val = lerp(ys[1], ys[2], tx / dxs[1]);
-					else
-						val = y[pos];
-				}
-				else if ( interp == EST_CUBIC )
-				{
-					if ( dxs[1] > 0 && diff_min > 0 )
-						val = cubic(ys, dxs, tx / dxs[1]);
-					else
-						val = y[pos];	
-				}
-				break;
-			}
+	else {
+		// x[i - 1] < xi < x[i]
+		y1 = static_cast<double>(y[i]);
+		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) < tol ) {
+			y0 = static_cast<double>(y[i - 1]);
+			t = sdiff(xi, x[i - 1]) / sdiff(x[i], x[i - 1]);
 		}
+		else
+			return y1;
 	}
-	return val;
+	return lerp(y0, y1, t);
 }
 
-//// Binning and resampling
-//-------------------------
+// cubic interpolation in interval defined by |x[i] - xi| < tol
+template<typename Tx, typename Ty>
+Ty resample1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	index_t p[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER};
+	double t, ys[4], dx[3];
+	double d = sdiff(x[i], xi, tol_ref);
+	if ( d < 0 ) {
+		// x[i] < xi < x[i + 1]
+		p[1] = i;
+		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) < tol )
+			p[2] = i + 1;
+		else
+			return y[i];
+		if ( i + 2 < n && udiff(x[i + 2], xi, tol_ref) < tol )
+			p[3] = i + 2;
+		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) < tol )
+			p[0] = i - 1;
+	}
+	else if ( d > 0 ) {
+		// x[i - 1] < xi < x[i]
+		p[2] = i;
+		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) < tol )
+			p[1] = i - 1;
+		else
+			return y[i];
+		if ( i - 2 >= 0 && udiff(x[i - 2], xi, tol_ref) < tol )
+			p[0] = i - 2;
+		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) < tol )
+			p[3] = i + 1;
+	}
+	else {
+		return y[i];
+	}
+	if ( isNA(p[0]) )
+		p[0] = p[1];
+	if ( isNA(p[3]) )
+		p[3] = p[2];
+	ys[0] = static_cast<Ty>(y[p[0]]);
+	ys[1] = static_cast<Ty>(y[p[1]]);
+	ys[2] = static_cast<Ty>(y[p[2]]);
+	ys[3] = static_cast<Ty>(y[p[3]]);
+	dx[0] = sdiff(x[p[1]], x[p[0]]);
+	dx[1] = sdiff(x[p[2]], x[p[1]]);
+	dx[2] = sdiff(x[p[3]], x[p[2]]);
+	t = sdiff(xi, x[p[1]]) / sdiff(x[p[2]], x[p[1]]);
+	return chip(ys, dx, t);
+}
+
+// mean in interval defined by |x[i] - xi| < tol
+template<typename Tx, typename Ty>
+Ty resample1_mean(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	Ty yi = 0;
+	size_t ni = 0;
+	for ( index_t j = i; j < n; j++ ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi += y[j];
+		ni++;
+	}
+	for ( index_t j = i - 1; j >= 0; j-- ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi += y[j];
+		ni++;
+	}
+	return yi / ni;
+}
+
+// sum in interval defined by |x[i] - xi| < tol
+template<typename Tx, typename Ty>
+Ty resample1_sum(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	Ty yi = 0;
+	for ( index_t j = i; j < n; j++ ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi += y[j];
+	}
+	for ( index_t j = i - 1; j >= 0; j-- ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi += y[j];
+	}
+	return yi;
+}
+
+// maximum in interval defined by |x[i] - xi| < tol
+template<typename Tx, typename Ty>
+Ty resample1_max(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	Ty yi = MIN_VAL<Ty>();
+	for ( index_t j = i; j < n; j++ ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi = y[j] > yi ? y[j] : yi;
+	}
+	for ( index_t j = i - 1; j >= 0; j-- ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi = y[j] > yi ? y[j] : yi;
+	}
+	return yi;
+}
+
+// minimum in interval defined by |x[i] - xi| < tol
+template<typename Tx, typename Ty>
+Ty resample1_min(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	Ty yi = MAX_VAL<Ty>();
+	for ( index_t j = i; j < n; j++ ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi = y[j] < yi ? y[j] : yi;
+	}
+	for ( index_t j = i - 1; j >= 0; j-- ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		yi = y[j] < yi ? y[j] : yi;
+	}
+	return yi;
+}
+
+// gaussian kernel in interval defined by |x[i] - xi| < tol
+template<typename Tx, typename Ty>
+Ty resample1_gaussian(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double sd, double tol, int tol_ref = ABS_DIFF)
+{
+	Ty yi = 0;
+	double K = 0, ki;
+	for ( index_t j = i; j < n; j++ ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		ki = kgaussian(sdiff(x[j], xi), sd);
+		yi += ki * y[j];
+		K += ki;
+	}
+	for ( index_t j = i - 1; j >= 0; j-- ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		ki = kgaussian(sdiff(x[j], xi), sd);
+		yi += ki * y[j];
+		K += ki;
+	}
+	return yi / K;
+}
+
+// lanczos kernel in interval defined by |x[i] - xi| < tol
+template<typename Tx, typename Ty>
+Ty resample1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double a, double tol, int tol_ref = ABS_DIFF)
+{
+	Ty yi = 0;
+	double K = 0, ki;
+	for ( index_t j = i; j < n; j++ ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		ki = klanczos(sdiff(x[j], xi), a);
+		yi += ki * y[j];
+		K += ki;
+	}
+	for ( index_t j = i - 1; j >= 0; j-- ) {
+		if ( udiff(x[j], xi, tol_ref) > tol )
+			break;
+		ki = klanczos(sdiff(x[j], xi), a);
+		yi += ki * y[j];
+		K += ki;
+	}
+	return yi / K;
+}
+
+template<typename Tx, typename Ty>
+Ty resample1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = true)
+{
+	switch(interp)
+	{
+		case EST_NEAR:
+			if ( sdiff(xi, x[i], tol_ref) < tol )
+				return y[i];
+			else
+				return NA<Ty>();
+		case EST_AVG:
+			return resample1_mean(xi, x, y, i, n, tol, tol_ref);
+		case EST_SUM:
+			return resample1_sum(xi, x, y, i, n, tol, tol_ref);
+		case EST_MAX:
+			return resample1_max(xi, x, y, i, n, tol, tol_ref);
+		case EST_MIN:
+			return resample1_min(xi, x, y, i, n, tol, tol_ref);
+		case EST_AREA:
+			Rf_error("interp = 'area' not implemented yet");
+		case EST_LERP:
+			return resample1_linear(xi, x, y, i, n, tol, tol_ref);
+		case EST_CUBIC:
+			return resample1_cubic(xi, x, y, i, n, tol, tol_ref);
+		case EST_GAUS: {
+			double xf = coerce_cast<double>(xi);
+			double sd = (tol_ref == ABS_DIFF) ? (tol / 2) : (xf * tol / 2);
+			return resample1_gaussian(xi, x, y, i, n, sd, tol, tol_ref);
+		}
+		case EST_SINC: {
+			double xf = coerce_cast<double>(xi);
+			double a = (tol_ref == ABS_DIFF) ? tol : xf * tol;
+			return resample1_lanczos(xi, x, y, i, n, a, tol, tol_ref);
+		}
+		default:
+			return NA<Ty>();
+	}
+}
+
+//// Binning and Downsampling
+//----------------------------
 
 inline void bin_update(double * score, int * lower, int * upper,
 	int nbin, int * lower_buffer, int * upper_buffer)
@@ -401,7 +497,7 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 }
 
 template<typename Tx, typename Tt>
-void sample_ltob(Tx * x, Tt * t, int n, int * lower, int * upper,
+void downsample_ltob(Tx * x, Tt * t, int n, int * lower, int * upper,
 	int nbin, int * buffer, bool ind1 = false)
 {
 	double area;
@@ -434,7 +530,7 @@ void sample_ltob(Tx * x, Tt * t, int n, int * lower, int * upper,
 }
 
 template<typename Tx, typename Tt>
-void sample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
+void downsample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
 	int nbin, int * buffer, bool ind1 = false)
 {
 	double area;

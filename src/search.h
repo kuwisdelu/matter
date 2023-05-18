@@ -14,56 +14,11 @@ template<typename T>
 bool is_sorted(T * x, size_t size, bool strictly = false)
 {
 	for ( size_t i = 1; i < size; i++ ) {
-		double delta = rel_change(x[i], x[i - 1]);
+		double delta = sdiff(x[i], x[i - 1]);
 		if ( delta < 0 || (strictly && delta <= 0) )
 			return false;
 	}
 	return true;
-}
-
-//// Linear search
-//-----------------
-
-// fuzzy linear search (fallback for unsorted arrays)
-template<typename T>
-index_t linear_search(T x, T * table, size_t start, size_t end,
-	double tol, int tol_ref, int nomatch, bool nearest = false, bool ind1 = false)
-{
-	index_t pos = nomatch;
-	double diff, diff_min = DBL_MAX;
-	for ( size_t i = start; i < end; i++ )
-	{
-		diff = rel_diff(x, table[i], tol_ref);
-		if ( diff == 0 )
-			return i + ind1;
-		if ( diff < diff_min ) {
-			diff_min = diff;
-			pos = i;
-		}
-	}
-	if ( diff_min <= tol || nearest )
-		return pos + ind1;
-	else
-		return nomatch;
-}
-
-template<typename T>
-index_t do_linear_search(int * ptr, T * x, size_t xlen, T * table,
-	size_t start, size_t end, double tol, int tol_ref, int nomatch,
-	bool nearest = false, bool ind1 = false)
-{
-	size_t num_matches = 0;
-	for ( size_t i = 0; i < xlen; i++ ) {
-		if ( isNA(x[i]) )
-			ptr[i] = nomatch;
-		else {
-			index_t pos = linear_search(x[i], table, start, end,
-				tol, tol_ref, nomatch, nearest, ind1);
-			ptr[i] = pos;
-			num_matches++;
-		}
-	}
-	return num_matches;
 }
 
 //// Binary search
@@ -80,11 +35,11 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 	while ( start < end )
 	{
 		mid = start + (end - start) / 2;
-		double d1 = rel_change(table[start], table[mid]);
-		double d2 = rel_change(table[mid], table[end - 1]);
+		double d1 = sdiff(table[start], table[mid]);
+		double d2 = sdiff(table[mid], table[end - 1]);
 		if ( d1 > 0 || d2 > 0 )
 			return err; // table is not sorted
-		delta = rel_change(x, table[mid], tol_ref);
+		delta = sdiff(x, table[mid], tol_ref);
 		if ( delta < 0 )
 			end = mid;
 		else if ( delta > 0 )
@@ -96,9 +51,9 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 	{
 		index_t left = mid >= min + 1 ? mid - 1 : min;
 		index_t right = mid < max - 1 ? mid + 1 : max - 1;
-		double dleft = rel_diff(x, table[left], tol_ref);
-		double dmid = rel_diff(x, table[mid], tol_ref);
-		double dright = rel_diff(x, table[right], tol_ref);
+		double dleft = udiff(x, table[left], tol_ref);
+		double dmid = udiff(x, table[mid], tol_ref);
+		double dright = udiff(x, table[right], tol_ref);
 		if ( (mid == left && delta < 0) && (nearest || dleft <= tol) )
 			return left + ind1;
 		else if ( (mid == right && delta > 0) && (nearest || dright <= tol) )
@@ -112,6 +67,34 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 				return right + ind1;
 		}
 	}
+	return nomatch;
+}
+
+// fuzzy binary search returning position of x in table
+template<> inline
+index_t binary_search(double x, double * table,
+	size_t start, size_t end, double tol, int tol_ref,
+	int nomatch, bool nearest, bool ind1, int err)
+{
+	index_t i = start, j = end, mid;
+	while ( i < j - 1 )
+	{
+		mid = (i + j) / 2;
+		if ( x < table[mid] )
+			j = mid;
+		else
+			i = mid;
+	}
+	if ( x == table[i] )
+		return i + ind1;
+	if ( x == table[j] )
+		return j + ind1;
+	double di = udiff(x, table[i], tol_ref);
+	double dj = udiff(x, table[j], tol_ref);
+	if ( di < dj && (nearest || di < tol ) )
+		return i + ind1;
+	if ( dj < di && (nearest || dj < tol ) )
+		return j + ind1;
 	return nomatch;
 }
 
@@ -176,26 +159,21 @@ Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 {
 	index_t pos = NA_INTEGER;
 	Tval val = nomatch;
-	Pair<index_t,Tval> result;
-	if ( isNA(x) ) {
-		result = {pos, NA<Tval>()};
+	Pair<index_t,Tval> result = {pos, val};
+	if ( isNA(x) )
 		return result;
-	}
-	if ( sorted )
-		pos = binary_search(x, keys, start, end,
-			tol, tol_ref, NA_INTEGER);
-	else
-		pos = linear_search(x, keys, start, end,
-			tol, tol_ref, NA_INTEGER);
+	pos = binary_search(x, keys, start, end,
+		tol, tol_ref, NA_INTEGER);
+	result.first = pos;
 	if ( !isNA(pos) && pos >= 0 )
 	{
 		if ( tol > 0 )
-			val = interp1(x, keys, values, pos, end,
+			val = resample1(x, keys, values, pos, end,
 				tol, tol_ref, interp, sorted);
 		else
 			val = values[pos];
+		result.second = val;
 	}
-	result = {pos, val};
 	return result;
 }
 
@@ -205,62 +183,71 @@ index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * 
 	size_t start, size_t end, double tol, int tol_ref, Tval nomatch, int interp = EST_NEAR,
 	bool sorted = true, int stride = 1)
 {
-	index_t num_matches;
-	if ( xlen > 2 * (end - start) && is_sorted(x, xlen) )
+	index_t num_matches = 0;
+	Pair<index_t,Tval> result;
+	if ( xlen < 2 * (end - start) || !is_sorted(x, xlen) )
 	{
-		// len(x) >> len(keys) so iterate keys (upsampling)
-		int pos [end];
-		num_matches = do_binary_search(pos, keys, end,
-			x, 0, xlen, tol, switch_diff_ref(tol_ref), NA_INTEGER);
-		for ( size_t i = 0; i < xlen; i++ ) {
-			if ( isNA(x[i]) )
-				ptr[i * stride] = NA<Tval>();
-			else
-				ptr[i * stride] = nomatch;
-		}
-		for ( size_t j = 0; j < end; j++ )
+		// if len(x) << 2*len(keys) then iterate x (downsampling)
+		for ( size_t i = 0; i < xlen; i++ )
 		{
-			if ( isNA(pos[j]) )
-				continue;
-			for ( index_t i = pos[j]; i < xlen; i++ )
-			{
-				if ( rel_diff(x[i], keys[j], tol_ref) > tol )
-					break;
-				ptr[i * stride] = interp1(x[i], keys, values,
-					j, end, tol, tol_ref, interp, sorted);
-			}
-			for ( index_t i = pos[j] - 1; i >= 0; i-- )
-			{
-				if ( rel_diff(x[i], keys[j], tol_ref) > tol )
-					break;
-				ptr[i * stride] = interp1(x[i], keys, values,
-					j, end, tol, tol_ref, interp, sorted);
-			}
+			result = approx_search(x[i], keys, values,
+				start, end, tol, tol_ref, nomatch, interp);
+			num_matches += !isNA(result.first);
+			ptr[i * stride] = result.second;
 		}
 	}
 	else
 	{
-		// len(keys) >> len(x) so iterate x (downsampling)
-		int pos [xlen];
-		if ( sorted )
-		{
-			num_matches = do_binary_search(pos, x, xlen,
-				keys, start, end, tol, tol_ref, NA_INTEGER);
-			if ( num_matches == SEARCH_ERROR )
-				sorted = false;
-		}
-		if ( !sorted )
-			num_matches = do_linear_search(pos, x, xlen,
-				keys, start, end, tol, tol_ref, NA_INTEGER);
+		// if len(x) >> 2*len(keys) then iterate keys (upsampling)
+		int pos [end];
+		bool not_matched [xlen];
+		do_binary_search(pos, keys, end, x, 0, xlen,
+			tol, switch_diff_ref(tol_ref), NA_INTEGER);
 		for ( size_t i = 0; i < xlen; i++ )
 		{
 			if ( isNA(x[i]) )
 				ptr[i * stride] = NA<Tval>();
-			else if ( isNA(pos[i]) )
-				ptr[i * stride] = nomatch;
 			else
-				ptr[i * stride] = interp1(x[i], keys, values,
-					pos[i], end, tol, tol_ref, interp, sorted);
+				ptr[i * stride] = nomatch;
+			not_matched[i] = true;
+		}
+		for ( size_t k = 0; k < end; k++ )
+		{
+			if ( isNA(pos[k]) )
+				continue;
+			// iterate to left along x
+			for ( index_t i = pos[k]; i < xlen; i++ )
+			{
+				if ( !not_matched[i] )
+					break;
+				if ( udiff(x[i], keys[k], tol_ref) > tol )
+					break;
+				result = approx_search(x[i], keys, values,
+					k, end, tol, tol_ref, nomatch, interp);
+				num_matches += !isNA(result.first);
+				ptr[i * stride] = result.second;
+				not_matched[i] = false;
+			}
+			// iterate to right along x
+			for ( index_t i = pos[k] - 1; i >= 0; i-- )
+			{
+				if ( !not_matched[i] )
+					break;
+				if ( udiff(x[i], keys[k], tol_ref) > tol )
+					break;
+				result = approx_search(x[i], keys, values,
+					k, end, tol, tol_ref, nomatch, interp);
+				num_matches += !isNA(result.first);
+				ptr[i * stride] = result.second;
+				not_matched[i] = false;
+			}
+		}
+		// fill in non-matches
+		if ( !isNA(nomatch) )
+		{
+			for ( size_t i = 0; i < xlen; i++ )
+				if ( not_matched[i] )
+					ptr[i * stride] = nomatch;
 		}
 	}
 	return num_matches;

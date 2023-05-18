@@ -27,8 +27,13 @@ asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
+	if ( is.unsorted(keys) ) {
+		ord <- order(keys)
+		keys <- keys[ord]
+		values <- values[ord]
+	}
 	asearch_int(x, keys=keys, values=values, tol=tol, tol.ref=as_tol_ref(tol.ref),
-		nomatch=nomatch, interp=as_interp(interp), sorted=!is.unsorted(keys))
+		nomatch=nomatch, interp=as_interp(interp), sorted=TRUE)
 }
 
 # internal version with no argument checking

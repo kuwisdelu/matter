@@ -41,8 +41,8 @@ static const R_CallMethodDef callMethods[] = {
 	// signal processing
 	CALLDEF(binUpdate, 3),
 	CALLDEF(binVector, 4),
-	CALLDEF(sampleLTOB, 4),
-	CALLDEF(sampleLTTB, 4),
+	CALLDEF(downsampleLTOB, 4),
+	CALLDEF(downsampleLTTB, 4),
 	CALLDEF(convexHull, 3),
 	CALLDEF(smoothSNIP, 3),
 	CALLDEF(localMaxima, 2),

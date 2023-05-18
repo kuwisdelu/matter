@@ -10,7 +10,7 @@ SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
 {
 	if ( TYPEOF(x) != TYPEOF(y) )
 		Rf_error("'x' and 'y' must have the same type");
-	return Rf_ScalarReal(rel_diff(x, y, Rf_asInteger(ref)));
+	return Rf_ScalarReal(udiff(x, y, Rf_asInteger(ref)));
 }
 
 SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
@@ -316,7 +316,7 @@ SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 	return ans;
 }
 
-SEXP sampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper)
+SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper)
 {
 	SEXP ans;
 	if ( LENGTH(x) != LENGTH(t) )
@@ -326,12 +326,12 @@ SEXP sampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper)
 	PROTECT(ans = Rf_allocVector(INTSXP, XLENGTH(lower)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			sample_ltob(INTEGER(x), REAL(t), LENGTH(x),
+			downsample_ltob(INTEGER(x), REAL(t), LENGTH(x),
 				INTEGER(lower), INTEGER(upper), LENGTH(lower),
 				INTEGER(ans), true);
 			break;
 		case REALSXP:
-			sample_ltob(REAL(x), REAL(t), LENGTH(x),
+			downsample_ltob(REAL(x), REAL(t), LENGTH(x),
 				INTEGER(lower), INTEGER(upper), LENGTH(lower),
 				INTEGER(ans), true);
 			break;
@@ -342,7 +342,7 @@ SEXP sampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper)
 	return ans;
 }
 
-SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper)
+SEXP downsampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper)
 {
 	SEXP ans;
 	if ( LENGTH(x) != LENGTH(t) )
@@ -352,12 +352,12 @@ SEXP sampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper)
 	PROTECT(ans = Rf_allocVector(INTSXP, XLENGTH(lower)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			sample_lttb(INTEGER(x), REAL(t), LENGTH(x),
+			downsample_lttb(INTEGER(x), REAL(t), LENGTH(x),
 				INTEGER(lower), INTEGER(upper), LENGTH(lower),
 				INTEGER(ans), true);
 			break;
 		case REALSXP:
-			sample_lttb(REAL(x), REAL(t), LENGTH(x),
+			downsample_lttb(REAL(x), REAL(t), LENGTH(x),
 				INTEGER(lower), INTEGER(upper), LENGTH(lower),
 				INTEGER(ans), true);
 			break;
