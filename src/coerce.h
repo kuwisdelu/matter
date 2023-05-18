@@ -383,7 +383,7 @@ double coerce_cast(int64_t x) {
 		return static_cast<double>(x);
 }
 
-// deal with the impossible
+// SEXP
 
 template<> inline
 Rbyte coerce_cast(SEXP x) {

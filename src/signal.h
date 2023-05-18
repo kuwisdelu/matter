@@ -305,7 +305,7 @@ Ty resample1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 
 template<typename Tx, typename Ty>
 Ty resample1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double tol, int tol_ref, int interp = EST_NEAR, bool sorted = true)
+	double tol, int tol_ref, int interp = EST_NEAR)
 {
 	switch(interp)
 	{

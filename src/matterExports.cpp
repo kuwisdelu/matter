@@ -16,12 +16,29 @@ SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
 SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 	SEXP tol_ref, SEXP nomatch, SEXP nearest)
 {
-	if ( TYPEOF(x) != TYPEOF(table) )
-		Rf_error("'x' and 'table' must have the same type");
-	if ( Rf_asReal(tol) < 0 )
-		Rf_error("'tol' must be non-negative");
-	return do_binary_search(x, table, Rf_asReal(tol), Rf_asInteger(tol_ref),
-		Rf_asInteger(nomatch), Rf_asLogical(nearest), TRUE);
+	SEXP pos;
+	PROTECT(pos = Rf_allocVector(INTSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_binary_search(INTEGER(pos), INTEGER(x), LENGTH(x), INTEGER(table),
+				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
+				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
+			break;
+		case REALSXP:
+			do_binary_search(INTEGER(pos), REAL(x), LENGTH(x), REAL(table),
+				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
+				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
+			break;
+		case STRSXP:
+			do_binary_search(INTEGER(pos), STRING_PTR(x), LENGTH(x), STRING_PTR(table),
+				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
+				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return pos;
 }
 
 SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
@@ -31,9 +48,62 @@ SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
 		Rf_error("'x' and 'keys' must have the same type");
 	if ( Rf_asReal(tol) < 0 )
 		Rf_error("'tol' must be non-negative");
-	return do_approx_search(x, keys, values,
-		Rf_asReal(tol), Rf_asInteger(tol_ref), nomatch,
-		Rf_asInteger(interp), Rf_asLogical(sorted));
+	SEXP result;
+	PROTECT(result = Rf_allocVector(TYPEOF(values), LENGTH(x)));
+	switch(TYPEOF(values)) {
+		case INTSXP:
+			switch(TYPEOF(x)) {
+				case INTSXP:
+					do_approx_search<int,int>(INTEGER(result), INTEGER(x), LENGTH(x),
+						INTEGER(keys), INTEGER(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case REALSXP:
+					do_approx_search<double,int>(INTEGER(result), REAL(x), LENGTH(x),
+						REAL(keys), INTEGER(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case STRSXP:
+					do_approx_search<SEXP,int>(INTEGER(result), STRING_PTR(x), LENGTH(x),
+						STRING_PTR(keys), INTEGER(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asInteger(interp));
+					break;
+				default:
+					Rf_error("unsupported key type");
+			}
+			break;
+		case REALSXP:
+			switch(TYPEOF(x)) {
+				case INTSXP:
+					do_approx_search<int,double>(REAL(result), INTEGER(x), LENGTH(x),
+						INTEGER(keys), REAL(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case REALSXP:
+					do_approx_search<double,double>(REAL(result), REAL(x), LENGTH(x),
+						REAL(keys), REAL(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case STRSXP:
+					do_approx_search<SEXP,double>(REAL(result), STRING_PTR(x), LENGTH(x),
+						STRING_PTR(keys), REAL(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
+						Rf_asInteger(interp));
+					break;
+				default:
+					Rf_error("unsupported key type");
+			}
+			break;
+		default:
+			Rf_error("unsupported value type");
+	}
+	UNPROTECT(1);
+	return result;
 }
 
 // Compression (delta run length encoding)
