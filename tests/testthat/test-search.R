@@ -178,6 +178,10 @@ test_that("approx search (sorted) - interpolation", {
 	x3 <- seq(from=1, to=3, by=0.05)
 	expect_equal(x3, asearch(x3, keys, vals, tol=1, interp="linear"))
 
+	t <- seq(from=-4, to=4, length.out=1000)
+	s <- dnorm(t)
+	expect_equal(1, asearch(0, t, s, tol=4, interp="area"), tolerance=1e-3)
+
 })
 
 test_that("approx search (unsorted) - interpolation", {

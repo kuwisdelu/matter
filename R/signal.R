@@ -249,19 +249,24 @@ peakareas <- function(x, peaks, domain = NULL)
 {
 	if ( is.null(domain) )
 		domain <- seq_along(x)
-	left_end <- as.integer(attr(peaks, "left_bounds") - 1L)
-	right_end <- as.integer(attr(peaks, "right_bounds") - 1L)
-	if ( is.null(left_end) || is.null(right_end) )
+	left_bounds <- as.integer(attr(peaks, "left_bounds") - 1L)
+	right_bounds <- as.integer(attr(peaks, "right_bounds") - 1L)
+	if ( is.null(left_bounds) || is.null(right_bounds) )
 	{
 		# find peak boundaries if not provided
 		bounds <- .Call(C_peakBoundaries, x,
 			as.integer(peaks - 1L), PACKAGE="matter")
-		left_end <- bounds[[1L]]
-		right_end <- bounds[[2L]]
+		left_bounds <- bounds[[1L]]
+		right_bounds <- bounds[[2L]]
 	}
+	ann <- data.frame(row.names=seq_along(peaks))
+	ann$left_bounds <- left_bounds
+	ann$right_bounds <- right_bounds
 	# calculate peak areas by numeric integration
-	.Call(C_peakAreas, x, as.integer(peaks - 1L),
-		domain, left_end, right_end, PACKAGE="matter")
+	areas <- .Call(C_peakAreas, x, as.integer(peaks - 1L),
+		as.double(domain), left_bounds, right_bounds, PACKAGE="matter")
+	attributes(areas) <- ann
+	areas
 }
 
 #### Simulation ####

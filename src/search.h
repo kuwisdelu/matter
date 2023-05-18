@@ -97,7 +97,7 @@ Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
 	if ( !isNA(pos) && pos >= 0 )
 	{
 		if ( tol > 0 )
-			val = resample1(x, keys, values,
+			val = interp1(x, keys, values,
 				pos, end, tol, tol_ref, interp);
 		else
 			val = values[pos];
