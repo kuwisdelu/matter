@@ -9,13 +9,12 @@
 //// Sortedness
 //--------------
 
-// return whether a sequence is sorted
 template<typename T>
 bool is_sorted(T * x, size_t size, bool strictly = false)
 {
 	for ( size_t i = 1; i < size; i++ ) {
-		double delta = sdiff(x[i], x[i - 1]);
-		if ( delta < 0 || (strictly && delta <= 0) )
+		double d = sdiff(x[i], x[i - 1]);
+		if ( d < 0 || (strictly && d <= 0) )
 			return false;
 	}
 	return true;
@@ -30,70 +29,26 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest = false,
 	bool ind1 = false, int err = SEARCH_ERROR)
 {
-	double delta;
-	index_t min = start, max = end, mid = nomatch;
-	while ( start < end )
-	{
-		mid = start + (end - start) / 2;
-		double d1 = sdiff(table[start], table[mid]);
-		double d2 = sdiff(table[mid], table[end - 1]);
-		if ( d1 > 0 || d2 > 0 )
-			return err; // table is not sorted
-		delta = sdiff(x, table[mid], tol_ref);
-		if ( delta < 0 )
-			end = mid;
-		else if ( delta > 0 )
-			start = mid + 1;
-		else
-			return mid + ind1;
-	}
-	if ( (nearest || tol > 0) && (max - min) > 0 )
-	{
-		index_t left = mid >= min + 1 ? mid - 1 : min;
-		index_t right = mid < max - 1 ? mid + 1 : max - 1;
-		double dleft = udiff(x, table[left], tol_ref);
-		double dmid = udiff(x, table[mid], tol_ref);
-		double dright = udiff(x, table[right], tol_ref);
-		if ( (mid == left && delta < 0) && (nearest || dleft <= tol) )
-			return left + ind1;
-		else if ( (mid == right && delta > 0) && (nearest || dright <= tol) )
-			return right + ind1;
-		else {
-			if ( (dleft <= dmid && dleft <= dright) && (nearest || dleft <= tol) )
-				return left + ind1;
-			else if ( (dmid <= dleft && dmid <= dright) && (nearest || dmid <= tol) )
-				return mid + ind1;
-			else if ( nearest || dright <= tol )
-				return right + ind1;
-		}
-	}
-	return nomatch;
-}
-
-// fuzzy binary search returning position of x in table
-template<> inline
-index_t binary_search(double x, double * table,
-	size_t start, size_t end, double tol, int tol_ref,
-	int nomatch, bool nearest, bool ind1, int err)
-{
 	index_t i = start, j = end, mid;
 	while ( i < j - 1 )
 	{
 		mid = (i + j) / 2;
-		if ( x < table[mid] )
+		if ( sdiff(x, table[mid]) < 0 )
 			j = mid;
 		else
 			i = mid;
 	}
-	if ( x == table[i] )
+	if ( j == end )
+		j = i;
+	if ( equal(x, table[i]) )
 		return i + ind1;
-	if ( x == table[j] )
+	if ( equal(x, table[j]) )
 		return j + ind1;
 	double di = udiff(x, table[i], tol_ref);
 	double dj = udiff(x, table[j], tol_ref);
-	if ( di < dj && (nearest || di < tol ) )
+	if ( di <= dj && (nearest || di < tol ) )
 		return i + ind1;
-	if ( dj < di && (nearest || dj < tol ) )
+	if ( dj <= di && (nearest || dj < tol ) )
 		return j + ind1;
 	return nomatch;
 }
