@@ -6,15 +6,15 @@
 
 // interpolation scheme
 // (must match factor levels)
-#define EST_NEAR	1
+#define EST_NEAR	1 	
 #define EST_AVG		2
 #define EST_SUM		3
 #define EST_MAX		4
 #define EST_MIN		5
-#define EST_AREA	6
-#define EST_LERP	7
-#define EST_CUBIC	8
-#define EST_GAUS	9
+#define EST_AREA	6  // Peak area
+#define EST_LERP	7  // Linear interpolation
+#define EST_CUBIC	8  // Cubic Hermite spline
+#define EST_GAUS	9  // Gaussian filter
 #define EST_SINC	10 // Lanczos
 
 // binning scheme
@@ -95,6 +95,51 @@ inline double chip(double y[4], double dx[3], double t)
 	double p11 = ((t * t * t) - (t * t)) * dx[1] * m2;
 	// return interpolated value
 	return p00 + p10 + p01 + p11;
+}
+
+//// Filtering and Smoothing
+//---------------------------
+
+template<typename Tx, typename Tw>
+void linear_filter(Tx * x, int n, Tw * weights, int width, double * buffer)
+{
+	index_t ii, r = width / 2;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		double W = 0;
+		buffer[i] = 0;
+		for (index_t j = 0; j < width; j++ )
+		{
+			ii = (i + j - r) >= 0 ? (i + j - r) : 0;
+			ii = (ii < n) ? ii : n - 1;
+			buffer[i] += weights[j] * x[ii];
+			W += weights[j];
+		}
+		buffer[i] /= W;
+	}
+}
+
+template<typename T>
+void bilateral_filter(T * x, int n, int width,
+	double * sddist, double * sdrange, double * buffer)
+{
+	index_t ii, r = width / 2;
+	double wdist, wrange;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		double W = 0;
+		buffer[i] = 0;
+		for (index_t j = 0; j < width; j++ )
+		{
+			ii = (i + j - r) >= 0 ? (i + j - r) : 0;
+			ii = (ii < n) ? ii : n - 1;
+			wdist = kgaussian(j - r, sddist[i]);
+			wrange = kgaussian(x[ii] - x[i], sdrange[i]);
+			buffer[i] += wdist * wrange * x[ii];
+			W += wdist * wrange;
+		}
+		buffer[i] /= W;
+	}
 }
 
 //// Binning and Downsampling
@@ -633,10 +678,10 @@ void peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	}
 }
 
-//// Interpolation within an Interval
-//------------------------------------
+//// Interpolation in a Nonuniform Interval
+//------------------------------------------
 
-// linear interpolation in interval defined by |x[i] - xi| < tol
+// linear interpolation in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
@@ -665,7 +710,7 @@ Ty interp1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return lerp(y0, y1, t);
 }
 
-// cubic interpolation in interval defined by |x[i] - xi| < tol
+// cubic interpolation in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
@@ -715,7 +760,7 @@ Ty interp1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return chip(ys, dx, t);
 }
 
-// mean in interval defined by |x[i] - xi| < tol
+// mean in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_mean(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
@@ -737,7 +782,7 @@ Ty interp1_mean(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return yi / ni;
 }
 
-// sum in interval defined by |x[i] - xi| < tol
+// sum in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_sum(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
@@ -756,7 +801,7 @@ Ty interp1_sum(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return yi;
 }
 
-// maximum in interval defined by |x[i] - xi| < tol
+// maximum in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_max(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
@@ -775,7 +820,7 @@ Ty interp1_max(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return yi;
 }
 
-// minimum in interval defined by |x[i] - xi| < tol
+// minimum in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_min(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
@@ -794,7 +839,7 @@ Ty interp1_min(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return yi;
 }
 
-// gaussian kernel in interval defined by |x[i] - xi| < tol
+// gaussian kernel in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_gaussian(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double sd, double tol, int tol_ref = ABS_DIFF)
@@ -818,7 +863,7 @@ Ty interp1_gaussian(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return yi / K;
 }
 
-// lanczos kernel in interval defined by |x[i] - xi| < tol
+// lanczos kernel in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double a, double tol, int tol_ref = ABS_DIFF)

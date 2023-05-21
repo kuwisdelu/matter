@@ -1,4 +1,48 @@
 
+#### Filtering and Smoothing ####
+## -----------------------------
+
+filt1 <- function(x, width = 5L, weights = rep_len(1L, width))
+{
+	if ( width %% 2L != 1L )
+		width <- 1 + 2 * (width %/% 2)
+	if ( length(weights) %% 2L != 1L )
+		warning("length of 'weights' isn't odd")
+	.Call(C_linearFilter, x, weights, PACKAGE="matter")
+}
+
+filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
+{
+	d <- width %/% 2
+	i <- seq(from=-d, to=d, by=1L)
+	weights <- dnorm(i, sd=sd)
+	.Call(C_linearFilter, x, weights, PACKAGE="matter")
+}
+
+filt1_bi <- function(x, width = 5L,
+	sddist = (width %/% 2) / 2, sdrange = mad(x))
+{
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	if ( is.na(sddist) || is.na(sdrange) ) {
+		z <- exp(-abs(abs(x - median(x)) - mad(x)))
+		if ( is.na(sddist) ) {
+			D <- (width %/% 2) / sqrt(2)
+			sddist <- D * z
+		}
+		if ( is.na(sdrange) ) {
+			R <- ((max(x) - min(x)) / sqrt(2))
+			sdrange <- R * z
+		}
+	}
+	if ( length(sddist) != length(x) )
+		sddist <- rep_len(sddist, length(x))
+	if ( length(sdrange) != length(x) )
+		sdrange <- rep_len(sdrange, length(x))
+	.Call(C_bilateralFilter, x, width, as.double(sddist),
+		as.double(sdrange), PACKAGE="matter")
+}
+
 #### Binning and resampling ####
 ## -----------------------------
 
@@ -90,6 +134,22 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 	}
 	sample <- c(1L, sample, length(x))
 	structure(x[sample], sample=sample)
+}
+
+resample1 <- function(x, y, xi, halfwidth = 2, interp = "linear")
+{
+	if ( is.integer(x) && is.double(xi) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(xi) )
+		xi <- as.double(xi)
+	if ( is.unsorted(x) ) {
+		ord <- order(x)
+		x <- x[ord]
+		y <- y[ord]
+	}
+	asearch_int(as.double(xi), as.double(x), as.double(y), tol=halfwidth,
+		tol.ref=as_tol_ref("abs"), nomatch=NA_real_,
+		interp=as_interp(interp))
 }
 
 #### Continuum estimation ####

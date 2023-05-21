@@ -11,7 +11,7 @@ static const R_CallMethodDef callMethods[] = {
 	// search
 	CALLDEF(relativeDiff, 3),
 	CALLDEF(binarySearch, 6),
-	CALLDEF(approxSearch, 8),
+	CALLDEF(approxSearch, 7),
 	// compression
 	CALLDEF(encodeDRLE, 2),
 	CALLDEF(decodeDRLE, 2),
@@ -39,6 +39,8 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(getSparseArray, 2),
 	CALLDEF(getSparseMatrix, 3),
 	// signal processing
+	CALLDEF(linearFilter, 2),
+	CALLDEF(bilateralFilter, 4),
 	CALLDEF(binUpdate, 3),
 	CALLDEF(binVector, 4),
 	CALLDEF(downsampleLTOB, 4),

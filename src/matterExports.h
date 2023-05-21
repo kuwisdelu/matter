@@ -15,10 +15,10 @@ extern "C" {
 
 SEXP relativeDiff(SEXP x, SEXP y, SEXP ref);
 
-SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
-	SEXP tol_ref, SEXP nomatch, SEXP nearest);
-SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
-	SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted);
+SEXP binarySearch(SEXP x, SEXP table,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP nearest);
+SEXP approxSearch(SEXP x, SEXP keys, SEXP values,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
 // Compression (delta run length encoding)
 //-----------------------------------------
@@ -61,6 +61,8 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 // Signal processing
 //------------------
 
+SEXP linearFilter(SEXP x, SEXP weights);
+SEXP bilateralFilter(SEXP x, SEXP width, SEXP sddist, SEXP sdrange);
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);

@@ -20,7 +20,7 @@ reldiff <- function(x, y, ref = "abs")
 
 # exported version with argument checking (safer, easier)
 
-asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
+asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 	nomatch = NA_integer_, interp = "none")
 {
 	if ( is.integer(x) && is.double(keys) )
@@ -32,17 +32,18 @@ asearch <- function(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
 		keys <- keys[ord]
 		values <- values[ord]
 	}
-	asearch_int(x, keys=keys, values=values, tol=tol, tol.ref=as_tol_ref(tol.ref),
-		nomatch=nomatch, interp=as_interp(interp), sorted=TRUE)
+	asearch_int(x, keys=keys, values=values, tol=tol,
+		tol.ref=as_tol_ref(tol.ref), nomatch=nomatch,
+		interp=as_interp(interp))
 }
 
 # internal version with no argument checking
 
 asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
-	nomatch = NA_integer_, interp = 1L, sorted = TRUE)
+	nomatch = NA_integer_, interp = 1L)
 {
 	.Call(C_approxSearch, x, keys, values, tol, tol.ref,
-		nomatch, interp, sorted, PACKAGE="matter")
+		nomatch, interp, PACKAGE="matter")
 }
 
 # exported version with argument checking (safer, easier)

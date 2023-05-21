@@ -272,9 +272,13 @@ export(
 	"vm_used")
 
 export(
+	"filt1",
+	"filt1_gauss",
+	"filt1_bi",
 	"binvec",
 	"findbins",
 	"downsample",
+	"resample1",
 	"locmax",
 	"locmin",
 	"estbase",

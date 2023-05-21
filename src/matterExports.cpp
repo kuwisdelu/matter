@@ -41,8 +41,8 @@ SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 	return pos;
 }
 
-SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
-	SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted)
+SEXP approxSearch(SEXP x, SEXP keys, SEXP values,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp)
 {
 	if ( TYPEOF(x) != TYPEOF(keys) )
 		Rf_error("'x' and 'keys' must have the same type");
@@ -345,6 +345,68 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j)
 
 // Signal processing
 //------------------
+
+SEXP linearFilter(SEXP x, SEXP weights)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP: {
+			switch(TYPEOF(weights)) {
+				case INTSXP:
+					linear_filter(INTEGER(x), LENGTH(x), INTEGER(weights),
+						LENGTH(weights), REAL(result));
+					break;
+				case REALSXP:
+					linear_filter(INTEGER(x), LENGTH(x), REAL(weights),
+						LENGTH(weights), REAL(result));
+					break;
+				default:
+					Rf_error("unsupported data type");
+				}
+			}
+			break;
+		case REALSXP: {
+			switch(TYPEOF(weights)) {
+				case INTSXP:
+					linear_filter(REAL(x), LENGTH(x), INTEGER(weights),
+						LENGTH(weights), REAL(result));
+					break;
+				case REALSXP:
+					linear_filter(REAL(x), LENGTH(x), REAL(weights),
+						LENGTH(weights), REAL(result));
+					break;
+				default:
+					Rf_error("unsupported data type");
+				}
+			}
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP bilateralFilter(SEXP x, SEXP width, SEXP sddist, SEXP sdrange)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			bilateral_filter(INTEGER(x), LENGTH(x), Rf_asInteger(width),
+				REAL(sddist), REAL(sdrange), REAL(result));
+			break;
+		case REALSXP:
+			bilateral_filter(REAL(x), LENGTH(x), Rf_asInteger(width),
+				REAL(sddist), REAL(sdrange), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
 
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper)
 {
