@@ -304,6 +304,8 @@ exportMethods("prcomp")
 exportMethods("bigglm")
 
 export(
+	"qselect",
+	"qmedian",
 	"reldiff",
 	"asearch",
 	"bsearch")

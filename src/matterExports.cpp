@@ -3,6 +3,23 @@
 
 extern "C" {
 
+// Select (k-th order and median)
+//--------------------------------
+
+SEXP quickSelect(SEXP x, SEXP k)
+{
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			return Rf_ScalarInteger(quick_select(INTEGER(x),
+				0, XLENGTH(x), Rf_asInteger(k)));
+		case REALSXP:
+			return Rf_ScalarReal(quick_select(REAL(x),
+				0, XLENGTH(x), Rf_asInteger(k)));
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
 // Search (binary and approximate)
 //--------------------------------
 

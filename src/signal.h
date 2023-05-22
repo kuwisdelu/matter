@@ -434,9 +434,8 @@ void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 {
 	T a1, a2;
 	T * y = buffer;
-	T * z = (T *) R_Calloc(n, T);
-	for ( size_t i = 0; i < n; i++ )
-		y[i] = x[i];
+	std::memcpy(y, x, n);
+	T z[n];
 	if ( decreasing )
 	{
 		for ( size_t p = m; p >= 1; p-- )
@@ -465,7 +464,6 @@ void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 				y[i] = z[i];
 		}
 	}
-	Free(z);
 }
 
 //// Peak detection

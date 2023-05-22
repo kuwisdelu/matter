@@ -2,23 +2,10 @@
 #define SEARCH
 
 #include "matterDefines.h"
+#include "select.h"
 #include "signal.h"
 
 #define SEARCH_ERROR -1
-
-//// Sortedness
-//--------------
-
-template<typename T>
-bool is_sorted(T * x, size_t size, bool strictly = false)
-{
-	for ( size_t i = 1; i < size; i++ ) {
-		double d = sdiff(x[i], x[i - 1]);
-		if ( d < 0 || (strictly && d <= 0) )
-			return false;
-	}
-	return true;
-}
 
 //// Binary search
 //-----------------

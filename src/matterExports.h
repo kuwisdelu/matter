@@ -10,6 +10,11 @@
 
 extern "C" {
 
+// Select (k-th order and median)
+//--------------------------------
+
+SEXP quickSelect(SEXP x, SEXP k);
+
 // Search (binary and approximate)
 //--------------------------------
 
