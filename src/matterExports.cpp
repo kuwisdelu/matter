@@ -8,16 +8,22 @@ extern "C" {
 
 SEXP quickSelect(SEXP x, SEXP k)
 {
+	SEXP result;
+	PROTECT(result = Rf_allocVector(TYPEOF(x), LENGTH(k)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			return Rf_ScalarInteger(quick_select(INTEGER(x),
-				0, XLENGTH(x), Rf_asInteger(k)));
+			do_quick_select(INTEGER(result),INTEGER(x), 0, XLENGTH(x),
+				INTEGER(k), LENGTH(k));
+			break;
 		case REALSXP:
-			return Rf_ScalarReal(quick_select(REAL(x),
-				0, XLENGTH(x), Rf_asInteger(k)));
+			do_quick_select(REAL(result), REAL(x), 0, XLENGTH(x),
+				INTEGER(k), LENGTH(k));
+			break;
 		default:
 			Rf_error("unsupported data type");
 	}
+	UNPROTECT(1);
+	return result;
 }
 
 // Search (binary and approximate)

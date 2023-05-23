@@ -1,33 +1,4 @@
 
-#### Search for k-th largest element ####
-## --------------------------------------
-
-qselect <- function(x, k = (length(x) + 1L) %/% 2L)
-{
-	if ( any(k < 1L | k > length(x)) )
-		stop("k is out of bounds")
-	fun <- function(ki) .Call(C_quickSelect, x, ki, PACKAGE="matter")
-	vapply(as.integer(k - 1L), fun, numeric(1L))
-}
-
-qmedian <- function(x, na.rm = FALSE)
-{
-	if ( na.rm ) {
-		x <- x[!is.na(x)]
-	} else if ( anyNA(x) ) {
-		return(NA_real_)
-	}
-	n <- length(x)
-	if ( n == 0L )
-		return(NA_real_)
-	mid <- (n + 1L) %/% 2L
-	if ( n %% 2 == 1L ) {
-		qselect(x, mid)
-	} else {
-		0.5 * (qselect(x, mid) + qselect(x, mid + 1L))
-	}
-}
-
 #### Approximate search with fuzzy matching ####
 ## ---------------------------------------------
 
@@ -99,3 +70,30 @@ bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
 		nomatch, nearest, PACKAGE="matter")
 }
 
+#### Search for k-th largest element ####
+## --------------------------------------
+
+qselect <- function(x, k = (length(x) + 1L) %/% 2L)
+{
+	if ( any(k < 1L | k > length(x)) )
+		stop("k is out of bounds")
+	.Call(C_quickSelect, x, as.integer(k - 1L), PACKAGE="matter")
+}
+
+qmedian <- function(x, na.rm = FALSE)
+{
+	if ( na.rm ) {
+		x <- x[!is.na(x)]
+	} else if ( anyNA(x) ) {
+		return(NA_real_)
+	}
+	n <- length(x)
+	if ( n == 0L )
+		return(NA_real_)
+	mid <- (n + 1L) %/% 2L
+	if ( n %% 2 == 1L ) {
+		qselect(x, mid)
+	} else {
+		mean(qselect(x, c(mid, mid + 1L)))
+	}
+}

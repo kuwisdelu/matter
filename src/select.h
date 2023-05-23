@@ -23,35 +23,33 @@ bool is_sorted(T * x, size_t n, bool strictly = false)
 //// Quick select
 //-----------------
 
-// find the k-th element of an array x
+// find the k-th element of array x (modifed in-place!!!)
 template<typename T>
 T quick_select(T * x, size_t start, size_t end, size_t k)
 {
-	T y[end - start];
-	std::memcpy(y, x, (end - start) * sizeof(T));
 	index_t left = start, right = end - 1, i, j, pivot;
 	do {
 		if ( left == right )
-			return y[left];
+			return x[left];
 		// find pivot by median of 1st/mid/last
 		pivot = (left + right) / 2;
-		if ( y[pivot] < y[left] )
-			swap(y[pivot], y[left], T);
-		if ( y[pivot] > y[right] )
+		if ( x[pivot] < x[left] )
+			swap(x[pivot], x[left], T);
+		if ( x[pivot] > x[right] )
 		{
-			swap(y[pivot], y[right], T);
-			if ( y[pivot] < y[left] )
-				swap(y[pivot], y[left], T);
+			swap(x[pivot], x[right], T);
+			if ( x[pivot] < x[left] )
+				swap(x[pivot], x[left], T);
 		}
 		// use Hoare's partition method 
 		i = left + 1;
 		j = right - 1;
 		do {
-			while ( y[i] < y[pivot] ) i++;
-			while ( y[j] > y[pivot] ) j--;
+			while ( x[i] < x[pivot] ) i++;
+			while ( x[j] > x[pivot] ) j--;
 			if ( i < j )
 			{
-				swap(y[i], y[j], T);
+				swap(x[i], x[j], T);
 				if ( pivot == i )
 					pivot = j;
 				else if ( pivot == j )
@@ -66,13 +64,31 @@ T quick_select(T * x, size_t start, size_t end, size_t k)
 		} while (i <= j);
 		// return k-th element or loop again
 		if ( k == pivot )
-			return y[k];
+			return x[k];
 		else if ( k < pivot )
 			right = pivot - 1;
 		else
 			left = pivot + 1;
 	}
 	while (true);
+}
+
+// find the k-th elements of an array x
+template<typename T>
+void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n)
+{
+	T dup[end];
+	std::memcpy(dup, x, end * sizeof(T));
+	ptr[0] = quick_select(dup, start, end, k[0]);
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( k[i] > k[i - 1] )
+			ptr[i] = quick_select(dup, k[i - 1] + 1, end, k[i]);
+		else if ( k[i] < k[i - 1] )
+			ptr[i] = quick_select(dup, start, k[i - 1], k[i]);
+		else 
+			ptr[i] = k[i - 1];
+	}
 }
 
 #endif // SELECT
