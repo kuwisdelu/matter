@@ -10,6 +10,7 @@ extern "C" {
 static const R_CallMethodDef callMethods[] = {
 	// select
 	CALLDEF(quickSelect, 2),
+	CALLDEF(quickMedian, 1),
 	// search
 	CALLDEF(relativeDiff, 3),
 	CALLDEF(binarySearch, 6),

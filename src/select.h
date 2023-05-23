@@ -47,19 +47,19 @@ T quick_select(T * x, size_t start, size_t end, size_t k)
 		do {
 			while ( x[i] < x[pivot] ) i++;
 			while ( x[j] > x[pivot] ) j--;
-			if ( i < j )
+			if ( i == j || x[i] == x[j] )
+			{
+				i++;
+				j--;
+				break;
+			}
+			else if ( i < j )
 			{
 				swap(x[i], x[j], T);
 				if ( pivot == i )
 					pivot = j;
 				else if ( pivot == j )
 					pivot = i;
-			}
-			else if ( i == j )
-			{
-				i++;
-				j--;
-				break;
 			}
 		} while (i <= j);
 		// return k-th element or loop again
@@ -80,7 +80,7 @@ void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n
 	T dup[end];
 	std::memcpy(dup, x, end * sizeof(T));
 	ptr[0] = quick_select(dup, start, end, k[0]);
-	for ( index_t i = 0; i < n; i++ )
+	for ( index_t i = 1; i < n; i++ )
 	{
 		if ( k[i] > k[i - 1] )
 			ptr[i] = quick_select(dup, k[i - 1] + 1, end, k[i]);
@@ -89,6 +89,25 @@ void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n
 		else 
 			ptr[i] = k[i - 1];
 	}
+}
+
+//// Median
+//-----------
+
+template<typename T>
+double quick_median(T * x, size_t n)
+{
+	T dup[n];
+	std::memcpy(dup, x, n * sizeof(T));
+	size_t k = n / 2;
+	if ( n % 2 == 0 )
+	{
+		double m1 = quick_select(dup, 0, n, k - 1);
+		double m2 = quick_select(dup, k, n, k);
+		return 0.5 * (m1 + m2);
+	}
+	else
+		return quick_select(dup, 0, n, k);
 }
 
 #endif // SELECT

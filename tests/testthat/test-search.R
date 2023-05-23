@@ -3,6 +3,22 @@ require(matter)
 
 context("search")
 
+test_that("quick select + median", {
+
+	set.seed(1)
+	u1 <- runif(100L)
+	u2 <- runif(101L)
+	u3 <- rep.int(1.11, 5L)
+
+	expect_equal(qselect(u1, 1L), min(u1))
+	expect_equal(qselect(u1, 100L), max(u1))
+	expect_equal(qselect(u2, 51L), median(u2))
+	expect_equal(qselect(u3, 3L), 1.11)
+	expect_equal(qmedian(u1), median(u1))
+	expect_equal(qmedian(u2), median(u2))
+
+})
+
 test_that("relative difference", {
 
 	expect_equal(reldiff(3L, 4L), abs(3 - 4))

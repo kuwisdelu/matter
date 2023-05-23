@@ -14,6 +14,7 @@ extern "C" {
 //--------------------------------
 
 SEXP quickSelect(SEXP x, SEXP k);
+SEXP quickMedian(SEXP x);
 
 // Search (binary and approximate)
 //--------------------------------

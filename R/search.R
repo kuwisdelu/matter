@@ -87,13 +87,9 @@ qmedian <- function(x, na.rm = FALSE)
 	} else if ( anyNA(x) ) {
 		return(NA_real_)
 	}
-	n <- length(x)
-	if ( n == 0L )
+	if ( length(x) == 0L ) {
 		return(NA_real_)
-	mid <- (n + 1L) %/% 2L
-	if ( n %% 2 == 1L ) {
-		qselect(x, mid)
 	} else {
-		mean(qselect(x, c(mid, mid + 1L)))
+		.Call(C_quickMedian, x, PACKAGE="matter")
 	}
 }

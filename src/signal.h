@@ -123,20 +123,59 @@ template<typename T>
 void bilateral_filter(T * x, int n, int width,
 	double sddist, double sdrange, double * buffer)
 {
-	index_t ii, r = width / 2;
-	double wdist, wrange;
+	index_t ij, r = width / 2;
+	double sdd = sddist, sdr = sdrange;
+	double mad, xmed, xr, dmax;
+	if ( isNA(sddist) || isNA(sdrange) )
+	{
+		double dev[n];
+		xmed = quick_median(x, n);
+		double xmax = DBL_MIN;
+		double xmin = DBL_MAX;
+		for ( index_t i = 0; i < n; i++ )
+		{
+			dev[i] = std::fabs(x[i] - xmed);
+			if ( x[i] > xmax )
+				xmax = x[i];
+			if ( x[i] < xmin )
+				xmin = x[i];
+		}
+		mad = quick_median(dev, n);
+		xr = xmax - xmin;
+	}
 	for ( index_t i = 0; i < n; i++ )
 	{
 		double W = 0;
 		buffer[i] = 0;
-		for (index_t j = 0; j < width; j++ )
+		if ( isNA(sddist) || isNA(sdrange) )
 		{
-			ii = (i + j - r) >= 0 ? (i + j - r) : 0;
-			ii = (ii < n) ? ii : n - 1;
-			wdist = kgaussian(j - r, sddist);
-			wrange = kgaussian(x[ii] - x[i], sdrange);
-			buffer[i] += wdist * wrange * x[ii];
-			W += wdist * wrange;
+			dmax = DBL_MIN;
+			for ( index_t j = 0; j < width; j++ )
+			{
+				ij = (i + j - r) >= 0 ? (i + j - r) : 0;
+				ij = (ij < n) ? ij : n - 1;
+				double d = std::fabs(x[ij] - x[i]);
+				if ( d > dmax )
+					dmax = d;
+			}
+		}
+		for ( index_t j = 0; j < width; j++ )
+		{
+			ij = (i + j - r) >= 0 ? (i + j - r) : 0;
+			ij = (ij < n) ? ij : n - 1;
+			if ( isNA(sddist) || isNA(sdrange) )
+			{
+				double u = std::fabs(dmax - xmed);
+				u = std::fabs(u - mad);
+				if ( isNA(sddist) )
+					sdd = r * std::exp(-u) / std::sqrt(2);
+				if ( isNA(sdrange) )
+					sdr = xr * std::exp(-u) / std::sqrt(2);
+			}
+			double wtdist = kgaussian(j - r, sdd);
+			double wtrange = kgaussian(x[ij] - x[i], sdr);
+			buffer[i] += wtdist * wtrange * x[ij];
+			W += wtdist * wtrange;
 		}
 		buffer[i] /= W;
 	}

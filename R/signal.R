@@ -13,32 +13,19 @@ filt1 <- function(x, width = 5L, weights = rep_len(1L, width))
 
 filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
-	d <- width %/% 2
-	i <- seq(from=-d, to=d, by=1L)
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	radius <- width %/% 2
+	i <- seq(from=-radius, to=radius, by=1L)
 	weights <- dnorm(i, sd=sd)
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
 filt1_bi <- function(x, width = 5L,
-	sddist = (width %/% 2) / 2, sdrange = mad(x))
+	sddist = NA_real_, sdrange = NA_real_)
 {
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
-	if ( is.na(sddist) || is.na(sdrange) ) {
-		z <- exp(-abs(abs(x - median(x)) - mad(x)))
-		if ( is.na(sddist) ) {
-			D <- (width %/% 2) / sqrt(2)
-			sddist <- D * z
-		}
-		if ( is.na(sdrange) ) {
-			R <- ((max(x) - min(x)) / sqrt(2))
-			sdrange <- R * z
-		}
-	}
-	if ( length(sddist) != length(x) )
-		sddist <- rep_len(sddist, length(x))
-	if ( length(sdrange) != length(x) )
-		sdrange <- rep_len(sdrange, length(x))
 	.Call(C_bilateralFilter, x, width, as.double(sddist),
 		as.double(sdrange), PACKAGE="matter")
 }

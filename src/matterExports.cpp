@@ -26,6 +26,18 @@ SEXP quickSelect(SEXP x, SEXP k)
 	return result;
 }
 
+SEXP quickMedian(SEXP x)
+{
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			return Rf_ScalarReal(quick_median(INTEGER(x), XLENGTH(x)));
+		case REALSXP:
+			return Rf_ScalarReal(quick_median(REAL(x), XLENGTH(x)));
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
 // Search (binary and approximate)
 //--------------------------------
 
