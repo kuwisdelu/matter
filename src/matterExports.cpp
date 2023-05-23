@@ -418,11 +418,11 @@ SEXP bilateralFilter(SEXP x, SEXP width, SEXP sddist, SEXP sdrange)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			bilateral_filter(INTEGER(x), LENGTH(x), Rf_asInteger(width),
-				REAL(sddist), REAL(sdrange), REAL(result));
+				Rf_asReal(sddist), Rf_asReal(sdrange), REAL(result));
 			break;
 		case REALSXP:
 			bilateral_filter(REAL(x), LENGTH(x), Rf_asInteger(width),
-				REAL(sddist), REAL(sdrange), REAL(result));
+				Rf_asReal(sddist), Rf_asReal(sdrange), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");

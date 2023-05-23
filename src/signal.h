@@ -121,7 +121,7 @@ void linear_filter(Tx * x, int n, Tw * weights, int width, double * buffer)
 
 template<typename T>
 void bilateral_filter(T * x, int n, int width,
-	double * sddist, double * sdrange, double * buffer)
+	double sddist, double sdrange, double * buffer)
 {
 	index_t ii, r = width / 2;
 	double wdist, wrange;
@@ -133,8 +133,8 @@ void bilateral_filter(T * x, int n, int width,
 		{
 			ii = (i + j - r) >= 0 ? (i + j - r) : 0;
 			ii = (ii < n) ? ii : n - 1;
-			wdist = kgaussian(j - r, sddist[i]);
-			wrange = kgaussian(x[ii] - x[i], sdrange[i]);
+			wdist = kgaussian(j - r, sddist);
+			wrange = kgaussian(x[ii] - x[i], sdrange);
 			buffer[i] += wdist * wrange * x[ii];
 			W += wdist * wrange;
 		}
@@ -434,7 +434,7 @@ void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 {
 	T a1, a2;
 	T * y = buffer;
-	std::memcpy(y, x, n);
+	std::memcpy(y, x, n * sizeof(T));
 	T z[n];
 	if ( decreasing )
 	{
