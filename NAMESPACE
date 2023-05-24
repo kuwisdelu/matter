@@ -247,6 +247,7 @@ export(
 	".colStats")
 
 export(
+	"chunkify",
 	"chunk_apply",
 	"chunk_rowapply",
 	"chunk_colapply",

@@ -43,11 +43,12 @@ binvec <- function(x, lower, upper, stat = "sum")
 		as_binstat(stat), PACKAGE="matter")
 }
 
-findbins <- function(x, nbins, niter = NA)
+findbins <- function(x, nbins, dynamic = TRUE,
+	niter = NA, limits.only = FALSE)
 {
 	n <- floor(nbins)
-	bw <- ceiling(length(x) / n)
-	breaks <- floor(seq(from=bw, to=length(x) - bw, length.out=n - 1L))
+	width <- ceiling(length(x) / n)
+	breaks <- floor(seq(from=width, to=length(x) - width, length.out=n - 1L))
 	lower <- c(1L, breaks + 1L)
 	upper <- c(breaks, length(x))
 	if ( is.na(niter) ) {
@@ -56,7 +57,7 @@ findbins <- function(x, nbins, niter = NA)
 	} else {
 		check_converge <- FALSE
 	}
-	if ( niter >= 0 ) {
+	if ( dynamic ) {
 		# calculate SSE from linear regression in each bin
 		sse <- binvec(x, lower, upper, stat="sse")
 		trace <-  numeric(niter + 1L)
@@ -80,11 +81,27 @@ findbins <- function(x, nbins, niter = NA)
 				break
 			}
 		}
-		structure(data.frame(lower=lower, upper=upper,
+		bins <- structure(data.frame(lower=lower, upper=upper,
 			size=upper - lower + 1L, sse=sse), trace=trace)
 	} else {
-		data.frame(lower=lower, upper=upper, size=upper - lower + 1L)
+		bins <- data.frame(lower=lower, upper=upper, size=upper - lower + 1L)
 	}
+	if ( limits.only ) {
+		bins <- data.frame(lower=lower, upper=upper, size=upper - lower + 1L)
+		if ( dynamic ) {
+			attr(bins, "trace") <- trace
+			bins$sse <- sse
+		}
+	} else {
+		fun <- function(i, j) x[i:j]
+		bins <- mapply(fun, lower, upper, SIMPLIFY=FALSE)
+		names(bins) <- paste0("[", lower, ":", upper, "]")
+		if ( dynamic ) {
+			attr(bins, "trace") <- trace
+			attr(bins, "sse") <- sse
+		}
+	}
+	bins
 }
 
 ltob <- function(x, t, lower, upper)
@@ -109,9 +126,9 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 		domain <- as.numeric(seq_along(x))
 	# calculate dynamic bin widths if requested
 	if ( method == "dynamic" ) {
-		buckets <- findbins(x, n - 2L, niter=NA)
+		buckets <- findbins(x, n - 2L, dynamic=TRUE, limits.only=TRUE)
 	} else {
-		buckets <- findbins(x, n - 2L, niter=-1)
+		buckets <- findbins(x, n - 2L, dynamic=FALSE, limits.only=TRUE)
 	}
 	# use largest-triangle-1-bucket or largest-triangle-3-buckets
 	if ( method == "ltob" ) {
