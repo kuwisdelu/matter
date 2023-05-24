@@ -2,6 +2,7 @@
 #define SIGNAL
 
 #include "matterDefines.h"
+#include "select.h"
 #include "coerce.h"
 
 // interpolation scheme
@@ -120,7 +121,7 @@ void linear_filter(Tx * x, int n, Tw * weights, int width, double * buffer)
 }
 
 template<typename T>
-void bilateral_filter(T * x, int n, int width,
+void bilateral_filter(T * x, int n, int width, double scale,
 	double sddist, double sdrange, double * buffer)
 {
 	index_t ij, r = width / 2;
@@ -141,7 +142,7 @@ void bilateral_filter(T * x, int n, int width,
 			if ( x[i] < xmin )
 				xmin = x[i];
 		}
-		mad = 1.4826 * quick_median(dev, n);
+		mad = MAD_SCALE * quick_median(dev, n);
 		xrange = xmax - xmin;
 	}
 	for ( index_t i = 0; i < n; i++ )
@@ -160,7 +161,7 @@ void bilateral_filter(T * x, int n, int width,
 					dmax = d;
 			}
 			double z = std::fabs(dmax - xmed);
-			z = std::fabs(z - mad);
+			z = std::fabs(z - mad) / scale;
 			if ( isNA(sddist) )
 				sdd = r * std::exp(-z) / std::sqrt(2);
 			if ( isNA(sdrange) )

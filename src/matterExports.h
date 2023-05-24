@@ -68,7 +68,8 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 //------------------
 
 SEXP linearFilter(SEXP x, SEXP weights);
-SEXP bilateralFilter(SEXP x, SEXP width, SEXP sddist, SEXP sdrange);
+SEXP bilateralFilter(SEXP x, SEXP width,
+	SEXP scale, SEXP sddist, SEXP sdrange);
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);

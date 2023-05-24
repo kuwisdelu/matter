@@ -4,6 +4,8 @@
 
 #include "matterDefines.h"
 
+#define MAD_SCALE 1.4826
+
 #define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
 
 //// Sortedness
