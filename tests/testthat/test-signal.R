@@ -3,6 +3,23 @@ require(matter)
 
 context("signal-processing")
 
+test_that("filter", {
+
+	n <- 200
+	t <- seq(from=0, to=6 * pi, length.out=5000)
+	y <- sin(t) + 0.6 * sin(2.6 * t)
+	x <- y + runif(length(y))
+
+	x2 <- filt1(x)
+	x3 <- filt1_gauss(x)
+	x4 <- filt1_bi(x)
+	
+	expect_gt(cor(x2, y), cor(x, y))
+	expect_gt(cor(x3, y), cor(x, y))
+	expect_gt(cor(x4, y), cor(x, y))
+
+})
+
 test_that("binvec", {
 
 	set.seed(1)
