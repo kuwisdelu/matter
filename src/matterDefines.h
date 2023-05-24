@@ -187,7 +187,7 @@ int MAX_VAL<int>()
 template<> inline
 double MIN_VAL<double>()
 {
-	return DBL_MIN;
+	return -DBL_MAX;
 }
 
 template<> inline

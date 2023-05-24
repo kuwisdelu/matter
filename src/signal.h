@@ -125,23 +125,24 @@ void bilateral_filter(T * x, int n, int width,
 {
 	index_t ij, r = width / 2;
 	double sdd = sddist, sdr = sdrange;
-	double mad, xmed, xr, dmax;
+	double mad, xmed, xrange, dmax;
 	if ( isNA(sddist) || isNA(sdrange) )
 	{
 		double dev[n];
 		xmed = quick_median(x, n);
-		double xmax = DBL_MIN;
+		double xmax = -DBL_MAX;
 		double xmin = DBL_MAX;
 		for ( index_t i = 0; i < n; i++ )
 		{
-			dev[i] = std::fabs(x[i] - xmed);
+			double xi = x[i];
+			dev[i] = std::fabs(xi - xmed);
 			if ( x[i] > xmax )
 				xmax = x[i];
 			if ( x[i] < xmin )
 				xmin = x[i];
 		}
-		mad = quick_median(dev, n);
-		xr = xmax - xmin;
+		mad = 1.4826 * quick_median(dev, n);
+		xrange = xmax - xmin;
 	}
 	for ( index_t i = 0; i < n; i++ )
 	{
@@ -149,7 +150,7 @@ void bilateral_filter(T * x, int n, int width,
 		buffer[i] = 0;
 		if ( isNA(sddist) || isNA(sdrange) )
 		{
-			dmax = DBL_MIN;
+			dmax = -DBL_MAX;
 			for ( index_t j = 0; j < width; j++ )
 			{
 				ij = (i + j - r) >= 0 ? (i + j - r) : 0;
@@ -158,20 +159,22 @@ void bilateral_filter(T * x, int n, int width,
 				if ( d > dmax )
 					dmax = d;
 			}
+			double z = std::fabs(dmax - xmed);
+			z = std::fabs(z - mad);
+			if ( isNA(sddist) )
+				sdd = r * std::exp(-z) / std::sqrt(2);
+			if ( isNA(sdrange) )
+				sdr = xrange * std::exp(-z) / std::sqrt(2);
+		}
+		if ( sdd <= DBL_EPSILON || sdr <= DBL_EPSILON )
+		{
+			buffer[i] = x[i];
+			continue;
 		}
 		for ( index_t j = 0; j < width; j++ )
 		{
 			ij = (i + j - r) >= 0 ? (i + j - r) : 0;
 			ij = (ij < n) ? ij : n - 1;
-			if ( isNA(sddist) || isNA(sdrange) )
-			{
-				double u = std::fabs(dmax - xmed);
-				u = std::fabs(u - mad);
-				if ( isNA(sddist) )
-					sdd = r * std::exp(-u) / std::sqrt(2);
-				if ( isNA(sdrange) )
-					sdr = xr * std::exp(-u) / std::sqrt(2);
-			}
 			double wtdist = kgaussian(j - r, sdd);
 			double wtrange = kgaussian(x[ij] - x[i], sdr);
 			buffer[i] += wtdist * wtrange * x[ij];

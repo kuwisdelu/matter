@@ -47,19 +47,29 @@ T quick_select(T * x, size_t start, size_t end, size_t k)
 		do {
 			while ( x[i] < x[pivot] ) i++;
 			while ( x[j] > x[pivot] ) j--;
-			if ( i == j || x[i] == x[j] )
+			// swap inversions
+			if ( i < j && x[i] != x[j] )
 			{
-				i++;
-				j--;
-				break;
-			}
-			else if ( i < j )
-			{
+
 				swap(x[i], x[j], T);
 				if ( pivot == i )
 					pivot = j;
 				else if ( pivot == j )
 					pivot = i;
+			}
+			// allow pointers to cross
+			else if ( i == j )
+			{
+				i++;
+				j--;
+			}
+			// account for ties
+			else
+			{
+				if ( i != pivot )
+					i++;
+				if ( j != pivot )
+					j--;
 			}
 		} while (i <= j);
 		// return k-th element or loop again
