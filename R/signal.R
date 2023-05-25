@@ -318,15 +318,18 @@ locmin <- function(x, width = 5L)
 	.Call(C_localMaxima, -x, as.integer(width), PACKAGE="matter")
 }
 
-findpeaks <- function(x, prominence = NULL)
+findpeaks <- function(x, prominence = NULL, bounds = TRUE)
 {
 	peaks <- which(locmax(x))
-	# find peak boundaries (nearest local maxima)
-	bounds <- .Call(C_peakBoundaries, x,
-		as.integer(peaks - 1L), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
-	ann$left_bounds <- bounds[[1L]] + 1L
-	ann$right_bounds <- bounds[[2L]] + 1L
+	if ( isTRUE(bounds) )
+	{
+		# find peak boundaries (nearest local maxima)
+		bounds <- .Call(C_peakBoundaries, x,
+		as.integer(peaks - 1L), PACKAGE="matter")
+		ann$left_bounds <- bounds[[1L]] + 1L
+		ann$right_bounds <- bounds[[2L]] + 1L
+	}
 	if ( isTRUE(prominence) || is.numeric(prominence) )
 	{
 		# find peak bases (minima between peaks and next higher peaks)
@@ -346,7 +349,8 @@ findpeaks <- function(x, prominence = NULL)
 			ann <- ann[keep,,drop=FALSE]
 		}
 	}
-	attributes(peaks) <- ann
+	if ( length(ann) > 0L )
+		attributes(peaks) <- ann
 	peaks
 }
 
