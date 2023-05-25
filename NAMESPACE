@@ -273,7 +273,7 @@ export(
 	"vm_used")
 
 export(
-	"filt1",
+	"filt1_ma",
 	"filt1_gauss",
 	"filt1_bi",
 	"binvec",
@@ -282,10 +282,15 @@ export(
 	"resample1",
 	"locmax",
 	"locmin",
-	"estbase",
+	"estbase_loc",
 	"estbase_hull",
 	"estbase_snip",
 	"estbase_med",
+	"estnoise_filt",
+	"estnoise_sd",
+	"estnoise_mad",
+	"estnoise_diff",
+	"estnoise_smooth",
 	"findpeaks",
 	"peakwidths",
 	"peakareas",

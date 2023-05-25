@@ -2,7 +2,7 @@
 #### Filtering and Smoothing ####
 ## -----------------------------
 
-filt1 <- function(x, width = 5L, weights = rep_len(1L, width))
+filt1_ma <- function(x, width = 5L, weights = rep_len(1L, width))
 {
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
@@ -96,6 +96,7 @@ findbins <- function(x, nbins, dynamic = TRUE,
 		fun <- function(i, j) x[i:j]
 		bins <- mapply(fun, lower, upper, SIMPLIFY=FALSE)
 		names(bins) <- paste0("[", lower, ":", upper, "]")
+		bins <- structure(bins, lower=lower, upper=upper)
 		if ( dynamic ) {
 			attr(bins, "trace") <- trace
 			attr(bins, "sse") <- sse
@@ -159,7 +160,7 @@ resample1 <- function(x, y, xi, halfwidth = 2, interp = "linear")
 #### Continuum estimation ####
 ## ----------------------------
 
-estbase <- function(x, interp = c("linear", "loess", "spline"),
+estbase_loc <- function(x, interp = c("linear", "loess", "spline"),
 	span = 1/10, spar = NULL, upper = FALSE)
 {
 	if ( upper ) {
@@ -209,9 +210,99 @@ estbase_snip <- function(x, width = 100L, decreasing = TRUE)
 		isTRUE(decreasing), PACKAGE="matter")
 }
 
-estbase_med <- function(x, width = 100L, decreasing = TRUE)
+estbase_med <- function(x, width = 100L)
 {
 	runmed(x, k = 1L + 2L * (width %/% 2L))
+}
+
+#### Noise estimation ####
+## -----------------------
+
+estnoise_sd <- function(x, nbins = 1L, dynamic = TRUE)
+{
+	if ( nbins > 1L ) {
+		xb <- findbins(x, nbins=nbins, dynamic=dynamic)
+		fun <- function(xi) rep.int(sd(xi, na.rm=TRUE), length(xi))
+		noise <- unlist(lapply(xb, fun))
+		noise <- lowess(noise)$y
+	} else {
+		noise <- sd(x, na.rm=TRUE)
+		noise <- rep.int(noise, length(x))
+	}
+	noise
+}
+
+estnoise_mad <- function(x, nbins = 1L, dynamic = TRUE)
+{
+	if ( nbins > 1L ) {
+		xb <- findbins(x, nbins=nbins, dynamic=dynamic)
+		fun <- function(xi) rep.int(mad(xi, na.rm=TRUE), length(xi))
+		noise <- unlist(lapply(xb, fun))
+		noise <- lowess(noise)$y
+	} else {
+		noise <- mad(x, na.rm=TRUE)
+		noise <- rep.int(noise, length(x))
+	}
+	noise
+}
+
+estnoise_diff <- function(x, nbins = 1L, dynamic = TRUE)
+{
+	if ( nbins > 1L ) {
+		xb <- findbins(x, nbins=nbins, dynamic=dynamic)
+		fun <- function(xi) {
+			dxi <- mean(diff(xi), na.rm=TRUE)
+			nsi <- mean(abs(xi - dxi), na.rm=TRUE)
+			rep.int(nsi, length(xi))
+		}
+		noise <- unlist(lapply(xb, fun))
+		noise <- lowess(noise)$y
+	} else {
+		dx <- mean(diff(x), na.rm=TRUE)
+		noise <- mean(abs(x - dx), na.rm=TRUE)
+		noise <- rep.int(noise, length(x))
+	}
+	noise
+}
+
+estnoise_smooth <- function(x, span = 2/3)
+{
+	lowess(x, f=span)$y
+}
+
+estnoise_filt <- function(x, snr = 2, nbins = 1L,
+	threshold = 0.5, centroided = FALSE)
+{
+	if ( nbins > 1L ) {
+		# Gallia et al (2013) but with lowess
+		xb <- findbins(x, nbins=nbins, dynamic=FALSE)
+		noise <- lapply(xb, estnoise_filt, snr=snr,
+			threshold=threshold, centroided=centroided)
+		noise <- unlist(noise)
+		noise <- lowess(noise)$y
+	} else {
+		# Xu and Freitas (2010) dynamic noise level
+		if ( !centroided ) {
+			y <- sort(x[findpeaks(x)])
+		} else {
+			y <- sort(x[x > 0])
+		}
+		if ( length(y) <= 1L )
+			return(y)
+		noise <- (1 + threshold) * y[1L]
+		i <- 2L
+		snr_i <- y[2L] / noise
+		fit <- lr(1L:i, y[1L:i])
+		while ( snr_i < snr )
+		{
+			i <- i + 1L
+			noise <- lr_predict(fit, i)
+			snr_i <- y[i] / noise
+			fit <- lr_update(fit, i, y[i])
+		}
+		noise <- rep.int(noise, length(x))
+	}
+	noise
 }
 
 #### Peak detection ####
@@ -391,5 +482,5 @@ simspectrum <- function(x, y, xout, peakwidth, sdpeaks, sdnoise)
 	}
 	noise <- rlnorm(length(yout), sdlog=sdnoise)
 	noise <- noise - exp(sdnoise^2 / 2)
-	yout + noise
+	pmax(yout + noise, 0)
 }
