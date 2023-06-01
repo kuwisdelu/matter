@@ -138,6 +138,26 @@ test_that("findpeaks", {
 
 })
 
+test_that("binpeaks + mergepeaks", {
+
+	t <- seq(from=0, to=6 * pi, length.out=1000)
+	x1 <- sin(t) + 0.6 * sin(2.6 * t)
+	x2 <- sin(t + 0.02) + 0.6 * sin(2.6 * (t + 0.02))
+	x3 <- sin(t - 0.02) + 0.6 * sin(2.6 * (t - 0.02))
+	p1 <- findpeaks(x1)
+	p2 <- findpeaks(x2)
+	p3 <- findpeaks(x3)
+	cbind(p1, p2, p3)
+
+	pb <- binpeaks(list(p1, p2, p3), tol=15, merge=FALSE)
+	pm <- mergepeaks(sort(c(p1, p2, p3)), tol=15,
+		n=rep.int(1, 3 * length(p1)))
+
+	expect_equivalent(unclass(pb), p1, tolerance=0.5)
+	expect_equivalent(unclass(pm), p1, tolerance=0.5)
+
+})
+
 test_that("peakwidths", {
 
 	t <- seq(from=0, to=6 * pi, length.out=1000)

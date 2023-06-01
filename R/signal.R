@@ -503,6 +503,8 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 {
 	if ( length(peaks) != length(x) )
 		stop("length of 'peaks' and 'x' must match")
+	if ( is.unsorted(peaks) )
+		stop("'peaks' must be sorted")
 	# find smallest gap between peaks
 	p <- which(!is.na(peaks))
 	d <- reldiff(peaks[p], ref=tol.ref)
