@@ -731,7 +731,7 @@ Ty interp1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	if ( sdiff(x[i], xi, tol_ref) < 0 ) {
 		// x[i] < xi < x[i + 1]
 		y0 = static_cast<double>(y[i]);
-		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) < tol ) {
+		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) <= tol ) {
 			y1 = static_cast<double>(y[i + 1]);
 			t = sdiff(xi, x[i]) / sdiff(x[i + 1], x[i]);
 		}
@@ -741,7 +741,7 @@ Ty interp1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	else {
 		// x[i - 1] < xi < x[i]
 		y1 = static_cast<double>(y[i]);
-		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) < tol ) {
+		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) <= tol ) {
 			y0 = static_cast<double>(y[i - 1]);
 			t = sdiff(xi, x[i - 1]) / sdiff(x[i], x[i - 1]);
 		}
@@ -762,25 +762,25 @@ Ty interp1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	if ( d < 0 ) {
 		// x[i] < xi < x[i + 1]
 		p[1] = i;
-		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) < tol )
+		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) <= tol )
 			p[2] = i + 1;
 		else
 			return y[i];
-		if ( i + 2 < n && udiff(x[i + 2], xi, tol_ref) < tol )
+		if ( i + 2 < n && udiff(x[i + 2], xi, tol_ref) <= tol )
 			p[3] = i + 2;
-		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) < tol )
+		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) <= tol )
 			p[0] = i - 1;
 	}
 	else if ( d > 0 ) {
 		// x[i - 1] < xi < x[i]
 		p[2] = i;
-		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) < tol )
+		if ( i - 1 >= 0 && udiff(x[i - 1], xi, tol_ref) <= tol )
 			p[1] = i - 1;
 		else
 			return y[i];
-		if ( i - 2 >= 0 && udiff(x[i - 2], xi, tol_ref) < tol )
+		if ( i - 2 >= 0 && udiff(x[i - 2], xi, tol_ref) <= tol )
 			p[0] = i - 2;
-		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) < tol )
+		if ( i + 1 < n && udiff(x[i + 1], xi, tol_ref) <= tol )
 			p[3] = i + 1;
 	}
 	else {
@@ -935,7 +935,7 @@ Ty interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	switch(interp)
 	{
 		case EST_NEAR:
-			if ( sdiff(xi, x[i], tol_ref) < tol )
+			if ( sdiff(xi, x[i], tol_ref) <= tol )
 				return y[i];
 			else
 				return NA<Ty>();

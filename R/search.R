@@ -4,18 +4,32 @@
 
 # relative difference
 
-reldiff <- function(x, y, ref = "abs")
+reldiff <- function(x, y, ref = "y")
 {
+	ref <- as_tol_ref(ref)
+	if ( missing(y) ) {
+		y <- x[-length(x)]
+		x <- x[-1L]
+	}
 	if ( is.integer(x) && is.double(y) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(y) )
 		y <- as.double(y)
-	ref <- as_tol_ref(ref)
 	n <- max(length(x), length(y))
 	x <- rep_len(x, n)
 	y <- rep_len(y, n)
-	fun <- function(a, b) .Call(C_relativeDiff, a, b, ref, PACKAGE="matter")
-	mapply(fun, x, y, USE.NAMES=FALSE)
+	if ( is.character(x) ) {
+		fun <- function(a, b) .Call(C_relativeDiff, a, b, ref, PACKAGE="matter")
+		mapply(fun, x, y, USE.NAMES=FALSE)
+	} else {
+		if ( ref == "x" ) {
+			(x - y) / x
+		} else if ( ref == "y" ) {
+			(x - y) / y
+		} else {
+			x - y
+		}
+	}
 }
 
 # exported version with argument checking (safer, easier)

@@ -3,6 +3,29 @@ require(matter)
 
 context("search")
 
+test_that("relative difference", {
+
+	expect_equal(reldiff(1:10, ref="abs"), rep.int(1, 9))
+	expect_equal(reldiff(1:10, ref="x"), rep.int(1, 9) / 2:10)
+	expect_equal(reldiff(1:10, ref="y"), rep.int(1, 9) / 1:9)
+	expect_equal(reldiff(3L, 4L, ref="abs"), (3 - 4))
+	expect_equal(reldiff(3L, 4L, ref="x"), (3 - 4) / 3)
+	expect_equal(reldiff(3L, 4L, ref="y"), (3 - 4) / 4)
+	expect_equal(reldiff(3, 3.14, ref="abs"), (3 - 3.14))
+	expect_equal(reldiff(3, 3.14, ref="x"), (3 - 3.14) / 3)
+	expect_equal(reldiff(3, 3.14, ref="y"), (3 - 3.14) / 3.14)
+	expect_equal(reldiff("abc", "abc"), 0)
+	expect_equal(reldiff("abc", "abcd", ref="abs"), -1)
+	expect_equal(reldiff("abc", "abbd", ref="abs"), 2)
+	expect_equal(reldiff("abc", "bbbd", ref="abs"), -4)
+	expect_equal(reldiff("abc", "bbc", ref="abs"), -3)
+	expect_equal(reldiff("abc", "abcd", ref="x"), -1 / 3)
+	expect_equal(reldiff("abc", "abcd", ref="y"), -1 / 4)
+	expect_equal(reldiff("abc", "abbd", ref="x"), 2 / 3)
+	expect_equal(reldiff("abc", "abbd", ref="y"), 2 / 4)
+
+})
+
 test_that("quick select + median", {
 
 	set.seed(1)
@@ -20,26 +43,6 @@ test_that("quick select + median", {
 	expect_equal(qmedian(u1), median(u1))
 	expect_equal(qmedian(u2), median(u2))
 	expect_equal(qmedian(u3), median(u3))
-
-})
-
-test_that("relative difference", {
-
-	expect_equal(reldiff(3L, 4L), abs(3 - 4))
-	expect_equal(reldiff(3L, 4L, ref="x"), abs(3 - 4) / 3)
-	expect_equal(reldiff(3L, 4L, ref="y"), abs(3 - 4) / 4)
-	expect_equal(reldiff(3, 3.14), abs(3 - 3.14))
-	expect_equal(reldiff(3, 3.14, ref="x"), abs(3 - 3.14) / 3)
-	expect_equal(reldiff(3, 3.14, ref="y"), abs(3 - 3.14) / 3.14)
-	expect_equal(reldiff("abc", "abc"), 0)
-	expect_equal(reldiff("abc", "abcd"), 1)
-	expect_equal(reldiff("abc", "abbd"), 2)
-	expect_equal(reldiff("abc", "bbbd"), 4)
-	expect_equal(reldiff("abc", "bbc"), 3)
-	expect_equal(reldiff("abc", "abcd", ref="x"), 1 / 3)
-	expect_equal(reldiff("abc", "abcd", ref="y"), 1 / 4)
-	expect_equal(reldiff("abc", "abbd", ref="x"), 2 / 3)
-	expect_equal(reldiff("abc", "abbd", ref="y"), 2 / 4)
 
 })
 

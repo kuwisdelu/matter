@@ -292,11 +292,15 @@ export(
 	"estnoise_diff",
 	"estnoise_smooth",
 	"findpeaks",
+	"binpeaks",
+	"mergepeaks",
 	"peakwidths",
 	"peakareas",
 	"simspectra")
 
-export("roll")
+export(
+	"roll",
+	"seq_rel")
 
 exportMethods(
 	"apply",

@@ -695,6 +695,22 @@ lr_predict <- function(fit, xi) {
 	sum(fit$coef * c(1, xi))
 }
 
+# A sequence with half-bin-widths in relative units
+# x = bin center, y = half-width, d = relative diff
+# y[n] = d * x[n]
+# y[n+1] = d * (x[n] - y[n])) / (1 - d)
+# x[n+1] = x[n] + y[n] + y[n+1]
+# => x[n] ((1 + d) / (1 - d))^n * x[0]
+# log x[n] = n log {(1 + d) / (1 - d)} + log x[0]
+# => n = (log x[n] - log x[0]) / log {(1 + d) / (1 - d)}
+seq_rel <- function(from, to, by) {
+	half <- by / 2
+	length.out <- (log(to) - log(from)) / log((1 + half) / (1 - half))
+	length.out <- floor(1 + length.out)
+	i <- seq_len(length.out)
+	from * ((1 + half) / (1 - half))^(i - 1)
+}
+
 #### Utilities for working with raw bytes and memory ####
 ## ------------------------------------------------------
 

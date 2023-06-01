@@ -45,7 +45,7 @@ SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
 {
 	if ( TYPEOF(x) != TYPEOF(y) )
 		Rf_error("'x' and 'y' must have the same type");
-	return Rf_ScalarReal(udiff(x, y, Rf_asInteger(ref)));
+	return Rf_ScalarReal(sdiff(x, y, Rf_asInteger(ref)));
 }
 
 SEXP binarySearch(SEXP x, SEXP table, SEXP tol,

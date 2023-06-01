@@ -360,6 +360,8 @@ peakwidths <- function(x, peaks, domain = NULL,
 	ref <- match.arg(ref)
 	if ( is.null(domain) )
 		domain <- seq_along(x)
+	if ( is.unsorted(domain) )
+		stop("'domain' must be sorted")
 	if ( ref == "height" )
 	{
 		# find peak boundaries if not provided
@@ -408,6 +410,8 @@ peakareas <- function(x, peaks, domain = NULL)
 {
 	if ( is.null(domain) )
 		domain <- seq_along(x)
+	if ( is.unsorted(domain) )
+		stop("'domain' must be sorted")
 	left_bounds <- as.integer(attr(peaks, "left_bounds") - 1L)
 	right_bounds <- as.integer(attr(peaks, "right_bounds") - 1L)
 	if ( is.null(left_bounds) || is.null(right_bounds) )
@@ -426,6 +430,119 @@ peakareas <- function(x, peaks, domain = NULL)
 		as.double(domain), left_bounds, right_bounds, PACKAGE="matter")
 	attributes(areas) <- ann
 	areas
+}
+
+binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
+	tol = NA_real_, tol.ref = "abs", merge = TRUE, na.drop = TRUE)
+{
+	if ( any(lengths(peaklist) != lengths(xlist)) )
+		stop("lengths of 'peaklist' and 'xlist' must match")
+	if ( is.na(tol) ) {
+		# guess tolerance
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		fun <- function(peaks) min(reldiff(peaks, ref=ref), na.rm=TRUE)
+		tol <- min(vapply(peaklist, fun, numeric(1)), na.rm=TRUE)
+	}
+	if ( is.null(domain) ) {
+		# guess domain
+		lims <- vapply(peaklist, range, numeric(2), na.rm=TRUE)
+		lims <- range(lims, na.rm=TRUE)
+		if ( tol.ref == "abs" ) {
+			domain <- seq(from=lims[1L], to=lims[2L], by=tol)
+		} else {
+			domain <- seq_rel(from=lims[1L], to=lims[2L], by=tol)
+		}
+	}
+	if ( is.unsorted(domain) )
+		stop("'domain' must be sorted")
+	peaks <- numeric(length(domain))
+	x <- numeric(length(domain))
+	n <- numeric(length(domain))
+	for ( i in seq_along(peaklist) ) {
+		# bin peaks to reference
+		p <- bsearch(peaklist[[i]], domain, tol=tol, tol.ref=tol.ref)
+		dup <- duplicated(p, NA_integer_)
+		while ( any(dup) ) {
+			# remove duplicates
+			pdup <- p[which(dup)[1L]]
+			pdup <- which(p == p[pdup])
+			diff <- reldiff(peaklist[[i]][pdup],
+				domain[p[pdup]], ref=tol.ref)
+			p[pdup[diff > min(diff)]] <- NA_integer_
+			dup <- duplicated(p, NA_integer_)
+		}
+		# add peaks to bin sum
+		match <- !is.na(p)
+		p <- p[match]
+		peaks[p] <- peaks[p] + peaklist[[i]][match]
+		x[p] <- x[p] + xlist[[i]][match]
+		n[p] <- n[p] + 1
+	}
+	# average binned peaks
+	nz <- n != 0
+	peaks[nz] <- peaks[nz] / n[nz]
+	peaks[!nz] <- NA_real_
+	x[nz] <- x[nz] / n[nz]
+	x[!nz] <- NA_real_
+	names(tol) <- ifelse(tol.ref == "abs", "absolute", "relative")
+	if ( merge )
+		x <- mergepeaks(peaks, n=n, x=x,
+			tol=tol, tol.ref=tol.ref, na.drop=FALSE)
+	# create output peaks
+	peaks <- structure(x, na.rm=TRUE, nobs=n,
+		class=c("stream_mean", "stream_stat"))
+	if ( na.drop && anyNA(peaks) )
+		peaks <- peaks[!is.na(peaks)]
+	attr(peaks, "tolerance") <- as_tol(tol)
+	attr(peaks, "domain") <- domain
+	peaks
+}
+
+mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
+	tol = 1e-3, tol.ref = "abs", na.drop = TRUE)
+{
+	if ( length(peaks) != length(x) )
+		stop("length of 'peaks' and 'x' must match")
+	# find smallest gap between peaks
+	p <- which(!is.na(peaks))
+	d <- reldiff(peaks[p], ref=tol.ref)
+	dmin <- which.min(d)
+	while ( d[dmin] <= tol )
+	{
+		# average overlapping peaks
+		i <- p[dmin]
+		j <- p[dmin + 1L]
+		ni <- n[i]
+		nj <- n[j]
+		mpeaks <- (ni * peaks[i] + nj * peaks[j]) / (ni + nj)
+		mx <- (ni * x[i] + nj * x[j]) / (ni + nj)
+		# update overlapping peaks with average
+		if ( ni > nj ) {
+			peaks[i] <- mpeaks
+			x[i] <- mx
+			n[i] <- ni + nj
+			peaks[j] <- NA_real_
+			x[j] <- NA_real_
+			n[j] <- 0
+		} else {
+			peaks[j] <- mpeaks
+			x[j] <- mx
+			n[j] <- ni + nj
+			peaks[i] <- NA_real_
+			x[i] <- NA_real_
+			n[i] <- 0
+		}
+		# find next smallest gap between peaks
+		p <- which(!is.na(peaks))
+		d <- reldiff(peaks[p], ref=tol.ref)
+		dmin <- which.min(d)
+	}
+	# create output peaks
+	peaks <- structure(x, na.rm=TRUE, nobs=n,
+		class=c("stream_mean", "stream_stat"))
+	if ( na.drop && anyNA(peaks) )
+		peaks <- peaks[!is.na(peaks)]
+	peaks
 }
 
 #### Simulation ####

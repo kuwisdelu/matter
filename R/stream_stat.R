@@ -216,17 +216,17 @@ setOldClass(c("stream_nnzero", "stream_stat"))
 
 is.stream_stat <- function(x) is(x, "stream_stat")
 
-print.stream_stat <- function(x, ...) {
+print.stream_stat <- function(x, n = getOption("matter.show.head.n"), ...) {
 	dn <- if(is.null(dim(x))) length(x) else dim(x)
 	dn <- paste0("[", paste0(dn, collapse=" x "), "]")
 	cat(class(x)[1L], dn, "with n =", paste_head(nobs(x)), "\n")
 	rank <- length(dim(x))
 	if ( rank <= 1L ) {
-		preview_vector(x)
+		preview_vector(x, n=n)
 	} else if ( rank == 2L ) {
-		preview_matrix(x)
+		preview_matrix(x, n=n)
 	} else {
-		preview_Nd_array(x)
+		preview_Nd_array(x, n=n)
 	}
 	cat("na.rm =", na_rm(x), "\n")
 }
@@ -472,7 +472,9 @@ stat_c.stream_mean <- function(x, y, ...) {
 		xx <- ifelse(nx == 0, 0, x)
 		yy <- ifelse(ny == 0, 0, y)
 	}
-	val <- (nx * xx + ny * yy) / (nx + ny)
+	nxy <- nx + ny
+	nxy <- ifelse(nxy == 0, NA_real_, nxy)
+	val <- (nx * xx + ny * yy) / nxy
 	stream_stat_attr(val, x, y)
 }
 

@@ -33,9 +33,9 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 		return j + ind1;
 	double di = udiff(x, table[i], tol_ref);
 	double dj = udiff(x, table[j], tol_ref);
-	if ( di <= dj && (nearest || di < tol ) )
+	if ( di <= dj && (nearest || di <= tol ) )
 		return i + ind1;
-	if ( dj <= di && (nearest || dj < tol ) )
+	if ( dj <= di && (nearest || dj <= tol ) )
 		return j + ind1;
 	return nomatch;
 }
