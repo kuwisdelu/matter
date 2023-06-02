@@ -441,7 +441,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 		# guess tolerance
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		fun <- function(peaks) min(reldiff(peaks, ref=ref), na.rm=TRUE)
-		tol <- min(vapply(peaklist, fun, numeric(1)), na.rm=TRUE)
+		tol <- 0.5 * min(vapply(peaklist, fun, numeric(1)), na.rm=TRUE)
 	}
 	if ( is.null(domain) ) {
 		# guess domain
@@ -499,7 +499,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 }
 
 mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
-	tol = 1e-3, tol.ref = "abs", na.drop = TRUE)
+	tol = 2.5, tol.ref = "abs", na.drop = TRUE)
 {
 	if ( length(peaks) != length(x) )
 		stop("length of 'peaks' and 'x' must match")
