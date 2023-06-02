@@ -121,8 +121,8 @@ void linear_filter(Tx * x, int n, Tw * weights, int width, double * buffer)
 }
 
 template<typename T>
-void bilateral_filter(T * x, int n, int width, double scale,
-	double sddist, double sdrange, double * buffer)
+void bilateral_filter(T * x, int n, int width,
+	double sddist, double sdrange, double scale, double * buffer)
 {
 	index_t ij, r = width / 2;
 	double sdd = sddist, sdr = sdrange;

@@ -276,6 +276,7 @@ export(
 	"filt1_ma",
 	"filt1_gauss",
 	"filt1_bi",
+	"filt1_adapt",
 	"binvec",
 	"findbins",
 	"downsample",

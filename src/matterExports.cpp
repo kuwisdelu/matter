@@ -424,20 +424,20 @@ SEXP linearFilter(SEXP x, SEXP weights)
 }
 
 SEXP bilateralFilter(SEXP x, SEXP width,
-	SEXP scale, SEXP sddist, SEXP sdrange)
+	SEXP sddist, SEXP sdrange, SEXP scale)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			bilateral_filter(INTEGER(x), LENGTH(x),
-				Rf_asInteger(width), Rf_asReal(scale),
-				Rf_asReal(sddist), Rf_asReal(sdrange), REAL(result));
+			bilateral_filter(INTEGER(x), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sddist), Rf_asReal(sdrange),
+				Rf_asReal(scale), REAL(result));
 			break;
 		case REALSXP:
-			bilateral_filter(REAL(x), LENGTH(x),
-				Rf_asInteger(width), Rf_asReal(scale),
-				Rf_asReal(sddist), Rf_asReal(sdrange), REAL(result));
+			bilateral_filter(REAL(x), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sddist), Rf_asReal(sdrange),
+				Rf_asReal(scale), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");

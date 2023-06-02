@@ -21,13 +21,21 @@ filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
-filt1_bi <- function(x, width = 5L, scale = 5L,
-	sddist = NA_real_, sdrange = NA_real_)
+filt1_bi <- function(x, width = 5L,
+	sddist = (width %/% 2) / 2, sdrange = mad(x))
 {
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
-	.Call(C_bilateralFilter, x, width, as.double(scale),
-		as.double(sddist), as.double(sdrange), PACKAGE="matter")
+	.Call(C_bilateralFilter, x, width,
+		as.double(sddist), as.double(sdrange), NA_real_, PACKAGE="matter")
+}
+
+filt1_adapt <- function(x, width = 5L, scale = 5L)
+{
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	.Call(C_bilateralFilter, x, width,
+		NA_real_, NA_real_, as.double(scale), PACKAGE="matter")
 }
 
 #### Binning and resampling ####
