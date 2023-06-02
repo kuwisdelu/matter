@@ -282,6 +282,7 @@ export(
 	"resample1",
 	"locmax",
 	"locmin",
+	"warp_loc",
 	"estbase_loc",
 	"estbase_hull",
 	"estbase_snip",

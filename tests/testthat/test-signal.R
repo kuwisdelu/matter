@@ -5,7 +5,6 @@ context("signal-processing")
 
 test_that("filter", {
 
-	n <- 200
 	t <- seq(from=0, to=6 * pi, length.out=5000)
 	y <- sin(t) + 0.6 * sin(2.6 * t)
 	x <- y + runif(length(y))
@@ -93,6 +92,29 @@ test_that("locmax", {
 
 })
 
+test_that("warp + align", {
+
+	t <- seq(from=0, to=6 * pi, length.out=1000)
+	dt <- 0.2 * (sin(t) + 0.6 * sin(2.6 * t))
+	x1 <- sin(t) + 0.6 * sin(2.6 * t)
+	x2 <- sin(t + dt) + 0.6 * sin(2.6 * (t + dt))
+	x3 <- sin(t - dt) + 0.6 * sin(2.6 * (t - dt))
+
+	p1 <- which(locmax(x1))
+
+	t2 <- warp_loc(x2, t, landmarks=t[p1])
+	y2 <- attr(t2, "x")
+	p2 <- which(locmax(y2))
+
+	t3 <- warp_loc(x3, t, landmarks=t[p1])
+	y3 <- attr(t3, "x")
+	p3 <- which(locmax(y3))
+
+	expect_equivalent(p1, p2)
+	expect_equivalent(p1, p3)
+
+})
+
 test_that("findpeaks", {
 
 	x <- c(0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 2, 2, 3, 0, 1)
@@ -147,7 +169,6 @@ test_that("binpeaks + mergepeaks", {
 	p1 <- findpeaks(x1)
 	p2 <- findpeaks(x2)
 	p3 <- findpeaks(x3)
-	cbind(p1, p2, p3)
 
 	pb <- binpeaks(list(p1, p2, p3), tol=15, merge=FALSE)
 	pm <- mergepeaks(sort(c(p1, p2, p3)), tol=15,

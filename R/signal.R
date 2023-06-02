@@ -152,33 +152,74 @@ resample1 <- function(x, y, xi, halfwidth = 2, interp = "linear")
 		x <- x[ord]
 		y <- y[ord]
 	}
-	asearch_int(as.double(xi), as.double(x), as.double(y), tol=halfwidth,
-		tol.ref=as_tol_ref("abs"), nomatch=NA_real_,
+	asearch_int(as.double(xi), as.double(x), as.double(y),
+		tol=halfwidth, tol.ref=as_tol_ref("abs"), nomatch=NA_real_,
 		interp=as_interp(interp))
+}
+
+#### Signal alignment and warping ####
+## -----------------------------------
+
+warp_loc <- function(x, t, landmarks,
+	interp = c("linear", "loess", "spline"), span = 3/4,
+	tol = 2.5, tol.ref = "abs", maxima = TRUE)
+{
+	if ( missing(t) )
+		t <- seq_along(x)
+	if ( maxima ) {
+		locs <- t[which(locmax(x))]
+	} else {
+		locs <- t[which(locmin(x))]
+	}
+	i <- bsearch(locs, landmarks, tol=tol, tol.ref=tol.ref)
+	matched <- !is.na(i)
+	if ( sum(matched) >= 1 ) {
+		locs <- locs[matched]
+		landmarks <- landmarks[i[matched]]
+		dt <- landmarks - locs
+		dt <- c(dt[1L], dt, dt[length(dt)])
+		locs <- c(t[1L], locs, t[length(t)])
+		interp <- match.arg(interp)
+		if ( interp == "loess" ) {
+			shift <- loess(dt ~ locs, span=span)
+			shift <- predict(shift, t)
+		} else if ( interp == "spline" ) {
+			shift <- spline(locs, dt, xout=t)$y
+		} else {
+			shift <- approx(locs, dt, xout=t)$y
+		}
+		tout <- t + shift
+	} else {
+		warning("no landmarks matched")
+		tout <- t
+	}
+	attr(tout, "x") <- spline(tout, x, xout=t)$y
+	tout
 }
 
 #### Continuum estimation ####
 ## ----------------------------
 
-estbase_loc <- function(x, interp = c("linear", "loess", "spline"),
+estbase_loc <- function(x,
+	interp = c("linear", "loess", "spline"),
 	span = 1/10, spar = NULL, upper = FALSE)
 {
 	if ( upper ) {
-		bases <- which(locmax(x))
+		locs <- which(locmax(x))
 	} else {
-		bases <- which(locmin(x))
+		locs <- which(locmin(x))
 	}
-	if ( length(bases) >= 2 ) {
+	if ( length(locs) >= 2 ) {
 		interp <- match.arg(interp)
-		bases <- c(1L, bases, length(x))
+		locs <- c(1L, locs, length(x))
 		if ( interp == "loess" ) {
-			y <- lowess(bases, x[bases], f=span)$y
+			y <- lowess(locs, x[locs], f=span)$y
 		} else if ( interp == "spline" ) {
-			y <- smooth.spline(bases, x[bases], spar=spar)$y
+			y <- smooth.spline(locs, x[locs], spar=spar)$y
 		} else {
-			y <- x[bases]
+			y <- x[locs]
 		}
-		y <- approx(bases, y, xout=seq_along(x))$y
+		y <- approx(locs, y, xout=seq_along(x))$y
 	} else {
 		if ( upper ) {
 			y <- rep.int(max(x, na.rm=TRUE), length(x))
