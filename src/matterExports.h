@@ -15,6 +15,7 @@ extern "C" {
 
 SEXP quickSelect(SEXP x, SEXP k);
 SEXP quickMedian(SEXP x);
+SEXP quickMAD(SEXP x, SEXP center, SEXP constant);
 
 // Search (binary and approximate)
 //--------------------------------
@@ -67,9 +68,12 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 // Signal processing
 //------------------
 
+SEXP meanFilter(SEXP x, SEXP width);
 SEXP linearFilter(SEXP x, SEXP weights);
 SEXP bilateralFilter(SEXP x, SEXP width,
-	SEXP sddist, SEXP sdrange, SEXP scale);
+	SEXP sddist, SEXP sdrange, SEXP spar);
+SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
+	SEXP sdreg, SEXP spar);
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);

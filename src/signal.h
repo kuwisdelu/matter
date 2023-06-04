@@ -27,6 +27,8 @@
 #define BIN_VAR		6
 #define BIN_SSE		7
 
+#define wrap_index(i, n) ((i >= 0) ? (i < n ? i : n - 1) : 0)
+
 //// Numeric Integration
 //-----------------------
 
@@ -101,19 +103,35 @@ inline double chip(double y[4], double dx[3], double t)
 //// Filtering and Smoothing
 //---------------------------
 
-template<typename Tx, typename Tw>
-void linear_filter(Tx * x, int n, Tw * weights, int width, double * buffer)
+template<typename T>
+void mean_filter(T * x, int n, int width, double * buffer)
 {
-	index_t ii, r = width / 2;
+	index_t ij, ik, r = width / 2;
+	buffer[0] = r * x[0];
+	for ( index_t i = 0; i <= r && i < n; i++ )
+		buffer[0] += x[i];
+	for ( index_t i = 1; i < n; i++ )
+	{
+		ij = wrap_index(i - r - 1, n);
+		ik = wrap_index(i + r, n);
+		buffer[i] = buffer[i - 1] - x[ij] + x[ik];
+	}
+	for ( index_t i = 0; i < n; i++ )
+		buffer[i] /= width;
+}
+
+template<typename T>
+void linear_filter(T * x, int n, T * weights, int width, double * buffer)
+{
+	index_t ij, r = width / 2;
 	for ( index_t i = 0; i < n; i++ )
 	{
 		double W = 0;
 		buffer[i] = 0;
 		for (index_t j = 0; j < width; j++ )
 		{
-			ii = (i + j - r) >= 0 ? (i + j - r) : 0;
-			ii = (ii < n) ? ii : n - 1;
-			buffer[i] += weights[j] * x[ii];
+			ij = wrap_index(i + j - r, n);
+			buffer[i] += weights[j] * x[ij];
 			W += weights[j];
 		}
 		buffer[i] /= W;
@@ -122,46 +140,43 @@ void linear_filter(Tx * x, int n, Tw * weights, int width, double * buffer)
 
 template<typename T>
 void bilateral_filter(T * x, int n, int width,
-	double sddist, double sdrange, double scale, double * buffer)
+	double sddist, double sdrange, double spar, double * buffer)
 {
 	index_t ij, r = width / 2;
 	double sdd = sddist, sdr = sdrange;
-	double mad, xmed, xrange, dmax;
-	if ( isNA(sddist) || isNA(sdrange) )
+	double mad, xmedian, xrange;
+	if ( !isNA(spar) )
 	{
-		double dev[n];
-		xmed = quick_median(x, n);
-		double xmax = -DBL_MAX;
-		double xmin = DBL_MAX;
+		// get MAD if using adaptive parameters
+		xmedian = quick_median(x, n);
+		mad = quick_mad(x, n, xmedian);
+		double xmin = DBL_MAX, xmax = -DBL_MAX;
 		for ( index_t i = 0; i < n; i++ )
 		{
-			double xi = x[i];
-			dev[i] = std::fabs(xi - xmed);
 			if ( x[i] > xmax )
 				xmax = x[i];
 			if ( x[i] < xmin )
 				xmin = x[i];
 		}
-		mad = MAD_SCALE * quick_median(dev, n);
 		xrange = xmax - xmin;
 	}
 	for ( index_t i = 0; i < n; i++ )
 	{
 		double W = 0;
 		buffer[i] = 0;
-		if ( isNA(sddist) || isNA(sdrange) )
+		if ( !isNA(spar) )
 		{
-			dmax = -DBL_MAX;
+			// modified version of Joseph & Periyasamy (2018)
+			double dmax = -DBL_MAX;
 			for ( index_t j = 0; j < width; j++ )
 			{
-				ij = (i + j - r) >= 0 ? (i + j - r) : 0;
-				ij = (ij < n) ? ij : n - 1;
+				ij = wrap_index(i + j - r, n);
 				double d = std::fabs(x[ij] - x[i]);
 				if ( d > dmax )
 					dmax = d;
 			}
-			double z = std::fabs(dmax - xmed);
-			z = std::fabs(z - mad) / scale;
+			double dev = std::fabs(dmax - xmedian);
+			double z = std::fabs(dev - mad) / (spar * xrange);
 			if ( isNA(sddist) )
 				sdd = r * std::exp(-z) / std::sqrt(2);
 			if ( isNA(sdrange) )
@@ -169,13 +184,14 @@ void bilateral_filter(T * x, int n, int width,
 		}
 		if ( sdd <= DBL_EPSILON || sdr <= DBL_EPSILON )
 		{
+			// avoid singularities
 			buffer[i] = x[i];
 			continue;
 		}
 		for ( index_t j = 0; j < width; j++ )
 		{
-			ij = (i + j - r) >= 0 ? (i + j - r) : 0;
-			ij = (ij < n) ? ij : n - 1;
+			// standard bilateral filter
+			ij = wrap_index(i + j - r, n);
 			double wtdist = kgaussian(j - r, sdd);
 			double wtrange = kgaussian(x[ij] - x[i], sdr);
 			buffer[i] += wtdist * wtrange * x[ij];
@@ -183,6 +199,59 @@ void bilateral_filter(T * x, int n, int width,
 		}
 		buffer[i] /= W;
 	}
+}
+
+template<typename T>
+void guided_filter(T * x, T * g, int n, int width,
+	double sdreg, double spar, double * buffer)
+{
+	double ug[n], ux[n], gmax;
+	double tmp1[n], tmp2[n], tmp3[n], tmp4[n];
+	// find maximum of guidance signal
+	if ( !isNA(spar) ) {
+		gmax = -DBL_MAX;
+		for ( index_t i = 0; i < n; i++ )
+			if ( g[i] > gmax )
+				gmax = g[i];
+	}
+	// calculate means
+	mean_filter(g, n, width, ug);
+	mean_filter(x, n, width, ux);
+	// calculate variances and covariances
+	double * gg = tmp1;
+	double * gx = tmp2;
+	for ( index_t i = 0; i < n; i++ ) {
+		gg[i] = g[i] * g[i];
+		gx[i] = g[i] * x[i];
+	}
+	double * sg = tmp3;
+	double * sgx = tmp4;
+	mean_filter(gg, n, width, sg);
+	mean_filter(gx, n, width, sgx);
+	for ( index_t i = 0; i < n; i++ ) {
+		sg[i] = sg[i] - ug[i] * ug[i];
+		sgx[i] = sgx[i] - ug[i] * ux[i];
+	}
+	// calculate coefficients a and b
+	double * a = tmp1;
+	double * b = tmp2;
+	for ( index_t i = 0; i < n; i++ ) {
+		double s0 = sdreg * sdreg;
+		if ( !isNA(spar) ) {
+			// peak-aware regularization
+			double k2 = (spar * spar) * (gmax * gmax);
+			s0 *= std::exp(-(g[i] * g[i]) / k2);
+		}
+		a[i] = sgx[i] / (sg[i] + s0);
+		b[i] = ux[i] - a[i] * ug[i];
+	}
+	double * ua = tmp3;
+	double * ub = tmp4;
+	mean_filter(a, n, width, ua);
+	mean_filter(b, n, width, ub);
+	// calculate output signal
+	for ( index_t i = 0; i < n; i++ )
+		buffer[i] = ua[i] * g[i] + ub[i];
 }
 
 //// Binning and Downsampling

@@ -38,6 +38,20 @@ SEXP quickMedian(SEXP x)
 	}
 }
 
+SEXP quickMAD(SEXP x, SEXP center, SEXP constant)
+{
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			return Rf_ScalarReal(quick_mad(INTEGER(x), XLENGTH(x),
+				Rf_asReal(center), Rf_asReal(constant)));
+		case REALSXP:
+			return Rf_ScalarReal(quick_mad(REAL(x), XLENGTH(x),
+				Rf_asReal(center), Rf_asReal(constant)));
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
 // Search (binary and approximate)
 //--------------------------------
 
@@ -381,40 +395,38 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j)
 // Signal processing
 //------------------
 
+SEXP meanFilter(SEXP x, SEXP width)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			mean_filter(INTEGER(x), LENGTH(x),
+				Rf_asInteger(width), REAL(result));
+			break;
+		case REALSXP:
+			mean_filter(REAL(x), LENGTH(x),
+				Rf_asInteger(width), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
 SEXP linearFilter(SEXP x, SEXP weights)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
-		case INTSXP: {
-			switch(TYPEOF(weights)) {
-				case INTSXP:
-					linear_filter(INTEGER(x), LENGTH(x), INTEGER(weights),
-						LENGTH(weights), REAL(result));
-					break;
-				case REALSXP:
-					linear_filter(INTEGER(x), LENGTH(x), REAL(weights),
-						LENGTH(weights), REAL(result));
-					break;
-				default:
-					Rf_error("unsupported data type");
-				}
-			}
+		case INTSXP:
+			linear_filter(INTEGER(x), LENGTH(x), INTEGER(weights),
+				LENGTH(weights), REAL(result));
 			break;
-		case REALSXP: {
-			switch(TYPEOF(weights)) {
-				case INTSXP:
-					linear_filter(REAL(x), LENGTH(x), INTEGER(weights),
-						LENGTH(weights), REAL(result));
-					break;
-				case REALSXP:
-					linear_filter(REAL(x), LENGTH(x), REAL(weights),
-						LENGTH(weights), REAL(result));
-					break;
-				default:
-					Rf_error("unsupported data type");
-				}
-			}
+		case REALSXP:
+			linear_filter(REAL(x), LENGTH(x), REAL(weights),
+				LENGTH(weights), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -424,7 +436,7 @@ SEXP linearFilter(SEXP x, SEXP weights)
 }
 
 SEXP bilateralFilter(SEXP x, SEXP width,
-	SEXP sddist, SEXP sdrange, SEXP scale)
+	SEXP sddist, SEXP sdrange, SEXP spar)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
@@ -432,12 +444,33 @@ SEXP bilateralFilter(SEXP x, SEXP width,
 		case INTSXP:
 			bilateral_filter(INTEGER(x), LENGTH(x), Rf_asInteger(width),
 				Rf_asReal(sddist), Rf_asReal(sdrange),
-				Rf_asReal(scale), REAL(result));
+				Rf_asReal(spar), REAL(result));
 			break;
 		case REALSXP:
 			bilateral_filter(REAL(x), LENGTH(x), Rf_asInteger(width),
 				Rf_asReal(sddist), Rf_asReal(sdrange),
-				Rf_asReal(scale), REAL(result));
+				Rf_asReal(spar), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
+	SEXP sdreg, SEXP spar)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			guided_filter(INTEGER(x), INTEGER(g), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sdreg), Rf_asReal(spar), REAL(result));
+			break;
+		case REALSXP:
+			guided_filter(REAL(x), REAL(g), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sdreg), Rf_asReal(spar), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");

@@ -26,7 +26,7 @@ test_that("relative difference", {
 
 })
 
-test_that("quick select + median", {
+test_that("quick select + median + mad", {
 
 	set.seed(1)
 	u1 <- as.numeric(sample(100L))
@@ -43,6 +43,9 @@ test_that("quick select + median", {
 	expect_equal(qmedian(u1), median(u1))
 	expect_equal(qmedian(u2), median(u2))
 	expect_equal(qmedian(u3), median(u3))
+	expect_equal(qmad(u1), mad(u1))
+	expect_equal(qmad(u2), mad(u2))
+	expect_equal(qmad(u3), mad(u3))
 
 })
 

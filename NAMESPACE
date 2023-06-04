@@ -277,6 +277,7 @@ export(
 	"filt1_gauss",
 	"filt1_bi",
 	"filt1_adapt",
+	"filt1_guide",
 	"binvec",
 	"findbins",
 	"downsample",
@@ -318,6 +319,7 @@ exportMethods("bigglm")
 export(
 	"qselect",
 	"qmedian",
+	"qmad",
 	"reldiff",
 	"asearch",
 	"bsearch")

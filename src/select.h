@@ -4,8 +4,6 @@
 
 #include "matterDefines.h"
 
-#define MAD_SCALE 1.4826
-
 #define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
 
 //// Sortedness
@@ -120,6 +118,17 @@ double quick_median(T * x, size_t n)
 	}
 	else
 		return quick_select(dup, 0, n, k);
+}
+
+template<typename T>
+double quick_mad(T * x, size_t n, double center = NA_REAL, double scale = 1.4826)
+{
+	double dev[n];
+	if ( isNA(center) )
+		center = quick_median(x, n);
+	for ( index_t i = 0; i < n; i++ )
+		dev[i] = std::fabs(x[i] - center);
+	return scale * quick_median(dev, n);
 }
 
 #endif // SELECT

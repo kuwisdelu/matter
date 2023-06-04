@@ -107,3 +107,19 @@ qmedian <- function(x, na.rm = FALSE)
 		.Call(C_quickMedian, x, PACKAGE="matter")
 	}
 }
+
+qmad <- function(x, center = qmedian(x),
+	constant = 1.4826, na.rm = FALSE)
+{
+	if ( na.rm ) {
+		x <- x[!is.na(x)]
+	} else if ( anyNA(x) ) {
+		return(NA_real_)
+	}
+	if ( length(x) == 0L ) {
+		return(NA_real_)
+	} else {
+		.Call(C_quickMAD, x, as.double(center),
+			as.double(constant), PACKAGE="matter")
+	}
+}

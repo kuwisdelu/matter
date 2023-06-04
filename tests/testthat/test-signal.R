@@ -5,17 +5,30 @@ context("signal-processing")
 
 test_that("filter", {
 
+	set.seed(1)
 	t <- seq(from=0, to=6 * pi, length.out=5000)
 	y <- sin(t) + 0.6 * sin(2.6 * t)
 	x <- y + runif(length(y))
 
-	x2 <- filt1(x)
-	x3 <- filt1_gauss(x)
-	x4 <- filt1_bi(x)
+	w <- 5L
+	r <- w %/% 2
+	x2 <- filt1_ma(x, w)
+
+	x0 <- rep.int(x[1L], r)
+	xn <- rep.int(x[length(x)], r)
+	xr <- c(x0, x, xn)
+	xr <- roll(xr, w)[(r + 1):(length(xr) - r)]
+	xm <- vapply(xr, mean, numeric(1), na.rm=TRUE)
 	
-	expect_gt(cor(x2, y), cor(x, y))
+	expect_equal(x2, xm)
+
+	x3 <- filt1_gauss(x, w)
+	x4 <- filt1_bi(x, w)
+	x5 <- filt1_adapt(x, w)
+	
 	expect_gt(cor(x3, y), cor(x, y))
 	expect_gt(cor(x4, y), cor(x, y))
+	expect_gt(cor(x5, y), cor(x, y))
 
 })
 
@@ -44,6 +57,7 @@ test_that("binvec", {
 
 test_that("downsample", {
 
+	set.seed(1)
 	n <- 200
 	t <- seq(from=0, to=6 * pi, length.out=5000)
 	x <- sin(t) + 0.6 * sin(2.6 * t)

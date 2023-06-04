@@ -2,13 +2,11 @@
 #### Filtering and Smoothing ####
 ## -----------------------------
 
-filt1_ma <- function(x, width = 5L, weights = rep_len(1L, width))
+filt1_ma <- function(x, width = 5L)
 {
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
-	if ( length(weights) %% 2L != 1L )
-		warning("length of 'weights' isn't odd")
-	.Call(C_linearFilter, x, weights, PACKAGE="matter")
+	.Call(C_meanFilter, x, width, PACKAGE="matter")
 }
 
 filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
@@ -18,7 +16,7 @@ filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 	radius <- width %/% 2
 	i <- seq(from=-radius, to=radius, by=1L)
 	weights <- dnorm(i, sd=sd)
-	.Call(C_linearFilter, x, weights, PACKAGE="matter")
+	.Call(C_linearFilter, as.double(x), weights, PACKAGE="matter")
 }
 
 filt1_bi <- function(x, width = 5L,
@@ -30,12 +28,24 @@ filt1_bi <- function(x, width = 5L,
 		as.double(sddist), as.double(sdrange), NA_real_, PACKAGE="matter")
 }
 
-filt1_adapt <- function(x, width = 5L, scale = 5L)
+filt1_adapt <- function(x, width = 5L, spar = 0.5)
 {
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter, x, width,
-		NA_real_, NA_real_, as.double(scale), PACKAGE="matter")
+		NA_real_, NA_real_, as.double(spar), PACKAGE="matter")
+}
+
+filt1_guide <- function(x, width = 5L, guide = x, sdreg = mad(x))
+{
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	if ( is.integer(x) && is.double(guide) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(guide) )
+		guide <- as.double(guide)
+	.Call(C_guidedFilter, x, guide, width,
+		as.double(sdreg), NA_real_, PACKAGE="matter")
 }
 
 #### Binning and resampling ####
