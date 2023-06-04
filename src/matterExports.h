@@ -21,7 +21,6 @@ SEXP quickMAD(SEXP x, SEXP center, SEXP constant);
 //--------------------------------
 
 SEXP relativeDiff(SEXP x, SEXP y, SEXP ref);
-
 SEXP binarySearch(SEXP x, SEXP table,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP nearest);
 SEXP approxSearch(SEXP x, SEXP keys, SEXP values,
@@ -73,7 +72,7 @@ SEXP linearFilter(SEXP x, SEXP weights);
 SEXP bilateralFilter(SEXP x, SEXP width,
 	SEXP sddist, SEXP sdrange, SEXP spar);
 SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
-	SEXP sdreg, SEXP spar);
+	SEXP sdreg, SEXP ftol);
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);

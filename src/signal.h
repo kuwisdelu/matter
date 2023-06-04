@@ -144,12 +144,11 @@ void bilateral_filter(T * x, int n, int width,
 {
 	index_t ij, r = width / 2;
 	double sdd = sddist, sdr = sdrange;
-	double mad, xmedian, xrange;
+	double mad, xrange;
 	if ( !isNA(spar) )
 	{
 		// get MAD if using adaptive parameters
-		xmedian = quick_median(x, n);
-		mad = quick_mad(x, n, xmedian);
+		mad = quick_mad(x, n);
 		double xmin = DBL_MAX, xmax = -DBL_MAX;
 		for ( index_t i = 0; i < n; i++ )
 		{
@@ -162,21 +161,19 @@ void bilateral_filter(T * x, int n, int width,
 	}
 	for ( index_t i = 0; i < n; i++ )
 	{
-		double W = 0;
+		double dmean = 0, W = 0;
 		buffer[i] = 0;
 		if ( !isNA(spar) )
 		{
 			// modified version of Joseph & Periyasamy (2018)
-			double dmax = -DBL_MAX;
 			for ( index_t j = 0; j < width; j++ )
 			{
+				// find mean of local differences
 				ij = wrap_index(i + j - r, n);
-				double d = std::fabs(x[ij] - x[i]);
-				if ( d > dmax )
-					dmax = d;
+				dmean += std::fabs(x[ij] - x[i]) / width;
 			}
-			double dev = std::fabs(dmax - xmedian);
-			double z = std::fabs(dev - mad) / (spar * xrange);
+			// calculate adaptive parameters
+			double z = std::fabs(dmean - mad) / spar;
 			if ( isNA(sddist) )
 				sdd = r * std::exp(-z) / std::sqrt(2);
 			if ( isNA(sdrange) )
@@ -203,12 +200,12 @@ void bilateral_filter(T * x, int n, int width,
 
 template<typename T>
 void guided_filter(T * x, T * g, int n, int width,
-	double sdreg, double spar, double * buffer)
+	double sdreg, double ftol, double * buffer)
 {
 	double ug[n], ux[n], gmax;
 	double tmp1[n], tmp2[n], tmp3[n], tmp4[n];
 	// find maximum of guidance signal
-	if ( !isNA(spar) ) {
+	if ( !isNA(ftol) ) {
 		gmax = -DBL_MAX;
 		for ( index_t i = 0; i < n; i++ )
 			if ( g[i] > gmax )
@@ -237,9 +234,9 @@ void guided_filter(T * x, T * g, int n, int width,
 	double * b = tmp2;
 	for ( index_t i = 0; i < n; i++ ) {
 		double s0 = sdreg * sdreg;
-		if ( !isNA(spar) ) {
+		if ( !isNA(ftol) ) {
 			// peak-aware regularization
-			double k2 = (spar * spar) * (gmax * gmax);
+			double k2 = (ftol * ftol) * (gmax * gmax);
 			s0 *= std::exp(-(g[i] * g[i]) / k2);
 		}
 		a[i] = sgx[i] / (sg[i] + s0);

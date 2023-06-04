@@ -278,6 +278,7 @@ export(
 	"filt1_bi",
 	"filt1_adapt",
 	"filt1_guide",
+	"filt1_pag",
 	"binvec",
 	"findbins",
 	"downsample",

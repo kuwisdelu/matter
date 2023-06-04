@@ -459,18 +459,18 @@ SEXP bilateralFilter(SEXP x, SEXP width,
 }
 
 SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
-	SEXP sdreg, SEXP spar)
+	SEXP sdreg, SEXP ftol)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			guided_filter(INTEGER(x), INTEGER(g), LENGTH(x), Rf_asInteger(width),
-				Rf_asReal(sdreg), Rf_asReal(spar), REAL(result));
+				Rf_asReal(sdreg), Rf_asReal(ftol), REAL(result));
 			break;
 		case REALSXP:
 			guided_filter(REAL(x), REAL(g), LENGTH(x), Rf_asInteger(width),
-				Rf_asReal(sdreg), Rf_asReal(spar), REAL(result));
+				Rf_asReal(sdreg), Rf_asReal(ftol), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");
