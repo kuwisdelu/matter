@@ -32,6 +32,27 @@ test_that("filter", {
 
 })
 
+test_that("warp + align", {
+
+	t <- seq(from=0, to=6 * pi, length.out=1000)
+	dt <- 0.2 * (sin(t) + 0.6 * sin(2.6 * t))
+	x1 <- sin(t) + 0.6 * sin(2.6 * t)
+	x2 <- sin(t + dt) + 0.6 * sin(2.6 * (t + dt))
+	x3 <- sin(t - dt) + 0.6 * sin(2.6 * (t - dt))
+
+	p1 <- which(locmax(x1))
+
+	w2 <- warp1_loc(x2, x1)
+	p2 <- which(locmax(w2))
+
+	w3 <- warp1_loc(x3, x1)
+	p3 <- which(locmax(w3))
+
+	expect_equivalent(p1, p2, tolerance=1)
+	expect_equivalent(p1, p3, tolerance=1)
+
+})
+
 test_that("binvec", {
 
 	set.seed(1)
@@ -103,27 +124,6 @@ test_that("locmax", {
 	m3 <- which(locmax(x))
 
 	expect_equal(m3, 5)
-
-})
-
-test_that("warp + align", {
-
-	t <- seq(from=0, to=6 * pi, length.out=1000)
-	dt <- 0.2 * (sin(t) + 0.6 * sin(2.6 * t))
-	x1 <- sin(t) + 0.6 * sin(2.6 * t)
-	x2 <- sin(t + dt) + 0.6 * sin(2.6 * (t + dt))
-	x3 <- sin(t - dt) + 0.6 * sin(2.6 * (t - dt))
-
-	p1 <- which(locmax(x1))
-
-	w2 <- warp_loc(x2, x1)
-	p2 <- which(locmax(w2))
-
-	w3 <- warp_loc(x3, x1)
-	p3 <- which(locmax(w3))
-
-	expect_equivalent(p1, p2, tolerance=1)
-	expect_equivalent(p1, p3, tolerance=1)
 
 })
 

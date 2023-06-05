@@ -61,8 +61,75 @@ filt1_pag <- function(x, width = 5L, guide = x,
 		sdreg, ftol, PACKAGE="matter")
 }
 
+#### Signal alignment and warping ####
+## -----------------------------------
+
+warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
+	events = c("maxmin", "max", "min"), n = length(y),
+	interp = c("linear", "loess", "spline"),
+	tol = NA_real_, tol.ref = "abs")
+{
+	events <- match.arg(events)
+	if ( events == "maxmin" ) {
+		ex <- tx[which(locmax(x) | locmin(x))]
+		ey <- ty[which(locmax(y) | locmin(y))]
+	} else if ( events == "max" ) {
+		ex <- tx[which(locmax(x))]
+		ey <- ty[which(locmax(y))]
+	} else if ( events == "min" ) {
+		ex <- tx[which(locmin(x))]
+		ey <- ty[which(locmin(y))]
+	}
+	if ( is.na(tol) ) {
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.5 * min(reldiff(ex, ref=ref))
+	}
+	tout <- approx(tx, tx, n=n)$y
+	i <- bsearch(ex, ey, tol=tol, tol.ref=tol.ref)
+	matched <- !is.na(i)
+	if ( sum(matched) >= 1 ) {
+		ex <- ex[matched]
+		ey <- ey[i[matched]]
+		dt <- ey - ex
+		dt <- c(dt[1L], dt, dt[length(dt)])
+		ex <- c(tx[1L], ex, tx[length(tx)])
+		interp <- match.arg(interp)
+		if ( interp == "loess" ) {
+			shift <- loess(dt ~ locs)
+			shift <- predict(shift, t)
+		} else if ( interp == "spline" ) {
+			shift <- spline(ex, dt, xout=tout)$y
+		} else {
+			shift <- approx(ex, dt, xout=tout)$y
+		}
+		tshift <- tout + shift
+	} else {
+		warning("no landmarks matched")
+		tshift <- tout
+	}
+	xout <- spline(tshift, x, xout=tout)$y
+	attr(xout, "index") <- tshift
+	xout
+}
+
 #### Binning and resampling ####
 ## -----------------------------
+
+resample1 <- function(x, y, xi, halfwidth = 2, interp = "linear")
+{
+	if ( is.integer(x) && is.double(xi) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(xi) )
+		xi <- as.double(xi)
+	if ( is.unsorted(x) ) {
+		ord <- order(x)
+		x <- x[ord]
+		y <- y[ord]
+	}
+	asearch_int(as.double(xi), as.double(x), as.double(y),
+		tol=halfwidth, tol.ref=as_tol_ref("abs"), nomatch=NA_real_,
+		interp=as_interp(interp))
+}
 
 binvec <- function(x, lower, upper, stat = "sum")
 {
@@ -170,73 +237,6 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 	}
 	sample <- c(1L, sample, length(x))
 	structure(x[sample], sample=sample)
-}
-
-resample1 <- function(x, y, xi, halfwidth = 2, interp = "linear")
-{
-	if ( is.integer(x) && is.double(xi) )
-		x <- as.double(x)
-	if ( is.double(x) && is.integer(xi) )
-		xi <- as.double(xi)
-	if ( is.unsorted(x) ) {
-		ord <- order(x)
-		x <- x[ord]
-		y <- y[ord]
-	}
-	asearch_int(as.double(xi), as.double(x), as.double(y),
-		tol=halfwidth, tol.ref=as_tol_ref("abs"), nomatch=NA_real_,
-		interp=as_interp(interp))
-}
-
-#### Signal alignment and warping ####
-## -----------------------------------
-
-warp_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
-	events = c("maxmin", "max", "min"), n = length(y),
-	interp = c("linear", "loess", "spline"),
-	tol = NA_real_, tol.ref = "abs")
-{
-	events <- match.arg(events)
-	if ( events == "maxmin" ) {
-		ex <- tx[which(locmax(x) | locmin(x))]
-		ey <- ty[which(locmax(y) | locmin(y))]
-	} else if ( events == "max" ) {
-		ex <- tx[which(locmax(x))]
-		ey <- ty[which(locmax(y))]
-	} else if ( events == "min" ) {
-		ex <- tx[which(locmin(x))]
-		ey <- ty[which(locmin(y))]
-	}
-	if ( is.na(tol) ) {
-		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 0.5 * min(reldiff(ex, ref=ref))
-	}
-	tout <- approx(tx, tx, n=n)$y
-	i <- bsearch(ex, ey, tol=tol, tol.ref=tol.ref)
-	matched <- !is.na(i)
-	if ( sum(matched) >= 1 ) {
-		ex <- ex[matched]
-		ey <- ey[i[matched]]
-		dt <- ey - ex
-		dt <- c(dt[1L], dt, dt[length(dt)])
-		ex <- c(tx[1L], ex, tx[length(tx)])
-		interp <- match.arg(interp)
-		if ( interp == "loess" ) {
-			shift <- loess(dt ~ locs)
-			shift <- predict(shift, t)
-		} else if ( interp == "spline" ) {
-			shift <- spline(ex, dt, xout=tout)$y
-		} else {
-			shift <- approx(ex, dt, xout=tout)$y
-		}
-		tshift <- tout + shift
-	} else {
-		warning("no landmarks matched")
-		tshift <- tout
-	}
-	xout <- spline(tshift, x, xout=tout)$y
-	attr(xout, "index") <- tshift
-	xout
 }
 
 #### Continuum estimation ####
