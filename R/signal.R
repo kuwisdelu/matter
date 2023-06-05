@@ -191,41 +191,52 @@ resample1 <- function(x, y, xi, halfwidth = 2, interp = "linear")
 #### Signal alignment and warping ####
 ## -----------------------------------
 
-warp_loc <- function(x, t, landmarks,
-	interp = c("linear", "loess", "spline"), span = 3/4,
-	tol = 2.5, tol.ref = "abs", maxima = TRUE)
+warp_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
+	events = c("maxmin", "max", "min"), n = length(y),
+	interp = c("linear", "loess", "spline"),
+	tol = NA_real_, tol.ref = "abs")
 {
-	if ( missing(t) )
-		t <- seq_along(x)
-	if ( maxima ) {
-		locs <- t[which(locmax(x))]
-	} else {
-		locs <- t[which(locmin(x))]
+	events <- match.arg(events)
+	if ( events == "maxmin" ) {
+		ex <- tx[which(locmax(x) | locmin(x))]
+		ey <- ty[which(locmax(y) | locmin(y))]
+	} else if ( events == "max" ) {
+		ex <- tx[which(locmax(x))]
+		ey <- ty[which(locmax(y))]
+	} else if ( events == "min" ) {
+		ex <- tx[which(locmin(x))]
+		ey <- ty[which(locmin(y))]
 	}
-	i <- bsearch(locs, landmarks, tol=tol, tol.ref=tol.ref)
+	if ( is.na(tol) ) {
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.5 * min(reldiff(ex, ref=ref))
+	}
+	tout <- approx(tx, tx, n=n)$y
+	i <- bsearch(ex, ey, tol=tol, tol.ref=tol.ref)
 	matched <- !is.na(i)
 	if ( sum(matched) >= 1 ) {
-		locs <- locs[matched]
-		landmarks <- landmarks[i[matched]]
-		dt <- landmarks - locs
+		ex <- ex[matched]
+		ey <- ey[i[matched]]
+		dt <- ey - ex
 		dt <- c(dt[1L], dt, dt[length(dt)])
-		locs <- c(t[1L], locs, t[length(t)])
+		ex <- c(tx[1L], ex, tx[length(tx)])
 		interp <- match.arg(interp)
 		if ( interp == "loess" ) {
-			shift <- loess(dt ~ locs, span=span)
+			shift <- loess(dt ~ locs)
 			shift <- predict(shift, t)
 		} else if ( interp == "spline" ) {
-			shift <- spline(locs, dt, xout=t)$y
+			shift <- spline(ex, dt, xout=tout)$y
 		} else {
-			shift <- approx(locs, dt, xout=t)$y
+			shift <- approx(ex, dt, xout=tout)$y
 		}
-		tout <- t + shift
+		tshift <- tout + shift
 	} else {
 		warning("no landmarks matched")
-		tout <- t
+		tshift <- tout
 	}
-	attr(tout, "x") <- spline(tout, x, xout=t)$y
-	tout
+	xout <- spline(tshift, x, xout=tout)$y
+	attr(xout, "index") <- tshift
+	xout
 }
 
 #### Continuum estimation ####

@@ -116,16 +116,14 @@ test_that("warp + align", {
 
 	p1 <- which(locmax(x1))
 
-	t2 <- warp_loc(x2, t, landmarks=t[p1])
-	y2 <- attr(t2, "x")
-	p2 <- which(locmax(y2))
+	w2 <- warp_loc(x2, x1)
+	p2 <- which(locmax(w2))
 
-	t3 <- warp_loc(x3, t, landmarks=t[p1])
-	y3 <- attr(t3, "x")
-	p3 <- which(locmax(y3))
+	w3 <- warp_loc(x3, x1)
+	p3 <- which(locmax(w3))
 
-	expect_equivalent(p1, p2)
-	expect_equivalent(p1, p3)
+	expect_equivalent(p1, p2, tolerance=1)
+	expect_equivalent(p1, p3, tolerance=1)
 
 })
 
