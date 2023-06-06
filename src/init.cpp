@@ -8,19 +8,17 @@
 extern "C" {
 
 static const R_CallMethodDef callMethods[] = {
-	// select
+	// search and select
+	CALLDEF(relativeDiff, 3),
 	CALLDEF(quickSelect, 2),
 	CALLDEF(quickMedian, 1),
 	CALLDEF(quickMAD, 3),
-	// search
-	CALLDEF(relativeDiff, 3),
 	CALLDEF(binarySearch, 6),
-	CALLDEF(approxSearch, 7),
 	// compression
 	CALLDEF(encodeDRLE, 2),
 	CALLDEF(decodeDRLE, 2),
 	CALLDEF(recodeDRLE, 2),
-	// internal
+	// matter i/o
 	CALLDEF(readAtom, 3),
 	CALLDEF(writeAtom, 3),
 	CALLDEF(readAtoms, 4),
@@ -59,6 +57,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(peakBases, 2),
 	CALLDEF(peakWidths, 6),
 	CALLDEF(peakAreas, 5),
+	CALLDEF(fastApprox1, 7),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}

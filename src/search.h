@@ -2,10 +2,135 @@
 #define SEARCH
 
 #include "matterDefines.h"
-#include "select.h"
-#include "signal.h"
 
 #define SEARCH_ERROR -1
+
+#define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
+
+//// Sortedness
+//--------------
+
+template<typename T>
+bool is_sorted(T * x, size_t n, bool strictly = false)
+{
+	for ( size_t i = 1; i < n; i++ ) {
+		double d = sdiff(x[i], x[i - 1]);
+		if ( d < 0 || (strictly && d <= 0) )
+			return false;
+	}
+	return true;
+}
+
+//// Quick select
+//-----------------
+
+// find the k-th element of array x (modifed in-place!!!)
+template<typename T>
+T quick_select(T * x, size_t start, size_t end, size_t k)
+{
+	index_t left = start, right = end - 1, i, j, pivot;
+	do {
+		if ( left == right )
+			return x[left];
+		// find pivot by median of 1st/mid/last
+		pivot = (left + right) / 2;
+		if ( x[pivot] < x[left] )
+			swap(x[pivot], x[left], T);
+		if ( x[pivot] > x[right] )
+		{
+			swap(x[pivot], x[right], T);
+			if ( x[pivot] < x[left] )
+				swap(x[pivot], x[left], T);
+		}
+		// use Hoare's partition method 
+		i = left + 1;
+		j = right - 1;
+		do {
+			while ( x[i] < x[pivot] ) i++;
+			while ( x[j] > x[pivot] ) j--;
+			// swap inversions
+			if ( i < j && x[i] != x[j] )
+			{
+
+				swap(x[i], x[j], T);
+				if ( pivot == i )
+					pivot = j;
+				else if ( pivot == j )
+					pivot = i;
+			}
+			// allow pointers to cross
+			else if ( i == j )
+			{
+				i++;
+				j--;
+			}
+			// account for ties
+			else
+			{
+				if ( i != pivot )
+					i++;
+				if ( j != pivot )
+					j--;
+			}
+		} while (i <= j);
+		// return k-th element or loop again
+		if ( k == pivot )
+			return x[k];
+		else if ( k < pivot )
+			right = pivot - 1;
+		else
+			left = pivot + 1;
+	}
+	while (true);
+}
+
+// find the k-th elements of an array x
+template<typename T>
+void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n)
+{
+	T dup[end];
+	std::memcpy(dup, x, end * sizeof(T));
+	ptr[0] = quick_select(dup, start, end, k[0]);
+	for ( index_t i = 1; i < n; i++ )
+	{
+		if ( k[i] > k[i - 1] )
+			ptr[i] = quick_select(dup, k[i - 1] + 1, end, k[i]);
+		else if ( k[i] < k[i - 1] )
+			ptr[i] = quick_select(dup, start, k[i - 1], k[i]);
+		else 
+			ptr[i] = k[i - 1];
+	}
+}
+
+//// Median
+//-----------
+
+template<typename T>
+double quick_median(T * x, size_t n)
+{
+	T dup[n];
+	std::memcpy(dup, x, n * sizeof(T));
+	size_t k = n / 2;
+	if ( n % 2 == 0 )
+	{
+		double m1 = quick_select(dup, 0, n, k - 1);
+		double m2 = quick_select(dup, k, n, k);
+		return 0.5 * (m1 + m2);
+	}
+	else
+		return quick_select(dup, 0, n, k);
+}
+
+template<typename T>
+double quick_mad(T * x, size_t n, double center = NA_REAL, double scale = 1.4826)
+{
+	double dev[n];
+	if ( isNA(center) )
+		center = quick_median(x, n);
+	for ( index_t i = 0; i < n; i++ )
+		dev[i] = std::fabs(x[i] - center);
+	return scale * quick_median(dev, n);
+}
 
 //// Binary search
 //-----------------
@@ -59,111 +184,6 @@ index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 			}
 			else
 				return err;
-		}
-	}
-	return num_matches;
-}
-
-//// Approximate search
-//----------------------
-
-// approximate search for values indexed by keys w/ interpolation
-template<typename Tkey, typename Tval>
-Pair<index_t,Tval> approx_search(Tkey x, Tkey * keys, Tval * values,
-	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
-	int interp = EST_NEAR)
-{
-	index_t pos = NA_INTEGER;
-	Tval val = nomatch;
-	Pair<index_t,Tval> result = {pos, val};
-	if ( isNA(x) )
-		return result;
-	pos = binary_search(x, keys, start, end,
-		tol, tol_ref, NA_INTEGER);
-	result.first = pos;
-	if ( !isNA(pos) && pos >= 0 )
-	{
-		if ( tol > 0 )
-			val = interp1(x, keys, values,
-				pos, end, tol, tol_ref, interp);
-		else
-			val = values[pos];
-		result.second = val;
-	}
-	return result;
-}
-
-// apply approximate search over an array of x, return via ptr
-template<typename Tkey, typename Tval>
-index_t do_approx_search(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * values,
-	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
-	int interp = EST_NEAR, int stride = 1)
-{
-	index_t num_matches = 0;
-	Pair<index_t,Tval> result;
-	if ( xlen < 2 * (end - start) || !is_sorted(x, xlen) )
-	{
-		// if len(x) << 2*len(keys) then iterate x (downsampling)
-		for ( size_t i = 0; i < xlen; i++ )
-		{
-			result = approx_search(x[i], keys, values,
-				start, end, tol, tol_ref, nomatch, interp);
-			num_matches += !isNA(result.first);
-			ptr[i * stride] = result.second;
-		}
-	}
-	else
-	{
-		// if len(x) >> 2*len(keys) then iterate keys (upsampling)
-		int pos [end];
-		bool not_matched [xlen];
-		do_binary_search(pos, keys, end, x, 0, xlen,
-			tol, switch_diff_ref(tol_ref), NA_INTEGER);
-		for ( size_t i = 0; i < xlen; i++ )
-		{
-			if ( isNA(x[i]) )
-				ptr[i * stride] = NA<Tval>();
-			else
-				ptr[i * stride] = nomatch;
-			not_matched[i] = true;
-		}
-		for ( size_t k = 0; k < end; k++ )
-		{
-			if ( isNA(pos[k]) )
-				continue;
-			// iterate to left along x
-			for ( index_t i = pos[k]; i < xlen; i++ )
-			{
-				if ( !not_matched[i] )
-					break;
-				if ( udiff(x[i], keys[k], tol_ref) > tol )
-					break;
-				result = approx_search(x[i], keys, values,
-					k, end, tol, tol_ref, nomatch, interp);
-				num_matches += !isNA(result.first);
-				ptr[i * stride] = result.second;
-				not_matched[i] = false;
-			}
-			// iterate to right along x
-			for ( index_t i = pos[k] - 1; i >= 0; i-- )
-			{
-				if ( !not_matched[i] )
-					break;
-				if ( udiff(x[i], keys[k], tol_ref) > tol )
-					break;
-				result = approx_search(x[i], keys, values,
-					k, end, tol, tol_ref, nomatch, interp);
-				num_matches += !isNA(result.first);
-				ptr[i * stride] = result.second;
-				not_matched[i] = false;
-			}
-		}
-		// fill in non-matches
-		if ( !isNA(nomatch) )
-		{
-			for ( size_t i = 0; i < xlen; i++ )
-				if ( not_matched[i] )
-					ptr[i * stride] = nomatch;
 		}
 	}
 	return num_matches;

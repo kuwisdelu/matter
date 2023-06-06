@@ -6,25 +6,19 @@
 #include "atoms.h"
 #include "matter.h"
 #include "search.h"
+#include "signal.h"
 #include "sparse.h"
 
 extern "C" {
 
-// Select (k-th order and median)
-//--------------------------------
-
+// Search and selection
+//----------------------
+SEXP relativeDiff(SEXP x, SEXP y, SEXP ref);
 SEXP quickSelect(SEXP x, SEXP k);
 SEXP quickMedian(SEXP x);
 SEXP quickMAD(SEXP x, SEXP center, SEXP constant);
-
-// Search (binary and approximate)
-//--------------------------------
-
-SEXP relativeDiff(SEXP x, SEXP y, SEXP ref);
 SEXP binarySearch(SEXP x, SEXP table,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP nearest);
-SEXP approxSearch(SEXP x, SEXP keys, SEXP values,
-	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
 // Compression (delta run length encoding)
 //-----------------------------------------
@@ -88,6 +82,8 @@ SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
 	 SEXP left_limits, SEXP right_limits, SEXP heights);
 SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 	 SEXP left_limits, SEXP right_limits);
+SEXP fastApprox1(SEXP x, SEXP keys, SEXP values,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
 } // extern "C"
 

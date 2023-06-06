@@ -56,7 +56,7 @@ asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
 	nomatch = NA_integer_, interp = 1L)
 {
-	.Call(C_approxSearch, x, keys, values, tol, tol.ref,
+	.Call(C_fastApprox1, x, keys, values, tol, tol.ref,
 		nomatch, interp, PACKAGE="matter")
 }
 
