@@ -286,11 +286,11 @@ void warp_dtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 				d10 = D[(j - 1) * nx + i];
 				d00 = D[(j - 1) * nx + (i - 1)];
 				if ( d01 < d00 && d01 < d10 )
-					D[j * nx + i] = d + d01;
+					D[j * nx + i] = (d * d) + d01;
 				else if ( d10 < d00 && d10 < d01 )
-					D[j * nx + i] = d + d10;
+					D[j * nx + i] = (d * d) + d10;
 				else
-					D[j * nx + i] = d + d00;
+					D[j * nx + i] = (d * d) + d00;
 			}
 		}
 	}
