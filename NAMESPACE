@@ -279,7 +279,7 @@ export(
 	"filt1_adapt",
 	"filt1_guide",
 	"filt1_pag",
-	"warp1_loc",
+	"warp1_shift",
 	"warp1_dtw",
 	"resample1",
 	"binvec",

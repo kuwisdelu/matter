@@ -64,7 +64,7 @@ filt1_pag <- function(x, width = 5L, guide = x,
 #### Signal alignment and warping ####
 ## -----------------------------------
 
-warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
+warp1_shift <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	events = c("maxmin", "max", "min"), n = length(y),
 	interp = c("linear", "loess", "spline"),
 	tol = NA_real_, tol.ref = "abs")
@@ -142,7 +142,7 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		tol, as_tol_ref(tol.ref), PACKAGE="matter")
 	i <- rev(path[!is.na(path[,1L]),1L]) + 1L
 	j <- rev(path[!is.na(path[,2L]),2L]) + 1L
-	path <- data.frame(x=i, y=j)
+	path <- data.frame(x=tx[i], y=ty[j])
 	# warp signal x to align with y
 	tout <- approx(ty[path$y], tx[path$x],
 		ties="ordered", n=n)$y

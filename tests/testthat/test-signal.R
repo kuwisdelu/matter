@@ -53,8 +53,8 @@ test_that("warp + align", {
 	px <- which(locmax(x))
 	i <- seq_along(px)
 
-	y2 <- warp1_loc(y, x)
-	z2 <- warp1_loc(z, x)
+	y2 <- warp1_shift(y, x)
+	z2 <- warp1_shift(z, x)
 	py2 <- which(locmax(y2))
 	pz2 <- which(locmax(z2))
 
