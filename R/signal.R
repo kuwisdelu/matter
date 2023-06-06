@@ -70,6 +70,7 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	tol = NA_real_, tol.ref = "abs")
 {
 	events <- match.arg(events)
+	# find events in each signal
 	if ( events == "maxmin" ) {
 		ex <- tx[which(locmax(x) | locmin(x))]
 		ey <- ty[which(locmax(y) | locmin(y))]
@@ -81,19 +82,24 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ey <- ty[which(locmin(y))]
 	}
 	if ( is.na(tol) ) {
+		# guess tolerance
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 0.5 * min(reldiff(ex, ref=ref))
+		tol <- (length(x) / 10) * min(reldiff(tx, ref=ref))
 	}
+	# match events between signals
 	tout <- approx(tx, tx, n=n)$y
 	i <- bsearch(ex, ey, tol=tol, tol.ref=tol.ref)
-	matched <- !is.na(i)
-	if ( sum(matched) >= 1 ) {
-		ex <- ex[matched]
-		ey <- ey[i[matched]]
+	loc <- !is.na(i)
+	if ( sum(loc) >= 1 ) {
+		# find shifts between events
+		ex <- ex[loc]
+		ey <- ey[i[loc]]
+		path <- data.frame(x=ex, y=ey)
 		dt <- ey - ex
 		dt <- c(dt[1L], dt, dt[length(dt)])
 		ex <- c(tx[1L], ex, tx[length(tx)])
 		interp <- match.arg(interp)
+		# interpolate shifts
 		if ( interp == "loess" ) {
 			shift <- loess(dt ~ locs)
 			shift <- predict(shift, t)
@@ -106,9 +112,42 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	} else {
 		warning("no landmarks matched")
 		tshift <- tout
+		path <- NULL
 	}
-	xout <- spline(tshift, x, xout=tout)$y
-	attr(xout, "index") <- tshift
+	# warp signal x to align with y
+	xout <- spline(tshift, x, xout=tout,
+		ties=list("ordered", mean))$y
+	attr(xout, "path") <- path
+	xout
+}
+
+warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
+	n = length(y), tol = NA_real_, tol.ref = "abs")
+{
+	if ( is.integer(x) && is.double(y) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(y) )
+		y <- as.double(y)
+	if ( is.integer(tx) && is.double(ty) )
+		tx <- as.double(tx)
+	if ( is.double(tx) && is.integer(ty) )
+		ty <- as.double(ty)
+	if ( is.na(tol) ) {
+		# guess tolerance
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- (length(x) / 10) * min(reldiff(tx, ref=ref))
+	}
+	# dynamic time warping to align signals
+	path <- .Call(C_warpDTW, x, y, tx, ty,
+		tol, as_tol_ref(tol.ref), PACKAGE="matter")
+	i <- rev(path[!is.na(path[,1L]),1L]) + 1L
+	j <- rev(path[!is.na(path[,2L]),2L]) + 1L
+	path <- data.frame(x=i, y=j)
+	# warp signal x to align with y
+	tout <- approx(ty[path$y], tx[path$x],
+		ties="ordered", n=n)$y
+	xout <- approx(tx, x, xout=tout)$y
+	attr(xout, "path") <- path
 	xout
 }
 
@@ -588,6 +627,11 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 		stop("length of 'peaks' and 'x' must match")
 	if ( is.unsorted(peaks) )
 		stop("'peaks' must be sorted")
+	if ( is.na(tol) ) {
+		# guess tolerance
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.01 * mean(reldiff(peaks, ref=ref), na.rm=TRUE)
+	}
 	# find smallest gap between peaks
 	p <- which(!is.na(peaks))
 	d <- reldiff(peaks[p], ref=tol.ref)

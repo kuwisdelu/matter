@@ -73,6 +73,8 @@ SEXP bilateralFilter(SEXP x, SEXP width,
 	SEXP sddist, SEXP sdrange, SEXP spar);
 SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg, SEXP ftol);
+SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
+	SEXP tol, SEXP tol_ref);
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
 SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);

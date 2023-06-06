@@ -25,10 +25,20 @@ test_that("filter", {
 	x3 <- filt1_gauss(x, w)
 	x4 <- filt1_bi(x, w)
 	x5 <- filt1_adapt(x, w)
+	x6 <- filt1_guide(x, w)
+	x7 <- filt1_pag(x, w)
+
+	expect_lt(sum((x3 - y)^2), sum((x - y)^2))
+	expect_lt(sum((x4 - y)^2), sum((x - y)^2))
+	expect_lt(sum((x5 - y)^2), sum((x - y)^2))
+	expect_lt(sum((x6 - y)^2), sum((x - y)^2))
+	expect_lt(sum((x7 - y)^2), sum((x - y)^2))
 	
 	expect_gt(cor(x3, y), cor(x, y))
 	expect_gt(cor(x4, y), cor(x, y))
 	expect_gt(cor(x5, y), cor(x, y))
+	expect_gt(cor(x6, y), cor(x, y))
+	expect_gt(cor(x7, y), cor(x, y))
 
 })
 
@@ -36,20 +46,27 @@ test_that("warp + align", {
 
 	t <- seq(from=0, to=6 * pi, length.out=1000)
 	dt <- 0.2 * (sin(t) + 0.6 * sin(2.6 * t))
-	x1 <- sin(t) + 0.6 * sin(2.6 * t)
-	x2 <- sin(t + dt) + 0.6 * sin(2.6 * (t + dt))
-	x3 <- sin(t - dt) + 0.6 * sin(2.6 * (t - dt))
+	x <- sin(t) + 0.6 * sin(2.6 * t)
+	y <- sin(t + dt) + 0.6 * sin(2.6 * (t + dt))
+	z <- sin(t - dt) + 0.6 * sin(2.6 * (t - dt))
 
-	p1 <- which(locmax(x1))
+	px <- which(locmax(x))
+	i <- seq_along(px)
 
-	w2 <- warp1_loc(x2, x1)
-	p2 <- which(locmax(w2))
+	y2 <- warp1_loc(y, x)
+	z2 <- warp1_loc(z, x)
+	py2 <- which(locmax(y2))
+	pz2 <- which(locmax(z2))
 
-	w3 <- warp1_loc(x3, x1)
-	p3 <- which(locmax(w3))
+	y3 <- warp1_dtw(y, x)
+	z3 <- warp1_dtw(z, x)
+	py3 <- which(locmax(y3))
+	pz3 <- which(locmax(z3))
 
-	expect_equivalent(p1, p2, tolerance=1)
-	expect_equivalent(p1, p3, tolerance=1)
+	expect_equivalent(py2[i], px, tolerance=1)
+	expect_equivalent(pz2[i], px, tolerance=1)
+	expect_equivalent(py3[i], px, tolerance=1)
+	expect_equivalent(pz3[i], px, tolerance=1)
 
 })
 

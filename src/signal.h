@@ -27,7 +27,9 @@
 #define BIN_VAR		6
 #define BIN_SSE		7
 
-#define wrap_index(i, n) ((i >= 0) ? (i < n ? i : n - 1) : 0)
+#define min2(x, y) ((x < y) ? (x) : (y))
+#define max2(x, y) ((x > y) ? (x) : (y))
+#define wrap_ind(i, n) (max2(min2((i), (n - 1)), 0))
 
 //// Numeric Integration
 //-----------------------
@@ -112,8 +114,8 @@ void mean_filter(T * x, int n, int width, double * buffer)
 		buffer[0] += x[i];
 	for ( index_t i = 1; i < n; i++ )
 	{
-		ij = wrap_index(i - r - 1, n);
-		ik = wrap_index(i + r, n);
+		ij = wrap_ind(i - r - 1, n);
+		ik = wrap_ind(i + r, n);
 		buffer[i] = buffer[i - 1] - x[ij] + x[ik];
 	}
 	for ( index_t i = 0; i < n; i++ )
@@ -130,7 +132,7 @@ void linear_filter(T * x, int n, T * weights, int width, double * buffer)
 		buffer[i] = 0;
 		for (index_t j = 0; j < width; j++ )
 		{
-			ij = wrap_index(i + j - r, n);
+			ij = wrap_ind(i + j - r, n);
 			buffer[i] += weights[j] * x[ij];
 			W += weights[j];
 		}
@@ -169,7 +171,7 @@ void bilateral_filter(T * x, int n, int width,
 			for ( index_t j = 0; j < width; j++ )
 			{
 				// find mean of local differences
-				ij = wrap_index(i + j - r, n);
+				ij = wrap_ind(i + j - r, n);
 				dmean += std::fabs(x[ij] - x[i]) / width;
 			}
 			// calculate adaptive parameters
@@ -188,7 +190,7 @@ void bilateral_filter(T * x, int n, int width,
 		for ( index_t j = 0; j < width; j++ )
 		{
 			// standard bilateral filter
-			ij = wrap_index(i + j - r, n);
+			ij = wrap_ind(i + j - r, n);
 			double wtdist = kgaussian(j - r, sdd);
 			double wtrange = kgaussian(x[ij] - x[i], sdr);
 			buffer[i] += wtdist * wtrange * x[ij];
@@ -250,6 +252,70 @@ void guided_filter(T * x, T * g, int n, int width,
 	for ( index_t i = 0; i < n; i++ )
 		buffer[i] = ua[i] * g[i] + ub[i];
 }
+
+//// Warping and Alignment
+//--------------------------
+
+template<typename Tx, typename Tt>
+void warp_dtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
+	int * i_buffer, int * j_buffer, double tol, int tol_ref = ABS_DIFF)
+{
+	double * D = R_Calloc((nx + 1) * (ny + 1), double);
+	for ( index_t i = 0; i <= nx; i++ )
+	{
+		for (index_t j = 0; j <= ny; j++ )
+			D[j * nx + i] = R_PosInf;
+	}
+	for ( index_t k = 0; k < nx + ny - 1; k++ )
+	{
+		i_buffer[k] = NA_INTEGER;
+		j_buffer[k] = NA_INTEGER;
+	}
+	D[0] = 0;
+	double d, d00, d01, d10;
+	for ( index_t i = 1; i <= nx; i++ )
+	{
+		for (index_t j = 1; j <= ny; j++ )
+		{
+			if ( udiff(tx[i - 1], ty[j - 1], tol_ref) > tol )
+				continue;
+			else
+			{
+				d = udiff(x[i - 1], y[j - 1]);
+				d01 = D[j * nx + (i - 1)];
+				d10 = D[(j - 1) * nx + i];
+				d00 = D[(j - 1) * nx + (i - 1)];
+				if ( d01 < d00 && d01 < d10 )
+					D[j * nx + i] = d + d01;
+				else if ( d10 < d00 && d10 < d01 )
+					D[j * nx + i] = d + d10;
+				else
+					D[j * nx + i] = d + d00;
+			}
+		}
+	}
+	index_t i = nx - 1, j = ny - 1, k = 0;
+	while ( i >= 0 && j >= 0 && k < nx + ny - 1 )
+	{
+		i_buffer[k] = i;
+		j_buffer[k] = j;
+		d01 = D[(j + 1) * nx + i];
+		d10 = D[j * nx + (i + 1)];
+		d00 = D[j * nx + i];
+		if ( d01 < d00 && d01 < d10 )
+			i--;
+		else if ( d10 < d00 && d10 < d01 )
+			j--;
+		else
+		{
+			i--;
+			j--;
+		}
+		k++;
+	}
+	Free(D);
+}
+
 
 //// Binning and Downsampling
 //----------------------------

@@ -280,6 +280,7 @@ export(
 	"filt1_guide",
 	"filt1_pag",
 	"warp1_loc",
+	"warp1_dtw",
 	"resample1",
 	"binvec",
 	"findbins",
