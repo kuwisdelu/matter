@@ -102,7 +102,7 @@ inline double chip(double y[4], double dx[3], double t)
 	return p00 + p10 + p01 + p11;
 }
 
-//// Filtering and Smoothing
+//// Filtering and smoothing
 //---------------------------
 
 template<typename T>
@@ -253,7 +253,7 @@ void guided_filter(T * x, T * g, int n, int width,
 		buffer[i] = ua[i] * g[i] + ub[i];
 }
 
-//// Warping and Alignment
+//// Warping and alignment
 //--------------------------
 
 template<typename Tx, typename Tt>
@@ -316,7 +316,7 @@ void warp_dtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	Free(D);
 }
 
-//// Binning and Downsampling
+//// Binning and downsampling
 //----------------------------
 
 inline void bin_update(double * score, int * lower, int * upper,
@@ -850,7 +850,7 @@ void peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	}
 }
 
-//// Interpolation and Resampling
+//// Resampling with interpolation
 //---------------------------------
 
 // linear interpolation in interval defined by |x[i] - xi| <= tol
@@ -1102,103 +1102,106 @@ Ty interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	}
 }
 
-// approximate search for values indexed by keys w/ interpolation
-template<typename Tkey, typename Tval>
-Pair<index_t,Tval> approx1(Tkey x, Tkey * keys, Tval * values,
-	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
-	int interp = EST_NEAR)
+// approximate y ~ x at xi with interpolation
+template<typename Tx, typename Ty>
+Ty approx1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
+	double tol, int tol_ref, Ty nomatch, int interp = EST_NEAR)
 {
-	index_t pos = NA_INTEGER;
-	Tval val = nomatch;
-	Pair<index_t,Tval> result = {pos, val};
-	if ( isNA(x) )
-		return result;
-	pos = binary_search(x, keys, start, end,
+	index_t i = NA_INTEGER;
+	Ty yi = nomatch;
+	if ( isNA(xi) )
+		return yi;
+	i = binary_search(xi, x, start, end,
 		tol, tol_ref, NA_INTEGER);
-	result.first = pos;
-	if ( !isNA(pos) && pos >= 0 )
+	if ( !isNA(i) && i >= 0 )
 	{
-		if ( tol > 0 )
-			val = interp1(x, keys, values,
-				pos, end, tol, tol_ref, interp);
+		if ( tol > 0 && interp != EST_NEAR )
+			yi = interp1(xi, x, y, i, end,
+				tol, tol_ref, interp);
 		else
-			val = values[pos];
-		result.second = val;
+			yi = y[i];
 	}
-	return result;
+	return yi;
 }
 
-// apply approximate search over an array of x, return via ptr
-template<typename Tkey, typename Tval>
-index_t do_approx1(Tval * ptr, Tkey * x, size_t xlen, Tkey * keys, Tval * values,
-	size_t start, size_t end, double tol, int tol_ref, Tval nomatch,
+// approximate y ~ x at xi with interpolation
+template<typename Tx, typename Ty>
+index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
+	size_t start, size_t end, double tol, int tol_ref, Ty nomatch,
 	int interp = EST_NEAR, int stride = 1)
 {
 	index_t num_matches = 0;
-	Pair<index_t,Tval> result;
-	if ( xlen < 2 * (end - start) || !is_sorted(x, xlen) )
+	if ( ni < 2 * (end - start) || !is_sorted(xi, ni) )
 	{
-		// if len(x) << 2*len(keys) then iterate x (downsampling)
-		for ( size_t i = 0; i < xlen; i++ )
+		// if len(xi) << 2*len(x) then iterate xi (downsampling)
+		for ( size_t i = 0; i < ni; i++ )
 		{
-			result = approx1(x[i], keys, values,
-				start, end, tol, tol_ref, nomatch, interp);
-			num_matches += !isNA(result.first);
-			ptr[i * stride] = result.second;
+			Ty yi = approx1(xi[i], x, y, start, end,
+				tol, tol_ref, NA<Ty>(), interp);
+			if ( !isNA(yi) )
+			{
+				num_matches++;
+				ptr[i * stride] = yi;
+			}
+			else
+				ptr[i * stride] = nomatch;
 		}
 	}
 	else
 	{
-		// if len(x) >> 2*len(keys) then iterate keys (upsampling)
-		int pos [end];
-		bool not_matched [xlen];
-		do_binary_search(pos, keys, end, x, 0, xlen,
+		// if len(xi) >> 2*len(x) then iterate x (upsampling)
+		int pos[end];
+		bool processed[ni];
+		do_binary_search(pos, x, end - start, xi, 0, ni,
 			tol, switch_diff_ref(tol_ref), NA_INTEGER);
-		for ( size_t i = 0; i < xlen; i++ )
+		for ( size_t i = 0; i < ni; i++ )
 		{
-			if ( isNA(x[i]) )
-				ptr[i * stride] = NA<Tval>();
+			if ( isNA(xi[i]) )
+				ptr[i * stride] = NA<Ty>();
 			else
 				ptr[i * stride] = nomatch;
-			not_matched[i] = true;
+			processed[i] = false;
 		}
-		for ( size_t k = 0; k < end; k++ )
+		for ( size_t k = start; k < end; k++ )
 		{
 			if ( isNA(pos[k]) )
 				continue;
-			// iterate to left along x
-			for ( index_t i = pos[k]; i < xlen; i++ )
+			// iterate to left along xi
+			for ( index_t i = pos[k]; i < ni; i++ )
 			{
-				if ( !not_matched[i] )
+				if ( processed[i] )
 					break;
-				if ( udiff(x[i], keys[k], tol_ref) > tol )
+				if ( udiff(xi[i], x[k], tol_ref) > tol )
 					break;
-				result = approx1(x[i], keys, values,
-					k, end, tol, tol_ref, nomatch, interp);
-				num_matches += !isNA(result.first);
-				ptr[i * stride] = result.second;
-				not_matched[i] = false;
+				Ty yi = approx1(xi[i], x, y, k, end,
+					tol, tol_ref, NA<Ty>(), interp);
+				if ( !isNA(yi) )
+				{
+					num_matches++;
+					ptr[i * stride] = yi;
+				}
+				else
+					ptr[i * stride] = nomatch;
+				processed[i] = true;
 			}
-			// iterate to right along x
+			// iterate to right along xi
 			for ( index_t i = pos[k] - 1; i >= 0; i-- )
 			{
-				if ( !not_matched[i] )
+				if ( processed[i] )
 					break;
-				if ( udiff(x[i], keys[k], tol_ref) > tol )
+				if ( udiff(xi[i], x[k], tol_ref) > tol )
 					break;
-				result = approx1(x[i], keys, values,
-					k, end, tol, tol_ref, nomatch, interp);
-				num_matches += !isNA(result.first);
-				ptr[i * stride] = result.second;
-				not_matched[i] = false;
-			}
-		}
-		// fill in non-matches
-		if ( !isNA(nomatch) )
-		{
-			for ( size_t i = 0; i < xlen; i++ )
-				if ( not_matched[i] )
+				Ty yi = approx1(xi[i], x, y, k, end,
+					tol, tol_ref, NA<Ty>(), interp);
+				if ( !isNA(yi) )
+				{
+					num_matches++;
+					ptr[i * stride] = yi;
+				}
+				else
 					ptr[i * stride] = nomatch;
+				processed[i] = true;
+			}
 		}
 	}
 	return num_matches;

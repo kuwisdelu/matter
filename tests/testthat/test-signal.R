@@ -242,3 +242,69 @@ test_that("peakareas", {
 	expect_equivalent(a, 1, tolerance=1e-3)
 
 })
+
+test_that("resample1 (sorted)", {
+
+	x <- c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0)
+	y <- x
+	xi <- c(1.0, 2.0, 3.33, 5.0)
+
+	expect_equal(c(1.0, 2.0, 3.33, 4.0), resample1(x, y, xi))
+	expect_equal(c(1.0, 2.0, 3.33, NA), resample1(x, y, xi, tol=0))
+	expect_equal(c(1.0, 2.0, 3.33, NA), resample1(x, y, xi, tol=0.5))
+
+	test1 <- c(1.0+1.01+1.11, 2.0+2.22, 3.0+3.33+3.333, NA)
+	expect_equal(test1, resample1(x, y, xi, tol=0.5, interp="sum"))
+
+	test2 <- c((1.0+1.01+1.11)/3, (2.0+2.22)/2, (3.0+3.33+3.333)/3, NA)
+	expect_equal(test2, resample1(x, y, xi, tol=0.5, interp="mean"))
+
+	test3 <- c(1.11, 2.22, 3.333, NA)
+	expect_equal(test3, resample1(x, y, xi, tol=0.5, interp="max"))
+
+	test4 <- c(1, 2, 3, NA)
+	expect_equal(test4, resample1(x, y, xi, tol=0.5, interp="min"))
+
+	xi2 <- seq(from=1, to=3, by=0.2)
+	expect_equal(xi2, resample1(x, y, xi2, tol=1, interp="linear"))
+	expect_equal(xi2, resample1(x, y, xi2, tol=2, interp="cubic"))
+
+	xi3 <- seq(from=1, to=3, by=0.05)
+	expect_equal(xi3, resample1(x, y, xi3, tol=1, interp="linear"))
+
+	t <- seq(from=-4, to=4, length.out=1000)
+	s <- dnorm(t)
+	expect_equal(1, resample1(t, s, 0, tol=4, interp="area"), tolerance=1e-3)
+
+})
+
+test_that("resample1 (unsorted)", {
+
+	x <- rev(c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0))
+	y <- x
+	xi <- c(1.0, 2.0, 3.33, 5.0)
+
+		expect_equal(c(1.0, 2.0, 3.33, 4.0), resample1(x, y, xi))
+	expect_equal(c(1.0, 2.0, 3.33, NA), resample1(x, y, xi, tol=0))
+	expect_equal(c(1.0, 2.0, 3.33, NA), resample1(x, y, xi, tol=0.5))
+
+	test1 <- c(1.0+1.01+1.11, 2.0+2.22, 3.0+3.33+3.333, NA)
+	expect_equal(test1, resample1(x, y, xi, tol=0.5, interp="sum"))
+
+	test2 <- c((1.0+1.01+1.11)/3, (2.0+2.22)/2, (3.0+3.33+3.333)/3, NA)
+	expect_equal(test2, resample1(x, y, xi, tol=0.5, interp="mean"))
+
+	test3 <- c(1.11, 2.22, 3.333, NA)
+	expect_equal(test3, resample1(x, y, xi, tol=0.5, interp="max"))
+
+	test4 <- c(1, 2, 3, NA)
+	expect_equal(test4, resample1(x, y, xi, tol=0.5, interp="min"))
+
+	xi2 <- seq(from=1, to=3, by=0.2)
+	expect_equal(xi2, resample1(x, y, xi2, tol=1, interp="linear"))
+	expect_equal(xi2, resample1(x, y, xi2, tol=2, interp="cubic"))
+
+	xi3 <- seq(from=1, to=3, by=0.05)
+	expect_equal(xi3, resample1(x, y, xi3, tol=1, interp="linear"))
+
+})

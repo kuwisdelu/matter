@@ -281,7 +281,6 @@ export(
 	"filt1_pag",
 	"warp1_shift",
 	"warp1_dtw",
-	"resample1",
 	"binvec",
 	"findbins",
 	"downsample",
@@ -301,6 +300,7 @@ export(
 	"mergepeaks",
 	"peakwidths",
 	"peakareas",
+	"resample1",
 	"simspectra")
 
 export(

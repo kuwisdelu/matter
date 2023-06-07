@@ -82,9 +82,9 @@ warp1_shift <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ey <- ty[which(locmin(y))]
 	}
 	if ( is.na(tol) ) {
-		# guess tolerance
+		# guess tol as ~1/10 of the signal length
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- (length(x) / 10) * min(reldiff(tx, ref=ref))
+		tol <- (length(x) / 10) * mean(reldiff(tx, ref=ref))
 	}
 	# match events between signals
 	tout <- approx(tx, tx, n=n)$y
@@ -133,9 +133,9 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	if ( is.double(tx) && is.integer(ty) )
 		ty <- as.double(ty)
 	if ( is.na(tol) ) {
-		# guess tolerance
+		# guess tol as ~1/10 of the signal length
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- (length(x) / 10) * min(reldiff(tx, ref=ref))
+		tol <- (length(x) / 10) * mean(reldiff(tx, ref=ref))
 	}
 	# dynamic time warping to align signals
 	path <- .Call(C_warpDTW, x, y, tx, ty,
@@ -151,24 +151,8 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	xout
 }
 
-#### Binning and resampling ####
-## -----------------------------
-
-resample1 <- function(x, y, xi, halfwidth = 2, interp = "linear")
-{
-	if ( is.integer(x) && is.double(xi) )
-		x <- as.double(x)
-	if ( is.double(x) && is.integer(xi) )
-		xi <- as.double(xi)
-	if ( is.unsorted(x) ) {
-		ord <- order(x)
-		x <- x[ord]
-		y <- y[ord]
-	}
-	asearch_int(as.double(xi), as.double(x), as.double(y),
-		tol=halfwidth, tol.ref=as_tol_ref("abs"), nomatch=NA_real_,
-		interp=as_interp(interp))
-}
+#### Binning and downsampling ####
+## -------------------------------
 
 binvec <- function(x, lower, upper, stat = "sum")
 {
@@ -560,7 +544,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 	if ( any(lengths(peaklist) != lengths(xlist)) )
 		stop("lengths of 'peaklist' and 'xlist' must match")
 	if ( is.na(tol) ) {
-		# guess tolerance
+		# guess tol as ~1/2 the min gap between same-sample peaks
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		fun <- function(peaks) min(reldiff(peaks, ref=ref), na.rm=TRUE)
 		tol <- 0.5 * min(vapply(peaklist, fun, numeric(1)), na.rm=TRUE)
@@ -621,14 +605,14 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 }
 
 mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
-	tol = 2.5, tol.ref = "abs", na.drop = TRUE)
+	tol = NA_real_, tol.ref = "abs", na.drop = TRUE)
 {
 	if ( length(peaks) != length(x) )
 		stop("length of 'peaks' and 'x' must match")
 	if ( is.unsorted(peaks) )
 		stop("'peaks' must be sorted")
 	if ( is.na(tol) ) {
-		# guess tolerance
+		# guess tol as ~1/100 of average gap between peaks
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		tol <- 0.01 * mean(reldiff(peaks, ref=ref), na.rm=TRUE)
 	}
@@ -672,6 +656,43 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 	if ( na.drop && anyNA(peaks) )
 		peaks <- peaks[!is.na(peaks)]
 	peaks
+}
+
+#### Resampling with interpolation ####
+## ------------------------------------
+
+# exported version with argument checking (safer, easier)
+
+resample1 <- function(x, y, xi, n = length(x),
+	tol = NA_real_, tol.ref = "abs", interp = "linear")
+{
+	if ( missing(xi) )
+		xi <- seq(from=min(x), to=max(x), length.out=n)
+	if ( is.integer(x) && is.double(xi) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(xi) )
+		xi <- as.double(xi)
+	if ( is.unsorted(x) ) {
+		ord <- order(x)
+		x <- x[ord]
+		y <- y[ord]
+	}
+	if ( is.na(tol) ) {
+		# guess tol as ~2x the max gap between samples
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 2 * max(reldiff(x, ref=ref))
+	}
+	resample1_int(x, y, xi=xi, tol=tol,
+		tol.ref=as_tol_ref("abs"), interp=as_interp(interp))
+}
+
+# internal version with no argument checking
+
+resample1_int <- function(x, y, xi,
+	tol, tol.ref = 1L, interp = 1L)
+{
+	.Call(C_fastApprox1, xi, x, y, tol, tol.ref,
+		NA_real_, interp, PACKAGE="matter")
 }
 
 #### Simulation ####
