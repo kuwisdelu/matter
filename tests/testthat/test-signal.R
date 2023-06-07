@@ -63,10 +63,17 @@ test_that("warp + align", {
 	py3 <- which(locmax(y3))
 	pz3 <- which(locmax(z3))
 
+	y4 <- warp1_dtw(y, x, tol=Inf)
+	z4 <- warp1_dtw(z, x, tol=Inf)
+	py4 <- which(locmax(y4))
+	pz4 <- which(locmax(z4))
+
 	expect_equivalent(py2[i], px, tolerance=1)
 	expect_equivalent(pz2[i], px, tolerance=1)
 	expect_equivalent(py3[i], px, tolerance=1)
 	expect_equivalent(pz3[i], px, tolerance=1)
+	expect_equivalent(py4[i], px, tolerance=1)
+	expect_equivalent(pz4[i], px, tolerance=1)
 
 })
 

@@ -28,7 +28,9 @@
 #define BIN_SSE		7
 
 #define min2(x, y) ((x < y) ? (x) : (y))
+#define min3(x, y, z) (min2(min2((x), (y)), (z)))
 #define max2(x, y) ((x > y) ? (x) : (y))
+#define max3(x, y, z) (max2(max2((x), (y)), (z)))
 #define wrap_ind(i, n) (max2(min2((i), (n - 1)), 0))
 
 //// Numeric Integration
@@ -151,8 +153,9 @@ void bilateral_filter(T * x, int n, int width,
 	{
 		// get MAD if using adaptive parameters
 		mad = quick_mad(x, n);
-		double xmin = DBL_MAX, xmax = -DBL_MAX;
-		for ( index_t i = 0; i < n; i++ )
+		double xmin = n > 0 ? x[0] : NA_REAL;
+		double xmax = n > 0 ? x[0] : NA_REAL;;
+		for ( index_t i = 1; i < n; i++ )
 		{
 			if ( x[i] > xmax )
 				xmax = x[i];
@@ -208,8 +211,8 @@ void guided_filter(T * x, T * g, int n, int width,
 	double tmp1[n], tmp2[n], tmp3[n], tmp4[n];
 	// find maximum of guidance signal
 	if ( !isNA(ftol) ) {
-		gmax = -DBL_MAX;
-		for ( index_t i = 0; i < n; i++ )
+		gmax = n > 0 ? g[0] : NA_REAL;
+		for ( index_t i = 1; i < n; i++ )
 			if ( g[i] > gmax )
 				gmax = g[i];
 	}
@@ -258,18 +261,20 @@ void guided_filter(T * x, T * g, int n, int width,
 
 template<typename Tx, typename Tt>
 void warp_dtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
-	int * i_buffer, int * j_buffer, double tol, int tol_ref = ABS_DIFF)
+	int * i_buffer, int * j_buffer)
 {
+	// initialize output
+	for ( index_t k = 0; k < nx + ny - 1; k++ )
+	{
+		i_buffer[k] = NA_INTEGER;
+		j_buffer[k] = NA_INTEGER;
+	}
+	// fill cost matrix
 	double * D = R_Calloc((nx + 1) * (ny + 1), double);
 	for ( index_t i = 0; i <= nx; i++ )
 	{
 		for (index_t j = 0; j <= ny; j++ )
 			D[j * nx + i] = R_PosInf;
-	}
-	for ( index_t k = 0; k < nx + ny - 1; k++ )
-	{
-		i_buffer[k] = NA_INTEGER;
-		j_buffer[k] = NA_INTEGER;
 	}
 	D[0] = 0;
 	double d, d00, d01, d10;
@@ -277,23 +282,19 @@ void warp_dtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	{
 		for (index_t j = 1; j <= ny; j++ )
 		{
-			if ( udiff(tx[i - 1], ty[j - 1], tol_ref) > tol )
-				continue;
+			d = udiff(x[i - 1], y[j - 1]);
+			d01 = D[j * nx + (i - 1)];
+			d10 = D[(j - 1) * nx + i];
+			d00 = D[(j - 1) * nx + (i - 1)];
+			if ( d01 < d00 && d01 < d10 )
+				D[j * nx + i] = (d * d) + d01;
+			else if ( d10 < d00 && d10 < d01 )
+				D[j * nx + i] = (d * d) + d10;
 			else
-			{
-				d = udiff(x[i - 1], y[j - 1]);
-				d01 = D[j * nx + (i - 1)];
-				d10 = D[(j - 1) * nx + i];
-				d00 = D[(j - 1) * nx + (i - 1)];
-				if ( d01 < d00 && d01 < d10 )
-					D[j * nx + i] = (d * d) + d01;
-				else if ( d10 < d00 && d10 < d01 )
-					D[j * nx + i] = (d * d) + d10;
-				else
-					D[j * nx + i] = (d * d) + d00;
-			}
+				D[j * nx + i] = (d * d) + d00;
 		}
 	}
+	// find optimal path
 	index_t i = nx - 1, j = ny - 1, k = 0;
 	while ( i >= 0 && j >= 0 && k < nx + ny - 1 )
 	{
@@ -316,6 +317,105 @@ void warp_dtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	Free(D);
 }
 
+template<typename Tx, typename Tt>
+void warp_cdtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
+	int * i_buffer, int * j_buffer, double tol, int tol_ref = ABS_DIFF)
+{
+	// check tolerance window
+	if ( tol >= udiff(tx[0], ty[ny - 1], tol_ref) ||
+		tol >= udiff(tx[nx - 1], ty[0], tol_ref) )
+	{
+		return warp_dtw(x, y, tx, ty, nx, ny, i_buffer, j_buffer);
+	}
+	tol = max2(tol, udiff(tx[nx - 1], ty[ny - 1], tol_ref));
+	// initialize output
+	for ( index_t k = 0; k < nx + ny - 1; k++ )
+	{
+		i_buffer[k] = NA_INTEGER;
+		j_buffer[k] = NA_INTEGER;
+	}
+	int ptrD[nx + 1], wa[nx + 1], wb[nx + 1], nD;
+	// find windows where |tx - ty| <= tol
+	ptrD[0] = 0, wa[0] = 0, wb[0] = 1, nD = 1;
+	for ( index_t i = 0; i < nx; i++ )
+	{
+		index_t j = binary_search(tx[i], ty,
+			0, ny, tol, tol_ref, NA_INTEGER);
+		wa[i + 1] = j;
+		wb[i + 1] = j;
+		if ( !isNA(j) )
+		{
+			for ( index_t k = j - 1; k >= 0; k-- ) {
+				if ( udiff(tx[i], ty[k], tol_ref) > tol )
+					break;
+				wa[i + 1] = k;
+			}
+			for ( index_t k = j; k < ny; k++ ) {
+				if ( udiff(tx[i], ty[k], tol_ref) > tol )
+					break;
+				wb[i + 1] = k + 1;
+			}
+			wa[i + 1]++;
+			wb[i + 1]++;
+			ptrD[i + 1] = nD;
+			nD += wb[i + 1] - wa[i + 1];
+		}
+	}
+	// fill (sparse) cost matrix
+	double * D = R_Calloc(nD, double);
+	D[0] = 0;
+	double d, d00, d01, d10, dmin;
+	for ( index_t i = 1; i <= nx; i++ )
+	{
+		for (index_t j = wa[i]; j < wb[i]; j++ )
+		{
+			d = udiff(x[i - 1], y[j - 1]);
+			d01 = R_PosInf, d10 = R_PosInf, d00 = R_PosInf;
+			// D[i-1, j]
+			if ( j >= wa[i - 1] && j < wb[i - 1] )
+				d01 = D[ptrD[i - 1] + (j - wa[i - 1])];
+			// D[i, j-1]
+			if ( j - 1 >= wa[i] && j - 1 < wb[i] )
+				d10 = D[ptrD[i] + (j - 1 - wa[i])];
+			// D[i-1, j-1]
+			if ( j - 1 >= wa[i - 1] && j - 1 < wb[i - 1] )
+				d00 = D[ptrD[i - 1] + (j - 1 - wa[i - 1])];
+			// min(D[i-1, j], D[i, j-1], D[i-1, j-1])
+			dmin = min3(d01, d10, d00);
+			D[ptrD[i] + (j - wa[i])] = (d * d) + dmin;
+		}
+	}
+	// find (constrained) optimal path
+	index_t i = nx, j = ny, k = 0;
+	while ( i > 0 && j > 0 && k < nx + ny - 1 )
+	{
+		i_buffer[k] = i - 1;
+		j_buffer[k] = j - 1;
+		d01 = R_PosInf, d10 = R_PosInf, d00 = R_PosInf;
+		// D[i-1, j]
+		if ( j >= wa[i - 1] && j < wb[i - 1] )
+			d01 = D[ptrD[i - 1] + (j - wa[i - 1])];
+		// D[i, j-1]
+		if ( j - 1 >= wa[i] && j - 1 < wb[i] )
+			d10 = D[ptrD[i] + (j - 1 - wa[i])];
+		// D[i-1, j-1]
+		if ( j - 1 >= wa[i - 1] && j - 1 < wb[i - 1] )
+			d00 = D[ptrD[i - 1] + (j - 1 - wa[i - 1])];
+		// trackback
+		if ( d01 < d00 && d01 < d10 )
+			i--;
+		else if ( d10 < d00 && d10 < d01 )
+			j--;
+		else
+		{
+			i--;
+			j--;
+		}
+		k++;
+	}
+	Free(D);
+}
+
 //// Binning and downsampling
 //----------------------------
 
@@ -323,7 +423,7 @@ inline void bin_update(double * score, int * lower, int * upper,
 	int nbin, int * lower_buffer, int * upper_buffer)
 {
 	int merge = 0, split = 0;
-	double merge_score = DBL_MAX;
+	double merge_score = R_PosInf;
 	double split_score = score[0];
 	bool did_merge = false, did_split = false;
 	// find which bins to merge and split
@@ -978,8 +1078,8 @@ template<typename Tx, typename Ty>
 Ty interp1_max(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
 {
-	Ty yi = MIN_VAL<Ty>();
-	for ( index_t j = i; j < n; j++ ) {
+	Ty yi = y[i];
+	for ( index_t j = i + 1; j < n; j++ ) {
 		if ( udiff(x[j], xi, tol_ref) > tol )
 			break;
 		yi = y[j] > yi ? y[j] : yi;
@@ -997,8 +1097,8 @@ template<typename Tx, typename Ty>
 Ty interp1_min(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
 {
-	Ty yi = MAX_VAL<Ty>();
-	for ( index_t j = i; j < n; j++ ) {
+	Ty yi = y[i];
+	for ( index_t j = i + 1; j < n; j++ ) {
 		if ( udiff(x[j], xi, tol_ref) > tol )
 			break;
 		yi = y[j] < yi ? y[j] : yi;

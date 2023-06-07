@@ -424,11 +424,11 @@ SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 		case INTSXP: {
 				switch(TYPEOF(tx)) {
 					case INTSXP:
-						warp_dtw(INTEGER(x), INTEGER(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+						warp_cdtw(INTEGER(x), INTEGER(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 					case REALSXP:
-						warp_dtw(INTEGER(x), INTEGER(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+						warp_cdtw(INTEGER(x), INTEGER(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 				}
@@ -437,11 +437,11 @@ SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 		case REALSXP: {
 				switch(TYPEOF(tx)) {
 					case INTSXP:
-						warp_dtw(REAL(x), REAL(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+						warp_cdtw(REAL(x), REAL(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 					case REALSXP:
-						warp_dtw(REAL(x), REAL(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+						warp_cdtw(REAL(x), REAL(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 				}
