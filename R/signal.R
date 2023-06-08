@@ -64,7 +64,7 @@ filt1_pag <- function(x, width = 5L, guide = x,
 #### Signal alignment and warping ####
 ## -----------------------------------
 
-warp1_shift <- function(x, y, tx = seq_along(x), ty = seq_along(y),
+warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	events = c("maxmin", "max", "min"), n = length(y),
 	interp = c("linear", "loess", "spline"),
 	tol = NA_real_, tol.ref = "abs")
