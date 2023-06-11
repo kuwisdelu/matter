@@ -318,7 +318,7 @@ void warp_dtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 }
 
 template<typename Tx, typename Tt>
-void warp_cdtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
+void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	int * i_buffer, int * j_buffer, double tol, int tol_ref = ABS_DIFF)
 {
 	// check tolerance window
@@ -385,7 +385,7 @@ void warp_cdtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 			D[ptrD[i] + (j - wa[i])] = (d * d) + dmin;
 		}
 	}
-	// find (constrained) optimal path
+	// trace (constrained) optimal path
 	index_t i = nx, j = ny, k = 0;
 	while ( i > 0 && j > 0 && k < nx + ny - 1 )
 	{
@@ -414,6 +414,42 @@ void warp_cdtw(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		k++;
 	}
 	Free(D);
+}
+
+// correlation between x and y (w/ interpolation)
+template<typename T>
+double icor(T * x, T * y, size_t nx, size_t ny)
+{
+	double xi[ny], ti0, ti1, tj, t;
+	double Lx = nx - 1, Ly = ny - 1;
+	for ( index_t i = 0, j = 0; i < nx - 1; i++ )
+	{
+		while ( (j / Ly) <= ((i + 1) / Lx) )
+		{
+			ti0 = i / Lx;
+			ti1 = (i + 1) / Lx;
+			tj = j / Ly;
+			t = (tj - ti0) / (ti1 - ti0);
+			xi[j] = lerp(x[i], x[i + 1], t);
+			j++;
+		}
+	}
+	double ux = 0, uy = 0;
+	for ( index_t i = 0; i < ny; i++ )
+	{
+		ux += xi[i];
+		uy += y[i];
+	}
+	ux /= ny;
+	uy /= ny;
+	double Sxx = 0, Syy = 0, Sxy = 0;
+	for ( index_t i = 0; i < ny; i++ )
+	{
+		Sxx += (ux - xi[i]) * (ux - xi[i]);
+		Syy += (uy - y[i]) * (uy - y[i]);
+		Sxy += (ux - xi[i]) * (uy - y[i]);
+	}
+	return Sxy / std::sqrt(Sxx * Syy);
 }
 
 //// Binning and downsampling

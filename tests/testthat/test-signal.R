@@ -58,6 +58,9 @@ test_that("warp + align", {
 	py2 <- which(locmax(y2))
 	pz2 <- which(locmax(z2))
 
+	expect_equivalent(py2[i], px, tolerance=1)
+	expect_equivalent(pz2[i], px, tolerance=1)
+
 	y3 <- warp1_dtw(y, x)
 	z3 <- warp1_dtw(z, x)
 	py3 <- which(locmax(y3))
@@ -68,12 +71,19 @@ test_that("warp + align", {
 	py4 <- which(locmax(y4))
 	pz4 <- which(locmax(z4))
 
-	expect_equivalent(py2[i], px, tolerance=1)
-	expect_equivalent(pz2[i], px, tolerance=1)
 	expect_equivalent(py3[i], px, tolerance=1)
 	expect_equivalent(pz3[i], px, tolerance=1)
 	expect_equivalent(py4[i], px, tolerance=1)
 	expect_equivalent(pz4[i], px, tolerance=1)
+
+	set.seed(1)
+	x <- 10:1
+	y <- 6:1 + runif(6)
+	rxy <- cor(approx(seq_along(x), x, n=length(y))$y, y)
+	ryx <- cor(approx(seq_along(y), y, n=length(x))$y, x)
+	
+	expect_equal(icor(x, y), rxy)
+	expect_equal(icor(y, x), ryx)
 
 })
 

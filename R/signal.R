@@ -96,7 +96,7 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ey <- ey[i[loc]]
 		path <- data.frame(x=ex, y=ey)
 		dt <- ey - ex
-		dt <- c(dt[1L], dt, dt[length(dt)])
+		dt <- c(0, dt, 0)
 		ex <- c(tx[1L], ex, tx[length(tx)])
 		interp <- match.arg(interp)
 		# interpolate shifts
@@ -145,10 +145,23 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	path <- data.frame(x=tx[i], y=ty[j])
 	# warp signal x to align with y
 	tout <- approx(ty[path$y], tx[path$x],
-		ties="ordered", n=n)$y
+		ties=list("ordered", mean), n=n)$y
 	xout <- approx(tx, x, xout=tout)$y
 	attr(xout, "path") <- path
 	xout
+}
+
+icor <- function(x, y)
+{
+	if ( is.integer(x) && is.double(y) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(y) )
+		y <- as.double(y)
+	if ( anyNA(x) )
+		x <- x[!is.na(x)]
+	if ( anyNA(y) )
+		y <- y[!is.na(x)]
+	.Call(C_iCorr, x, y, PACKAGE="matter")
 }
 
 #### Binning and downsampling ####

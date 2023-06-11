@@ -414,6 +414,22 @@ SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
 	return result;
 }
 
+SEXP iCorr(SEXP x, SEXP y)
+{
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			return Rf_ScalarReal(icor(INTEGER(x), INTEGER(y),
+				XLENGTH(x), XLENGTH(y)));
+			break;
+		case REALSXP:
+			return Rf_ScalarReal(icor(REAL(x), REAL(y),
+				XLENGTH(x), XLENGTH(y)));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
 SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 	SEXP tol, SEXP tol_ref)
 {
@@ -424,11 +440,11 @@ SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 		case INTSXP: {
 				switch(TYPEOF(tx)) {
 					case INTSXP:
-						warp_cdtw(INTEGER(x), INTEGER(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+						warp_dtwc(INTEGER(x), INTEGER(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 					case REALSXP:
-						warp_cdtw(INTEGER(x), INTEGER(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+						warp_dtwc(INTEGER(x), INTEGER(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 				}
@@ -437,11 +453,11 @@ SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 		case REALSXP: {
 				switch(TYPEOF(tx)) {
 					case INTSXP:
-						warp_cdtw(REAL(x), REAL(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+						warp_dtwc(REAL(x), REAL(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 					case REALSXP:
-						warp_cdtw(REAL(x), REAL(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+						warp_dtwc(REAL(x), REAL(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
 							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
 						break;
 				}

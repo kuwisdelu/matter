@@ -45,6 +45,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(linearFilter, 2),
 	CALLDEF(bilateralFilter, 5),
 	CALLDEF(guidedFilter, 5),
+	CALLDEF(iCorr, 2),
 	CALLDEF(warpDTW, 6),
 	CALLDEF(binUpdate, 3),
 	CALLDEF(binVector, 4),

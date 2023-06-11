@@ -281,6 +281,7 @@ export(
 	"filt1_pag",
 	"warp1_loc",
 	"warp1_dtw",
+	"icor",
 	"binvec",
 	"findbins",
 	"downsample",

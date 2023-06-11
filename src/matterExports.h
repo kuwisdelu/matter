@@ -67,6 +67,7 @@ SEXP bilateralFilter(SEXP x, SEXP width,
 	SEXP sddist, SEXP sdrange, SEXP spar);
 SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg, SEXP ftol);
+SEXP iCorr(SEXP x, SEXP y);
 SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 	SEXP tol, SEXP tol_ref);
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
