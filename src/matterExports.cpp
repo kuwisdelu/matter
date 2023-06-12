@@ -470,6 +470,51 @@ SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 	return result;
 }
 
+SEXP warpCOW(SEXP x, SEXP y, SEXP tx, SEXP ty,
+	SEXP x_nodes, SEXP y_nodes, SEXP tol, SEXP tol_ref)
+{
+	SEXP result;
+	size_t n = LENGTH(x_nodes);
+	PROTECT(result = Rf_allocMatrix(INTSXP, n, 2));
+	for ( index_t i = 0; i < n; i++ )
+	{
+		INTEGER(result)[i] = INTEGER_ELT(x_nodes, i);
+		INTEGER(result)[n + i] = INTEGER_ELT(y_nodes, i);
+	}
+	switch(TYPEOF(x)) {
+		case INTSXP: {
+				switch(TYPEOF(tx)) {
+					case INTSXP:
+						warp_cow(INTEGER(x), INTEGER(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+					case REALSXP:
+						warp_cow(INTEGER(x), INTEGER(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n , Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+				}
+			}
+			break;
+		case REALSXP: {
+				switch(TYPEOF(tx)) {
+					case INTSXP:
+						warp_cow(REAL(x), REAL(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+					case REALSXP:
+						warp_cow(REAL(x), REAL(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+				}
+			}
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper)
 {
 	SEXP ans, new_lower, new_upper;

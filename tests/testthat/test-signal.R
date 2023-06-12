@@ -77,8 +77,8 @@ test_that("warp + align", {
 	expect_equivalent(pz4[i], px, tolerance=1)
 
 	set.seed(1)
-	x <- 10:1
-	y <- 6:1 + runif(6)
+	x <- 1:17
+	y <- 1:18 + runif(18)
 	rxy <- cor(approx(seq_along(x), x, n=length(y))$y, y)
 	ryx <- cor(approx(seq_along(y), y, n=length(x))$y, x)
 	

@@ -343,23 +343,22 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 			0, ny, tol, tol_ref, NA_INTEGER);
 		wa[i + 1] = j;
 		wb[i + 1] = j;
-		if ( !isNA(j) )
-		{
-			for ( index_t k = j - 1; k >= 0; k-- ) {
-				if ( udiff(tx[i], ty[k], tol_ref) > tol )
-					break;
-				wa[i + 1] = k;
-			}
-			for ( index_t k = j; k < ny; k++ ) {
-				if ( udiff(tx[i], ty[k], tol_ref) > tol )
-					break;
-				wb[i + 1] = k + 1;
-			}
-			wa[i + 1]++;
-			wb[i + 1]++;
-			ptrD[i + 1] = nD;
-			nD += wb[i + 1] - wa[i + 1];
+		if ( isNA(j) )
+			Rf_error("tolerance window too small");
+		for ( index_t k = j - 1; k >= 0; k-- ) {
+			if ( udiff(tx[i], ty[k], tol_ref) > tol )
+				break;
+			wa[i + 1] = k;
 		}
+		for ( index_t k = j; k < ny; k++ ) {
+			if ( udiff(tx[i], ty[k], tol_ref) > tol )
+				break;
+			wb[i + 1] = k + 1;
+		}
+		wa[i + 1]++;
+		wb[i + 1]++;
+		ptrD[i + 1] = nD;
+		nD += wb[i + 1] - wa[i + 1];
 	}
 	// fill (sparse) cost matrix
 	double * D = R_Calloc(nD, double);
@@ -420,6 +419,8 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 template<typename T>
 double icor(T * x, T * y, size_t nx, size_t ny)
 {
+	if ( nx <= 1 || ny <= 1 )
+		return 0;
 	double xi[ny], ti0, ti1, tj, t;
 	double Lx = nx - 1, Ly = ny - 1;
 	for ( index_t i = 0, j = 0; i < nx - 1; i++ )
@@ -450,6 +451,78 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 		Sxy += (ux - xi[i]) * (uy - y[i]);
 	}
 	return Sxy / std::sqrt(Sxx * Syy);
+}
+
+template<typename Tx, typename Tt>
+void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
+	int * x_nodes, int * y_nodes, int n, double tol, int tol_ref = ABS_DIFF)
+{
+	// find node candidates where |tx - ty| <= tol
+	if ( n < 3 )
+		Rf_error("need at least 3 nodes");
+	int ptrW[n], wa[n], wb[n], nW;
+	ptrW[0] = 0, ptrW[1] = 1, nW = 1;
+	wa[0] = 0, wb[0] = 1;
+	wa[n - 1] = nx - 1, wb[n - 1] = nx;
+	for ( index_t i = 1; i < n - 1; i++ )
+	{
+		Tt tyi = ty[y_nodes[i]];
+		index_t j = x_nodes[i];
+		wa[i] = j;
+		wb[i] = j;
+		for ( index_t k = j - 1; k >= 0; k-- ) {
+			if ( udiff(tx[k], tyi, tol_ref) > tol )
+				break;
+			wa[i] = k;
+		}
+		for ( index_t k = j; k < nx; k++ ) {
+			if ( udiff(tx[k], tyi, tol_ref) > tol )
+				break;
+			wb[i] = k + 1;
+		}
+		nW += wb[i] - wa[i];
+		ptrW[i + 1] = nW;
+	}
+	nW++;
+	// fill (sparse) benefit/warp matrices
+	int * W = R_Calloc(nW, int);
+	double * F = R_Calloc(nW, double);
+	W[0] = x_nodes[0];
+	W[nW - 1] = x_nodes[n - 1];
+	F[nW - 1] = 0;
+	// loop through nodes
+	for ( index_t i = n - 2; i >= 0; i-- )
+	{
+		Tx * yw = y + y_nodes[i];
+		size_t nyw = y_nodes[i + 1] - y_nodes[i];
+		// loop through candidate node positions
+		for (index_t j = wa[i]; j < wb[i]; j++ )
+		{
+			index_t jj = ptrW[i] + (j - wa[i]);
+			F[jj] = R_NegInf;
+			// find optimal warp given previous/next node
+			for ( index_t k = wa[i + 1]; k < wb[i + 1]; k++ )
+			{
+				if ( k - j < 3 )
+					continue;
+				index_t kk = ptrW[i + 1] + (k - wa[i + 1]);
+				double f = icor(x + j, yw, k - j, nyw);
+				if ( f + F[kk] > F[jj] )
+				{
+					F[jj] = f + F[kk];
+					W[jj] = k;
+				}
+			}
+		}
+	}
+	// trace correlation-optimized path
+	for ( index_t i = 0; i < n - 1; i++ )
+	{
+		index_t j = (x_nodes[i] - wa[i]);
+		x_nodes[i + 1] = W[ptrW[i] + j];
+	}
+	Free(W);
+	Free(F);
 }
 
 //// Binning and downsampling

@@ -82,9 +82,9 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ey <- ty[which(locmin(y))]
 	}
 	if ( is.na(tol) ) {
-		# guess tol as ~1/10 of the signal length
-		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- (length(x) / 10) * mean(reldiff(tx, ref=ref))
+		# guess tol as ~5% of the signal length
+		xref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=xref))
 	}
 	# match events between signals
 	tout <- approx(tx, tx, n=n)$y
@@ -118,6 +118,7 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	xout <- spline(tshift, x, xout=tout,
 		ties=list("ordered", mean))$y
 	attr(xout, "path") <- path
+	attr(xout, "tol") <- setNames(tol, tol.ref)
 	xout
 }
 
@@ -133,11 +134,17 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	if ( is.double(tx) && is.integer(ty) )
 		ty <- as.double(ty)
 	if ( is.na(tol) ) {
-		# guess tol as ~1/10 of the signal length
-		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- (length(x) / 10) * mean(reldiff(tx, ref=ref))
+		# guess tol as ~5% of the signal length
+		xref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=xref))
 	}
 	# dynamic time warping to align signals
+	d0 <- abs(reldiff(tx[1L], ty[1L], ref=tol.ref))
+	dn <- abs(reldiff(tx[length(tx)], ty[length(ty)], ref=tol.ref))
+	if ( tol < d0 || tol < dn ) {
+		tol <- max(d0, dn)
+		warning("'tol' must be greater than ", tol)
+	}
 	path <- .Call(C_warpDTW, x, y, tx, ty,
 		tol, as_tol_ref(tol.ref), PACKAGE="matter")
 	i <- rev(path[!is.na(path[,1L]),1L]) + 1L
@@ -148,6 +155,7 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ties=list("ordered", mean), n=n)$y
 	xout <- approx(tx, x, xout=tout)$y
 	attr(xout, "path") <- path
+	attr(xout, "tol") <- setNames(tol, tol.ref)
 	xout
 }
 
@@ -162,6 +170,58 @@ icor <- function(x, y)
 	if ( anyNA(y) )
 		y <- y[!is.na(x)]
 	.Call(C_iCorr, x, y, PACKAGE="matter")
+}
+
+warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
+	nbins = NA_integer_, n = length(y), tol = NA_real_, tol.ref = "abs")
+{
+	if ( is.integer(x) && is.double(y) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(y) )
+		y <- as.double(y)
+	if ( is.integer(tx) && is.double(ty) )
+		tx <- as.double(tx)
+	if ( is.double(tx) && is.integer(ty) )
+		ty <- as.double(ty)
+	if ( is.na(tol) ) {
+		# guess tol as ~5% of the signal length
+		xref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=xref))
+	}
+	if ( is.na(nbins) ) {
+		# guess nbins so that bin widths are ~tol
+		xref <- ifelse(tol.ref == "abs", "abs", "y")
+		nbins <- abs(reldiff(tx[1L], tx[length(tx)], ref=xref)) %/% tol
+	}
+	# initialize nodes
+	if ( nbins < 2L )
+		stop("need at least 2 bins")
+	xb <- findbins(x, nbins=nbins, dynamic=FALSE, limits.only=TRUE)
+	ix <- c(1L, xb$upper)
+	yb <- findbins(y, nbins=nbins, dynamic=FALSE, limits.only=TRUE)
+	iy <- c(1L, yb$upper)
+	if ( any(xb$size < 3L) || any(yb$size < 3L) )
+		stop("too many bins (need at least 3 samples per bin)")
+	dmax <- max(abs(reldiff(tx[ix], ty[iy], ref=tol.ref)))
+	if ( tol < dmax ) {
+		tol <- dmax
+		warning("'tol' must be greater than ", tol)
+	}
+	# correlation optimized warping to align signals
+	path <- .Call(C_warpCOW, x, y, tx, ty,
+		as.integer(ix - 1L), as.integer(iy - 1L),
+		tol, as_tol_ref(tol.ref), PACKAGE="matter")
+	i <- path[,1L] + 1L
+	j <- path[,2L] + 1L
+	path <- data.frame(x=tx[i], y=ty[j])
+	tout <- unique(unlist(mapply(seq, from=i[-length(i)], to=i[-1L],
+		length.out=j[-1L] - j[-length(j)] + 1L, SIMPLIFY=FALSE)))
+	tout <- approx(seq_along(tout), tout,
+		ties=list("ordered", mean), n=n)$y
+	xout <- approx(tx, x, xout=tout)$y
+	attr(xout, "path") <- path
+	attr(xout, "tol") <- setNames(tol, tol.ref)
+	xout
 }
 
 #### Binning and downsampling ####
@@ -181,6 +241,7 @@ findbins <- function(x, nbins, dynamic = TRUE,
 	niter = NA, limits.only = FALSE)
 {
 	n <- floor(nbins)
+	# TODO check that this can be deleted
 	width <- ceiling(length(x) / n)
 	breaks <- floor(seq(from=width, to=length(x) - width, length.out=n - 1L))
 	lower <- c(1L, breaks + 1L)
