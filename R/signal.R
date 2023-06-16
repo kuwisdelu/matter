@@ -737,15 +737,15 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 
 # exported version with argument checking (safer, easier)
 
-resample1 <- function(x, y, xi, n = length(x),
+resample1 <- function(x, y, xout, n = length(x),
 	tol = NA_real_, tol.ref = "abs", interp = "linear")
 {
-	if ( missing(xi) )
-		xi <- seq(from=min(x), to=max(x), length.out=n)
-	if ( is.integer(x) && is.double(xi) )
+	if ( missing(xout) )
+		xout <- seq(from=min(x), to=max(x), length.out=n)
+	if ( is.integer(x) && is.double(xout) )
 		x <- as.double(x)
-	if ( is.double(x) && is.integer(xi) )
-		xi <- as.double(xi)
+	if ( is.double(x) && is.integer(xout) )
+		xout <- as.double(xout)
 	if ( is.unsorted(x) ) {
 		ord <- order(x)
 		x <- x[ord]
@@ -756,16 +756,16 @@ resample1 <- function(x, y, xi, n = length(x),
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		tol <- 2 * max(reldiff(x, ref=ref))
 	}
-	resample1_int(x, y, xi=xi, tol=tol,
+	resample1_int(x, y, xout=xout, tol=tol,
 		tol.ref=as_tol_ref("abs"), interp=as_interp(interp))
 }
 
 # internal version with no argument checking
 
-resample1_int <- function(x, y, xi,
+resample1_int <- function(x, y, xout,
 	tol, tol.ref = 1L, interp = 1L)
 {
-	.Call(C_fastApprox1, xi, x, y, tol, tol.ref,
+	.Call(C_Approx1, xout, x, y, tol, tol.ref,
 		NA_real_, interp, PACKAGE="matter")
 }
 

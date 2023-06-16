@@ -781,7 +781,7 @@ SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 	return ans;
 }
 
-SEXP fastApprox1(SEXP x, SEXP keys, SEXP values,
+SEXP Approx1(SEXP x, SEXP keys, SEXP values,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp)
 {
 	if ( TYPEOF(x) != TYPEOF(keys) )
