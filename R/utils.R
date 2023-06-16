@@ -271,7 +271,7 @@ as_interp <- function(x) {
 		# simple interp (1-5)
 		"none", "mean", "sum", "max", "min",
 		# peak-based (6)
-		"auc",
+		"area",
 		# spline interp (7-8)
 		"linear", "cubic",
 		# kernel interp (9-10)
@@ -279,8 +279,12 @@ as_interp <- function(x) {
 	make_code(codes, x)
 }
 
-as_binfun <- function(x) {
-	codes <- c("sum", "mean", "max", "min")
+as_binstat <- function(x) {
+	codes <- c(
+		# location (1-4)
+		"sum", "mean", "max", "min",
+		# spread (5-7)
+		"sd", "var", "sse")
 	make_code(codes, x[1L], nomatch=1L)
 }
 
@@ -656,6 +660,55 @@ lmatmul <- function(x, y, useOuter = FALSE) {
 			ans[,i] <- x %*% y[,i,drop=FALSE]
 	}
 	ans
+}
+
+lr <- function(x, y) {
+	ux <- mean(x)
+	uy <- mean(y)
+	sxx <- var(x)
+	sxy <- cov(x, y)
+	b <- sxy / sxx
+	a <- uy - b * ux
+	list(coef=c(a, b), n=length(x),
+		x=ux, y=uy, xx=sxx, xy=sxy)
+}
+
+lr_update <- function(fit, x, y) {
+	n <- fit$n + length(x)
+	ux <- (fit$n * fit$x + sum(x)) / n
+	uy <- (fit$n * fit$y + sum(y)) / n
+	qx <- sqrt(fit$n) * fit$x + sqrt(n) * ux
+	qx <- qx / (sqrt(fit$n) + sqrt(n))
+	qy <- sqrt(fit$n) * fit$y + sqrt(n) * uy
+	qy <- qy / (sqrt(fit$n) + sqrt(n))
+	sxx <- (fit$n - 1) * fit$xx + sum((x - qx) * (x - qx))
+	sxx <- sxx / (n - 1)
+	sxy <- (fit$n - 1) * fit$xy + sum((x - qx) * (y - qy))
+	sxy <- sxy / (n - 1)
+	b <- sxy / sxx
+	a <- uy - b * ux
+	list(coef=c(a, b), n=n,
+		x=ux, y=uy, xx=sxx, xy=sxy)
+}
+
+lr_predict <- function(fit, xi) {
+	sum(fit$coef * c(1, xi))
+}
+
+# A sequence with half-bin-widths in relative units
+# x = bin center, y = half-width, d = relative diff
+# y[n] = d * x[n]
+# y[n+1] = d * (x[n] - y[n])) / (1 - d)
+# x[n+1] = x[n] + y[n] + y[n+1]
+# => x[n] ((1 + d) / (1 - d))^n * x[0]
+# log x[n] = n log {(1 + d) / (1 - d)} + log x[0]
+# => n = (log x[n] - log x[0]) / log {(1 + d) / (1 - d)}
+seq_rel <- function(from, to, by) {
+	half <- by / 2
+	length.out <- (log(to) - log(from)) / log((1 + half) / (1 - half))
+	length.out <- floor(1 + length.out)
+	i <- seq_len(length.out)
+	from * ((1 + half) / (1 - half))^(i - 1)
 }
 
 #### Utilities for working with raw bytes and memory ####

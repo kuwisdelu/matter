@@ -5,21 +5,47 @@ context("search")
 
 test_that("relative difference", {
 
-	expect_equal(reldiff(3L, 4L), abs(3 - 4))
-	expect_equal(reldiff(3L, 4L, ref="x"), abs(3 - 4) / 3)
-	expect_equal(reldiff(3L, 4L, ref="y"), abs(3 - 4) / 4)
-	expect_equal(reldiff(3, 3.14), abs(3 - 3.14))
-	expect_equal(reldiff(3, 3.14, ref="x"), abs(3 - 3.14) / 3)
-	expect_equal(reldiff(3, 3.14, ref="y"), abs(3 - 3.14) / 3.14)
+	expect_equal(reldiff(1:10, ref="abs"), rep.int(1, 9))
+	expect_equal(reldiff(1:10, ref="x"), rep.int(1, 9) / 2:10)
+	expect_equal(reldiff(1:10, ref="y"), rep.int(1, 9) / 1:9)
+	expect_equal(reldiff(3L, 4L, ref="abs"), (3 - 4))
+	expect_equal(reldiff(3L, 4L, ref="x"), (3 - 4) / 3)
+	expect_equal(reldiff(3L, 4L, ref="y"), (3 - 4) / 4)
+	expect_equal(reldiff(3, 3.14, ref="abs"), (3 - 3.14))
+	expect_equal(reldiff(3, 3.14, ref="x"), (3 - 3.14) / 3)
+	expect_equal(reldiff(3, 3.14, ref="y"), (3 - 3.14) / 3.14)
 	expect_equal(reldiff("abc", "abc"), 0)
-	expect_equal(reldiff("abc", "abcd"), 1)
-	expect_equal(reldiff("abc", "abbd"), 2)
-	expect_equal(reldiff("abc", "bbbd"), 4)
-	expect_equal(reldiff("abc", "bbc"), 3)
-	expect_equal(reldiff("abc", "abcd", ref="x"), 1 / 3)
-	expect_equal(reldiff("abc", "abcd", ref="y"), 1 / 4)
+	expect_equal(reldiff("abc", "abcd", ref="abs"), -1)
+	expect_equal(reldiff("abc", "abbd", ref="abs"), 2)
+	expect_equal(reldiff("abc", "bbbd", ref="abs"), -4)
+	expect_equal(reldiff("abc", "bbc", ref="abs"), -3)
+	expect_equal(reldiff("abc", "abcd", ref="x"), -1 / 3)
+	expect_equal(reldiff("abc", "abcd", ref="y"), -1 / 4)
 	expect_equal(reldiff("abc", "abbd", ref="x"), 2 / 3)
 	expect_equal(reldiff("abc", "abbd", ref="y"), 2 / 4)
+
+})
+
+test_that("quick select + median + mad", {
+
+	set.seed(1)
+	u1 <- as.numeric(sample(100L))
+	u2 <- as.numeric(sample(101L))
+	u3 <- c(0,1,0,1,0,0,3,2,2,2,4,4,8,2,0,0)
+
+	expect_equal(qselect(u1, 1L), min(u1))
+	expect_equal(qselect(u1, 100L), max(u1))
+	expect_equal(qselect(u2, 51L), median(u2))
+	expect_equal(qselect(u3, 1L), 0)
+	expect_equal(qselect(u3, 8L), 1)
+	expect_equal(qselect(u3, 9L), 2)
+	expect_equal(qselect(u3, 16L), 8)
+	expect_equal(qmedian(u1), median(u1))
+	expect_equal(qmedian(u2), median(u2))
+	expect_equal(qmedian(u3), median(u3))
+	expect_equal(qmad(u1), mad(u1))
+	expect_equal(qmad(u2), mad(u2))
+	expect_equal(qmad(u3), mad(u3))
 
 })
 
@@ -103,6 +129,12 @@ test_that("approx search (sorted) - doubles", {
 	expect_equal(vals[3], asearch(3.0, keys, vals, tol=0.2, tol.ref="x"))
 	expect_equal(vals[3], asearch(3.0, keys, vals, tol=0.1, tol.ref="y"))
 
+	fun <- function(xi) which.min(abs(xi - keys))
+	x2 <- seq(from=1, to=4, length.out=20)
+	y2 <- vals[vapply(x2, fun, integer(1))]
+
+	expect_equal(y2, asearch(x2, keys, vals, tol=Inf))
+
 })
 
 test_that("approx search (unsorted) - doubles", {
@@ -143,58 +175,3 @@ test_that("approx search (unsorted) - strings", {
 	expect_equal(vals[c(5, 3, 1)], asearch(x, keys, vals, tol=Inf))
 
 })
-
-test_that("approx search (sorted) - interpolation", {
-
-	keys <- c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0)
-	vals <- keys
-	x <- c(1.0, 2.0, 3.33, 5.0)
-
-	expect_equal(c(1.0, 2.0, 3.33, NA), asearch(x, keys, vals))
-	expect_equal(c(1.0, 2.0, 3.33, NA), asearch(x, keys, vals, tol=0.5))
-
-	test1 <- c(1.0+1.01+1.11, 2.0+2.22, 3.0+3.33+3.333, NA)
-	expect_equal(test1, asearch(x, keys, vals, tol=0.5, interp="sum"))
-
-	test2 <- c((1.0+1.01+1.11)/3, (2.0+2.22)/2, (3.0+3.33+3.333)/3, NA)
-	expect_equal(test2, asearch(x, keys, vals, tol=0.5, interp="mean"))
-
-	test3 <- c(1.11, 2.22, 3.333, NA)
-	expect_equal(test3, asearch(x, keys, vals, tol=0.5, interp="max"))
-
-	x2 <- seq(from=1, to=3, by=0.2)
-	expect_equal(x2, asearch(x2, keys, vals, tol=1, interp="linear"))
-	expect_equal(x2, asearch(x2, keys, vals, tol=2, interp="cubic"))
-
-	x3 <- seq(from=1, to=3, by=0.05)
-	expect_equal(x3, asearch(x3, keys, vals, tol=1, interp="linear"))
-
-})
-
-test_that("approx search (unsorted) - interpolation", {
-
-	keys <- rev(c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0))
-	vals <- keys
-	x <- c(1.0, 2.0, 3.33, 5.0)
-
-	expect_equal(c(1.0, 2.0, 3.33, NA), asearch(x, keys, vals))
-	expect_equal(c(1.0, 2.0, 3.33, NA), asearch(x, keys, vals, tol=0.5))
-
-	test1 <- c(1.0+1.01+1.11, 2.0+2.22, 3.0+3.33+3.333, NA)
-	expect_equal(test1, asearch(x, keys, vals, tol=0.5, interp="sum"))
-
-	test2 <- c((1.0+1.01+1.11)/3, (2.0+2.22)/2, (3.0+3.33+3.333)/3, NA)
-	expect_equal(test2, asearch(x, keys, vals, tol=0.5, interp="mean"))
-
-	test3 <- c(1.11, 2.22, 3.333, NA)
-	expect_equal(test3, asearch(x, keys, vals, tol=0.5, interp="max"))
-
-	x2 <- seq(from=1, to=3, by=0.2)
-	expect_equal(x2, asearch(x2, keys, vals, tol=1, interp="linear"))
-	expect_equal(x2, asearch(x2, keys, vals, tol=2, interp="cubic"))
-
-	x3 <- seq(from=1, to=3, by=0.05)
-	expect_equal(x3, asearch(x3, keys, vals, tol=1, interp="linear"))
-
-})
-

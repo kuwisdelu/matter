@@ -17,6 +17,7 @@ importFrom("Matrix",
 	"colMeans")
 
 importFrom("stats",
+	"runmed",
 	"median",
 	"update",
 	"na.omit")
@@ -251,6 +252,7 @@ export(
 	".colStats")
 
 export(
+	"chunkify",
 	"chunk_apply",
 	"chunk_rowapply",
 	"chunk_colapply",
@@ -276,11 +278,41 @@ export(
 	"vm_used")
 
 export(
+	"filt1_ma",
+	"filt1_gauss",
+	"filt1_bi",
+	"filt1_adapt",
+	"filt1_guide",
+	"filt1_pag",
+	"warp1_loc",
+	"warp1_dtw",
+	"warp1_cow",
+	"icor",
 	"binvec",
+	"findbins",
+	"downsample",
 	"locmax",
-	"findpeaks")
+	"locmin",
+	"estbase_loc",
+	"estbase_hull",
+	"estbase_snip",
+	"estbase_med",
+	"estnoise_filt",
+	"estnoise_sd",
+	"estnoise_mad",
+	"estnoise_diff",
+	"estnoise_smooth",
+	"findpeaks",
+	"binpeaks",
+	"mergepeaks",
+	"peakwidths",
+	"peakareas",
+	"resample1",
+	"simspectra")
 
-export("roll")
+export(
+	"roll",
+	"seq_rel")
 
 exportMethods(
 	"apply",
@@ -294,6 +326,9 @@ exportMethods("prcomp")
 exportMethods("bigglm")
 
 export(
+	"qselect",
+	"qmedian",
+	"qmad",
 	"reldiff",
 	"asearch",
 	"bsearch")

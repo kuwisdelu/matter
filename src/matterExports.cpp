@@ -3,6 +3,55 @@
 
 extern "C" {
 
+// Select (k-th order and median)
+//--------------------------------
+
+SEXP quickSelect(SEXP x, SEXP k)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(TYPEOF(x), LENGTH(k)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_quick_select(INTEGER(result),INTEGER(x), 0, XLENGTH(x),
+				INTEGER(k), LENGTH(k));
+			break;
+		case REALSXP:
+			do_quick_select(REAL(result), REAL(x), 0, XLENGTH(x),
+				INTEGER(k), LENGTH(k));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP quickMedian(SEXP x)
+{
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			return Rf_ScalarReal(quick_median(INTEGER(x), XLENGTH(x)));
+		case REALSXP:
+			return Rf_ScalarReal(quick_median(REAL(x), XLENGTH(x)));
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
+SEXP quickMAD(SEXP x, SEXP center, SEXP constant)
+{
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			return Rf_ScalarReal(quick_mad(INTEGER(x), XLENGTH(x),
+				Rf_asReal(center), Rf_asReal(constant)));
+		case REALSXP:
+			return Rf_ScalarReal(quick_mad(REAL(x), XLENGTH(x),
+				Rf_asReal(center), Rf_asReal(constant)));
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
 // Search (binary and approximate)
 //--------------------------------
 
@@ -10,30 +59,35 @@ SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
 {
 	if ( TYPEOF(x) != TYPEOF(y) )
 		Rf_error("'x' and 'y' must have the same type");
-	return Rf_ScalarReal(rel_diff(x, y, Rf_asInteger(ref)));
+	return Rf_ScalarReal(sdiff(x, y, Rf_asInteger(ref)));
 }
 
 SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 	SEXP tol_ref, SEXP nomatch, SEXP nearest)
 {
-	if ( TYPEOF(x) != TYPEOF(table) )
-		Rf_error("'x' and 'table' must have the same type");
-	if ( Rf_asReal(tol) < 0 )
-		Rf_error("'tol' must be non-negative");
-	return do_binary_search(x, table, Rf_asReal(tol), Rf_asInteger(tol_ref),
-		Rf_asInteger(nomatch), Rf_asLogical(nearest), TRUE);
-}
-
-SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
-	SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted)
-{
-	if ( TYPEOF(x) != TYPEOF(keys) )
-		Rf_error("'x' and 'keys' must have the same type");
-	if ( Rf_asReal(tol) < 0 )
-		Rf_error("'tol' must be non-negative");
-	return do_approx_search(x, keys, values,
-		Rf_asReal(tol), Rf_asInteger(tol_ref), nomatch,
-		Rf_asInteger(interp), Rf_asLogical(sorted));
+	SEXP pos;
+	PROTECT(pos = Rf_allocVector(INTSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_binary_search(INTEGER(pos), INTEGER(x), LENGTH(x), INTEGER(table),
+				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
+				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
+			break;
+		case REALSXP:
+			do_binary_search(INTEGER(pos), REAL(x), LENGTH(x), REAL(table),
+				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
+				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
+			break;
+		case STRSXP:
+			do_binary_search(INTEGER(pos), STRING_PTR(x), LENGTH(x), STRING_PTR(table),
+				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
+				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return pos;
 }
 
 // Compression (delta run length encoding)
@@ -276,20 +330,319 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j)
 // Signal processing
 //------------------
 
-SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP func)
+SEXP meanFilter(SEXP x, SEXP width)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			mean_filter(INTEGER(x), LENGTH(x),
+				Rf_asInteger(width), REAL(result));
+			break;
+		case REALSXP:
+			mean_filter(REAL(x), LENGTH(x),
+				Rf_asInteger(width), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP linearFilter(SEXP x, SEXP weights)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			linear_filter(INTEGER(x), LENGTH(x), INTEGER(weights),
+				LENGTH(weights), REAL(result));
+			break;
+		case REALSXP:
+			linear_filter(REAL(x), LENGTH(x), REAL(weights),
+				LENGTH(weights), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP bilateralFilter(SEXP x, SEXP width,
+	SEXP sddist, SEXP sdrange, SEXP spar)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			bilateral_filter(INTEGER(x), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sddist), Rf_asReal(sdrange),
+				Rf_asReal(spar), REAL(result));
+			break;
+		case REALSXP:
+			bilateral_filter(REAL(x), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sddist), Rf_asReal(sdrange),
+				Rf_asReal(spar), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
+	SEXP sdreg, SEXP ftol)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			guided_filter(INTEGER(x), INTEGER(g), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sdreg), Rf_asReal(ftol), REAL(result));
+			break;
+		case REALSXP:
+			guided_filter(REAL(x), REAL(g), LENGTH(x), Rf_asInteger(width),
+				Rf_asReal(sdreg), Rf_asReal(ftol), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP iCorr(SEXP x, SEXP y)
+{
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			return Rf_ScalarReal(icor(INTEGER(x), INTEGER(y),
+				XLENGTH(x), XLENGTH(y)));
+			break;
+		case REALSXP:
+			return Rf_ScalarReal(icor(REAL(x), REAL(y),
+				XLENGTH(x), XLENGTH(y)));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+}
+
+SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
+	SEXP tol, SEXP tol_ref)
+{
+	SEXP result;
+	size_t n = LENGTH(x) + LENGTH(y) - 1;
+	PROTECT(result = Rf_allocMatrix(INTSXP, n, 2));
+	switch(TYPEOF(x)) {
+		case INTSXP: {
+				switch(TYPEOF(tx)) {
+					case INTSXP:
+						warp_dtwc(INTEGER(x), INTEGER(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+					case REALSXP:
+						warp_dtwc(INTEGER(x), INTEGER(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+				}
+			}
+			break;
+		case REALSXP: {
+				switch(TYPEOF(tx)) {
+					case INTSXP:
+						warp_dtwc(REAL(x), REAL(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+					case REALSXP:
+						warp_dtwc(REAL(x), REAL(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+				}
+			}
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP warpCOW(SEXP x, SEXP y, SEXP tx, SEXP ty,
+	SEXP x_nodes, SEXP y_nodes, SEXP tol, SEXP tol_ref)
+{
+	SEXP result;
+	size_t n = LENGTH(x_nodes);
+	PROTECT(result = Rf_allocMatrix(INTSXP, n, 2));
+	for ( index_t i = 0; i < n; i++ )
+	{
+		INTEGER(result)[i] = INTEGER_ELT(x_nodes, i);
+		INTEGER(result)[n + i] = INTEGER_ELT(y_nodes, i);
+	}
+	switch(TYPEOF(x)) {
+		case INTSXP: {
+				switch(TYPEOF(tx)) {
+					case INTSXP:
+						warp_cow(INTEGER(x), INTEGER(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+					case REALSXP:
+						warp_cow(INTEGER(x), INTEGER(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n , Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+				}
+			}
+			break;
+		case REALSXP: {
+				switch(TYPEOF(tx)) {
+					case INTSXP:
+						warp_cow(REAL(x), REAL(y), INTEGER(tx), INTEGER(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+					case REALSXP:
+						warp_cow(REAL(x), REAL(y), REAL(tx), REAL(ty), LENGTH(x), LENGTH(y),
+							INTEGER(result), INTEGER(result) + n, n, Rf_asReal(tol), Rf_asInteger(tol_ref));
+						break;
+				}
+			}
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP binUpdate(SEXP score, SEXP lower, SEXP upper)
+{
+	SEXP ans, new_lower, new_upper;
+	if ( LENGTH(score) != LENGTH(lower) )
+		Rf_error("scores and bounds must have equal length");
+	if ( LENGTH(lower) != LENGTH(upper) )
+		Rf_error("lower and upper bounds must have equal length");
+	PROTECT(new_lower = Rf_allocVector(INTSXP, LENGTH(lower)));
+	PROTECT(new_upper = Rf_allocVector(INTSXP, LENGTH(upper)));
+	PROTECT(ans = Rf_allocVector(VECSXP, 2));
+	bin_update(REAL(score), INTEGER(lower), INTEGER(upper),
+		LENGTH(lower), INTEGER(new_lower), INTEGER(new_upper));
+	SET_VECTOR_ELT(ans, 0, new_lower);
+	SET_VECTOR_ELT(ans, 1, new_upper);
+	UNPROTECT(3);
+	return ans;
+}
+
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 {
 	SEXP ans;
 	if ( LENGTH(lower) != LENGTH(upper) )
 		Rf_error("lower and upper bounds must have equal length");
-	PROTECT(ans = Rf_allocVector(REALSXP, XLENGTH(upper)));
+	PROTECT(ans = Rf_allocVector(REALSXP, XLENGTH(lower)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			bin_vector(INTEGER(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				REAL(ans), LENGTH(upper), Rf_asInteger(func));
+				LENGTH(lower), REAL(ans), Rf_asInteger(stat));
 			break;
 		case REALSXP:
 			bin_vector(REAL(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				REAL(ans), LENGTH(upper), Rf_asInteger(func));
+				LENGTH(lower), REAL(ans), Rf_asInteger(stat));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
+SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper)
+{
+	SEXP ans;
+	if ( LENGTH(x) != LENGTH(t) )
+		Rf_error("x and t must have equal length");
+	if ( LENGTH(lower) != LENGTH(upper) )
+		Rf_error("lower and upper bounds must have equal length");
+	PROTECT(ans = Rf_allocVector(INTSXP, XLENGTH(lower)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			downsample_ltob(INTEGER(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans), true);
+			break;
+		case REALSXP:
+			downsample_ltob(REAL(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
+SEXP downsampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper)
+{
+	SEXP ans;
+	if ( LENGTH(x) != LENGTH(t) )
+		Rf_error("x and t must have equal length");
+	if ( LENGTH(lower) != LENGTH(upper) )
+		Rf_error("lower and upper bounds must have equal length");
+	PROTECT(ans = Rf_allocVector(INTSXP, XLENGTH(lower)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			downsample_lttb(INTEGER(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans), true);
+			break;
+		case REALSXP:
+			downsample_lttb(REAL(x), REAL(t), LENGTH(x),
+				INTEGER(lower), INTEGER(upper), LENGTH(lower),
+				INTEGER(ans), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
+SEXP convexHull(SEXP x, SEXP y, SEXP upper)
+{
+	SEXP ans;
+	if ( LENGTH(x) != LENGTH(y) )
+		Rf_error("x and y must have equal length");
+	PROTECT(ans = Rf_allocVector(INTSXP, LENGTH(x)));
+	size_t h;
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			h = convex_hull(INTEGER(x), INTEGER(y), LENGTH(x),
+				INTEGER(ans), Rf_asLogical(upper));
+			break;
+		case REALSXP:
+			h = convex_hull(REAL(x), REAL(y), LENGTH(x),
+				INTEGER(ans), Rf_asLogical(upper));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	PROTECT(ans = extract_region(ans, 0, h));
+	UNPROTECT(2);
+	return ans;
+}
+
+SEXP smoothSNIP(SEXP x, SEXP m, SEXP decreasing)
+{
+	SEXP ans;
+	PROTECT(ans = Rf_allocVector(TYPEOF(x), LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			smooth_snip(INTEGER(x), LENGTH(x), INTEGER(ans),
+				Rf_asInteger(m), Rf_asLogical(decreasing));
+			break;
+		case REALSXP:
+			smooth_snip(REAL(x), LENGTH(x), REAL(ans),
+				Rf_asInteger(m), Rf_asLogical(decreasing));
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -305,11 +658,11 @@ SEXP localMaxima(SEXP x, SEXP width)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			local_maxima(INTEGER(x), LENGTH(x),
-				Rf_asInteger(width), LOGICAL(ans));
+				LOGICAL(ans), Rf_asInteger(width));
 			break;
 		case REALSXP:
 			local_maxima(REAL(x), LENGTH(x),
-				Rf_asInteger(width), LOGICAL(ans));
+				LOGICAL(ans), Rf_asInteger(width));
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -318,7 +671,7 @@ SEXP localMaxima(SEXP x, SEXP width)
 	return ans;
 }
 
-SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
+SEXP peakBoundaries(SEXP x, SEXP peaks)
 {
 	SEXP ans, left_bounds, right_bounds;
 	PROTECT(left_bounds = Rf_allocVector(INTSXP, LENGTH(peaks)));
@@ -327,12 +680,12 @@ SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			peak_boundaries(INTEGER(x), LENGTH(x),
-				Rf_asInteger(width), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(peaks), LENGTH(peaks),
 				INTEGER(left_bounds), INTEGER(right_bounds));
 			break;
 		case REALSXP:
 			peak_boundaries(REAL(x), LENGTH(x),
-				Rf_asInteger(width), INTEGER(peaks), LENGTH(peaks),
+				INTEGER(peaks), LENGTH(peaks),
 				INTEGER(left_bounds), INTEGER(right_bounds));
 			break;
 		default:
@@ -342,6 +695,155 @@ SEXP peakBoundaries(SEXP x, SEXP width, SEXP peaks)
 	SET_VECTOR_ELT(ans, 1, right_bounds);
 	UNPROTECT(3);
 	return ans;
+}
+
+SEXP peakBases(SEXP x, SEXP peaks)
+{
+	SEXP ans, left_bases, right_bases;
+	PROTECT(left_bases = Rf_allocVector(INTSXP, LENGTH(peaks)));
+	PROTECT(right_bases = Rf_allocVector(INTSXP, LENGTH(peaks)));
+	PROTECT(ans = Rf_allocVector(VECSXP, 2));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			peak_bases(INTEGER(x), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_bases), INTEGER(right_bases));
+			break;
+		case REALSXP:
+			peak_bases(REAL(x), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_bases), INTEGER(right_bases));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	SET_VECTOR_ELT(ans, 0, left_bases);
+	SET_VECTOR_ELT(ans, 1, right_bases);
+	UNPROTECT(3);
+	return ans;
+}
+
+SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
+	SEXP left_limits, SEXP right_limits, SEXP heights)
+{
+	SEXP ans, left_ips, right_ips;
+	if ( LENGTH(x) != LENGTH(domain) )
+		Rf_error("signal and domain must have equal length");
+	PROTECT(left_ips = Rf_allocVector(REALSXP, LENGTH(peaks)));
+	PROTECT(right_ips = Rf_allocVector(REALSXP, LENGTH(peaks)));
+	PROTECT(ans = Rf_allocVector(VECSXP, 2));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			peak_widths(INTEGER(x), REAL(domain), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_limits), INTEGER(right_limits), REAL(heights),
+				REAL(left_ips), REAL(right_ips));
+			break;
+		case REALSXP:
+			peak_widths(REAL(x), REAL(domain), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_limits), INTEGER(right_limits), REAL(heights),
+				REAL(left_ips), REAL(right_ips));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	SET_VECTOR_ELT(ans, 0, left_ips);
+	SET_VECTOR_ELT(ans, 1, right_ips);
+	UNPROTECT(3);
+	return ans;
+}
+
+SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
+	SEXP left_limits, SEXP right_limits)
+{
+	SEXP ans;
+	if ( LENGTH(x) != LENGTH(domain) )
+		Rf_error("signal and domain must have equal length");
+	PROTECT(ans = Rf_allocVector(REALSXP, LENGTH(peaks)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			peak_areas(INTEGER(x), REAL(domain), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_limits), INTEGER(right_limits),
+				REAL(ans));
+			break;
+		case REALSXP:
+			peak_areas(REAL(x), REAL(domain), LENGTH(x),
+				INTEGER(peaks), LENGTH(peaks),
+				INTEGER(left_limits), INTEGER(right_limits),
+				REAL(ans));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
+SEXP Approx1(SEXP x, SEXP keys, SEXP values,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp)
+{
+	if ( TYPEOF(x) != TYPEOF(keys) )
+		Rf_error("'x' and 'keys' must have the same type");
+	if ( Rf_asReal(tol) < 0 )
+		Rf_error("'tol' must be non-negative");
+	SEXP result;
+	PROTECT(result = Rf_allocVector(TYPEOF(values), LENGTH(x)));
+	switch(TYPEOF(values)) {
+		case INTSXP:
+			switch(TYPEOF(x)) {
+				case INTSXP:
+					do_approx1<int,int>(INTEGER(result), INTEGER(x), LENGTH(x),
+						INTEGER(keys), INTEGER(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case REALSXP:
+					do_approx1<double,int>(INTEGER(result), REAL(x), LENGTH(x),
+						REAL(keys), INTEGER(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case STRSXP:
+					do_approx1<SEXP,int>(INTEGER(result), STRING_PTR(x), LENGTH(x),
+						STRING_PTR(keys), INTEGER(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asInteger(interp));
+					break;
+				default:
+					Rf_error("unsupported key type");
+			}
+			break;
+		case REALSXP:
+			switch(TYPEOF(x)) {
+				case INTSXP:
+					do_approx1<int,double>(REAL(result), INTEGER(x), LENGTH(x),
+						INTEGER(keys), REAL(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case REALSXP:
+					do_approx1<double,double>(REAL(result), REAL(x), LENGTH(x),
+						REAL(keys), REAL(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
+						Rf_asInteger(interp));
+					break;
+				case STRSXP:
+					do_approx1<SEXP,double>(REAL(result), STRING_PTR(x), LENGTH(x),
+						STRING_PTR(keys), REAL(values), 0, LENGTH(values),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
+						Rf_asInteger(interp));
+					break;
+				default:
+					Rf_error("unsupported key type");
+			}
+			break;
+		default:
+			Rf_error("unsupported value type");
+	}
+	UNPROTECT(1);
+	return result;
 }
 
 } // extern "C"

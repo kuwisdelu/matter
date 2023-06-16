@@ -163,8 +163,41 @@ inline index_t IndexElt(SEXP indx, index_t i)
 	}
 }
 
+//// Numeric limits
+//------------------
+
+template<typename T>
+T MIN_VAL();
+
+template<typename T>
+T MAX_VAL();
+
+template<> inline
+int MIN_VAL<int>()
+{
+	return INT_MIN;
+}
+
+template<> inline
+int MAX_VAL<int>()
+{
+	return INT_MAX;
+}
+
+template<> inline
+double MIN_VAL<double>()
+{
+	return -DBL_MAX;
+}
+
+template<> inline
+double MAX_VAL<double>()
+{
+	return DBL_MAX;
+}
+
 //// Generate NA
-//---------------
+//----------------
 
 template<typename T>
 T NA();
@@ -345,9 +378,9 @@ class ArrayInterface {
 //// Comparison
 //--------------
 
-// absolute or relative (signed) change
+// signed absolute or relative difference
 template<typename T>
-double rel_change(T x, T y, int ref = ABS_DIFF)
+double sdiff(T x, T y, int ref = ABS_DIFF)
 {
 	switch(ref) {
 		case ABS_DIFF:
@@ -362,7 +395,7 @@ double rel_change(T x, T y, int ref = ABS_DIFF)
 }
 
 template<> inline
-double rel_change(const char * x, const char * y, int ref)
+double sdiff(const char * x, const char * y, int ref)
 {
 	int i = -1, sign = 1;
 	int n = 0, nx = 0, ny = 0;
@@ -394,34 +427,34 @@ double rel_change(const char * x, const char * y, int ref)
 }
 
 template<> inline
-double rel_change(SEXP x, SEXP y, int ref)
+double sdiff(SEXP x, SEXP y, int ref)
 {
 	if ( TYPEOF(x) != TYPEOF(y) )
 		Rf_error("'x' and 'y' must have the same type");
 	switch(TYPEOF(x)) {
 		case CHARSXP:
-			return rel_change(CHAR(x), CHAR(y), ref);
+			return sdiff(CHAR(x), CHAR(y), ref);
 		case STRSXP:
-			return rel_change(CHAR(Rf_asChar(x)), CHAR(Rf_asChar(y)), ref);
+			return sdiff(CHAR(Rf_asChar(x)), CHAR(Rf_asChar(y)), ref);
 		case INTSXP:
-			return rel_change(Rf_asInteger(x), Rf_asInteger(y), ref);
+			return sdiff(Rf_asInteger(x), Rf_asInteger(y), ref);
 		case REALSXP:
-			return rel_change(Rf_asReal(x), Rf_asReal(y), ref);
+			return sdiff(Rf_asReal(x), Rf_asReal(y), ref);
 		default:
 			Rf_error("unsupported data type");
 	}
 }
 
-// absolute or relative (unsigned) difference
+// unsigned absolute or relative difference
 template<typename T>
-double rel_diff(T x, T y, int ref = ABS_DIFF)
+double udiff(T x, T y, int ref = ABS_DIFF)
 {
-	return std::fabs(rel_change<T>(x, y, ref));
+	return std::fabs(sdiff(x, y, ref));
 }
 
-inline int switch_tol_ref(int tol_ref)
+inline int switch_diff_ref(int ref)
 {
-	switch(tol_ref) {
+	switch(ref) {
 		case ABS_DIFF:
 			return ABS_DIFF;
 		case REL_DIFF_X:
@@ -435,7 +468,7 @@ inline int switch_tol_ref(int tol_ref)
 template<typename T>
 inline bool equal(T x, T y, double tol = DBL_EPSILON)
 {
-	return rel_diff<T>(x, y) <= tol;
+	return udiff<T>(x, y) <= tol;
 }
 
 //// Misc utilities

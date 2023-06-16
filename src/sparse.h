@@ -2,7 +2,7 @@
 #define SPARSE
 
 #include "matter.h"
-#include "search.h"
+#include "signal.h"
 
 class Sparse : public ArrayInterface {
 
@@ -347,9 +347,9 @@ class SparseArray : public Sparse {
 			{
 				Tind subscripts [size];
 				copy_domain<Tind>(i, size, subscripts);
-				nnz = do_approx_search<Tind,Tval>(buffer,
-					subscripts, size, j, x, tol(), tol_ref(),
-						zero<Tval>(), sampler(), true, stride);
+				nnz = do_approx1<Tind,Tval>(buffer, subscripts, size,
+					DataPtr<Tind>(j), DataPtr<Tval>(x), 0, XLENGTH(j),
+					tol(), tol_ref(), zero<Tval>(), sampler(), stride);
 			}
 			else
 			{
@@ -387,9 +387,9 @@ class SparseArray : public Sparse {
 			PROTECT(x = data(at));
 			Tind subscripts [XLENGTH(indx)];
 			copy_domain<Tind>(indx, subscripts);
-			size_t nnz = do_approx_search<Tind,Tval>(buffer,
-				subscripts, XLENGTH(indx), j, x, tol(), tol_ref(),
-					zero<Tval>(), sampler(), true, stride);
+			size_t nnz = do_approx1<Tind,Tval>(buffer, subscripts,
+				XLENGTH(indx), DataPtr<Tind>(j), DataPtr<Tval>(x), 0, XLENGTH(j),
+				tol(), tol_ref(), zero<Tval>(), sampler(), stride);
 			UNPROTECT(2);
 			return nnz;
 		}
