@@ -191,25 +191,15 @@ na_length <- function(x, na.rm = FALSE) {
 # register for S4 methods
 
 setOldClass(c("stream_range", "stream_stat"))
-
 setOldClass(c("stream_min", "stream_stat"))
-
 setOldClass(c("stream_max", "stream_stat"))
-
 setOldClass(c("stream_prod", "stream_stat"))
-
 setOldClass(c("stream_sum", "stream_stat"))
-
 setOldClass(c("stream_mean", "stream_stat"))
-
 setOldClass(c("stream_var", "stream_stat"))
-
 setOldClass(c("stream_sd", "stream_stat"))
-
 setOldClass(c("stream_any", "stream_stat"))
-
 setOldClass(c("stream_all", "stream_stat"))
-
 setOldClass(c("stream_nnzero", "stream_stat"))
 
 # streaming statistics methods
