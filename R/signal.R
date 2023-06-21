@@ -315,7 +315,7 @@ lttb <- function(x, t, lower, upper)
 }
 
 downsample <- function(x, n = length(x) / 10L, domain = NULL,
-	method = c("dynamic", "lttb", "ltob"))
+	method = c("lttb", "ltob", "dynamic"))
 {
 	method <- match.arg(method)
 	if ( missing(domain) || is.null(domain) )
@@ -333,7 +333,7 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 		sample <- lttb(x, domain, buckets$lower, buckets$upper)
 	}
 	sample <- c(1L, sample, length(x))
-	structure(x[sample], sample=sample)
+	structure(x[sample], index=sample)
 }
 
 #### Continuum estimation ####

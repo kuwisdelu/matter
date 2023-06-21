@@ -2,9 +2,9 @@
 #### Set graphical parameters ####
 ## -------------------------------
 
-vz_par <- function(..., style = getOption("matter.vizi.style"))
+vizi_par <- function(..., style = getOption("matter.vizi.style"))
 {
-	params <- getOption("matter.vizi.params")
+	params <- getOption("matter.vizi.par")
 	args <- list(...)
 	if ( length(args) > 0L ) {
 		if ( length(args) == 1L ) {
@@ -17,13 +17,15 @@ vz_par <- function(..., style = getOption("matter.vizi.style"))
 		}
 		if ( !is.null(names(args)) ) {
 			params <- par_update(params, more=args)
-			options(matter.vizi.params=params)
+			options(matter.vizi.par=params)
 			return(invisible(params))
 		}
 		args <- as.character(unlist(args))
+	} else {
+		args < names(params)
 	}
 	if ( !is.null(style) ) {
-		p <- match.fun(paste0("par_style_", style))
+		p <- get(paste0("par_style_", style))
 		params <- par_update(p(), more=params)
 	}
 	if ( length(args) > 0L )
@@ -44,14 +46,17 @@ par_update <- function(params, ..., more = list())
 par_style_new <- function(params = list(), ...)
 {
 	p <- list(
+		bty = "n",
 		mar = c(0.5, 0.5, 1, 1),	# inner margins
 		oma = c(3, 3, 1, 1),		# outer margins
 		mgp = c(1.5, 0.5, 0))		# adjust axes
 	par_update(p, ..., more=params)
 }
 
-par_style_light <- function(params = list(), ...)
+par_style_light <- function(params = list(), ..., new = TRUE)
 {
+	if ( new )
+		params <- par_update(par_style_new(), more=params)
 	p <- list(
 		fg="black",
 		bg="transparent",
@@ -63,8 +68,10 @@ par_style_light <- function(params = list(), ...)
 	par_update(p, ..., more=params)
 }
 
-par_style_dark <- function(params = list(), ...)
+par_style_dark <- function(params = list(), ..., new = TRUE)
 {
+	if ( new )
+		params <- par_update(par_style_new(), more=params)
 	p <- list(
 		fg="white",
 		bg="black",
@@ -93,7 +100,8 @@ par_pad <- function(params, side, adj = 0, outer = FALSE)
 #### Panel and layout navigation ####
 ## -----------------------------------
 
-panel_grid <- function(dim, byrow = TRUE, ..., params = vz_par())
+vizi_panel <- function(dim = c(1, 1),
+	byrow = TRUE, ..., params = vizi_par())
 {
 	if ( missing(dim) )
 		return(getOption("matter.vizi.panelgrid"))
@@ -135,7 +143,7 @@ panel_save <- function()
 	if ( dev.cur() == 1 )
 		stop("no graphics device open")
 	params <- par(no.readonly=TRUE)
-	options(matter.vizi.params=params)
+	options(matter.vizi.par=params)
 	invisible(params)
 }
 
@@ -144,7 +152,7 @@ panel_restore <- function(params = NULL, pgrid = NULL, new = FALSE)
 	if ( dev.cur() == 1 )
 		stop("no graphics device open")
 	if ( is.null(params) )
-		params <- getOption("matter.vizi.params")
+		params <- getOption("matter.vizi.par")
 	if ( is.null(params) )
 		stop("nothing to restore; has panel_save() been called?")
 	p <- par(params)
@@ -295,78 +303,3 @@ is_last_panel <- function(pgrid = NULL)
 	panel_get(pgrid) == length(pgrid$mat)
 }
 
-#### Formula parsing ####
-## ----------------------
-
-parse_formula <- function(formula, env = NULL, elist = list(env))
-{
-	e <- environment(formula)
-	elist <- rep_len(elist, 3L)
-	if ( length(formula) == 2L ) {
-		rhs <- formula[[2L]]
-		lhs <- NULL
-	} else if ( length(formula) == 3L ) {
-		rhs <- formula[[3L]]
-		lhs <- formula[[2L]]
-	}
-	if ( length(rhs) == 1L ) {
-		# single-term rhs that doesn't include |
-		g <- NULL
-		rhs <- rhs
-	} else if ( length(rhs) == 3L && deparse(rhs[[1L]]) != "|" ) {
-		# rhs includes multiple terms but not |
-		g <- NULL
-		rhs <- rhs
-	} else if ( length(rhs) == 3L && deparse(rhs[[1L]]) == "|" ) {
-		# rhs includes | so add condition
-		g <- rhs[[3]]
-		rhs <- rhs[[2]]
-	} else {
-		# failsafe
-		g <- NULL
-	}
-	# parse lhs
-	if ( valid(lhs) )
-		lhs <- parse_side(lhs)
-	if ( valid(elist[[1L]]) )
-		for ( i in seq_along(lhs) )
-			lhs[[i]] <- eval(lhs[[i]], envir=elist[[1L]], enclos=e)
-	# parse rhs
-	if ( valid(rhs) )
-		rhs <- parse_side(rhs)
-	if ( valid(elist[[2L]]) )
-		for ( i in seq_along(rhs) )
-			rhs[[i]] <- eval(rhs[[i]], envir=elist[[2L]], enclos=e)
-	# parse condition
-	if ( valid(g) )
-		g <- parse_side(g)
-	if ( valid(elist[[3L]]) )
-		for ( i in seq_along(g) )
-			g[[i]] <- eval(g[[i]], envir=elist[[3L]], enclos=e)
-	list(lhs=lhs, rhs=rhs, g=g)
-}
-
-parse_side <- function(formula, env)
-{
-	enclos <- environment(formula)
-	if ( length(formula) != 1L ) {
-		if ( deparse(formula[[1L]]) %in% c("~", "*", "+", ":") ) {
-			side <- lapply(as.list(formula)[-1L], parse_side)
-		} else if ( deparse(formula[[1L]]) == "I" ) {
-			side <- list(formula[[2L]])
-		} else {
-			side <- list(formula)
-		}
-	} else {
-		side <- list(formula)
-	}
-	if ( is.list(side) ) {
-		side <- unlist(side, recursive=TRUE)
-		names(side) <- sapply(side, deparse)
-	}
-	if ( !missing(env) ) {
-		for ( i in seq_along(side) )
-			side[[i]] <- eval(side[[i]], envir=env, enclos=enclos)
-	}
-	side
-}

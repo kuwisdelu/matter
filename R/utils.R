@@ -14,9 +14,9 @@
 		matter.coerce.altrep.list = FALSE,
 		matter.wrap.altrep = FALSE,
 		matter.dump.dir = tempdir(),
-		matter.vizi.par=list(),
+		matter.vizi.par=par_style_light(),
 		matter.vizi.panelgrid=NULL,
-		matter.vizi.style=NULL)
+		matter.vizi.style="light")
 }
 
 #### Normalize subscripts ####
@@ -292,6 +292,10 @@ as_binstat <- function(x) {
 ## --------------------------------------
 
 is_nil <- function(x) is.na(x) || is.null(x)
+
+is_discrete <- function(x) {
+	is.factor(x) || is.character(x) || is.logical(x)
+}
 
 set_attr <- function(x, attr) {
 	for ( nm in names(attr) )
@@ -711,8 +715,29 @@ seq_rel <- function(from, to, by) {
 	from * ((1 + half) / (1 - half))^(i - 1)
 }
 
-#### Utilities for working with raw bytes and memory ####
-## ------------------------------------------------------
+# Cleveland style shingles (i.e., overlapping intervals)
+shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
+{
+	if ( !is.matrix(breaks) )
+		breaks <- co.intervals(x, number=breaks, overlap=overlap)
+	y <- apply(breaks, 1L, function(b) I(which(b[1L] <= x & x <= b[2L])))
+	binner <- function(i) which(breaks[i,1L] <= x & x <= breaks[i,2L])
+	y <- lapply(seq_len(nrow(breaks)), binner)
+	if ( is.null(labels) ) {
+		labeller <- function(b) paste0("[", b[1L], ",", b[2L], "]")
+		labels <- apply(breaks, 1L, labeller)
+	} else if ( length(labels) != length(y) ) {
+		stop("length of labels not equal to length of breaks")
+	}
+	attr(y, "breaks") <- breaks
+	attr(y, "counts") <- lengths(y)
+	attr(y, "mids") <- rowMeans(breaks)
+	names(y) <- labels
+	y
+}
+
+#### Utilities for raw bytes and memory ####
+## -----------------------------------------
 
 # convert between 'raw' and 'character'
 
@@ -856,3 +881,79 @@ profmem <- function(expr)
 		"max", "overhead", "time")
 	print.default(mem, quote=FALSE, right=TRUE)
 }
+
+#### Formula parsing ####
+## ----------------------
+
+parse_formula <- function(formula, envir = NULL, eval = TRUE)
+{
+	e <- environment(formula)
+	if ( length(formula) == 2L ) {
+		rhs <- formula[[2L]]
+		lhs <- NULL
+	} else if ( length(formula) == 3L ) {
+		rhs <- formula[[3L]]
+		lhs <- formula[[2L]]
+	}
+	if ( length(rhs) == 1L ) {
+		# single-term rhs that doesn't include |
+		g <- NULL
+		rhs <- rhs
+	} else if ( length(rhs) == 3L && deparse1(rhs[[1L]]) != "|" ) {
+		# rhs includes multiple terms but not |
+		g <- NULL
+		rhs <- rhs
+	} else if ( length(rhs) == 3L && deparse1(rhs[[1L]]) == "|" ) {
+		# rhs includes | so add condition
+		g <- rhs[[3]]
+		rhs <- rhs[[2]]
+	} else {
+		# failsafe
+		g <- NULL
+	}
+	# parse lhs
+	if ( !is.null(lhs) )
+		lhs <- parse_side(lhs)
+	if ( eval )
+		for ( i in seq_along(lhs) )
+			lhs[[i]] <- eval(lhs[[i]], envir=envir, enclos=e)
+	# parse rhs
+	if ( !is.null(rhs) )
+		rhs <- parse_side(rhs)
+	if ( eval )
+		for ( i in seq_along(rhs) )
+			rhs[[i]] <- eval(rhs[[i]], envir=envir, enclos=e)
+	# parse condition
+	if ( !is.null(g) )
+		g <- parse_side(g)
+	if ( eval )
+		for ( i in seq_along(g) )
+			g[[i]] <- eval(g[[i]], envir=envir, enclos=e)
+	list(lhs=lhs, rhs=rhs, g=g)
+}
+
+parse_side <- function(formula, envir = NULL, eval = FALSE)
+{
+	enclos <- environment(formula)
+	if ( length(formula) != 1L ) {
+		if ( deparse1(formula[[1L]]) %in% c("~", "*", "+", ":") ) {
+			side <- lapply(as.list(formula)[-1L], parse_side)
+		} else if ( deparse1(formula[[1L]]) == "I" ) {
+			side <- list(formula[[2L]])
+		} else {
+			side <- list(formula)
+		}
+	} else {
+		side <- list(formula)
+	}
+	if ( is.list(side) ) {
+		side <- unlist(side, recursive=TRUE)
+		names(side) <- sapply(side, deparse1)
+	}
+	if ( eval ) {
+		for ( i in seq_along(side) )
+			side[[i]] <- eval(side[[i]], envir=envir, enclos=enclos)
+	}
+	side
+}
+

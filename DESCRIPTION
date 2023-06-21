@@ -15,9 +15,9 @@ Suggests: BiocStyle, knitr, testthat
 VignetteBuilder: knitr
 Collate: matterGenerics.R utils.R drle.R
 	atoms.R ops.R matter.R matter_arr.R 
-	matter_fct.R matter_list.R matter_str.R
-	signal.R search.R sparse_arr.R stream_stat.R
-	stats.R rowStats.R apply.R scale.R
-	prcomp.R biglm.R altrep.R
+	matter_fct.R matter_list.R matter_str.R 
+	search.R sparse_arr.R stream_stat.R apply.R
+	rowStats.R stats.R scale.R prcomp.R biglm.R
+	signal.R altrep.R par.R vizi.R
 biocViews: Infrastructure, DataRepresentation
 URL: https://github.com/kuwisdelu/matter
