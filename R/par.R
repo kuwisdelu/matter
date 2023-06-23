@@ -25,7 +25,7 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 		args < names(params)
 	}
 	if ( !is.null(style) ) {
-		p <- get(paste0("par_style_", style))
+		p <- get(paste0("par_style_", tolower(style)))
 		params <- par_update(p(), more=params)
 	}
 	if ( length(args) > 0L )
@@ -33,6 +33,20 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 	if ( length(params) == 1L )
 		params <- params[[1L]]
 	params
+}
+
+vizi_style <- function(style = getOption("matter.vizi.style"))
+{
+	if ( !missing(style) ) {
+		options(matter.vizi.style=style)
+	} else {
+		style <- getOption("matter.vizi.style")
+	}
+	if ( nargs() > 0L ) {
+		invisible(style)
+	} else {
+		style
+	}
 }
 
 par_update <- function(params, ..., more = list())

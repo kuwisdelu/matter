@@ -14,9 +14,11 @@
 		matter.coerce.altrep.list = FALSE,
 		matter.wrap.altrep = FALSE,
 		matter.dump.dir = tempdir(),
-		matter.vizi.par=par_style_light(),
-		matter.vizi.panelgrid=NULL,
-		matter.vizi.style="light")
+		matter.vizi.par = par_style_new(),
+		matter.vizi.panelgrid = NULL,
+		matter.vizi.style = "light",
+		matter.vizi.palette = "Tableau 10",
+		matter.vizi.hcl = "Viridis")
 }
 
 #### Normalize subscripts ####
@@ -746,6 +748,14 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 	attr(y, "mids") <- rowMeans(breaks)
 	names(y) <- labels
 	y
+}
+
+range_fun <- function(from, to) {
+	function(n) seq.int(from, to, length.out=n)
+}
+
+seq_fun <- function(max_n) {
+	function(n) seq_len(max(n, max_n))
 }
 
 #### Utilities for raw bytes and memory ####

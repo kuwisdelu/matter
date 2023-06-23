@@ -596,23 +596,48 @@ encode_limits <- function(x, limits)
 get_scheme <- function(channel, x)
 {
 	if ( is_discrete(x) ) {
-		msg <- paste0("can't make discrete scheme for ", sQuote(channel))
-		switch(channel,
-			x =, y =, z = NULL,
-			shape = function(n) seq_len(min(n, 14L)),
-			color =, fill = palette.colors,
-			size =, linewidth = stop(msg),
-			linetype = function(n) seq_len(min(n, 6L)),
-			stop(msg))
+		get_discrete_scheme(channel)
 	} else {
-		switch(channel,
-			x =, y =, z = NULL,
-			shape = stop(msg),
-			color =, fill = hcl.colors,
-			size =, linewidth = function(n) seq.int(1, 6, length.out=n),
-			linetype = stop(msg),
-			stop(msg))
+		get_continuous_scheme(channel)
 	}
+}
+
+get_discrete_scheme <- function(channel)
+{
+	msg <- paste0("can't make discrete scheme for ", sQuote(channel))
+	switch(channel,
+		x =, y =, z = NULL,
+		shape = seq_fun(14),
+		color = discrete_colors,
+		fill = discrete_colors,
+		size = stop(msg),
+		linewidth = stop(msg),
+		linetype = seq_fun(6),
+		stop(msg))
+}
+
+get_continuous_scheme <- function(channel)
+{
+	msg <- paste0("can't make continuous scheme for ", sQuote(channel))
+	switch(channel,
+		x =, y =, z = NULL,
+		shape = stop(msg),
+		color = continuous_colors,
+		fill = continuous_colors,
+		size = range_fun(1, 6),
+		linewidth = range_fun(1, 6),
+		linetype = stop(msg),
+		stop(msg))
+}
+
+discrete_colors <- function(n)
+{
+	palette.colors(n, getOption("matter.vizi.palette"))
+}
+
+continuous_colors <- function(n)
+{
+	hcl.colors(n, getOption("matter.vizi.hcl"))
 }
 
 encode_scheme <- function(x, scheme, limits)

@@ -336,6 +336,7 @@ export(
 export(
 	"vizi",
 	"vizi_par",
+	"vizi_style",
 	"add_mark",
 	"facet")
 
