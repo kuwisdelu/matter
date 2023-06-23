@@ -421,12 +421,16 @@ check_comformable_dims <- function(x, y, margin = 1L) {
 	TRUE
 }
 
-normalize_lengths <- function(list)
-{
+normalize_lengths <- function(list) {
 	n <- lengths(list)
 	if ( length(unique(n)) != 1L )
 		list <- lapply(list, rep_len, length.out=max(n))
 	list
+}
+
+nlines <- function(x) {
+	xsub <- gsub("\n", "", x, fixed=TRUE)
+	nchar(x) - nchar(xsub) + 1L
 }
 
 #### Show utility functions ####

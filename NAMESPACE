@@ -336,10 +336,14 @@ export(
 export(
 	"vizi",
 	"vizi_par",
-	"add_mark")
+	"add_mark",
+	"facet")
 
 S3method("preplot", "vizi_plot")
+S3method("preplot", "vizi_facets")
+
 S3method("plot", "vizi_plot")
+S3method("plot", "vizi_facets")
 S3method("plot", "vizi_points")
 S3method("plot", "vizi_lines")
 S3method("plot", "vizi_peaks")

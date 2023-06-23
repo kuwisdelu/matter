@@ -287,18 +287,34 @@ is_left_panel <- function(pgrid = NULL)
 	panel_get(pgrid, arr.ind=TRUE)[2L] == 1L
 }
 
-is_bottom_panel <- function(pgrid = NULL)
+is_bottom_panel <- function(n, pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
-	panel_get(pgrid, arr.ind=TRUE)[1L] == nrow(pgrid$mat)
+	ind <- panel_get(pgrid, arr.ind=TRUE)
+	test <- ind[1L] == nrow(pgrid$mat)
+	if ( test || missing(n) )
+		return(test)
+	nind <- rep.int(NA_integer_, length(pgrid$mat))
+	nind[seq_len(n)] <- seq_len(n)
+	mat <- matrix(nind, byrow=pgrid$byrow,
+		nrow=nrow(pgrid$mat), ncol=ncol(pgrid$mat))
+	is.na(mat[ind[1L] + 1L, ind[2L]])
 }
 
-is_right_panel <- function(pgrid = NULL)
+is_right_panel <- function(n, pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
-	panel_get(pgrid, arr.ind=TRUE)[2L] == ncol(pgrid$mat)
+	ind <- panel_get(pgrid, arr.ind=TRUE)
+	test <- ind[2L] == ncol(pgrid$mat)
+	if ( test || missing(n) )
+		return(test)
+	nind <- rep.int(NA_integer_, length(pgrid$mat))
+	nind[seq_len(n)] <- seq_len(n)
+	mat <- matrix(nind, byrow=pgrid$byrow,
+		nrow=nrow(pgrid$mat), ncol=ncol(pgrid$mat))
+	is.na(mat[ind[1L], ind[2L] + 1L])
 }
 
 is_last_panel <- function(pgrid = NULL)
