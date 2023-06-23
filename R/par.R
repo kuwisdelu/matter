@@ -119,8 +119,8 @@ vizi_panel <- function(dim = c(1, 1),
 	}
 	op <- par(p)
 	mat <- matrix(seq_len(prod(dim)),
-		nrow=dim[1], ncol=dim[2], byrow=byrow)
-	pgrid <- list(mat=mat, byrow=byrow)
+		nrow=dim[1L], ncol=dim[2L], byrow=byrow)
+	pgrid <- list(mat=mat, byrow=byrow, par=op)
 	options(matter.vizi.panelgrid=pgrid)
 	invisible(pgrid)
 }
@@ -136,30 +136,34 @@ panel_row <- function() par("mfg")[1L]
 
 panel_col <- function() par("mfg")[2L]
 
-panel_dim <- function() par("mfg")[c(3, 4)]
+panel_dim <- function() par("mfg")[c(3L, 4L)]
 
 panel_save <- function()
 {
-	if ( dev.cur() == 1 )
+	pgrid <- getOption("matter.vizi.panelgrid")
+	if ( dev.cur() == 1L )
 		stop("no graphics device open")
+	if ( is.null(pgrid) )
+		pgrid <- list()
 	params <- par(no.readonly=TRUE)
-	options(matter.vizi.par=params)
+	pgrid$par <- params
+	options(matter.vizi.panelgrid=pgrid)
 	invisible(params)
 }
 
 panel_restore <- function(params = NULL, pgrid = NULL, new = FALSE)
 {
-	if ( dev.cur() == 1 )
+	if ( dev.cur() == 1L )
 		stop("no graphics device open")
+	if ( is.null(pgrid) )
+		pgrid <- getOption("matter.vizi.panelgrid")
 	if ( is.null(params) )
-		params <- getOption("matter.vizi.par")
+		params <- pgrid$par
 	if ( is.null(params) )
 		stop("nothing to restore; has panel_save() been called?")
 	p <- par(params)
-	if ( is.null(pgrid) )
-		pgrid <- getOption("matter.vizi.panelgrid")
-	if ( !is.null(pgrid) ) {
-		if ( pgrid$byrow ) {
+	if ( !is.null(pgrid$mat) ) {
+		if ( isTRUE(pgrid$byrow) ) {
 			par(mfrow=dim(pgrid$mat))
 		} else {
 			par(mfrow=dim(pgrid$mat))
@@ -172,7 +176,7 @@ panel_restore <- function(params = NULL, pgrid = NULL, new = FALSE)
 
 panel_get <- function(pgrid = NULL, arr.ind = FALSE)
 {
-	if ( dev.cur() == 1 )
+	if ( dev.cur() == 1L )
 		stop("no graphics device open")
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
@@ -228,9 +232,9 @@ panel_prev <- function(pgrid = NULL)
 	panel_set((i %% imax) - 1, pgrid=pgrid)
 }
 
-panel_side <- function(side = "right", split = 1, p = c(0.8, 0.8))
+panel_side <- function(side = "right", split = 1, p = c(5/6, 5/6))
 {
-	if ( dev.cur() == 1 )
+	if ( dev.cur() == 1L )
 		stop("no graphics device open")
 	side <- match.arg(side, c("right", "left", "bottom", "top"))
 	saved <- panel_save()
@@ -256,8 +260,9 @@ panel_side <- function(side = "right", split = 1, p = c(0.8, 0.8))
 		split <- list(mfcol=c(1, split))
 	}
 	omd <- c(x, y)
-	dp <- (1 - rep_len(p, 2)) / 2
-	plt <- c(dp[1], 1 - dp[1], dp[2], 1 - dp[2])
+	p <- rep_len(p, 2L)
+	dp <- (1 - p[2]) / 2
+	plt <- c(0, p[1], dp, 1 - dp)
 	parnew <- list(new=TRUE, pty="m", omd=omd, plt=plt)
 	parnew <- c(paruser, parnew)
 	par(parnew)
@@ -272,28 +277,28 @@ is_top_panel <- function(pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
-	panel_get(pgrid, arr.ind=TRUE)[2] == 1
+	panel_get(pgrid, arr.ind=TRUE)[2L] == 1L
 }
 
 is_left_panel <- function(pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
-	panel_get(pgrid, arr.ind=TRUE)[2] == 1
+	panel_get(pgrid, arr.ind=TRUE)[2L] == 1L
 }
 
 is_bottom_panel <- function(pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
-	panel_get(pgrid, arr.ind=TRUE)[1] == nrow(pgrid$mat)
+	panel_get(pgrid, arr.ind=TRUE)[1L] == nrow(pgrid$mat)
 }
 
 is_right_panel <- function(pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
-	panel_get(pgrid, arr.ind=TRUE)[2] == ncol(pgrid$mat)
+	panel_get(pgrid, arr.ind=TRUE)[2L] == ncol(pgrid$mat)
 }
 
 is_last_panel <- function(pgrid = NULL)
