@@ -338,7 +338,8 @@ export(
 	"vizi_par",
 	"vizi_style",
 	"add_mark",
-	"facet")
+	"add_facets",
+	"as_facets")
 
 S3method("preplot", "vizi_plot")
 S3method("preplot", "vizi_facets")

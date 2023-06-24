@@ -35,16 +35,11 @@ add_mark <- function(plot, mark,
 	plot
 }
 
-facet <- function(plot, by = NULL, data = NULL,
+add_facets <- function(plot, by = NULL, data = NULL,
 	nrow = NA, ncol = NA, labels = NULL, drop = TRUE)
 {
-	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) ) {
-		if ( is.list(plot) ) {
-			plot <- as_facets(plot, drop)
-		} else {
-			stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
-		}
-	}
+	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) )
+		stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
 	if ( is(by, "formula") ) {
 		by <- parse_formula(by)
 		by <- c(by$lhs, by$rhs)
@@ -59,19 +54,30 @@ facet <- function(plot, by = NULL, data = NULL,
 	facets <- compute_facets(plot, by, nshingles)
 	if ( !is.null(labels) )
 		facets$labels <- labels
-	n <- prod(facets$dim)
-	if ( !is.na(nrow) && !is.na(ncol) ) {
-		facets$dim[1L] <- nrow
-		facets$dim[2L] <- ncol
-	} else if ( !is.na(nrow) ) {
-		facets$dim[1L] <- nrow
-		facets$dim[2L] <- ceiling(n / nrow)
-	} else if ( !is.na(ncol) ) {
-		facets$dim[1L] <- ceiling(n / ncol)
-		facets$dim[2L] <- ncol
-	}
+	facets$dim <- get_dim(facets$dim, nrow, ncol)
 	facets$drop <- drop
 	structure(facets, class="vizi_facets")
+}
+
+as_facets <- function(plotlist, nrow = NA, ncol = NA,
+	labels = NULL, drop = TRUE)
+{
+	plots <- lapply(plotlist, function(plot) {
+		if ( !is(plot, "vizi_plot") )
+			stop("each subplot must inherit from 'vizi_plot'")
+		structure(list(encoding=plot$encoding,
+			marks=plot$marks, params=plot$params), class="vizi_plot")
+	})
+	channels <- lapply(plotlist, function(plot) plot$channels)
+	channels <- merge_channels(channels)
+	subscripts <- lapply(plotlist,
+		function(plot) seq_len(max(lengths(plot$encoding))))
+	if ( is.null(labels) )
+		labels <- names(plotlist)
+	dim <- get_dim(length(plotlist), nrow, ncol)
+	structure(list(plots=plots, channels=channels,
+		coord=plotlist[[1L]]$coord, subscripts=subscripts,
+		labels=labels, dim=dim, drop=drop), class="vizi_facets")
 }
 
 # register for S4 methods
@@ -234,7 +240,7 @@ plot.vizi_facets <- function(x, ..., add = FALSE)
 setMethod("plot", "vizi_plot", plot.vizi_plot)
 setMethod("plot", "vizi_facets", plot.vizi_facets)
 
-plot_xy <- function(mark, plot = NULL, ..., type = "p", add = FALSE)
+plot_vizi_xy <- function(mark, plot = NULL, ..., type = "p", add = FALSE)
 {
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
@@ -268,17 +274,17 @@ plot_xy <- function(mark, plot = NULL, ..., type = "p", add = FALSE)
 
 plot.vizi_points <- function(x, plot = NULL, ..., add = FALSE)
 {
-	invisible(plot_xy(mark=x, plot=plot, type="p", ..., add=add))
+	invisible(plot_vizi_xy(mark=x, plot=plot, type="p", ..., add=add))
 }
 
 plot.vizi_lines <- function(x, plot = NULL, ..., add = FALSE)
 {
-	invisible(plot_xy(mark=x, plot=plot, type="l", ..., add=add))
+	invisible(plot_vizi_xy(mark=x, plot=plot, type="l", ..., add=add))
 }
 
 plot.vizi_peaks <- function(x, plot = NULL, ..., add = FALSE)
 {
-	invisible(plot_xy(mark=x, plot=plot, type="h", ..., add=add))
+	invisible(plot_vizi_xy(mark=x, plot=plot, type="h", ..., add=add))
 }
 
 setMethod("plot", "vizi_points", plot.vizi_points)
@@ -474,24 +480,6 @@ merge_subscripts <- function(subscripts, ...)
 	apply(ij, 1L, fsub, simplify=FALSE)
 }
 
-as_facets <- function(plotlist, drop = TRUE)
-{
-	plots <- lapply(plotlist, function(plot) {
-		if ( !is(plot, "vizi_plot") )
-			stop("'plot' must inherit from 'vizi_plot'")
-		structure(list(encoding=plot$encoding,
-			marks=plot$marks, params=plot$params), class="vizi_plot")
-	})
-	channels <- lapply(plotlist, function(plot) plot$channels)
-	channels <- merge_channels(channels)
-	subscripts <- lapply(plotlist,
-		function(plot) max(lengths(plot$encoding)))
-	n <- length(plots)
-	structure(list(plots=plots, channels=channels,
-		coord=plotlist[[1L]]$coord, subscripts=subscripts,
-		labels=character(n), dim=panel_dim_n(n), drop=drop), class="vizi_facets")
-}
-
 compute_facets <- function(plot, by, nshingles = 6L)
 {
 	subscripts <- compute_subscripts(by, nshingles)
@@ -571,6 +559,24 @@ encode_var <- function(name, encoding = NULL,
 			e <- e[subset]
 	}
 	e
+}
+
+get_dim <- function(dim, nrow, ncol)
+{
+	if ( length(dim) == 1L )
+		dim <- panel_dim_n(dim)
+	n <- prod(dim)
+	if ( !is.na(nrow) && !is.na(ncol) ) {
+		dim[1L] <- nrow
+		dim[2L] <- ncol
+	} else if ( !is.na(nrow) ) {
+		dim[1L] <- nrow
+		dim[2L] <- ceiling(n / nrow)
+	} else if ( !is.na(ncol) ) {
+		dim[1L] <- ceiling(n / ncol)
+		dim[2L] <- ncol
+	}
+	dim
 }
 
 get_limits <- function(x)
