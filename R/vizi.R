@@ -14,7 +14,7 @@ vizi <- function(data, ..., encoding = NULL, params = NULL)
 }
 
 add_mark <- function(plot, mark,
-	encoding = NULL, data = NULL, ..., trans = NULL)
+	encoding = NULL, data = NULL, trans = NULL, ...)
 {
 	if ( is(plot, "vizi_facets") )
 		stop("can't add more marks to 'vizi_facets")
@@ -36,7 +36,7 @@ add_mark <- function(plot, mark,
 }
 
 add_facets <- function(plot, by = NULL, data = NULL,
-	nrow = NA, ncol = NA, labels = NULL, drop = TRUE)
+	nrow = NA, ncol = NA, labels = NULL, drop = TRUE, free = "")
 {
 	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) )
 		stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
@@ -54,13 +54,15 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	facets <- compute_facets(plot, by, nshingles)
 	if ( !is.null(labels) )
 		facets$labels <- labels
-	facets$dim <- get_dim(facets$dim, nrow, ncol)
+	n <- length(facets$plots)
+	facets$dim <- get_dim(n, facets$dim, nrow, ncol)
 	facets$drop <- drop
+	facets$free <- free
 	structure(facets, class="vizi_facets")
 }
 
 as_facets <- function(plotlist, nrow = NA, ncol = NA,
-	labels = NULL, drop = TRUE)
+	labels = NULL, drop = TRUE, free = "")
 {
 	plots <- lapply(plotlist, function(plot) {
 		if ( !is(plot, "vizi_plot") )
@@ -74,10 +76,47 @@ as_facets <- function(plotlist, nrow = NA, ncol = NA,
 		function(plot) seq_len(max(lengths(plot$encoding))))
 	if ( is.null(labels) )
 		labels <- names(plotlist)
-	dim <- get_dim(length(plotlist), nrow, ncol)
+	dim <- get_dim(length(plotlist), nrow=nrow, ncol=ncol)
 	structure(list(plots=plots, channels=channels,
 		coord=plotlist[[1L]]$coord, subscripts=subscripts,
-		labels=labels, dim=dim, drop=drop), class="vizi_facets")
+		labels=labels, dim=dim, drop=drop, free=free), class="vizi_facets")
+}
+
+set_channel <- function(plot, channel,
+	label = NULL, limits = NULL, scheme = NULL, ...)
+{
+	channel <- to_vizi_name(channel)
+	ch <- plot$channels[[channel]]
+	if ( is.null(ch) )
+		ch <- list()
+	if ( !is.null(label) )
+		ch$label <- label
+	if ( !is.null(limits) )
+		ch$limits <- limits
+	if ( !is.null(scheme) )
+		ch$scheme <- scheme
+	plot$channels[[channel]] <- ch
+	plot
+}
+
+set_coord <- function(plot, xlim = NULL, ylim = NULL,
+	log = "", asp = NA, grid = TRUE, ...)
+{
+	co <- plot$coord
+	if ( is.null(co) )
+		co <- list()
+	if ( !is.null(xlim) )
+		co$xlim <- co
+	if ( !is.null(ylim) )
+		co$ylim <- ylim
+	if ( !missing(log) )
+		co$log <- log
+	if ( !missing(asp) )
+		co$asp <- asp
+	if ( !missing(grid) )
+		co$grid <- grid
+	plot$coord <- co
+	plot
 }
 
 # register for S4 methods
@@ -561,11 +600,10 @@ encode_var <- function(name, encoding = NULL,
 	e
 }
 
-get_dim <- function(dim, nrow, ncol)
+get_dim <- function(n, dim, nrow, ncol)
 {
-	if ( length(dim) == 1L )
-		dim <- panel_dim_n(dim)
-	n <- prod(dim)
+	if ( missing(dim) )
+		dim <- panel_dim_n(n)
 	if ( !is.na(nrow) && !is.na(ncol) ) {
 		dim[1L] <- nrow
 		dim[2L] <- ncol
@@ -614,8 +652,8 @@ get_discrete_scheme <- function(channel)
 	switch(channel,
 		x =, y =, z = NULL,
 		shape = seq_fun(14),
-		color = discrete_colors,
-		fill = discrete_colors,
+		color = discrete_pal,
+		fill = discrete_pal,
 		size = stop(msg),
 		linewidth = stop(msg),
 		linetype = seq_fun(6),
@@ -628,22 +666,30 @@ get_continuous_scheme <- function(channel)
 	switch(channel,
 		x =, y =, z = NULL,
 		shape = stop(msg),
-		color = continuous_colors,
-		fill = continuous_colors,
+		color = continuous_pal,
+		fill = continuous_pal,
 		size = range_fun(1, 6),
 		linewidth = range_fun(1, 6),
 		linetype = stop(msg),
 		stop(msg))
 }
 
-discrete_colors <- function(n)
+discrete_pal <- function(n)
 {
-	palette.colors(n, getOption("matter.vizi.palette"))
+	palette.colors(n, getOption("matter.vizi.dpal"))
 }
 
-continuous_colors <- function(n)
+continuous_pal <- function(n)
 {
-	hcl.colors(n, getOption("matter.vizi.hcl"))
+	hcl.colors(n, getOption("matter.vizi.cpal"))
+}
+
+range_fun <- function(from, to) {
+	function(n) seq.int(from, to, length.out=n)
+}
+
+seq_fun <- function(max_n) {
+	function(n) seq_len(max(n, max_n))
 }
 
 encode_scheme <- function(x, scheme, limits)

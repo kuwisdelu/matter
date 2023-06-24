@@ -312,7 +312,10 @@ export(
 
 export(
 	"roll",
-	"seq_rel")
+	"seq_rel",
+	"shingles",
+	"dpal",
+	"cpal")
 
 exportMethods(
 	"apply",
@@ -339,7 +342,9 @@ export(
 	"vizi_style",
 	"add_mark",
 	"add_facets",
-	"as_facets")
+	"as_facets",
+	"set_channel",
+	"set_coord")
 
 S3method("preplot", "vizi_plot")
 S3method("preplot", "vizi_facets")

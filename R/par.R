@@ -35,21 +35,22 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 	params
 }
 
-vizi_style <- function(style = getOption("matter.vizi.style"), palette, hcl, ...)
+vizi_style <- function(style = getOption("matter.vizi.style"),
+	dpal = "Tableau 10", cpal = "Viridis", ...)
 {
 	if ( !missing(style) )
 		options(matter.vizi.style=style)
-	if ( !missing(palette) ) {
-		options(matter.vizi.palette=palette)
+	if ( !missing(dpal) ) {
+		options(matter.vizi.dpal=dpal)
 	} else {
-		palette <- getOption("matter.vizi.palette")
+		dpal <- getOption("matter.vizi.dpal")
 	}
-	if ( !missing(hcl) ) {
-		options(matter.vizi.hcl=hcl)
+	if ( !missing(cpal) ) {
+		options(matter.vizi.cpal=cpal)
 	} else {
-		hcl <- getOption("matter.vizi.hcl")
+		cpal <- getOption("matter.vizi.cpal")
 	}
-	style <- c(style=style, palette=palette, hcl=hcl)
+	style <- c(style=style, dpal=dpal, cpal=cpal)
 	if ( nargs() > 0L ) {
 		invisible(style)
 	} else {

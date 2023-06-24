@@ -17,8 +17,8 @@
 		matter.vizi.par = par_style_new(),
 		matter.vizi.panelgrid = NULL,
 		matter.vizi.style = "light",
-		matter.vizi.palette = "Tableau 10",
-		matter.vizi.hcl = "Viridis")
+		matter.vizi.dpal = "Tableau 10",
+		matter.vizi.cpal = "Viridis")
 }
 
 #### Normalize subscripts ####
@@ -721,6 +721,7 @@ lr_predict <- function(fit, xi) {
 # => x[n] ((1 + d) / (1 - d))^n * x[0]
 # log x[n] = n log {(1 + d) / (1 - d)} + log x[0]
 # => n = (log x[n] - log x[0]) / log {(1 + d) / (1 - d)}
+# export
 seq_rel <- function(from, to, by) {
 	half <- by / 2
 	length.out <- (log(to) - log(from)) / log((1 + half) / (1 - half))
@@ -730,6 +731,7 @@ seq_rel <- function(from, to, by) {
 }
 
 # Cleveland style shingles (i.e., overlapping intervals)
+# export
 shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 {
 	if ( !is.matrix(breaks) )
@@ -750,12 +752,14 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 	y
 }
 
-range_fun <- function(from, to) {
-	function(n) seq.int(from, to, length.out=n)
+# export
+dpal <- function(palette = "Tableau 10") {
+	function(n) palette.colors(n, palette)
 }
 
-seq_fun <- function(max_n) {
-	function(n) seq_len(max(n, max_n))
+# export
+cpal <- function(palette = "Viridis") {
+	function(n) hcl.colors(n, palette)
 }
 
 #### Utilities for raw bytes and memory ####
