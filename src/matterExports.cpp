@@ -781,33 +781,33 @@ SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 	return ans;
 }
 
-SEXP Approx1(SEXP x, SEXP keys, SEXP values,
+SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp)
 {
-	if ( TYPEOF(x) != TYPEOF(keys) )
-		Rf_error("'x' and 'keys' must have the same type");
+	if ( TYPEOF(xi) != TYPEOF(x) )
+		Rf_error("'xi' and 'x' must have the same type");
 	if ( Rf_asReal(tol) < 0 )
 		Rf_error("'tol' must be non-negative");
 	SEXP result;
-	PROTECT(result = Rf_allocVector(TYPEOF(values), LENGTH(x)));
-	switch(TYPEOF(values)) {
+	PROTECT(result = Rf_allocVector(TYPEOF(y), LENGTH(xi)));
+	switch(TYPEOF(y)) {
 		case INTSXP:
 			switch(TYPEOF(x)) {
 				case INTSXP:
-					do_approx1<int,int>(INTEGER(result), INTEGER(x), LENGTH(x),
-						INTEGER(keys), INTEGER(values), 0, LENGTH(values),
+					do_approx1<int,int>(INTEGER(result), INTEGER(xi), LENGTH(xi),
+						INTEGER(x), INTEGER(y), 0, LENGTH(y),
 						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
 						Rf_asInteger(interp));
 					break;
 				case REALSXP:
-					do_approx1<double,int>(INTEGER(result), REAL(x), LENGTH(x),
-						REAL(keys), INTEGER(values), 0, LENGTH(values),
+					do_approx1<double,int>(INTEGER(result), REAL(xi), LENGTH(xi),
+						REAL(x), INTEGER(y), 0, LENGTH(y),
 						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
 						Rf_asInteger(interp));
 					break;
 				case STRSXP:
-					do_approx1<SEXP,int>(INTEGER(result), STRING_PTR(x), LENGTH(x),
-						STRING_PTR(keys), INTEGER(values), 0, LENGTH(values),
+					do_approx1<SEXP,int>(INTEGER(result), STRING_PTR(xi), LENGTH(xi),
+						STRING_PTR(x), INTEGER(y), 0, LENGTH(y),
 						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
 						Rf_asInteger(interp));
 					break;
@@ -818,20 +818,20 @@ SEXP Approx1(SEXP x, SEXP keys, SEXP values,
 		case REALSXP:
 			switch(TYPEOF(x)) {
 				case INTSXP:
-					do_approx1<int,double>(REAL(result), INTEGER(x), LENGTH(x),
-						INTEGER(keys), REAL(values), 0, LENGTH(values),
+					do_approx1<int,double>(REAL(result), INTEGER(xi), LENGTH(xi),
+						INTEGER(x), REAL(y), 0, LENGTH(y),
 						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
 						Rf_asInteger(interp));
 					break;
 				case REALSXP:
-					do_approx1<double,double>(REAL(result), REAL(x), LENGTH(x),
-						REAL(keys), REAL(values), 0, LENGTH(values),
+					do_approx1<double,double>(REAL(result), REAL(xi), LENGTH(xi),
+						REAL(x), REAL(y), 0, LENGTH(y),
 						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
 						Rf_asInteger(interp));
 					break;
 				case STRSXP:
-					do_approx1<SEXP,double>(REAL(result), STRING_PTR(x), LENGTH(x),
-						STRING_PTR(keys), REAL(values), 0, LENGTH(values),
+					do_approx1<SEXP,double>(REAL(result), STRING_PTR(xi), LENGTH(xi),
+						STRING_PTR(x), REAL(y), 0, LENGTH(y),
 						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
 						Rf_asInteger(interp));
 					break;

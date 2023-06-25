@@ -85,7 +85,7 @@ SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
 	 SEXP left_limits, SEXP right_limits, SEXP heights);
 SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 	 SEXP left_limits, SEXP right_limits);
-SEXP Approx1(SEXP x, SEXP keys, SEXP values,
+SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
 } // extern "C"
