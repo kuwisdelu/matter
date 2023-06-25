@@ -357,6 +357,10 @@ S3method("plot", "vizi_peaks")
 S3method("plot", "vizi_key")
 S3method("plot", "vizi_colorkey")
 
+exportMethods(
+	"preplot",
+	"plot")
+
 export(
 	"mem",
 	"profmem")

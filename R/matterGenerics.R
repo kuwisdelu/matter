@@ -22,6 +22,7 @@ setGeneric("tcrossprod")
 ## -------------------------------------
 
 setGeneric("prcomp")
+setGeneric("preplot")
 
 #### Define new generics for summary stats ####
 ## --------------------------------------------

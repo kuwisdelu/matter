@@ -16,10 +16,8 @@ vizi <- function(data, ..., encoding = NULL, params = NULL)
 add_mark <- function(plot, mark,
 	encoding = NULL, data = NULL, trans = NULL, ...)
 {
-	if ( is(plot, "vizi_facets") )
-		stop("can't add more marks to 'vizi_facets")
-	if ( !is(plot, "vizi_plot") )
-		stop("'plot' must inherit from 'vizi_plot'")
+	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) )
+		stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
 	cls <- paste0("vizi_", mark)
 	if ( !existsMethod("plot", cls) )
 		stop("no known plot() method for class: ", sQuote(cls))
@@ -29,9 +27,24 @@ add_mark <- function(plot, mark,
 		encoding <- props$encoding
 	}
 	params <- normalize_encoding(as_encoding(...))
-	mk <- list(encoding=encoding, params=params, trans=trans)
-	mk <- setNames(list(structure(mk, class=cls)), mark)
-	plot$marks <- c(plot$marks, mk)
+	mk <- structure(list(encoding=encoding,
+		params=params, trans=trans), class=cls)
+	if ( is(plot, "vizi_facets") ) {
+		mks <- rep.int(list(mk), length(plot$plots))
+		for ( i in seq_along(mks) ) {
+			v <- plot$subscripts[[i]]
+			if ( !is.null(encoding) ) {
+				e <- lapply(encoding, function(x) x[v])
+				mks[[i]]$encoding <- e
+			}
+			pmks <- plot$plots[[i]]$marks
+			mk <- setNames(list(mks[[i]]), mark)
+			plot$plots[[i]]$marks <- c(pmks, mk)
+		}
+	} else {
+		mk <- setNames(list(mk), mark)
+		plot$marks <- c(plot$marks, mk)
+	}
 	plot
 }
 
@@ -49,7 +62,7 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	if ( any(!is.na(c(nrow, ncol))) ) {
 		nshingles <- max(c(nrow, ncol), na.rm=TRUE)
 	} else {
-		nshingles <- 6
+		nshingles <- 6L
 	}
 	facets <- compute_facets(plot, by, nshingles)
 	if ( !is.null(labels) )
@@ -106,7 +119,7 @@ set_coord <- function(plot, xlim = NULL, ylim = NULL,
 	if ( is.null(co) )
 		co <- list()
 	if ( !is.null(xlim) )
-		co$xlim <- co
+		co$xlim <- xlim
 	if ( !is.null(ylim) )
 		co$ylim <- ylim
 	if ( !missing(log) )
@@ -136,10 +149,8 @@ preplot.vizi_plot <- function(object, ...)
 {
 	p <- vizi_par()
 	w <- needs_legends(object)
-	if ( w > 0L ) {
-		padj <- 5/6 # adjust chr width ~=> # of lines
-		p <- par_pad(p, "right", w^padj, outer=TRUE)
-	}
+	if ( w > 0L )
+		p <- par_pad(p, "right", w + 1L, outer=TRUE)
 	vizi_panel(dim=c(1L,1L), params=p)
 	xlim <- object$coord$xlim
 	ylim <- object$coord$ylim
@@ -166,14 +177,28 @@ preplot.vizi_facets <- function(object, ...)
 {
 	p <- vizi_par()
 	w <- needs_legends(object)
-	if ( w > 0L ) {
-		padj <- 5/6 # adjust chr width ~=> # of lines
-		p <- par_pad(p, "right", w^padj, outer=TRUE)
+	if ( w > 0L )
+		p <- par_pad(p, "right", w + 1L, outer=TRUE)
+	if ( has_free_x(object) || has_free_y(object) )
+	{
+		if ( has_free_x(object) ) {
+			p <- par_pad(p, "bottom", 1)
+			p <- par_pad(p, "bottom", -1, outer=TRUE)
+		}
+		if ( has_free_y(object) ) {
+			p <- par_pad(p, "left", 1)
+			p <- par_pad(p, "left", -1, outer=TRUE)
+		}
+		if ( is.null(p$bty) || p$bty == "n" )
+			p$bty <- "l"
 	}
 	n <- max(nlines(object$labels))
 	p <- par_pad(p, "top", n - 1)
 	vizi_panel(dim=object$dim, params=p)
 }
+
+setMethod("preplot", "vizi_plot", preplot.vizi_plot)
+setMethod("preplot", "vizi_facets", preplot.vizi_facets)
 
 plot.vizi_plot <- function(x, ..., add = FALSE)
 {
@@ -232,10 +257,20 @@ plot.vizi_facets <- function(x, ..., add = FALSE)
 			ylim <- x$coord$ylim
 			log <- x$coord$log
 			asp <- x$coord$asp
-			if ( is.null(xlim) )
-				xlim <- x$channels$x$limits
-			if ( is.null(ylim) )
-				ylim <- x$channels$y$limits
+			if ( is.null(xlim) ) {
+				if ( has_free_x(x) ) {
+					xlim <- get_var_range(plot, "x")
+				} else {
+					xlim <- x$channels$x$limits
+				}
+			}
+			if ( is.null(ylim) ) {
+				if ( has_free_y(x) ) {
+					ylim <- get_var_range(plot, "y")
+				} else {
+					ylim <- x$channels$y$limits
+				}
+			}
 			if ( is.null(log) )
 				log <- ""
 			if ( is.null(asp) )
@@ -252,18 +287,22 @@ plot.vizi_facets <- function(x, ..., add = FALSE)
 		if ( !add )
 		{
 			mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
-			if ( is_left_panel() )
-				localAxis(x$channels$y$limits, side=2L, ...)
-			if ( is_bottom_panel(n) )
+			if ( has_free_x(x) || is_bottom_panel(n) )
 				localAxis(x$channels$x$limits, side=1L, ...)
+			if ( has_free_y(x) || is_left_panel() )
+				localAxis(x$channels$y$limits, side=2L, ...)
 		} else {
 			panel_next()
 		}
 	}
 	keys <- merge_legends(keys)
 	if ( !add ) {
+		xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
+		ylab_offset <- ifelse(has_free_y(x), 0.5, 1.5)
 		localTitle(xlab=x$channels$x$label,
-			ylab=x$channels$y$label, outer=TRUE, ...)
+			line=xlab_offset, outer=TRUE, ...)
+		localTitle(ylab=x$channels$y$label,
+			line=ylab_offset, outer=TRUE, ...)
 		if ( length(keys) > 0L ) {
 			p <- panel_side("right", split=length(keys), p=c(1, 1))
 			for (k in keys)
@@ -307,8 +346,8 @@ plot_vizi_xy <- function(mark, plot = NULL, ..., type = "p", add = FALSE)
 	}
 	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
 		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type, ...)
-	p <- p[!names(p) %in% names(encoding)]
-	invisible(encode_legends(plot$channels, p, type))
+	params <- p[!names(p) %in% names(encoding)]
+	invisible(encode_legends(plot$channels, params, type))
 }
 
 plot.vizi_points <- function(x, plot = NULL, ..., add = FALSE)
@@ -554,6 +593,33 @@ compute_facets <- function(plot, by, nshingles = 6L)
 		subscripts=subscripts, labels=labels, dim=dim)
 }
 
+has_free_x <- function(plot)
+{
+	isTRUE(plot$free %in% c("x", "xy"))
+}
+
+has_free_y <- function(plot)
+{
+	isTRUE(plot$free %in% c("y", "xy"))
+}
+
+get_dim <- function(n, dim, nrow, ncol)
+{
+	if ( missing(dim) )
+		dim <- panel_dim_n(n)
+	if ( !is.na(nrow) && !is.na(ncol) ) {
+		dim[1L] <- nrow
+		dim[2L] <- ncol
+	} else if ( !is.na(nrow) ) {
+		dim[1L] <- nrow
+		dim[2L] <- ceiling(n / nrow)
+	} else if ( !is.na(ncol) ) {
+		dim[1L] <- ceiling(n / ncol)
+		dim[2L] <- ncol
+	}
+	dim
+}
+
 get_var <- function(x, data)
 {
 	if ( is(x, "formula") ) {
@@ -600,21 +666,22 @@ encode_var <- function(name, encoding = NULL,
 	e
 }
 
-get_dim <- function(n, dim, nrow, ncol)
+get_var_range <- function(plot, channel)
 {
-	if ( missing(dim) )
-		dim <- panel_dim_n(n)
-	if ( !is.na(nrow) && !is.na(ncol) ) {
-		dim[1L] <- nrow
-		dim[2L] <- ncol
-	} else if ( !is.na(nrow) ) {
-		dim[1L] <- nrow
-		dim[2L] <- ceiling(n / nrow)
-	} else if ( !is.na(ncol) ) {
-		dim[1L] <- ceiling(n / ncol)
-		dim[2L] <- ncol
+	if ( is.null(plot$encoding[[channel]]) ) {
+		rc <- numeric()
+	} else {
+		rc <- range(plot$encoding[[channel]], na.rm=TRUE)
 	}
-	dim
+	rs <- unlist(lapply(plot$marks,
+		function(mk) {
+			if ( is.null(mk$encoding[[channel]]) ) {
+				numeric()
+			} else {
+				range(mk$encoding[[channel]], na.rm=TRUE)
+			}
+		}))
+	range(c(rc, rs))
 }
 
 get_limits <- function(x)
@@ -819,12 +886,16 @@ needs_legends <- function(plot)
 	chs <- names(plot$channels)
 	chs <- setdiff(chs, c("x", "y", "z"))
 	chs <- plot$channels[chs]
+	fn <- function(x) {
+		if ( is.numeric(x) )
+			x <- format(x)
+		w <- strwidth(x, "in") / strheight(x, "in")
+		max(2, w)
+	}
 	if ( length(chs) > 0L ) {
-		lens1 <- vapply(chs, function(ch) max(0, nchar(ch$limits)),
-			numeric(1L))
-		lens2 <- vapply(chs, function(ch) max(0, nchar(ch$label)),
-			numeric(1L))
-		max(lens1, lens2)
+		lens1 <- vapply(chs, function(ch) fn(ch$limits), numeric(1L))
+		lens2 <- vapply(chs, function(ch) fn(ch$label), numeric(1L))
+		floor(max(c(lens1, lens2)))
 	} else {
 		FALSE
 	}
