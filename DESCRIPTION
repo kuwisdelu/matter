@@ -5,12 +5,12 @@ Version: 2.3.0
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
-Description: Memory-efficient reading, writing, and manipulation of
-        structured binary data as file-based vectors, matrices, arrays,
-        lists, and data frames.
+Description: Memory-efficient reading, writing, and manipulation of structured binary data as file-based vectors, matrices, arrays, lists, and data frames.
 License: Artistic-2.0
-Depends: R (>= 3.5), BiocParallel, Matrix, methods, stats, stats4
-Imports: BiocGenerics, ProtGenerics, digest, irlba, biglm, utils
+Depends: R (>= 3.5), BiocParallel, Matrix, methods
+Imports: BiocGenerics, ProtGenerics, digest, irlba,
+	biglm, stats, stats4, graphics, grDevices,
+	utils
 Suggests: BiocStyle, knitr, testthat
 VignetteBuilder: knitr
 Collate: matterGenerics.R utils.R drle.R

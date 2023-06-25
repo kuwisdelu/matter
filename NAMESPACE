@@ -17,11 +17,23 @@ importFrom("Matrix",
 	"colMeans")
 
 importFrom("stats",
-	"runmed",
+	"approx",
+	"cov",
+	"dnorm",
 	"median",
-	"update",
+	"loess",
+	"lowess",
+	"na.omit",
 	"nobs",
-	"na.omit")
+	"predict",
+	"qnorm",
+	"rlnorm",
+	"rnorm",
+	"runmed",
+	"setNames",
+	"smooth.spline",
+	"spline",
+	"update")
 
 importFrom("stats4",
 	"plot",
@@ -38,6 +50,29 @@ importFrom("utils",
 	"head",
 	"tail",
 	"object.size")
+
+importFrom("grDevices",
+	"dev.cur",
+	"dev.flush",
+	"dev.hold",
+	"hcl.colors",
+	"palette.colors",
+	"xy.coords")
+
+importFrom("graphics",
+	"Axis",
+	"box",
+	"co.intervals",
+	"grid",
+	"legend",
+	"mtext",
+	"par",
+	"plot.new",
+	"plot.window",
+	"plot.xy",
+	"strheight",
+	"strwidth",
+	"title")
 
 exportClasses(
 	"drle",
@@ -253,7 +288,6 @@ export(
 	".colStats")
 
 export(
-	"chunkify",
 	"chunk_apply",
 	"chunk_rowapply",
 	"chunk_colapply",

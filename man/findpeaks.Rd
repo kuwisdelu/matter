@@ -2,6 +2,7 @@
 
 \alias{findpeaks}
 \alias{locmax}
+\alias{locmin}
 
 \title{Find Peaks Based on Local Maxima}
 
