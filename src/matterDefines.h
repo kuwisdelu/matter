@@ -466,7 +466,7 @@ inline int switch_diff_ref(int ref)
 }
 
 template<typename T>
-inline bool equal(T x, T y, double tol = DBL_EPSILON)
+bool equal(T x, T y, double tol = DBL_EPSILON)
 {
 	return udiff<T>(x, y) <= tol;
 }

@@ -7,6 +7,33 @@
 
 #define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
 
+//// Comparison
+//--------------
+
+template<typename T>
+bool less(T x, T y)
+{
+	return sdiff<T>(x, y) < 0;
+}
+
+template<typename T>
+bool greater(T x, T y)
+{
+	return sdiff<T>(x, y) > 0;
+}
+
+template<typename T>
+bool lesseq(T x, T y)
+{
+	return sdiff<T>(x, y) <= 0;
+}
+
+template<typename T>
+bool greatereq(T x, T y)
+{
+	return sdiff<T>(x, y) >= 0;
+}
+
 //// Sortedness
 //--------------
 
@@ -14,8 +41,9 @@ template<typename T>
 bool is_sorted(T * x, size_t n, bool strictly = false)
 {
 	for ( size_t i = 1; i < n; i++ ) {
-		double d = sdiff(x[i], x[i - 1]);
-		if ( d < 0 || (strictly && d <= 0) )
+		if ( less(x[i], x[i - 1]) )
+			return false;
+		else if ( strictly && lesseq(x[i], x[i - 1]) )
 			return false;
 	}
 	return true;
@@ -147,7 +175,7 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 	while ( i < j - 1 )
 	{
 		mid = (i + j) / 2;
-		if ( sdiff(x, table[mid]) < 0 )
+		if ( less(x, table[mid]) )
 			j = mid;
 		else
 			i = mid;
