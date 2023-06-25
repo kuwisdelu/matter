@@ -10,15 +10,21 @@
 }
 
 \usage{
-findpeaks(x, width = 5)
+findpeaks(x, prominence = NULL, bounds = TRUE)
 
 locmax(x, width = 5)
+
+locmin(x, width = 5)
 }
 
 \arguments{
 	\item{x}{A numeric vector.}
 
-	\item{width}{The number of signal elements to consider when determining if the center of the sliding window is a local maximum.}
+    \item{prominence}{The minimum peak prominence used for filtering the peaks.}
+
+    \item{bounds}{Whether the boundaries of each peak should be calculated and returned.}
+
+	\item{width}{The number of signal elements to consider when determining if the center of the sliding window is a local extremum.}
 }
 
 \details{

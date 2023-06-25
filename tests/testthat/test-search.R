@@ -57,6 +57,7 @@ test_that("binary search - integers", {
 	expect_equal(c(1, 4, NA, NA, 10), bsearch(x, table))
 	expect_equal(c(1, 4, 5, 8, 10), bsearch(x, table, tol=Inf))
 	expect_equal(c(1, 4, 5, 8, 10), bsearch(x, table, nearest=TRUE))
+	expect_equal(rep_len(NA_integer_, 3L), bsearch(c(-1L, 0L, 1L), integer(), tol=0.1))
 
 })
 
@@ -73,6 +74,8 @@ test_that("binary search - doubles", {
 	expect_equal(NA_integer_, bsearch(3.0, table, tol=0.1, tol.ref="x"))
 	expect_equal(3, bsearch(3.0, table, tol=0.1, tol.ref="x", nearest=TRUE))
 	expect_equal(3, bsearch(3.0, table, tol=0.1, tol.ref="y"))
+	expect_equal(3, bsearch(3.0, table, tol=0.1, tol.ref="y"))
+	expect_equal(rep_len(NA_integer_, 3L), bsearch(c(-1, 0, 1), numeric(), tol=0.1))
 
 })
 
@@ -98,6 +101,8 @@ test_that("approx search (sorted) - integers", {
 	expect_equal(vals[c(1, 4, 5, 8, 10)], asearch(x, keys, vals, tol=Inf))
 	expect_equal(vals[rev(c(1, 4, NA, NA, 10))], asearch(rev(x), keys, vals))
 	expect_equal(vals[rev(c(1, 4, 5, 8, 10))], asearch(rev(x), keys, vals, tol=Inf))
+	expect_equal(NA_real_, asearch(NA_integer_, keys, vals))
+	expect_equal(c(0, NA_real_), asearch(c(1.01, NA_integer_), keys, vals, nomatch=0))
 
 })
 
@@ -128,6 +133,8 @@ test_that("approx search (sorted) - doubles", {
 	expect_equal(NA_real_, asearch(3.0, keys, vals, tol=0.1, tol.ref="x"))
 	expect_equal(vals[3], asearch(3.0, keys, vals, tol=0.2, tol.ref="x"))
 	expect_equal(vals[3], asearch(3.0, keys, vals, tol=0.1, tol.ref="y"))
+	expect_equal(NA_real_, asearch(NA_real_, keys, vals))
+	expect_equal(c(0, NA_real_), asearch(c(1.01, NA_real_), keys, vals, nomatch=0))
 
 	fun <- function(xi) which.min(abs(xi - keys))
 	x2 <- seq(from=1, to=4, length.out=20)

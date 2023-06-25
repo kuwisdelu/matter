@@ -9,7 +9,7 @@
 }
 
 \usage{
-asearch(x, keys, values = seq_along(keys), tol = 0, tol.ref = "abs",
+asearch(x, keys, values, tol = 0, tol.ref = "abs",
 		nomatch = NA_integer_, interp = "none")
 }
 

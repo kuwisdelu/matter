@@ -139,8 +139,10 @@ double quick_mad(T * x, size_t n, double center = NA_REAL, double scale = 1.4826
 template<typename T>
 index_t binary_search(T x, T * table, size_t start, size_t end,
 	double tol, int tol_ref, int nomatch, bool nearest = false,
-	bool ind1 = false, int err = SEARCH_ERROR)
+	bool ind1 = false)
 {
+	if ( start >= end )
+		return nomatch;
 	index_t i = start, j = end, mid;
 	while ( i < j - 1 )
 	{
@@ -169,21 +171,19 @@ index_t binary_search(T x, T * table, size_t start, size_t end,
 template<typename T>
 index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 	size_t start, size_t end, double tol, int tol_ref, int nomatch,
-	bool nearest = false, bool ind1 = false, int err = SEARCH_ERROR)
+	bool nearest = false, bool ind1 = false)
 {
 	size_t num_matches = 0;
-	for ( size_t i = 0; i < xlen; i++ ) {
+	for ( size_t i = 0; i < xlen; i++ )
+	{
 		if ( isNA(x[i]) )
 			ptr[i] = nomatch;
-		else {
-			index_t pos = binary_search(x[i], table, start, end,
-				tol, tol_ref, nomatch, nearest, ind1, err);
-			if ( pos != err ) {
-				ptr[i] = pos;
+		else
+		{
+			ptr[i] = binary_search(x[i], table, start, end,
+				tol, tol_ref, nomatch, nearest, ind1);
+			if ( ptr[i] != nomatch )
 				num_matches++;
-			}
-			else
-				return err;
 		}
 	}
 	return num_matches;

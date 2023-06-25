@@ -13,7 +13,7 @@
 bsearch(x, table, tol = 0, tol.ref = "abs",
 		nomatch = NA_integer_, nearest = FALSE)
 
-reldiff(x, y, ref = "abs")
+reldiff(x, y, ref = "y")
 }
 
 \arguments{

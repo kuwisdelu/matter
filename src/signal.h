@@ -1316,10 +1316,10 @@ template<typename Tx, typename Ty>
 Ty approx1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 	double tol, int tol_ref, Ty nomatch, int interp = EST_NEAR)
 {
+	if ( isNA(xi) )
+		return NA<Ty>();
 	index_t i = NA_INTEGER;
 	Ty yi = nomatch;
-	if ( isNA(xi) )
-		return yi;
 	i = binary_search(xi, x, start, end,
 		tol, tol_ref, NA_INTEGER);
 	if ( !isNA(i) && i >= 0 )
@@ -1340,11 +1340,16 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	int interp = EST_NEAR, int stride = 1)
 {
 	index_t num_matches = 0;
-	if ( ni < 2 * (end - start) || !is_sorted(xi, ni) )
+	if ( ni < (end - start) || !is_sorted(xi, ni) )
 	{
-		// if len(xi) << 2*len(x) then iterate xi (downsampling)
+		// if len(xi) << len(x) then iterate xi (downsampling)
 		for ( size_t i = 0; i < ni; i++ )
 		{
+			if ( isNA(xi[i]) )
+			{
+				ptr[i * stride] = NA<Ty>();
+				continue;
+			}
 			Ty yi = approx1(xi[i], x, y, start, end,
 				tol, tol_ref, NA<Ty>(), interp);
 			if ( !isNA(yi) )
@@ -1358,7 +1363,7 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	}
 	else
 	{
-		// if len(xi) >> 2*len(x) then iterate x (upsampling)
+		// if len(xi) >> len(x) then iterate x (upsampling)
 		int pos[end];
 		bool processed[ni];
 		do_binary_search(pos, x, end - start, xi, 0, ni,
@@ -1366,10 +1371,15 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 		for ( size_t i = 0; i < ni; i++ )
 		{
 			if ( isNA(xi[i]) )
+			{
 				ptr[i * stride] = NA<Ty>();
+				processed[i] = true;
+			}
 			else
+			{
 				ptr[i * stride] = nomatch;
-			processed[i] = false;
+				processed[i] = false;
+			}
 		}
 		for ( size_t k = start; k < end; k++ )
 		{
