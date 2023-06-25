@@ -308,7 +308,7 @@ export(
 	"mergepeaks",
 	"peakwidths",
 	"peakareas",
-	"resample1",
+	"approx1",
 	"simspectra")
 
 export(

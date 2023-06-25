@@ -735,9 +735,7 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 #### Resampling with interpolation ####
 ## ------------------------------------
 
-# exported version with argument checking (safer, easier)
-
-resample1 <- function(x, y, xout, n = length(x),
+approx1 <- function(x, y, xout, n = length(x),
 	tol = NA_real_, tol.ref = "abs", interp = "linear")
 {
 	if ( missing(xout) )
@@ -756,17 +754,9 @@ resample1 <- function(x, y, xout, n = length(x),
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		tol <- 2 * max(reldiff(x, ref=ref))
 	}
-	resample1_int(x, y, xout=xout, tol=tol,
-		tol.ref=as_tol_ref("abs"), interp=as_interp(interp))
-}
-
-# internal version with no argument checking
-
-resample1_int <- function(x, y, xout,
-	tol, tol.ref = 1L, interp = 1L)
-{
-	.Call(C_Approx1, xout, x, y, tol, tol.ref,
-		NA_real_, interp, PACKAGE="matter")
+	nomatch <- as.vector(NA, mode=typeof(y))
+	.Call(C_Approx1, xout, x, y, tol, as_tol_ref(tol.ref),
+		nomatch, as_interp(interp), PACKAGE="matter")
 }
 
 #### Simulation ####

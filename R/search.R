@@ -2,8 +2,6 @@
 #### Approximate search with fuzzy matching ####
 ## ---------------------------------------------
 
-# relative difference
-
 reldiff <- function(x, y, ref = "y")
 {
 	ref <- as_tol_ref(ref)
@@ -32,7 +30,18 @@ reldiff <- function(x, y, ref = "y")
 	}
 }
 
-# exported version with argument checking (safer, easier)
+bsearch <- function(x, table, tol = 0, tol.ref = "abs",
+	nomatch = NA_integer_, nearest = FALSE)
+{
+	if ( is.integer(x) && is.double(table) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(table) )
+		table <- as.double(table)
+	if ( is.unsorted(table) )
+		stop("'table' must be sorted")
+	.Call(C_binarySearch, x, table, tol, as_tol_ref(tol.ref),
+		nomatch, nearest, PACKAGE="matter")
+}
 
 asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 	nomatch = NA_integer_, interp = "none")
@@ -46,42 +55,8 @@ asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 		keys <- keys[ord]
 		values <- values[ord]
 	}
-	asearch_int(x, keys=keys, values=values, tol=tol,
-		tol.ref=as_tol_ref(tol.ref), nomatch=nomatch,
-		interp=as_interp(interp))
-}
-
-# internal version with no argument checking
-
-asearch_int <- function(x, keys, values, tol = 0, tol.ref = 1L,
-	nomatch = NA_integer_, interp = 1L)
-{
-	.Call(C_Approx1, x, keys, values, tol, tol.ref,
-		nomatch, interp, PACKAGE="matter")
-}
-
-# exported version with argument checking (safer, easier)
-
-bsearch <- function(x, table, tol = 0, tol.ref = "abs",
-	nomatch = NA_integer_, nearest = FALSE)
-{
-	if ( is.integer(x) && is.double(table) )
-		x <- as.double(x)
-	if ( is.double(x) && is.integer(table) )
-		table <- as.double(table)
-	if ( is.unsorted(table) )
-		stop("'table' must be sorted")
-	bsearch_int(x, table=table, tol=tol, tol.ref=as_tol_ref(tol.ref),
-		nomatch=nomatch, nearest=nearest)
-}
-
-# internal version with no argument checking
-
-bsearch_int <- function(x, table, tol = 0, tol.ref = 1L,
-	nomatch = NA_integer_, nearest = FALSE)
-{
-	.Call(C_binarySearch, x, table, tol, tol.ref,
-		nomatch, nearest, PACKAGE="matter")
+	.Call(C_Approx1, x, keys, values, tol, as_tol_ref(tol.ref),
+		nomatch, as_interp(interp), PACKAGE="matter")
 }
 
 #### Search for k-th largest element ####
