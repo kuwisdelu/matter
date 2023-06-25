@@ -3,8 +3,6 @@
 
 #include "matterDefines.h"
 
-#define SEARCH_ERROR -1
-
 #define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
 
 //// Comparison
