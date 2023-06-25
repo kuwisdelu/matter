@@ -69,6 +69,8 @@
 \alias{roll}
 \alias{seq_rel}
 
+\alias{shingles}
+
 \alias{sizeof}
 
 \alias{type,vector-method}

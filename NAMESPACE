@@ -373,13 +373,15 @@ export(
 
 export(
 	"vizi",
-	"vizi_par",
-	"vizi_style",
+	"set_channel",
+	"set_coord",
 	"add_mark",
 	"add_facets",
-	"as_facets",
-	"set_channel",
-	"set_coord")
+	"as_facets")
+
+export(
+	"vizi_par",
+	"vizi_style")
 
 S3method("preplot", "vizi_plot")
 S3method("preplot", "vizi_facets")

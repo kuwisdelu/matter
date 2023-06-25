@@ -595,12 +595,12 @@ compute_facets <- function(plot, by, nshingles = 6L)
 
 has_free_x <- function(plot)
 {
-	isTRUE(plot$free %in% c("x", "xy"))
+	isTRUE(plot$free %in% c("x", "xy", "yx"))
 }
 
 has_free_y <- function(plot)
 {
-	isTRUE(plot$free %in% c("y", "xy"))
+	isTRUE(plot$free %in% c("y", "xy", "yx"))
 }
 
 get_dim <- function(n, dim, nrow, ncol)
