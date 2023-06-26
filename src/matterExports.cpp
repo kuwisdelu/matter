@@ -12,13 +12,13 @@ SEXP quickOrder(SEXP x)
 	PROTECT(indx = Rf_allocVector(INTSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			quick_order(INTEGER(indx), INTEGER(x), 0, XLENGTH(x), true);
+			do_quick_sort(INTEGER(indx), INTEGER(x), 0, XLENGTH(x), true);
 			break;
 		case REALSXP:
-			quick_order(INTEGER(indx), REAL(x), 0, XLENGTH(x), true);
+			do_quick_sort(INTEGER(indx), REAL(x), 0, XLENGTH(x), true);
 			break;
 		case STRSXP:
-			quick_order(INTEGER(indx), STRING_PTR(x), 0, XLENGTH(x), true);
+			do_quick_sort(INTEGER(indx), STRING_PTR(x), 0, XLENGTH(x), true);
 			break;
 		default:
 			Rf_error("unsupported data type");

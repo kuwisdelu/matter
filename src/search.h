@@ -107,18 +107,13 @@ index_t partition(T * x, index_t left, index_t right, int * v = NULL)
 	return pivot;
 }
 
-// find the sorted order of array x (modifed in-place!!!)
-template<typename T>
-void quick_order(int * ptr, T * x, size_t start, size_t end, bool ind1 = false)
+// sort an array x (modifed in-place!!!)
+template<typename Tx, typename Tv>
+void quick_sort(Tx * x, size_t start, size_t end, Tv * v = NULL)
 {
 	index_t pivot, left = start, right = end - 1;
-	// initialize indices
-	for ( size_t i = start; i < end; i++ )
-		ptr[i] = i + ind1;
 	if ( left == right )
 		return;
-	T dup [end];
-	std::memcpy(dup, x, end * sizeof(T));
 	// initialize stack
 	int stack_size = 2 * std::ceil(std::log2(end - start));
 	int stack [stack_size];
@@ -137,16 +132,17 @@ void quick_order(int * ptr, T * x, size_t start, size_t end, bool ind1 = false)
 			for ( size_t i = left + 1; i <= right; i++ )
 			{
 				size_t j = i;
-				while ( j > left && lt(dup[j], dup[j - 1]) )
+				while ( j > left && lt(x[j], x[j - 1]) )
 				{
-					swap(dup[j], dup[j - 1], T);
-					swap(ptr[j], ptr[j - 1], int);
+					swap(x[j], x[j - 1], Tx);
+					if ( v != NULL )
+						swap(v[j], v[j - 1], Tv);
 					j--;
 				}
 			}
 			continue;
 		}
-		pivot = partition(dup, left, right, ptr);
+		pivot = partition(x, left, right, v);
 		// push larger subarray then smaller subarray
 		if ( pivot - left < right - pivot )
 		{
@@ -180,6 +176,18 @@ void quick_order(int * ptr, T * x, size_t start, size_t end, bool ind1 = false)
 	}
 }
 
+// sort an array x and return sorted indices in ptr
+template<typename T>
+void do_quick_sort(int * ptr, T * x, size_t start, size_t end, bool ind1 = false)
+{
+	// initialize indices
+	for ( size_t i = start; i < end; i++ )
+		ptr[i] = i + ind1;
+	T dup [end];
+	std::memcpy(dup, x, end * sizeof(T));
+	quick_sort(dup, start, end, ptr);
+}
+
 // find the k-th element of array x (modifed in-place!!!)
 template<typename T>
 T quick_select(T * x, size_t start, size_t end, size_t k)
@@ -200,7 +208,7 @@ T quick_select(T * x, size_t start, size_t end, size_t k)
 	while (true);
 }
 
-// find the k-th elements of an array x
+// find the k-th elements of an array x and return in ptr
 template<typename T>
 void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n)
 {
