@@ -452,19 +452,6 @@ double udiff(T x, T y, int ref = ABS_DIFF)
 	return std::fabs(sdiff(x, y, ref));
 }
 
-inline int switch_diff_ref(int ref)
-{
-	switch(ref) {
-		case ABS_DIFF:
-			return ABS_DIFF;
-		case REL_DIFF_X:
-			return REL_DIFF_Y;
-		case REL_DIFF_Y:
-			return REL_DIFF_X;
-	}
-	return NA_INTEGER;
-}
-
 template<typename T>
 bool equal(T x, T y, double tol = DBL_EPSILON)
 {

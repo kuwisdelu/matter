@@ -72,11 +72,10 @@ test_that("sparse vector subsetting w/ interpolation", {
 	test5 <- c(1, 1, 1, 1.5, 2, 2.5, 3, 3.5, 4)
 	expect_equal(test5, z[])
 
-	# TODO: should this be supported???
-	# z2 <- sparse_vec(index=rev(aindex(z)),
-	# 				data=rev(adata(z)),
-	# 				domain=domain(z))
-	# expect_equal(test1, z2[])
+	z2 <- sparse_vec(index=rev(aindex(z)),
+					data=rev(adata(z)),
+					domain=domain(z))
+	expect_equal(test1, z2[])
 
 	z3 <- sparse_vec(index=seq_len(11),
 					data=c(rep_len(1, 5), 10,

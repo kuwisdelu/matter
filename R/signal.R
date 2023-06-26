@@ -735,8 +735,8 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 #### Resampling with interpolation ####
 ## ------------------------------------
 
-approx1 <- function(x, y, xout, n = length(x),
-	tol = NA_real_, tol.ref = "abs", interp = "linear")
+approx1 <- function(x, y, xout, interp = "linear", n = length(x),
+	tol = NA_real_, tol.ref = "abs", extrap = NA_real_)
 {
 	if ( missing(xout) )
 		xout <- seq(from=min(x), to=max(x), length.out=n)
@@ -744,19 +744,14 @@ approx1 <- function(x, y, xout, n = length(x),
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(xout) )
 		xout <- as.double(xout)
-	if ( is.unsorted(x) ) {
-		ord <- order(x)
-		x <- x[ord]
-		y <- y[ord]
-	}
 	if ( is.na(tol) ) {
 		# guess tol as ~2x the max gap between samples
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 2 * max(reldiff(x, ref=ref))
+		tol <- 2 * max(abs(reldiff(x, ref=ref)))
 	}
-	nomatch <- as.vector(NA, mode=typeof(y))
+	extrap <- as.vector(extrap, mode=typeof(y))
 	.Call(C_Approx1, xout, x, y, tol, as_tol_ref(tol.ref),
-		nomatch, as_interp(interp), PACKAGE="matter")
+		extrap, as_interp(interp), PACKAGE="matter")
 }
 
 #### Simulation ####

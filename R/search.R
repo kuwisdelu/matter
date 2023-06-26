@@ -43,20 +43,15 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 		nomatch, nearest, PACKAGE="matter")
 }
 
-asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
-	nomatch = NA_integer_, interp = "none")
+asearch <- function(x, keys, values,
+	tol = 0, tol.ref = "abs", nomatch = NA_integer_)
 {
 	if ( is.integer(x) && is.double(keys) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
-	if ( is.unsorted(keys) ) {
-		ord <- order(keys)
-		keys <- keys[ord]
-		values <- values[ord]
-	}
 	.Call(C_Approx1, x, keys, values, tol, as_tol_ref(tol.ref),
-		nomatch, as_interp(interp), PACKAGE="matter")
+		nomatch, as_interp("none"), PACKAGE="matter")
 }
 
 #### Search for k-th largest element ####

@@ -1268,6 +1268,7 @@ Ty interp1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return yi / K;
 }
 
+// interpolate in interval |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 Ty interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref, int interp = EST_NEAR)
@@ -1339,89 +1340,111 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	size_t start, size_t end, double tol, int tol_ref, Ty nomatch,
 	int interp = EST_NEAR, int stride = 1)
 {
+	// initialize ptr
+	bool processed[ni];
+	for ( size_t i = 0; i < ni; i++ )
+	{
+		if ( isNA(xi[i]) )
+		{
+			ptr[i * stride] = NA<Ty>();
+			processed[i] = true;
+		}
+		else
+		{
+			ptr[i * stride] = nomatch;
+			processed[i] = false;
+		}
+	}
+	if ( start >= end )
+		return 0;
 	index_t num_matches = 0;
+	Tx * xs = x;
+	Ty * ys = y;
+	// check if x (and therefore y) are unsorted
+	bool need_sort = !is_sorted(x + start, end - start);
+	if ( need_sort )
+	{
+		xs = R_Calloc(end, Tx);
+		ys = R_Calloc(end, Ty);
+		std::memcpy(xs, x, end * sizeof(Tx));
+		std::memcpy(ys, y, end * sizeof(Ty));
+		quick_sort(xs, start, end, ys);
+	}
+	// do the resampling
 	if ( ni < (end - start) || !is_sorted(xi, ni) )
 	{
 		// if len(xi) << len(x) then iterate xi (downsampling)
 		for ( size_t i = 0; i < ni; i++ )
 		{
 			if ( isNA(xi[i]) )
-			{
-				ptr[i * stride] = NA<Ty>();
 				continue;
-			}
-			Ty yi = approx1(xi[i], x, y, start, end,
+			Ty yi = approx1(xi[i], xs, ys, start, end,
 				tol, tol_ref, NA<Ty>(), interp);
 			if ( !isNA(yi) )
 			{
 				num_matches++;
 				ptr[i * stride] = yi;
 			}
-			else
-				ptr[i * stride] = nomatch;
+			processed[i] = true;
 		}
 	}
 	else
 	{
 		// if len(xi) >> len(x) then iterate x (upsampling)
-		int pos[end];
-		bool processed[ni];
-		do_binary_search(pos, x, end - start, xi, 0, ni,
-			tol, switch_diff_ref(tol_ref), NA_INTEGER);
-		for ( size_t i = 0; i < ni; i++ )
-		{
-			if ( isNA(xi[i]) )
-			{
-				ptr[i * stride] = NA<Ty>();
-				processed[i] = true;
-			}
-			else
-			{
-				ptr[i * stride] = nomatch;
-				processed[i] = false;
-			}
+		int indx[end], new_ref;
+		switch(tol_ref) {
+			case REL_DIFF_X:
+				new_ref = REL_DIFF_Y;
+			case REL_DIFF_Y:
+				new_ref = REL_DIFF_X;
+			default:
+				new_ref = tol_ref;
 		}
-		for ( size_t k = start; k < end; k++ )
+		// find initial search positions in xi
+		do_binary_search(indx, xs, end - start, xi, 0, ni,
+			tol, new_ref, NA_INTEGER);
+		for ( size_t j = start; j < end; j++ )
 		{
-			if ( isNA(pos[k]) )
+			if ( isNA(indx[j]) )
 				continue;
 			// iterate to left along xi
-			for ( index_t i = pos[k]; i < ni; i++ )
+			for ( index_t i = indx[j]; i < ni; i++ )
 			{
 				if ( processed[i] )
 					break;
-				if ( udiff(xi[i], x[k], tol_ref) > tol )
+				if ( udiff(xi[i], xs[j], tol_ref) > tol )
 					break;
-				Ty yi = approx1(xi[i], x, y, k, end,
+				Ty yi = approx1(xi[i], xs, ys, j, end,
 					tol, tol_ref, NA<Ty>(), interp);
 				if ( !isNA(yi) )
 				{
 					num_matches++;
 					ptr[i * stride] = yi;
 				}
-				else
-					ptr[i * stride] = nomatch;
 				processed[i] = true;
 			}
 			// iterate to right along xi
-			for ( index_t i = pos[k] - 1; i >= 0; i-- )
+			for ( index_t i = indx[j] - 1; i >= 0; i-- )
 			{
 				if ( processed[i] )
 					break;
-				if ( udiff(xi[i], x[k], tol_ref) > tol )
+				if ( udiff(xi[i], xs[j], tol_ref) > tol )
 					break;
-				Ty yi = approx1(xi[i], x, y, k, end,
+				Ty yi = approx1(xi[i], xs, ys, j, end,
 					tol, tol_ref, NA<Ty>(), interp);
 				if ( !isNA(yi) )
 				{
 					num_matches++;
 					ptr[i * stride] = yi;
 				}
-				else
-					ptr[i * stride] = nomatch;
 				processed[i] = true;
 			}
 		}
+	}
+	if ( need_sort )
+	{
+		Free(xs);
+		Free(ys);
 	}
 	return num_matches;
 }

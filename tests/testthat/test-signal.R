@@ -301,7 +301,7 @@ test_that("approx1 (unsorted)", {
 	y <- x
 	xi <- c(1.0, 2.0, 3.33, 5.0)
 
-		expect_equal(c(1.0, 2.0, 3.33, 4.0), approx1(x, y, xi))
+	expect_equal(c(1.0, 2.0, 3.33, 4.0), approx1(x, y, xi))
 	expect_equal(c(1.0, 2.0, 3.33, NA), approx1(x, y, xi, tol=0))
 	expect_equal(c(1.0, 2.0, 3.33, NA), approx1(x, y, xi, tol=0.5))
 

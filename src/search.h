@@ -51,25 +51,25 @@ bool is_sorted(T * x, size_t n, bool strictly = false)
 //-----------------
 
 // select pivot and partition x (modifed in-place!!!)
-template<typename T>
-index_t partition(T * x, index_t left, index_t right, int * v = NULL)
+template<typename Tx, typename Tv>
+index_t partition(Tx * x, index_t left, index_t right, Tv * v = NULL)
 {
 	// find pivot by median of 1st/mid/last
 	index_t i, j, pivot = (left + right) / 2;
 	if ( lt(x[pivot], x[left]) ) {
-		swap(x[pivot], x[left], T);
+		swap(x[pivot], x[left], Tx);
 		if ( v != NULL )
-			swap(v[pivot], v[left], int);
+			swap(v[pivot], v[left], Tv);
 	}
 	if ( gt(x[pivot], x[right]) )
 	{
-		swap(x[pivot], x[right], T);
+		swap(x[pivot], x[right], Tx);
 		if ( v != NULL )
-			swap(v[pivot], v[right], int);
+			swap(v[pivot], v[right], Tv);
 		if ( lt(x[pivot], x[left]) ) {
-			swap(x[pivot], x[left], T);
+			swap(x[pivot], x[left], Tx);
 			if ( v != NULL )
-				swap(v[pivot], v[left], int);
+				swap(v[pivot], v[left], Tv);
 		}
 	}
 	// use Hoare's partition method 
@@ -81,9 +81,9 @@ index_t partition(T * x, index_t left, index_t right, int * v = NULL)
 		// swap inversions
 		if ( i < j && !equal(x[i], x[j]) )
 		{
-			swap(x[i], x[j], T);
+			swap(x[i], x[j], Tx);
 			if ( v != NULL )
-				swap(v[i], v[j], int);
+				swap(v[i], v[j], Tv);
 			if ( pivot == i )
 				pivot = j;
 			else if ( pivot == j )
@@ -196,7 +196,7 @@ T quick_select(T * x, size_t start, size_t end, size_t k)
 	do {
 		if ( left == right )
 			return x[left];
-		pivot = partition(x, left, right);
+		pivot = partition<T,void*>(x, left, right);
 		// return k-th element or loop again
 		if ( k == pivot )
 			return x[k];
