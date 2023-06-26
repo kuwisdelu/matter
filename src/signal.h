@@ -207,8 +207,8 @@ template<typename T>
 void guided_filter(T * x, T * g, int n, int width,
 	double sdreg, double ftol, double * buffer)
 {
-	double ug[n], ux[n], gmax;
-	double tmp1[n], tmp2[n], tmp3[n], tmp4[n];
+	double ug [n], ux [n], gmax;
+	double tmp1 [n], tmp2 [n], tmp3 [n], tmp4 [n];
 	// find maximum of guidance signal
 	if ( !isNA(ftol) ) {
 		gmax = n > 0 ? g[0] : NA_REAL;
@@ -421,7 +421,7 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 {
 	if ( nx <= 1 || ny <= 1 )
 		return 0;
-	double xi[ny], ti0, ti1, tj, t;
+	double xi [ny], ti0, ti1, tj, t;
 	double Lx = nx - 1, Ly = ny - 1;
 	for ( index_t i = 0, j = 0; i < nx - 1; i++ )
 	{
@@ -460,7 +460,7 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	// find node candidates where |tx - ty| <= tol
 	if ( n < 3 )
 		Rf_error("need at least 3 nodes");
-	int ptrW[n], wa[n], wb[n], nW;
+	int ptrW [n], wa [n], wb [n], nW;
 	ptrW[0] = 0, ptrW[1] = 1, nW = 1;
 	wa[0] = 0, wb[0] = 1;
 	wa[n - 1] = nx - 1, wb[n - 1] = nx;
@@ -818,7 +818,7 @@ void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 	T a1, a2;
 	T * y = buffer;
 	std::memcpy(y, x, n * sizeof(T));
-	T z[n];
+	T z [n];
 	if ( decreasing )
 	{
 		for ( size_t p = m; p >= 1; p-- )

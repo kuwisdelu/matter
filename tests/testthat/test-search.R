@@ -32,7 +32,12 @@ test_that("quick select + median + mad", {
 	u1 <- as.numeric(sample(100L))
 	u2 <- as.numeric(sample(101L))
 	u3 <- c(0,1,0,1,0,0,3,2,2,2,4,4,8,2,0,0)
+	u4 <- sample(colors())
 
+	expect_equal(qorder(u1), order(u1))
+	expect_equal(qorder(u2), order(u2))
+	expect_equal(u3[qorder(u3)], u3[order(u3)])
+	expect_equal(qorder(u4), order(u4))
 	expect_equal(qselect(u1, 1L), min(u1))
 	expect_equal(qselect(u1, 100L), max(u1))
 	expect_equal(qselect(u2, 51L), median(u2))

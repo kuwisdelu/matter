@@ -364,6 +364,7 @@ exportMethods("prcomp")
 exportMethods("bigglm")
 
 export(
+	"qorder",
 	"qselect",
 	"qmedian",
 	"qmad",

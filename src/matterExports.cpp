@@ -6,13 +6,34 @@ extern "C" {
 // Select (k-th order and median)
 //--------------------------------
 
+SEXP quickOrder(SEXP x)
+{
+	SEXP indx;
+	PROTECT(indx = Rf_allocVector(INTSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			quick_order(INTEGER(indx), INTEGER(x), 0, XLENGTH(x), true);
+			break;
+		case REALSXP:
+			quick_order(INTEGER(indx), REAL(x), 0, XLENGTH(x), true);
+			break;
+		case STRSXP:
+			quick_order(INTEGER(indx), STRING_PTR(x), 0, XLENGTH(x), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return indx;
+}
+
 SEXP quickSelect(SEXP x, SEXP k)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocVector(TYPEOF(x), LENGTH(k)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			do_quick_select(INTEGER(result),INTEGER(x), 0, XLENGTH(x),
+			do_quick_select(INTEGER(result), INTEGER(x), 0, XLENGTH(x),
 				INTEGER(k), LENGTH(k));
 			break;
 		case REALSXP:

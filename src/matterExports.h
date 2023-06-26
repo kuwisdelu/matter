@@ -14,6 +14,7 @@ extern "C" {
 // Search and selection
 //----------------------
 SEXP relativeDiff(SEXP x, SEXP y, SEXP ref);
+SEXP quickOrder(SEXP x);
 SEXP quickSelect(SEXP x, SEXP k);
 SEXP quickMedian(SEXP x);
 SEXP quickMAD(SEXP x, SEXP center, SEXP constant);

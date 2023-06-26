@@ -62,6 +62,11 @@ asearch <- function(x, keys, values, tol = 0, tol.ref = "abs",
 #### Search for k-th largest element ####
 ## --------------------------------------
 
+qorder <- function(x)
+{
+	.Call(C_quickOrder, x, PACKAGE="matter")
+}
+
 qselect <- function(x, k = (length(x) + 1L) %/% 2L)
 {
 	if ( any(k < 1L | k > length(x)) )
