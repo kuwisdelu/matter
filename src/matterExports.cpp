@@ -40,6 +40,10 @@ SEXP quickSelect(SEXP x, SEXP k)
 			do_quick_select(REAL(result), REAL(x), 0, XLENGTH(x),
 				INTEGER(k), LENGTH(k));
 			break;
+		case STRSXP:
+			do_quick_select(STRING_PTR(result), STRING_PTR(x), 0, XLENGTH(x),
+				INTEGER(k), LENGTH(k));
+			break;
 		default:
 			Rf_error("unsupported data type");
 	}

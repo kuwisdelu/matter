@@ -214,7 +214,7 @@ void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n
 		else if ( k[i] < k[i - 1] )
 			ptr[i] = quick_select(dup, start, k[i - 1], k[i]);
 		else 
-			ptr[i] = k[i - 1];
+			ptr[i] = ptr[i - 1];
 	}
 }
 
