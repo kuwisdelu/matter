@@ -6,19 +6,20 @@
 #include "atoms.h"
 #include "matter.h"
 #include "search.h"
+#include "signal.h"
 #include "sparse.h"
 
 extern "C" {
 
-// Search (binary and approximate)
-//--------------------------------
-
+// Search and selection
+//----------------------
 SEXP relativeDiff(SEXP x, SEXP y, SEXP ref);
-
-SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
-	SEXP tol_ref, SEXP nomatch, SEXP nearest);
-SEXP approxSearch(SEXP x, SEXP keys, SEXP values, SEXP tol,
-	SEXP tol_ref, SEXP nomatch, SEXP interp, SEXP sorted);
+SEXP quickOrder(SEXP x);
+SEXP quickSelect(SEXP x, SEXP k);
+SEXP quickMedian(SEXP x);
+SEXP quickMAD(SEXP x, SEXP center, SEXP constant);
+SEXP binarySearch(SEXP x, SEXP table,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP nearest);
 
 // Compression (delta run length encoding)
 //-----------------------------------------
@@ -61,9 +62,32 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 // Signal processing
 //------------------
 
-SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP func);
+SEXP meanFilter(SEXP x, SEXP width);
+SEXP linearFilter(SEXP x, SEXP weights);
+SEXP bilateralFilter(SEXP x, SEXP width,
+	SEXP sddist, SEXP sdrange, SEXP spar);
+SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
+	SEXP sdreg, SEXP ftol);
+SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
+	SEXP tol, SEXP tol_ref);
+SEXP warpCOW(SEXP x, SEXP y, SEXP tx, SEXP ty,
+	SEXP x_nodes, SEXP y_nodes, SEXP tol, SEXP tol_ref);
+SEXP iCorr(SEXP x, SEXP y);
+SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
+SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);
+SEXP downsampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper);
+SEXP convexHull(SEXP x, SEXP y, SEXP upper);
+SEXP smoothSNIP(SEXP x, SEXP m, SEXP decreasing);
 SEXP localMaxima(SEXP x, SEXP width);
-SEXP peakBoundaries(SEXP x, SEXP peaks, SEXP width);
+SEXP peakBoundaries(SEXP x, SEXP peaks);
+SEXP peakBases(SEXP x, SEXP peaks);
+SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
+	 SEXP left_limits, SEXP right_limits, SEXP heights);
+SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
+	 SEXP left_limits, SEXP right_limits);
+SEXP Approx1(SEXP xi, SEXP x, SEXP y,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
 } // extern "C"
 

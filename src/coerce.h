@@ -6,7 +6,7 @@
 //// Type coercion 
 //------------------
 
-// default
+// defaults
 
 template<typename Tout, typename Tin>
 Tout coerce_cast(Tin x) {
@@ -381,6 +381,23 @@ double coerce_cast(int64_t x) {
 		return NA_REAL;
 	else
 		return static_cast<double>(x);
+}
+
+// SEXP
+
+template<> inline
+Rbyte coerce_cast(SEXP x) {
+	Rf_error("don't know how to coerce 'SEXP' to 'uchar'");
+}
+
+template<> inline
+int32_t coerce_cast(SEXP x) {
+	Rf_error("don't know how to coerce 'SEXP' to 'int'");
+}
+
+template<> inline
+double coerce_cast(SEXP x) {
+	Rf_error("don't know how to coerce 'SEXP' to 'double'");
 }
 
 #endif // COERCE

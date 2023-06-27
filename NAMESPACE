@@ -17,9 +17,28 @@ importFrom("Matrix",
 	"colMeans")
 
 importFrom("stats",
+	"approx",
+	"cov",
+	"dnorm",
 	"median",
+	"loess",
+	"lowess",
+	"na.omit",
+	"nobs",
+	"predict",
+	"qnorm",
+	"rlnorm",
+	"rnorm",
+	"runmed",
+	"setNames",
+	"smooth.spline",
+	"spline",
+	"update")
+
+importFrom("stats4",
+	"plot",
 	"update",
-	"na.omit")
+	"summary")
 
 import("BiocParallel")
 
@@ -31,6 +50,29 @@ importFrom("utils",
 	"head",
 	"tail",
 	"object.size")
+
+importFrom("grDevices",
+	"dev.cur",
+	"dev.flush",
+	"dev.hold",
+	"hcl.colors",
+	"palette.colors",
+	"xy.coords")
+
+importFrom("graphics",
+	"Axis",
+	"box",
+	"co.intervals",
+	"grid",
+	"legend",
+	"mtext",
+	"par",
+	"plot.new",
+	"plot.window",
+	"plot.xy",
+	"strheight",
+	"strwidth",
+	"title")
 
 exportClasses(
 	"drle",
@@ -271,11 +313,45 @@ export(
 	"vm_used")
 
 export(
+	"simspec",
+	"simspec1",
+	"filt1_ma",
+	"filt1_gauss",
+	"filt1_bi",
+	"filt1_adapt",
+	"filt1_guide",
+	"filt1_pag",
+	"warp1_loc",
+	"warp1_dtw",
+	"warp1_cow",
+	"icor",
 	"binvec",
+	"findbins",
+	"downsample",
 	"locmax",
-	"findpeaks")
+	"locmin",
+	"estbase_loc",
+	"estbase_hull",
+	"estbase_snip",
+	"estbase_med",
+	"estnoise_sd",
+	"estnoise_mad",
+	"estnoise_diff",
+	"estnoise_loess",
+	"estnoise_filt",
+	"findpeaks",
+	"peakwidths",
+	"peakareas",
+	"binpeaks",
+	"mergepeaks",
+	"approx1")
 
-export("roll")
+export(
+	"roll",
+	"seq_rel",
+	"shingles",
+	"dpal",
+	"cpal")
 
 exportMethods(
 	"apply",
@@ -289,9 +365,40 @@ exportMethods("prcomp")
 exportMethods("bigglm")
 
 export(
+	"qorder",
+	"qselect",
+	"qmedian",
+	"qmad",
 	"reldiff",
 	"asearch",
 	"bsearch")
+
+export(
+	"vizi",
+	"set_channel",
+	"set_coord",
+	"add_mark",
+	"add_facets",
+	"as_facets")
+
+export(
+	"vizi_par",
+	"vizi_style")
+
+S3method("preplot", "vizi_plot")
+S3method("preplot", "vizi_facets")
+
+S3method("plot", "vizi_plot")
+S3method("plot", "vizi_facets")
+S3method("plot", "vizi_points")
+S3method("plot", "vizi_lines")
+S3method("plot", "vizi_peaks")
+S3method("plot", "vizi_key")
+S3method("plot", "vizi_colorkey")
+
+exportMethods(
+	"preplot",
+	"plot")
 
 export(
 	"mem",

@@ -14,9 +14,11 @@
 		matter.coerce.altrep.list = FALSE,
 		matter.wrap.altrep = FALSE,
 		matter.dump.dir = tempdir(),
-		matter.vizi.par=list(),
-		matter.vizi.panelgrid=NULL,
-		matter.vizi.style=NULL)
+		matter.vizi.par = par_style_new(),
+		matter.vizi.panelgrid = NULL,
+		matter.vizi.style = "light",
+		matter.vizi.dpal = "Tableau 10",
+		matter.vizi.cpal = "Viridis")
 }
 
 #### Normalize subscripts ####
@@ -271,7 +273,7 @@ as_interp <- function(x) {
 		# simple interp (1-5)
 		"none", "mean", "sum", "max", "min",
 		# peak-based (6)
-		"auc",
+		"area",
 		# spline interp (7-8)
 		"linear", "cubic",
 		# kernel interp (9-10)
@@ -279,8 +281,12 @@ as_interp <- function(x) {
 	make_code(codes, x)
 }
 
-as_binfun <- function(x) {
-	codes <- c("sum", "mean", "max", "min")
+as_binstat <- function(x) {
+	codes <- c(
+		# location (1-4)
+		"sum", "mean", "max", "min",
+		# spread (5-7)
+		"sd", "var", "sse")
 	make_code(codes, x[1L], nomatch=1L)
 }
 
@@ -288,6 +294,10 @@ as_binfun <- function(x) {
 ## --------------------------------------
 
 is_nil <- function(x) is.na(x) || is.null(x)
+
+is_discrete <- function(x) {
+	is.factor(x) || is.character(x) || is.logical(x)
+}
 
 set_attr <- function(x, attr) {
 	for ( nm in names(attr) )
@@ -411,6 +421,18 @@ check_comformable_dims <- function(x, y, margin = 1L) {
 		return("argument length is non-conformable with array dimensions")
 	}
 	TRUE
+}
+
+normalize_lengths <- function(list) {
+	n <- lengths(list)
+	if ( length(unique(n)) != 1L )
+		list <- lapply(list, rep_len, length.out=max(n))
+	list
+}
+
+nlines <- function(x) {
+	xsub <- gsub("\n", "", x, fixed=TRUE)
+	nchar(x) - nchar(xsub) + 1L
 }
 
 #### Show utility functions ####
@@ -658,8 +680,90 @@ lmatmul <- function(x, y, useOuter = FALSE) {
 	ans
 }
 
-#### Utilities for working with raw bytes and memory ####
-## ------------------------------------------------------
+lr <- function(x, y) {
+	ux <- mean(x)
+	uy <- mean(y)
+	sxx <- var(x)
+	sxy <- cov(x, y)
+	b <- sxy / sxx
+	a <- uy - b * ux
+	list(coef=c(a, b), n=length(x),
+		x=ux, y=uy, xx=sxx, xy=sxy)
+}
+
+lr_update <- function(fit, x, y) {
+	n <- fit$n + length(x)
+	ux <- (fit$n * fit$x + sum(x)) / n
+	uy <- (fit$n * fit$y + sum(y)) / n
+	qx <- sqrt(fit$n) * fit$x + sqrt(n) * ux
+	qx <- qx / (sqrt(fit$n) + sqrt(n))
+	qy <- sqrt(fit$n) * fit$y + sqrt(n) * uy
+	qy <- qy / (sqrt(fit$n) + sqrt(n))
+	sxx <- (fit$n - 1) * fit$xx + sum((x - qx) * (x - qx))
+	sxx <- sxx / (n - 1)
+	sxy <- (fit$n - 1) * fit$xy + sum((x - qx) * (y - qy))
+	sxy <- sxy / (n - 1)
+	b <- sxy / sxx
+	a <- uy - b * ux
+	list(coef=c(a, b), n=n,
+		x=ux, y=uy, xx=sxx, xy=sxy)
+}
+
+lr_predict <- function(fit, xi) {
+	sum(fit$coef * c(1, xi))
+}
+
+# A sequence with half-bin-widths in relative units
+# x = bin center, y = half-width, d = relative diff
+# y[n] = d * x[n]
+# y[n+1] = d * (x[n] - y[n])) / (1 - d)
+# x[n+1] = x[n] + y[n] + y[n+1]
+# => x[n] ((1 + d) / (1 - d))^n * x[0]
+# log x[n] = n log {(1 + d) / (1 - d)} + log x[0]
+# => n = (log x[n] - log x[0]) / log {(1 + d) / (1 - d)}
+# export
+seq_rel <- function(from, to, by) {
+	half <- by / 2
+	length.out <- (log(to) - log(from)) / log((1 + half) / (1 - half))
+	length.out <- floor(1 + length.out)
+	i <- seq_len(length.out)
+	from * ((1 + half) / (1 - half))^(i - 1)
+}
+
+# Cleveland style shingles (i.e., overlapping intervals)
+# export
+shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
+{
+	if ( !is.matrix(breaks) )
+		breaks <- co.intervals(x, number=breaks, overlap=overlap)
+	y <- apply(breaks, 1L, function(b) I(which(b[1L] <= x & x <= b[2L])))
+	binner <- function(i) which(breaks[i,1L] <= x & x <= breaks[i,2L])
+	y <- lapply(seq_len(nrow(breaks)), binner)
+	if ( is.null(labels) ) {
+		labeller <- function(b) paste0("[", b[1L], ",", b[2L], "]")
+		labels <- apply(breaks, 1L, labeller)
+	} else if ( length(labels) != length(y) ) {
+		stop("length of labels not equal to length of breaks")
+	}
+	attr(y, "breaks") <- breaks
+	attr(y, "counts") <- lengths(y)
+	attr(y, "mids") <- rowMeans(breaks)
+	names(y) <- labels
+	y
+}
+
+# export
+dpal <- function(palette = "Tableau 10") {
+	function(n) palette.colors(n, palette)
+}
+
+# export
+cpal <- function(palette = "Viridis") {
+	function(n) hcl.colors(n, palette)
+}
+
+#### Utilities for raw bytes and memory ####
+## -----------------------------------------
 
 # convert between 'raw' and 'character'
 
@@ -803,3 +907,79 @@ profmem <- function(expr)
 		"max", "overhead", "time")
 	print.default(mem, quote=FALSE, right=TRUE)
 }
+
+#### Formula parsing ####
+## ----------------------
+
+parse_formula <- function(formula, envir = NULL, eval = TRUE)
+{
+	e <- environment(formula)
+	if ( length(formula) == 2L ) {
+		rhs <- formula[[2L]]
+		lhs <- NULL
+	} else if ( length(formula) == 3L ) {
+		rhs <- formula[[3L]]
+		lhs <- formula[[2L]]
+	}
+	if ( length(rhs) == 1L ) {
+		# single-term rhs that doesn't include |
+		g <- NULL
+		rhs <- rhs
+	} else if ( length(rhs) == 3L && deparse1(rhs[[1L]]) != "|" ) {
+		# rhs includes multiple terms but not |
+		g <- NULL
+		rhs <- rhs
+	} else if ( length(rhs) == 3L && deparse1(rhs[[1L]]) == "|" ) {
+		# rhs includes | so add condition
+		g <- rhs[[3]]
+		rhs <- rhs[[2]]
+	} else {
+		# failsafe
+		g <- NULL
+	}
+	# parse lhs
+	if ( !is.null(lhs) )
+		lhs <- parse_side(lhs)
+	if ( eval )
+		for ( i in seq_along(lhs) )
+			lhs[[i]] <- eval(lhs[[i]], envir=envir, enclos=e)
+	# parse rhs
+	if ( !is.null(rhs) )
+		rhs <- parse_side(rhs)
+	if ( eval )
+		for ( i in seq_along(rhs) )
+			rhs[[i]] <- eval(rhs[[i]], envir=envir, enclos=e)
+	# parse condition
+	if ( !is.null(g) )
+		g <- parse_side(g)
+	if ( eval )
+		for ( i in seq_along(g) )
+			g[[i]] <- eval(g[[i]], envir=envir, enclos=e)
+	list(lhs=lhs, rhs=rhs, g=g)
+}
+
+parse_side <- function(formula, envir = NULL, eval = FALSE)
+{
+	enclos <- environment(formula)
+	if ( length(formula) != 1L ) {
+		if ( deparse1(formula[[1L]]) %in% c("~", "*", "+", ":") ) {
+			side <- lapply(as.list(formula)[-1L], parse_side)
+		} else if ( deparse1(formula[[1L]]) == "I" ) {
+			side <- list(formula[[2L]])
+		} else {
+			side <- list(formula)
+		}
+	} else {
+		side <- list(formula)
+	}
+	if ( is.list(side) ) {
+		side <- unlist(side, recursive=TRUE)
+		names(side) <- sapply(side, deparse1)
+	}
+	if ( eval ) {
+		for ( i in seq_along(side) )
+			side[[i]] <- eval(side[[i]], envir=envir, enclos=enclos)
+	}
+	side
+}
+

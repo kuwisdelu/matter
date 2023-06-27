@@ -9,15 +9,15 @@
 }
 
 \usage{
-binvec(x, u, v, method = "sum")
+binvec(x, lower, upper, stat = "sum")
 }
 
 \arguments{
 	\item{x}{A numeric vector.}
 
-	\item{u, v}{The (inclusive) lower and upper indices of the bins, or a factor providing the groupings.}
+	\item{lower, upper}{The (inclusive) lower and upper indices of the bins}
 
-	\item{method}{The method used to bin the values. This is efficiently implemented for "sum", "mean", "min" or "max". Providing a function will use a less-efficient fallback.}
+	\item{stat}{The statistic used to summarize the values in each bin. Must be one of "sum", "mean", "max", "min", "sd", and "var".}
 }
 
 \value{
@@ -31,9 +31,9 @@ set.seed(1)
 
 x <- sort(runif(20))
 
-binvec(x, c(1,6,11,16), c(5,10,15,20), method="mean")
+binvec(x, c(1,6,11,16), c(5,10,15,20), stat="mean")
 
-binvec(x, seq(from=1, to=21, by=5), method="mean")
+binvec(x, seq(from=1, to=21, by=5), stat="mean")
 }
 
 \keyword{utilities}
