@@ -755,11 +755,11 @@ approx1 <- function(x, y, xout, interp = "linear", n = length(x),
 #### Simulation ####
 ## -----------------
 
-simspec <- function(n = 1L, peaks = 50L,
-	x = rlnorm(peaks, 7, 0.3), y = rlnorm(peaks, 1, 0.9),
+simspec <- function(n = 1L, npeaks = 50L,
+	x = rlnorm(npeaks, 7, 0.3), y = rlnorm(npeaks, 1, 0.9),
 	domain = c(0.9 * min(x), 1.1 * max(x)), size = 10000,
-	sdpeaks = sdpeakmult * log1p(y), sdpeakmult = 0.2,
-	sdnoise = 0.1, sdx = 1e-5, resolution = 1000, fmax = 0.5,
+	sdx = 1e-5, sdy = sdymult * log1p(y), sdymult = 0.2,
+	sdnoise = 0.1, resolution = 1000, fmax = 0.5,
 	baseline = 0, decay = 10, units = "relative", ...)
 {
 	if ( length(x) != length(y) )
@@ -776,39 +776,65 @@ simspec <- function(n = 1L, peaks = 50L,
 	y <- y[i]
 	if ( n > 1L ) {
 		yout <- replicate(n, simspec(x=x, y=y,
-			domain=domain, size=size, sdpeaks=sdpeaks, sdpeakmult=sdpeakmult,
-			sdnoise=sdnoise, sdx=sdx, resolution=resolution, fmax=fmax,
+			domain=domain, size=size, sdx=sdx, sdy=sdy, sdymult=sdymult,
+			sdnoise=sdnoise, resolution=resolution, fmax=fmax,
 			baseline=baseline, decay=decay))
 	} else {
+		# calculate peak widths
 		dx <- x / resolution
-		sdwidth <- qnorm(1 - fmax / 2) * dx
-		sdpeaks <- rep_len(sdpeaks, peaks)
+		peakwidths <- qnorm(1 - fmax / 2) * dx
+		# calculate peak variance
+		sdy <- rep_len(sdy, npeaks)
+		yerr <- rlnorm(npeaks, sdlog=sdy)
+		yerr <- yerr - exp(sdy^2 / 2)
+		y2 <- y + yerr
+		# calculate x error
 		errtype <- pmatch(units, c("relative", "absolute"), nomatch=1L)
-		xerr <- rnorm(1) * c(x * sdx, sdx)[errtype]
+		xerr <- rnorm(1L) * c(x * sdx, sdx)[errtype]
 		x2 <- x + xerr
+		# calculate baseline
 		b <- baseline * exp(-(decay/max(xout)) * (xout - min(xout)))
-		yout <- simspec1(x2, y, xout=xout,
-			peakwidth=sdwidth, sdpeaks=sdpeaks, sdnoise=sdnoise)
+		# simulate the signal
+		yout <- simspec1(x2, y2, xout=xout,
+			peakwidths=peakwidths, sdnoise=sdnoise)
 		yout <- yout + b
 	}
 	structure(yout, domain=xout, peaks=x)
 }
 
-simspec1 <- function(x, y, xout, peakwidth, sdpeaks, sdnoise)
+simspec1 <- function(x, y, xout, peakwidths = NA_real_,
+	sdnoise = 0, resolution = 1000, fmax = 0.5)
 {
 	yout <- numeric(length(xout))
-	xrange <- range(xout)
-	for ( i in seq_along(x) ) {
-		if ( y[i] <= 0 || x[i] < xrange[1L] || x[i] > xrange[2L] )
-			next
-		peak <- which(x[i] - 6 * peakwidth[i] < xout & xout < x[i] + 6 * peakwidth[i])
-		di <- dnorm(xout[peak], mean=x[i], sd=peakwidth[i])
-		yerr <- rlnorm(1, sdlog=sdpeaks[i])
-		yerr <- yerr - exp(sdpeaks[i]^2 / 2)
-		yi <- y[i] + yerr
-		yout[peak] <- yout[peak] + yi * (di / max(di))
+	if ( length(x) != length(y) )
+		y <- rep_len(y, length(x))
+	if ( length(x) != length(peakwidths) )
+		peakwidths <- rep_len(peakwidths, length(x))
+	if ( anyNA(peakwidths) ) {
+		dx <- x / resolution
+		reswidth <- qnorm(1 - fmax / 2) * dx
+		na <- is.na(peakwidths)
+		peakwidths[na] <- reswidth[na]
 	}
-	noise <- rlnorm(length(yout), sdlog=sdnoise)
-	noise <- noise - exp(sdnoise^2 / 2)
-	pmax(yout + noise, 0)
+	xr <- range(xout)
+	for ( i in seq_along(x) ) {
+		if ( y[i] <= 0 || x[i] < xr[1L] || x[i] > xr[2L] )
+			next
+		yi <- y[i]
+		wi <- peakwidths[i]
+		peak <- which(x[i] - 6 * wi < xout & xout < x[i] + 6 * wi)
+		if ( length(peak) > 0L ) {
+			di <- dnorm(xout[peak], mean=x[i], sd=wi)
+			yout[peak] <- yout[peak] + yi * (di / max(di))
+		} else {
+			peak <- bsearch(x[i], xout, nearest=TRUE)
+			yout[peak] <- yi
+		}
+	}
+	if ( sdnoise > 0 ) {
+		noise <- rlnorm(length(xout), sdlog=sdnoise)
+		noise <- noise - exp(sdnoise^2 / 2)
+		yout <- yout + noise
+	}
+	pmax(yout, 0)
 }

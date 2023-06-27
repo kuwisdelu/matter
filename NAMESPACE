@@ -340,10 +340,10 @@ export(
 	"estnoise_loess",
 	"estnoise_filt",
 	"findpeaks",
-	"binpeaks",
-	"mergepeaks",
 	"peakwidths",
 	"peakareas",
+	"binpeaks",
+	"mergepeaks",
 	"approx1")
 
 export(
