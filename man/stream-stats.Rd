@@ -91,9 +91,9 @@ stat_c(x, y, \dots)
 \author{Kylie A. Bemis}
 
 \references{
-    B. P. Welford, ``Note on a Method for Calculating Corrected Sums of Squares and Products,'' Technometrics, vol. 4, no. 3, pp. 1-3, Aug. 1962.
+    B. P. Welford. ``Note on a Method for Calculating Corrected Sums of Squares and Products.'' Technometrics, vol. 4, no. 3, pp. 1-3, Aug. 1962.
 
-    B. O'Neill, ``Some Useful Moment Results in Sampling Problems,'' The American Statistician, vol. 68, no. 4, pp. 282-296, Sep. 2014.
+    B. O'Neill. ``Some Useful Moment Results in Sampling Problems.'' The American Statistician, vol. 68, no. 4, pp. 282-296, Sep. 2014.
 }
 
 \seealso{

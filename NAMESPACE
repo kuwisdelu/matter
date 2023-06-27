@@ -313,6 +313,8 @@ export(
 	"vm_used")
 
 export(
+	"simspec",
+	"simspec1",
 	"filt1_ma",
 	"filt1_gauss",
 	"filt1_bi",
@@ -332,18 +334,17 @@ export(
 	"estbase_hull",
 	"estbase_snip",
 	"estbase_med",
-	"estnoise_filt",
 	"estnoise_sd",
 	"estnoise_mad",
 	"estnoise_diff",
-	"estnoise_smooth",
+	"estnoise_loess",
+	"estnoise_filt",
 	"findpeaks",
 	"binpeaks",
 	"mergepeaks",
 	"peakwidths",
 	"peakareas",
-	"approx1",
-	"simspectra")
+	"approx1")
 
 export(
 	"roll",

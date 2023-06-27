@@ -334,9 +334,9 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		i_buffer[k] = NA_INTEGER;
 		j_buffer[k] = NA_INTEGER;
 	}
-	int ptrD[nx + 1], wa[nx + 1], wb[nx + 1], nD;
+	int pD[nx + 1], wa[nx + 1], wb[nx + 1], nD;
 	// find windows where |tx - ty| <= tol
-	ptrD[0] = 0, wa[0] = 0, wb[0] = 1, nD = 1;
+	pD[0] = 0, wa[0] = 0, wb[0] = 1, nD = 1;
 	for ( index_t i = 0; i < nx; i++ )
 	{
 		index_t j = binary_search(tx[i], ty,
@@ -357,7 +357,7 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		}
 		wa[i + 1]++;
 		wb[i + 1]++;
-		ptrD[i + 1] = nD;
+		pD[i + 1] = nD;
 		nD += wb[i + 1] - wa[i + 1];
 	}
 	// fill (sparse) cost matrix
@@ -372,16 +372,16 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 			d01 = R_PosInf, d10 = R_PosInf, d00 = R_PosInf;
 			// D[i-1, j]
 			if ( j >= wa[i - 1] && j < wb[i - 1] )
-				d01 = D[ptrD[i - 1] + (j - wa[i - 1])];
+				d01 = D[pD[i - 1] + (j - wa[i - 1])];
 			// D[i, j-1]
 			if ( j - 1 >= wa[i] && j - 1 < wb[i] )
-				d10 = D[ptrD[i] + (j - 1 - wa[i])];
+				d10 = D[pD[i] + (j - 1 - wa[i])];
 			// D[i-1, j-1]
 			if ( j - 1 >= wa[i - 1] && j - 1 < wb[i - 1] )
-				d00 = D[ptrD[i - 1] + (j - 1 - wa[i - 1])];
+				d00 = D[pD[i - 1] + (j - 1 - wa[i - 1])];
 			// min(D[i-1, j], D[i, j-1], D[i-1, j-1])
 			dmin = min3(d01, d10, d00);
-			D[ptrD[i] + (j - wa[i])] = (d * d) + dmin;
+			D[pD[i] + (j - wa[i])] = (d * d) + dmin;
 		}
 	}
 	// trace (constrained) optimal path
@@ -393,13 +393,13 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		d01 = R_PosInf, d10 = R_PosInf, d00 = R_PosInf;
 		// D[i-1, j]
 		if ( j >= wa[i - 1] && j < wb[i - 1] )
-			d01 = D[ptrD[i - 1] + (j - wa[i - 1])];
+			d01 = D[pD[i - 1] + (j - wa[i - 1])];
 		// D[i, j-1]
 		if ( j - 1 >= wa[i] && j - 1 < wb[i] )
-			d10 = D[ptrD[i] + (j - 1 - wa[i])];
+			d10 = D[pD[i] + (j - 1 - wa[i])];
 		// D[i-1, j-1]
 		if ( j - 1 >= wa[i - 1] && j - 1 < wb[i - 1] )
-			d00 = D[ptrD[i - 1] + (j - 1 - wa[i - 1])];
+			d00 = D[pD[i - 1] + (j - 1 - wa[i - 1])];
 		// trackback
 		if ( d01 < d00 && d01 < d10 )
 			i--;
@@ -423,6 +423,7 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 		return 0;
 	double xi [ny], ti0, ti1, tj, t;
 	double Lx = nx - 1, Ly = ny - 1;
+	// interpolate x to match length of y
 	for ( index_t i = 0, j = 0; i < nx - 1; i++ )
 	{
 		while ( (j / Ly) <= ((i + 1) / Lx) )
@@ -435,6 +436,7 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 			j++;
 		}
 	}
+	// calculate correlation(x, y)
 	double ux = 0, uy = 0;
 	for ( index_t i = 0; i < ny; i++ )
 	{
@@ -460,8 +462,8 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	// find node candidates where |tx - ty| <= tol
 	if ( n < 3 )
 		Rf_error("need at least 3 nodes");
-	int ptrW [n], wa [n], wb [n], nW;
-	ptrW[0] = 0, ptrW[1] = 1, nW = 1;
+	int pW [n], wa [n], wb [n], nW;
+	pW[0] = 0, pW[1] = 1, nW = 1;
 	wa[0] = 0, wb[0] = 1;
 	wa[n - 1] = nx - 1, wb[n - 1] = nx;
 	for ( index_t i = 1; i < n - 1; i++ )
@@ -481,7 +483,7 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 			wb[i] = k + 1;
 		}
 		nW += wb[i] - wa[i];
-		ptrW[i + 1] = nW;
+		pW[i + 1] = nW;
 	}
 	nW++;
 	// fill (sparse) benefit/warp matrices
@@ -498,14 +500,14 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		// loop through candidate node positions
 		for (index_t j = wa[i]; j < wb[i]; j++ )
 		{
-			index_t jj = ptrW[i] + (j - wa[i]);
+			index_t jj = pW[i] + (j - wa[i]);
 			F[jj] = R_NegInf;
 			// find optimal warp given previous/next node
 			for ( index_t k = wa[i + 1]; k < wb[i + 1]; k++ )
 			{
 				if ( k - j < 3 )
 					continue;
-				index_t kk = ptrW[i + 1] + (k - wa[i + 1]);
+				index_t kk = pW[i + 1] + (k - wa[i + 1]);
 				double f = icor(x + j, yw, k - j, nyw);
 				if ( f + F[kk] > F[jj] )
 				{
@@ -519,7 +521,7 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	for ( index_t i = 0; i < n - 1; i++ )
 	{
 		index_t j = (x_nodes[i] - wa[i]);
-		x_nodes[i + 1] = W[ptrW[i] + j];
+		x_nodes[i + 1] = W[pW[i] + j];
 	}
 	Free(W);
 	Free(F);
@@ -819,6 +821,7 @@ void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 	T * y = buffer;
 	std::memcpy(y, x, n * sizeof(T));
 	T z [n];
+	m = min2(m, n);
 	if ( decreasing )
 	{
 		for ( size_t p = m; p >= 1; p-- )

@@ -69,6 +69,11 @@
 \alias{roll}
 \alias{seq_rel}
 
+\alias{qorder}
+\alias{qselect}
+\alias{qmedian}
+\alias{qmad}
+
 \alias{shingles}
 
 \alias{sizeof}

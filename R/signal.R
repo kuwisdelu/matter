@@ -173,7 +173,8 @@ icor <- function(x, y)
 }
 
 warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
-	nbins = NA_integer_, n = length(y), tol = NA_real_, tol.ref = "abs")
+	nbins = NA_integer_, n = length(y),
+	tol = NA_real_, tol.ref = "abs")
 {
 	if ( is.integer(x) && is.double(y) )
 		x <- as.double(x)
@@ -340,7 +341,7 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 ## ----------------------------
 
 estbase_loc <- function(x,
-	interp = c("linear", "loess", "spline"),
+	smooth = c("none", "loess", "spline"),
 	span = 1/10, spar = NULL, upper = FALSE)
 {
 	if ( upper ) {
@@ -349,16 +350,13 @@ estbase_loc <- function(x,
 		locs <- which(locmin(x))
 	}
 	if ( length(locs) >= 2 ) {
-		interp <- match.arg(interp)
+		smooth <- match.arg(smooth)
 		locs <- c(1L, locs, length(x))
-		if ( interp == "loess" ) {
-			y <- lowess(locs, x[locs], f=span)$y
-		} else if ( interp == "spline" ) {
-			y <- smooth.spline(locs, x[locs], spar=spar)$y
-		} else {
-			y <- x[locs]
-		}
-		y <- approx(locs, y, xout=seq_along(x))$y
+		y <- approx(locs, x[locs], xout=seq_along(x))$y
+		if ( smooth == "loess" )
+			y <- lowess(y, f=span)$y
+		if ( smooth == "spline" )
+			y <- smooth.spline(y, spar=spar)$y
 	} else {
 		if ( upper ) {
 			y <- rep.int(max(x, na.rm=TRUE), length(x))
@@ -445,24 +443,24 @@ estnoise_diff <- function(x, nbins = 1L, dynamic = TRUE)
 	noise
 }
 
-estnoise_smooth <- function(x, span = 2/3)
+estnoise_loess <- function(x, span = 2/3)
 {
 	lowess(x, f=span)$y
 }
 
 estnoise_filt <- function(x, snr = 2, nbins = 1L,
-	threshold = 0.5, centroided = FALSE)
+	threshold = 0.5, peaks = FALSE)
 {
 	if ( nbins > 1L ) {
 		# Gallia et al (2013) but with lowess
 		xb <- findbins(x, nbins=nbins, dynamic=FALSE)
 		noise <- lapply(xb, estnoise_filt, snr=snr,
-			threshold=threshold, centroided=centroided)
+			threshold=threshold, peaks=peaks)
 		noise <- unlist(noise)
 		noise <- lowess(noise)$y
 	} else {
 		# Xu and Freitas (2010) dynamic noise level
-		if ( !centroided ) {
+		if ( !peaks ) {
 			y <- sort(x[findpeaks(x)])
 		} else {
 			y <- sort(x[x > 0])
@@ -618,7 +616,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 	if ( any(lengths(peaklist) != lengths(xlist)) )
 		stop("lengths of 'peaklist' and 'xlist' must match")
 	if ( is.na(tol) ) {
-		# guess tol as ~1/2 the min gap between same-sample peaks
+		# guess tol as ~1/2 the min gap between same-signal peaks
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		fun <- function(peaks) min(reldiff(peaks, ref=ref), na.rm=TRUE)
 		tol <- 0.5 * min(vapply(peaklist, fun, numeric(1)), na.rm=TRUE)
@@ -747,7 +745,7 @@ approx1 <- function(x, y, xout, interp = "linear", n = length(x),
 	if ( is.na(tol) ) {
 		# guess tol as ~2x the max gap between samples
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 2 * max(abs(reldiff(x, ref=ref)))
+		tol <- 2 * max(abs(reldiff(sort(x), ref=ref)))
 	}
 	extrap <- as.vector(extrap, mode=typeof(y))
 	.Call(C_Approx1, xout, x, y, tol, as_tol_ref(tol.ref),
@@ -757,7 +755,7 @@ approx1 <- function(x, y, xout, interp = "linear", n = length(x),
 #### Simulation ####
 ## -----------------
 
-simspectra <- function(n = 1L, peaks = 50L,
+simspec <- function(n = 1L, peaks = 50L,
 	x = rlnorm(peaks, 7, 0.3), y = rlnorm(peaks, 1, 0.9),
 	domain = c(0.9 * min(x), 1.1 * max(x)), size = 10000,
 	sdpeaks = sdpeakmult * log1p(y), sdpeakmult = 0.2,
@@ -777,7 +775,7 @@ simspectra <- function(n = 1L, peaks = 50L,
 	x <- x[i]
 	y <- y[i]
 	if ( n > 1L ) {
-		yout <- replicate(n, simspectra(x=x, y=y,
+		yout <- replicate(n, simspec(x=x, y=y,
 			domain=domain, size=size, sdpeaks=sdpeaks, sdpeakmult=sdpeakmult,
 			sdnoise=sdnoise, sdx=sdx, resolution=resolution, fmax=fmax,
 			baseline=baseline, decay=decay))
@@ -789,14 +787,14 @@ simspectra <- function(n = 1L, peaks = 50L,
 		xerr <- rnorm(1) * c(x * sdx, sdx)[errtype]
 		x2 <- x + xerr
 		b <- baseline * exp(-(decay/max(xout)) * (xout - min(xout)))
-		yout <- simspectrum(x2, y, xout=xout,
+		yout <- simspec1(x2, y, xout=xout,
 			peakwidth=sdwidth, sdpeaks=sdpeaks, sdnoise=sdnoise)
 		yout <- yout + b
 	}
 	structure(yout, domain=xout, peaks=x)
 }
 
-simspectrum <- function(x, y, xout, peakwidth, sdpeaks, sdnoise)
+simspec1 <- function(x, y, xout, peakwidth, sdpeaks, sdnoise)
 {
 	yout <- numeric(length(xout))
 	xrange <- range(xout)
