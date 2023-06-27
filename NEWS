@@ -1,4 +1,30 @@
 
+CHANGES IN VERSION 2.3.1 [2023-6-27]
+-----------------------------------
+
+NEW FEATURES
+
+    o Lots of new signal processing features!
+    o Added 'approx1()' for signal resampling and interpolation
+    o Added 1D filtering including: 'filt1_ma()', 'filt1_gauss()',
+        'filt1_bi()', 'filt1_adapt()', 'filt1_guide()', 'filt1_pag()'
+    o Added 1D warping and alignment including: 'warp1_loc()',
+        'warp1_dtc()', 'warp1_cow()'
+    o Added continuum estimation including: 'estbase_loc()',
+        'estbase_hull()', 'estbase_snip()', 'estbase_med()'
+    o Added local noise estimation including: 'estnoise_sd()',
+        'estnoise_mad()', 'estnoise_diff()',
+        'estnoise_loess()', 'estnoise_filt()'
+    o Added peak processing including: 'findpeaks()',
+        'peakwidths()', 'peakareas()', 'binpeaks()', 'mergepeaks()'
+    o Added 'downsample()' for signal and time series visualization
+    o Added 'vizi_plot' visualization methods
+
+BUG FIXES
+
+    o Fix missing <cstdint> include for gcc 13.1.1 compatibility
+
+
 CHANGES IN VERSION 2.1.1 [2023-4-13]
 -----------------------------------
 
