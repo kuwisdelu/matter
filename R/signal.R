@@ -760,17 +760,21 @@ simspec <- function(n = 1L, npeaks = 50L,
 	domain = c(0.9 * min(x), 1.1 * max(x)), size = 10000,
 	sdx = 1e-5, sdy = sdymult * log1p(y), sdymult = 0.2,
 	sdnoise = 0.1, resolution = 1000, fmax = 0.5,
-	baseline = 0, decay = 10, units = "relative", ...)
+	baseline = 0, decay = 10, units = "relative")
 {
 	if ( length(x) != length(y) )
 		stop("length of 'x' and 'y' must match")
-	if ( missing(x) && !missing(domain) ) {
-		to <- domain[2L]
-		from <- domain[1L]
+	if ( length(domain) == 2L ) {
+		xout <- seq(from=domain[1L], to=domain[2L], length.out=size)
+	} else {
+		xout <- domain
+	}
+	if ( missing(x) ) {
+		from <- min(domain)
+		to <- max(domain)
 		x <- (x - min(x)) / max(x - min(x))
 		x <- (from + 0.1 * (to - from)) + (0.8 * (to - from)) * x
 	}
-	xout <- seq(from=domain[1L], to=domain[2L], length.out=size)
 	i <- order(x)
 	x <- x[i]
 	y <- y[i]
