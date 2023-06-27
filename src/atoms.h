@@ -3,6 +3,7 @@
 
 #include <ios>
 #include <fstream>
+#include <cstdint>
 
 #include "matterDefines.h"
 #include "coerce.h"
