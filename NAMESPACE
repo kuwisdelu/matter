@@ -313,8 +313,7 @@ export(
 	"vm_used")
 
 export(
-	"simspec",
-	"simspec1",
+	"approx1"
 	"filt1_ma",
 	"filt1_gauss",
 	"filt1_bi",
@@ -344,7 +343,8 @@ export(
 	"peakareas",
 	"binpeaks",
 	"mergepeaks",
-	"approx1")
+	"simspec",
+	"simspec1")
 
 export(
 	"roll",
