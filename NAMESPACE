@@ -313,7 +313,7 @@ export(
 	"vm_used")
 
 export(
-	"approx1"
+	"approx1",
 	"filt1_ma",
 	"filt1_gauss",
 	"filt1_bi",
