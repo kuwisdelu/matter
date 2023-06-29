@@ -27,10 +27,6 @@
 #define BIN_VAR		6
 #define BIN_SSE		7
 
-#define min2(x, y) ((x < y) ? (x) : (y))
-#define min3(x, y, z) (min2(min2((x), (y)), (z)))
-#define max2(x, y) ((x > y) ? (x) : (y))
-#define max3(x, y, z) (max2(max2((x), (y)), (z)))
 #define wrap_ind(i, n) (max2(min2((i), (n - 1)), 0))
 
 //// Numeric Integration

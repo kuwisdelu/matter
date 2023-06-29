@@ -115,6 +115,80 @@ SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 	return pos;
 }
 
+SEXP kdTree(SEXP x)
+{
+	size_t root;
+	size_t n = Rf_nrows(x);
+	size_t k = Rf_ncols(x);
+	SEXP result, left_child, right_child;
+	PROTECT(left_child = Rf_allocVector(INTSXP, n));
+	PROTECT(right_child = Rf_allocVector(INTSXP, n));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			root = kd_tree_build(INTEGER(x), k, n,
+				INTEGER(left_child), INTEGER(right_child));
+			break;
+		case REALSXP:
+			root = kd_tree_build(REAL(x), k, n,
+				INTEGER(left_child), INTEGER(right_child));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	PROTECT(result = Rf_allocVector(VECSXP, 3));
+	SET_VECTOR_ELT(result, 0, left_child);
+	SET_VECTOR_ELT(result, 1, right_child);
+	SET_VECTOR_ELT(result, 2, Rf_ScalarInteger(root));
+	UNPROTECT(3);
+	return result;
+}
+
+SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
+	SEXP root, SEXP tol, SEXP tol_ref)
+{
+	size_t n = Rf_nrows(data);
+	size_t k = Rf_ncols(data);
+	size_t m = LENGTH(x) / k;
+	SEXP result, buffer, neighbors;
+	PROTECT(result = Rf_allocVector(VECSXP, m));
+	PROTECT(buffer = Rf_allocVector(INTSXP, n));
+	for ( index_t i = 0; i < m; i++ )
+	{
+		size_t nnb;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+			{
+				int xi [k];
+				for ( index_t j = 0; j < k; j++ )
+					xi[j] = INTEGER_ELT(x, j * m + i);
+				nnb = kd_tree_search(INTEGER(buffer), xi, INTEGER(data), k, n,
+					INTEGER(left_child), INTEGER(right_child), Rf_asInteger(root),
+					REAL(tol), Rf_asInteger(tol_ref), true);
+				break;
+			}
+			case REALSXP:
+			{
+				double xi [k];
+				for ( index_t j = 0; j < k; j++ )
+					xi[j] = REAL_ELT(x, j * m + i);
+				nnb = kd_tree_search(INTEGER(buffer), xi, REAL(data), k, n,
+					INTEGER(left_child), INTEGER(right_child), Rf_asInteger(root),
+					REAL(tol), Rf_asInteger(tol_ref), true);
+				break;
+			}
+			default:
+				Rf_error("unsupported data type");
+		}
+		PROTECT(neighbors = Rf_allocVector(INTSXP, nnb));
+		for ( index_t j = 0; j < nnb; j++ )
+			INTEGER(neighbors)[j] = INTEGER_ELT(buffer, j);
+		SET_VECTOR_ELT(result, i, neighbors);
+		UNPROTECT(1);
+	}
+	UNPROTECT(2);
+	return result;
+}
+
 // Compression (delta run length encoding)
 //-----------------------------------------
 

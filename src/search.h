@@ -3,6 +3,9 @@
 
 #include "matterDefines.h"
 
+#define LINEAR_THRESHOLD 8
+#define EXACT 0
+
 #define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
 
 //// Comparison
@@ -126,7 +129,7 @@ void quick_sort(Tx * x, size_t start, size_t end, Tv * v = NULL)
 		// pop and partition current subarray
 		right = stack[top--];
 		left = stack[top--];
-		if ( right - left < 8 )
+		if ( right - left < LINEAR_THRESHOLD )
 		{
 			// use insertion sort for small subarrays
 			for ( size_t i = left + 1; i <= right; i++ )
@@ -308,6 +311,166 @@ index_t do_binary_search(int * ptr, T * x, size_t xlen, T * table,
 				tol, tol_ref, nomatch, nearest, ind1);
 			if ( ptr[i] != nomatch )
 				num_matches++;
+		}
+	}
+	return num_matches;
+}
+
+//// K-D search
+//-----------------
+
+// build a kd-tree from an n x k array
+template<typename T>
+index_t kd_tree_build(T * x, size_t k, size_t n,
+	int * left_child, int * right_child)
+{
+	if ( n == 0 || k == 0 )
+		return NA_INTEGER;
+	index_t parent, depth, start = 0, end = n;
+	// initialize stack
+	int stack_size = 8 * std::ceil(std::log2(n) + 1);
+	int stack [stack_size];
+	int top = -1;
+	// initialize indices and working buffer
+	T * xs = R_Calloc(n, T);
+	int * indx = R_Calloc(n, int);
+	for ( index_t i = 0; i < n; i++ )
+	{
+		left_child[i] = NA_INTEGER;
+		right_child[i] = NA_INTEGER;
+		xs[i] = x[i];
+		indx[i] = i;
+	}
+	// find root
+	quick_sort(xs, start, end, indx);
+	index_t mid = (start + end) / 2;
+	// account for duplicates
+	while ( mid > start && equal(xs[mid - 1], xs[mid], EXACT) )
+		mid--;
+	// insert root
+	index_t root = indx[mid];
+	// add left child to stack
+	if ( mid > 0 )
+	{
+		stack[++top] = root;	// parent
+		stack[++top] = 1;		// depth
+		stack[++top] = 0;		// start
+		stack[++top] = mid;		// end
+		// assign next dimension
+		for ( index_t i = 0; i < mid; i++ )
+			xs[i] = x[n * (1 % k) + indx[i]];
+	}
+	// add right child to stack
+	if ( mid + 1 < n )
+	{
+		stack[++top] = root;	// parent
+		stack[++top] = 1;		// depth
+		stack[++top] = mid + 1;	// start
+		stack[++top] = n;		// end
+		// assign next dimension
+		for ( index_t i = mid + 1; i < n; i++ )
+			xs[i] = x[n * (1 % k) + indx[i]];
+	}
+	// keep going while the stack is non-empty
+	while ( top >= 0 )
+	{
+		// pop node
+		end = stack[top--];
+		start = stack[top--];
+		depth = stack[top--];
+		parent = stack[top--];
+		// find partition
+		quick_sort(xs, start, end, indx);
+		mid = (start + end) / 2;
+		// account for duplicates
+		while ( mid > start && equal(xs[mid - 1], xs[mid], EXACT) )
+			mid--;
+		// insert node under parent
+		index_t jprev = (depth - 1) % k;
+		index_t jnext = (depth + 1) % k;
+		if ( lt(x[n * jprev + indx[mid]], x[n * jprev + parent]) )
+			left_child[parent] = indx[mid];
+		else
+			right_child[parent] = indx[mid];
+		// push left child to stack
+		if ( mid > start )
+		{
+			stack[++top] = indx[mid];
+			stack[++top] = depth + 1;
+			stack[++top] = start;
+			stack[++top] = mid;
+			// assign next dimension
+			for ( index_t i = start; i < mid; i++ )
+				xs[i] = x[n * jnext + indx[i]];
+		}
+		// push right child to stack
+		if ( mid + 1 < end )
+		{
+			stack[++top] = indx[mid];
+			stack[++top] = depth + 1;
+			stack[++top] = mid + 1;
+			stack[++top] = end;
+			// assign next dimension
+			for ( index_t i = mid + 1; i < end; i++ )
+				xs[i] = x[n * jnext + indx[i]];
+		}
+	}
+	Free(indx);
+	Free(xs);
+	return root;
+}
+
+// search a kd-tree for points near x, return via ptr
+template<typename T>
+index_t kd_tree_search(int * ptr, T * x, T * data, size_t k, size_t n,
+	int * left_child, int * right_child, size_t root,
+	double * tol, int tol_ref, bool ind1 = false)
+{
+	if ( n == 0 || k == 0 )
+		return 0;
+	index_t node, depth, num_matches = 0;
+	// initialize stack
+	int stack_size = 2 * std::ceil(std::log2(n) + 1);
+	int stack [stack_size];
+	int top = -1;
+	stack[++top] = root;	// node
+	stack[++top] = 0;		// depth
+	while ( top >= 0 )
+	{
+		// pop node
+		depth = stack[top--];
+		node = stack[top--];
+		index_t j = depth % k;
+		double ds = sdiff(x[j], data[n * j + node], tol_ref);
+		double du = std::fabs(ds);
+		// check if we need to search left subtree
+		if ( (ds < 0 || du <= tol[j]) && !isNA(left_child[node]) )
+		{
+			stack[++top] = left_child[node];
+			stack[++top] = depth + 1;
+		}
+		// check if we need to search right subtree
+		if ( (ds > 0 || du <= tol[j]) && !isNA(right_child[node]) )
+		{
+			stack[++top] = right_child[node];
+			stack[++top] = depth + 1;
+		}
+		// check if this point neighbors x
+		if ( du <= tol[j] )
+		{
+			bool is_neighbor = true;
+			for ( j = 0; j < k; j++ )
+			{
+				double dj = udiff(x[j], data[n * j + node], tol_ref);
+				is_neighbor = dj <= tol[j];
+				if ( !is_neighbor )
+					break;
+			}
+			if ( is_neighbor )
+			{
+				ptr[num_matches] = node + ind1;
+				num_matches++;
+			}
 		}
 	}
 	return num_matches;

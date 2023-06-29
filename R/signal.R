@@ -727,6 +727,7 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 		class=c("stream_mean", "stream_stat"))
 	if ( na.drop && anyNA(peaks) )
 		peaks <- peaks[!is.na(peaks)]
+	attr(peaks, "tolerance") <- as_tol(tol)
 	peaks
 }
 

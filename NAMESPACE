@@ -371,7 +371,11 @@ export(
 	"qmad",
 	"reldiff",
 	"asearch",
-	"bsearch")
+	"bsearch",
+	"kdsearch",
+	"kdtree")
+
+S3method("print", "kdtree")
 
 export(
 	"vizi",

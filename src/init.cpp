@@ -15,6 +15,8 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(quickMedian, 1),
 	CALLDEF(quickMAD, 3),
 	CALLDEF(binarySearch, 6),
+	CALLDEF(kdTree, 1),
+	CALLDEF(kdSearch, 7),
 	// compression
 	CALLDEF(encodeDRLE, 2),
 	CALLDEF(decodeDRLE, 2),

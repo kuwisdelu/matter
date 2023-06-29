@@ -192,3 +192,39 @@ test_that("approx search (unsorted) - strings", {
 	expect_equal(vals[c(5, 3, 1)], asearch(x, keys, vals, tol=Inf))
 
 })
+
+test_that("k-dimensional search", {
+
+	d1 <- data.frame(
+		x=c(2,5,9,4,8,7,9,8,9,6,3,1,9,2,8),
+		y=c(3,4,6,7,1,2,4,4,7,3,4,6,5,1,7),
+		z=c(3,2,7,9,5,6,1,2,8,1,5,8,3,3,6))
+	i1 <- seq_len(nrow(d1))
+	t1 <- kdtree(d1)
+	ns1 <- as.matrix(t1$nodes + 1L)
+	ks1a <- kdsearch(c(2,3,3), d1)
+	ks1b <- kdsearch(c(7,2,6), d1, tol=2)
+
+	expect_equal(t1$root + 1L, 6L)
+	expect_equal(t1$root + 1L, which(!i1 %in% sort(ns1)))
+	expect_setequal(ks1a, list(c(11L, 14L, 1L)))
+	expect_setequal(ks1b, list(c(6L, 5L)))
+
+	d2 <- expand.grid(x=1:5, y=1:5)
+	i2 <- seq_len(nrow(d2))
+	t2 <- kdtree(d2)
+	ns2 <- as.matrix(t2$nodes + 1L)
+	ks2a <- kdsearch(c(1,1), d2, tol=1)
+	ks2b <- kdsearch(c(5,5), d2, tol=1)
+
+	expect_equal(t2$root + 1L, which(!i2 %in% sort(ns2)))
+	expect_setequal(ks2a, list(c(2L, 7L, 6L, 1L)))
+	expect_setequal(ks2b, list(c(19L, 24L, 25L, 20L)))
+
+	t3 <- kdtree(1:3)
+	t4 <- kdtree(1)
+
+	expect_equal(t3$root, 1L)
+	expect_equal(t4$root, 0L)
+
+})

@@ -20,6 +20,9 @@ SEXP quickMedian(SEXP x);
 SEXP quickMAD(SEXP x, SEXP center, SEXP constant);
 SEXP binarySearch(SEXP x, SEXP table,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP nearest);
+SEXP kdTree(SEXP x);
+SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
+	SEXP root, SEXP tol, SEXP tol_ref);
 
 // Compression (delta run length encoding)
 //-----------------------------------------
