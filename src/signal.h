@@ -1394,7 +1394,7 @@ index_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 		quick_sort(xs, start, end, ys);
 	}
 	// do the resampling
-	if ( ni < (end - start) || !is_sorted(xi, ni) )
+	if ( ni <= 2 * (end - start) || !is_sorted(xi, ni) )
 	{
 		// if len(xi) << len(x) then iterate xi (downsampling)
 		for ( size_t i = 0; i < ni; i++ )
