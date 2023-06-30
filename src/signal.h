@@ -422,17 +422,24 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 	double xi [ny], ti0, ti1, tj, t;
 	double Lx = nx - 1, Ly = ny - 1;
 	// interpolate x to match length of y
-	for ( index_t i = 0, j = 0; i < nx - 1; i++ )
+	if ( nx != ny )
 	{
-		while ( (j / Ly) <= ((i + 1) / Lx) )
+		for ( index_t i = 0, j = 0; i < nx - 1; i++ )
 		{
-			ti0 = i / Lx;
-			ti1 = (i + 1) / Lx;
-			tj = j / Ly;
-			t = (tj - ti0) / (ti1 - ti0);
-			xi[j] = lerp(x[i], x[i + 1], t);
-			j++;
+			while ( (j / Ly) <= ((i + 1) / Lx) )
+			{
+				ti0 = i / Lx;
+				ti1 = (i + 1) / Lx;
+				tj = j / Ly;
+				t = (tj - ti0) / (ti1 - ti0);
+				xi[j] = lerp(x[i], x[i + 1], t);
+				j++;
+			}
 		}
+	}
+	else
+	{
+		std::memcpy(xi, x, nx * sizeof(T));
 	}
 	// calculate correlation(x, y)
 	double ux = 0, uy = 0;
