@@ -614,24 +614,6 @@ SEXP warpCOW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 	return result;
 }
 
-SEXP binUpdate(SEXP score, SEXP lower, SEXP upper)
-{
-	SEXP ans, new_lower, new_upper;
-	if ( LENGTH(score) != LENGTH(lower) )
-		Rf_error("scores and bounds must have equal length");
-	if ( LENGTH(lower) != LENGTH(upper) )
-		Rf_error("lower and upper bounds must have equal length");
-	PROTECT(new_lower = Rf_allocVector(INTSXP, LENGTH(lower)));
-	PROTECT(new_upper = Rf_allocVector(INTSXP, LENGTH(upper)));
-	PROTECT(ans = Rf_allocVector(VECSXP, 2));
-	bin_update(REAL(score), INTEGER(lower), INTEGER(upper),
-		LENGTH(lower), INTEGER(new_lower), INTEGER(new_upper));
-	SET_VECTOR_ELT(ans, 0, new_lower);
-	SET_VECTOR_ELT(ans, 1, new_upper);
-	UNPROTECT(3);
-	return ans;
-}
-
 SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 {
 	SEXP ans;
@@ -651,6 +633,24 @@ SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 			Rf_error("unsupported data type");
 	}
 	UNPROTECT(1);
+	return ans;
+}
+
+SEXP binUpdate(SEXP score, SEXP lower, SEXP upper)
+{
+	SEXP ans, new_lower, new_upper;
+	if ( LENGTH(score) != LENGTH(lower) )
+		Rf_error("scores and bounds must have equal length");
+	if ( LENGTH(lower) != LENGTH(upper) )
+		Rf_error("lower and upper bounds must have equal length");
+	PROTECT(new_lower = Rf_allocVector(INTSXP, LENGTH(lower)));
+	PROTECT(new_upper = Rf_allocVector(INTSXP, LENGTH(upper)));
+	PROTECT(ans = Rf_allocVector(VECSXP, 2));
+	bin_update(REAL(score), INTEGER(lower), INTEGER(upper),
+		LENGTH(lower), INTEGER(new_lower), INTEGER(new_upper));
+	SET_VECTOR_ELT(ans, 0, new_lower);
+	SET_VECTOR_ELT(ans, 1, new_upper);
+	UNPROTECT(3);
 	return ans;
 }
 

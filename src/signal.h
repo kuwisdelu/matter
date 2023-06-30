@@ -19,6 +19,7 @@
 #define EST_SINC	10 // Lanczos
 
 // binning scheme
+// (must match factor levels)
 #define BIN_SUM		1
 #define BIN_AVG		2
 #define BIN_MAX		3
@@ -27,6 +28,7 @@
 #define BIN_VAR		6
 #define BIN_SSE		7
 
+// simulate signal padding (for filters)
 #define wrap_ind(i, n) (max2(min2((i), (n - 1)), 0))
 
 //// Numeric Integration
@@ -526,6 +528,134 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 //// Binning and downsampling
 //----------------------------
 
+template<typename T>
+double bin_sum(T * x, index_t lower, index_t upper)
+{
+	double sx = 0;
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		if ( isNA(x[i]) )
+			return NA_REAL;
+		sx += x[i];
+	}
+	return sx;
+}
+
+template<typename T>
+double bin_mean(T * x, index_t lower, index_t upper)
+{
+	double sx = bin_sum(x, lower, upper);
+	if ( isNA(sx) )
+		return NA_REAL;
+	return sx / (upper - lower + 1);
+}
+
+template<typename T>
+double bin_max(T * x, index_t lower, index_t upper)
+{
+	T mx = x[lower];
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		if ( isNA(x[i]) )
+			return NA_REAL;
+		else if ( x[i] > mx )
+			mx = x[i];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
+double bin_min(T * x, index_t lower, index_t upper)
+{
+	T mx = x[lower];
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		if ( isNA(x[i]) )
+			return NA_REAL;
+		else if ( x[i] < mx )
+			mx = x[i];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
+double bin_var(T * x, index_t lower, index_t upper)
+{
+	double ux = bin_mean(x, lower, upper);
+	if ( isNA(ux) )
+		return NA_REAL;
+	double sx = 0;
+	for ( index_t i = lower; i <= upper; i++ )
+		sx += (ux - x[i]) * (ux - x[i]);
+	return sx / (upper - lower);
+}
+
+template<typename T>
+double bin_sd(T * x, index_t lower, index_t upper)
+{
+	double sx = bin_var(x, lower, upper);
+	if ( isNA(sx) )
+		return NA_REAL;
+	return std::sqrt(sx);
+}
+
+template<typename T>
+void bin_vector(T * x, int n, int * lower, int * upper,
+	int nbin, double * buffer, int stat = BIN_SUM)
+{
+	for ( size_t i = 0; i < nbin; i++ )
+	{
+		if ( lower[i] < 0 || lower[i] >= n )
+			Rf_error("lower bin limit out of range");
+		if ( upper[i] < 0 || upper[i] >= n )
+			Rf_error("upper bin limit out of range");
+		if ( stat != BIN_SSE )
+		{
+			switch(stat) {
+				case BIN_SUM:
+					buffer[i] = bin_sum(x, lower[i], upper[i]);
+					break;
+				case BIN_AVG:
+					buffer[i] = bin_mean(x, lower[i], upper[i]);
+					break;
+				case BIN_MAX:
+					buffer[i] = bin_max(x, lower[i], upper[i]);
+					break;
+				case BIN_MIN:
+					buffer[i] = bin_min(x, lower[i], upper[i]);
+					break;
+				case BIN_SD:
+					buffer[i] = bin_sd(x, lower[i], upper[i]);
+					break;
+				case BIN_VAR:
+					buffer[i] = bin_var(x, lower[i], upper[i]);
+					break;
+			}
+		}
+		else
+		{
+			// expand to adjacent bins
+			index_t a = lower[i];
+			index_t b = upper[i];
+			a = a - 1 < 0 ? 0 : a - 1;
+			b = b + 1 > n - 1 ? n - 1 : b + 1;
+			// initialize statistics
+			double ux = bin_mean(x, lower[i], upper[i]);
+			double ut = (a + b) / 2;
+			double Sxx = 0, Stt = 0, Sxt = 0;
+			for ( index_t j = a; j <= b; j++ )
+			{
+				// calculate linear regression
+				Sxx += (ux - x[j]) * (ux - x[j]);
+				Stt += (ut - j) * (ut - j);
+				Sxt += (ux - x[j]) * (ut - j);
+			}
+			// sum of squared errors
+			buffer[i] = Sxx * (1 - (Sxt * Sxt) / (Stt * Sxx));
+		}
+	}
+}
+
 inline void bin_update(double * score, int * lower, int * upper,
 	int nbin, int * lower_buffer, int * upper_buffer)
 {
@@ -604,74 +734,6 @@ inline void bin_update(double * score, int * lower, int * upper,
 			}
 			did_merge = true;
 			i++;
-		}
-	}
-}
-
-template<typename T>
-void bin_vector(T * x, int n, int * lower, int * upper,
-	int nbin, double * buffer, int stat = BIN_SUM)
-{
-	double * buf = buffer;
-	for ( size_t i = 0; i < nbin; i++ )
-	{
-		buf[i] = NA_REAL;
-		if ( lower[i] < 0 || lower[i] >= n )
-			Rf_error("lower bin limit out of range");
-		if ( upper[i] < 0 || upper[i] >= n )
-			Rf_error("upper bin limit out of range");
-		int size = (upper[i] - lower[i]) + 1;
-		double sumx = 0;
-		for ( size_t j = lower[i]; j <= upper[i] && j < n; j++ )
-		{
-			// sum, mean, min, max
-			switch(stat) {
-				case BIN_MAX:
-					buf[i] = isNA(buf[i]) ? x[j] : (x[j] > buf[i] ? x[j] : buf[i]);
-					break;
-				case BIN_MIN:
-					buf[i] = isNA(buf[i]) ? x[j] : (x[j] < buf[i] ? x[j] : buf[i]);
-					break;
-				default:
-					sumx += x[j];
-					break;
-			}
-		}
-		if ( stat == BIN_SD || stat == BIN_VAR || stat == BIN_SSE )
-		{
-			index_t a = lower[i], b = upper[i];
-			if ( stat == BIN_SSE )
-			{
-				// expand to adjacent bins
-				a = a - 1 < 0 ? 0 : a - 1;
-				b = b + 1 > n - 1 ? n - 1 : b + 1;
-			}
-			double ux = sumx / size, ut = (a + b) / 2;
-			double Sxx = 0, Stt = 0, Sxt = 0;
-			for ( index_t j = a; j <= b; j++ )
-			{
-				// calculate linear regression
-				Sxx += (ux - x[j]) * (ux - x[j]);
-				Stt += (ut - j) * (ut - j);
-				Sxt += (ux - x[j]) * (ut - j);
-			}
-			if ( stat == BIN_SSE )
-				// sum of squared errors
-				buf[i] = Sxx * (1 - (Sxt * Sxt) / (Stt * Sxx));
-			else if ( size > 1 )
-				// variance
-				buf[i] = Sxx / (size - 1);
-		}
-		switch(stat) {
-			case BIN_SUM:
-				buf[i] = sumx;
-				break;
-			case BIN_AVG:
-				buf[i] = sumx / size;
-				break;
-			case BIN_SD:
-				buf[i] = std::sqrt(buf[i]);
-				break;
 		}
 	}
 }
@@ -1265,6 +1327,26 @@ Ty interp1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 		K += ki;
 	}
 	return yi / K;
+}
+
+// find lower bound of interpolation window
+template<typename T>
+index_t wlower(T xi, T * x, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	while ( i > 0 && udiff(x[i - 1], xi, tol_ref) <= tol )
+		i--;
+	return i;
+}
+
+// find upper bound of interpolation window
+template<typename T>
+index_t wupper(T xi, T * x, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	if ( i < n - 1 && udiff(x[i + 1], xi, tol_ref) <= tol )
+		i++;
+	return i;
 }
 
 // interpolate in interval |x[i] - xi| <= tol
