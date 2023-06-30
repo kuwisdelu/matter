@@ -748,7 +748,7 @@ approx1 <- function(x, y, xout, interp = "linear", n = length(x),
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		tol <- 2 * max(abs(reldiff(sort(x), ref=ref)))
 	}
-	extrap <- as.vector(extrap, mode=typeof(y))
+	extrap <- as.numeric(extrap)
 	.Call(C_Approx1, xout, x, y, tol, as_tol_ref(tol.ref),
 		extrap, as_interp(interp), PACKAGE="matter")
 }

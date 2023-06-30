@@ -50,8 +50,20 @@ asearch <- function(x, keys, values = seq_along(keys),
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
 		keys <- as.double(keys)
-	.Call(C_Approx1, x, keys, values, tol, as_tol_ref(tol.ref),
-		nomatch, as_interp("none"), PACKAGE="matter")
+	if ( is.character(keys) ) {
+		if ( is.unsorted(keys) ) {
+			ord <- order(keys)
+			keys <- keys[ord]
+			values <- values[ord]
+		}
+		i <- bsearch(x, keys, tol, as_tol_ref(tol.ref), -1L)
+		result <- values[ifelse(i > 0L, i, NA)]
+		result[i < 0L] <- nomatch
+	} else {
+		result <- .Call(C_Approx1, x, keys, values, tol, as_tol_ref(tol.ref),
+			nomatch, as_interp("none"), PACKAGE="matter")
+	}
+	result
 }
 
 kdsearch <- function(x, data, tol = NA_real_, tol.ref = "abs")
@@ -72,11 +84,11 @@ kdsearch <- function(x, data, tol = NA_real_, tol.ref = "abs")
 		newtol <- apply(data$data, 2L, fun)
 		tol[is.na(tol)] <- newtol[is.na(tol)]
 	}
-	res <- .Call(C_kdSearch, x, data$data,
+	result <- .Call(C_kdSearch, x, data$data,
 		data$nodes$left_child, data$nodes$right_child,
 		data$root, tol, as_tol_ref(tol.ref), PACKAGE="matter")
-	attr(res, "tol") <- tol
-	res
+	attr(result, "tol") <- tol
+	result
 }
 
 kdtree <- function(x)

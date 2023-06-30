@@ -278,9 +278,11 @@ test_that("approx1 (sorted)", {
 
 	test3 <- c(1.11, 2.22, 3.333, NA)
 	expect_equal(test3, approx1(x, y, xi, tol=0.5, interp="max"))
+	expect_equal(test3^2, approx1(x, y^2, xi, tol=0.5, interp="max"))
 
 	test4 <- c(1, 2, 3, NA)
 	expect_equal(test4, approx1(x, y, xi, tol=0.5, interp="min"))
+	expect_equal(test4^2, approx1(x, y^2, xi, tol=0.5, interp="min"))
 
 	xi2 <- seq(from=1, to=3, by=0.2)
 	expect_equal(xi2, approx1(x, y, xi2, tol=1, interp="linear"))
@@ -313,9 +315,11 @@ test_that("approx1 (unsorted)", {
 
 	test3 <- c(1.11, 2.22, 3.333, NA)
 	expect_equal(test3, approx1(x, y, xi, tol=0.5, interp="max"))
+	expect_equal(test3^2, approx1(x, y^2, xi, tol=0.5, interp="max"))
 
 	test4 <- c(1, 2, 3, NA)
 	expect_equal(test4, approx1(x, y, xi, tol=0.5, interp="min"))
+	expect_equal(test4^2, approx1(x, y^2, xi, tol=0.5, interp="min"))
 
 	xi2 <- seq(from=1, to=3, by=0.2)
 	expect_equal(xi2, approx1(x, y, xi2, tol=1, interp="linear"))

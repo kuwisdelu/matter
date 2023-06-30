@@ -1130,9 +1130,50 @@ void peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 //// Resampling with interpolation
 //---------------------------------
 
+// find lower bound of interpolation window
+template<typename T>
+index_t wlower(T xi, T * x, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	while ( i > 0 && udiff(x[i - 1], xi, tol_ref) <= tol )
+		i--;
+	return i;
+}
+
+// find upper bound of interpolation window
+template<typename T>
+index_t wupper(T xi, T * x, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF)
+{
+	while ( i < n - 1 && udiff(x[i + 1], xi, tol_ref) <= tol )
+		i++;
+	return i;
+}
+
+// stat in interval defined by |x[i] - xi| <= tol
+template<typename Tx, typename Ty>
+double interp1_stat(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF, int interp = EST_AVG)
+{
+	index_t lower = wlower(xi, x, i, n, tol, tol_ref);
+	index_t upper = wupper(xi, x, i, n, tol, tol_ref);
+	switch(interp) {
+		case EST_AVG:
+			return bin_mean(y, lower, upper);
+		case EST_SUM:
+			return bin_sum(y, lower, upper);		
+		case EST_MAX:
+			return bin_max(y, lower, upper);
+		case EST_MIN:
+			return bin_min(y, lower, upper);
+		default:
+			Rf_error("unsupported interpolation method");
+	}
+}
+
 // linear interpolation in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
-Ty interp1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+double interp1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
 {
 	double y0, y1, t;
@@ -1161,7 +1202,7 @@ Ty interp1_linear(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 
 // cubic interpolation in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
-Ty interp1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+double interp1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref = ABS_DIFF)
 {
 	index_t p[] = {NA_INTEGER, NA_INTEGER, NA_INTEGER, NA_INTEGER};
@@ -1209,92 +1250,12 @@ Ty interp1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return chip(ys, dx, t);
 }
 
-// mean in interval defined by |x[i] - xi| <= tol
-template<typename Tx, typename Ty>
-Ty interp1_mean(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double tol, int tol_ref = ABS_DIFF)
-{
-	Ty yi = 0;
-	size_t ni = 0;
-	for ( index_t j = i; j < n; j++ ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi += y[j];
-		ni++;
-	}
-	for ( index_t j = i - 1; j >= 0; j-- ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi += y[j];
-		ni++;
-	}
-	return yi / ni;
-}
-
-// sum in interval defined by |x[i] - xi| <= tol
-template<typename Tx, typename Ty>
-Ty interp1_sum(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double tol, int tol_ref = ABS_DIFF)
-{
-	Ty yi = 0;
-	for ( index_t j = i; j < n; j++ ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi += y[j];
-	}
-	for ( index_t j = i - 1; j >= 0; j-- ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi += y[j];
-	}
-	return yi;
-}
-
-// maximum in interval defined by |x[i] - xi| <= tol
-template<typename Tx, typename Ty>
-Ty interp1_max(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double tol, int tol_ref = ABS_DIFF)
-{
-	Ty yi = y[i];
-	for ( index_t j = i + 1; j < n; j++ ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi = y[j] > yi ? y[j] : yi;
-	}
-	for ( index_t j = i - 1; j >= 0; j-- ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi = y[j] > yi ? y[j] : yi;
-	}
-	return yi;
-}
-
-// minimum in interval defined by |x[i] - xi| <= tol
-template<typename Tx, typename Ty>
-Ty interp1_min(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double tol, int tol_ref = ABS_DIFF)
-{
-	Ty yi = y[i];
-	for ( index_t j = i + 1; j < n; j++ ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi = y[j] < yi ? y[j] : yi;
-	}
-	for ( index_t j = i - 1; j >= 0; j-- ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		yi = y[j] < yi ? y[j] : yi;
-	}
-	return yi;
-}
-
 // gaussian kernel in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
-Ty interp1_gaussian(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+double interp1_gaussian(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double sd, double tol, int tol_ref = ABS_DIFF)
 {
-	Ty yi = 0;
-	double K = 0, ki;
+	double yi = 0, K = 0, ki;
 	for ( index_t j = i; j < n; j++ ) {
 		if ( udiff(x[j], xi, tol_ref) > tol )
 			break;
@@ -1314,11 +1275,10 @@ Ty interp1_gaussian(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 
 // lanczos kernel in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
-Ty interp1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+double interp1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double a, double tol, int tol_ref = ABS_DIFF)
 {
-	Ty yi = 0;
-	double K = 0, ki;
+	double yi = 0, K = 0, ki;
 	for ( index_t j = i; j < n; j++ ) {
 		if ( udiff(x[j], xi, tol_ref) > tol )
 			break;
@@ -1336,79 +1296,54 @@ Ty interp1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return yi / K;
 }
 
-// find lower bound of interpolation window
-template<typename T>
-index_t wlower(T xi, T * x, index_t i, size_t n,
-	double tol, int tol_ref = ABS_DIFF)
-{
-	while ( i > 0 && udiff(x[i - 1], xi, tol_ref) <= tol )
-		i--;
-	return i;
-}
-
-// find upper bound of interpolation window
-template<typename T>
-index_t wupper(T xi, T * x, index_t i, size_t n,
-	double tol, int tol_ref = ABS_DIFF)
-{
-	if ( i < n - 1 && udiff(x[i + 1], xi, tol_ref) <= tol )
-		i++;
-	return i;
-}
-
 // interpolate in interval |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
-Ty interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+double interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref, int interp = EST_NEAR)
 {
 	switch(interp)
 	{
 		case EST_NEAR:
+		{
 			if ( sdiff(xi, x[i], tol_ref) <= tol )
 				return y[i];
 			else
-				return NA<Ty>();
-		case EST_AVG:
-			return interp1_mean(xi, x, y, i, n, tol, tol_ref);
-		case EST_SUM:
-			return interp1_sum(xi, x, y, i, n, tol, tol_ref);
-		case EST_MAX:
-			return interp1_max(xi, x, y, i, n, tol, tol_ref);
-		case EST_MIN:
-			return interp1_min(xi, x, y, i, n, tol, tol_ref);
-		case EST_AREA: {
-			index_t lbound = peak_lbound(y, i, n);
-			index_t rbound = peak_rbound(y, i, n);
-			return trapz(x, y, lbound, rbound);
+				return NA_REAL;
 		}
 		case EST_LERP:
 			return interp1_linear(xi, x, y, i, n, tol, tol_ref);
 		case EST_CUBIC:
 			return interp1_cubic(xi, x, y, i, n, tol, tol_ref);
-		case EST_GAUS: {
-			double xf = coerce_cast<double>(xi);
-			double sd = (tol_ref == ABS_DIFF) ? (tol / 2) : (xf * tol / 2);
+		case EST_GAUS:
+		{
+			double sd = (tol_ref == ABS_DIFF) ? (tol / 2) : (xi * tol / 2);
 			return interp1_gaussian(xi, x, y, i, n, sd, tol, tol_ref);
 		}
-		case EST_SINC: {
-			double xf = coerce_cast<double>(xi);
-			double a = (tol_ref == ABS_DIFF) ? tol : xf * tol;
+		case EST_SINC:
+		{
+			double a = (tol_ref == ABS_DIFF) ? tol : xi * tol;
 			return interp1_lanczos(xi, x, y, i, n, a, tol, tol_ref);
 		}
+		case EST_AREA:
+		{
+			index_t lbound = peak_lbound(y, i, n);
+			index_t rbound = peak_rbound(y, i, n);
+			return trapz(x, y, lbound, rbound);
+		}
 		default:
-			return NA<Ty>();
+			return interp1_stat(xi, x, y, i, n, tol, tol_ref, interp);
 	}
 }
 
 // approximate y ~ x at xi with interpolation
-template<typename Tx, typename Ty>
-Ty approx1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
-	double tol, int tol_ref, Ty nomatch, int interp = EST_NEAR)
+template<typename Tx, typename Ty, typename Tout>
+Tout approx1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
+	double tol, int tol_ref, Tout nomatch, int interp = EST_NEAR)
 {
 	if ( isNA(xi) )
-		return NA<Ty>();
+		return NA<Tout>();
 	index_t i = NA_INTEGER;
-	Ty yi = nomatch;
+	Tout yi = nomatch;
 	i = binary_search(xi, x, start, end,
 		tol, tol_ref, NA_INTEGER);
 	if ( !isNA(i) && i >= 0 )
@@ -1423,9 +1358,9 @@ Ty approx1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 }
 
 // approximate y ~ x at xi with interpolation
-template<typename Tx, typename Ty>
-index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
-	size_t start, size_t end, double tol, int tol_ref, Ty nomatch,
+template<typename Tx, typename Ty, typename Tout>
+index_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
+	size_t start, size_t end, double tol, int tol_ref, Tout nomatch,
 	int interp = EST_NEAR, int stride = 1)
 {
 	// initialize ptr
@@ -1434,7 +1369,7 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	{
 		if ( isNA(xi[i]) )
 		{
-			ptr[i * stride] = NA<Ty>();
+			ptr[i * stride] = NA<Tout>();
 			processed[i] = true;
 		}
 		else
@@ -1466,8 +1401,8 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 		{
 			if ( isNA(xi[i]) )
 				continue;
-			Ty yi = approx1(xi[i], xs, ys, start, end,
-				tol, tol_ref, NA<Ty>(), interp);
+			Tout yi = approx1(xi[i], xs, ys, start, end,
+				tol, tol_ref, NA<Tout>(), interp);
 			if ( !isNA(yi) )
 			{
 				num_matches++;
@@ -1502,8 +1437,8 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 					break;
 				if ( udiff(xi[i], xs[j], tol_ref) > tol )
 					break;
-				Ty yi = approx1(xi[i], xs, ys, j, end,
-					tol, tol_ref, NA<Ty>(), interp);
+				Tout yi = approx1(xi[i], xs, ys, j, end,
+					tol, tol_ref, NA<Tout>(), interp);
 				if ( !isNA(yi) )
 				{
 					num_matches++;
@@ -1518,8 +1453,8 @@ index_t do_approx1(Ty * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 					break;
 				if ( udiff(xi[i], xs[j], tol_ref) > tol )
 					break;
-				Ty yi = approx1(xi[i], xs, ys, j, end,
-					tol, tol_ref, NA<Ty>(), interp);
+				Tout yi = approx1(xi[i], xs, ys, j, end,
+					tol, tol_ref, NA<Tout>(), interp);
 				if ( !isNA(yi) )
 				{
 					num_matches++;

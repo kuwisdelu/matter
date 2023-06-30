@@ -888,26 +888,20 @@ SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 	if ( Rf_asReal(tol) < 0 )
 		Rf_error("'tol' must be non-negative");
 	SEXP result;
-	PROTECT(result = Rf_allocVector(TYPEOF(y), LENGTH(xi)));
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(xi)));
 	switch(TYPEOF(y)) {
 		case INTSXP:
 			switch(TYPEOF(x)) {
 				case INTSXP:
-					do_approx1<int,int>(INTEGER(result), INTEGER(xi), LENGTH(xi),
+					do_approx1<int,int>(REAL(result), INTEGER(xi), LENGTH(xi),
 						INTEGER(x), INTEGER(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
 						Rf_asInteger(interp));
 					break;
 				case REALSXP:
-					do_approx1<double,int>(INTEGER(result), REAL(xi), LENGTH(xi),
+					do_approx1<double,int>(REAL(result), REAL(xi), LENGTH(xi),
 						REAL(x), INTEGER(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
-						Rf_asInteger(interp));
-					break;
-				case STRSXP:
-					do_approx1<SEXP,int>(INTEGER(result), STRING_PTR(xi), LENGTH(xi),
-						STRING_PTR(x), INTEGER(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asInteger(nomatch),
+						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
 						Rf_asInteger(interp));
 					break;
 				default:
@@ -925,12 +919,6 @@ SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 				case REALSXP:
 					do_approx1<double,double>(REAL(result), REAL(xi), LENGTH(xi),
 						REAL(x), REAL(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
-						Rf_asInteger(interp));
-					break;
-				case STRSXP:
-					do_approx1<SEXP,double>(REAL(result), STRING_PTR(xi), LENGTH(xi),
-						STRING_PTR(x), REAL(y), 0, LENGTH(y),
 						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
 						Rf_asInteger(interp));
 					break;

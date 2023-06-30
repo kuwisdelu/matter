@@ -84,7 +84,7 @@ test_that("sparse vector subsetting w/ interpolation", {
 	
 	tolerance(z3) <- 2
 	sampler(z3) <- "sum"
-	test6 <- c(3, 4, 5, 14, 14, 14, 14, 14, 5, 4, 3)	
+	test6 <- c(3, 4, 5, 14, 14, 14, 14, 14, 5, 4, 3)
 	expect_equal(test6, z3[])
 
 	sampler(z3) <- "mean"
