@@ -14,7 +14,7 @@
 #define EST_MIN		5
 #define EST_AREA	6  // Peak area
 #define EST_LERP	7  // Linear interpolation
-#define EST_CUBIC	8  // Cubic Hermite spline
+#define EST_CUBIC	8  // Cubic interpolation
 #define EST_GAUS	9  // Gaussian filter
 #define EST_SINC	10 // Lanczos
 
@@ -57,13 +57,33 @@ inline double sinc(double x)
 		return 1;
 }
 
-// Lanczos kernel
+// linear (triangle) kernel
+inline double klinear(double x)
+{
+	return max2(1 - std::fabs(x), 0);
+}
+
+// cubic kernel
+inline double kcubic(double x, double a = -0.5)
+{
+	x = std::fabs(x);
+	double x2 = x * x;
+	double x3 = x * x2;
+	if ( x <= 1 )
+		return (a + 2) * x3 - (a + 3) * x2 + 1;
+	else if ( x < 2 )
+		return (a * x3) + (5 * a * x2) + (8 * a * x) - (4 * a);
+	else
+		return 0;
+}
+
+// lanczos kernel
 inline double klanczos(double x, double a)
 {
 	return sinc(M_PI * x) * sinc(M_PI * x / a);
 }
 
-// Gaussian kernel
+// gaussian kernel
 inline double kgaussian(double x, double sd)
 {
 	return std::exp(-(x * x) / (2 * (sd * sd)));
@@ -100,6 +120,193 @@ inline double chip(double y[4], double dx[3], double t)
 	double p11 = ((t * t * t) - (t * t)) * dx[1] * m2;
 	// return interpolated value
 	return p00 + p10 + p01 + p11;
+}
+
+//// Summarize via statistic 
+//---------------------------
+
+template<typename T>
+double do_sum(T * x, index_t lower, index_t upper)
+{
+	double sx = 0;
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		if ( isNA(x[i]) )
+			return NA_REAL;
+		sx += x[i];
+	}
+	return sx;
+}
+
+template<typename T>
+double do_sum(T * x, int * indx, size_t n)
+{
+	double sx = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			return NA_REAL;
+		sx += x[indx[i]];
+	}
+	return sx;
+}
+
+template<typename T>
+double do_mean(T * x, index_t lower, index_t upper)
+{
+	double sx = do_sum(x, lower, upper);
+	if ( isNA(sx) )
+		return NA_REAL;
+	return sx / (upper - lower + 1);
+}
+
+template<typename T>
+double do_mean(T * x, int * indx, size_t n)
+{
+	double sx = do_sum(x, indx, n);
+	if ( isNA(sx) )
+		return NA_REAL;
+	return sx / n;
+}
+
+template<typename T>
+double do_max(T * x, index_t lower, index_t upper)
+{
+	T mx = x[lower];
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		if ( isNA(x[i]) )
+			return NA_REAL;
+		else if ( x[i] > mx )
+			mx = x[i];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
+double do_max(T * x, int * indx, size_t n)
+{
+	if ( n <= 0 )
+		return NA_REAL;
+	T mx = x[indx[0]];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			return NA_REAL;
+		else if ( x[indx[i]] > mx )
+			mx = x[indx[i]];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
+double do_min(T * x, index_t lower, index_t upper)
+{
+	T mx = x[lower];
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		if ( isNA(x[i]) )
+			return NA_REAL;
+		else if ( x[i] < mx )
+			mx = x[i];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
+double do_min(T * x, int * indx, size_t n)
+{
+	if ( n <= 0 )
+		return NA_REAL;
+	T mx = x[indx[0]];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			return NA_REAL;
+		else if ( x[indx[i]] < mx )
+			mx = x[indx[i]];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
+double do_var(T * x, index_t lower, index_t upper)
+{
+	double ux = do_mean(x, lower, upper);
+	if ( isNA(ux) )
+		return NA_REAL;
+	double sx = 0;
+	for ( index_t i = lower; i <= upper; i++ )
+		sx += (ux - x[i]) * (ux - x[i]);
+	return sx / (upper - lower);
+}
+
+template<typename T>
+double do_sd(T * x, index_t lower, index_t upper)
+{
+	double sx = do_var(x, lower, upper);
+	if ( isNA(sx) )
+		return NA_REAL;
+	return std::sqrt(sx);
+}
+
+//// Summarize via kernel 
+//-------------------------
+
+template<typename Tx, typename Ty>
+double do_kgaussian(Tx xi, Tx * x, Ty * y, double sd,
+	index_t lower, index_t upper)
+{
+	double yi = 0, K0 = 0, ki;
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		ki = kgaussian(udiff(x[i], xi), sd);
+		yi += ki * y[i];
+		K0 += ki;
+	}
+	return yi / K0;
+}
+
+template<typename Tx, typename Ty>
+double do_kgaussian(Tx xi, Tx * x, Ty * y, double sd,
+	int * indx, size_t n)
+{
+	double yi = 0, K0 = 0, ki;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		ki = kgaussian(udiff(x[indx[i]], xi), sd);
+		yi += ki * y[indx[i]];
+		K0 += ki;
+	}
+	return yi / K0;
+}
+
+template<typename Tx, typename Ty>
+double do_klanczos(Tx xi, Tx * x, Ty * y, double a,
+	index_t lower, index_t upper)
+{
+	double yi = 0, K0 = 0, ki;
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		ki = klanczos(udiff(x[i], xi), a);
+		yi += ki * y[i];
+		K0 += ki;
+	}
+	return yi / K0;
+}
+
+template<typename Tx, typename Ty>
+double do_klanczos(Tx xi, Tx * x, Ty * y, double a,
+	int * indx, size_t n)
+{
+	double yi = 0, K0 = 0, ki;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		ki = klanczos(udiff(x[indx[i]], xi), a);
+		yi += ki * y[indx[i]];
+		K0 += ki;
+	}
+	return yi / K0;
 }
 
 //// Filtering and smoothing
@@ -536,77 +743,6 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 //----------------------------
 
 template<typename T>
-double bin_sum(T * x, index_t lower, index_t upper)
-{
-	double sx = 0;
-	for ( index_t i = lower; i <= upper; i++ )
-	{
-		if ( isNA(x[i]) )
-			return NA_REAL;
-		sx += x[i];
-	}
-	return sx;
-}
-
-template<typename T>
-double bin_mean(T * x, index_t lower, index_t upper)
-{
-	double sx = bin_sum(x, lower, upper);
-	if ( isNA(sx) )
-		return NA_REAL;
-	return sx / (upper - lower + 1);
-}
-
-template<typename T>
-double bin_max(T * x, index_t lower, index_t upper)
-{
-	T mx = x[lower];
-	for ( index_t i = lower; i <= upper; i++ )
-	{
-		if ( isNA(x[i]) )
-			return NA_REAL;
-		else if ( x[i] > mx )
-			mx = x[i];
-	}
-	return static_cast<double>(mx);
-}
-
-template<typename T>
-double bin_min(T * x, index_t lower, index_t upper)
-{
-	T mx = x[lower];
-	for ( index_t i = lower; i <= upper; i++ )
-	{
-		if ( isNA(x[i]) )
-			return NA_REAL;
-		else if ( x[i] < mx )
-			mx = x[i];
-	}
-	return static_cast<double>(mx);
-}
-
-template<typename T>
-double bin_var(T * x, index_t lower, index_t upper)
-{
-	double ux = bin_mean(x, lower, upper);
-	if ( isNA(ux) )
-		return NA_REAL;
-	double sx = 0;
-	for ( index_t i = lower; i <= upper; i++ )
-		sx += (ux - x[i]) * (ux - x[i]);
-	return sx / (upper - lower);
-}
-
-template<typename T>
-double bin_sd(T * x, index_t lower, index_t upper)
-{
-	double sx = bin_var(x, lower, upper);
-	if ( isNA(sx) )
-		return NA_REAL;
-	return std::sqrt(sx);
-}
-
-template<typename T>
 void bin_vector(T * x, int n, int * lower, int * upper,
 	int nbin, double * buffer, int stat = BIN_SUM)
 {
@@ -620,22 +756,22 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 		{
 			switch(stat) {
 				case BIN_SUM:
-					buffer[i] = bin_sum(x, lower[i], upper[i]);
+					buffer[i] = do_sum(x, lower[i], upper[i]);
 					break;
 				case BIN_AVG:
-					buffer[i] = bin_mean(x, lower[i], upper[i]);
+					buffer[i] = do_mean(x, lower[i], upper[i]);
 					break;
 				case BIN_MAX:
-					buffer[i] = bin_max(x, lower[i], upper[i]);
+					buffer[i] = do_max(x, lower[i], upper[i]);
 					break;
 				case BIN_MIN:
-					buffer[i] = bin_min(x, lower[i], upper[i]);
+					buffer[i] = do_min(x, lower[i], upper[i]);
 					break;
 				case BIN_SD:
-					buffer[i] = bin_sd(x, lower[i], upper[i]);
+					buffer[i] = do_sd(x, lower[i], upper[i]);
 					break;
 				case BIN_VAR:
-					buffer[i] = bin_var(x, lower[i], upper[i]);
+					buffer[i] = do_var(x, lower[i], upper[i]);
 					break;
 			}
 		}
@@ -647,7 +783,7 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 			a = a - 1 < 0 ? 0 : a - 1;
 			b = b + 1 > n - 1 ? n - 1 : b + 1;
 			// initialize statistics
-			double ux = bin_mean(x, lower[i], upper[i]);
+			double ux = do_mean(x, lower[i], upper[i]);
 			double ut = (a + b) / 2;
 			double Sxx = 0, Stt = 0, Sxt = 0;
 			for ( index_t j = a; j <= b; j++ )
@@ -1150,24 +1286,24 @@ index_t wupper(T xi, T * x, index_t i, size_t n,
 	return i;
 }
 
-// stat in interval defined by |x[i] - xi| <= tol
+// statistic interpolation in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
 double interp1_stat(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double tol, int tol_ref = ABS_DIFF, int interp = EST_AVG)
+	double tol, int tol_ref = ABS_DIFF, int stat = EST_AVG)
 {
 	index_t lower = wlower(xi, x, i, n, tol, tol_ref);
 	index_t upper = wupper(xi, x, i, n, tol, tol_ref);
-	switch(interp) {
+	switch(stat) {
 		case EST_AVG:
-			return bin_mean(y, lower, upper);
+			return do_mean(y, lower, upper);
 		case EST_SUM:
-			return bin_sum(y, lower, upper);		
+			return do_sum(y, lower, upper);		
 		case EST_MAX:
-			return bin_max(y, lower, upper);
+			return do_max(y, lower, upper);
 		case EST_MIN:
-			return bin_min(y, lower, upper);
+			return do_min(y, lower, upper);
 		default:
-			Rf_error("unsupported interpolation method");
+			return NA_REAL;
 	}
 }
 
@@ -1250,50 +1386,27 @@ double interp1_cubic(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	return chip(ys, dx, t);
 }
 
-// gaussian kernel in interval defined by |x[i] - xi| <= tol
+// kernel interpolation in interval defined by |x[i] - xi| <= tol
 template<typename Tx, typename Ty>
-double interp1_gaussian(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double sd, double tol, int tol_ref = ABS_DIFF)
+double interp1_kern(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
+	double tol, int tol_ref = ABS_DIFF, int kernel = EST_GAUS)
 {
-	double yi = 0, K = 0, ki;
-	for ( index_t j = i; j < n; j++ ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		ki = kgaussian(sdiff(x[j], xi), sd);
-		yi += ki * y[j];
-		K += ki;
+	index_t lower = wlower(xi, x, i, n, tol, tol_ref);
+	index_t upper = wupper(xi, x, i, n, tol, tol_ref);
+	switch(kernel) {
+		case EST_GAUS:
+		{
+			double sd = (tol_ref == ABS_DIFF) ? (tol / 2) : (xi * tol / 2);
+			return do_kgaussian(xi, x, y, sd, lower, upper);
+		}
+		case EST_SINC:
+		{
+			double a = (tol_ref == ABS_DIFF) ? tol : xi * tol;
+			return do_klanczos(xi, x, y, a, lower, upper);
+		}
+		default:
+			return NA_REAL;
 	}
-	for ( index_t j = i - 1; j >= 0; j-- ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		ki = kgaussian(sdiff(x[j], xi), sd);
-		yi += ki * y[j];
-		K += ki;
-	}
-	return yi / K;
-}
-
-// lanczos kernel in interval defined by |x[i] - xi| <= tol
-template<typename Tx, typename Ty>
-double interp1_lanczos(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
-	double a, double tol, int tol_ref = ABS_DIFF)
-{
-	double yi = 0, K = 0, ki;
-	for ( index_t j = i; j < n; j++ ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		ki = klanczos(sdiff(x[j], xi), a);
-		yi += ki * y[j];
-		K += ki;
-	}
-	for ( index_t j = i - 1; j >= 0; j-- ) {
-		if ( udiff(x[j], xi, tol_ref) > tol )
-			break;
-		ki = klanczos(sdiff(x[j], xi), a);
-		yi += ki * y[j];
-		K += ki;
-	}
-	return yi / K;
 }
 
 // interpolate in interval |x[i] - xi| <= tol
@@ -1301,6 +1414,7 @@ template<typename Tx, typename Ty>
 double interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	double tol, int tol_ref, int interp = EST_NEAR)
 {
+	index_t lower, upper;
 	switch(interp)
 	{
 		case EST_NEAR:
@@ -1310,28 +1424,26 @@ double interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 			else
 				return NA_REAL;
 		}
+		case EST_AVG:
+		case EST_SUM:
+		case EST_MAX:
+		case EST_MIN:
+			return interp1_stat(xi, x, y, i, n, tol, tol_ref, interp);
+		case EST_AREA:
+		{
+			lower = peak_lbound(y, i, n);
+			upper = peak_rbound(y, i, n);
+			return trapz(x, y, lower, upper);
+		}
 		case EST_LERP:
 			return interp1_linear(xi, x, y, i, n, tol, tol_ref);
 		case EST_CUBIC:
 			return interp1_cubic(xi, x, y, i, n, tol, tol_ref);
 		case EST_GAUS:
-		{
-			double sd = (tol_ref == ABS_DIFF) ? (tol / 2) : (xi * tol / 2);
-			return interp1_gaussian(xi, x, y, i, n, sd, tol, tol_ref);
-		}
 		case EST_SINC:
-		{
-			double a = (tol_ref == ABS_DIFF) ? tol : xi * tol;
-			return interp1_lanczos(xi, x, y, i, n, a, tol, tol_ref);
-		}
-		case EST_AREA:
-		{
-			index_t lbound = peak_lbound(y, i, n);
-			index_t rbound = peak_rbound(y, i, n);
-			return trapz(x, y, lbound, rbound);
-		}
+			return interp1_kern(xi, x, y, i, n, tol, tol_ref, interp);
 		default:
-			return interp1_stat(xi, x, y, i, n, tol, tol_ref, interp);
+			Rf_error("unrecognized interpolation method");
 	}
 }
 

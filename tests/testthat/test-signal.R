@@ -284,6 +284,11 @@ test_that("approx1 (sorted)", {
 	expect_equal(test4, approx1(x, y, xi, tol=0.5, interp="min"))
 	expect_equal(test4^2, approx1(x, y^2, xi, tol=0.5, interp="min"))
 
+	xi1 <- x[abs(x - 2) <= 1]
+	test5 <- c(dnorm(xi1, mean=2, sd=1/2))
+	test5 <- sum(xi1 * test5 / sum(test5))
+	expect_equal(test5, approx1(x, y, 2, tol=1, interp="gaussian"))
+
 	xi2 <- seq(from=1, to=3, by=0.2)
 	expect_equal(xi2, approx1(x, y, xi2, tol=1, interp="linear"))
 	expect_equal(xi2, approx1(x, y, xi2, tol=2, interp="cubic"))
@@ -320,6 +325,11 @@ test_that("approx1 (unsorted)", {
 	test4 <- c(1, 2, 3, NA)
 	expect_equal(test4, approx1(x, y, xi, tol=0.5, interp="min"))
 	expect_equal(test4^2, approx1(x, y^2, xi, tol=0.5, interp="min"))
+
+	xi1 <- x[abs(x - 2) <= 1]
+	test5 <- c(dnorm(xi1, mean=2, sd=1/2))
+	test5 <- sum(xi1 * test5 / sum(test5))
+	expect_equal(test5, approx1(x, y, 2, tol=1, interp="gaussian"))
 
 	xi2 <- seq(from=1, to=3, by=0.2)
 	expect_equal(xi2, approx1(x, y, xi2, tol=1, interp="linear"))
