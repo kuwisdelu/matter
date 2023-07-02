@@ -202,7 +202,7 @@ test_that("k-dimensional search", {
 	i1 <- seq_len(nrow(d1))
 	t1 <- kdtree(d1)
 	ns1 <- as.matrix(t1$nodes + 1L)
-	ks1a <- kdsearch(c(2,3,3), d1)
+	ks1a <- kdsearch(c(2,3,3), d1, tol=c(2,2,4))
 	ks1b <- kdsearch(c(7,2,6), d1, tol=2)
 
 	expect_equal(t1$root + 1L, 6L)

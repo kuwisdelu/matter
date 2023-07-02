@@ -5,10 +5,10 @@
 #include "drle.h"
 #include "atoms.h"
 #include "matter.h"
-#include "sparse.h"
 #include "search.h"
 #include "signal.h"
 #include "signal2.h"
+#include "sparse.h"
 
 extern "C" {
 

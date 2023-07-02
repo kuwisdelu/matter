@@ -951,14 +951,14 @@ SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 					do_approx2<int,int>(REAL(result),
 						INTEGER(xi), INTEGER(yi), LENGTH(xi),
 						INTEGER(xy), INTEGER(z), LENGTH(z),
-						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						REAL(tol), Rf_asInteger(tol_ref),
 						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				case REALSXP:
 					do_approx2<double,int>(REAL(result),
 						REAL(xi), REAL(yi), LENGTH(xi),
 						REAL(xy), INTEGER(z), LENGTH(z),
-						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						REAL(tol), Rf_asInteger(tol_ref),
 						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				default:
@@ -971,14 +971,14 @@ SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 					do_approx2<int,double>(REAL(result),
 						INTEGER(xi), INTEGER(yi), LENGTH(xi),
 						INTEGER(xy), REAL(z), LENGTH(z),
-						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						REAL(tol), Rf_asInteger(tol_ref),
 						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				case REALSXP:
 					do_approx2<double,double>(REAL(result),
 						REAL(xi), REAL(yi), LENGTH(xi),
 						REAL(xy), REAL(z), LENGTH(z),
-						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						REAL(tol), Rf_asInteger(tol_ref),
 						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				default:

@@ -67,13 +67,13 @@ double do_min(T * x, int * indx, size_t n)
 
 template<typename Txy, typename Tz>
 double do_klinear2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
-	double r, int * indx, size_t n)
+	double rx, double ry, int * indx, size_t n)
 {
 	double zi = 0, K0 = 0, ki, kj;
 	for ( index_t i = 0; i < n; i++ )
 	{
-		ki = klinear(udiff(x[indx[i]], xi) / r);
-		kj = klinear(udiff(y[indx[i]], yi) / r);
+		ki = klinear(udiff(x[indx[i]], xi) / rx);
+		kj = klinear(udiff(y[indx[i]], yi) / ry);
 		zi += ki * kj * z[indx[i]];
 		K0 += ki * kj;
 	}
@@ -82,14 +82,14 @@ double do_klinear2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 
 template<typename Txy, typename Tz>
 double do_kcubic2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
-	double r, int * indx, size_t n)
+	double rx, double ry, int * indx, size_t n)
 {
 	double zi = 0, K0 = 0, ki, kj;
-	double rhalf = 0.5 * r;
+	double r2x = 0.5 * rx, r2y = 0.5 * ry;
 	for ( index_t i = 0; i < n; i++ )
 	{
-		ki = kcubic(udiff(x[indx[i]], xi) / rhalf);
-		kj = kcubic(udiff(y[indx[i]], yi) / rhalf);
+		ki = kcubic(udiff(x[indx[i]], xi) / r2x);
+		kj = kcubic(udiff(y[indx[i]], yi) / r2y);
 		zi += ki * kj * z[indx[i]];
 		K0 += ki * kj;
 	}
@@ -98,13 +98,13 @@ double do_kcubic2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 
 template<typename Txy, typename Tz>
 double do_kgaussian2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
-	double sd, int * indx, size_t n)
+	double sdx, double sdy, int * indx, size_t n)
 {
 	double zi = 0, K0 = 0, ki, kj;
 	for ( index_t i = 0; i < n; i++ )
 	{
-		ki = kgaussian(udiff(x[indx[i]], xi), sd);
-		kj = kgaussian(udiff(y[indx[i]], yi), sd);
+		ki = kgaussian(udiff(x[indx[i]], xi), sdx);
+		kj = kgaussian(udiff(y[indx[i]], yi), sdy);
 		zi += ki * kj * z[indx[i]];
 		K0 += ki * kj;
 	}
@@ -113,13 +113,13 @@ double do_kgaussian2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 
 template<typename Txy, typename Tz>
 double do_klanczos2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
-	double a, int * indx, size_t n)
+	double ax, double ay, int * indx, size_t n)
 {
 	double zi = 0, K0 = 0, ki, kj;
 	for ( index_t i = 0; i < n; i++ )
 	{
-		ki = klanczos(udiff(x[indx[i]], xi), a);
-		kj = klanczos(udiff(y[indx[i]], yi), a);
+		ki = klanczos(udiff(x[indx[i]], xi), ax);
+		kj = klanczos(udiff(y[indx[i]], yi), ay);
 		zi += ki * kj * z[indx[i]];
 		K0 += ki * kj;
 	}
@@ -150,18 +150,22 @@ double interp2_stat(T * z, int * indx, size_t n, int stat = EST_AVG)
 // kernel interpolation using x/y at indx
 template<typename Txy, typename Tz>
 double interp2_kern(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
-	int * indx, size_t n, double tol, int tol_ref, int kernel = EST_LERP)
+	int * indx, size_t n, double tol[2], int tol_ref, int kernel = EST_LERP)
 {
-	double a = (tol_ref == ABS_DIFF) ? tol : xi * tol;
+	double ax = (tol_ref == ABS_DIFF) ? tol[0] : xi * tol[0];
+	double ay = (tol_ref == ABS_DIFF) ? tol[1] : yi * tol[1];
 	switch(kernel) {
 		case EST_LERP:
-			return do_klinear2(xi, yi, x, y, z, a, indx, n);
+			return do_klinear2(xi, yi, x, y, z, ax, ay, indx, n);
 		case EST_CUBIC:
-			return do_kcubic2(xi, yi, x, y, z, a, indx, n);
+			return do_kcubic2(xi, yi, x, y, z, ax, ay, indx, n);
 		case EST_GAUS:
-			return do_kgaussian2(xi, yi, x, y, z, a / 2, indx, n);
+		{
+			double sdx = 0.5 * ax, sdy = 0.5 * ay;
+			return do_kgaussian2(xi, yi, x, y, z, sdx, sdy, indx, n);
+		}
 		case EST_SINC:
-			return do_klanczos2(xi, yi, x, y, z, a, indx, n);
+			return do_klanczos2(xi, yi, x, y, z, ax, ay, indx, n);
 		default:
 			return NA_REAL;
 	}
@@ -170,7 +174,7 @@ double interp2_kern(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 // interpolate at xi using x/y and indx
 template<typename Txy, typename Tz>
 double interp2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
-	int * indx, size_t n, double tol, int tol_ref, int interp = EST_NEAR)
+	int * indx, size_t n, double tol[2], int tol_ref, int interp = EST_NEAR)
 {
 	double dx, dy;
 	switch(interp)
@@ -206,16 +210,15 @@ double interp2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 // approximate z ~ (x, y) at (xi, yi) with interpolation
 template<typename Txy, typename Tz, typename Tout>
 Tout approx2(Txy xi, Txy yi, Txy * xy, Tz * z, int * indx, size_t n,
-	double tol, int tol_ref, Tout nomatch, int * left_child, int * right_child,
+	double tol[2], int tol_ref, Tout nomatch, int * left_child, int * right_child,
 	index_t root, int interp = EST_NEAR)
 {
 	if ( isNA(xi) || isNA(yi) )
 		return NA<Tout>();
 	Tout zi = nomatch;
 	Txy xyi[] = {xi, yi};
-	double tol_xy[] = {tol, tol};
 	index_t knn = kd_tree_search(indx, xyi, xy, 2, n,
-		left_child, right_child, root, tol_xy, tol_ref);
+		left_child, right_child, root, tol, tol_ref);
 	if ( knn > 0 )
 	{
 		Txy * x = xy;
@@ -228,7 +231,7 @@ Tout approx2(Txy xi, Txy yi, Txy * xy, Tz * z, int * indx, size_t n,
 // approximate z ~ (x, y) at (xi, yi) with interpolation
 template<typename Txy, typename Tz, typename Tout>
 index_t do_approx2(Tout * ptr, Txy * xi, Txy * yi, size_t ni, Txy * xy, Tz * z, size_t n,
-	double tol, int tol_ref, Tout nomatch, int interp = EST_NEAR, int stride = 1)
+	double tol[2], int tol_ref, Tout nomatch, int interp = EST_NEAR, int stride = 1)
 {
 	for ( index_t i = 0; i < ni; i++ )
 		ptr[i * stride] = nomatch;
