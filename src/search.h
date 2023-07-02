@@ -35,6 +35,34 @@ bool gteq(T x, T y)
 	return sdiff<T>(x, y) >= 0;
 }
 
+template<typename T>
+index_t argmin(T * x, size_t n)
+{
+	if ( n == 0 )
+		return NA_INTEGER;
+	index_t arg = 0;
+	for ( index_t i = 1; i < n; i++ )
+	{
+		if ( lt(x[i], x[arg]) )
+			arg = i;
+	}
+	return arg;
+}
+
+template<typename T>
+index_t argmax(T * x, size_t n)
+{
+	if ( n == 0 )
+		return NA_INTEGER;
+	index_t arg = 0;
+	for ( index_t i = 1; i < n; i++ )
+	{
+		if ( gt(x[i], x[arg]) )
+			arg = i;
+	}
+	return arg;
+}
+
 //// Sortedness
 //--------------
 

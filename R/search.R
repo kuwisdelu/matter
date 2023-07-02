@@ -66,24 +66,18 @@ asearch <- function(x, keys, values = seq_along(keys),
 	result
 }
 
-kdsearch <- function(x, data, tol = NA_real_, tol.ref = "abs")
+kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 {
+	x <- as.matrix(x)
 	if ( !is(data, "kdtree") )
 		data <- kdtree(data)
 	if ( is.integer(x) && is.double(data$data) )
-		storage.mode(x) <- "integer"
+		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(data$data) )
 		storage.mode(data$data) <- "double"
 	if ( is.null(dim(x)) && length(x) != ncol(data$data) )
 		stop("x must have the same number of columns as data")
 	tol <- rep_len(tol, ncol(data$data))
-	if ( anyNA(tol) ) {
-		# guess tol as ~2x the max gap in each dim
-		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		fun <- function(x) 2 * max(abs(reldiff(sort(x), ref=ref)))
-		newtol <- apply(data$data, 2L, fun)
-		tol[is.na(tol)] <- newtol[is.na(tol)]
-	}
 	result <- .Call(C_kdSearch, x, data$data,
 		data$nodes$left_child, data$nodes$right_child,
 		data$root, tol, as_tol_ref(tol.ref), PACKAGE="matter")
@@ -91,12 +85,12 @@ kdsearch <- function(x, data, tol = NA_real_, tol.ref = "abs")
 	result
 }
 
-kdtree <- function(x)
+kdtree <- function(data)
 {
-	x <- as.matrix(x)
-	tree <- .Call(C_kdTree, x, PACKAGE="matter")
+	data <- as.matrix(data)
+	tree <- .Call(C_kdTree, data, PACKAGE="matter")
 	nodes <- data.frame(left_child=tree[[1L]], right_child=tree[[2L]])
-	structure(list(data=x, nodes=nodes, root=tree[[3L]]),
+	structure(list(data=data, nodes=nodes, root=tree[[3L]]),
 		class="kdtree")
 }
 

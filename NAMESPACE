@@ -314,6 +314,7 @@ export(
 
 export(
 	"approx1",
+	"approx2",
 	"filt1_ma",
 	"filt1_gauss",
 	"filt1_bi",

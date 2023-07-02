@@ -5,9 +5,10 @@
 #include "drle.h"
 #include "atoms.h"
 #include "matter.h"
+#include "sparse.h"
 #include "search.h"
 #include "signal.h"
-#include "sparse.h"
+#include "signal2.h"
 
 extern "C" {
 
@@ -90,6 +91,8 @@ SEXP peakWidths(SEXP x, SEXP peaks, SEXP domain,
 SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 	 SEXP left_limits, SEXP right_limits);
 SEXP Approx1(SEXP xi, SEXP x, SEXP y,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
+SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
 } // extern "C"

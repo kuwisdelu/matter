@@ -70,9 +70,9 @@ inline double kcubic(double x, double a = -0.5)
 	double x2 = x * x;
 	double x3 = x * x2;
 	if ( x <= 1 )
-		return (a + 2) * x3 - (a + 3) * x2 + 1;
+		return ((a + 2) * x3) - ((a + 3) * x2) + 1;
 	else if ( x < 2 )
-		return (a * x3) + (5 * a * x2) + (8 * a * x) - (4 * a);
+		return (a * x3) - (5 * a * x2) + (8 * a * x) - (4 * a);
 	else
 		return 0;
 }
@@ -139,34 +139,12 @@ double do_sum(T * x, index_t lower, index_t upper)
 }
 
 template<typename T>
-double do_sum(T * x, int * indx, size_t n)
-{
-	double sx = 0;
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		sx += x[indx[i]];
-	}
-	return sx;
-}
-
-template<typename T>
 double do_mean(T * x, index_t lower, index_t upper)
 {
 	double sx = do_sum(x, lower, upper);
 	if ( isNA(sx) )
 		return NA_REAL;
 	return sx / (upper - lower + 1);
-}
-
-template<typename T>
-double do_mean(T * x, int * indx, size_t n)
-{
-	double sx = do_sum(x, indx, n);
-	if ( isNA(sx) )
-		return NA_REAL;
-	return sx / n;
 }
 
 template<typename T>
@@ -184,22 +162,6 @@ double do_max(T * x, index_t lower, index_t upper)
 }
 
 template<typename T>
-double do_max(T * x, int * indx, size_t n)
-{
-	if ( n <= 0 )
-		return NA_REAL;
-	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		else if ( x[indx[i]] > mx )
-			mx = x[indx[i]];
-	}
-	return static_cast<double>(mx);
-}
-
-template<typename T>
 double do_min(T * x, index_t lower, index_t upper)
 {
 	T mx = x[lower];
@@ -209,22 +171,6 @@ double do_min(T * x, index_t lower, index_t upper)
 			return NA_REAL;
 		else if ( x[i] < mx )
 			mx = x[i];
-	}
-	return static_cast<double>(mx);
-}
-
-template<typename T>
-double do_min(T * x, int * indx, size_t n)
-{
-	if ( n <= 0 )
-		return NA_REAL;
-	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		else if ( x[indx[i]] < mx )
-			mx = x[indx[i]];
 	}
 	return static_cast<double>(mx);
 }
@@ -254,7 +200,7 @@ double do_sd(T * x, index_t lower, index_t upper)
 //-------------------------
 
 template<typename Tx, typename Ty>
-double do_kgaussian(Tx xi, Tx * x, Ty * y, double sd,
+double do_kgaussian1(Tx xi, Tx * x, Ty * y, double sd,
 	index_t lower, index_t upper)
 {
 	double yi = 0, K0 = 0, ki;
@@ -268,21 +214,7 @@ double do_kgaussian(Tx xi, Tx * x, Ty * y, double sd,
 }
 
 template<typename Tx, typename Ty>
-double do_kgaussian(Tx xi, Tx * x, Ty * y, double sd,
-	int * indx, size_t n)
-{
-	double yi = 0, K0 = 0, ki;
-	for ( index_t i = 0; i < n; i++ )
-	{
-		ki = kgaussian(udiff(x[indx[i]], xi), sd);
-		yi += ki * y[indx[i]];
-		K0 += ki;
-	}
-	return yi / K0;
-}
-
-template<typename Tx, typename Ty>
-double do_klanczos(Tx xi, Tx * x, Ty * y, double a,
+double do_klanczos1(Tx xi, Tx * x, Ty * y, double a,
 	index_t lower, index_t upper)
 {
 	double yi = 0, K0 = 0, ki;
@@ -290,20 +222,6 @@ double do_klanczos(Tx xi, Tx * x, Ty * y, double a,
 	{
 		ki = klanczos(udiff(x[i], xi), a);
 		yi += ki * y[i];
-		K0 += ki;
-	}
-	return yi / K0;
-}
-
-template<typename Tx, typename Ty>
-double do_klanczos(Tx xi, Tx * x, Ty * y, double a,
-	int * indx, size_t n)
-{
-	double yi = 0, K0 = 0, ki;
-	for ( index_t i = 0; i < n; i++ )
-	{
-		ki = klanczos(udiff(x[indx[i]], xi), a);
-		yi += ki * y[indx[i]];
 		K0 += ki;
 	}
 	return yi / K0;
@@ -1397,12 +1315,12 @@ double interp1_kern(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 		case EST_GAUS:
 		{
 			double sd = (tol_ref == ABS_DIFF) ? (tol / 2) : (xi * tol / 2);
-			return do_kgaussian(xi, x, y, sd, lower, upper);
+			return do_kgaussian1(xi, x, y, sd, lower, upper);
 		}
 		case EST_SINC:
 		{
 			double a = (tol_ref == ABS_DIFF) ? tol : xi * tol;
-			return do_klanczos(xi, x, y, a, lower, upper);
+			return do_klanczos1(xi, x, y, a, lower, upper);
 		}
 		default:
 			return NA_REAL;
@@ -1419,7 +1337,7 @@ double interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	{
 		case EST_NEAR:
 		{
-			if ( sdiff(xi, x[i], tol_ref) <= tol )
+			if ( udiff(xi, x[i], tol_ref) <= tol )
 				return y[i];
 			else
 				return NA_REAL;

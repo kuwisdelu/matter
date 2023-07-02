@@ -895,17 +895,17 @@ SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 				case INTSXP:
 					do_approx1<int,int>(REAL(result), INTEGER(xi), LENGTH(xi),
 						INTEGER(x), INTEGER(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
-						Rf_asInteger(interp));
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				case REALSXP:
 					do_approx1<double,int>(REAL(result), REAL(xi), LENGTH(xi),
 						REAL(x), INTEGER(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
-						Rf_asInteger(interp));
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				default:
-					Rf_error("unsupported key type");
+					Rf_error("x has an unsupported data type");
 			}
 			break;
 		case REALSXP:
@@ -913,21 +913,80 @@ SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 				case INTSXP:
 					do_approx1<int,double>(REAL(result), INTEGER(xi), LENGTH(xi),
 						INTEGER(x), REAL(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
-						Rf_asInteger(interp));
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				case REALSXP:
 					do_approx1<double,double>(REAL(result), REAL(xi), LENGTH(xi),
 						REAL(x), REAL(y), 0, LENGTH(y),
-						Rf_asReal(tol), Rf_asInteger(tol_ref), Rf_asReal(nomatch),
-						Rf_asInteger(interp));
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
 					break;
 				default:
-					Rf_error("unsupported key type");
+					Rf_error("x has an unsupported data type");
 			}
 			break;
 		default:
-			Rf_error("unsupported value type");
+			Rf_error("y has an unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
+	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp)
+{
+	if ( TYPEOF(xi) != TYPEOF(xy) )
+		Rf_error("'xi' and 'x' must have the same type");
+	if ( TYPEOF(yi) != TYPEOF(xy) )
+		Rf_error("'yi' and 'x' must have the same type");
+	if ( Rf_asReal(tol) < 0 )
+		Rf_error("'tol' must be non-negative");
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(xi)));
+	switch(TYPEOF(z)) {
+		case INTSXP:
+			switch(TYPEOF(xy)) {
+				case INTSXP:
+					do_approx2<int,int>(REAL(result),
+						INTEGER(xi), INTEGER(yi), LENGTH(xi),
+						INTEGER(xy), INTEGER(z), LENGTH(z),
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
+					break;
+				case REALSXP:
+					do_approx2<double,int>(REAL(result),
+						REAL(xi), REAL(yi), LENGTH(xi),
+						REAL(xy), INTEGER(z), LENGTH(z),
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
+					break;
+				default:
+					Rf_error("x/y have an unsupported data type");
+			}
+			break;
+		case REALSXP:
+			switch(TYPEOF(xy)) {
+				case INTSXP:
+					do_approx2<int,double>(REAL(result),
+						INTEGER(xi), INTEGER(yi), LENGTH(xi),
+						INTEGER(xy), REAL(z), LENGTH(z),
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
+					break;
+				case REALSXP:
+					do_approx2<double,double>(REAL(result),
+						REAL(xi), REAL(yi), LENGTH(xi),
+						REAL(xy), REAL(z), LENGTH(z),
+						Rf_asReal(tol), Rf_asInteger(tol_ref),
+						Rf_asReal(nomatch), Rf_asInteger(interp));
+					break;
+				default:
+					Rf_error("x/y have an unsupported data type");
+			}
+			break;
+		default:
+			Rf_error("z has an unsupported data type");
 	}
 	UNPROTECT(1);
 	return result;
