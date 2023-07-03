@@ -400,8 +400,17 @@ template<typename T>
 void guided_filter(T * x, T * g, int n, int width,
 	double sdreg, double ftol, double * buffer)
 {
-	double ug [n], ux [n], gmax;
-	double tmp1 [n], tmp2 [n], tmp3 [n], tmp4 [n];
+	double gmax;
+	// allocate buffers for mean filter results
+	double * u = R_Calloc(2 * n, double);
+	double * ug = u;
+	double * ux = u + n;
+	// allocate buffers for intermediate results
+	double * tmp = R_Calloc(4 * n, double);
+	double * ptr1 = tmp;
+	double * ptr2 = tmp + n;
+	double * ptr3 = tmp + 2 * n;
+	double * ptr4 = tmp + 3 * n;
 	// find maximum of guidance signal
 	if ( !isNA(ftol) ) {
 		gmax = n > 0 ? g[0] : NA_REAL;
@@ -413,14 +422,14 @@ void guided_filter(T * x, T * g, int n, int width,
 	mean_filter(g, n, width, ug);
 	mean_filter(x, n, width, ux);
 	// calculate variances and covariances
-	double * gg = tmp1;
-	double * gx = tmp2;
+	double * gg = ptr1;
+	double * gx = ptr2;
 	for ( index_t i = 0; i < n; i++ ) {
 		gg[i] = g[i] * g[i];
 		gx[i] = g[i] * x[i];
 	}
-	double * sg = tmp3;
-	double * sgx = tmp4;
+	double * sg = ptr3;
+	double * sgx = ptr4;
 	mean_filter(gg, n, width, sg);
 	mean_filter(gx, n, width, sgx);
 	for ( index_t i = 0; i < n; i++ ) {
@@ -428,8 +437,8 @@ void guided_filter(T * x, T * g, int n, int width,
 		sgx[i] = sgx[i] - ug[i] * ux[i];
 	}
 	// calculate coefficients a and b
-	double * a = tmp1;
-	double * b = tmp2;
+	double * a = ptr1;
+	double * b = ptr2;
 	for ( index_t i = 0; i < n; i++ ) {
 		double s0 = sdreg * sdreg;
 		if ( !isNA(ftol) ) {
@@ -440,13 +449,15 @@ void guided_filter(T * x, T * g, int n, int width,
 		a[i] = sgx[i] / (sg[i] + s0);
 		b[i] = ux[i] - a[i] * ug[i];
 	}
-	double * ua = tmp3;
-	double * ub = tmp4;
+	double * ua = ptr3;
+	double * ub = ptr4;
 	mean_filter(a, n, width, ua);
 	mean_filter(b, n, width, ub);
 	// calculate output signal
 	for ( index_t i = 0; i < n; i++ )
 		buffer[i] = ua[i] * g[i] + ub[i];
+	Free(tmp);
+	Free(u);
 }
 
 //// Warping and alignment
@@ -527,9 +538,14 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		i_buffer[k] = NA_INTEGER;
 		j_buffer[k] = NA_INTEGER;
 	}
-	int pD[nx + 1], wa[nx + 1], wb[nx + 1], nD;
+	// allocate buffers for sparse matrix pointers
+	int * ptrs = R_Calloc(3 * (nx + 1), int);
+	int * pD = ptrs;
+	int * wa = ptrs + (nx + 1);
+	int * wb = ptrs + 2 * (nx + 1);
 	// find windows where |tx - ty| <= tol
-	pD[0] = 0, wa[0] = 0, wb[0] = 1, nD = 1;
+	int nD = 1;
+	pD[0] = 0, wa[0] = 0, wb[0] = 1;
 	for ( index_t i = 0; i < nx; i++ )
 	{
 		index_t j = binary_search(tx[i], ty,
@@ -605,6 +621,7 @@ void warp_dtwc(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		}
 		k++;
 	}
+	Free(ptrs);
 	Free(D);
 }
 
@@ -662,8 +679,14 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 	// find node candidates where |tx - ty| <= tol
 	if ( n < 3 )
 		Rf_error("need at least 3 nodes");
-	int pW [n], wa [n], wb [n], nW;
-	pW[0] = 0, pW[1] = 1, nW = 1;
+	// allocate buffers for sparse matrix pointers
+	int * ptrs = R_Calloc(3 * n, int);
+	int * pW = ptrs;
+	int * wa = ptrs + n;
+	int * wb = ptrs + 2 * n;
+	// find windows where |tx - ty| <= tol
+	int nW = 1;
+	pW[0] = 0, pW[1] = 1;
 	wa[0] = 0, wb[0] = 1;
 	wa[n - 1] = nx - 1, wb[n - 1] = nx;
 	for ( index_t i = 1; i < n - 1; i++ )
@@ -723,6 +746,7 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 		index_t j = (x_nodes[i] - wa[i]);
 		x_nodes[i + 1] = W[pW[i] + j];
 	}
+	Free(ptrs);
 	Free(W);
 	Free(F);
 }
@@ -1007,9 +1031,9 @@ template<typename T>
 void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 {
 	T a1, a2;
-	T * y = buffer;
+	T * y = buffer;	
 	std::memcpy(y, x, n * sizeof(T));
-	T z [n];
+	T * z = R_Calloc(n, T);
 	m = min2(m, n);
 	if ( decreasing )
 	{
@@ -1039,6 +1063,7 @@ void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 				y[i] = z[i];
 		}
 	}
+	Free(z);
 }
 
 //// Peak detection

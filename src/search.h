@@ -238,9 +238,10 @@ void do_quick_sort(int * ptr, T * x, size_t start, size_t end, bool ind1 = false
 	// initialize indices
 	for ( size_t i = start; i < end; i++ )
 		ptr[i] = i + ind1;
-	T dup [end];
+	T * dup = R_Calloc(end, T);
 	std::memcpy(dup, x, end * sizeof(T));
 	quick_sort(dup, start, end, ptr);
+	Free(dup);
 }
 
 // find the k-th element of array x (modifed in-place!!!)
@@ -267,7 +268,7 @@ T quick_select(T * x, size_t start, size_t end, size_t k)
 template<typename T>
 void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n)
 {
-	T dup [end];
+	T * dup = R_Calloc(end, T);
 	std::memcpy(dup, x, end * sizeof(T));
 	ptr[0] = quick_select(dup, start, end, k[0]);
 	for ( index_t i = 1; i < n; i++ )
@@ -279,6 +280,7 @@ void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n
 		else 
 			ptr[i] = ptr[i - 1];
 	}
+	Free(dup);
 }
 
 //// Median
@@ -287,28 +289,33 @@ void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n
 template<typename T>
 double quick_median(T * x, size_t n)
 {
-	T dup [n];
+	T * dup = R_Calloc(n, T);
 	std::memcpy(dup, x, n * sizeof(T));
 	size_t k = n / 2;
+	double result = NA_REAL;
 	if ( n % 2 == 0 )
 	{
 		double m1 = quick_select(dup, 0, n, k - 1);
 		double m2 = quick_select(dup, k, n, k);
-		return 0.5 * (m1 + m2);
+		result = 0.5 * (m1 + m2);
 	}
 	else
-		return quick_select(dup, 0, n, k);
+		result = quick_select(dup, 0, n, k);
+	Free(dup);
+	return result;
 }
 
 template<typename T>
 double quick_mad(T * x, size_t n, double center = NA_REAL, double scale = 1.4826)
 {
-	double dev [n];
+	double * dev = R_Calloc(n, double);
 	if ( isNA(center) )
 		center = quick_median(x, n);
 	for ( index_t i = 0; i < n; i++ )
 		dev[i] = std::fabs(x[i] - center);
-	return scale * quick_median(dev, n);
+	double mad = scale * quick_median(dev, n);
+	Free(dev);
+	return mad;
 }
 
 //// Binary search
