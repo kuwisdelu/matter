@@ -12,26 +12,50 @@
 //--------------
 
 template<typename T>
+bool naeq(T x, T y, double tol = DBL_EPSILON)
+{
+	if ( isNA(x) && isNA(y) )
+		return true; 	// NAs equal for sorting
+	return udiff<T>(x, y) < DBL_EPSILON;
+}
+
+template<typename T>
 bool lt(T x, T y)
 {
+	if ( isNA(x) && isNA(y) )
+		return false; 	// NAs equal for sorting
+	if ( isNA(x) || isNA(y) )
+		return isNA(y);	// sort NAs last
 	return sdiff<T>(x, y) < 0;
 }
 
 template<typename T>
 bool gt(T x, T y)
 {
+	if ( isNA(x) && isNA(y) )
+		return false; 	// NAs equal for sorting
+	if ( isNA(x) || isNA(y) )
+		return isNA(x);	// sort NAs last
 	return sdiff<T>(x, y) > 0;
 }
 
 template<typename T>
 bool lteq(T x, T y)
 {
+	if ( isNA(x) && isNA(y) )
+		return true; 	// NAs equal for sorting
+	if ( isNA(x) || isNA(y) )
+		return isNA(y);	// sort NAs last
 	return sdiff<T>(x, y) <= 0;
 }
 
 template<typename T>
 bool gteq(T x, T y)
 {
+	if ( isNA(x) && isNA(y) )
+		return true; 	// NAs equal for sorting
+	if ( isNA(x) || isNA(y) )
+		return isNA(x);	// sort NAs last
 	return sdiff<T>(x, y) >= 0;
 }
 
@@ -110,7 +134,7 @@ index_t partition(Tx * x, index_t left, index_t right, Tv * v = NULL)
 		while ( lt(x[i], x[pivot]) ) i++;
 		while ( gt(x[j], x[pivot]) ) j--;
 		// swap inversions
-		if ( i < j && !equal(x[i], x[j]) )
+		if ( i < j && !naeq(x[i], x[j]) )
 		{
 			swap(x[i], x[j], Tx);
 			if ( v != NULL )
