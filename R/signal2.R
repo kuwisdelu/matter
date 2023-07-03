@@ -24,7 +24,7 @@ filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 }
 
 filt2_bi <- function(x, width = 5L,
-	sddist = (width %/% 2) / 2, sdrange = 2 * qmad(x))
+	sddist = (width %/% 2) / 2, sdrange = 2 * mad(x))
 {
 	if ( !is.matrix(x) )
 		stop("x must be a matrix")
@@ -42,6 +42,22 @@ filt2_adapt <- function(x, width = 5L, spar = 1)
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter2, x, width,
 		NA_real_, NA_real_, spar, PACKAGE="matter")
+}
+
+filt2_guide <- function(x, width = 5L, guide = x, sdreg = 2 * mad(x))
+{
+	if ( !is.matrix(x) )
+		stop("x must be a matrix")
+	if ( !is.matrix(guide) )
+		stop("guide must be a matrix")
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	if ( is.integer(x) && is.double(guide) )
+		storage.mode(x) <- "double"
+	if ( is.double(x) && is.integer(guide) )
+		storage.mode(guide) <- "double"
+	.Call(C_guidedFilter2, x, guide, width,
+		sdreg, PACKAGE="matter")
 }
 
 #### 2D Resampling with interpolation ####

@@ -206,7 +206,7 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 					ii = wrap_ind(i + ki - r, nr);
 					jj = wrap_ind(j + kj - r, nc);
 					xij = x[jj * nr + ii];
-					double wtdist = kgaussian(i - r, sdd) * kgaussian(j - r, sdd);
+					double wtdist = kgaussian(ki - r, sdd) * kgaussian(kj - r, sdd);
 					double wtrange = kgaussian(xij - x[j * nr + i], sdr);
 					buffer[j * nr + i] += wtdist * wtrange * xij;
 					W += wtdist * wtrange;
@@ -226,6 +226,58 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 		else
 			Rf_warning("NAs introduced; try a larger value of spar");
 	}
+}
+
+template<typename T>
+void guided_filter2(T * x, T * g, int nr, int nc, int width,
+	double sdreg, double * buffer)
+{
+	int n = nr * nc;
+	// allocate buffers for mean filter results
+	double * u = R_Calloc(2 * n, double);
+	double * ug = u;
+	double * ux = u + n;
+	// allocate buffers for intermediate results
+	double * tmp = R_Calloc(4 * n, double);
+	double * ptr1 = tmp;
+	double * ptr2 = tmp + n;
+	double * ptr3 = tmp + 2 * n;
+	double * ptr4 = tmp + 3 * n;
+	// calculate means
+	mean_filter2(g, nr, nc, width, ug);
+	mean_filter2(x, nr, nc, width, ux);
+	// calculate variances and covariances
+	double * gg = ptr1;
+	double * gx = ptr2;
+	for ( index_t i = 0; i < n; i++ ) {
+		gg[i] = g[i] * g[i];
+		gx[i] = g[i] * x[i];
+	}
+	double * sg = ptr3;
+	double * sgx = ptr4;
+	mean_filter2(gg, nr, nc, width, sg);
+	mean_filter2(gx, nr, nc, width, sgx);
+	for ( index_t i = 0; i < n; i++ ) {
+		sg[i] = sg[i] - ug[i] * ug[i];
+		sgx[i] = sgx[i] - ug[i] * ux[i];
+	}
+	// calculate coefficients a and b
+	double * a = ptr1;
+	double * b = ptr2;
+	double s0 = sdreg * sdreg;
+	for ( index_t i = 0; i < n; i++ ) {
+		a[i] = sgx[i] / (sg[i] + s0);
+		b[i] = ux[i] - a[i] * ug[i];
+	}
+	double * ua = ptr3;
+	double * ub = ptr4;
+	mean_filter2(a, nr, nc, width, ua);
+	mean_filter2(b, nr, nc, width, ub);
+	// calculate output signal
+	for ( index_t i = 0; i < n; i++ )
+		buffer[i] = ua[i] * g[i] + ub[i];
+	Free(tmp);
+	Free(u);
 }
 
 //// Resampling with interpolation

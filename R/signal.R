@@ -24,7 +24,7 @@ filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 }
 
 filt1_bi <- function(x, width = 5L,
-	sddist = (width %/% 2) / 2, sdrange = 2 * qmad(x))
+	sddist = (width %/% 2) / 2, sdrange = 2 * mad(x))
 {
 	if ( !is.vector(x) )
 		stop("x must be a vector")
@@ -44,7 +44,7 @@ filt1_adapt <- function(x, width = 5L, spar = 1)
 		NA_real_, NA_real_, spar, PACKAGE="matter")
 }
 
-filt1_guide <- function(x, width = 5L, guide = x, sdreg = 2 * qmad(x))
+filt1_guide <- function(x, width = 5L, guide = x, sdreg = 2 * mad(x))
 {
 	if ( !is.vector(x) )
 		stop("x must be a vector")
@@ -59,7 +59,7 @@ filt1_guide <- function(x, width = 5L, guide = x, sdreg = 2 * qmad(x))
 }
 
 filt1_pag <- function(x, width = 5L, guide = x,
-	sdreg = 2 * qmad(x), ftol = 1/10)
+	sdreg = 2 * mad(x), ftol = 1/10)
 {
 	if ( !is.vector(x) )
 		stop("x must be a vector")

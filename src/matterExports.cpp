@@ -496,6 +496,8 @@ SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg, SEXP ftol)
 {
 	SEXP result;
+	if ( XLENGTH(x) != XLENGTH(g) )
+		Rf_error("signal and guide must be the same length");
 	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
@@ -993,6 +995,29 @@ SEXP bilateralFilter2(SEXP x, SEXP width,
 			bilateral_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
 				Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
 				Rf_asReal(spar), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
+	SEXP sdreg)
+{
+	SEXP result;
+	if ( Rf_nrows(x) != Rf_nrows(g) || Rf_ncols(x) != Rf_ncols(g) )
+		Rf_error("signal and guide must have the same dimensions");
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			guided_filter2(INTEGER(x), INTEGER(g), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(width), Rf_asReal(sdreg), REAL(result));
+			break;
+		case REALSXP:
+			guided_filter2(REAL(x), REAL(g), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(width), Rf_asReal(sdreg), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");

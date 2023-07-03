@@ -351,7 +351,8 @@ export(
 	"filt2_ma",
 	"filt2_gauss",
 	"filt2_bi",
-	"filt2_adapt")
+	"filt2_adapt",
+	"filt2_guide")
 
 export(
 	"roll",

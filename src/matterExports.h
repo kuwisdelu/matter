@@ -100,6 +100,8 @@ SEXP meanFilter2(SEXP x, SEXP width);
 SEXP linearFilter2(SEXP x, SEXP width);
 SEXP bilateralFilter2(SEXP x, SEXP width,
 	SEXP sddist, SEXP sdrange, SEXP spar);
+SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
+	SEXP sdreg);
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
