@@ -1,5 +1,50 @@
 
-#### 2D resampling with interpolation ####
+#### 2D Filtering and Smoothing ####
+## -----------------------------
+
+filt2_ma <- function(x, width = 5L)
+{
+	if ( !is.matrix(x) )
+		stop("x must be a matrix")
+	if ( width %% 2L != 1L )
+		width <- 1 + 2 * (width %/% 2)
+	.Call(C_meanFilter2, x, width, PACKAGE="matter")
+}
+
+filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
+{
+	if ( !is.matrix(x) )
+		stop("x must be a matrix")
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	radius <- width %/% 2
+	i <- seq(from=-radius, to=radius, by=1L)
+	weights <- dnorm(i, sd=sd) %o% dnorm(i, sd=sd)
+	.Call(C_linearFilter2, x, weights, PACKAGE="matter")
+}
+
+filt2_bi <- function(x, width = 5L,
+	sddist = (width %/% 2) / 2, sdrange = 2 * qmad(x))
+{
+	if ( !is.matrix(x) )
+		stop("x must be a matrix")
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	.Call(C_bilateralFilter2, x, width,
+		sddist, sdrange, NA_real_, PACKAGE="matter")
+}
+
+filt2_adapt <- function(x, width = 5L, spar = 1)
+{
+	if ( !is.matrix(x) )
+		stop("x must be a matrix")
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	.Call(C_bilateralFilter2, x, width,
+		NA_real_, NA_real_, spar, PACKAGE="matter")
+}
+
+#### 2D Resampling with interpolation ####
 ## ---------------------------------------
 
 approx2 <- function(x, y, z, xout, yout,

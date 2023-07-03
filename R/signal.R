@@ -4,6 +4,8 @@
 
 filt1_ma <- function(x, width = 5L)
 {
+	if ( !is.vector(x) )
+		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
 	.Call(C_meanFilter, x, width, PACKAGE="matter")
@@ -11,6 +13,8 @@ filt1_ma <- function(x, width = 5L)
 
 filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
+	if ( !is.vector(x) )
+		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	radius <- width %/% 2
@@ -22,6 +26,8 @@ filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 filt1_bi <- function(x, width = 5L,
 	sddist = (width %/% 2) / 2, sdrange = 2 * qmad(x))
 {
+	if ( !is.vector(x) )
+		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter, x, width,
@@ -30,6 +36,8 @@ filt1_bi <- function(x, width = 5L,
 
 filt1_adapt <- function(x, width = 5L, spar = 1)
 {
+	if ( !is.vector(x) )
+		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter, x, width,
@@ -38,6 +46,8 @@ filt1_adapt <- function(x, width = 5L, spar = 1)
 
 filt1_guide <- function(x, width = 5L, guide = x, sdreg = 2 * qmad(x))
 {
+	if ( !is.vector(x) )
+		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	if ( is.integer(x) && is.double(guide) )
@@ -51,6 +61,8 @@ filt1_guide <- function(x, width = 5L, guide = x, sdreg = 2 * qmad(x))
 filt1_pag <- function(x, width = 5L, guide = x,
 	sdreg = 2 * qmad(x), ftol = 1/10)
 {
+	if ( !is.vector(x) )
+		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	if ( is.integer(x) && is.double(guide) )
@@ -384,7 +396,7 @@ estbase_hull <- function(x, upper = FALSE)
 
 estbase_snip <- function(x, width = 100L, decreasing = TRUE)
 {
-	.Call(C_smoothSNIP, x, as.integer(width),
+	.Call(C_smoothSNIP, as.double(x), as.integer(width),
 		isTRUE(decreasing), PACKAGE="matter")
 }
 

@@ -5,63 +5,6 @@
 #include "search.h"
 #include "signal.h"
 
-//// Summarize via statistic 
-//---------------------------
-
-template<typename T>
-double do_sum(T * x, int * indx, size_t n)
-{
-	double sx = 0;
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		sx += x[indx[i]];
-	}
-	return sx;
-}
-
-template<typename T>
-double do_mean(T * x, int * indx, size_t n)
-{
-	double sx = do_sum(x, indx, n);
-	if ( isNA(sx) )
-		return NA_REAL;
-	return sx / n;
-}
-
-template<typename T>
-double do_max(T * x, int * indx, size_t n)
-{
-	if ( n <= 0 )
-		return NA_REAL;
-	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		else if ( x[indx[i]] > mx )
-			mx = x[indx[i]];
-	}
-	return static_cast<double>(mx);
-}
-
-template<typename T>
-double do_min(T * x, int * indx, size_t n)
-{
-	if ( n <= 0 )
-		return NA_REAL;
-	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		else if ( x[indx[i]] < mx )
-			mx = x[indx[i]];
-	}
-	return static_cast<double>(mx);
-}
-
 //// Summarize via kernel 
 //-------------------------
 
@@ -124,6 +67,165 @@ double do_klanczos2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 		K0 += ki * kj;
 	}
 	return zi / K0;
+}
+
+//// Filtering and smoothing
+//---------------------------
+
+template<typename T>
+void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
+{
+	int r = width / 2;
+	double vprev, vcurr;
+	double y[nr * nc];
+	double * z = buffer;
+	// horizontal filter pass
+	for ( index_t i = 0; i < nr; i++ )
+	{
+		y[i] = r * x[i];
+		for ( index_t j = 0; j <= r && j < nc; j++ )
+			y[i] += x[j * nr + i];
+		for ( index_t j = 1; j < nc; j++ )
+		{
+			vprev = x[wrap_ind(j - r - 1, nc) * nr + i];
+			vcurr = x[wrap_ind(j + r, nc) * nr + i];
+			y[j * nr + i] = y[(j - 1) * nr + i] - vprev + vcurr;
+		}
+		for ( index_t j = 0; j < nc; j++ )
+			y[j * nr + i] /= width;
+	}
+	// vertical filter pass
+	for ( index_t j = 0; j < nc; j++ )
+	{
+		z[j * nr] = r * y[j * nr];
+		for ( index_t i = 0; i <= r && i < nr; i++ )
+			z[j * nr] += y[j * nr + i];
+		for ( index_t i = 1; i < nr; i++ )
+		{
+			vprev = y[j * nr + wrap_ind(i - r - 1, nr)];
+			vcurr = y[j * nr + wrap_ind(i + r, nr)];
+			z[j * nr + i] = z[j * nr + i - 1] - vprev + vcurr;
+		}
+		for ( index_t i = 0; i < nr; i++ )
+			z[j * nr + i] /= width;
+	}
+}
+
+template<typename T>
+void linear_filter2(T * x, int nr, int nc,
+	double * weights, int width, double * buffer)
+{
+	int r = width / 2;
+	index_t ii, jj;
+	for ( index_t i = 0; i < nr; i++ )
+	{
+		for ( index_t j = 0; j < nc; j++ )
+		{
+			double xij, wij, W = 0;
+			buffer[j * nr + i] = 0;
+			for (index_t ki = 0; ki < width; ki++ )
+			{
+				for (index_t kj = 0; kj < width; kj++ )
+				{
+					ii = wrap_ind(i + ki - r, nr);
+					jj = wrap_ind(j + kj - r, nc);
+					xij = x[jj * nr + ii];
+					wij = weights[kj * width + ki];
+					buffer[j * nr + i] += wij * xij;
+					W += wij;
+				}
+			}
+			buffer[j * nr + i] /= W;
+		}
+	}
+}
+
+template<typename T>
+void bilateral_filter2(T * x, int nr, int nc, int width,
+	double sddist, double sdrange, double spar, double * buffer)
+{
+	int r = width / 2;
+	int n = nr * nc;
+	index_t ii, jj;
+	bool xnan = false, outnan = false;
+	double sdd = sddist, sdr = sdrange;
+	double mad, xrange;
+	if ( !isNA(spar) )
+	{
+		// get MAD if using adaptive parameters
+		mad = quick_mad(x, n);
+		double xmin = n > 0 ? x[0] : NA_REAL;
+		double xmax = n > 0 ? x[0] : NA_REAL;;
+		for ( index_t i = 1; i < n; i++ )
+		{
+			if ( x[i] > xmax )
+				xmax = x[i];
+			if ( x[i] < xmin )
+				xmin = x[i];
+		}
+		xrange = xmax - xmin;
+	}
+	for ( index_t i = 0; i < nr; i++ )
+	{
+		for ( index_t j = 0; j < nc; j++ )
+		{
+			double xij, dmean = 0, W = 0;
+			buffer[j * nr + i] = 0;
+			if ( !isNA(spar) )
+			{
+				// modified version of Joseph & Periyasamy (2018)
+				for ( index_t ki = 0; ki < width; ki++ )
+				{
+					for ( index_t kj = 0; kj < width; kj++ )
+					{
+						// find mean of local differences
+						ii = wrap_ind(i + ki - r, nr);
+						jj = wrap_ind(j + kj - r, nc);
+						xij = x[jj * nr + ii];
+						dmean += std::fabs(xij - x[j * nr + i]) / width;
+					}
+				}
+				// calculate adaptive parameters
+				double z = std::fabs(dmean - mad) / spar;
+				if ( isNA(sddist) )
+					sdd = r * std::exp(-z) / std::sqrt(2);
+				if ( isNA(sdrange) )
+					sdr = xrange * std::exp(-z) / std::sqrt(2);
+			}
+			if ( sdd <= DBL_EPSILON || sdr <= DBL_EPSILON )
+			{
+				// avoid singularities
+				buffer[j * nr + i] = x[j * nr + i];
+				continue;
+			}
+			for ( index_t ki = 0; ki < width; ki++ )
+			{
+				for ( index_t kj = 0; kj < width; kj++ )
+				{
+					// standard bilateral filter
+					ii = wrap_ind(i + ki - r, nr);
+					jj = wrap_ind(j + kj - r, nc);
+					xij = x[jj * nr + ii];
+					double wtdist = kgaussian(i - r, sdd) * kgaussian(j - r, sdd);
+					double wtrange = kgaussian(xij - x[j * nr + i], sdr);
+					buffer[j * nr + i] += wtdist * wtrange * xij;
+					W += wtdist * wtrange;
+				}
+			}
+			buffer[j * nr + i] /= W;
+			if ( !xnan && isNA(x[j * nr + i]) )
+				xnan = true;
+			if ( !outnan && isNA(buffer[j * nr + i]) )
+				outnan = true;
+		}
+	}
+	if ( outnan && !xnan )
+	{
+		if ( isNA(spar) )
+			Rf_warning("NAs introduced; try larger values of sddist or sdrange");
+		else
+			Rf_warning("NAs introduced; try a larger value of spar");
+	}
 }
 
 //// Resampling with interpolation

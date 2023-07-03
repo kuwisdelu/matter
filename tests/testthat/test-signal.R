@@ -12,21 +12,27 @@ test_that("filter", {
 
 	w <- 5L
 	r <- w %/% 2
-	x2 <- filt1_ma(x, w)
 
 	x0 <- rep.int(x[1L], r)
 	xn <- rep.int(x[length(x)], r)
 	xr <- c(x0, x, xn)
 	xr <- roll(xr, w)[(r + 1):(length(xr) - r)]
 	xm <- vapply(xr, mean, numeric(1), na.rm=TRUE)
-	
-	expect_equal(x2, xm)
 
+	wt <- dnorm((-r):r)
+	wt <- wt / sum(wt)
+	f <- function(z) sum(wt * z)
+	xg <- vapply(xr, f, numeric(1))
+
+	x2 <- filt1_ma(x, w)
 	x3 <- filt1_gauss(x, w)
 	x4 <- filt1_bi(x, w)
 	x5 <- filt1_adapt(x, w)
 	x6 <- filt1_guide(x, w)
 	x7 <- filt1_pag(x, w)
+
+	expect_equal(x2, xm)
+	expect_equal(x3, xg)
 
 	expect_lt(sum((x3 - y)^2), sum((x - y)^2))
 	expect_lt(sum((x4 - y)^2), sum((x - y)^2))

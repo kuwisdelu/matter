@@ -139,12 +139,34 @@ double do_sum(T * x, index_t lower, index_t upper)
 }
 
 template<typename T>
+double do_sum(T * x, int * indx, size_t n)
+{
+	double sx = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			return NA_REAL;
+		sx += x[indx[i]];
+	}
+	return sx;
+}
+
+template<typename T>
 double do_mean(T * x, index_t lower, index_t upper)
 {
 	double sx = do_sum(x, lower, upper);
 	if ( isNA(sx) )
 		return NA_REAL;
 	return sx / (upper - lower + 1);
+}
+
+template<typename T>
+double do_mean(T * x, int * indx, size_t n)
+{
+	double sx = do_sum(x, indx, n);
+	if ( isNA(sx) )
+		return NA_REAL;
+	return sx / n;
 }
 
 template<typename T>
@@ -162,6 +184,22 @@ double do_max(T * x, index_t lower, index_t upper)
 }
 
 template<typename T>
+double do_max(T * x, int * indx, size_t n)
+{
+	if ( n <= 0 )
+		return NA_REAL;
+	T mx = x[indx[0]];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			return NA_REAL;
+		else if ( x[indx[i]] > mx )
+			mx = x[indx[i]];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
 double do_min(T * x, index_t lower, index_t upper)
 {
 	T mx = x[lower];
@@ -171,6 +209,22 @@ double do_min(T * x, index_t lower, index_t upper)
 			return NA_REAL;
 		else if ( x[i] < mx )
 			mx = x[i];
+	}
+	return static_cast<double>(mx);
+}
+
+template<typename T>
+double do_min(T * x, int * indx, size_t n)
+{
+	if ( n <= 0 )
+		return NA_REAL;
+	T mx = x[indx[0]];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			return NA_REAL;
+		else if ( x[indx[i]] < mx )
+			mx = x[indx[i]];
 	}
 	return static_cast<double>(mx);
 }
@@ -233,24 +287,27 @@ double do_klanczos1(Tx xi, Tx * x, Ty * y, double a,
 template<typename T>
 void mean_filter(T * x, int n, int width, double * buffer)
 {
-	index_t ij, ik, r = width / 2;
+	int r = width / 2;
+	index_t iprev, icurr;
 	buffer[0] = r * x[0];
 	for ( index_t i = 0; i <= r && i < n; i++ )
 		buffer[0] += x[i];
 	for ( index_t i = 1; i < n; i++ )
 	{
-		ij = wrap_ind(i - r - 1, n);
-		ik = wrap_ind(i + r, n);
-		buffer[i] = buffer[i - 1] - x[ij] + x[ik];
+		iprev = wrap_ind(i - r - 1, n);
+		icurr = wrap_ind(i + r, n);
+		buffer[i] = buffer[i - 1] - x[iprev] + x[icurr];
 	}
 	for ( index_t i = 0; i < n; i++ )
 		buffer[i] /= width;
 }
 
 template<typename T>
-void linear_filter(T * x, int n, T * weights, int width, double * buffer)
+void linear_filter(T * x, int n,
+	double * weights, int width, double * buffer)
 {
-	index_t ij, r = width / 2;
+	int r = width / 2;
+	index_t ij;
 	for ( index_t i = 0; i < n; i++ )
 	{
 		double W = 0;
@@ -269,7 +326,9 @@ template<typename T>
 void bilateral_filter(T * x, int n, int width,
 	double sddist, double sdrange, double spar, double * buffer)
 {
-	index_t ij, r = width / 2;
+	int r = width / 2;
+	index_t ij;
+	bool xnan = false, outnan = false;
 	double sdd = sddist, sdr = sdrange;
 	double mad, xrange;
 	if ( !isNA(spar) )
@@ -323,6 +382,17 @@ void bilateral_filter(T * x, int n, int width,
 			W += wtdist * wtrange;
 		}
 		buffer[i] /= W;
+		if ( !xnan && isNA(x[i]) )
+			xnan = true;
+		if ( !outnan && isNA(buffer[i]) )
+			outnan = true;
+	}
+	if ( outnan && !xnan )
+	{
+		if ( isNA(spar) )
+			Rf_warning("NAs introduced; try larger values of sddist or sdrange");
+		else
+			Rf_warning("NAs introduced; try a larger value of spar");
 	}
 }
 

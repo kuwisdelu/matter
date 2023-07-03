@@ -426,8 +426,8 @@ SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j)
 	return xm.get_submatrix(i, j);
 }
 
-// Signal processing
-//------------------
+// 1D Signal processing
+//----------------------
 
 SEXP meanFilter(SEXP x, SEXP width)
 {
@@ -455,7 +455,7 @@ SEXP linearFilter(SEXP x, SEXP weights)
 	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			linear_filter(INTEGER(x), LENGTH(x), INTEGER(weights),
+			linear_filter(INTEGER(x), LENGTH(x), REAL(weights),
 				LENGTH(weights), REAL(result));
 			break;
 		case REALSXP:
@@ -928,6 +928,74 @@ SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 			break;
 		default:
 			Rf_error("y has an unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+// 2D Signal processing
+//----------------------
+
+SEXP meanFilter2(SEXP x, SEXP width)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			mean_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(width), REAL(result));
+			break;
+		case REALSXP:
+			mean_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(width), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP linearFilter2(SEXP x, SEXP weights)
+{
+	SEXP result;
+	if ( Rf_nrows(weights) != Rf_ncols(weights) )
+		Rf_error("weights must be a square matrix");
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			linear_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
+				REAL(weights), Rf_nrows(weights), REAL(result));
+			break;
+		case REALSXP:
+			linear_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
+				REAL(weights), Rf_nrows(weights), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP bilateralFilter2(SEXP x, SEXP width,
+	SEXP sddist, SEXP sdrange, SEXP spar)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			bilateral_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
+				Rf_asReal(spar), REAL(result));
+			break;
+		case REALSXP:
+			bilateral_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
+				Rf_asReal(spar), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
 	}
 	UNPROTECT(1);
 	return result;

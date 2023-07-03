@@ -314,7 +314,6 @@ export(
 
 export(
 	"approx1",
-	"approx2",
 	"filt1_ma",
 	"filt1_gauss",
 	"filt1_bi",
@@ -346,6 +345,13 @@ export(
 	"mergepeaks",
 	"simspec",
 	"simspec1")
+
+export(
+	"approx2",
+	"filt2_ma",
+	"filt2_gauss",
+	"filt2_bi",
+	"filt2_adapt")
 
 export(
 	"roll",

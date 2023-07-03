@@ -63,8 +63,8 @@ SEXP setMatterStrings(SEXP x, SEXP i, SEXP j, SEXP value);
 SEXP getSparseArray(SEXP x, SEXP i);
 SEXP getSparseMatrix(SEXP x, SEXP i, SEXP j);
 
-// Signal processing
-//------------------
+// 1D Signal processing
+//----------------------
 
 SEXP meanFilter(SEXP x, SEXP width);
 SEXP linearFilter(SEXP x, SEXP weights);
@@ -92,6 +92,14 @@ SEXP peakAreas(SEXP x, SEXP peaks, SEXP domain,
 	 SEXP left_limits, SEXP right_limits);
 SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
+
+// 2D Signal processing
+//----------------------
+
+SEXP meanFilter2(SEXP x, SEXP width);
+SEXP linearFilter2(SEXP x, SEXP width);
+SEXP bilateralFilter2(SEXP x, SEXP width,
+	SEXP sddist, SEXP sdrange, SEXP spar);
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 

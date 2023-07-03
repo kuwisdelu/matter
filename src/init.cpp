@@ -43,7 +43,7 @@ static const R_CallMethodDef callMethods[] = {
 	// sparse data structures
 	CALLDEF(getSparseArray, 2),
 	CALLDEF(getSparseMatrix, 3),
-	// signal processing
+	// 1d signal processing
 	CALLDEF(meanFilter, 2),
 	CALLDEF(linearFilter, 2),
 	CALLDEF(bilateralFilter, 5),
@@ -63,6 +63,10 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(peakWidths, 6),
 	CALLDEF(peakAreas, 5),
 	CALLDEF(Approx1, 7),
+	// 2d signal processing
+	CALLDEF(meanFilter2, 2),
+	CALLDEF(linearFilter2, 2),
+	CALLDEF(bilateralFilter2, 5),
 	CALLDEF(Approx2, 8),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
