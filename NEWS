@@ -1,4 +1,18 @@
 
+CHANGES IN VERSION 2.3.2 [2023-7-4]
+-----------------------------------
+
+NEW FEATURES
+
+    o More new signal processing features!
+    o Added 'approx2()' for 2D signal resampling
+        and interpolation of scattered data
+    o Added 2D filtering including: 'filt2_ma()', 'filt2_gauss()',
+        'filt2_bi()', 'filt2_adapt()', 'filt2_guide'
+    o Added nonlinear diffusion 'filt1_diff()' and 'filt2_diff()'
+    o Added the traditional Savitzky-Golay filter 'filt1_sg()'
+    o Added 'kdsearch()' and 'kdtree()' for K-dimensional searches
+
 CHANGES IN VERSION 2.3.1 [2023-6-27]
 -----------------------------------
 
