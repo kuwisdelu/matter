@@ -44,7 +44,21 @@ filt2_adapt <- function(x, width = 5L, spar = 1)
 		NA_real_, NA_real_, spar, PACKAGE="matter")
 }
 
-filt2_guide <- function(x, width = 5L, guide = x, sdreg = 2 * mad(x))
+filt2_diff <- function(x, niter = 5, kappa = 50,
+	rate = 0.25, method = 1L)
+{
+	if ( !is.matrix(x) )
+		stop("x must be a matrix")
+	if ( kappa < 1 )
+		warning("kappa should be > 1")
+	if ( rate <= 0 || rate > 0.25 )
+		warning("rate should be positive and < 0.25")
+	.Call(C_diffusionFilter2, x, niter,
+		kappa, rate, method, PACKAGE="matter")
+}
+
+filt2_guide <- function(x, width = 5L, guide = x,
+	sdreg = 2 * mad(x))
 {
 	if ( !is.matrix(x) )
 		stop("x must be a matrix")

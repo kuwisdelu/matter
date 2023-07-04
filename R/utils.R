@@ -762,6 +762,20 @@ cpal <- function(palette = "Viridis") {
 	function(n) hcl.colors(n, palette)
 }
 
+pinv <- function (x, tol = sqrt(.Machine$double.eps)) 
+{
+	x <- as.matrix(x)
+	sv <- svd(x)
+	pos <- sv$d > max(tol * sv$d[1L], 0)
+	if ( all(pos) ) {
+		sv$v %*% (1 / sv$d * t(sv$u))
+	} else if ( !any(pos) ) {
+		array(0, dim(x)[2L:1L])
+	} else {
+		sv$v[,pos,drop=FALSE] %*% (t(sv$u[,pos,drop=FALSE]) / sv$d[pos])
+	}
+}
+
 #### Utilities for raw bytes and memory ####
 ## -----------------------------------------
 

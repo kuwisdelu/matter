@@ -229,6 +229,66 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 }
 
 template<typename T>
+void diffusion_filter2(T * x, int nr, int nc, int niter,
+	double K, double rate, int method, double * buffer)
+{
+	int n = nr * nc;
+	index_t N, S, E, W;
+	double dN, dS, dE, dW, cN, cS, cE, cW, dx;
+	double * tmp = R_Calloc(n, double);
+	double * x0 = tmp;
+	double * x1 = buffer;
+	// initialize buffer
+	for ( index_t i = 0; i < n; i++ )
+		buffer[i] = static_cast<double>(x[i]);
+	// iterate
+	for ( int iter = 0; iter < niter; iter++ )
+	{
+		std::memcpy(x0, x1, n * sizeof(double));
+		for ( index_t i = 0; i < nr; i++ )
+		{
+			for ( index_t j = 0; j < nc; j++ )
+			{
+				// calculate gradients
+				N = wrap_ind(i - 1, nr);
+				S = wrap_ind(i + 1, nr);
+				E = wrap_ind(j + 1, nc);
+				W = wrap_ind(j - 1, nc);
+				dN = sdiff(x0[j * nr + N], x0[j * nr + i]);
+				dS = sdiff(x0[j * nr + S], x0[j * nr + i]);
+				dE = sdiff(x0[E * nr + i], x0[j * nr + i]);
+				dW = sdiff(x0[W * nr + i], x0[j * nr + i]);
+				// calculate conduction
+				switch(method) {
+					case COND_EQ1:
+					{
+						cN = std::exp(-(dN / K) * (dN / K));
+						cS = std::exp(-(dS / K) * (dS / K));
+						cE = std::exp(-(dE / K) * (dE / K));
+						cW = std::exp(-(dW / K) * (dN / K));
+						break;
+					}
+					case COND_EQ2:
+					{
+						cN = 1 / (1 + (dN / K) * (dN / K));
+						cS = 1 / (1 + (dS / K) * (dS / K));
+						cE = 1 / (1 + (dE / K) * (dE / K));
+						cW = 1 / (1 + (dW / K) * (dN / K));
+						break;
+					}
+					default:
+						Rf_error("unrecognized conduction method");
+				}
+				// update image
+				dx = (cN * dN) + (cS * dS) + (cE * dE) + (cW * dW);
+				x1[j * nr + i] = x0[j * nr + i] + rate * dx;
+			}
+		}
+	}
+	Free(tmp);
+}
+
+template<typename T>
 void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	double sdreg, double * buffer)
 {

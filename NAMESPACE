@@ -318,8 +318,10 @@ export(
 	"filt1_gauss",
 	"filt1_bi",
 	"filt1_adapt",
+	"filt1_diff",
 	"filt1_guide",
 	"filt1_pag",
+	"filt1_sg",
 	"warp1_loc",
 	"warp1_dtw",
 	"warp1_cow",
@@ -352,6 +354,7 @@ export(
 	"filt2_gauss",
 	"filt2_bi",
 	"filt2_adapt",
+	"filt2_diff",
 	"filt2_guide")
 
 export(

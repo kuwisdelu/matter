@@ -28,6 +28,10 @@
 #define BIN_VAR		6
 #define BIN_SSE		7
 
+// conduction equations
+#define COND_EQ1 1 // Perona-Malik #1
+#define COND_EQ2 2 // Perona-Malik #2
+
 // simulate signal padding (for filters)
 #define wrap_ind(i, n) (max2(min2((i), (n - 1)), 0))
 
@@ -397,6 +401,54 @@ void bilateral_filter(T * x, int n, int width,
 }
 
 template<typename T>
+void diffusion_filter(T * x, int n, int niter,
+	double K, double rate, int method, double * buffer)
+{
+	index_t L, R;
+	double dL, dR, cL, cR, dx;
+	double * tmp = R_Calloc(n, double);
+	double * x0 = tmp;
+	double * x1 = buffer;
+	// initialize buffer
+	for ( index_t i = 0; i < n; i++ )
+		buffer[i] = static_cast<double>(x[i]);
+	// iterate
+	for ( int iter = 0; iter < niter; iter++ )
+	{
+		std::memcpy(x0, x1, n * sizeof(double));
+		for ( index_t i = 0; i < n; i++ )
+		{
+			// calculate gradients
+			L = wrap_ind(i - 1, n);
+			R = wrap_ind(i + 1, n);
+			dL = sdiff(x0[L], x0[i]);
+			dR = sdiff(x0[R], x0[i]);
+			// calculate conduction
+			switch(method) {
+				case COND_EQ1:
+				{
+					cL = std::exp(-(dL / K) * (dL / K));
+					cR = std::exp(-(dR / K) * (dR / K));
+					break;
+				}
+				case COND_EQ2:
+				{
+					cL = 1 / (1 + (dL / K) * (dL / K));
+					cR = 1 / (1 + (dR / K) * (dR / K));
+					break;
+				}
+				default:
+					Rf_error("unrecognized conduction method");
+			}
+			// update signal
+			dx = (cL * dL) + (cR * dR);
+			x1[i] = x0[i] + rate * dx;
+		}
+	}
+	Free(tmp);
+}
+
+template<typename T>
 void guided_filter(T * x, T * g, int n, int width,
 	double sdreg, double ftol, double * buffer)
 {
@@ -651,7 +703,8 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 	}
 	else
 	{
-		std::memcpy(xi, x, nx * sizeof(T));
+		for ( index_t i = 0; i < nx; i++ )
+			xi[i] = x[i];
 	}
 	// calculate correlation(x, y)
 	double ux = 0, uy = 0;

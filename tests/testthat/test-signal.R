@@ -28,8 +28,10 @@ test_that("filter", {
 	x3 <- filt1_gauss(x, w)
 	x4 <- filt1_bi(x, w)
 	x5 <- filt1_adapt(x, w)
-	x6 <- filt1_guide(x, w)
-	x7 <- filt1_pag(x, w)
+	x6 <- filt1_diff(x, w)
+	x7 <- filt1_guide(x, w)
+	x8 <- filt1_pag(x, w)
+	x9 <- filt1_sg(x, w)
 
 	expect_equal(x2, xm)
 	expect_equal(x3, xg)
@@ -39,12 +41,16 @@ test_that("filter", {
 	expect_lt(sum((x5 - y)^2), sum((x - y)^2))
 	expect_lt(sum((x6 - y)^2), sum((x - y)^2))
 	expect_lt(sum((x7 - y)^2), sum((x - y)^2))
+	expect_lt(sum((x8 - y)^2), sum((x - y)^2))
+	expect_lt(sum((x9 - y)^2), sum((x - y)^2))
 	
 	expect_gt(cor(x3, y), cor(x, y))
 	expect_gt(cor(x4, y), cor(x, y))
 	expect_gt(cor(x5, y), cor(x, y))
 	expect_gt(cor(x6, y), cor(x, y))
 	expect_gt(cor(x7, y), cor(x, y))
+	expect_gt(cor(x8, y), cor(x, y))
+	expect_gt(cor(x9, y), cor(x, y))
 
 })
 

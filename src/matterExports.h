@@ -70,6 +70,8 @@ SEXP meanFilter(SEXP x, SEXP width);
 SEXP linearFilter(SEXP x, SEXP weights);
 SEXP bilateralFilter(SEXP x, SEXP width,
 	SEXP sddist, SEXP sdrange, SEXP spar);
+SEXP diffusionFilter(SEXP x, SEXP niter,
+	SEXP kappa, SEXP rate, SEXP method);
 SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg, SEXP ftol);
 SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
@@ -100,6 +102,8 @@ SEXP meanFilter2(SEXP x, SEXP width);
 SEXP linearFilter2(SEXP x, SEXP width);
 SEXP bilateralFilter2(SEXP x, SEXP width,
 	SEXP sddist, SEXP sdrange, SEXP spar);
+SEXP diffusionFilter2(SEXP x, SEXP niter,
+	SEXP kappa, SEXP rate, SEXP method);
 SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg);
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,

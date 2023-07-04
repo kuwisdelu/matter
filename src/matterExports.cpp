@@ -492,6 +492,29 @@ SEXP bilateralFilter(SEXP x, SEXP width,
 	return result;
 }
 
+SEXP diffusionFilter(SEXP x, SEXP niter,
+	SEXP kappa, SEXP rate, SEXP method)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			diffusion_filter(INTEGER(x), LENGTH(x), Rf_asInteger(niter),
+				Rf_asReal(kappa), Rf_asReal(rate), Rf_asInteger(method),
+				REAL(result));
+			break;
+		case REALSXP:
+			diffusion_filter(REAL(x), LENGTH(x), Rf_asInteger(niter),
+				Rf_asReal(kappa), Rf_asReal(rate), Rf_asInteger(method),
+				REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
 SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg, SEXP ftol)
 {
@@ -995,6 +1018,29 @@ SEXP bilateralFilter2(SEXP x, SEXP width,
 			bilateral_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
 				Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
 				Rf_asReal(spar), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP diffusionFilter2(SEXP x, SEXP niter,
+	SEXP kappa, SEXP rate, SEXP method)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			diffusion_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(niter), Rf_asReal(kappa), Rf_asReal(rate),
+				Rf_asInteger(method), REAL(result));
+			break;
+		case REALSXP:
+			diffusion_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
+				Rf_asInteger(niter), Rf_asReal(kappa), Rf_asReal(rate),
+				Rf_asInteger(method), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");

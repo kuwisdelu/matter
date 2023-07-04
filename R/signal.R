@@ -4,7 +4,7 @@
 
 filt1_ma <- function(x, width = 5L)
 {
-	if ( !is.vector(x) )
+	if ( !is.null(dim(x)) )
 		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
@@ -13,7 +13,7 @@ filt1_ma <- function(x, width = 5L)
 
 filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
-	if ( !is.vector(x) )
+	if ( !is.null(dim(x)) )
 		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -26,7 +26,7 @@ filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 filt1_bi <- function(x, width = 5L,
 	sddist = (width %/% 2) / 2, sdrange = 2 * mad(x))
 {
-	if ( !is.vector(x) )
+	if ( !is.null(dim(x)) )
 		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -36,7 +36,7 @@ filt1_bi <- function(x, width = 5L,
 
 filt1_adapt <- function(x, width = 5L, spar = 1)
 {
-	if ( !is.vector(x) )
+	if ( !is.null(dim(x)) )
 		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -44,9 +44,23 @@ filt1_adapt <- function(x, width = 5L, spar = 1)
 		NA_real_, NA_real_, spar, PACKAGE="matter")
 }
 
-filt1_guide <- function(x, width = 5L, guide = x, sdreg = 2 * mad(x))
+filt1_diff <- function(x, niter = 5, kappa = 50,
+	rate = 0.25, method = 1L)
 {
-	if ( !is.vector(x) )
+	if ( !is.null(dim(x)) )
+		stop("x must be a vector")
+	if ( kappa < 1 )
+		warning("kappa should be > 1")
+	if ( rate <= 0 || rate > 0.25 )
+		warning("rate should be positive and < 0.25")
+	.Call(C_diffusionFilter, x, niter,
+		kappa, rate, method, PACKAGE="matter")
+}
+
+filt1_guide <- function(x, width = 5L, guide = x,
+	sdreg = 2 * mad(x))
+{
+	if ( !is.null(dim(x)) )
 		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -61,7 +75,7 @@ filt1_guide <- function(x, width = 5L, guide = x, sdreg = 2 * mad(x))
 filt1_pag <- function(x, width = 5L, guide = x,
 	sdreg = 2 * mad(x), ftol = 1/10)
 {
-	if ( !is.vector(x) )
+	if ( !is.null(dim(x)) )
 		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -71,6 +85,23 @@ filt1_pag <- function(x, width = 5L, guide = x,
 		guide <- as.double(guide)
 	.Call(C_guidedFilter, x, guide, width,
 		sdreg, ftol, PACKAGE="matter")
+}
+
+filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
+	deriv = 0, rate = 1)
+{
+	if ( !is.null(dim(x)) )
+		stop("x must be a vector")
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	if ( width <= order )
+		stop("width must be larger than order")
+	b <- (1:width - (width %/% 2 + 1)) %*% t(rep.int(1, order + 1))
+	b <- b^(as.matrix(rep.int(1, width)) %*% (0:order))
+	weights <- pinv(b)[1 + deriv,]
+	if ( deriv > 0 )
+		weights <- weights * prod(1:deriv) / rate^deriv
+	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
 #### Signal alignment and warping ####

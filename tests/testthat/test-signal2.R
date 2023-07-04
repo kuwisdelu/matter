@@ -31,20 +31,22 @@ test_that("filter2", {
 
 	x3 <- filt2_bi(y, width=5)
 	x4 <- filt2_adapt(y, width=5)
-	x5 <- filt2_guide(y, width=5)
+	x5 <- filt2_diff(y, niter=5)
+	x6 <- filt2_guide(y, width=5)
 
 	expect_lt(sum((x3 - x)^2), sum((y - x)^2))
 	expect_lt(sum((x4 - x)^2), sum((y - x)^2))
 	expect_lt(sum((x5 - x)^2), sum((y - x)^2))
+	expect_lt(sum((x6 - x)^2), sum((y - x)^2))
 
 	set.seed(1)
 	u <- diag(10)
 	i <- upper.tri(u, TRUE)
 	u[i] <- u[i] + 10
-	v <- u + 2 * runif(length(u))
+	v <- u + rnorm(length(u))
 	
-	v1 <- filt2_bi(v, width=5, sdrange=1)
-	v2 <- filt2_adapt(v, width=5, spar=1)
+	v1 <- filt2_bi(v, width=5)
+	v2 <- filt2_adapt(v, width=5)
 	v3 <- filt2_guide(v, width=5, sdreg=1)
 
 	expect_lt(sum((v1 - u)^2), sum((v - u)^2))
