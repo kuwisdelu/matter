@@ -1,16 +1,15 @@
 Package: matter
 Type: Package
-Title: A framework for rapid prototyping with file-based data structures
-Version: 2.3.1
+Title: Out-of-memory dense and sparse signal arrays
+Version: 2.3.2
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
-Description: Memory-efficient reading, writing, and manipulation of structured binary data as file-based vectors, matrices, arrays, lists, and data frames.
+Description: Memory-efficient file-based data structures for dense and sparse vectors, matrices, arrays, and lists with applications to nonuniformly sampled signals and spectra.
 License: Artistic-2.0
-Depends: R (>= 3.5), BiocParallel, Matrix, methods
+Depends: R (>= 4.0), BiocParallel, Matrix, methods
 Imports: BiocGenerics, ProtGenerics, digest, irlba,
-	biglm, stats, stats4, graphics, grDevices,
-	utils
+	biglm, stats, stats4, graphics, grDevices, utils
 Suggests: BiocStyle, knitr, testthat
 VignetteBuilder: knitr
 Collate: matterGenerics.R utils.R drle.R
@@ -21,3 +20,4 @@ Collate: matterGenerics.R utils.R drle.R
 	signal.R signal2.R altrep.R par.R vizi.R
 biocViews: Infrastructure, DataRepresentation
 URL: https://github.com/kuwisdelu/matter
+BugReports: https://github.com/kuwisdelu/matter/issues
