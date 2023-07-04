@@ -16,8 +16,8 @@
 \usage{
 # Signal warping based on local events
 warp1_loc(x, y, tx = seq_along(x), ty = seq_along(y),
-    events = c("maxmin", "max", "min"), n = length(y),
-    interp = c("linear", "loess", "spline"),
+    events = c("maxmin", "max", "min"), lx = NULL, ly = NULL,
+    interp = c("linear", "loess", "spline"), n = length(y),
     tol = NA_real_, tol.ref = "abs")
 
 # Dynamic time warping
@@ -36,6 +36,8 @@ warp1_cow(x, y, tx = seq_along(x), ty = seq_along(y),
     \item{tx, ty}{The domain variable of the signals.}
 
     \item{events}{The type of events to use for calculating the alignment.}
+
+    \item{lx, ly}{The domain locations of the events, if already known.}
 
     \item{n}{The number of samples in the warped \code{x} to be returned. By default, it matches the length of \code{y}.}
 

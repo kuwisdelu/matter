@@ -110,21 +110,27 @@ filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
 ## -----------------------------------
 
 warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
-	events = c("maxmin", "max", "min"), n = length(y),
-	interp = c("linear", "loess", "spline"),
+	events = c("maxmin", "max", "min"), lx = NULL, ly = NULL,
+	interp = c("linear", "loess", "spline"), n = length(y),
 	tol = NA_real_, tol.ref = "abs")
 {
 	events <- match.arg(events)
 	# find events in each signal
 	if ( events == "maxmin" ) {
-		ex <- tx[which(locmax(x) | locmin(x))]
-		ey <- ty[which(locmax(y) | locmin(y))]
+		if ( is.null(lx) )
+			lx <- tx[which(locmax(x) | locmin(x))]
+		if ( is.null(ly) )
+			ly <- ty[which(locmax(y) | locmin(y))]
 	} else if ( events == "max" ) {
-		ex <- tx[which(locmax(x))]
-		ey <- ty[which(locmax(y))]
+		if ( is.null(lx) )
+			lx <- tx[which(locmax(x))]
+		if ( is.null(ly) )
+			ly <- ty[which(locmax(y))]
 	} else if ( events == "min" ) {
-		ex <- tx[which(locmin(x))]
-		ey <- ty[which(locmin(y))]
+		if ( is.null(lx) )
+			lx <- tx[which(locmin(x))]
+		if ( is.null(ly) )
+			ly <- ty[which(locmin(y))]
 	}
 	if ( is.na(tol) ) {
 		# guess tol as ~5% of the signal length
@@ -133,25 +139,25 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	}
 	# match events between signals
 	tout <- approx(tx, tx, n=n)$y
-	i <- bsearch(ex, ey, tol=tol, tol.ref=tol.ref)
+	i <- bsearch(lx, ly, tol=tol, tol.ref=tol.ref)
 	loc <- !is.na(i)
 	if ( sum(loc) >= 1 ) {
 		# find shifts between events
-		ex <- ex[loc]
-		ey <- ey[i[loc]]
-		path <- data.frame(x=ex, y=ey)
-		dt <- ey - ex
+		lx <- lx[loc]
+		ly <- ly[i[loc]]
+		path <- data.frame(x=lx, y=ly)
+		dt <- ly - lx
 		dt <- c(0, dt, 0)
-		ex <- c(tx[1L], ex, tx[length(tx)])
+		lx <- c(tx[1L], lx, tx[length(tx)])
 		interp <- match.arg(interp)
 		# interpolate shifts
 		if ( interp == "loess" ) {
 			shift <- loess(dt ~ locs)
 			shift <- predict(shift, t)
 		} else if ( interp == "spline" ) {
-			shift <- spline(ex, dt, xout=tout)$y
+			shift <- spline(lx, dt, xout=tout)$y
 		} else {
-			shift <- approx(ex, dt, xout=tout)$y
+			shift <- approx(lx, dt, xout=tout)$y
 		}
 		tshift <- tout + shift
 	} else {
