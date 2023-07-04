@@ -18,7 +18,7 @@ approx1(x, y, xout, interp = "linear", n = length(x),
 
 	\item{xout}{A vector of values where the resampling should take place.}
 
-	\item{interp}{Interpolation scheme for non-exact matches or key collisions. One of 'none', 'mean', 'sum', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'.}
+	\item{interp}{Interpolation method. One of 'none', 'mean', 'sum', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'.}
 
 	\item{n}{If \code{xout} is not given, then interpolation is performed at \code{n} equally spaced data points along the range of \code{x}.}
 
@@ -42,6 +42,7 @@ approx1(x, y, xout, interp = "linear", n = length(x),
 \seealso{
 	\code{\link{asearch}},
 	\code{\link{approx}}
+	\code{\link{approx2}}
 }
 
 \examples{

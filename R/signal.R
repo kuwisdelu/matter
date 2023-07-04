@@ -90,7 +90,7 @@ filt1_pag <- function(x, width = 5L, guide = NULL,
 }
 
 filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
-	deriv = 0, rate = 1)
+	deriv = 0, delta = 1)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
 		stop("x must be a vector")
@@ -102,7 +102,7 @@ filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
 	b <- b^(as.matrix(rep.int(1, width)) %*% (0:order))
 	weights <- pinv(b)[1 + deriv,]
 	if ( deriv > 0 )
-		weights <- weights * prod(1:deriv) / rate^deriv
+		weights <- weights * prod(1:deriv) / delta^deriv
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
