@@ -260,7 +260,7 @@ void diffusion_filter2(T * x, int nr, int nc, int niter,
 				dW = sdiff(x0[W * nr + i], x0[j * nr + i]);
 				// calculate conduction
 				switch(method) {
-					case COND_EQ1:
+					case DIFF_PM1:
 					{
 						cN = std::exp(-(dN / K) * (dN / K));
 						cS = std::exp(-(dS / K) * (dS / K));
@@ -268,7 +268,7 @@ void diffusion_filter2(T * x, int nr, int nc, int niter,
 						cW = std::exp(-(dW / K) * (dN / K));
 						break;
 					}
-					case COND_EQ2:
+					case DIFF_PM2:
 					{
 						cN = 1 / (1 + (dN / K) * (dN / K));
 						cS = 1 / (1 + (dS / K) * (dS / K));

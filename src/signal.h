@@ -28,9 +28,10 @@
 #define BIN_VAR		6
 #define BIN_SSE		7
 
-// conduction equations
-#define COND_EQ1 1 // Perona-Malik #1
-#define COND_EQ2 2 // Perona-Malik #2
+// diffusivity
+#define DIFF_PM1 1 // Perona-Malik #1
+#define DIFF_PM2 2 // Perona-Malik #2
+#define DIFF_PAW 3 // Peak-aware weighting
 
 // simulate signal padding (for filters)
 #define wrap_ind(i, n) (max2(min2((i), (n - 1)), 0))
@@ -425,16 +426,22 @@ void diffusion_filter(T * x, int n, int niter,
 			dR = sdiff(x0[R], x0[i]);
 			// calculate conduction
 			switch(method) {
-				case COND_EQ1:
+				case DIFF_PM1:
 				{
 					cL = std::exp(-(dL / K) * (dL / K));
 					cR = std::exp(-(dR / K) * (dR / K));
 					break;
 				}
-				case COND_EQ2:
+				case DIFF_PM2:
 				{
 					cL = 1 / (1 + (dL / K) * (dL / K));
 					cR = 1 / (1 + (dR / K) * (dR / K));
+					break;
+				}
+				case DIFF_PAW:
+				{
+					cL = std::exp(-(x0[i] / K) * (x0[i] / K));
+					cR = std::exp(-(x0[i] / K) * (x0[i] / K));
 					break;
 				}
 				default:

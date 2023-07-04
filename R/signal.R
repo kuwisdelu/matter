@@ -52,7 +52,7 @@ filt1_diff <- function(x, niter = 5, kappa = 50,
 	if ( kappa < 1 )
 		warning("kappa should be > 1")
 	if ( rate <= 0 || rate > 0.25 )
-		warning("rate should be positive and < 0.25")
+		warning("rate should be positive and <= 0.25")
 	.Call(C_diffusionFilter, x, niter,
 		kappa, rate, method, PACKAGE="matter")
 }
@@ -72,13 +72,15 @@ filt1_guide <- function(x, width = 5L, guide = x,
 		sdreg, NA_real_, PACKAGE="matter")
 }
 
-filt1_pag <- function(x, width = 5L, guide = x,
+filt1_pag <- function(x, width = 5L, guide = NULL,
 	sdreg = 2 * mad(x), ftol = 1/10)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
 		stop("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
+	if ( is.null(guide) )
+		guide <- filt1_diff(x, niter=3L, method=3L)
 	if ( is.integer(x) && is.double(guide) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(guide) )
