@@ -5,7 +5,7 @@
 setMethod("apply", "matter_mat",
 	function(X, MARGIN, FUN, ..., simplify = TRUE)
 	{
-		.Deprecated("chunkApply")
+		.Defunct("chunkApply")
 		chunkApply(X, MARGIN, FUN, ..., simplify=simplify)
 	})
 

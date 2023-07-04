@@ -371,12 +371,12 @@ setReplaceMethod("domain", "sparse_arr", function(x, value) {
 })
 
 setMethod("keys", "sparse_arr", function(object) {
-	.Deprecated("domain")
+	.Defunct("domain")
 	domain(object)
 })
 
 setReplaceMethod("keys", "sparse_arr", function(object, value) {
-	.Deprecated("domain<-")
+	.Defunct("domain<-")
 	domain(object) <- value
 	object
 })

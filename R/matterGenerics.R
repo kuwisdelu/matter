@@ -99,14 +99,14 @@ setMethod("combine", c("ANY", "ANY"),
 setGeneric("paths", function(x) standardGeneric("paths")) # use BiocGenerics 'path()'
 setMethod("paths", "ANY",
 	function(x) {
-		.Deprecated("path")
+		.Defunct("path")
 		path(x)
 	})
 
 setGeneric("paths<-", function(x, value) standardGeneric("paths<-")) # use BiocGenerics 'path()'
 setReplaceMethod("paths", "ANY",
 	function(x, value) {
-		.Deprecated("path<-")
+		.Defunct("path<-")
 		path(x) <- value
 		x
 	})
@@ -114,14 +114,14 @@ setReplaceMethod("paths", "ANY",
 setGeneric("datamode", function(x) standardGeneric("datamode"))
 setMethod("datamode", "ANY",
 	function(x) {
-		.Deprecated("type")
+		.Defunct("type")
 		type(x)
 	})
 
 setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
 setReplaceMethod("datamode", "ANY",
 	function(x, value) {
-		.Deprecated("datamode<-")
+		.Defunct("datamode<-")
 		type(x) <- value
 		x
 	})
@@ -129,14 +129,14 @@ setReplaceMethod("datamode", "ANY",
 setGeneric("filemode", function(x) standardGeneric("filemode"))
 setMethod("filemode", "ANY",
 	function(x) {
-		.Deprecated("readonly")
+		.Defunct("readonly")
 		if (readonly(x)) "r" else "rw"
 	})
 
 setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
 setReplaceMethod("filemode", "ANY",
 	function(x, value) {
-		.Deprecated("readonly<-")
+		.Defunct("readonly<-")
 		readonly(x) <- switch(value, "r"=TRUE, "rw"=FALSE)
 		x
 	})
@@ -144,14 +144,14 @@ setReplaceMethod("filemode", "ANY",
 setGeneric("combiner", function(object) standardGeneric("combiner"))
 setMethod("combiner", "ANY",
 	function(object) {
-		.Deprecated("sampler")
+		.Defunct("sampler")
 		sampler(object)
 	})
 
 setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
 setReplaceMethod("combiner", "ANY",
 	function(object, value) {
-		.Deprecated("sampler<-")
+		.Defunct("sampler<-")
 		sampler(object) <- value
 		object
 	})
@@ -160,7 +160,7 @@ setGeneric("rowVars", function(x, ...) standardGeneric("rowVars"))
 setMethod("rowVars", "ANY",
 	function(x, ..., na.rm = FALSE)
 	{
-		.Deprecated("colStats")
+		.Defunct("colStats")
 		rowStats(x, stat="var", ..., na.rm=na.rm)
 	})
 
@@ -168,7 +168,7 @@ setGeneric("rowSds", function(x, ...) standardGeneric("rowSds"))
 setMethod("rowSds", "ANY",
 	function(x, ..., na.rm = FALSE)
 	{
-		.Deprecated("colStats")
+		.Defunct("colStats")
 		rowStats(x, stat="sd", ..., na.rm=na.rm)
 	})
 
@@ -176,7 +176,7 @@ setGeneric("colVars", function(x, ...) standardGeneric("colVars"))
 setMethod("colVars", "ANY",
 	function(x, ..., na.rm = FALSE)
 	{
-		.Deprecated("colStats")
+		.Defunct("colStats")
 		colStats(x, stat="var", ..., na.rm=na.rm)
 	})
 
@@ -184,7 +184,7 @@ setGeneric("colSds", function(x, ...) standardGeneric("colSds"))
 setMethod("colSds", "ANY",
 	function(x, ..., na.rm = FALSE)
 	{
-		.Deprecated("colStats")
+		.Defunct("colStats")
 		colStats(x, stat="sd", ..., na.rm=na.rm)
 	})
 

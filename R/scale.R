@@ -4,7 +4,7 @@
 
 setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
 {
-	.Deprecated("colscale")
+	.Defunct("colscale")
 	colscale(x, center=center, scale=scale)
 })
 

@@ -663,12 +663,12 @@ stream_stat_class <- function(name) {
 }
 
 rowstreamStats <- function(x, ...) {
-	.Deprecated("s_rowstats")
+	.Defunct("s_rowstats")
 	s_rowstats(x, ...)
 }
 
 colstreamStats <- function(x, ...) {
-	.Deprecated("s_colstats")
+	.Defunct("s_colstats")
 	s_colstats(x, ...)
 }
 
