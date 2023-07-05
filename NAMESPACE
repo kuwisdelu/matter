@@ -352,7 +352,6 @@ export(
 
 export(
 	"approx2",
-	"trans2d"
 	"filt2_ma",
 	"filt2_gauss",
 	"filt2_bi",
@@ -360,7 +359,8 @@ export(
 	"filt2_diff",
 	"filt2_guide",
 	"warp2_trans",
-	"mi")
+	"mi",
+	"trans2d")
 
 export(
 	"roll",
