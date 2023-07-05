@@ -99,7 +99,7 @@ test_that("warp + align", {
 
 })
 
-test_that("binvec", {
+test_that("binsum", {
 
 	set.seed(1)
 	x <- runif(50)
@@ -109,16 +109,16 @@ test_that("binvec", {
 		mapply(function(i, j) fun(x[i:j]), u, v)
 	}
 
-	expect_equal(binfun(x, u, v, sum), binvec(x, u, v, "sum"))
-	expect_equal(binfun(x, u, v, mean), binvec(x, u, v, "mean"))
-	expect_equal(binfun(x, u, v, max), binvec(x, u, v, "max"))
-	expect_equal(binfun(x, u, v, min), binvec(x, u, v, "min"))
-	expect_equal(binfun(x, u, v, sd), binvec(x, u, v, "sd"))
-	expect_equal(binfun(x, u, v, var), binvec(x, u, v, "var"))
+	expect_equal(binfun(x, u, v, sum), binsum(x, u, v, "sum"))
+	expect_equal(binfun(x, u, v, mean), binsum(x, u, v, "mean"))
+	expect_equal(binfun(x, u, v, max), binsum(x, u, v, "max"))
+	expect_equal(binfun(x, u, v, min), binsum(x, u, v, "min"))
+	expect_equal(binfun(x, u, v, sd), binsum(x, u, v, "sd"))
+	expect_equal(binfun(x, u, v, var), binsum(x, u, v, "var"))
 
 	f <- seq(from=1, to=51, by=10)
 	
-	expect_equal(binvec(x, u, v), binvec(x, f))
+	expect_equal(binsum(x, u, v), binsum(x, f))
 
 })
 

@@ -74,11 +74,111 @@ filt2_guide <- function(x, width = 5L, guide = x,
 		sdreg, PACKAGE="matter")
 }
 
+#### 2D Alignment and warping ####
+## ---------------------------------
+
+warp2_trans <- function(x, y, control = list(),
+	trans = c("rigid", "similarity", "affine"),
+	metric = c("mi", "mse", "cor"), nbins = 64L,
+	scale = TRUE, dimout = dim(y))
+{
+	# scale x and y and remove NAs
+	xs <- x
+	ys <- y
+	xs[is.na(xs)] <- min(x, na.rm=TRUE)
+	ys[is.na(ys)] <- min(y, na.rm=TRUE)
+	if ( scale ) {
+		xs <- (xs - min(xs)) / max(xs)
+		ys <- (ys - min(ys)) / max(ys)
+	}
+	# prepare metric function
+	metric <- match.arg(metric)
+	if ( metric == "mi" ) {
+		score <- function(x, y) {			
+			-mi(x, y, nbins)
+		}
+	} else if ( metric == "mse" ) {
+		score <- function(x, y) {
+			mean((x - y)^2)
+		}
+	} else if ( metric == "cor" ) {
+		score <- function(x, y) {
+			-icor(x, y)
+		}
+	}
+	# prepare transformation
+	trans <- match.arg(trans)
+	if ( trans == "rigid" ) {
+		init <- c(0, 0, 0)
+		tform <- function(par, xi) {
+			rot <- par[1L]
+			tl <- par[2L:3L]
+			trans2d(xi, rotate=rot, translate=tl,
+				dimout=dim(y))
+		}
+	} else if ( trans == "similarity" ) {
+		init <- c(0, 0, 0, 1, 1)
+		tform <- function(par, xi) {
+			rot <- par[1L]
+			tl <- par[2L:3L]
+			sc <- par[4L:5L]
+			trans2d(xi, rotate=rot, translate=tl, scale=sc,
+				dimout=dim(y))
+		}
+	} else if ( trans == "affine" ) {
+		init <- rbind(diag(2), c(0, 0))
+		tform <- function(par, xi) {
+			pmat <- matrix(par, nrow=3L, ncol=2L)
+			trans2d(xi, pmat=pmat,
+				dimout=dim(y))
+		}
+	}
+	# find optimal warp
+	fn <- function(par) {
+		xt <- tform(par, xs)
+		xt[is.na(xt)] <- min(xt, na.rm=TRUE)
+		score(xt, ys)
+	}
+	best <- optim(init, fn=fn, control=control)
+	z <- tform(best$par, x)
+	structure(z, optim=best, trans=trans, metric=metric)
+}
+
+mi <- function(x, y, n = 64L)
+{
+	if ( length(x) != length(y) )
+		stop("x and y must be the same length")
+	# calculate the 2D bin locations
+	n = min(n, length(x) %/% 4L)
+	rx <- range(x, na.rm=TRUE)
+	ry <- range(y, na.rm=TRUE)
+	x[is.na(x)] <- rx[1L]
+	y[is.na(y)] <- ry[1L]
+	nx <- ny <- floor(sqrt(n))
+	xi <- seq(rx[1L], rx[2L], length.out=nx)
+	yi <- seq(rx[1L], rx[2L], length.out=ny)
+	# calculate the 2D histogram
+	halfbw <- 0.5 * c(diff(xi[1L:2L]), diff(yi[1L:2L]))
+	i <- bsearch(x, xi, tol=halfbw[1L])
+	j <- bsearch(y, yi, tol=halfbw[2L])
+	H <- matrix(0L, nrow=nx, ncol=ny)
+	for ( k in seq_along(i) )
+		H[i[k],j[k]] <- H[i[k],j[k]] + 1L
+	# calculate mutual information
+	pxy <- H / sum(H)
+	px <- rowSums(pxy)
+	py <- colSums(pxy)
+	px <- matrix(px, nrow=nx, ncol=ny)
+	py <- matrix(py, nrow=nx, ncol=ny, byrow=TRUE)
+	nz <- pxy > 0
+	sum(pxy[nz] * log2(pxy[nz] / (px[nz] * py[nz])))
+}
+
 #### 2D Resampling with interpolation ####
 ## ---------------------------------------
 
 approx2 <- function(x, y, z, xout, yout,
-	interp = "cubic", nx = length(x), ny = length(y),
+	interp = "linear", nx = length(x), ny = length(y),
 	tol = NA_real_, tol.ref = "abs", extrap = NA_real_)
 {
 	if ( is.matrix(x) && missing(y) && missing(z) ) {
@@ -113,11 +213,11 @@ approx2 <- function(x, y, z, xout, yout,
 		storage.mode(yi) <- "double"
 	tol <- rep_len(tol, 2L)
 	if ( anyNA(tol) ) {
-		# guess tol as ~1x/~2x the max gap between samples
+		# guess tol as ~1x/~2x the estimated gap between samples
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		mul <- ifelse(interp %in% c("none", "linear"), 1, 2)
-		tolx <- mul * max(abs(reldiff(sort(x), ref=ref)))
-		toly <- mul * max(abs(reldiff(sort(y), ref=ref)))
+		tolx <- mul * reldiff(range(x), ref=ref) / sqrt(length(x))
+		toly <- mul * reldiff(range(y), ref=ref) / sqrt(length(y))
 		newtol <- c(tolx, toly)
 		tol[is.na(tol)] <- newtol[is.na(tol)]
 	}
@@ -128,3 +228,42 @@ approx2 <- function(x, y, z, xout, yout,
 	zi
 }
 
+#### Affine transformation ####
+## ----------------------------
+
+trans2d <- function(x, y, z, pmat,
+	rotate = 0, translate = c(0, 0), scale = c(1, 1),
+	interp = "linear", dimout = dim(z), ...)
+{
+	if ( missing(pmat) ) {
+		angle <- rotate * pi / 180
+		sc <- rep_len(scale, 2L)
+		r1 <- sc[1L] * c(cos(angle), -sin(angle))
+		r2 <- sc[2L] * c(sin(angle), cos(angle))
+		tl <- rep_len(translate, 2L)
+		pmat <- rbind(r1, r2, tl)
+	} else {
+		pmat <- as.matrix(pmat)
+	}
+	if ( !identical(dim(pmat), c(3L, 2L)) )
+		stop("pmat must be a 3 x 2 matrix")
+	if ( is.matrix(x) && missing(y) && missing(z) ) {
+		z <- x
+		x <- seq_len(nrow(z))
+		y <- seq_len(ncol(z))
+		co <- expand.grid(x=x, y=y)
+		x <- co$x
+		y <- co$y
+	}
+	co <- cbind(x, y, 1) %*% pmat
+	co <- data.frame(x=co[,1], y=co[,2])
+	if ( !missing(z) ) {
+		xi <- seq(from=min(x), to=max(x), length.out=dimout[1L])
+		yi <- seq(from=min(y), to=max(y), length.out=dimout[2L])
+		zi <- approx2(co$x, co$y, z=z, interp=interp,
+			xout=xi, yout=yi, ...)
+		structure(zi, coord=co)
+	} else {
+		co
+	}
+}

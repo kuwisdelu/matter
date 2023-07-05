@@ -25,6 +25,7 @@ importFrom("stats",
 	"lowess",
 	"na.omit",
 	"nobs",
+	"optim",
 	"predict",
 	"qnorm",
 	"rlnorm",
@@ -326,6 +327,7 @@ export(
 	"warp1_dtw",
 	"warp1_cow",
 	"icor",
+	"binsum",
 	"binvec",
 	"findbins",
 	"downsample",
@@ -350,12 +352,15 @@ export(
 
 export(
 	"approx2",
+	"trans2d"
 	"filt2_ma",
 	"filt2_gauss",
 	"filt2_bi",
 	"filt2_adapt",
 	"filt2_diff",
-	"filt2_guide")
+	"filt2_guide",
+	"warp2_trans",
+	"mi")
 
 export(
 	"roll",

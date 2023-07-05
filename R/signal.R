@@ -106,8 +106,8 @@ filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
-#### Signal alignment and warping ####
-## -----------------------------------
+#### Alignment and warping ####
+## ----------------------------
 
 warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	events = c("maxmin", "max", "min"), lx = NULL, ly = NULL,
@@ -210,19 +210,6 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	xout
 }
 
-icor <- function(x, y)
-{
-	if ( is.integer(x) && is.double(y) )
-		x <- as.double(x)
-	if ( is.double(x) && is.integer(y) )
-		y <- as.double(y)
-	if ( anyNA(x) )
-		x <- x[!is.na(x)]
-	if ( anyNA(y) )
-		y <- y[!is.na(x)]
-	.Call(C_iCorr, x, y, PACKAGE="matter")
-}
-
 warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	nbins = NA_integer_, n = length(y),
 	tol = NA_real_, tol.ref = "abs")
@@ -276,10 +263,23 @@ warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	xout
 }
 
+icor <- function(x, y)
+{
+	if ( is.integer(x) && is.double(y) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(y) )
+		y <- as.double(y)
+	if ( anyNA(x) )
+		x <- x[!is.na(x)]
+	if ( anyNA(y) )
+		y <- y[!is.na(x)]
+	.Call(C_iCorr, x, y, PACKAGE="matter")
+}
+
 #### Binning and downsampling ####
 ## -------------------------------
 
-binvec <- function(x, lower, upper, stat = "sum")
+binsum <- function(x, lower, upper, stat = "sum")
 {
 	if ( missing(upper) ) {
 		upper <- lower[-1] - 1L
@@ -306,7 +306,7 @@ findbins <- function(x, nbins, dynamic = TRUE,
 	}
 	if ( dynamic ) {
 		# calculate SSE from linear regression in each bin
-		sse <- binvec(x, lower, upper, stat="sse")
+		sse <- binsum(x, lower, upper, stat="sse")
 		trace <-  numeric(niter + 1L)
 		trace[1L] <- sum(sse)
 		for ( i in seq_len(niter) )
@@ -317,7 +317,7 @@ findbins <- function(x, nbins, dynamic = TRUE,
 			lower_new <- update[[1L]] + 1L
 			upper_new <- update[[2L]] + 1L
 			# check if new bins are better (lower sum of SSE)
-			sse <- binvec(x, lower_new, upper_new, stat="sse")
+			sse <- binsum(x, lower_new, upper_new, stat="sse")
 			score <- sum(sse)
 			if ( score < trace[i] || !check_converge ) {
 				trace[i + 1L] <- score
@@ -387,6 +387,8 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 	sample <- c(1L, sample, length(x))
 	structure(x[sample], sample=sample)
 }
+
+binvec <- function(x, ...) .Deprecated("binsum")
 
 #### Continuum estimation ####
 ## ----------------------------

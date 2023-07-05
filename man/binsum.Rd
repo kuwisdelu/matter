@@ -1,15 +1,16 @@
-\name{binvec}
+\name{binsum}
 
+\alias{binsum}
 \alias{binvec}
 
-\title{Bin a vector}
+\title{Bin a signal}
 
 \description{
-    Bin a vector based on intervals or groups.
+    Summarize a signal in the bins at the specified indices.
 }
 
 \usage{
-binvec(x, lower, upper, stat = "sum")
+binsum(x, lower, upper, stat = "sum")
 }
 
 \arguments{
@@ -31,9 +32,9 @@ set.seed(1)
 
 x <- sort(runif(20))
 
-binvec(x, c(1,6,11,16), c(5,10,15,20), stat="mean")
+binsum(x, c(1,6,11,16), c(5,10,15,20))
 
-binvec(x, seq(from=1, to=21, by=5), stat="mean")
+binsum(x, seq(from=1, to=21, by=5), stat="mean")
 }
 
 \keyword{utilities}

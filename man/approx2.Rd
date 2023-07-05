@@ -10,7 +10,7 @@
 
 \usage{
 approx2(x, y, z, xout, yout,
-	interp = "cubic", nx = length(x), ny = length(y),
+	interp = "linear", nx = length(x), ny = length(y),
 	tol = NA_real_, tol.ref = "abs", extrap = NA_real_)
 }
 
