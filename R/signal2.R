@@ -79,7 +79,7 @@ filt2_guide <- function(x, width = 5L, guide = x,
 
 warp2_trans <- function(x, y, control = list(),
 	trans = c("rigid", "similarity", "affine"),
-	metric = c("mi", "mse", "cor"), nbins = 64L,
+	metric = c("cor", "mse", "mi"), nbins = 64L,
 	scale = TRUE, dimout = dim(y))
 {
 	# scale x and y and remove NAs
@@ -93,17 +93,17 @@ warp2_trans <- function(x, y, control = list(),
 	}
 	# prepare metric function
 	metric <- match.arg(metric)
-	if ( metric == "mi" ) {
+	if ( metric == "cor" ) {
 		score <- function(x, y) {			
-			-mi(x, y, nbins)
+			-(icor(x, y)^2)
 		}
 	} else if ( metric == "mse" ) {
 		score <- function(x, y) {
 			mean((x - y)^2)
 		}
-	} else if ( metric == "cor" ) {
+	} else if ( metric == "mi" ) {
 		score <- function(x, y) {
-			-icor(x, y)
+			-mi(x, y, nbins)
 		}
 	}
 	# prepare transformation

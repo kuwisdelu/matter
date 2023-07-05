@@ -49,7 +49,7 @@ warp1_cow(x, y, tx = seq_along(x), ty = seq_along(y),
 }
 
 \details{
-    \code{warp1_loc()} uses a simple event-based alignment. Events are defined as local extrema. The events are matched between each signal based on proximity. The shift between the events in \code{x} and \code{y} are calculated and interpolated to find shifts for each sample. The warped signal is then calculated from these shifts. This is a simple heuristic method, but it is relatively fast and typically good enough for peak alignment.
+    \code{warp1_loc()} uses a simple event-based alignment. Events are defined as local extrema. The events are matched between each signal based on proximity. The shift between the events in \code{x} and \code{y} are calculated and interpolated to find shifts for each sample. The warped signal is then calculated from these shifts. This is a simple heuristic method, but it is relatively fast and typically good enough for aligning peak locations.
 
     \code{warp1_dtw()} performs dynamic time warping. In dynamic time warping, each sample in \code{x} is matched to a corresponding sample in \code{y} using dynamic programming to find the optimal matches. The version implemented here is constrained by the given tolerance. This both reduces the necessary memory, and in practice tends to give more realistic (and therefore accurate) results than an unconstrained alignment. An unconstrained alignment can still be obtained by setting a high tolerance, but this may use a lot of memory.
 

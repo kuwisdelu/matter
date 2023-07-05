@@ -59,14 +59,14 @@ test_that("warp2 + align", {
 
 	set.seed(1)
 	x <- matrix(0, nrow=32, ncol=32)
-	x[9:24,9:24] <- 1
-	x <- x + 0.5 * runif(length(x))
+	x[9:24,9:24] <- 10
+	x <- x + runif(length(x))
 
-	y <- trans2d(x, rotate=15, translate=c(-5, -5))
+	y <- trans2d(x, rotate=15, translate=c(-5, 5))
 
-	z1 <- warp2_trans(y, x, metric="mi")
+	z1 <- warp2_trans(y, x, metric="cor")
 	z2 <- warp2_trans(y, x, metric="mse")
-	z3 <- warp2_trans(y, x, metric="cor")
+	z3 <- warp2_trans(y, x, metric="mi")
 
 	expect_gt(mi(z1, x), mi(y, x))
 	expect_gt(mi(z2, x), mi(y, x))
