@@ -46,7 +46,9 @@ Specific improvements include:
 *Matter* can be installed via the *BiocManager* package.
 
 ```{r install, eval=FALSE}
-install.packages("BiocManager")
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
 BiocManager::install("matter")
 ```
 
