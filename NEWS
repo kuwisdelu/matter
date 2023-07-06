@@ -8,10 +8,6 @@ NEW FEATURES
     o Added 'warp2_trans()' for transformation-based
         image registration using 'optim()'
 
-SIGNIFICANT USER-VISIBLE CHANGES
-
-    o Deprecated 'binvec()' in favor of 'binsum()'
-
 CHANGES IN VERSION 2.3.2 [2023-7-4]
 -----------------------------------
 

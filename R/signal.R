@@ -279,7 +279,7 @@ icor <- function(x, y)
 #### Binning and downsampling ####
 ## -------------------------------
 
-binsum <- function(x, lower, upper, stat = "sum")
+binvec <- function(x, lower, upper, stat = "sum")
 {
 	if ( missing(upper) ) {
 		upper <- lower[-1] - 1L
@@ -306,7 +306,7 @@ findbins <- function(x, nbins, dynamic = TRUE,
 	}
 	if ( dynamic ) {
 		# calculate SSE from linear regression in each bin
-		sse <- binsum(x, lower, upper, stat="sse")
+		sse <- binvec(x, lower, upper, stat="sse")
 		trace <-  numeric(niter + 1L)
 		trace[1L] <- sum(sse)
 		for ( i in seq_len(niter) )
@@ -317,7 +317,7 @@ findbins <- function(x, nbins, dynamic = TRUE,
 			lower_new <- update[[1L]] + 1L
 			upper_new <- update[[2L]] + 1L
 			# check if new bins are better (lower sum of SSE)
-			sse <- binsum(x, lower_new, upper_new, stat="sse")
+			sse <- binvec(x, lower_new, upper_new, stat="sse")
 			score <- sum(sse)
 			if ( score < trace[i] || !check_converge ) {
 				trace[i + 1L] <- score
@@ -387,8 +387,6 @@ downsample <- function(x, n = length(x) / 10L, domain = NULL,
 	sample <- c(1L, sample, length(x))
 	structure(x[sample], sample=sample)
 }
-
-binvec <- function(x, ...) .Deprecated("binsum")
 
 #### Continuum estimation ####
 ## ----------------------------
@@ -583,6 +581,105 @@ findpeaks <- function(x, prominence = NULL, bounds = TRUE)
 	if ( length(ann) > 0L )
 		attributes(peaks) <- ann
 	peaks
+}
+
+findridges <- function(x, maxdists, ngaps)
+{
+	maxs <- matrix(nrow=nrow(x), ncol=ncol(x))
+	for ( i in seq_len(ncol(x)) )
+		maxs[,i] <- locmax(x[,i])
+	# initialize ridges at highest column
+	start <- max(which(colSums(maxs) > 0))
+	ridges <- lapply(which(maxs[,start]), 
+		function(row) {
+			ridge <- matrix(NA_integer_, nrow=start, ncol=2L)
+			ridge[1L,] <- c(row, start)
+			ridge
+		})
+	outridges <- list()
+	gaps <- integer(length(ridges))
+	ns <- rep.int(1L, length(ridges))
+	# iterate toward lowest column
+	for ( col in (start - 1L):1L )
+	{
+		# get last rows from current ridges
+		prev <- vapply(seq_along(ridges),
+			function(i) ridges[[i]][ns[i],1L], integer(1L))
+		gaps <- gaps + 1L
+		# connect existing ridges
+		rows <- which(maxs[,col])
+		lines <- bsearch(prev, rows, tol=maxdists[col])
+		lines <- rows[lines[!is.na(lines)]]
+		for ( i in seq_along(lines) )
+		{
+			row <- lines[i]
+			ns[i] <- ns[i] + 1L
+			ridges[[i]][ns[i],] <- c(row, col)
+			gaps[i] <- 0L
+		}
+		# prepare list of new ridges
+		rows <- setdiff(rows, lines)
+		newlen <- length(rows)
+		if ( newlen > 0L ) {
+			newridges <- lapply(rows,
+				function(row) {
+					ridge <- matrix(NA_integer_, nrow=col, ncol=2L)
+					ridge[1L,] <- c(row, col)
+					ridge
+				})
+			ridges <- c(ridges, newridges)
+			gaps <- c(gaps, rep.int(0L, newlen))
+			ns <- c(ns, rep.int(1L, newlen))
+		}
+		# save and remove ridges with large gaps
+		rm <- gaps > ngaps
+		if ( any(rm) ) {
+			outridges <- c(outridges, ridges[rm])
+			ridges <- ridges[!rm]
+			gaps <- gaps[!rm]
+			ns <- ns[!rm]
+		}
+	}
+	outridges <- c(outridges, ridges)
+	outridges
+}
+
+ricker <- function(n, a = 1)
+{
+	x <- seq(-n, n, length.out=n) / 2
+	C <- 2 / (sqrt(3 * a) * pi^(0.25))
+	m <- (1 - (x / a)^2)
+	g <- exp(-(x / a)^2 / 2)
+	C * m * g
+}
+
+cwt <- function(x, wavelet = ricker, widths = NULL)
+{
+	if ( is.null(widths) )
+		widths <- c(1, seq(2, 30, 2), seq(32, 64, 4))
+	# find best length for fft
+	nx <- length(x)
+	nw <- pmin(10 * widths, nx)
+	n <- nextn(nx + max(nw) - 1L, 2L)
+	y <- fft(c(x, rep.int(0, n - nx)))
+	# prepare coefficient matrix
+	w <- numeric(n)
+	z <- matrix(nrow=nx, ncol=length(widths))
+	widths <- sort(widths)
+	for ( i in seq_along(widths) ) {
+		# calculate padded wavelet
+		w[seq_len(nw[i])] <- wavelet(nw[i], widths[i])
+		# perform the convolution
+		zi <- Re(fft(y * Conj(fft(w)), inverse=TRUE))
+		# shift by half wavelet length
+		h <- nw[i] %/% 2L
+		right <- 1L:(nx - h)
+		left <- (n - h + 1L):n
+		zi <- zi[c(left, right)] / n
+		# assign coefficients
+		z[,i] <- zi
+	}
+	z
 }
 
 peakwidths <- function(x, peaks, domain = NULL,

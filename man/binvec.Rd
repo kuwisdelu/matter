@@ -1,6 +1,6 @@
-\name{binsum}
+\name{binvec}
 
-\alias{binsum}
+\alias{binvec}
 \alias{binvec}
 
 \title{Bin a signal}
@@ -10,7 +10,7 @@
 }
 
 \usage{
-binsum(x, lower, upper, stat = "sum")
+binvec(x, lower, upper, stat = "sum")
 }
 
 \arguments{
@@ -32,9 +32,9 @@ set.seed(1)
 
 x <- sort(runif(20))
 
-binsum(x, c(1,6,11,16), c(5,10,15,20))
+binvec(x, c(1,6,11,16), c(5,10,15,20))
 
-binsum(x, seq(from=1, to=21, by=5), stat="mean")
+binvec(x, seq(from=1, to=21, by=5), stat="mean")
 }
 
 \keyword{utilities}
