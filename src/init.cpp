@@ -52,7 +52,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(warpDTW, 6),
 	CALLDEF(warpCOW, 8),
 	CALLDEF(iCorr, 2),
-	CALLDEF(binVector, 4),
+	CALLDEF(binVector, 5),
 	CALLDEF(binUpdate, 3),
 	CALLDEF(downsampleLTOB, 4),
 	CALLDEF(downsampleLTTB, 4),

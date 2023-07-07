@@ -26,7 +26,9 @@
 #define BIN_MIN		4
 #define BIN_SD		5
 #define BIN_VAR		6
-#define BIN_SSE		7
+#define BIN_MAD		7
+#define BIN_QUANT	8
+#define BIN_SSE		9
 
 // diffusivity
 #define DIFF_PM1 1 // Perona-Malik #1
@@ -253,6 +255,32 @@ double do_sd(T * x, index_t lower, index_t upper)
 	if ( isNA(sx) )
 		return NA_REAL;
 	return std::sqrt(sx);
+}
+
+template<typename T>
+double do_mad(T * x, index_t lower, index_t upper)
+{
+	size_t n = upper - lower + 1;
+	return quick_mad(x + lower, n);
+}
+
+template<typename T>
+double do_quant(T * x, index_t lower, index_t upper, double prob)
+{
+	index_t n = upper - lower + 1;
+	T * dup = R_Calloc(n, T);
+	std::memcpy(dup, x + lower, n * sizeof(T));
+	// stats::quantile type 3 (nearest order statistic)
+	double nppm = n * prob - 0.5;
+	int k, j = static_cast<int>(std::floor(nppm));
+	if ( !equal(nppm - j, 0.0) || j % 2 == 1 )
+		k = j;
+	else
+		k = j - 1;
+	// find the kth order statistic by sorting x
+	T q = quick_select(dup, 0, n, wrap_ind(k, n));
+	Free(dup);
+	return static_cast<double>(q);
 }
 
 //// Summarize via kernel 
@@ -816,7 +844,7 @@ void warp_cow(Tx * x, Tx * y, Tt * tx, Tt * ty, int nx, int ny,
 
 template<typename T>
 void bin_vector(T * x, int n, int * lower, int * upper,
-	int nbin, double * buffer, int stat = BIN_SUM)
+	int nbin, double * buffer, int stat = BIN_SUM, double prob = 0.5)
 {
 	for ( size_t i = 0; i < nbin; i++ )
 	{
@@ -844,6 +872,12 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 					break;
 				case BIN_VAR:
 					buffer[i] = do_var(x, lower[i], upper[i]);
+					break;
+				case BIN_MAD:
+					buffer[i] = do_mad(x, lower[i], upper[i]);
+					break;
+				case BIN_QUANT:
+					buffer[i] = do_quant(x, lower[i], upper[i], prob);
 					break;
 			}
 		}

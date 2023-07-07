@@ -639,7 +639,7 @@ SEXP warpCOW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 	return result;
 }
 
-SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat, SEXP prob)
 {
 	SEXP ans;
 	if ( LENGTH(lower) != LENGTH(upper) )
@@ -648,11 +648,11 @@ SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat)
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			bin_vector(INTEGER(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				LENGTH(lower), REAL(ans), Rf_asInteger(stat));
+				LENGTH(lower), REAL(ans), Rf_asInteger(stat), Rf_asReal(prob));
 			break;
 		case REALSXP:
 			bin_vector(REAL(x), LENGTH(x), INTEGER(lower), INTEGER(upper),
-				LENGTH(lower), REAL(ans), Rf_asInteger(stat));
+				LENGTH(lower), REAL(ans), Rf_asInteger(stat), Rf_asReal(prob));
 			break;
 		default:
 			Rf_error("unsupported data type");

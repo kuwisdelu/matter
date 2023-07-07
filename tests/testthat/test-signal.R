@@ -99,26 +99,63 @@ test_that("warp + align", {
 
 })
 
-test_that("binvec", {
+test_that("binvec + rollvec", {
 
 	set.seed(1)
 	x <- runif(50)
-	u <- seq(from=1, to=50, by=10)
-	v <- seq(from=10, to=50, by=10)
-	binfun <- function(x, u, v, fun) {
-		mapply(function(i, j) fun(x[i:j]), u, v)
+	l <- seq(from=1, to=50, by=10)
+	u <- seq(from=10, to=50, by=10)
+	binfun <- function(x, l, u, fun, ...) {
+		mapply(function(i, j) fun(x[i:j], ...), l, u)
+	}
+	rollfun <- function(x, width, fun, ...) {
+		sapply(roll(x, width, na.drop=TRUE), fun, ...)
 	}
 
-	expect_equal(binfun(x, u, v, sum), binvec(x, u, v, "sum"))
-	expect_equal(binfun(x, u, v, mean), binvec(x, u, v, "mean"))
-	expect_equal(binfun(x, u, v, max), binvec(x, u, v, "max"))
-	expect_equal(binfun(x, u, v, min), binvec(x, u, v, "min"))
-	expect_equal(binfun(x, u, v, sd), binvec(x, u, v, "sd"))
-	expect_equal(binfun(x, u, v, var), binvec(x, u, v, "var"))
-
-	f <- seq(from=1, to=51, by=10)
+	expect_equal(binfun(x, l, u, sum), binvec(x, l, u, "sum"))
+	expect_equal(binfun(x, l, u, mean), binvec(x, l, u, "mean"))
+	expect_equal(binfun(x, l, u, max), binvec(x, l, u, "max"))
+	expect_equal(binfun(x, l, u, min), binvec(x, l, u, "min"))
+	expect_equal(binfun(x, l, u, sd), binvec(x, l, u, "sd"))
+	expect_equal(binfun(x, l, u, var), binvec(x, l, u, "var"))
+	expect_equal(binfun(x, l, u, mad), binvec(x, l, u, "mad"))
 	
-	expect_equal(binvec(x, u, v), binvec(x, f))
+	expect_equivalent(
+		binfun(x, l, u, quantile, probs=0, type=3),
+		binvec(x, l, u, "quantile", prob=0))
+	expect_equivalent(
+		binfun(x, l, u, quantile, probs=1/3, type=3),
+		binvec(x, l, u, "quantile", prob=1/3))
+	expect_equivalent(
+		binfun(x, l, u, quantile, probs=2/3, type=3),
+		binvec(x, l, u, "quantile", prob=2/3))
+	expect_equivalent(
+		binfun(x, l, u, quantile, probs=1, type=3),
+		binvec(x, l, u, "quantile", prob=1))
+
+	expect_equal(binvec(x, l, u), binvec(x, lower=l))
+	expect_equal(binvec(x, l, u), binvec(x, upper=u))
+
+	expect_equal(rollfun(x, 7L, sum), rollvec(x, 7L, "sum"))
+	expect_equal(rollfun(x, 7L, mean), rollvec(x, 7L, "mean"))
+	expect_equal(rollfun(x, 7L, max), rollvec(x, 7L, "max"))
+	expect_equal(rollfun(x, 7L, min), rollvec(x, 7L, "min"))
+	expect_equal(rollfun(x, 7L, sd), rollvec(x, 7L, "sd"))
+	expect_equal(rollfun(x, 7L, var), rollvec(x, 7L, "var"))
+	expect_equal(rollfun(x, 7L, mad), rollvec(x, 7L, "mad"))
+
+	expect_equivalent(
+		rollfun(x, 11L, quantile, probs=0, type=3),
+		rollvec(x, 11L, "quantile", prob=0))
+	expect_equivalent(
+		rollfun(x, 11L, quantile, probs=1/3, type=3),
+		rollvec(x, 11L, "quantile", prob=1/3))
+	expect_equivalent(
+		rollfun(x, 11L, quantile, probs=2/3, type=3),
+		rollvec(x, 11L, "quantile", prob=2/3))
+	expect_equivalent(
+		rollfun(x, 11L, quantile, probs=1, type=3),
+		rollvec(x, 11L, "quantile", prob=1))
 
 })
 

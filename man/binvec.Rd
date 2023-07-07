@@ -10,7 +10,7 @@
 }
 
 \usage{
-binvec(x, lower, upper, stat = "sum")
+binvec(x, lower, upper, stat = "sum", prob = 0.5)
 }
 
 \arguments{
@@ -18,7 +18,9 @@ binvec(x, lower, upper, stat = "sum")
 
 	\item{lower, upper}{The (inclusive) lower and upper indices of the bins}
 
-	\item{stat}{The statistic used to summarize the values in each bin. Must be one of "sum", "mean", "max", "min", "sd", and "var".}
+	\item{stat}{The statistic used to summarize the values in each bin. Must be one of "sum", "mean", "max", "min", "sd", "var", "mad", or "quantile".}
+
+	\item{prob}{The quantile for \code{stat = "quantile"}.}
 }
 
 \value{

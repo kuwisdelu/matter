@@ -303,10 +303,6 @@ export(
 	"chunkMapply")
 
 export(
-	"roll",
-	"rollapply")
-
-export(
 	"uuid",
 	"hex2raw",
 	"raw2hex")
@@ -334,6 +330,7 @@ export(
 	"warp1_cow",
 	"icor",
 	"binvec",
+	"rollvec",
 	"findbins",
 	"downsample",
 	"locmax",
@@ -372,6 +369,7 @@ export(
 	"trans2d")
 
 export(
+	"roll",
 	"seq_rel",
 	"shingles",
 	"dpal",

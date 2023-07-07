@@ -279,21 +279,36 @@ icor <- function(x, y)
 #### Binning and downsampling ####
 ## -------------------------------
 
-binvec <- function(x, lower, upper, stat = "sum")
+binvec <- function(x, lower, upper, stat = "sum", prob = 0.5)
 {
-	if ( missing(upper) ) {
-		upper <- lower[-1] - 1L
-		lower <- lower[-length(lower)]
+	if ( missing(lower) && missing(upper) ) {
+		stop("must specify one of 'lower' or 'upper'")
+	} else if ( missing(upper) ) {
+		upper <- c(lower[-1] - 1L, length(x))
+	} else if ( missing(lower) ) {
+		lower <- c(1L, upper[-length(upper)] + 1L)
 	}
 	.Call(C_binVector, x, as.integer(lower - 1L), as.integer(upper - 1L),
-		as_binstat(stat), PACKAGE="matter")
+		as_binstat(stat), prob, PACKAGE="matter")
+}
+
+rollvec <- function(x, width, stat = "sum", prob = 0.5)
+{
+	if ( width %% 2L != 1L )
+		width <- 1L + 2L * as.integer(width %/% 2)
+	end <- as.integer(length(x) - 1L)
+	r <- as.integer(width %/% 2)
+	i <- seq(0L, end, by=1L)
+	lower <- pmax(i - r, 0L)
+	upper <- pmin(i + r, end)
+	.Call(C_binVector, x, lower, upper,
+		as_binstat(stat), prob, PACKAGE="matter")
 }
 
 findbins <- function(x, nbins, dynamic = TRUE,
 	niter = NA, limits.only = FALSE)
 {
 	n <- floor(nbins)
-	# TODO check that this can be deleted
 	width <- ceiling(length(x) / n)
 	breaks <- floor(seq(from=width, to=length(x) - width, length.out=n - 1L))
 	lower <- c(1L, breaks + 1L)
@@ -305,6 +320,8 @@ findbins <- function(x, nbins, dynamic = TRUE,
 		check_converge <- FALSE
 	}
 	if ( dynamic ) {
+		if ( nbins < 3L )
+			stop("need >= 3 bins for dynamic binning")
 		# calculate SSE from linear regression in each bin
 		sse <- binvec(x, lower, upper, stat="sse")
 		trace <-  numeric(niter + 1L)
@@ -447,49 +464,57 @@ estbase_med <- function(x, width = 100L)
 #### Noise estimation ####
 ## -----------------------
 
-estnoise_sd <- function(x, nbins = 1L, dynamic = TRUE)
+estnoise_sd <- function(x, width = length(x) %/% 20L,
+	nbins = NA, dynamic = TRUE)
 {
-	if ( nbins > 1L ) {
-		xb <- findbins(x, nbins=nbins, dynamic=dynamic)
-		fun <- function(xi) rep.int(sd(xi, na.rm=TRUE), length(xi))
-		noise <- unlist(lapply(xb, fun))
-		noise <- lowess(noise)$y
+	if ( is.na(nbins) ) {
+		width <- max(5L, width)
+		noise <- rollvec(x, width, stat="sd")
 	} else {
-		noise <- sd(x, na.rm=TRUE)
-		noise <- rep.int(noise, length(x))
+		fn <- function(xi) rep.int(sd(xi, na.rm=TRUE), length(xi))
+		if ( nbins > 1L ) {
+			xb <- findbins(x, nbins=nbins, dynamic=dynamic)
+			ns <- unlist(lapply(xb, fn))
+			noise <- lowess(ns)$y
+		} else {
+			noise <- fn(x)
+		}
 	}
 	noise
 }
 
-estnoise_mad <- function(x, nbins = 1L, dynamic = TRUE)
+estnoise_mad <- function(x, width = length(x) %/% 20L,
+	nbins = NA, dynamic = TRUE)
 {
-	if ( nbins > 1L ) {
-		xb <- findbins(x, nbins=nbins, dynamic=dynamic)
-		fun <- function(xi) rep.int(mad(xi, na.rm=TRUE), length(xi))
-		noise <- unlist(lapply(xb, fun))
-		noise <- lowess(noise)$y
+	if ( is.na(nbins) ) {
+		width <- max(5L, width)
+		noise <- rollvec(x, width, stat="mad")
 	} else {
-		noise <- mad(x, na.rm=TRUE)
-		noise <- rep.int(noise, length(x))
+		fn <- function(xi) rep.int(mad(xi, na.rm=TRUE), length(xi))
+		if ( nbins > 1L ) {
+			xb <- findbins(x, nbins=nbins, dynamic=dynamic)
+			ns <- unlist(lapply(xb, fn))
+			noise <- lowess(ns)$y
+		} else {
+			noise <- fn(x)
+		}
 	}
 	noise
 }
 
 estnoise_diff <- function(x, nbins = 1L, dynamic = TRUE)
 {
+	fn <- function(xi) {
+		dx <- mean(diff(xi), na.rm=TRUE)
+		ns <- mean(abs(xi - dx), na.rm=TRUE)
+		noise <- rep.int(ns, length(xi))
+	}
 	if ( nbins > 1L ) {
 		xb <- findbins(x, nbins=nbins, dynamic=dynamic)
-		fun <- function(xi) {
-			dxi <- mean(diff(xi), na.rm=TRUE)
-			nsi <- mean(abs(xi - dxi), na.rm=TRUE)
-			rep.int(nsi, length(xi))
-		}
-		noise <- unlist(lapply(xb, fun))
-		noise <- lowess(noise)$y
+		ns <- unlist(lapply(xb, fn))
+		noise <- lowess(ns)$y
 	} else {
-		dx <- mean(diff(x), na.rm=TRUE)
-		noise <- mean(abs(x - dx), na.rm=TRUE)
-		noise <- rep.int(noise, length(x))
+		noise <- fn(x)
 	}
 	noise
 }
@@ -583,30 +608,39 @@ findpeaks <- function(x, prominence = NULL, bounds = TRUE)
 	peaks
 }
 
-findpeaks_cwt <- function(x, snr = 1, wavelet = ricker, scales = NULL,
+findpeaks_cwt <- function(x, snr = 2, wavelet = ricker, scales = NULL,
 	maxdists = scales, ngaps = 3L, ridgelen = length(scales) %/% 4L,
-	fnoise = 0.95, width = length(x) %/% 10L, bounds = TRUE)
+	qnoise = 0.95, width = length(x) %/% 20L, bounds = TRUE)
 {
 	if ( is.null(scales) )
 		scales <- c(1, seq(2, 30, 2), seq(32, 64, 4))
 	# continuous wavelet transform
 	coefs <- cwt(x, wavelet, scales)
-	# find ridge lines
-	ridges <- findridges(coefs, maxdists, ngaps)
+	# find ridge lines (include raw signal)
+	ridges <- findridges(cbind(x, coefs), c(1, maxdists), ngaps)
+	ridges <- lapply(ridges,
+		function(ridge) {
+			ridge[,2L] <- ridge[,2L] - 1L
+			ridge
+		})
 	# filter based on ridge length
 	ridges <- ridges[vapply(ridges, nrow, integer(1L)) >= ridgelen]
-	# filter based on signal-to-noise ratio
-	noise <- rollapply(abs(coefs[,1L]), width, quantile,
-		probs=fnoise, na.rm=TRUE, template=numeric(1))
-	snrs <- vapply(ridges, function(ridge) {
-			max(coefs[ridge]) / noise[ridge[1L,1L]]
-		}, numeric(1L))
+	# get peak locations
+	peaks <- vapply(ridges, function(ridge) ridge[1L,1L], integer(1L))
+	# get signal-to-noise ratio
+	width <- max(5L, width)
+	halfwidth <- width %/% 2L
+	i <- pmax(peaks - halfwidth, 1L)
+	j <- pmin(peaks + halfwidth, nrow(coefs))
+	signal <- vapply(ridges, function(ridge) max(coefs[ridge]), numeric(1L))
+	noise <- binvec(abs(coefs[,1L]), i, j, stat="quantile", prob=qnoise)
+	# filter based on SNR
+	snrs <- signal / noise
 	ridges <- ridges[snrs >= snr]
+	peaks <- peaks[snrs >= snr]
 	snrs <- snrs[snrs >= snr]
-	# get peak locations and snrs
-	peaks <- vapply(ridges,
-		function(ridge) ridge[1L,1L], integer(1L))
-	ann <- data.frame(snr=snrs)
+	# get peak annotations
+	ann <- data.frame(snr=snrs, ridges=I(ridges))
 	if ( isTRUE(bounds) )
 	{
 		# find peak boundaries (nearest local maxima)
@@ -645,10 +679,12 @@ findridges <- function(x, maxdists, ngaps)
 		# connect existing ridges
 		rows <- which(maxs[,col])
 		lines <- bsearch(prev, rows, tol=maxdists[col])
-		lines <- rows[lines[!is.na(lines)]]
+		lines <- rows[lines]
 		for ( i in seq_along(lines) )
 		{
 			row <- lines[i]
+			if ( is.na(row) )
+				next
 			ns[i] <- ns[i] + 1L
 			ridges[[i]][ns[i],] <- c(row, col)
 			gaps[i] <- 0L
@@ -690,7 +726,8 @@ findridges <- function(x, maxdists, ngaps)
 	# sort by ridge locations at lowest column
 	locations <- vapply(outridges,
 		function(ridge) ridge[1L,1L], integer(1L))
-	outridges[order(locations)]
+	outridges <- outridges[order(locations)]
+	outridges
 }
 
 ricker <- function(n, a = 1)

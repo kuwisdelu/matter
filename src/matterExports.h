@@ -79,7 +79,7 @@ SEXP warpDTW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 SEXP warpCOW(SEXP x, SEXP y, SEXP tx, SEXP ty,
 	SEXP x_nodes, SEXP y_nodes, SEXP tol, SEXP tol_ref);
 SEXP iCorr(SEXP x, SEXP y);
-SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat);
+SEXP binVector(SEXP x, SEXP lower, SEXP upper, SEXP stat, SEXP prob);
 SEXP binUpdate(SEXP score, SEXP lower, SEXP upper);
 SEXP downsampleLTOB(SEXP x, SEXP t, SEXP lower, SEXP upper);
 SEXP downsampleLTTB(SEXP x, SEXP t, SEXP lower, SEXP upper);

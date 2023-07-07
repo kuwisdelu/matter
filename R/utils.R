@@ -286,7 +286,9 @@ as_binstat <- function(x) {
 		# location (1-4)
 		"sum", "mean", "max", "min",
 		# spread (5-7)
-		"sd", "var", "sse")
+		"sd", "var", "mad",
+		# other (8-9)
+		"quantile", "sse")
 	make_code(codes, x[1L], nomatch=1L)
 }
 
@@ -641,6 +643,19 @@ bplapply_int <- function(X, FUN, ..., BPPARAM = NULL) {
 	} else {
 		lapply(X, FUN, ...)
 	}
+}
+
+roll <- function(x, width, na.drop = FALSE, fill = NA) {
+	r <- floor(width / 2)
+	x <- lapply(seq_along(x),
+		function(i) {
+			j <- (i - r):(i + r)
+			j[j < 1L | j > length(x)] <- NA
+			ifelse(!is.na(j), x[j], fill)
+		})
+	if ( na.drop )
+		x <- lapply(x, function(xi) xi[!is.na(xi)])
+	x
 }
 
 rmatmul <- function(x, y, useOuter = FALSE) {
