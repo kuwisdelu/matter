@@ -303,6 +303,10 @@ export(
 	"chunkMapply")
 
 export(
+	"roll",
+	"rollapply")
+
+export(
 	"uuid",
 	"hex2raw",
 	"raw2hex")
@@ -344,6 +348,10 @@ export(
 	"estnoise_loess",
 	"estnoise_filt",
 	"findpeaks",
+	"findpeaks_cwt",
+	"findridges",
+	"ricker",
+	"cwt",
 	"peakwidths",
 	"peakareas",
 	"binpeaks",
@@ -364,7 +372,6 @@ export(
 	"trans2d")
 
 export(
-	"roll",
 	"seq_rel",
 	"shingles",
 	"dpal",

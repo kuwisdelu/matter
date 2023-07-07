@@ -348,3 +348,44 @@ remote_collect <- function(ans, path, simplify) {
 	x
 }
 
+#### Rolling-Apply functions and utilities ####
+## ---------------------------------------------
+
+roll <- function(x, width, na.drop = FALSE, fill = NA) {
+	r <- floor(width / 2)
+	x <- lapply(seq_along(x),
+		function(i) {
+			j <- (i - r):(i + r)
+			j[j < 1L | j > length(x)] <- NA
+			ifelse(!is.na(j), x[j], fill)
+		})
+	if ( na.drop )
+		x <- lapply(x, function(xi) xi[!is.na(xi)])
+	x
+}
+
+rollapply <- function(x, width, FUN, ...,
+	simplify = TRUE, template = NULL)
+{
+	r <- floor(width / 2)
+	if ( is.null(template) ) {
+		result <- lapply(seq_along(x),
+			function(i) {
+				j <- (i - r):(i + r)
+				j[j < 1L | j > length(x)] <- NA
+				FUN(x[j], ...)
+			})
+		if ( simplify )
+			result <- simplify2array(result)
+	} else {
+		result <- vapply(seq_along(x),
+			function(i) {
+				j <- (i - r):(i + r)
+				j[j < 1L | j > length(x)] <- NA
+				FUN(x[j], ...)
+			}, template)
+	}
+	result
+}
+
+

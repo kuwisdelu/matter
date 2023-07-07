@@ -643,19 +643,6 @@ bplapply_int <- function(X, FUN, ..., BPPARAM = NULL) {
 	}
 }
 
-roll <- function(x, width = 3L, na.drop = FALSE, fill = NA) {
-	r <- floor(width / 2)
-	x <- lapply(seq_along(x),
-		function(i) {
-			j <- (i - r):(i + r)
-			j[j < 1L | j > length(x)] <- NA
-			ifelse(!is.na(j), x[j], fill)
-		})
-	if ( na.drop )
-		x <- lapply(x, function(xi) xi[!is.na(xi)])
-	x
-}
-
 rmatmul <- function(x, y, useOuter = FALSE) {
 	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
 	if ( useOuter ) {

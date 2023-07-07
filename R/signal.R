@@ -555,7 +555,7 @@ findpeaks <- function(x, prominence = NULL, bounds = TRUE)
 	{
 		# find peak boundaries (nearest local maxima)
 		bounds <- .Call(C_peakBoundaries, x,
-		as.integer(peaks - 1L), PACKAGE="matter")
+			as.integer(peaks - 1L), PACKAGE="matter")
 		ann$left_bounds <- bounds[[1L]] + 1L
 		ann$right_bounds <- bounds[[2L]] + 1L
 	}
@@ -580,6 +580,42 @@ findpeaks <- function(x, prominence = NULL, bounds = TRUE)
 	}
 	if ( length(ann) > 0L )
 		attributes(peaks) <- ann
+	peaks
+}
+
+findpeaks_cwt <- function(x, snr = 1, wavelet = ricker, scales = NULL,
+	maxdists = scales, ngaps = 3L, ridgelen = length(scales) %/% 4L,
+	fnoise = 0.95, width = length(x) %/% 10L, bounds = TRUE)
+{
+	if ( is.null(scales) )
+		scales <- c(1, seq(2, 30, 2), seq(32, 64, 4))
+	# continuous wavelet transform
+	coefs <- cwt(x, wavelet, scales)
+	# find ridge lines
+	ridges <- findridges(coefs, maxdists, ngaps)
+	# filter based on ridge length
+	ridges <- ridges[vapply(ridges, nrow, integer(1L)) >= ridgelen]
+	# filter based on signal-to-noise ratio
+	noise <- rollapply(abs(coefs[,1L]), width, quantile,
+		probs=fnoise, na.rm=TRUE, template=numeric(1))
+	snrs <- vapply(ridges, function(ridge) {
+			max(coefs[ridge]) / noise[ridge[1L,1L]]
+		}, numeric(1L))
+	ridges <- ridges[snrs >= snr]
+	snrs <- snrs[snrs >= snr]
+	# get peak locations and snrs
+	peaks <- vapply(ridges,
+		function(ridge) ridge[1L,1L], integer(1L))
+	ann <- data.frame(snr=snrs)
+	if ( isTRUE(bounds) )
+	{
+		# find peak boundaries (nearest local maxima)
+		bounds <- .Call(C_peakBoundaries, x,
+			as.integer(peaks - 1L), PACKAGE="matter")
+		ann$left_bounds <- bounds[[1L]] + 1L
+		ann$right_bounds <- bounds[[2L]] + 1L
+	}
+	attributes(peaks) <- ann
 	peaks
 }
 
@@ -641,7 +677,20 @@ findridges <- function(x, maxdists, ngaps)
 		}
 	}
 	outridges <- c(outridges, ridges)
-	outridges
+	for ( i in seq_along(outridges) )
+	{
+		# sort from lowest column to highest
+		ridge <- outridges[[i]]
+		if ( anyNA(ridge) ) {
+			na <- is.na(ridge[,1L])
+			ridge <- ridge[!na,,drop=FALSE]
+		}
+		outridges[[i]] <- ridge[nrow(ridge):1L,,drop=FALSE]
+	}
+	# sort by ridge locations at lowest column
+	locations <- vapply(outridges,
+		function(ridge) ridge[1L,1L], integer(1L))
+	outridges[order(locations)]
 }
 
 ricker <- function(n, a = 1)
@@ -653,22 +702,22 @@ ricker <- function(n, a = 1)
 	C * m * g
 }
 
-cwt <- function(x, wavelet = ricker, widths = NULL)
+cwt <- function(x, wavelet = ricker, scales = NULL)
 {
-	if ( is.null(widths) )
-		widths <- c(1, seq(2, 30, 2), seq(32, 64, 4))
+	if ( is.null(scales) )
+		scales <- c(1, seq(2, 30, 2), seq(32, 64, 4))
 	# find best length for fft
 	nx <- length(x)
-	nw <- pmin(10 * widths, nx)
+	nw <- pmin(10 * scales, nx)
 	n <- nextn(nx + max(nw) - 1L, 2L)
 	y <- fft(c(x, rep.int(0, n - nx)))
 	# prepare coefficient matrix
 	w <- numeric(n)
-	z <- matrix(nrow=nx, ncol=length(widths))
-	widths <- sort(widths)
-	for ( i in seq_along(widths) ) {
+	z <- matrix(nrow=nx, ncol=length(scales))
+	scales <- sort(scales)
+	for ( i in seq_along(scales) ) {
 		# calculate padded wavelet
-		w[seq_len(nw[i])] <- wavelet(nw[i], widths[i])
+		w[seq_len(nw[i])] <- wavelet(nw[i], scales[i])
 		# perform the convolution
 		zi <- Re(fft(y * Conj(fft(w)), inverse=TRUE))
 		# shift by half wavelet length
