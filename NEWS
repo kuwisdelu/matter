@@ -1,4 +1,13 @@
 
+CHANGES IN VERSION 2.3.4 [2023-7-7]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added CWT based peak detection with
+        'findpeaks_cwt()', 'findridges()' and 'cwt()'
+    o Added 'estnoise_quant()'
+
 CHANGES IN VERSION 2.3.3 [2023-7-5]
 -----------------------------------
 
@@ -41,7 +50,7 @@ NEW FEATURES
         'estbase_hull()', 'estbase_snip()', 'estbase_med()'
     o Added local noise estimation including: 'estnoise_sd()',
         'estnoise_mad()', 'estnoise_diff()',
-        'estnoise_loess()', 'estnoise_filt()'
+        'estnoise_filt()'
     o Added peak processing including: 'findpeaks()',
         'peakwidths()', 'peakareas()', 'binpeaks()', 'mergepeaks()'
     o Added 'downsample()' for signal and time series visualization
