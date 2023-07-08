@@ -1,4 +1,16 @@
 
+#### Wavelets and Kernels ####
+## ---------------------------
+
+ricker <- function(n, a = 1)
+{
+	x <- seq(-n, n, length.out=n) / 2
+	C <- 2 / (sqrt(3 * a) * pi^(0.25))
+	m <- (1 - (x / a)^2)
+	g <- exp(-(x / a)^2 / 2)
+	C * m * g
+}
+
 #### Filtering and Smoothing ####
 ## -----------------------------
 
@@ -11,6 +23,15 @@ filt1_ma <- function(x, width = 5L)
 	.Call(C_meanFilter, x, width, PACKAGE="matter")
 }
 
+filt1_conv <- function(x, weights)
+{
+	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
+		stop("x must be a vector")
+	if ( length(weights) %% 2L != 1L )
+		stop("length of weights must be odd")
+	.Call(C_linearFilter, x, weights, PACKAGE="matter")
+}
+
 filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
@@ -18,8 +39,8 @@ filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	radius <- width %/% 2
-	i <- seq(from=-radius, to=radius, by=1L)
-	weights <- dnorm(i, sd=sd)
+	z <- seq(from=-radius, to=radius, by=1L)
+	weights <- dnorm(z, sd=sd)
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
@@ -464,47 +485,26 @@ estbase_med <- function(x, width = 100L)
 #### Noise estimation ####
 ## -----------------------
 
-estnoise_sd <- function(x, width = length(x) %/% 20L,
-	nbins = NA, dynamic = TRUE)
+estnoise_sd <- function(x, width = 25L, wavelet = ricker)
 {
-	if ( is.na(nbins) ) {
-		width <- max(5L, width)
-		noise <- rollvec(x, width, stat="sd")
-	} else {
-		fn <- function(xi) rep.int(sd(xi, na.rm=TRUE), length(xi))
-		if ( nbins > 1L ) {
-			xb <- findbins(x, nbins=nbins, dynamic=dynamic)
-			ns <- unlist(lapply(xb, fn))
-			noise <- lowess(ns)$y
-		} else {
-			noise <- fn(x)
-		}
-	}
-	noise
+	if ( is.function(wavelet) )
+		x <- cwt(x, wavelet, scales=1)
+	width <- min(width, length(x))
+	rollvec(x, width, stat="sd")
 }
 
-estnoise_mad <- function(x, width = length(x) %/% 20L,
-	nbins = NA, dynamic = TRUE)
+estnoise_mad <- function(x, width = 25L, wavelet = ricker)
 {
-	if ( is.na(nbins) ) {
-		width <- max(5L, width)
-		noise <- rollvec(x, width, stat="mad")
-	} else {
-		fn <- function(xi) rep.int(mad(xi, na.rm=TRUE), length(xi))
-		if ( nbins > 1L ) {
-			xb <- findbins(x, nbins=nbins, dynamic=dynamic)
-			ns <- unlist(lapply(xb, fn))
-			noise <- lowess(ns)$y
-		} else {
-			noise <- fn(x)
-		}
-	}
-	noise
+	if ( is.function(wavelet) )
+		x <- cwt(x, wavelet, scales=1)
+	width <- min(width, length(x))
+	rollvec(x, width, stat="sd")
 }
 
-estnoise_diff <- function(x, nbins = 1L, dynamic = TRUE)
+estnoise_diff <- function(x, nbins = 1L, dynamic = FALSE)
 {
 	fn <- function(xi) {
+		# mean absolute deviation of signal derivative
 		dx <- mean(diff(xi), na.rm=TRUE)
 		ns <- mean(abs(xi - dx), na.rm=TRUE)
 		noise <- rep.int(ns, length(xi))
@@ -519,9 +519,17 @@ estnoise_diff <- function(x, nbins = 1L, dynamic = TRUE)
 	noise
 }
 
-estnoise_loess <- function(x, span = 2/3)
+estnoise_quant <- function(x, width = 25L, prob = 0.95)
 {
-	lowess(x, f=span)$y
+	y <- filt1_sg(x)
+	x <- abs(y - x)
+	width <- min(width, length(x))
+	rollvec(x, width, stat="quantile", prob=prob)
+}
+
+estnoise_smooth <- function(x, span = 1/20)
+{
+	supsmu(seq_along(x), y, span=span)$y
 }
 
 estnoise_filt <- function(x, snr = 2, nbins = 1L,
@@ -536,13 +544,13 @@ estnoise_filt <- function(x, snr = 2, nbins = 1L,
 		noise <- lowess(noise)$y
 	} else {
 		# Xu and Freitas (2010) dynamic noise level
-		if ( !peaks ) {
+		if ( isFALSE(peaks) || is.null(peaks) ) {
 			y <- sort(x[findpeaks(x)])
 		} else {
 			y <- sort(x[x > 0])
 		}
 		if ( length(y) <= 1L )
-			return(y)
+			return(rep.int(y, length(x)))
 		noise <- (1 + threshold) * y[1L]
 		i <- 2L
 		snr_i <- y[2L] / noise
@@ -572,9 +580,10 @@ locmin <- function(x, width = 5L)
 	.Call(C_localMaxima, -x, as.integer(width), PACKAGE="matter")
 }
 
-findpeaks <- function(x, prominence = NULL, bounds = TRUE)
+findpeaks <- function(x, width = 5L, prominence = NULL,
+	relheight = 0.005, bounds = TRUE)
 {
-	peaks <- which(locmax(x))
+	peaks <- which(locmax(x, width))
 	ann <- data.frame(row.names=seq_along(peaks))
 	if ( isTRUE(bounds) )
 	{
@@ -599,6 +608,17 @@ findpeaks <- function(x, prominence = NULL, bounds = TRUE)
 		{
 			# filter based on prominence if requested
 			keep <- ann$prominence >= prominence
+			peaks <- peaks[keep]
+			ann <- ann[keep,,drop=FALSE]
+		}
+	}
+	if ( isTRUE(relheight) || is.numeric(relheight) )
+	{
+		ann$relheight <- x[peaks] / max(x[peaks])
+		if ( is.numeric(relheight) )
+		{
+			# filter based on relative height if requested
+			keep <- ann$relheight >= relheight
 			peaks <- peaks[keep]
 			ann <- ann[keep,,drop=FALSE]
 		}
@@ -728,15 +748,6 @@ findridges <- function(x, maxdists, ngaps)
 		function(ridge) ridge[1L,1L], integer(1L))
 	outridges <- outridges[order(locations)]
 	outridges
-}
-
-ricker <- function(n, a = 1)
-{
-	x <- seq(-n, n, length.out=n) / 2
-	C <- 2 / (sqrt(3 * a) * pi^(0.25))
-	m <- (1 - (x / a)^2)
-	g <- exp(-(x / a)^2 / 2)
-	C * m * g
 }
 
 cwt <- function(x, wavelet = ricker, scales = NULL)
