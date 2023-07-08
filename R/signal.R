@@ -519,9 +519,9 @@ estnoise_diff <- function(x, nbins = 1L, dynamic = FALSE)
 	noise
 }
 
-estnoise_quant <- function(x, width = 25L, prob = 0.95)
+estnoise_quant <- function(x, width = 25L, prob = 0.95, niter = 3L)
 {
-	y <- filt1_sg(x)
+	y <- filt1_diff(x, method=3L, niter=niter)
 	x <- abs(y - x)
 	width <- min(width, length(x))
 	rollvec(x, width, stat="quantile", prob=prob)
