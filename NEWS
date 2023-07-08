@@ -7,6 +7,8 @@ NEW FEATURES
     o Added CWT based peak detection with
         'findpeaks_cwt()', 'findridges()' and 'cwt()'
     o Added 'estnoise_quant()'
+    o Added 'filt1_conv()'
+    o Added 'filt2_conv()'
 
 CHANGES IN VERSION 2.3.3 [2023-7-5]
 -----------------------------------
