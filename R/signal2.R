@@ -11,6 +11,15 @@ filt2_ma <- function(x, width = 5L)
 	.Call(C_meanFilter2, x, width, PACKAGE="matter")
 }
 
+filt2_conv <- function(x, weights)
+{
+	if ( !is.matrix(x) )
+		stop("x must be a matrix")
+	if ( !is.matrix(weights) )
+		stop("weights must be a matrix")
+	.Call(C_linearFilter2, x, weights, PACKAGE="matter")
+}
+
 filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
 	if ( !is.matrix(x) )

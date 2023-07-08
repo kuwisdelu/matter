@@ -485,20 +485,12 @@ estbase_med <- function(x, width = 100L)
 #### Noise estimation ####
 ## -----------------------
 
-estnoise_sd <- function(x, width = 25L, wavelet = ricker)
+estnoise_quant <- function(x, width = 25L, prob = 0.95, niter = 3L)
 {
-	if ( is.function(wavelet) )
-		x <- cwt(x, wavelet, scales=1)
+	y <- filt1_diff(x, method=3L, niter=niter)
+	x <- abs(y - x)
 	width <- min(width, length(x))
-	rollvec(x, width, stat="sd")
-}
-
-estnoise_mad <- function(x, width = 25L, wavelet = ricker)
-{
-	if ( is.function(wavelet) )
-		x <- cwt(x, wavelet, scales=1)
-	width <- min(width, length(x))
-	rollvec(x, width, stat="sd")
+	rollvec(x, width, stat="quantile", prob=prob)
 }
 
 estnoise_diff <- function(x, nbins = 1L, dynamic = FALSE)
@@ -517,19 +509,6 @@ estnoise_diff <- function(x, nbins = 1L, dynamic = FALSE)
 		noise <- fn(x)
 	}
 	noise
-}
-
-estnoise_quant <- function(x, width = 25L, prob = 0.95, niter = 3L)
-{
-	y <- filt1_diff(x, method=3L, niter=niter)
-	x <- abs(y - x)
-	width <- min(width, length(x))
-	rollvec(x, width, stat="quantile", prob=prob)
-}
-
-estnoise_smooth <- function(x, span = 1/20)
-{
-	supsmu(seq_along(x), y, span=span)$y
 }
 
 estnoise_filt <- function(x, snr = 2, nbins = 1L,
@@ -567,6 +546,22 @@ estnoise_filt <- function(x, snr = 2, nbins = 1L,
 	noise
 }
 
+estnoise_sd <- function(x, width = 25L, wavelet = ricker)
+{
+	if ( is.function(wavelet) )
+		x <- cwt(x, wavelet, scales=1)
+	width <- min(width, length(x))
+	rollvec(x, width, stat="sd")
+}
+
+estnoise_mad <- function(x, width = 25L, wavelet = ricker)
+{
+	if ( is.function(wavelet) )
+		x <- cwt(x, wavelet, scales=1)
+	width <- min(width, length(x))
+	rollvec(x, width, stat="sd")
+}
+
 #### Peak detection ####
 ## ---------------------
 
@@ -581,7 +576,8 @@ locmin <- function(x, width = 5L)
 }
 
 findpeaks <- function(x, width = 5L, prominence = NULL,
-	relheight = 0.005, bounds = TRUE)
+	snr = NULL, noise = c("quant", "diff", "filt", "sd", "mad"),
+	relheight = 0.005, bounds = TRUE, ...)
 {
 	peaks <- which(locmax(x, width))
 	ann <- data.frame(row.names=seq_along(peaks))
@@ -623,6 +619,20 @@ findpeaks <- function(x, width = 5L, prominence = NULL,
 			ann <- ann[keep,,drop=FALSE]
 		}
 	}
+	if ( isTRUE(snr) || is.numeric(snr) )
+	{
+		noise <- match.arg(noise)
+		fn <- get(paste0("estnoise_", noise))
+		noise <- fn(x, ...)
+		ann$snr <- x[peaks] / noise[peaks]
+		if ( is.numeric(snr) )
+		{
+			# filter based on SNR
+			keep <- ann$snr >= snr
+			peaks <- peaks[keep]
+			ann <- ann[keep,,drop=FALSE]
+		}
+	}
 	if ( length(ann) > 0L )
 		attributes(peaks) <- ann
 	peaks
@@ -660,7 +670,7 @@ findpeaks_cwt <- function(x, snr = 2, wavelet = ricker, scales = NULL,
 	peaks <- peaks[snrs >= snr]
 	snrs <- snrs[snrs >= snr]
 	# get peak annotations
-	ann <- data.frame(snr=snrs, ridges=I(ridges))
+	ann <- data.frame(ridges=I(ridges), snr=snrs)
 	if ( isTRUE(bounds) )
 	{
 		# find peak boundaries (nearest local maxima)
@@ -858,7 +868,7 @@ peakareas <- function(x, peaks, domain = NULL)
 }
 
 binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
-	tol = NA_real_, tol.ref = "abs", merge = TRUE, na.drop = TRUE)
+	tol = NA_real_, tol.ref = "abs", merge = FALSE, na.drop = TRUE)
 {
 	if ( any(lengths(peaklist) != lengths(xlist)) )
 		stop("lengths of 'peaklist' and 'xlist' must match")

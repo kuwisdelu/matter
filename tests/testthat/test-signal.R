@@ -23,6 +23,10 @@ test_that("filter", {
 	wt <- wt / sum(wt)
 	f <- function(z) sum(wt * z)
 	xg <- vapply(xr, f, numeric(1))
+	
+	xgc <- filt1_conv(x, wt)
+
+	expect_equal(xg, xgc)
 
 	x2 <- filt1_ma(x, w)
 	x3 <- filt1_gauss(x, w)
@@ -246,7 +250,7 @@ test_that("findpeaks", {
 
 	t <- seq(from=0, to=6 * pi, length.out=1000)
 	x <- sin(t) + 0.6 * sin(2.6 * t)
-	p5 <- findpeaks(x, prominence=TRUE)
+	p5 <- findpeaks(x, prominence=TRUE, relheight=NULL)
 
 	ref <- c(1.2415949, 0.4784017, 0.2847052, 3.1071679,
 		0.2846030, 0.4782249, 2.4834026, 0.4782249)
@@ -278,7 +282,7 @@ test_that("peakwidths", {
 
 	t <- seq(from=0, to=6 * pi, length.out=1000)
 	x <- sin(t) + 0.6 * sin(2.6 * t)
-	p <- findpeaks(x)
+	p <- findpeaks(x, relheight=NULL)
 	
 	w <- peakwidths(x, p, ref="prominence")
 

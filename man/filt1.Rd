@@ -3,6 +3,7 @@
 \alias{filt1}
 
 \alias{filt1_ma}
+\alias{filt1_conv}
 \alias{filt1_gauss}
 \alias{filt1_bi}
 \alias{filt1_adapt}
@@ -20,6 +21,9 @@
 \usage{
 # Moving average filter
 filt1_ma(x, width = 5L)
+
+# Linear convolution filter
+filt1_conv(x, weights)
 
 # Gaussian filter
 filt1_gauss(x, width = 5L, sd = (width \%/\% 2) / 2)
@@ -52,6 +56,8 @@ filt1_sg(x, width = 5L, order = min(3L, width - 2L),
 	\item{x}{A numeric vector.}
 
     \item{width}{The width of the smoothing window in number of samples. Must be positive. Must be odd.}
+
+    \item{weights}{The weights of the linear convolution kernel. Length must be odd.}
 
     \item{sd, sddist}{The spatial parameter for kernel-based filters. This controls the strength of smoothing for samples farther from the center of the smoothing window.}
 

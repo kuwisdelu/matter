@@ -3,10 +3,10 @@
 \alias{binvec}
 \alias{binvec}
 
-\title{Bin a signal}
+\title{Binned summaries of a vector}
 
 \description{
-    Summarize a signal in the bins at the specified indices.
+    Summarize a vector in the bins at the specified indices.
 }
 
 \usage{
@@ -24,7 +24,7 @@ binvec(x, lower, upper, stat = "sum", prob = 0.5)
 }
 
 \value{
-    An vector of the summarized (binned) values.
+    An numeric vector of the summarized (binned) values.
 }
 
 \author{Kylie A. Bemis}
@@ -36,7 +36,7 @@ x <- sort(runif(20))
 
 binvec(x, c(1,6,11,16), c(5,10,15,20))
 
-binvec(x, seq(from=1, to=21, by=5), stat="mean")
+binvec(x, seq(from=1, to=16, by=5), stat="mean")
 }
 
 \keyword{utilities}

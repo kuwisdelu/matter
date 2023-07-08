@@ -29,6 +29,10 @@ test_that("filter2", {
 	expect_equal(sum(w * x[8:12,1:5]), x2[10,3])
 	expect_equal(sum(w * x[8:12,5:9]), x2[10,7])
 
+	x2c <- filt2_conv(x, w)
+
+	expect_equal(x2, x2c)
+
 	x3 <- filt2_bi(y, width=5)
 	x4 <- filt2_adapt(y, width=5)
 	x5 <- filt2_diff(y, niter=5)

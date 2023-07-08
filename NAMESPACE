@@ -344,7 +344,6 @@ export(
 	"estnoise_mad",
 	"estnoise_diff",
 	"estnoise_quant",
-	"estnoise_smooth",
 	"estnoise_filt",
 	"findpeaks",
 	"findpeaks_cwt",
@@ -361,6 +360,7 @@ export(
 export(
 	"approx2",
 	"filt2_ma",
+	"filt2_conv",
 	"filt2_gauss",
 	"filt2_bi",
 	"filt2_adapt",
