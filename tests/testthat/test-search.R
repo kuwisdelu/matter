@@ -26,18 +26,29 @@ test_that("relative difference", {
 
 })
 
-test_that("quick select + median + mad", {
+test_that("quick sort & friends", {
 
 	set.seed(1)
 	u1 <- as.numeric(sample(100L))
 	u2 <- as.numeric(sample(101L))
 	u3 <- c(0,1,0,1,0,0,3,2,2,2,4,4,8,2,0,0)
-	u4 <- sample(colors())
+	u4 <- c(0,1,NA,1,0,0,3,2,2,NA,4,4,8,2,0,0)
+	u5 <- sample(colors())
 
 	expect_equal(qorder(u1), order(u1))
 	expect_equal(qorder(u2), order(u2))
 	expect_equal(u3[qorder(u3)], u3[order(u3)])
-	expect_equal(qorder(u4), order(u4))
+	expect_equal(u4[qorder(u4)], u4[order(u4)])
+	expect_equal(qorder(u5), order(u5))
+	
+	expect_equal(qrank(u1), rank(u1))
+	expect_equal(qrank(u2), rank(u2))
+	expect_equal(qrank(u3, ties.max=TRUE), rank(u3, ties.method="max"))
+	expect_equal(qrank(u3, ties.max=FALSE), rank(u3, ties.method="min"))
+	expect_equal(qrank(u4, ties.max=TRUE), rank(u4, ties.method="max", na.last="keep"))
+	expect_equal(qrank(u4, ties.max=FALSE), rank(u4, ties.method="min", na.last="keep"))
+	expect_equal(qrank(u5), rank(u5))
+	
 	expect_equal(qselect(u1, 1L), min(u1))
 	expect_equal(qselect(u1, 100L), max(u1))
 	expect_equal(qselect(u2, 51L), median(u2))
@@ -45,15 +56,23 @@ test_that("quick select + median + mad", {
 	expect_equal(qselect(u3, 8L), 1)
 	expect_equal(qselect(u3, 9L), 2)
 	expect_equal(qselect(u3, 16L), 8)
-	expect_equal(qselect(u4, 1L), sort(u4)[1L])
-	expect_equal(qselect(u4, 100L), sort(u4)[100L])
-	expect_equal(qselect(u4, length(u4)), sort(u4)[length(u4)])
+	expect_equal(qselect(u4, 1L), 0)
+	expect_equal(qselect(u4, 8L), 2)
+	expect_equal(qselect(u4, 9L), 2)
+	expect_equal(qselect(u4, 16L), NA_real_)
+	expect_equal(qselect(u5, 1L), sort(u5)[1L])
+	expect_equal(qselect(u5, 100L), sort(u5)[100L])
+	expect_equal(qselect(u5, length(u5)), sort(u5)[length(u5)])
+	
 	expect_equal(qmedian(u1), median(u1))
 	expect_equal(qmedian(u2), median(u2))
 	expect_equal(qmedian(u3), median(u3))
+	expect_equal(qmedian(u4, na.rm=TRUE), median(u3, na.rm=TRUE))
+	
 	expect_equal(qmad(u1), mad(u1))
 	expect_equal(qmad(u2), mad(u2))
 	expect_equal(qmad(u3), mad(u3))
+	expect_equal(qmad(u4, na.rm=TRUE), mad(u3, na.rm=TRUE))
 
 })
 

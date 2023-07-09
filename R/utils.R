@@ -764,6 +764,7 @@ cpal <- function(palette = "Viridis") {
 	function(n) hcl.colors(n, palette)
 }
 
+# based on MASS::ginv
 pinv <- function (x, tol = sqrt(.Machine$double.eps)) 
 {
 	x <- as.matrix(x)

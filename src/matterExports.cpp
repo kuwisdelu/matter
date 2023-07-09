@@ -27,6 +27,30 @@ SEXP quickOrder(SEXP x)
 	return indx;
 }
 
+SEXP quickRank(SEXP x, SEXP ties_max)
+{
+	SEXP rank;
+	PROTECT(rank = Rf_allocVector(INTSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_quick_rank(INTEGER(rank), INTEGER(x), 0, XLENGTH(x),
+				Rf_asLogical(ties_max));
+			break;
+		case REALSXP:
+			do_quick_rank(INTEGER(rank), REAL(x), 0, XLENGTH(x),
+				Rf_asLogical(ties_max));
+			break;
+		case STRSXP:
+			do_quick_rank(INTEGER(rank), STRING_PTR(x), 0, XLENGTH(x),
+				Rf_asLogical(ties_max));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return rank;
+}
+
 SEXP quickSelect(SEXP x, SEXP k)
 {
 	SEXP result;

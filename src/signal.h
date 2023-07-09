@@ -35,8 +35,11 @@
 #define DIFF_PM2 2 // Perona-Malik #2
 #define DIFF_PAW 3 // Peak-aware weighting
 
-// simulate signal padding (for filters)
-#define wrap_ind(i, n) (max2(min2((i), (n - 1)), 0))
+// wrap index to simulate signal wraparound
+#define wrap_ind(i, n) ((i) < 0 ? (i) % (n) : (i) % (n) + (n))
+
+// normalize index to simulate signal padding
+#define norm_ind(i, n) (max2(min2((i), (n) - 1), 0))
 
 //// Numeric Integration
 //-----------------------
@@ -278,7 +281,7 @@ double do_quant(T * x, index_t lower, index_t upper, double prob)
 	else
 		k = j - 1;
 	// find the kth order statistic by sorting x
-	T q = quick_select(dup, 0, n, wrap_ind(k, n));
+	T q = quick_select(dup, 0, n, norm_ind(k, n));
 	Free(dup);
 	return static_cast<double>(q);
 }
@@ -327,8 +330,8 @@ void mean_filter(T * x, int n, int width, double * buffer)
 		buffer[0] += x[i];
 	for ( index_t i = 1; i < n; i++ )
 	{
-		iprev = wrap_ind(i - r - 1, n);
-		icurr = wrap_ind(i + r, n);
+		iprev = norm_ind(i - r - 1, n);
+		icurr = norm_ind(i + r, n);
 		buffer[i] = buffer[i - 1] - x[iprev] + x[icurr];
 	}
 	for ( index_t i = 0; i < n; i++ )
@@ -347,7 +350,7 @@ void linear_filter(T * x, int n,
 		buffer[i] = 0;
 		for (index_t j = 0; j < width; j++ )
 		{
-			ij = wrap_ind(i + j - r, n);
+			ij = norm_ind(i + j - r, n);
 			buffer[i] += weights[j] * x[ij];
 			W += weights[j];
 		}
@@ -389,7 +392,7 @@ void bilateral_filter(T * x, int n, int width,
 			for ( index_t j = 0; j < width; j++ )
 			{
 				// find mean of local differences
-				ij = wrap_ind(i + j - r, n);
+				ij = norm_ind(i + j - r, n);
 				dmean += std::fabs(x[ij] - x[i]) / width;
 			}
 			// calculate adaptive parameters
@@ -408,7 +411,7 @@ void bilateral_filter(T * x, int n, int width,
 		for ( index_t j = 0; j < width; j++ )
 		{
 			// standard bilateral filter
-			ij = wrap_ind(i + j - r, n);
+			ij = norm_ind(i + j - r, n);
 			double wtdist = kgaussian(j - r, sdd);
 			double wtrange = kgaussian(x[ij] - x[i], sdr);
 			buffer[i] += wtdist * wtrange * x[ij];
@@ -448,8 +451,8 @@ void diffusion_filter(T * x, int n, int niter,
 		for ( index_t i = 0; i < n; i++ )
 		{
 			// calculate gradients
-			L = wrap_ind(i - 1, n);
-			R = wrap_ind(i + 1, n);
+			L = norm_ind(i - 1, n);
+			R = norm_ind(i + 1, n);
 			dL = sdiff(x0[L], x0[i]);
 			dR = sdiff(x0[R], x0[i]);
 			// calculate conduction
@@ -1633,7 +1636,7 @@ index_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	else
 	{
 		// if len(xi) >> len(x) then iterate x (upsampling)
-		int indx[end], new_ref;
+		int indx[end - start], new_ref;
 		switch(tol_ref) {
 			case REL_DIFF_X:
 				new_ref = REL_DIFF_Y;

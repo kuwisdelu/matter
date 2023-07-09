@@ -368,6 +368,7 @@ export(
 	"filt2_guide",
 	"warp2_trans",
 	"mi",
+	"enhance_heq",
 	"trans2d")
 
 export(
@@ -389,6 +390,7 @@ exportMethods("prcomp")
 exportMethods("bigglm")
 
 export(
+	"qrank",
 	"qorder",
 	"qselect",
 	"qmedian",

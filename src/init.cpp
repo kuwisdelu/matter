@@ -11,6 +11,7 @@ static const R_CallMethodDef callMethods[] = {
 	// search and select
 	CALLDEF(relativeDiff, 3),
 	CALLDEF(quickOrder, 1),
+	CALLDEF(quickRank, 2),
 	CALLDEF(quickSelect, 2),
 	CALLDEF(quickMedian, 1),
 	CALLDEF(quickMAD, 3),

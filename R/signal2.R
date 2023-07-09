@@ -183,6 +183,26 @@ mi <- function(x, y, n = 64L)
 	sum(pxy[nz] * log2(pxy[nz] / (px[nz] * py[nz])))
 }
 
+#### Contrast enhancement ####
+## ---------------------------
+
+enhance_heq <- function(x)
+{
+	y <- rank(x, na.last="keep", ties.method="max")
+	y <- y / max(y, na.rm=TRUE)
+	qx <- IQR(x, na.rm=TRUE)
+	qy <- IQR(y, na.rm=TRUE)
+	center <- median(x, na.rm=TRUE)
+	y <- y - median(y, na.rm=TRUE)
+	if ( qy != 0 )
+		y <- y / qy
+	if ( qx != 0 )
+		y <- y * qx
+	y <- y + center
+	dim(y) <- dim(x)
+	y
+}
+
 #### 2D Resampling with interpolation ####
 ## ---------------------------------------
 

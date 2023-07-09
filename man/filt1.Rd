@@ -69,7 +69,7 @@ filt1_sg(x, width = 5L, order = min(3L, width - 2L),
 
     \item{rate}{The rate of diffusion. Must be between 0 and 0.25 for stability.}
 
-    \item{method}{The diffusivity method, where \code{1} and \code{2} correspond to the two diffusivity functions proposed by Perona and Malik (1990). For \code{1}, this is \code{exp(-(|grad x|/K)^2)}, and \code{2} is \code{1/(1+(|grad x|/K)^2)}.}
+    \item{method}{The diffusivity method, where \code{1} and \code{2} correspond to the two diffusivity functions proposed by Perona and Malik (1990). For \code{1}, this is \code{exp(-(|grad x|/K)^2)}, and \code{2} is \code{1/(1+(|grad x|/K)^2)}. An additional method \code{3} implements the peak-aware weighting \code{1/(1+(|x|/K)^2)}, which does \emph{not} use the gradient, but is used to create the guidance signal for peak-aware guided filtering.}
 
     \item{niter}{The number of iterations for nonlinear diffusion. Must be positive.}
 

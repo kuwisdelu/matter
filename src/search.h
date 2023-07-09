@@ -235,13 +235,63 @@ void quick_sort(Tx * x, size_t start, size_t end, Tv * v = NULL)
 template<typename T>
 void do_quick_sort(int * ptr, T * x, size_t start, size_t end, bool ind1 = false)
 {
+	index_t n = end - start;
+	if ( n == 0 )
+		return;
 	// initialize indices
-	for ( size_t i = start; i < end; i++ )
+	for ( index_t i = 0; i < n; i++ )
 		ptr[i] = i + ind1;
-	T * dup = R_Calloc(end, T);
-	std::memcpy(dup, x, end * sizeof(T));
-	quick_sort(dup, start, end, ptr);
+	T * dup = R_Calloc(n, T);
+	std::memcpy(dup, x + start, n * sizeof(T));
+	quick_sort(dup, 0, n, ptr);
 	Free(dup);
+}
+
+// sort an array x and return ranks in ptr
+template<typename T>
+index_t do_quick_rank(int * ptr, T * x, size_t start, size_t end, bool ties_max = false)
+{
+	index_t n = end - start;
+	if ( n == 0 )
+		return 0;
+	// initialize working buffers
+	int * indx = R_Calloc(n, int);
+	for ( index_t i = 0; i < n; i++ )
+		indx[i] = i;
+	T * dup = R_Calloc(n, T);
+	std::memcpy(dup, x + start, n * sizeof(T));
+	// sort the array
+	quick_sort(dup, 0, n, indx);
+	index_t count, j, i = 0, rank = 0;
+	// rank the values
+	while ( i < n )
+	{
+		if ( isNA(dup[i]) )
+		{
+			ptr[indx[i]] = NA_INTEGER;
+			i++;
+			continue;
+		}
+		else
+		{
+			j = i + 1;
+			while ( j < n && equal(dup[i], dup[j]) )
+				j++;
+			count = j - i;
+			while ( i < j )
+			{
+				if ( ties_max )
+					ptr[indx[i]] = rank + count;
+				else
+					ptr[indx[i]] = rank + 1;
+				i++;
+			}
+			rank += count;
+		}
+	}
+	Free(indx);
+	Free(dup);
+	return rank;
 }
 
 // find the k-th element of array x (modifed in-place!!!)
@@ -266,17 +316,20 @@ T quick_select(T * x, size_t start, size_t end, size_t k)
 
 // find the k-th elements of an array x and return in ptr
 template<typename T>
-void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n)
+void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t nk)
 {
-	T * dup = R_Calloc(end, T);
-	std::memcpy(dup, x, end * sizeof(T));
-	ptr[0] = quick_select(dup, start, end, k[0]);
-	for ( index_t i = 1; i < n; i++ )
+	index_t n = end - start;
+	if ( n == 0 )
+		return;
+	T * dup = R_Calloc(n, T);
+	std::memcpy(dup, x + start, n * sizeof(T));
+	ptr[0] = quick_select(dup, 0, n, k[0]);
+	for ( index_t i = 1; i < nk; i++ )
 	{
 		if ( k[i] > k[i - 1] )
-			ptr[i] = quick_select(dup, k[i - 1] + 1, end, k[i]);
+			ptr[i] = quick_select(dup, k[i - 1] + 1, n, k[i]);
 		else if ( k[i] < k[i - 1] )
-			ptr[i] = quick_select(dup, start, k[i - 1], k[i]);
+			ptr[i] = quick_select(dup, 0, k[i - 1], k[i]);
 		else 
 			ptr[i] = ptr[i - 1];
 	}
@@ -289,6 +342,8 @@ void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n
 template<typename T>
 double quick_median(T * x, size_t n)
 {
+	if ( n == 0 )
+		return NA_REAL;
 	T * dup = R_Calloc(n, T);
 	std::memcpy(dup, x, n * sizeof(T));
 	size_t k = n / 2;
@@ -308,6 +363,8 @@ double quick_median(T * x, size_t n)
 template<typename T>
 double quick_mad(T * x, size_t n, double center = NA_REAL, double scale = 1.4826)
 {
+	if ( n == 0 )
+		return NA_REAL;
 	double * dev = R_Calloc(n, double);
 	if ( isNA(center) )
 		center = quick_median(x, n);

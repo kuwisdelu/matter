@@ -10,9 +10,9 @@
 //// Min/Max
 //------------
 
-#define min2(x, y) ((x < y) ? (x) : (y))
+#define min2(x, y) ((x) < (y) ? (x) : (y))
 #define min3(x, y, z) (min2(min2((x), (y)), (z)))
-#define max2(x, y) ((x > y) ? (x) : (y))
+#define max2(x, y) ((x) > (y) ? (x) : (y))
 #define max3(x, y, z) (max2(max2((x), (y)), (z)))
 
 //// Debugging

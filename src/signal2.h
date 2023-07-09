@@ -87,8 +87,8 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			y[i] += x[j * nr + i];
 		for ( index_t j = 1; j < nc; j++ )
 		{
-			vprev = x[wrap_ind(j - r - 1, nc) * nr + i];
-			vcurr = x[wrap_ind(j + r, nc) * nr + i];
+			vprev = x[norm_ind(j - r - 1, nc) * nr + i];
+			vcurr = x[norm_ind(j + r, nc) * nr + i];
 			y[j * nr + i] = y[(j - 1) * nr + i] - vprev + vcurr;
 		}
 		for ( index_t j = 0; j < nc; j++ )
@@ -102,8 +102,8 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			z[j * nr] += y[j * nr + i];
 		for ( index_t i = 1; i < nr; i++ )
 		{
-			vprev = y[j * nr + wrap_ind(i - r - 1, nr)];
-			vcurr = y[j * nr + wrap_ind(i + r, nr)];
+			vprev = y[j * nr + norm_ind(i - r - 1, nr)];
+			vcurr = y[j * nr + norm_ind(i + r, nr)];
 			z[j * nr + i] = z[j * nr + i - 1] - vprev + vcurr;
 		}
 		for ( index_t i = 0; i < nr; i++ )
@@ -127,8 +127,8 @@ void linear_filter2(T * x, int nr, int nc,
 			{
 				for (index_t kj = 0; kj < width; kj++ )
 				{
-					ii = wrap_ind(i + ki - r, nr);
-					jj = wrap_ind(j + kj - r, nc);
+					ii = norm_ind(i + ki - r, nr);
+					jj = norm_ind(j + kj - r, nc);
 					xij = x[jj * nr + ii];
 					wij = weights[kj * width + ki];
 					buffer[j * nr + i] += wij * xij;
@@ -179,8 +179,8 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 					for ( index_t kj = 0; kj < width; kj++ )
 					{
 						// find mean of local differences
-						ii = wrap_ind(i + ki - r, nr);
-						jj = wrap_ind(j + kj - r, nc);
+						ii = norm_ind(i + ki - r, nr);
+						jj = norm_ind(j + kj - r, nc);
 						xij = x[jj * nr + ii];
 						dmean += std::fabs(xij - x[j * nr + i]) / width;
 					}
@@ -203,8 +203,8 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 				for ( index_t kj = 0; kj < width; kj++ )
 				{
 					// standard bilateral filter
-					ii = wrap_ind(i + ki - r, nr);
-					jj = wrap_ind(j + kj - r, nc);
+					ii = norm_ind(i + ki - r, nr);
+					jj = norm_ind(j + kj - r, nc);
 					xij = x[jj * nr + ii];
 					double wtdist = kgaussian(ki - r, sdd) * kgaussian(kj - r, sdd);
 					double wtrange = kgaussian(xij - x[j * nr + i], sdr);
@@ -250,10 +250,10 @@ void diffusion_filter2(T * x, int nr, int nc, int niter,
 			for ( index_t j = 0; j < nc; j++ )
 			{
 				// calculate gradients
-				N = wrap_ind(i - 1, nr);
-				S = wrap_ind(i + 1, nr);
-				E = wrap_ind(j + 1, nc);
-				W = wrap_ind(j - 1, nc);
+				N = norm_ind(i - 1, nr);
+				S = norm_ind(i + 1, nr);
+				E = norm_ind(j + 1, nc);
+				W = norm_ind(j - 1, nc);
 				dN = sdiff(x0[j * nr + N], x0[j * nr + i]);
 				dS = sdiff(x0[j * nr + S], x0[j * nr + i]);
 				dE = sdiff(x0[E * nr + i], x0[j * nr + i]);
@@ -339,6 +339,19 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	Free(tmp);
 	Free(u);
 }
+
+//// Contrast enhancement
+//------------------------
+
+// template<typename T>
+// void histeq(T * x, int nr, int nc, double * buffer)
+// {
+// 	int n = nr * nc;
+// 	int * rank = R_Calloc(n, int);
+// 	double maxval = static_cast<double>(do_quick_rank(rank, x, 0, n, true));
+// 	for ( index_t i = 0; i < n; i++ )
+// 		buffer[i] = rank / maxval;
+// }
 
 //// Resampling with interpolation
 //---------------------------------
