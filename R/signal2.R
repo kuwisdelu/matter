@@ -203,6 +203,11 @@ enhance_heq <- function(x)
 	y
 }
 
+enhance_aheq <- function(x, width = sqrt(length(x)) %/% 5L, nbins = 256L)
+{
+	.Call(C_adaptHisteq, x, width, nbins, PACKAGE="matter")
+}
+
 #### 2D Resampling with interpolation ####
 ## ---------------------------------------
 

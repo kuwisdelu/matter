@@ -36,7 +36,7 @@
 #define DIFF_PAW 3 // Peak-aware weighting
 
 // wrap index to simulate signal wraparound
-#define wrap_ind(i, n) ((i) < 0 ? (i) % (n) : (i) % (n) + (n))
+#define wrap_ind(i, n) ((i) < 0 ? (i) % (n) + (n) : (i) % (n))
 
 // normalize index to simulate signal padding
 #define norm_ind(i, n) (max2(min2((i), (n) - 1), 0))
@@ -351,6 +351,8 @@ void linear_filter(T * x, int n,
 		for (index_t j = 0; j < width; j++ )
 		{
 			ij = norm_ind(i + j - r, n);
+			if ( isNA(x[ij]) )
+				continue;
 			buffer[i] += weights[j] * x[ij];
 			W += weights[j];
 		}
@@ -412,6 +414,8 @@ void bilateral_filter(T * x, int n, int width,
 		{
 			// standard bilateral filter
 			ij = norm_ind(i + j - r, n);
+			if ( isNA(x[ij]) )
+				continue;
 			double wtdist = kgaussian(j - r, sdd);
 			double wtrange = kgaussian(x[ij] - x[i], sdr);
 			buffer[i] += wtdist * wtrange * x[ij];

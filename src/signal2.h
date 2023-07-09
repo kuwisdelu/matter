@@ -130,6 +130,8 @@ void linear_filter2(T * x, int nr, int nc,
 					ii = norm_ind(i + ki - r, nr);
 					jj = norm_ind(j + kj - r, nc);
 					xij = x[jj * nr + ii];
+					if ( isNA(xij) )
+						continue;
 					wij = weights[kj * width + ki];
 					buffer[j * nr + i] += wij * xij;
 					W += wij;
@@ -145,7 +147,7 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 	double sddist, double sdrange, double spar, double * buffer)
 {
 	int r = width / 2;
-	int n = nr * nc;
+	index_t n = nr * nc;
 	index_t ii, jj;
 	bool xnan = false, outnan = false;
 	double sdd = sddist, sdr = sdrange;
@@ -206,6 +208,8 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 					ii = norm_ind(i + ki - r, nr);
 					jj = norm_ind(j + kj - r, nc);
 					xij = x[jj * nr + ii];
+					if ( isNA(xij) )
+						continue;
 					double wtdist = kgaussian(ki - r, sdd) * kgaussian(kj - r, sdd);
 					double wtrange = kgaussian(xij - x[j * nr + i], sdr);
 					buffer[j * nr + i] += wtdist * wtrange * xij;
@@ -232,7 +236,7 @@ template<typename T>
 void diffusion_filter2(T * x, int nr, int nc, int niter,
 	double K, double rate, int method, double * buffer)
 {
-	int n = nr * nc;
+	index_t n = nr * nc;
 	index_t N, S, E, W;
 	double dN, dS, dE, dW, cN, cS, cE, cW, dx;
 	double * tmp = R_Calloc(n, double);
@@ -292,7 +296,7 @@ template<typename T>
 void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	double sdreg, double * buffer)
 {
-	int n = nr * nc;
+	index_t n = nr * nc;
 	// allocate buffers for mean filter results
 	double * u = R_Calloc(2 * n, double);
 	double * ug = u;
@@ -343,15 +347,83 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 //// Contrast enhancement
 //------------------------
 
-// template<typename T>
-// void histeq(T * x, int nr, int nc, double * buffer)
-// {
-// 	int n = nr * nc;
-// 	int * rank = R_Calloc(n, int);
-// 	double maxval = static_cast<double>(do_quick_rank(rank, x, 0, n, true));
-// 	for ( index_t i = 0; i < n; i++ )
-// 		buffer[i] = rank / maxval;
-// }
+template<typename T>
+void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
+{
+	int r = width / 2;
+	index_t n = nr * nc;
+	index_t * v = R_Calloc(n, index_t);
+	int * hist = R_Calloc(nbins, int);
+	T xmin = do_min(x, 0, n - 1);
+	T xmax = do_max(x, 0, n - 1);
+	// scale x to count of bins and store in v
+	for ( index_t i = 0; i < n; i++ )
+	{
+		double a = static_cast<double>(x[i] - xmin);
+		double b = static_cast<double>(xmax - xmin);
+		v[i] = std::lrint((nbins - 1) * a / b);
+		// just for safety (we index with these)
+		v[i] = max2(min2(v[i], nbins - 1), 0);
+	}
+	// initialize histogram
+	index_t ii, jj, iprev, jprev;
+	for ( index_t i = 0; i < nbins; i++ )
+		hist[i] = 0;
+	for ( index_t ki = -r; ki <= r; ki++ )
+	{
+		for ( index_t kj = -r; kj <= r; kj++ )
+		{
+			ii = wrap_ind(ki, nr);
+			jj = wrap_ind(kj, nc);
+			hist[v[jj * nr + ii]]++;
+		}
+	}
+	buffer[0] = do_sum(hist, 0, v[0]);
+	// sliding window
+	for ( index_t i = 0; i < nr; i++ )
+	{
+		if ( i != 0 )
+		{
+			// remove previous row from histogram
+			// and add current one (skip first row)
+			ii = wrap_ind(i, nr);
+			iprev = wrap_ind(i - 1, nr);
+			for ( index_t kj = -r; kj <= r; kj++ )
+			{
+				jj = wrap_ind(kj, nc);
+				hist[v[jj * nr + iprev]]--;
+				hist[v[jj * nr + ii]]++;
+			}
+		}
+		for ( index_t j = 0; j < nc; j++ )
+		{
+			if ( i == 0 && j == 0 )
+				continue;
+			if ( isNA(v[j * nr + i]) )
+			{
+				buffer[j * nr + i] = NA_REAL;
+				continue;
+			}
+			// remove previous column from histogram
+			// and add current one (skip first pixel)
+			jj = wrap_ind(j, nc);
+			jprev = wrap_ind(j - 1, nc);
+			for ( index_t ki = -r; ki <= r; ki++ )
+			{
+				ii = wrap_ind(i + ki, nr);
+				hist[v[jprev * nr + ii]]--;
+				hist[v[jj * nr + ii]]++;
+			}
+			// assign transformed pixel value
+			buffer[j * nr + i] = do_sum(hist, 0, v[j * nr + i]);
+		}
+	}
+	double vmax = do_max(buffer, 0, n - 1);
+	for ( index_t i = 0; i < n; i++ )
+		buffer[i] /= vmax;
+	Free(hist);
+	Free(v);
+}
 
 //// Resampling with interpolation
 //---------------------------------

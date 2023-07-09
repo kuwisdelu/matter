@@ -369,6 +369,7 @@ export(
 	"warp2_trans",
 	"mi",
 	"enhance_heq",
+	"enhance_aheq",
 	"trans2d")
 
 export(
