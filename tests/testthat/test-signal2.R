@@ -78,6 +78,31 @@ test_that("warp2 + align", {
 
 })
 
+test_that("contrast enhancement", {
+
+	set.seed(1)
+	x <- matrix(0, nrow=32, ncol=32)
+	x[9:24,9:24] <- 10
+	y <- x + rlnorm(length(x))
+
+	z1 <- enhance_hist(y)
+	z2 <- enhance_adapt(y)
+
+	h <- tabulate(cut(y, breaks=256L))
+	h1 <- tabulate(cut(z1, breaks=256L))
+	h2 <- tabulate(cut(z2, breaks=256L))
+
+	expect_equal(median(z1), median(y))
+	expect_equal(median(z2), median(y))
+	expect_equal(IQR(z1), IQR(y))
+	expect_equal(IQR(z2), IQR(y))
+	expect_gt(IQR(which(h1 > 0)), IQR(which(h > 0)))
+	expect_gt(IQR(which(h2 > 0)), IQR(which(h > 0)))
+	expect_lt(max(h1), max(h))
+	expect_lt(max(h2), max(h))
+
+})
+
 test_that("approx2", {
 
 	x <- matrix(1:25, nrow=5, ncol=5)
