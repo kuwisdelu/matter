@@ -97,11 +97,13 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			hi = norm_ind(j + r, nc);
 			if ( isNA(x[j * nr + i]) )
 			{
+				// handle missing pixel
 				y[j * nr + i] = NA_REAL;
 			}
 			else if ( j == 0 || isNA(y[(j - 1) * nr + i]) ||
 				isNA(x[prev * nr + i]) || isNA(x[hi * nr + i]) )
 			{
+				// handle missing neighborhood
 				double xs = 0;
 				size_t len = 0;
 				for ( index_t k = -r; k <= r; k++ )
@@ -117,11 +119,13 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			}
 			else
 			{
+				// fast O(n) sliding sum
 				double xprev = x[prev * nr + i];
 				double xhi = x[hi * nr + i];
 				y[j * nr + i] = y[(j - 1) * nr + i] - xprev + xhi;
 			}
 		}
+		// calculate means
 		for ( index_t j = 0; j < nc; j++ )
 		{
 			if ( !isNA(y[j * nr + i]) )
@@ -138,11 +142,13 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			hi = norm_ind(i + r, nr);
 			if ( isNA(y[j * nr + i]) )
 			{
+				// handle missing pixel
 				z[j * nr + i] = NA_REAL;
 			}
 			else if ( i == 0 || isNA(z[j * nr + i - 1]) ||
 				isNA(y[j * nr + prev]) || isNA(y[j * nr + hi]) )
 			{
+				// handle missing neighborhood
 				double ys = 0;
 				size_t len = 0;
 				for ( index_t k = -r; k <= r; k++ )
@@ -158,11 +164,13 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			}
 			else
 			{
+				// fast O(n) sliding sum
 				double yprev = y[j * nr + prev];
 				double yhi = y[j * nr + hi];
 				z[j * nr + i] = z[j * nr + i - 1] - yprev + yhi;
 			}
 		}
+		// calculate means
 		for ( index_t i = 0; i < nr; i++ )
 		{
 			if ( !isNA(z[j * nr + i]) )
@@ -434,6 +442,64 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 //------------------------
 
 template<typename T>
+void histeq(T * x, index_t n, int nbins, double * buffer)
+{
+	index_t * v = R_Calloc(n, index_t);
+	int * hist = R_Calloc(nbins, int);
+	int * ecdf = R_Calloc(nbins, int);
+	T xmin = do_min(x, 0, n - 1);
+	T xmax = do_max(x, 0, n - 1);
+	// scale x to count of bins and store in v
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[i]) )
+		{
+			v[i] = NA_INTEGER;
+			continue;
+		}
+		double a = static_cast<double>(x[i] - xmin);
+		double b = static_cast<double>(xmax - xmin);
+		v[i] = std::lrint((nbins - 1) * (a / b));
+		// just for safety (we index with these)
+		v[i] = norm_ind(v[i], nbins);
+	}
+	// calculate histogram
+	for ( index_t i = 0; i < nbins; i++ )
+		hist[i] = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( !isNA(v[i]) )
+			hist[v[i]]++;
+	}
+	// calculate empirical cdf
+	for ( index_t i = 0; i < nbins; i++ )
+	{
+		if ( i == 0 )
+			ecdf[i] = hist[i];
+		else
+			ecdf[i] = ecdf[i - 1] + hist[i];
+	}
+	// transform pixels
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(v[i]) )
+			buffer[i] = NA_REAL;
+		else
+			buffer[i] = ecdf[v[i]];
+	}
+	// normalize to [0, 1]
+	double vmax = do_max(buffer, 0, n - 1);
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( !isNA(buffer[i]) )
+			buffer[i] /= vmax;
+	}
+	Free(hist);
+	Free(ecdf);
+	Free(v);
+}
+
+template<typename T>
 void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
 {
 	int r = width / 2;
@@ -445,11 +511,16 @@ void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
 	// scale x to count of bins and store in v
 	for ( index_t i = 0; i < n; i++ )
 	{
+		if ( isNA(x[i]) )
+		{
+			v[i] = NA_INTEGER;
+			continue;
+		}
 		double a = static_cast<double>(x[i] - xmin);
 		double b = static_cast<double>(xmax - xmin);
-		v[i] = std::lrint((nbins - 1) * a / b);
+		v[i] = std::lrint((nbins - 1) * (a / b));
 		// just for safety (we index with these)
-		v[i] = max2(min2(v[i], nbins - 1), 0);
+		v[i] = norm_ind(v[i], nbins);
 	}
 	// initialize histogram
 	index_t ii, jj, iprev, jprev;
@@ -461,52 +532,62 @@ void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
 		{
 			ii = wrap_ind(ki, nr);
 			jj = wrap_ind(kj, nc);
-			hist[v[jj * nr + ii]]++;
+			if ( !isNA(v[jj * nr + ii]) )
+				hist[v[jj * nr + ii]]++;
 		}
 	}
-	buffer[0] = do_sum(hist, 0, v[0]);
+	if ( isNA(x[0]) )
+		buffer[0] = NA_REAL;
+	else
+		buffer[0] = do_sum(hist, 0, v[0]);
 	// sliding window
 	for ( index_t i = 0; i < nr; i++ )
 	{
 		if ( i != 0 )
 		{
 			// remove previous row from histogram
-			// and add current one (skip first row)
+			// and add current one (skip for first row)
 			ii = wrap_ind(i, nr);
 			iprev = wrap_ind(i - 1, nr);
 			for ( index_t kj = -r; kj <= r; kj++ )
 			{
 				jj = wrap_ind(kj, nc);
-				hist[v[jj * nr + iprev]]--;
-				hist[v[jj * nr + ii]]++;
+				if ( !isNA(v[jj * nr + iprev]) )
+					hist[v[jj * nr + iprev]]--;
+				if ( !isNA(v[jj * nr + ii]) )
+					hist[v[jj * nr + ii]]++;
 			}
 		}
 		for ( index_t j = 0; j < nc; j++ )
 		{
 			if ( i == 0 && j == 0 )
 				continue;
-			if ( isNA(v[j * nr + i]) )
-			{
-				buffer[j * nr + i] = NA_REAL;
-				continue;
-			}
 			// remove previous column from histogram
-			// and add current one (skip first pixel)
+			// and add current one (skip for first pixel)
 			jj = wrap_ind(j, nc);
 			jprev = wrap_ind(j - 1, nc);
 			for ( index_t ki = -r; ki <= r; ki++ )
 			{
 				ii = wrap_ind(i + ki, nr);
-				hist[v[jprev * nr + ii]]--;
-				hist[v[jj * nr + ii]]++;
+				if ( !isNA(v[jprev * nr + ii]) )
+					hist[v[jprev * nr + ii]]--;
+				if ( !isNA(v[jj * nr + ii]) )
+					hist[v[jj * nr + ii]]++;
 			}
-			// assign transformed pixel value
-			buffer[j * nr + i] = do_sum(hist, 0, v[j * nr + i]);
+			// transform pixels
+			if ( isNA(v[j * nr + i]) )
+				buffer[j * nr + i] = NA_REAL;
+			else
+				buffer[j * nr + i] = do_sum(hist, 0, v[j * nr + i]);
 		}
 	}
+	// normalize to [0, 1]
 	double vmax = do_max(buffer, 0, n - 1);
 	for ( index_t i = 0; i < n; i++ )
-		buffer[i] /= vmax;
+	{
+		if ( !isNA(buffer[i]) )
+			buffer[i] /= vmax;
+	}
 	Free(hist);
 	Free(v);
 }

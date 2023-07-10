@@ -71,6 +71,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(bilateralFilter2, 5),
 	CALLDEF(diffusionFilter2, 5),
 	CALLDEF(guidedFilter2, 4),
+	CALLDEF(histEq, 2),
 	CALLDEF(adaptHisteq, 3),
 	CALLDEF(Approx2, 8),
 	// matter altrep

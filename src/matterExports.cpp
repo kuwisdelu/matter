@@ -1096,6 +1096,27 @@ SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
 	return result;
 }
 
+SEXP histEq(SEXP x, SEXP nbins)
+{
+	SEXP result;
+	if ( Rf_isMatrix(x) )
+		PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
+	else
+		PROTECT(result = Rf_allocVector(REALSXP, XLENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			histeq(INTEGER(x), XLENGTH(x), Rf_asInteger(nbins), REAL(result));
+			break;
+		case REALSXP:
+			histeq(REAL(x), XLENGTH(x), Rf_asInteger(nbins), REAL(result));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
 SEXP adaptHisteq(SEXP x, SEXP width, SEXP nbins)
 {
 	SEXP result;

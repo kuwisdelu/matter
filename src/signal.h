@@ -365,11 +365,13 @@ void mean_filter(T * x, index_t n, int width, double * buffer)
 		hi = norm_ind(i + r, n);
 		if ( isNA(x[i]) )
 		{
+			// handle missing pixel
 			buffer[i] = NA_REAL;
 		}
 		else if ( i == 0 || isNA(buffer[i - 1]) ||
 			isNA(x[prev]) || isNA(x[hi]) )
 		{
+			// handle missing neighborhood
 			buffer[i] = width * do_mean(x, lo, hi);
 			double xs = 0;
 			size_t len = 0;
@@ -386,9 +388,11 @@ void mean_filter(T * x, index_t n, int width, double * buffer)
 		}
 		else
 		{
+			// fast O(n) sliding sum
 			buffer[i] = buffer[i - 1] - x[prev] + x[hi];
 		}
 	}
+	// calculate means
 	for ( index_t i = 0; i < n; i++ )
 	{
 		if ( !isNA(buffer[i]) )

@@ -33,7 +33,7 @@ filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 }
 
 filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
-	sdrange = 2 * mad(x, na.rm = TRUE))
+	sdrange = mad(x, na.rm = TRUE))
 {
 	if ( !is.matrix(x) )
 		stop("x must be a matrix")
@@ -53,7 +53,7 @@ filt2_adapt <- function(x, width = 5L, spar = 1)
 		NA_real_, NA_real_, spar, PACKAGE="matter")
 }
 
-filt2_diff <- function(x, niter = 5, kappa = 50,
+filt2_diff <- function(x, niter = 3L, kappa = 50,
 	rate = 0.25, method = 1L)
 {
 	if ( !is.matrix(x) )
@@ -67,7 +67,7 @@ filt2_diff <- function(x, niter = 5, kappa = 50,
 }
 
 filt2_guide <- function(x, width = 5L, guide = x,
-	sdreg = 2 * mad(x, na.rm = TRUE))
+	sdreg = mad(x, na.rm = TRUE))
 {
 	if ( !is.matrix(x) )
 		stop("x must be a matrix")
@@ -186,26 +186,29 @@ mi <- function(x, y, n = 64L)
 #### Contrast enhancement ####
 ## ---------------------------
 
-enhance_heq <- function(x)
+normalize_IQR <- function(x, y)
 {
-	y <- rank(x, na.last="keep", ties.method="max")
-	y <- y / max(y, na.rm=TRUE)
-	qx <- IQR(x, na.rm=TRUE)
 	qy <- IQR(y, na.rm=TRUE)
-	center <- median(x, na.rm=TRUE)
-	y <- y - median(y, na.rm=TRUE)
-	if ( qy != 0 )
-		y <- y / qy
+	qx <- IQR(x, na.rm=TRUE)
+	center <- median(y, na.rm=TRUE)
+	x <- x - median(x, na.rm=TRUE)
 	if ( qx != 0 )
-		y <- y * qx
-	y <- y + center
-	dim(y) <- dim(x)
-	y
+		x <- x / qx
+	if ( qy != 0 )
+		x <- x * qy
+	x <- x + center
+}
+
+enhance_heq <- function(x, nbins = 256L)
+{
+	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
+	normalize_IQR(y, x)
 }
 
 enhance_aheq <- function(x, width = sqrt(length(x)) %/% 5L, nbins = 256L)
 {
-	.Call(C_adaptHisteq, x, width, nbins, PACKAGE="matter")
+	y <- .Call(C_adaptHisteq, x, width, nbins, PACKAGE="matter")
+	normalize_IQR(y, x)
 }
 
 #### 2D Resampling with interpolation ####

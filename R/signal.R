@@ -45,7 +45,7 @@ filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 }
 
 filt1_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
-	sdrange = 2 * mad(x, na.rm = TRUE))
+	sdrange = mad(x, na.rm = TRUE))
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
 		stop("x must be a vector")
@@ -65,7 +65,7 @@ filt1_adapt <- function(x, width = 5L, spar = 1)
 		NA_real_, NA_real_, spar, PACKAGE="matter")
 }
 
-filt1_diff <- function(x, niter = 5, kappa = 50,
+filt1_diff <- function(x, niter = 3L, kappa = 50,
 	rate = 0.25, method = 1L)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
@@ -79,7 +79,7 @@ filt1_diff <- function(x, niter = 5, kappa = 50,
 }
 
 filt1_guide <- function(x, width = 5L, guide = x,
-	sdreg = 2 * mad(x, na.rm = TRUE))
+	sdreg = mad(x, na.rm = TRUE))
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
 		stop("x must be a vector")
@@ -94,7 +94,7 @@ filt1_guide <- function(x, width = 5L, guide = x,
 }
 
 filt1_pag <- function(x, width = 5L, guide = NULL,
-	sdreg = 2 * mad(x, na.rm = TRUE), ftol = 1/10)
+	sdreg = mad(x, na.rm = TRUE), ftol = 1/10)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
 		stop("x must be a vector")
