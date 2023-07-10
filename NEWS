@@ -1,4 +1,16 @@
 
+CHANGES IN VERSION 2.3.5 [2023-7-10]
+------------------------------------
+
+NEW FEATURES
+
+    o Added 'enhance_hist()' for histogram equalization
+    o Added 'enhance_adapt()' for CLAHE
+
+BUG FIXES
+
+    o Fixed handling of missing values in smoothing filters
+
 CHANGES IN VERSION 2.3.4 [2023-7-7]
 -----------------------------------
 
