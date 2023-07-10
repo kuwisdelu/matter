@@ -346,9 +346,15 @@ double quick_median(T * x, size_t n)
 		return NA_REAL;
 	T * dup = R_Calloc(n, T);
 	std::memcpy(dup, x, n * sizeof(T));
-	size_t k = n / 2;
+	size_t len = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( !isNA(x[i]) )
+			len++;
+	}
+	size_t k = len / 2;
 	double result = NA_REAL;
-	if ( n % 2 == 0 )
+	if ( len % 2 == 0 )
 	{
 		double m1 = quick_select(dup, 0, n, k - 1);
 		double m2 = quick_select(dup, k, n, k);
@@ -369,7 +375,12 @@ double quick_mad(T * x, size_t n, double center = NA_REAL, double scale = 1.4826
 	if ( isNA(center) )
 		center = quick_median(x, n);
 	for ( index_t i = 0; i < n; i++ )
-		dev[i] = std::fabs(x[i] - center);
+	{
+		if ( isNA(x[i]) )
+			dev[i] = NA_REAL;
+		else
+			dev[i] = std::fabs(x[i] - center);
+	}
 	double mad = scale * quick_median(dev, n);
 	Free(dev);
 	return mad;

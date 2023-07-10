@@ -15,6 +15,8 @@ double do_klinear2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 	double zi = 0, K0 = 0, ki, kj;
 	for ( index_t i = 0; i < n; i++ )
 	{
+		if ( isNA(z[indx[i]]) )
+			continue;
 		ki = klinear(udiff(x[indx[i]], xi) / rx);
 		kj = klinear(udiff(y[indx[i]], yi) / ry);
 		zi += ki * kj * z[indx[i]];
@@ -31,6 +33,8 @@ double do_kcubic2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 	double r2x = 0.5 * rx, r2y = 0.5 * ry;
 	for ( index_t i = 0; i < n; i++ )
 	{
+		if ( isNA(z[indx[i]]) )
+			continue;
 		ki = kcubic(udiff(x[indx[i]], xi) / r2x);
 		kj = kcubic(udiff(y[indx[i]], yi) / r2y);
 		zi += ki * kj * z[indx[i]];
@@ -46,6 +50,8 @@ double do_kgaussian2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 	double zi = 0, K0 = 0, ki, kj;
 	for ( index_t i = 0; i < n; i++ )
 	{
+		if ( isNA(z[indx[i]]) )
+			continue;
 		ki = kgaussian(udiff(x[indx[i]], xi), sdx);
 		kj = kgaussian(udiff(y[indx[i]], yi), sdy);
 		zi += ki * kj * z[indx[i]];
@@ -61,6 +67,8 @@ double do_klanczos2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 	double zi = 0, K0 = 0, ki, kj;
 	for ( index_t i = 0; i < n; i++ )
 	{
+		if ( isNA(z[indx[i]]) )
+			continue;
 		ki = klanczos(udiff(x[indx[i]], xi), ax);
 		kj = klanczos(udiff(y[indx[i]], yi), ay);
 		zi += ki * kj * z[indx[i]];
@@ -76,39 +84,92 @@ template<typename T>
 void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 {
 	int r = width / 2;
-	double vprev, vcurr;
-	double y[nr * nc];
+	index_t ii, jj, prev, lo, hi;
+	double * y = R_Calloc(nr * nc, double);
 	double * z = buffer;
 	// horizontal filter pass
 	for ( index_t i = 0; i < nr; i++ )
 	{
-		y[i] = r * x[i];
-		for ( index_t j = 0; j <= r && j < nc; j++ )
-			y[i] += x[j * nr + i];
-		for ( index_t j = 1; j < nc; j++ )
+		for ( index_t j = 0; j < nc; j++ )
 		{
-			vprev = x[norm_ind(j - r - 1, nc) * nr + i];
-			vcurr = x[norm_ind(j + r, nc) * nr + i];
-			y[j * nr + i] = y[(j - 1) * nr + i] - vprev + vcurr;
+			prev = norm_ind(j - r - 1, nc);
+			lo = norm_ind(j - r, nc);
+			hi = norm_ind(j + r, nc);
+			if ( isNA(x[j * nr + i]) )
+			{
+				y[j * nr + i] = NA_REAL;
+			}
+			else if ( j == 0 || isNA(y[(j - 1) * nr + i]) ||
+				isNA(x[prev * nr + i]) || isNA(x[hi * nr + i]) )
+			{
+				double xs = 0;
+				size_t len = 0;
+				for ( index_t k = -r; k <= r; k++ )
+				{
+					jj = norm_ind(j + k, nc);
+					if ( !isNA(x[jj * nr + i]) )
+					{
+						xs += x[jj * nr + i];
+						len++;
+					}
+				}
+				y[j * nr + i] = width * (xs / len);
+			}
+			else
+			{
+				double xprev = x[prev * nr + i];
+				double xhi = x[hi * nr + i];
+				y[j * nr + i] = y[(j - 1) * nr + i] - xprev + xhi;
+			}
 		}
 		for ( index_t j = 0; j < nc; j++ )
-			y[j * nr + i] /= width;
+		{
+			if ( !isNA(y[j * nr + i]) )
+				y[j * nr + i] /= width;
+		}
 	}
 	// vertical filter pass
 	for ( index_t j = 0; j < nc; j++ )
 	{
-		z[j * nr] = r * y[j * nr];
-		for ( index_t i = 0; i <= r && i < nr; i++ )
-			z[j * nr] += y[j * nr + i];
-		for ( index_t i = 1; i < nr; i++ )
+		for ( index_t i = 0; i < nr; i++ )
 		{
-			vprev = y[j * nr + norm_ind(i - r - 1, nr)];
-			vcurr = y[j * nr + norm_ind(i + r, nr)];
-			z[j * nr + i] = z[j * nr + i - 1] - vprev + vcurr;
+			prev = norm_ind(i - r - 1, nr);
+			lo = norm_ind(i - r, nr);
+			hi = norm_ind(i + r, nr);
+			if ( isNA(y[j * nr + i]) )
+			{
+				z[j * nr + i] = NA_REAL;
+			}
+			else if ( i == 0 || isNA(z[j * nr + i - 1]) ||
+				isNA(y[j * nr + prev]) || isNA(y[j * nr + hi]) )
+			{
+				double ys = 0;
+				size_t len = 0;
+				for ( index_t k = -r; k <= r; k++ )
+				{
+					ii = norm_ind(i + k, nr);
+					if ( !isNA(y[j * nr + ii]) )
+					{
+						ys += y[j * nr + ii];
+						len++;
+					}
+				}
+				z[j * nr + i] = width * (ys / len);
+			}
+			else
+			{
+				double yprev = y[j * nr + prev];
+				double yhi = y[j * nr + hi];
+				z[j * nr + i] = z[j * nr + i - 1] - yprev + yhi;
+			}
 		}
 		for ( index_t i = 0; i < nr; i++ )
-			z[j * nr + i] /= width;
+		{
+			if ( !isNA(z[j * nr + i]) )
+				z[j * nr + i] /= width;
+		}
 	}
+	Free(y);
 }
 
 template<typename T>
@@ -121,6 +182,11 @@ void linear_filter2(T * x, int nr, int nc,
 	{
 		for ( index_t j = 0; j < nc; j++ )
 		{
+			if ( isNA(x[j * nr + i]) )
+			{
+				buffer[j * nr + i] = NA_REAL;
+				continue;
+			}
 			double xij, wij, W = 0;
 			buffer[j * nr + i] = 0;
 			for (index_t ki = 0; ki < width; ki++ )
@@ -149,28 +215,25 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 	int r = width / 2;
 	index_t n = nr * nc;
 	index_t ii, jj;
-	bool xnan = false, outnan = false;
 	double sdd = sddist, sdr = sdrange;
 	double mad, xrange;
 	if ( !isNA(spar) )
 	{
 		// get MAD if using adaptive parameters
 		mad = quick_mad(x, n);
-		double xmin = n > 0 ? x[0] : NA_REAL;
-		double xmax = n > 0 ? x[0] : NA_REAL;;
-		for ( index_t i = 1; i < n; i++ )
-		{
-			if ( x[i] > xmax )
-				xmax = x[i];
-			if ( x[i] < xmin )
-				xmin = x[i];
-		}
+		double xmin = do_min(x, 0, n - 1);
+		double xmax = do_max(x, 0, n - 1);
 		xrange = xmax - xmin;
 	}
 	for ( index_t i = 0; i < nr; i++ )
 	{
 		for ( index_t j = 0; j < nc; j++ )
 		{
+			if ( isNA(x[j * nr + i]) )
+			{
+				buffer[j * nr + i] = NA_REAL;
+				continue;
+			}
 			double xij, dmean = 0, W = 0;
 			buffer[j * nr + i] = 0;
 			if ( !isNA(spar) )
@@ -184,7 +247,8 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 						ii = norm_ind(i + ki - r, nr);
 						jj = norm_ind(j + kj - r, nc);
 						xij = x[jj * nr + ii];
-						dmean += std::fabs(xij - x[j * nr + i]) / width;
+						if ( !isNA(xij) )
+							dmean += std::fabs(xij - x[j * nr + i]) / width;
 					}
 				}
 				// calculate adaptive parameters
@@ -216,19 +280,9 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 					W += wtdist * wtrange;
 				}
 			}
-			buffer[j * nr + i] /= W;
-			if ( !xnan && isNA(x[j * nr + i]) )
-				xnan = true;
-			if ( !outnan && isNA(buffer[j * nr + i]) )
-				outnan = true;
+			if ( !isNA(buffer[j * nr + i]) )
+				buffer[j * nr + i] /= W;
 		}
-	}
-	if ( outnan && !xnan )
-	{
-		if ( isNA(spar) )
-			Rf_warning("NAs introduced; try larger values of sddist or sdrange");
-		else
-			Rf_warning("NAs introduced; try a larger value of spar");
 	}
 }
 
@@ -244,7 +298,7 @@ void diffusion_filter2(T * x, int nr, int nc, int niter,
 	double * x1 = buffer;
 	// initialize buffer
 	for ( index_t i = 0; i < n; i++ )
-		buffer[i] = static_cast<double>(x[i]);
+		buffer[i] = coerce_cast<double>(x[i]);
 	// iterate
 	for ( int iter = 0; iter < niter; iter++ )
 	{
@@ -253,15 +307,20 @@ void diffusion_filter2(T * x, int nr, int nc, int niter,
 		{
 			for ( index_t j = 0; j < nc; j++ )
 			{
+				if ( isNA(x0[j * nr + i]) )
+				{
+					x1[j * nr + i] = NA_REAL;
+					continue;
+				}
 				// calculate gradients
 				N = norm_ind(i - 1, nr);
 				S = norm_ind(i + 1, nr);
 				E = norm_ind(j + 1, nc);
 				W = norm_ind(j - 1, nc);
-				dN = sdiff(x0[j * nr + N], x0[j * nr + i]);
-				dS = sdiff(x0[j * nr + S], x0[j * nr + i]);
-				dE = sdiff(x0[E * nr + i], x0[j * nr + i]);
-				dW = sdiff(x0[W * nr + i], x0[j * nr + i]);
+				dN = isNA(x0[j * nr + N]) ? 0 : sdiff(x0[j * nr + N], x0[j * nr + i]);
+				dS = isNA(x0[j * nr + S]) ? 0 : sdiff(x0[j * nr + S], x0[j * nr + i]);
+				dE = isNA(x0[E * nr + i]) ? 0 : sdiff(x0[E * nr + i], x0[j * nr + i]);
+				dW = isNA(x0[W * nr + i]) ? 0 : sdiff(x0[W * nr + i], x0[j * nr + i]);
 				// calculate conduction
 				switch(method) {
 					case DIFF_PM1:
@@ -313,25 +372,52 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	// calculate variances and covariances
 	double * gg = ptr1;
 	double * gx = ptr2;
-	for ( index_t i = 0; i < n; i++ ) {
-		gg[i] = g[i] * g[i];
-		gx[i] = g[i] * x[i];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(g[i]) || isNA(x[i]) )
+		{
+			gg[i] = NA_REAL;
+			gx[i] = NA_REAL;
+		}
+		else
+		{
+			gg[i] = g[i] * g[i];
+			gx[i] = g[i] * x[i];
+		}
 	}
 	double * sg = ptr3;
 	double * sgx = ptr4;
 	mean_filter2(gg, nr, nc, width, sg);
 	mean_filter2(gx, nr, nc, width, sgx);
-	for ( index_t i = 0; i < n; i++ ) {
-		sg[i] = sg[i] - ug[i] * ug[i];
-		sgx[i] = sgx[i] - ug[i] * ux[i];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(g[i]) || isNA(x[i]) )
+		{
+			sg[i] = NA_REAL;
+			sgx[i] = NA_REAL;
+		}
+		else
+		{
+			sg[i] = sg[i] - ug[i] * ug[i];
+			sgx[i] = sgx[i] - ug[i] * ux[i];
+		}
 	}
 	// calculate coefficients a and b
 	double * a = ptr1;
 	double * b = ptr2;
 	double s0 = sdreg * sdreg;
-	for ( index_t i = 0; i < n; i++ ) {
-		a[i] = sgx[i] / (sg[i] + s0);
-		b[i] = ux[i] - a[i] * ug[i];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(g[i]) || isNA(x[i]) )
+		{
+			a[i] = NA_REAL;
+			b[i] = NA_REAL;
+		}
+		else
+		{
+			a[i] = sgx[i] / (sg[i] + s0);
+			b[i] = ux[i] - a[i] * ug[i];
+		}
 	}
 	double * ua = ptr3;
 	double * ub = ptr4;

@@ -32,8 +32,8 @@ filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 	.Call(C_linearFilter2, x, weights, PACKAGE="matter")
 }
 
-filt2_bi <- function(x, width = 5L,
-	sddist = (width %/% 2) / 2, sdrange = 2 * mad(x))
+filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
+	sdrange = 2 * mad(x, na.rm = TRUE))
 {
 	if ( !is.matrix(x) )
 		stop("x must be a matrix")
@@ -67,7 +67,7 @@ filt2_diff <- function(x, niter = 5, kappa = 50,
 }
 
 filt2_guide <- function(x, width = 5L, guide = x,
-	sdreg = 2 * mad(x))
+	sdreg = 2 * mad(x, na.rm = TRUE))
 {
 	if ( !is.matrix(x) )
 		stop("x must be a matrix")

@@ -136,16 +136,39 @@ inline double chip(double y[4], double dx[3], double t)
 //---------------------------
 
 template<typename T>
+size_t do_len(T * x, index_t lower, index_t upper)
+{
+	size_t len = 0;
+	for ( index_t i = lower; i <= upper; i++ )
+	{
+		if ( !isNA(x[i]) )
+			len++;
+	}
+	return len;
+}
+
+template<typename T>
+size_t do_len(T * x, int * indx, size_t n)
+{
+	size_t len = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( !isNA(x[indx[i]]) )
+			len++;
+	}
+	return len;
+}
+
+template<typename T>
 double do_sum(T * x, index_t lower, index_t upper)
 {
 	double sx = 0;
 	for ( index_t i = lower; i <= upper; i++ )
 	{
-		if ( isNA(x[i]) )
-			return NA_REAL;
-		sx += x[i];
+		if ( !isNA(x[i]) )
+			sx += x[i];
 	}
-	return sx;
+	return coerce_cast<double>(sx);
 }
 
 template<typename T>
@@ -154,43 +177,40 @@ double do_sum(T * x, int * indx, size_t n)
 	double sx = 0;
 	for ( index_t i = 0; i < n; i++ )
 	{
-		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		sx += x[indx[i]];
+		if ( !isNA(x[indx[i]]) )
+			sx += x[indx[i]];
 	}
-	return sx;
+	return coerce_cast<double>(sx);
 }
 
 template<typename T>
 double do_mean(T * x, index_t lower, index_t upper)
 {
 	double sx = do_sum(x, lower, upper);
-	if ( isNA(sx) )
-		return NA_REAL;
-	return sx / (upper - lower + 1);
+	return sx / do_len(x, lower, upper);
 }
 
 template<typename T>
 double do_mean(T * x, int * indx, size_t n)
 {
 	double sx = do_sum(x, indx, n);
-	if ( isNA(sx) )
-		return NA_REAL;
-	return sx / n;
+	return sx / do_len(x, indx, n);
 }
 
 template<typename T>
 double do_max(T * x, index_t lower, index_t upper)
 {
+	if ( lower == upper )
+		return NA_REAL;
 	T mx = x[lower];
 	for ( index_t i = lower; i <= upper; i++ )
 	{
 		if ( isNA(x[i]) )
-			return NA_REAL;
-		else if ( x[i] > mx )
+			continue;
+		if ( x[i] > mx || isNA(mx) )
 			mx = x[i];
 	}
-	return static_cast<double>(mx);
+	return coerce_cast<double>(mx);
 }
 
 template<typename T>
@@ -202,25 +222,27 @@ double do_max(T * x, int * indx, size_t n)
 	for ( index_t i = 0; i < n; i++ )
 	{
 		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		else if ( x[indx[i]] > mx )
+			continue;
+		if ( x[indx[i]] > mx || isNA(mx) )
 			mx = x[indx[i]];
 	}
-	return static_cast<double>(mx);
+	return coerce_cast<double>(mx);
 }
 
 template<typename T>
 double do_min(T * x, index_t lower, index_t upper)
 {
+	if ( lower == upper )
+		return NA_REAL;
 	T mx = x[lower];
 	for ( index_t i = lower; i <= upper; i++ )
 	{
 		if ( isNA(x[i]) )
-			return NA_REAL;
-		else if ( x[i] < mx )
+			continue;
+		if ( x[i] < mx || isNA(mx) )
 			mx = x[i];
 	}
-	return static_cast<double>(mx);
+	return coerce_cast<double>(mx);
 }
 
 template<typename T>
@@ -232,23 +254,29 @@ double do_min(T * x, int * indx, size_t n)
 	for ( index_t i = 0; i < n; i++ )
 	{
 		if ( isNA(x[indx[i]]) )
-			return NA_REAL;
-		else if ( x[indx[i]] < mx )
+			continue;
+		if ( x[indx[i]] < mx || isNA(mx) )
 			mx = x[indx[i]];
 	}
-	return static_cast<double>(mx);
+	return coerce_cast<double>(mx);
 }
 
 template<typename T>
 double do_var(T * x, index_t lower, index_t upper)
 {
-	double ux = do_mean(x, lower, upper);
+	double ux = do_sum(x, lower, upper);
+	size_t len = do_len(x, lower, upper);
 	if ( isNA(ux) )
 		return NA_REAL;
+	else
+		ux = ux / len;
 	double sx = 0;
 	for ( index_t i = lower; i <= upper; i++ )
-		sx += (ux - x[i]) * (ux - x[i]);
-	return sx / (upper - lower);
+	{
+		if ( !isNA(x[i]) )
+			sx += (ux - x[i]) * (ux - x[i]);
+	}
+	return sx / (len - 1);
 }
 
 template<typename T>
@@ -274,7 +302,8 @@ double do_quant(T * x, index_t lower, index_t upper, double prob)
 	T * dup = R_Calloc(n, T);
 	std::memcpy(dup, x + lower, n * sizeof(T));
 	// stats::quantile type 3 (nearest order statistic)
-	double nppm = n * prob - 0.5;
+	size_t len = do_len(x, lower, upper);
+	double nppm = len * prob - 0.5;
 	int k, j = static_cast<int>(std::floor(nppm));
 	if ( !equal(nppm - j, 0.0) || j % 2 == 1 )
 		k = j;
@@ -283,7 +312,7 @@ double do_quant(T * x, index_t lower, index_t upper, double prob)
 	// find the kth order statistic by sorting x
 	T q = quick_select(dup, 0, n, norm_ind(k, n));
 	Free(dup);
-	return static_cast<double>(q);
+	return coerce_cast<double>(q);
 }
 
 //// Summarize via kernel 
@@ -296,6 +325,8 @@ double do_kgaussian1(Tx xi, Tx * x, Ty * y, double sd,
 	double yi = 0, K0 = 0, ki;
 	for ( index_t i = lower; i <= upper; i++ )
 	{
+		if ( isNA(x[i]) )
+			continue;
 		ki = kgaussian(udiff(x[i], xi), sd);
 		yi += ki * y[i];
 		K0 += ki;
@@ -310,6 +341,8 @@ double do_klanczos1(Tx xi, Tx * x, Ty * y, double a,
 	double yi = 0, K0 = 0, ki;
 	for ( index_t i = lower; i <= upper; i++ )
 	{
+		if ( isNA(x[i]) )
+			continue;
 		ki = klanczos(udiff(x[i], xi), a);
 		yi += ki * y[i];
 		K0 += ki;
@@ -321,81 +354,109 @@ double do_klanczos1(Tx xi, Tx * x, Ty * y, double a,
 //---------------------------
 
 template<typename T>
-void mean_filter(T * x, int n, int width, double * buffer)
+void mean_filter(T * x, index_t n, int width, double * buffer)
 {
 	int r = width / 2;
-	index_t iprev, icurr;
-	buffer[0] = r * x[0];
-	for ( index_t i = 0; i <= r && i < n; i++ )
-		buffer[0] += x[i];
-	for ( index_t i = 1; i < n; i++ )
+	index_t ij, prev, lo, hi;
+	for ( index_t i = 0; i < n; i++ )
 	{
-		iprev = norm_ind(i - r - 1, n);
-		icurr = norm_ind(i + r, n);
-		buffer[i] = buffer[i - 1] - x[iprev] + x[icurr];
+		prev = norm_ind(i - r - 1, n);
+		lo = norm_ind(i - r, n);
+		hi = norm_ind(i + r, n);
+		if ( isNA(x[i]) )
+		{
+			buffer[i] = NA_REAL;
+		}
+		else if ( i == 0 || isNA(buffer[i - 1]) ||
+			isNA(x[prev]) || isNA(x[hi]) )
+		{
+			buffer[i] = width * do_mean(x, lo, hi);
+			double xs = 0;
+			size_t len = 0;
+			for ( index_t j = -r; j <= r; j++ )
+			{
+				ij = norm_ind(i + j, n);
+				if ( !isNA(x[ij]) )
+				{
+					xs += x[ij];
+					len++;
+				}
+			}
+			buffer[i] = width * (xs / len);
+		}
+		else
+		{
+			buffer[i] = buffer[i - 1] - x[prev] + x[hi];
+		}
 	}
 	for ( index_t i = 0; i < n; i++ )
-		buffer[i] /= width;
+	{
+		if ( !isNA(buffer[i]) )
+			buffer[i] /= width;
+	}
 }
 
 template<typename T>
-void linear_filter(T * x, int n,
+void linear_filter(T * x, index_t n,
 	double * weights, int width, double * buffer)
 {
 	int r = width / 2;
 	index_t ij;
 	for ( index_t i = 0; i < n; i++ )
 	{
+		if ( isNA(x[i]) )
+		{
+			buffer[i] = NA_REAL;
+			continue;
+		}
 		double W = 0;
 		buffer[i] = 0;
-		for (index_t j = 0; j < width; j++ )
+		for ( index_t j = -r; j <= r; j++ )
 		{
-			ij = norm_ind(i + j - r, n);
+			ij = norm_ind(i + j, n);
 			if ( isNA(x[ij]) )
 				continue;
-			buffer[i] += weights[j] * x[ij];
-			W += weights[j];
+			buffer[i] += weights[j + r] * x[ij];
+			W += weights[j + r];
 		}
 		buffer[i] /= W;
 	}
 }
 
 template<typename T>
-void bilateral_filter(T * x, int n, int width,
+void bilateral_filter(T * x, index_t n, int width,
 	double sddist, double sdrange, double spar, double * buffer)
 {
 	int r = width / 2;
 	index_t ij;
-	bool xnan = false, outnan = false;
 	double sdd = sddist, sdr = sdrange;
 	double mad, xrange;
 	if ( !isNA(spar) )
 	{
 		// get MAD if using adaptive parameters
 		mad = quick_mad(x, n);
-		double xmin = n > 0 ? x[0] : NA_REAL;
-		double xmax = n > 0 ? x[0] : NA_REAL;;
-		for ( index_t i = 1; i < n; i++ )
-		{
-			if ( x[i] > xmax )
-				xmax = x[i];
-			if ( x[i] < xmin )
-				xmin = x[i];
-		}
+		double xmin = do_min(x, 0, n - 1);
+		double xmax = do_max(x, 0, n - 1);
 		xrange = xmax - xmin;
 	}
 	for ( index_t i = 0; i < n; i++ )
 	{
+		if ( isNA(x[i]) )
+		{
+			buffer[i] = NA_REAL;
+			continue;
+		}
 		double dmean = 0, W = 0;
 		buffer[i] = 0;
 		if ( !isNA(spar) )
 		{
 			// modified version of Joseph & Periyasamy (2018)
-			for ( index_t j = 0; j < width; j++ )
+			for ( index_t j = -r; j <= r; j++ )
 			{
 				// find mean of local differences
-				ij = norm_ind(i + j - r, n);
-				dmean += std::fabs(x[ij] - x[i]) / width;
+				ij = norm_ind(i + j, n);
+				if ( !isNA(x[ij]) )
+					dmean += std::fabs(x[ij] - x[i]) / width;
 			}
 			// calculate adaptive parameters
 			double z = std::fabs(dmean - mad) / spar;
@@ -410,34 +471,24 @@ void bilateral_filter(T * x, int n, int width,
 			buffer[i] = x[i];
 			continue;
 		}
-		for ( index_t j = 0; j < width; j++ )
+		for ( index_t j = -r; j <= r; j++ )
 		{
 			// standard bilateral filter
-			ij = norm_ind(i + j - r, n);
+			ij = norm_ind(i + j, n);
 			if ( isNA(x[ij]) )
 				continue;
-			double wtdist = kgaussian(j - r, sdd);
+			double wtdist = kgaussian(j, sdd);
 			double wtrange = kgaussian(x[ij] - x[i], sdr);
 			buffer[i] += wtdist * wtrange * x[ij];
 			W += wtdist * wtrange;
 		}
-		buffer[i] /= W;
-		if ( !xnan && isNA(x[i]) )
-			xnan = true;
-		if ( !outnan && isNA(buffer[i]) )
-			outnan = true;
-	}
-	if ( outnan && !xnan )
-	{
-		if ( isNA(spar) )
-			Rf_warning("NAs introduced; try larger values of sddist or sdrange");
-		else
-			Rf_warning("NAs introduced; try a larger value of spar");
+		if ( !isNA(buffer[i]) )
+			buffer[i] /= W;
 	}
 }
 
 template<typename T>
-void diffusion_filter(T * x, int n, int niter,
+void diffusion_filter(T * x, index_t n, int niter,
 	double K, double rate, int method, double * buffer)
 {
 	index_t L, R;
@@ -447,18 +498,23 @@ void diffusion_filter(T * x, int n, int niter,
 	double * x1 = buffer;
 	// initialize buffer
 	for ( index_t i = 0; i < n; i++ )
-		buffer[i] = static_cast<double>(x[i]);
+		buffer[i] = coerce_cast<double>(x[i]);
 	// iterate
 	for ( int iter = 0; iter < niter; iter++ )
 	{
 		std::memcpy(x0, x1, n * sizeof(double));
 		for ( index_t i = 0; i < n; i++ )
 		{
+			if ( isNA(x[i]) )
+			{
+				x[i] = NA_REAL;
+				continue;
+			}
 			// calculate gradients
 			L = norm_ind(i - 1, n);
 			R = norm_ind(i + 1, n);
-			dL = sdiff(x0[L], x0[i]);
-			dR = sdiff(x0[R], x0[i]);
+			dL = isNA(x0[L]) ? 0 : sdiff(x0[L], x0[i]);
+			dR = isNA(x0[R]) ? 0 : sdiff(x0[R], x0[i]);
 			// calculate conduction
 			switch(method) {
 				case DIFF_PM1:
@@ -491,10 +547,10 @@ void diffusion_filter(T * x, int n, int niter,
 }
 
 template<typename T>
-void guided_filter(T * x, T * g, int n, int width,
+void guided_filter(T * x, T * g, index_t n, int width,
 	double sdreg, double ftol, double * buffer)
 {
-	double gmax;
+	double gmax, K2;
 	// allocate buffers for mean filter results
 	double * u = R_Calloc(2 * n, double);
 	double * ug = u;
@@ -506,42 +562,66 @@ void guided_filter(T * x, T * g, int n, int width,
 	double * ptr3 = tmp + 2 * n;
 	double * ptr4 = tmp + 3 * n;
 	// find maximum of guidance signal
-	if ( !isNA(ftol) ) {
-		gmax = n > 0 ? g[0] : NA_REAL;
-		for ( index_t i = 1; i < n; i++ )
-			if ( g[i] > gmax )
-				gmax = g[i];
-	}
+	if ( !isNA(ftol) )
+		gmax = do_max(g, 0, n - 1);
 	// calculate means
 	mean_filter(g, n, width, ug);
 	mean_filter(x, n, width, ux);
 	// calculate variances and covariances
 	double * gg = ptr1;
 	double * gx = ptr2;
-	for ( index_t i = 0; i < n; i++ ) {
-		gg[i] = g[i] * g[i];
-		gx[i] = g[i] * x[i];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(g[i]) || isNA(x[i]) )
+		{
+			gg[i] = NA_REAL;
+			gx[i] = NA_REAL;
+		}
+		else
+		{
+			gg[i] = g[i] * g[i];
+			gx[i] = g[i] * x[i];
+		}
 	}
 	double * sg = ptr3;
 	double * sgx = ptr4;
 	mean_filter(gg, n, width, sg);
 	mean_filter(gx, n, width, sgx);
-	for ( index_t i = 0; i < n; i++ ) {
-		sg[i] = sg[i] - ug[i] * ug[i];
-		sgx[i] = sgx[i] - ug[i] * ux[i];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(g[i]) || isNA(x[i]) )
+		{
+			sg[i] = NA_REAL;
+			sgx[i] = NA_REAL;
+		}
+		else
+		{
+			sg[i] = sg[i] - ug[i] * ug[i];
+			sgx[i] = sgx[i] - ug[i] * ux[i];
+		}
 	}
 	// calculate coefficients a and b
 	double * a = ptr1;
 	double * b = ptr2;
-	for ( index_t i = 0; i < n; i++ ) {
+	for ( index_t i = 0; i < n; i++ )
+	{
 		double s0 = sdreg * sdreg;
-		if ( !isNA(ftol) ) {
+		if ( !isNA(ftol) && !isNA(g[i]) )
+		{
 			// peak-aware regularization
-			double k2 = (ftol * ftol) * (gmax * gmax);
-			s0 *= std::exp(-(g[i] * g[i]) / k2);
+			K2 = (ftol * gmax) * (ftol * gmax);
+			s0 *= std::exp(-(g[i] * g[i]) / K2);
 		}
-		a[i] = sgx[i] / (sg[i] + s0);
-		b[i] = ux[i] - a[i] * ug[i];
+		if ( isNA(g[i]) || isNA(x[i]) )
+		{
+			a[i] = NA_REAL;
+			b[i] = NA_REAL;
+		}
+		else
+		{
+			a[i] = sgx[i] / (sg[i] + s0);
+			b[i] = ux[i] - a[i] * ug[i];
+		}
 	}
 	double * ua = ptr3;
 	double * ub = ptr4;
@@ -549,7 +629,12 @@ void guided_filter(T * x, T * g, int n, int width,
 	mean_filter(b, n, width, ub);
 	// calculate output signal
 	for ( index_t i = 0; i < n; i++ )
-		buffer[i] = ua[i] * g[i] + ub[i];
+	{
+		if ( isNA(g[i]) || isNA(x[i]) )
+			buffer[i] = NA_REAL;
+		else
+			buffer[i] = ua[i] * g[i] + ub[i];
+	}
 	Free(tmp);
 	Free(u);
 }
