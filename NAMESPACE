@@ -368,8 +368,8 @@ export(
 	"filt2_guide",
 	"warp2_trans",
 	"mi",
-	"enhance_heq",
-	"enhance_aheq",
+	"enhance_hist",
+	"enhance_adapt",
 	"trans2d")
 
 export(

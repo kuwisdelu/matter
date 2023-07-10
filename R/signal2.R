@@ -186,8 +186,22 @@ mi <- function(x, y, n = 64L)
 #### Contrast enhancement ####
 ## ---------------------------
 
+enhance_hist <- function(x, nbins = 256L)
+{
+	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
+	normalize_IQR(y, x)
+}
+
+enhance_adapt <- function(x, width = sqrt(length(x)) %/% 5L,
+	clip = 0.1, nbins = 256L)
+{
+	y <- .Call(C_adaptHisteq, x, width, clip, nbins, PACKAGE="matter")
+	normalize_IQR(y, x)
+}
+
 normalize_IQR <- function(x, y)
 {
+	# normalize x's median+IQR to y's
 	qy <- IQR(y, na.rm=TRUE)
 	qx <- IQR(x, na.rm=TRUE)
 	center <- median(y, na.rm=TRUE)
@@ -197,18 +211,6 @@ normalize_IQR <- function(x, y)
 	if ( qy != 0 )
 		x <- x * qy
 	x <- x + center
-}
-
-enhance_heq <- function(x, nbins = 256L)
-{
-	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
-	normalize_IQR(y, x)
-}
-
-enhance_aheq <- function(x, width = sqrt(length(x)) %/% 5L, nbins = 256L)
-{
-	y <- .Call(C_adaptHisteq, x, width, nbins, PACKAGE="matter")
-	normalize_IQR(y, x)
 }
 
 #### 2D Resampling with interpolation ####

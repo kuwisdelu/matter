@@ -500,12 +500,14 @@ void histeq(T * x, index_t n, int nbins, double * buffer)
 }
 
 template<typename T>
-void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
+void adapt_histeq(T * x, int nr, int nc, int width,
+	double clip, int nbins, double * buffer)
 {
 	int r = width / 2;
 	index_t n = nr * nc;
 	index_t * v = R_Calloc(n, index_t);
 	int * hist = R_Calloc(nbins, int);
+	int * clhist = R_Calloc(nbins, int);
 	T xmin = do_min(x, 0, n - 1);
 	T xmax = do_max(x, 0, n - 1);
 	// scale x to count of bins and store in v
@@ -522,6 +524,10 @@ void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
 		// just for safety (we index with these)
 		v[i] = norm_ind(v[i], nbins);
 	}
+	// calculate the clip limit
+	double hsize = width * width;
+	int minclip = std::ceil(hsize / nbins);
+	int cliplim = minclip + std::lrint(clip * (hsize - minclip));
 	// initialize histogram
 	index_t ii, jj, iprev, jprev;
 	for ( index_t i = 0; i < nbins; i++ )
@@ -546,7 +552,7 @@ void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
 		if ( i != 0 )
 		{
 			// remove previous row from histogram
-			// and add current one (skip for first row)
+			// and add current row (skip for first row)
 			ii = wrap_ind(i, nr);
 			iprev = wrap_ind(i - 1, nr);
 			for ( index_t kj = -r; kj <= r; kj++ )
@@ -563,22 +569,63 @@ void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
 			if ( i == 0 && j == 0 )
 				continue;
 			// remove previous column from histogram
-			// and add current one (skip for first pixel)
+			// and add current column (skip for first pixel)
 			jj = wrap_ind(j, nc);
 			jprev = wrap_ind(j - 1, nc);
-			for ( index_t ki = -r; ki <= r; ki++ )
+			for ( index_t k = -r; k <= r; k++ )
 			{
-				ii = wrap_ind(i + ki, nr);
+				ii = wrap_ind(i + k, nr);
 				if ( !isNA(v[jprev * nr + ii]) )
 					hist[v[jprev * nr + ii]]--;
 				if ( !isNA(v[jj * nr + ii]) )
 					hist[v[jj * nr + ii]]++;
 			}
+			// clip the histogram
+			std::memcpy(clhist, hist, nbins * sizeof(int));
+			int excess = 0;
+			for ( index_t k = 0; k < nbins; k++ )
+			{
+				if ( clhist[k] > cliplim )
+					excess += (clhist[k] - cliplim);
+			}
+			int binincr = excess / nbins;
+			int binlimit = cliplim - binincr;
+			for ( index_t k = 0; k < nbins; k++ )
+			{
+				if ( clhist[k] > cliplim )
+					clhist[k] = cliplim;
+				else if ( clhist[k] >= binlimit )
+				{
+					excess -= (binlimit - clhist[k]);
+					clhist[k] = cliplim;
+				}
+				else
+				{
+					excess -= binincr;
+					clhist[k] += binincr;
+				}
+			}
+			// distribute leftover excess
+			index_t hstart = 0, k = 0;
+			while ( excess > 0 && k < nbins )
+			{
+				k = hstart;
+				index_t step = nbins / excess;
+				if ( step < 1 )
+					step = 1;
+				while ( k < nbins && excess > 0 )
+				{
+					clhist[k]++;
+					excess--;
+					k += step;
+				}
+				hstart++;
+			}
 			// transform pixels
 			if ( isNA(v[j * nr + i]) )
 				buffer[j * nr + i] = NA_REAL;
 			else
-				buffer[j * nr + i] = do_sum(hist, 0, v[j * nr + i]);
+				buffer[j * nr + i] = do_sum(clhist, 0, v[j * nr + i]);
 		}
 	}
 	// normalize to [0, 1]
@@ -588,6 +635,7 @@ void adapt_histeq(T * x, int nr, int nc, int width, int nbins, double * buffer)
 		if ( !isNA(buffer[i]) )
 			buffer[i] /= vmax;
 	}
+	Free(clhist);
 	Free(hist);
 	Free(v);
 }

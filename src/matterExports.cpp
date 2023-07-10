@@ -1117,18 +1117,18 @@ SEXP histEq(SEXP x, SEXP nbins)
 	return result;
 }
 
-SEXP adaptHisteq(SEXP x, SEXP width, SEXP nbins)
+SEXP adaptHisteq(SEXP x, SEXP width, SEXP clip, SEXP nbins)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
 	switch(TYPEOF(x)) {
 		case INTSXP:
-			adapt_histeq(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), Rf_asInteger(nbins), REAL(result));
+			adapt_histeq(INTEGER(x), Rf_nrows(x), Rf_ncols(x), Rf_asInteger(width),
+				Rf_asReal(clip), Rf_asInteger(nbins), REAL(result));
 			break;
 		case REALSXP:
-			adapt_histeq(REAL(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), Rf_asInteger(nbins), REAL(result));
+			adapt_histeq(REAL(x), Rf_nrows(x), Rf_ncols(x), Rf_asInteger(width),
+				Rf_asReal(clip), Rf_asInteger(nbins), REAL(result));
 			break;
 		default:
 			Rf_error("unsupported data type");
