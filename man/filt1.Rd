@@ -29,8 +29,8 @@ filt1_conv(x, weights)
 filt1_gauss(x, width = 5L, sd = (width \%/\% 2) / 2)
 
 # Bilateral filter
-filt1_bi(x, width = 5L,
-    sddist = (width \%/\% 2) / 2, sdrange = 2 * mad(x))
+filt1_bi(x, width = 5L, sddist = (width \%/\% 2) / 2,
+    sdrange = 2 * mad(x, na.rm = TRUE))
 
 # Bilateral filter with adaptive parameters
 filt1_adapt(x, width = 5L, spar = 1)
@@ -41,11 +41,11 @@ filt1_diff(x, niter = 5, kappa = 50,
 
 # Guided filter
 filt1_guide(x, width = 5L, guide = x,
-    sdreg = 2 * mad(x))
+    sdreg = 2 * mad(x, na.rm = TRUE))
 
 # Peak-aware guided filter
 filt1_pag(x, width = 5L, guide = NULL,
-    sdreg = 2 * mad(x), ftol = 1/10)
+    sdreg = 2 * mad(x, na.rm = TRUE), ftol = 1/10)
 
 # Savitzky-Golay filter
 filt1_sg(x, width = 5L, order = min(3L, width - 2L),

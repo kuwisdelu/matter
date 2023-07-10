@@ -27,8 +27,8 @@ filt2_conv(x, weights)
 filt2_gauss(x, width = 5L, sd = (width \%/\% 2) / 2)
 
 # Bilateral filter
-filt2_bi(x, width = 5L,
-    sddist = (width \%/\% 2) / 2, sdrange = 2 * mad(x))
+filt2_bi(x, width = 5L, sddist = (width \%/\% 2) / 2,
+    sdrange = 2 * mad(x, na.rm = TRUE))
 
 # Bilateral filter with adaptive parameters
 filt2_adapt(x, width = 5L, spar = 1)
@@ -39,7 +39,7 @@ filt2_diff(x, niter = 5, kappa = 50,
 
 # Guided filter
 filt2_guide(x, width = 5L, guide = x,
-    sdreg = 2 * mad(x))
+    sdreg = 2 * mad(x, na.rm = TRUE))
 }
 
 \arguments{

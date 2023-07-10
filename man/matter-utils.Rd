@@ -69,6 +69,7 @@
 \alias{roll}
 \alias{seq_rel}
 
+\alias{qrank}
 \alias{qorder}
 \alias{qselect}
 \alias{qmedian}
