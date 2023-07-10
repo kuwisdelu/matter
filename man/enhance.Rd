@@ -30,7 +30,7 @@ enhance_aheq(x, width = sqrt(length(x)) \%/\% 5L, nbins = 256L)
 \details{
     \code{enhance_heq()} performs histogram equalization. Histogram equalization transforms the pixel values so that the histogram of the image is approximately flat. This is done by replacing the original pixel values with their associated probability in the image's empirical cumulative distribution.
 
-    \code{enhance_aheq()} performs adaptive histogram equalization. While ordinary histogram equalization performs a global transformation on the image, adaptive histogram equalization calculates a histogram in a local neighborhood around each pixel to perform the transformation, thereby enhancing the local contrast across the image. To speed up the computation, it is implemented here using a sliding window technique similar to Sund and Moystad (2014).
+    \code{enhance_aheq()} performs adaptive histogram equalization. While ordinary histogram equalization performs a global transformation on the image, adaptive histogram equalization calculates a histogram in a local neighborhood around each pixel to perform the transformation, thereby enhancing the local contrast across the image. To speed up the computation, it is implemented here using a sliding window technique similar to Wang and Tao (2006).
 
     These methods rescale the output image so that its median equals the median of the original image and it has the same interquartile range (IQR).
 }
@@ -42,7 +42,7 @@ enhance_aheq(x, width = sqrt(length(x)) \%/\% 5L, nbins = 256L)
 \author{Kylie A. Bemis}
 
 \references{
-    T. Sund and A. Moystad. ``Sliding window adaptive histogram equalization of intraoral radiographs: effect on image quality.'' Dentomaxillofac Radiology, vol. 35, no. 3, pp. 133-218, Jan 2014.
+    Z. Wang and J. Tao. ``A Fast Implementation of Adaptive Histogram Equalization.'' IEEE 8th international Conference on Signal Processing, Nov 2006.
 }
 
 \examples{
