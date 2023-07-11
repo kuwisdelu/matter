@@ -178,12 +178,14 @@ class DeferredOps : public ArrayInterface {
 			size_t n = 0;
 			int s [rank()];
 			int arr_ind [rank()];
+			// calculate stride for each dimension
 			for ( int k = 0; k < rank(); k++ ) {
 				if ( k )
 					s[k] = s[k - 1] * dim(k - 1);
 				else
 					s[k] = 1;
 			}
+			// loop through region
 			for ( index_t j = 0; j < size; j++ )
 			{
 				for ( int l = 0; l < nops(); l++ )
@@ -197,10 +199,13 @@ class DeferredOps : public ArrayInterface {
 					}
 					else
 					{
+						// find array index corresponding to linear index
 						for ( int k = 0; k < rank(); k++ )
 							arr_ind[k] = ((i + j) / s[k]) % dim(k);
+						// get the corresponding group and arg element
 						int grp = group(l, arr_ind[groupdim(l)]);
 						yj = arg<T>(l, arr_ind[argdim(l)], grp);
+						// apply the op
 						if ( isNA(yj) ) {
 							x[stride * j] = NA<T>();
 							continue;
@@ -225,12 +230,14 @@ class DeferredOps : public ArrayInterface {
 			R_xlen_t len = Rf_isNull(indx) ? length() : XLENGTH(indx);
 			int s [rank()];
 			int arr_ind [rank()];
+			// calculate stride for each dimension
 			for ( int k = 0; k < rank(); k++ ) {
 				if ( k )
 					s[k] = s[k - 1] * dim(k - 1);
 				else
 					s[k] = 1;
 			}
+			// loop through indices
 			for ( index_t j = 0; j < len; j++ )
 			{
 				for ( int l = 0; l < nops(); l++ )
@@ -247,10 +254,13 @@ class DeferredOps : public ArrayInterface {
 						index_t i = j;
 						if ( !Rf_isNull(indx) )
 							i = IndexElt(indx, j) - 1;
+						// find array index corresponding to linear index
 						for ( int k = 0; k < rank(); k++ )
 							arr_ind[k] = (i / s[k]) % dim(k);
+						// get the corresponding group and arg element
 						int grp = group(l, arr_ind[groupdim(l)]);
 						yj = arg<T>(l, arr_ind[argdim(l)], grp);
+						// apply the op
 						if ( isNA(yj) ) {
 							x[stride * j] = NA<T>();
 							continue;
@@ -296,8 +306,10 @@ class DeferredOps : public ArrayInterface {
 								row = IndexElt(i, ii) - 1;
 							if ( !Rf_isNull(j) )
 								col = IndexElt(j, jj) - 1;
+							// get the group and arg element for this row/col
 							int grp = groupdim(l) ? group(l, col) : group(l, row);
 							yij = argdim(l) ? arg<T>(l, col, grp) : arg<T>(l, row, grp);
+							// apply the op
 							if ( isNA(yij) ) {
 								x[ii + stride * jj] = NA<T>();
 								continue;
