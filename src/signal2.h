@@ -197,16 +197,16 @@ void linear_filter2(T * x, int nr, int nc,
 			}
 			double xij, wij, W = 0;
 			buffer[j * nr + i] = 0;
-			for (index_t ki = 0; ki < width; ki++ )
+			for (index_t ki = -r; ki <= r; ki++ )
 			{
-				for (index_t kj = 0; kj < width; kj++ )
+				for (index_t kj = -r; kj <= r; kj++ )
 				{
-					ii = norm_ind(i + ki - r, nr);
-					jj = norm_ind(j + kj - r, nc);
+					ii = norm_ind(i + ki, nr);
+					jj = norm_ind(j + kj, nc);
 					xij = x[jj * nr + ii];
 					if ( isNA(xij) )
 						continue;
-					wij = weights[kj * width + ki];
+					wij = weights[(kj + r) * width + (ki + r)];
 					buffer[j * nr + i] += wij * xij;
 					W += wij;
 				}
@@ -247,13 +247,13 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 			if ( !isNA(spar) )
 			{
 				// modified version of Joseph & Periyasamy (2018)
-				for ( index_t ki = 0; ki < width; ki++ )
+				for ( index_t ki = -r; ki <= r; ki++ )
 				{
-					for ( index_t kj = 0; kj < width; kj++ )
+					for ( index_t kj = -r; kj <= r; kj++ )
 					{
 						// find mean of local differences
-						ii = norm_ind(i + ki - r, nr);
-						jj = norm_ind(j + kj - r, nc);
+						ii = norm_ind(i + ki, nr);
+						jj = norm_ind(j + kj, nc);
 						xij = x[jj * nr + ii];
 						if ( !isNA(xij) )
 							dmean += std::fabs(xij - x[j * nr + i]) / width;
@@ -272,17 +272,17 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 				buffer[j * nr + i] = x[j * nr + i];
 				continue;
 			}
-			for ( index_t ki = 0; ki < width; ki++ )
+			for ( index_t ki = -r; ki <= r; ki++ )
 			{
-				for ( index_t kj = 0; kj < width; kj++ )
+				for ( index_t kj = -r; kj <= r; kj++ )
 				{
 					// standard bilateral filter
-					ii = norm_ind(i + ki - r, nr);
-					jj = norm_ind(j + kj - r, nc);
+					ii = norm_ind(i + ki, nr);
+					jj = norm_ind(j + kj, nc);
 					xij = x[jj * nr + ii];
 					if ( isNA(xij) )
 						continue;
-					double wtdist = kgaussian(ki - r, sdd) * kgaussian(kj - r, sdd);
+					double wtdist = kgaussian(ki, sdd) * kgaussian(kj, sdd);
 					double wtrange = kgaussian(xij - x[j * nr + i], sdr);
 					buffer[j * nr + i] += wtdist * wtrange * xij;
 					W += wtdist * wtrange;
