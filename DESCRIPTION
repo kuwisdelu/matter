@@ -17,7 +17,8 @@ Collate: matterGenerics.R utils.R drle.R
 	matter_fct.R matter_list.R matter_str.R 
 	search.R sparse_arr.R stream_stat.R apply.R
 	rowStats.R stats.R scale.R prcomp.R biglm.R
-	signal.R signal2.R altrep.R par.R vizi.R
+	signal.R signal2.R spatial.R altrep.R
+	par.R vizi.R
 biocViews: Infrastructure, DataRepresentation
 URL: https://github.com/kuwisdelu/matter
 BugReports: https://github.com/kuwisdelu/matter/issues

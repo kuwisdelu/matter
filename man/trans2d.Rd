@@ -57,4 +57,5 @@ if ( interactive() ) {
 }
 }
 
+\keyword{spatial}
 \keyword{utilities}

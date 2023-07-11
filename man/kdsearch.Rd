@@ -50,4 +50,6 @@ x <- rbind(c(1.11, 2.22), c(3.33, 4.44))
 kdsearch(x, d, tol=1)
 }
 
+\keyword{tree}
+\keyword{spatial}
 \keyword{utilities}

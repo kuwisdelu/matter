@@ -65,4 +65,5 @@ if ( interactive() ) {
 }
 }
 
-\keyword{utilities}
+\keyword{spatial}
+\keyword{smooth}

@@ -9,6 +9,7 @@
 #include "signal.h"
 #include "signal2.h"
 #include "sparse.h"
+#include "spatial.h"
 
 extern "C" {
 
@@ -111,6 +112,11 @@ SEXP histEq(SEXP x, SEXP nbins);
 SEXP adaptHisteq(SEXP x, SEXP width, SEXP clip, SEXP nbins);
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
+
+// Spatial
+//---------
+
+SEXP inPoly(SEXP points, SEXP vertices);
 
 } // extern "C"
 

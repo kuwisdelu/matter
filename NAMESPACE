@@ -372,6 +372,8 @@ export(
 	"enhance_adapt",
 	"trans2d")
 
+export("inpoly")
+
 export(
 	"roll",
 	"seq_rel",

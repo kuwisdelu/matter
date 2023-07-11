@@ -1196,4 +1196,29 @@ SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	return result;
 }
 
+// Spatial
+//---------
+
+SEXP inPoly(SEXP points, SEXP vertices)
+{
+	if ( TYPEOF(points) != TYPEOF(vertices) )
+		Rf_error("'points' and 'vertices' must have the same type");
+	SEXP result;
+	PROTECT(result = Rf_allocVector(LGLSXP, Rf_nrows(points)));
+	switch(TYPEOF(points)) {
+		case INTSXP:
+			do_in_poly(LOGICAL(result), INTEGER(points), Rf_nrows(points),
+				INTEGER(vertices), Rf_nrows(vertices));
+			break;
+		case REALSXP:
+			do_in_poly(LOGICAL(result), REAL(points), Rf_nrows(points),
+				REAL(vertices), Rf_nrows(vertices));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
 } // extern "C"

@@ -74,6 +74,8 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(histEq, 2),
 	CALLDEF(adaptHisteq, 4),
 	CALLDEF(Approx2, 8),
+	// spatial
+	CALLDEF(inPoly, 2),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}

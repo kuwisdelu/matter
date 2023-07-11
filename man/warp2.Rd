@@ -68,4 +68,4 @@ if ( interactive() ) {
 }
 }
 
-\keyword{ts}
+\keyword{spatial}

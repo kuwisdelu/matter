@@ -110,5 +110,5 @@ if ( interactive() ) {
 }
 }
 
-\keyword{ts}
+\keyword{spatial}
 \keyword{smooth}
