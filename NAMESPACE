@@ -372,7 +372,10 @@ export(
 	"enhance_adapt",
 	"trans2d")
 
-export("inpoly")
+export(
+	"inpoly",
+	"rowdist",
+	"coldist")
 
 export(
 	"roll",
@@ -401,8 +404,9 @@ export(
 	"reldiff",
 	"asearch",
 	"bsearch",
+	"kdtree",
 	"kdsearch",
-	"kdtree")
+	"knnsearch")
 
 S3method("print", "kdtree")
 

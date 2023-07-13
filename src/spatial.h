@@ -2,6 +2,11 @@
 #define SPATIAL
 
 #include "matterDefines.h"
+#include "search.h"
+
+// spatial weights
+#define WTS_GAUSS	1 // Gaussian weights
+#define WTS_ADAPT	2 // Adaptive bilateral weights
 
 //// Point in polygon
 //---------------------
@@ -52,6 +57,39 @@ index_t do_in_poly(int * ptr, T * points, size_t n,
 		num_contained += ptr[i];
 	}
 	return num_contained;
+}
+
+//// Distance
+//------------
+
+template<typename T>
+void row_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
+	double * buffer, int metric = DIST_EUC, double p = 2)
+{
+	for ( index_t ix = 0; ix < nx; ix++ )
+	{
+		for ( index_t iy = 0; iy < ny; iy++ )
+		{
+			T * xx = x + ix;
+			T * yy = y + iy;
+			buffer[iy * nx + ix] = do_dist(xx, yy, k, nx, ny, metric, p);
+		}
+	}
+}
+
+template<typename T>
+void col_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
+	double * buffer, int metric = DIST_EUC, double p = 2)
+{
+	for ( index_t ix = 0; ix < nx; ix++ )
+	{
+		for ( index_t iy = 0; iy < ny; iy++ )
+		{
+			T * xx = x + (ix * k);
+			T * yy = y + (iy * k);
+			buffer[iy * nx + ix] = do_dist(xx, yy, k, 1, 1, metric, p);
+		}
+	}
 }
 
 #endif // SPATIAL

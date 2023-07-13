@@ -249,7 +249,6 @@ as_Summary <- function(x) {
 	make_code(codes, x)
 }
 
-# export
 as_tol <- function(x) {
 	tol <- x[1L]
 	codes <- c("absolute", "relative")
@@ -267,7 +266,6 @@ as_tol_ref <- function(x) {
 	make_code(codes, x[1L], nomatch=1L)
 }
 
-# export
 as_interp <- function(x) {
 	codes <- c(
 		# simple interp (1-5)
@@ -289,6 +287,18 @@ as_binstat <- function(x) {
 		"sd", "var", "mad",
 		# other (8-9)
 		"quantile", "sse")
+	make_code(codes, x[1L], nomatch=1L)
+}
+
+as_metric <- function(x) {
+	codes <- c(
+		"euclidean", "maximum",
+		"manhattan", "minkowski")
+	make_code(codes, x[1L], nomatch=1L)
+}
+
+as_weights <- function(x) {
+	codes <- c("gaussian", "adaptive")
 	make_code(codes, x[1L], nomatch=1L)
 }
 

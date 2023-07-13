@@ -3,9 +3,20 @@
 
 #include "matterDefines.h"
 
+// distance metrics
+#define DIST_EUC	1 // Euclidean (L2) distance
+#define DIST_MAX	2 // Maximum distance
+#define DIST_ABS	3 // Manhattan (L1) distance 
+#define DIST_MKW	4 // Minkowski distance
+
+// size to fallback to linear search
 #define LINEAR_THRESHOLD 8
+
+// exact equality tolerance
+// (avoid duplicates or division by 0)
 #define EXACT 0
 
+// swap items (use with caution)
 #define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
 
 //// Comparison
@@ -547,7 +558,7 @@ index_t kd_tree_build(T * x, size_t k, size_t n,
 	return root;
 }
 
-// search a kd-tree for points near x, return via ptr
+// search for points within tol of x, return via ptr
 template<typename T>
 index_t kd_tree_search(int * ptr, T * x, T * data, size_t k, size_t n,
 	int * left_child, int * right_child, size_t root,
@@ -601,6 +612,132 @@ index_t kd_tree_search(int * ptr, T * x, T * data, size_t k, size_t n,
 		}
 	}
 	return num_matches;
+}
+
+//// K-NN search
+//-----------------
+
+// calculate distance between k-dim points
+template<typename T>
+double do_dist(T * x, T * y, size_t k, int stepx = 1, int stepy = 1,
+	int metric = DIST_EUC, double p = 2, double * scale = NULL)
+{
+	double si, di, D = 0;
+	for ( index_t i = 0; i < k; i++ )
+	{
+		if ( scale != NULL )
+			si = scale[i];
+		else
+			si = 1;
+		di = udiff(x[i * stepx], y[i * stepy]) / si;
+		switch(metric) {
+			case DIST_EUC:
+				D += di * di;
+				break;
+			case DIST_MAX:
+				D = di > D ? di : D;
+				break;
+			case DIST_ABS:
+				D += di;
+				break;
+			case DIST_MKW:
+				D += std::pow(di, p);
+				break;
+			default:
+				Rf_error("unrecognized distance metric");
+		}
+	}
+	switch(metric) {
+		case DIST_EUC:
+			return std::sqrt(D);
+		case DIST_MAX:
+			return D;
+		case DIST_ABS:
+			return D;
+		case DIST_MKW:
+			return std::pow(D, 1 / p);
+		default:
+			return NA_REAL;
+	}
+}
+
+// search for knn points nearest x, return via ptr
+template<typename T>
+void knn_search(int * ptr, T * x, T * data, size_t k, size_t n,
+	int * left_child, int * right_child, size_t root, int knn,
+	int metric = DIST_EUC, double p = 2, bool ind1 = false)
+{
+	if ( n == 0 || k == 0 || knn == 0 )
+		return;
+	index_t node, depth;
+	// initialize knn
+	double best [knn];
+	for ( index_t i = 0; i < knn; i++ )
+	{
+		ptr[i] = NA_INTEGER;
+		best[i] = R_PosInf;
+	}
+	// initialize stack
+	int stack_size = 2 * std::ceil(std::log2(n) + 1);
+	int stack [stack_size];
+	int top = -1;
+	stack[++top] = root;	// node
+	stack[++top] = 0;		// depth
+	while ( top >= 0 )
+	{
+		// pop node
+		depth = stack[top--];
+		node = stack[top--];
+		index_t j = depth % k;
+		double ds = sdiff(x[j], data[n * j + node]);
+		double du = std::fabs(ds);
+		double d2 = do_dist(x, data + node, k, 1, n, metric, p);
+		// check if this is a better neighbor
+		if ( d2 < best[knn - 1] )
+		{
+			index_t i = knn - 1;
+			ptr[i] = node + ind1;
+			best[i] = d2;
+			// sort this neighbor into place
+			while ( i > 0 && lt(best[i], best[i - 1]) )
+			{
+				swap(ptr[i], ptr[i - 1], double);
+				swap(best[i], best[i - 1], double);
+				i--;
+			}
+		}
+		// check if we need to search left subtree
+		if ( (ds < 0 || du <= best[knn - 1]) && !isNA(left_child[node]) )
+		{
+			stack[++top] = left_child[node];
+			stack[++top] = depth + 1;
+		}
+		// check if we need to search right subtree
+		if ( (ds > 0 || du <= best[knn - 1]) && !isNA(right_child[node]) )
+		{
+			stack[++top] = right_child[node];
+			stack[++top] = depth + 1;
+		}
+	}
+}
+
+// search for knn points nearest x, return via ptr
+template<typename T>
+void do_knn_search(int * ptr, T * x, T * data, size_t k, size_t nx, size_t ndata,
+	int * left_child, int * right_child, size_t root, int knn,
+	int metric = DIST_EUC, double p = 2, bool ind1 = false)
+{
+	T xi [k];
+	int nn [knn];
+	for ( index_t i = 0; i < nx; i++ )
+	{
+		for ( index_t j = 0; j < k; j++ )
+			xi[j] = x[j * nx + i];
+		knn_search(nn, xi, data, k, ndata,
+			left_child, right_child, root, knn, metric, p, ind1);
+		for ( index_t j = 0; j < knn; j++ )
+			ptr[j * nx + i] = nn[j];
+	}
 }
 
 #endif // SEARCH

@@ -26,7 +26,7 @@ test_that("relative difference", {
 
 })
 
-test_that("quick sort & friends", {
+test_that("quick sort + friends", {
 
 	set.seed(1)
 	u1 <- as.numeric(sample(100L))
@@ -224,6 +224,14 @@ test_that("k-dimensional search", {
 	ks1a <- kdsearch(c(2,3,3), d1, tol=c(2,2,4))
 	ks1b <- kdsearch(c(7,2,6), d1, tol=2)
 
+	q1 <- rbind(c(2.22, 3.33, 3.33), c(8.1, 7.1, 6.1))
+	kn1a <- knnsearch(q1, d1, k=1)
+	kn1b <- knnsearch(q1, d1, k=3)
+
+	expect_equal(kn1a, as.matrix(c(1L, 15L)))
+	expect_equal(kn1b[1L,,drop=TRUE], c(1L, 11L, 14L))
+	expect_equal(kn1b[2L,,drop=TRUE], c(15L, 3L, 9L))
+
 	expect_equal(t1$root + 1L, 6L)
 	expect_equal(t1$root + 1L, which(!i1 %in% sort(ns1)))
 	expect_setequal(ks1a, list(c(11L, 14L, 1L)))
@@ -235,6 +243,14 @@ test_that("k-dimensional search", {
 	ns2 <- as.matrix(t2$nodes + 1L)
 	ks2a <- kdsearch(c(1,1), d2, tol=1)
 	ks2b <- kdsearch(c(5,5), d2, tol=1)
+
+	q2 <- rbind(c(1.11, 1.11), c(2.22, 2.22))
+	kn2a <- knnsearch(q2, d2, k=1)
+	kn2b <- knnsearch(q2, d2, k=3)
+	
+	expect_equal(kn2a, as.matrix(c(1L, 7L)))
+	expect_equal(kn2b[1L,,drop=TRUE], c(1L, 2L, 6L))
+	expect_equal(kn2b[2L,,drop=TRUE], c(7L, 8L, 12L))
 
 	expect_equal(t2$root + 1L, which(!i2 %in% sort(ns2)))
 	expect_setequal(ks2a, list(c(2L, 7L, 6L, 1L)))

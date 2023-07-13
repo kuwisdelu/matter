@@ -26,6 +26,8 @@ SEXP binarySearch(SEXP x, SEXP table,
 SEXP kdTree(SEXP x);
 SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 	SEXP root, SEXP tol, SEXP tol_ref);
+SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
+	SEXP root, SEXP knn, SEXP metric, SEXP p);
 
 // Compression (delta run length encoding)
 //-----------------------------------------
@@ -117,6 +119,8 @@ SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 //---------
 
 SEXP inPoly(SEXP points, SEXP vertices);
+SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p);
+SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p);
 
 } // extern "C"
 

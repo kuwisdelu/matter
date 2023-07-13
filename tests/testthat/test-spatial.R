@@ -28,3 +28,20 @@ test_that("point in poly", {
 	expect_setequal(outside, which(xy$ref %in% "out"))
 
 })
+
+test_that("rowdist + coldist", {
+
+	x <- expand.grid(x=1:4, y=1:4, z=1:2)
+	y <- expand.grid(x=1:2, y=1:2, z=1)
+	d <- matrix(nrow=nrow(x), ncol=nrow(y))
+	for ( i in seq_len(nrow(x)))
+		for ( j in seq_len(nrow(y)))
+			d[i,j] <- sqrt(sum((x[i,] - y[j,])^2))
+
+	expect_equal(d, rowdist(x, y))
+	expect_equal(d, coldist(t(x), t(y)))
+
+	c1 <- expand.grid(x=1:3, y=1:3)
+	c2 <- expand.grid(x=1:10, y=1:10)
+
+})

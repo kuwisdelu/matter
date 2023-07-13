@@ -170,13 +170,13 @@ SEXP kdTree(SEXP x)
 SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 	SEXP root, SEXP tol, SEXP tol_ref)
 {
-	size_t n = Rf_nrows(data);
 	size_t k = Rf_ncols(data);
-	size_t m = LENGTH(x) / k;
+	size_t ndata = Rf_nrows(data);
+	size_t nx = LENGTH(x) / k;
 	SEXP result, buffer, neighbors;
-	PROTECT(result = Rf_allocVector(VECSXP, m));
-	PROTECT(buffer = Rf_allocVector(INTSXP, n));
-	for ( index_t i = 0; i < m; i++ )
+	PROTECT(result = Rf_allocVector(VECSXP, nx));
+	PROTECT(buffer = Rf_allocVector(INTSXP, ndata));
+	for ( index_t i = 0; i < nx; i++ )
 	{
 		size_t nnb;
 		switch(TYPEOF(x)) {
@@ -184,8 +184,8 @@ SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 			{
 				int xi [k];
 				for ( index_t j = 0; j < k; j++ )
-					xi[j] = INTEGER_ELT(x, j * m + i);
-				nnb = kd_tree_search(INTEGER(buffer), xi, INTEGER(data), k, n,
+					xi[j] = INTEGER_ELT(x, j * nx + i);
+				nnb = kd_tree_search(INTEGER(buffer), xi, INTEGER(data), k, ndata,
 					INTEGER(left_child), INTEGER(right_child), Rf_asInteger(root),
 					REAL(tol), Rf_asInteger(tol_ref), true);
 				break;
@@ -194,8 +194,8 @@ SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 			{
 				double xi [k];
 				for ( index_t j = 0; j < k; j++ )
-					xi[j] = REAL_ELT(x, j * m + i);
-				nnb = kd_tree_search(INTEGER(buffer), xi, REAL(data), k, n,
+					xi[j] = REAL_ELT(x, j * nx + i);
+				nnb = kd_tree_search(INTEGER(buffer), xi, REAL(data), k, ndata,
 					INTEGER(left_child), INTEGER(right_child), Rf_asInteger(root),
 					REAL(tol), Rf_asInteger(tol_ref), true);
 				break;
@@ -210,6 +210,32 @@ SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 		UNPROTECT(1);
 	}
 	UNPROTECT(2);
+	return result;
+}
+
+SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
+	SEXP root, SEXP knn, SEXP metric, SEXP p)
+{
+	size_t k = Rf_ncols(data);
+	size_t ndata = Rf_nrows(data);
+	size_t nx = LENGTH(x) / k;
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(INTSXP, nx, Rf_asInteger(knn)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_knn_search(INTEGER(result), INTEGER(x), INTEGER(data), k, nx, ndata,
+				INTEGER(left_child), INTEGER(right_child), Rf_asInteger(root),
+				Rf_asInteger(knn), Rf_asInteger(metric), Rf_asReal(p), true);
+			break;
+		case REALSXP:
+			do_knn_search(INTEGER(result), REAL(x), REAL(data), k, nx, ndata,
+				INTEGER(left_child), INTEGER(right_child), Rf_asInteger(root),
+				Rf_asInteger(knn), Rf_asInteger(metric), Rf_asReal(p), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
 	return result;
 }
 
@@ -1213,6 +1239,50 @@ SEXP inPoly(SEXP points, SEXP vertices)
 		case REALSXP:
 			do_in_poly(LOGICAL(result), REAL(points), Rf_nrows(points),
 				REAL(vertices), Rf_nrows(vertices));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p)
+{
+	if ( TYPEOF(x) != TYPEOF(y) )
+		Rf_error("'x' and 'y' must have the same type");
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_nrows(y)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			row_dist(INTEGER(x), INTEGER(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+			break;
+		case REALSXP:
+			row_dist(REAL(x), REAL(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p)
+{
+	if ( TYPEOF(x) != TYPEOF(y) )
+		Rf_error("'x' and 'y' must have the same type");
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_ncols(x), Rf_ncols(y)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			col_dist(INTEGER(x), INTEGER(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+			break;
+		case REALSXP:
+			col_dist(REAL(x), REAL(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
 			break;
 		default:
 			Rf_error("unsupported data type");

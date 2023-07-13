@@ -31,9 +31,9 @@
 #define BIN_SSE		9
 
 // diffusivity
-#define DIFF_PM1 1 // Perona-Malik #1
-#define DIFF_PM2 2 // Perona-Malik #2
-#define DIFF_PAW 3 // Peak-aware weighting
+#define DIFF_PM1	1 // Perona-Malik #1
+#define DIFF_PM2	2 // Perona-Malik #2
+#define DIFF_PAW	3 // Peak-aware weighting
 
 // wrap index to simulate signal wraparound
 #define wrap_ind(i, n) ((i) < 0 ? (i) % (n) + (n) : (i) % (n))

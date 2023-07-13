@@ -1,6 +1,6 @@
 
-#### Approximate search with fuzzy matching ####
-## ---------------------------------------------
+#### Approximate 1D search ####
+## -----------------------------
 
 reldiff <- function(x, y, ref = "y")
 {
@@ -66,6 +66,24 @@ asearch <- function(x, keys, values = seq_along(keys),
 	result
 }
 
+#### Approximate K-D search ####
+## ------------------------------
+
+kdtree <- function(data)
+{
+	data <- as.matrix(data)
+	tree <- .Call(C_kdTree, data, PACKAGE="matter")
+	nodes <- data.frame(left_child=tree[[1L]], right_child=tree[[2L]])
+	structure(list(data=data, nodes=nodes, root=tree[[3L]]),
+		class="kdtree")
+}
+
+print.kdtree <- function(x, ...)
+{
+	n <- paste0("[", nrow(x$data), "]")
+	cat(class(x)[1L], n, "with k =", ncol(x$data), "\n")
+}
+
 kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 {
 	x <- as.matrix(x)
@@ -85,19 +103,20 @@ kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 	result
 }
 
-kdtree <- function(data)
+knnsearch <- function(x, data, k = 1L, metric = "euclidean", p = 2)
 {
-	data <- as.matrix(data)
-	tree <- .Call(C_kdTree, data, PACKAGE="matter")
-	nodes <- data.frame(left_child=tree[[1L]], right_child=tree[[2L]])
-	structure(list(data=data, nodes=nodes, root=tree[[3L]]),
-		class="kdtree")
-}
-
-print.kdtree <- function(x, ...)
-{
-	n <- paste0("[", nrow(x$data), "]")
-	cat(class(x)[1L], n, "with k =", ncol(x$data), "\n")
+	x <- as.matrix(x)
+	if ( !is(data, "kdtree") )
+		data <- kdtree(data)
+	if ( is.integer(x) && is.double(data$data) )
+		storage.mode(x) <- "double"
+	if ( is.double(x) && is.integer(data$data) )
+		storage.mode(data$data) <- "double"
+	if ( is.null(dim(x)) && length(x) != ncol(data$data) )
+		stop("x must have the same number of columns as data")
+	.Call(C_knnSearch, x, data$data,
+		data$nodes$left_child, data$nodes$right_child,
+		data$root, k, as_metric(metric), p, PACKAGE="matter")
 }
 
 #### Search for k-th largest element ####
