@@ -51,9 +51,12 @@ test_that("rowdist + coldist", {
 	{
 		Map(function(ii, jj)
 		{
-			xrows <- x[ii,,drop=FALSE]
-			yrows <- x[jj,,drop=FALSE]
-			as.vector(rowdist(xrows, yrows))
+			n <- max(length(ii), length(jj))
+			ii <- rep_len(ii, n)
+			jj <- rep_len(jj, n)
+			xi <- x[ii,,drop=FALSE]
+			yj <- y[jj,,drop=FALSE]
+			sqrt(rowSums((xi - yj)^2))
 		}, i, j)
 	}
 
@@ -61,22 +64,40 @@ test_that("rowdist + coldist", {
 	{
 		Map(function(ii, jj)
 		{
-			xcols <- x[,ii,drop=FALSE]
-			ycols <- x[,jj,drop=FALSE]
-			as.vector(coldist(xcols, ycols))
+			n <- max(length(ii), length(jj))
+			ii <- rep_len(ii, n)
+			jj <- rep_len(jj, n)
+			xi <- x[,ii,drop=FALSE]
+			yj <- y[,jj,drop=FALSE]
+			sqrt(colSums((xi - yj)^2))
 		}, i, j)
 	}
 
-	z <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
-	ix <- 1:12
-	iy <- roll(1:12, width=3, na.drop=TRUE)
+	set.seed(1)
+	z1 <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
+	z2 <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
+	ii <- roll(1:12, width=3, na.drop=TRUE)
+	jj <- roll(12:1, width=3, na.drop=TRUE)
 	
-	d1a <- rowdist_at(z, ix=ix, iy=iy)
-	d1b <- f_r(z, z, ix, iy)
-	d2a <- coldist_at(z, ix=ix, iy=iy)
-	d2b <- f_c(z, z, ix, iy)
+	d1a <- rowdist_at(z1, z2, xat=1:12, yat=ii)
+	d1b <- f_r(z1, z2, 1:12, ii)
+	d2a <- rowdist_at(z1, z2, xat=ii, yat=1:12)
+	d2b <- f_r(z1, z2, ii, 1:12)
+	d3a <- rowdist_at(z1, z2, xat=ii, yat=jj)
+	d3b <- f_r(z1, z2, ii, jj)
+	
+	d4a <- coldist_at(z1, z2, xat=1:12, yat=ii)
+	d4b <- f_c(z1, z2, 1:12, ii)
+	d5a <- coldist_at(z1, z2, xat=ii, yat=1:12)
+	d5b <- f_c(z1, z2, ii, 1:12)
+	d6a <- coldist_at(z1, z2, xat=ii, yat=jj)
+	d6b <- f_c(z1, z2, ii, jj)
 
 	expect_equal(d1a, d1b)
 	expect_equal(d2a, d2b)
+	expect_equal(d3a, d3b)
+	expect_equal(d4a, d4b)
+	expect_equal(d5a, d5b)
+	expect_equal(d6a, d6b)
 
 })

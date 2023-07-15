@@ -1291,15 +1291,15 @@ SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p)
 	return result;
 }
 
-SEXP rowDistAt(SEXP x, SEXP y, SEXP ix, SEXP iy, SEXP metric, SEXP p)
+SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
 {
-	size_t nout = LENGTH(ix);
+	size_t nout = LENGTH(xat);
 	SEXP result;
 	PROTECT(result = Rf_allocVector(VECSXP, nout));
 	for ( index_t i = 0; i < nout; i++ )
 	{
-		SEXP indx = VECTOR_ELT(ix, i);
-		SEXP indy = VECTOR_ELT(iy, i);
+		SEXP indx = VECTOR_ELT(xat, i);
+		SEXP indy = VECTOR_ELT(yat, i);
 		int ni = LENGTH(indx);
 		int xrows [ni];
 		int yrows [ni];
@@ -1329,15 +1329,15 @@ SEXP rowDistAt(SEXP x, SEXP y, SEXP ix, SEXP iy, SEXP metric, SEXP p)
 	return result;
 }
 
-SEXP colDistAt(SEXP x, SEXP y, SEXP ix, SEXP iy, SEXP metric, SEXP p)
+SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
 {
-	size_t nout = LENGTH(ix);
+	size_t nout = LENGTH(xat);
 	SEXP result;
 	PROTECT(result = Rf_allocVector(VECSXP, nout));
 	for ( index_t i = 0; i < nout; i++ )
 	{
-		SEXP indx = VECTOR_ELT(ix, i);
-		SEXP indy = VECTOR_ELT(iy, i);
+		SEXP indx = VECTOR_ELT(xat, i);
+		SEXP indy = VECTOR_ELT(yat, i);
 		int ni = LENGTH(indx);
 		int xcols [ni];
 		int ycols [ni];

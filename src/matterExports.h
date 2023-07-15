@@ -121,8 +121,8 @@ SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 SEXP inPoly(SEXP points, SEXP vertices);
 SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p);
 SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p);
-SEXP rowDistAt(SEXP x, SEXP y, SEXP ix, SEXP iy, SEXP metric, SEXP p);
-SEXP colDistAt(SEXP x, SEXP y, SEXP ix, SEXP iy, SEXP metric, SEXP p);
+SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
+SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
 
 } // extern "C"
 
