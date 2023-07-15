@@ -79,8 +79,8 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(inPoly, 2),
 	CALLDEF(rowDist, 4),
 	CALLDEF(colDist, 4),
-	CALLDEF(rowDistAt, 5),
-	CALLDEF(colDistAt, 5),
+	CALLDEF(rowDistAt, 6),
+	CALLDEF(colDistAt, 6),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}

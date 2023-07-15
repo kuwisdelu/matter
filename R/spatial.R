@@ -46,26 +46,46 @@ coldist <- function(x, y = x, metric = "euclidean", p = 2)
 	.Call(C_colDist, x, y, as_metric(metric), p, PACKAGE="matter")
 }
 
-rowdist_at <- function(x, i, list, metric = "euclidean", p = 2)
+rowdist_at <- function(x, y = x, ix, iy,
+	metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
-	if ( any(i < 1L | i > nrow(x)) )
-		stop("subscript out of bounds")
-	if ( length(i) != length(list) )
-		stop("list and i must have the same length")
-	list <- lapply(list, as.integer)
-	.Call(C_rowDistAt, x, as.integer(i), list,
+	y <- as.matrix(y)
+	if ( length(ix) != length(iy) & length(ix) != 1L & length(iy) != 1L )
+		stop("ix and iy must be the same length")
+	if ( any(lengths(ix) != lengths(iy) & lengths(ix) != 1L & lengths(iy) != 1L) )
+		stop("lengths of ix and iy must be 1 or equal")
+	ind <- normalize_lengths2(ix, iy)
+	ix <- lapply(ind[[1L]], as.integer)
+	iy <- lapply(ind[[2L]], as.integer)
+	if ( ncol(x) != ncol(y) )
+		stop("x and y must have equal number of columns")
+	if ( is.integer(x) && is.double(y) )
+		storage.mode(x) <- "double"
+	if ( is.double(x) && is.integer(y) )
+		storage.mode(y) <- "double"
+	.Call(C_rowDistAt, x, y, ix, iy,
 		as_metric(metric), p, PACKAGE="matter")
 }
 
-coldist_at <- function(x, i, list, metric = "euclidean", p = 2)
+coldist_at <- function(x, y = x, ix, iy,
+	metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
-	if ( any(i < 1L | i > ncol(x)) )
-		stop("subscript out of bounds")
-	if ( length(i) != length(list) )
-		stop("list and i must have the same length")
-	list <- lapply(list, as.integer)
-	.Call(C_colDistAt, x, as.integer(i), list,
+	y <- as.matrix(y)
+	if ( length(ix) != length(iy) & length(ix) != 1L & length(iy) != 1L )
+		stop("ix and iy must be the same length")
+	if ( any(lengths(ix) != lengths(iy) & lengths(ix) != 1L & lengths(iy) != 1L) )
+		stop("lengths of ix and iy must be 1 or equal")
+	ind <- normalize_lengths2(ix, iy)
+	ix <- lapply(ind[[1L]], as.integer)
+	iy <- lapply(ind[[2L]], as.integer)
+	if ( nrow(x) != nrow(y) )
+		stop("x and y must have equal number of rows")
+	if ( is.integer(x) && is.double(y) )
+		storage.mode(x) <- "double"
+	if ( is.double(x) && is.integer(y) )
+		storage.mode(y) <- "double"
+	.Call(C_colDistAt, x, y, ix, iy,
 		as_metric(metric), p, PACKAGE="matter")
 }

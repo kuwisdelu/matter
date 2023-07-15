@@ -47,32 +47,34 @@ test_that("rowdist + coldist", {
 	expect_equal(d, rowdist(x, y))
 	expect_equal(d, coldist(t(x), t(y)))
 
-	f_r <- function(x, i, list)
+	f_r <- function(x, y, i, j)
 	{
-		Map(function(at, rows)
+		Map(function(ii, jj)
 		{
-			center <- x[at,,drop=FALSE]
-			rows <- x[rows,,drop=FALSE]
-			as.vector(rowdist(rows, center))
-		}, i, list)
+			xrows <- x[ii,,drop=FALSE]
+			yrows <- x[jj,,drop=FALSE]
+			as.vector(rowdist(xrows, yrows))
+		}, i, j)
 	}
 
-	f_c <- function(x, i, list)
+	f_c <- function(x, y, i, j)
 	{
-		Map(function(at, rows)
+		Map(function(ii, jj)
 		{
-			center <- x[,at,drop=FALSE]
-			rows <- x[,rows,drop=FALSE]
-			as.vector(coldist(rows, center))
-		}, i, list)
+			xcols <- x[,ii,drop=FALSE]
+			ycols <- x[,jj,drop=FALSE]
+			as.vector(coldist(xcols, ycols))
+		}, i, j)
 	}
 
 	z <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
-	ilist <- roll(1:12, width=3, na.drop=TRUE)
-	d1a <- rowdist_at(z, 1:12, ilist)
-	d1b <- f_r(z, 1:12, ilist)
-	d2a <- coldist_at(z, 1:12, ilist)
-	d2b <- f_c(z, 1:12, ilist)
+	ix <- 1:12
+	iy <- roll(1:12, width=3, na.drop=TRUE)
+	
+	d1a <- rowdist_at(z, ix=ix, iy=iy)
+	d1b <- f_r(z, z, ix, iy)
+	d2a <- coldist_at(z, ix=ix, iy=iy)
+	d2b <- f_c(z, z, ix, iy)
 
 	expect_equal(d1a, d1b)
 	expect_equal(d2a, d2b)

@@ -5,10 +5,6 @@
 #include "search.h"
 #include "signal.h"
 
-// spatial weights
-#define WTS_GAUSS	1 // Gaussian weights
-#define WTS_ADAPT	2 // Adaptive bilateral weights
-
 //// Point in polygon
 //---------------------
 
@@ -94,30 +90,34 @@ void col_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
 }
 
 template<typename T>
-void row_dist_at(T * x, index_t at, int * indx, size_t nx, size_t ni, size_t k,
-	double * buffer, int metric = DIST_EUC, double p = 2)
+void row_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
+	size_t ni, size_t k, double * buffer, int metric = DIST_EUC, double p = 2)
 {
 	for ( index_t i = 0; i < ni; i++ )
 	{
-		if ( at < 0 || at >= nx || indx[i] < 0 || indx[i] >= nx )
+		if ( indx[i] < 0 || indx[i] >= nx )
+			Rf_error("subscript out of bounds");
+		if ( indy[i] < 0 || indy[i] >= ny )
 			Rf_error("subscript out of bounds");
 		T * xx = x + indx[i];
-		T * xi = x + at;
-		buffer[i] = do_dist(xx, xi, k, nx, nx, metric, p);
+		T * yy = y + indy[i];
+		buffer[i] = do_dist(xx, yy, k, nx, ny, metric, p);
 	}
 }
 
 template<typename T>
-void col_dist_at(T * x, index_t at, int * indx, size_t nx, size_t ni, size_t k,
-	double * buffer, int metric = DIST_EUC, double p = 2)
+void col_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
+	size_t ni, size_t k, double * buffer, int metric = DIST_EUC, double p = 2)
 {
 	for ( index_t i = 0; i < ni; i++ )
 	{
-		if ( at < 0 || at >= nx || indx[i] < 0 || indx[i] >= nx )
+		if ( indx[i] < 0 || indx[i] >= nx )
+			Rf_error("subscript out of bounds");
+		if ( indy[i] < 0 || indy[i] >= ny )
 			Rf_error("subscript out of bounds");
 		T * xx = x + (indx[i] * k);
-		T * xi = x + (at * k);
-		buffer[i] = do_dist(xx, xi, k, 1, 1, metric, p);
+		T * yy = y + (indy[i] * k);
+		buffer[i] = do_dist(xx, yy, k, 1, 1, metric, p);
 	}
 }
 

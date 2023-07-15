@@ -68,7 +68,6 @@ as_col_subscripts <- function(i, x, exact = TRUE) {
 	as_array_subscripts(i, x, 2L, exact)
 }
 
-# export
 linear_ind <- function(index, dim, rowMaj = FALSE) {
 	if ( is.null(index) )
 		return(seq_len(prod(dim)))
@@ -110,7 +109,6 @@ linear_ind <- function(index, dim, rowMaj = FALSE) {
 	index
 }
 
-# export
 array_ind <- function(i, dim, rowMaj = FALSE) {
 	i <- i - 1L
 	if ( rowMaj ) {
@@ -139,20 +137,17 @@ make_code <- function(codes, x, nomatch = NA_integer_) {
 	factor(x, levels=seq_along(codes), labels=codes)
 }
 
-# export
 get_Rtypes <- function() {
 	codes <- c("raw", "logical", "integer",
 		"double", "character", "list")
 }
 
-# export
 get_Ctypes <- function() {
 	codes <- c("char", "uchar", "short", "ushort",
 		"int", "uint", "long", "ulong",
 		"float", "double")
 }
 
-# export
 as_Rtype <- function(x) {
 	if ( !missing(x) ) {
 		if ( is_Rtype(x, strict=TRUE) )
@@ -170,7 +165,6 @@ as_Rtype <- function(x) {
 	make_code(get_Rtypes(), x)
 }
 
-# export
 as_Ctype <- function(x) {
 	if ( !missing(x) ) {
 		if ( is_Ctype(x, strict=TRUE) )
@@ -210,7 +204,6 @@ to_Ctype <- function(x) {
 	as_Ctype(codes[as.integer(as_Rtype(x))])
 }
 
-# export
 sizeof <- function(x) {
 	sizes <- c(char = 1L, uchar = 1L, short = 2L, ushort = 2L,
 		int = 4L, uint = 4L, long = 8L, ulong = 8L,
@@ -436,10 +429,29 @@ check_comformable_dims <- function(x, y, margin = 1L) {
 }
 
 normalize_lengths <- function(list) {
-	n <- lengths(list)
-	if ( length(unique(n)) != 1L )
-		list <- lapply(list, rep_len, length.out=max(n))
+	ns <- lengths(list)
+	nmax <- max(ns)
+	if ( any(ns != nmax) )
+		list <- lapply(list, rep_len, length.out=nmax)
 	list
+}
+
+normalize_lengths2 <- function(list1, list2) {
+	n1 <- length(list1)
+	n2 <- length(list1)
+	nmax <- max(n1, n2)
+	if ( length(list1) != nmax )
+		list1 <- rep_len(list1, nmax)
+	if ( length(list2) != nmax )
+		list2 <- rep_len(list2, nmax)
+	ns1 <- lengths(list1)
+	ns2 <- lengths(list2)
+	nsmax <- pmax(ns1, ns2)
+	if ( any(ns1 != nsmax) )
+		list1 <- Map(rep_len, list1, nsmax)
+	if ( any(ns2 != nsmax) )
+		list2 <- Map(rep_len, list2, nsmax)
+	list(list1, list2)
 }
 
 nlines <- function(x) {
@@ -733,7 +745,6 @@ lr_predict <- function(fit, xi) {
 # => x[n] ((1 + d) / (1 - d))^n * x[0]
 # log x[n] = n log {(1 + d) / (1 - d)} + log x[0]
 # => n = (log x[n] - log x[0]) / log {(1 + d) / (1 - d)}
-# export
 seq_rel <- function(from, to, by) {
 	half <- by / 2
 	length.out <- (log(to) - log(from)) / log((1 + half) / (1 - half))
@@ -743,7 +754,6 @@ seq_rel <- function(from, to, by) {
 }
 
 # Cleveland style shingles (i.e., overlapping intervals)
-# export
 shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 {
 	if ( !is.matrix(breaks) )
@@ -764,12 +774,10 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 	y
 }
 
-# export
 dpal <- function(palette = "Tableau 10") {
 	function(n) palette.colors(n, palette)
 }
 
-# export
 cpal <- function(palette = "Viridis") {
 	function(n) hcl.colors(n, palette)
 }

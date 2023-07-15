@@ -1291,29 +1291,33 @@ SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p)
 	return result;
 }
 
-SEXP rowDistAt(SEXP x, SEXP at, SEXP list, SEXP metric, SEXP p)
+SEXP rowDistAt(SEXP x, SEXP y, SEXP ix, SEXP iy, SEXP metric, SEXP p)
 {
-	size_t n = LENGTH(list);
+	size_t nout = LENGTH(ix);
 	SEXP result;
-	PROTECT(result = Rf_allocVector(VECSXP, n));
-	for ( index_t i = 0; i < n; i++ )
+	PROTECT(result = Rf_allocVector(VECSXP, nout));
+	for ( index_t i = 0; i < nout; i++ )
 	{
-		SEXP indx = VECTOR_ELT(list, i);
+		SEXP indx = VECTOR_ELT(ix, i);
+		SEXP indy = VECTOR_ELT(iy, i);
 		int ni = LENGTH(indx);
-		int rows [ni];
+		int xrows [ni];
+		int yrows [ni];
 		for ( index_t j = 0; j < ni; j++ )
-			rows[j] = INTEGER_ELT(indx, j) - 1;
-		int ati = INTEGER_ELT(at, i) - 1;
+		{
+			xrows[j] = INTEGER_ELT(indx, j) - 1;
+			yrows[j] = INTEGER_ELT(indy, j) - 1;
+		}
 		SEXP dist;
 		PROTECT(dist = Rf_allocVector(REALSXP, ni));
 		switch(TYPEOF(x)) {
 			case INTSXP:
-				row_dist_at(INTEGER(x), ati, rows, Rf_nrows(x), ni, Rf_ncols(x),
-					REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				row_dist_at(INTEGER(x), INTEGER(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
+					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
 				break;
 			case REALSXP:
-				row_dist_at(REAL(x), ati, rows, Rf_nrows(x), ni, Rf_ncols(x),
-					REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				row_dist_at(REAL(x), REAL(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
+					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
 				break;
 			default:
 				Rf_error("unsupported data type");
@@ -1325,29 +1329,33 @@ SEXP rowDistAt(SEXP x, SEXP at, SEXP list, SEXP metric, SEXP p)
 	return result;
 }
 
-SEXP colDistAt(SEXP x, SEXP at, SEXP list, SEXP metric, SEXP p)
+SEXP colDistAt(SEXP x, SEXP y, SEXP ix, SEXP iy, SEXP metric, SEXP p)
 {
-	size_t n = LENGTH(list);
+	size_t nout = LENGTH(ix);
 	SEXP result;
-	PROTECT(result = Rf_allocVector(VECSXP, n));
-	for ( index_t i = 0; i < n; i++ )
+	PROTECT(result = Rf_allocVector(VECSXP, nout));
+	for ( index_t i = 0; i < nout; i++ )
 	{
-		SEXP indx = VECTOR_ELT(list, i);
+		SEXP indx = VECTOR_ELT(ix, i);
+		SEXP indy = VECTOR_ELT(iy, i);
 		int ni = LENGTH(indx);
-		int cols [ni];
+		int xcols [ni];
+		int ycols [ni];
 		for ( index_t j = 0; j < ni; j++ )
-			cols[j] = INTEGER_ELT(indx, j) - 1;
-		int ati = INTEGER_ELT(at, i) - 1;
+		{
+			xcols[j] = INTEGER_ELT(indx, j) - 1;
+			ycols[j] = INTEGER_ELT(indy, j) - 1;
+		}
 		SEXP dist;
 		PROTECT(dist = Rf_allocVector(REALSXP, ni));
 		switch(TYPEOF(x)) {
 			case INTSXP:
-				col_dist_at(INTEGER(x), ati, cols, Rf_ncols(x), ni, Rf_nrows(x),
-					REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				col_dist_at(INTEGER(x), INTEGER(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
+					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
 				break;
 			case REALSXP:
-				col_dist_at(REAL(x), ati, cols, Rf_ncols(x), ni, Rf_nrows(x),
-					REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				col_dist_at(REAL(x), REAL(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
+					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
 				break;
 			default:
 				Rf_error("unsupported data type");
