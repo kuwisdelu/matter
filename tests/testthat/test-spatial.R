@@ -33,6 +33,12 @@ test_that("rowdist + coldist", {
 
 	x <- expand.grid(x=1:4, y=1:4, z=1:2)
 	y <- expand.grid(x=1:2, y=1:2, z=1)
+
+	expect_equivalent(as.matrix(dist(x)), rowdist(x))
+	expect_equivalent(as.matrix(dist(y)), rowdist(y))
+	expect_equivalent(as.matrix(dist(t(x))), coldist(x))
+	expect_equivalent(as.matrix(dist(t(y))), coldist(y))
+
 	d <- matrix(nrow=nrow(x), ncol=nrow(y))
 	for ( i in seq_len(nrow(x)))
 		for ( j in seq_len(nrow(y)))
@@ -41,7 +47,34 @@ test_that("rowdist + coldist", {
 	expect_equal(d, rowdist(x, y))
 	expect_equal(d, coldist(t(x), t(y)))
 
-	c1 <- expand.grid(x=1:3, y=1:3)
-	c2 <- expand.grid(x=1:10, y=1:10)
+	f_r <- function(x, i, list)
+	{
+		Map(function(at, rows)
+		{
+			center <- x[at,,drop=FALSE]
+			rows <- x[rows,,drop=FALSE]
+			as.vector(rowdist(rows, center))
+		}, i, list)
+	}
+
+	f_c <- function(x, i, list)
+	{
+		Map(function(at, rows)
+		{
+			center <- x[,at,drop=FALSE]
+			rows <- x[,rows,drop=FALSE]
+			as.vector(coldist(rows, center))
+		}, i, list)
+	}
+
+	z <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
+	ilist <- roll(1:12, width=3, na.drop=TRUE)
+	d1a <- rowdist_at(z, 1:12, ilist)
+	d1b <- f_r(z, 1:12, ilist)
+	d2a <- coldist_at(z, 1:12, ilist)
+	d2b <- f_c(z, 1:12, ilist)
+
+	expect_equal(d1a, d1b)
+	expect_equal(d2a, d2b)
 
 })

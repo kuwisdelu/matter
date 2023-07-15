@@ -20,7 +20,7 @@ inpoly <- function(points, poly)
 #### Distance ####
 ## ---------------
 
-rowdist <- function(x, y, metric = "euclidean", p = 2)
+rowdist <- function(x, y = x, metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -33,7 +33,7 @@ rowdist <- function(x, y, metric = "euclidean", p = 2)
 	.Call(C_rowDist, x, y, as_metric(metric), p, PACKAGE="matter")
 }
 
-coldist <- function(x, y, metric = "euclidean", p = 2)
+coldist <- function(x, y = x, metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -46,51 +46,26 @@ coldist <- function(x, y, metric = "euclidean", p = 2)
 	.Call(C_colDist, x, y, as_metric(metric), p, PACKAGE="matter")
 }
 
-#### Spatial distance (for signals) ####
-## -------------------------------------
-
-sp_rowdist <- function(x, y, i, j, xcoord, ycoord, tol = 0, tol.ref = "abs",
-	weights = "gaussian", metric = "euclidean", p = 2, scale = 1)
+rowdist_at <- function(x, i, list, metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
-	y <- as.matrix(y)
-	if ( ncol(x) != ncol(y) )
-		stop("x and y must have equal number of columns")
-	if ( nrow(x) != nrow(xcoord) )
-		stop("x and xcoord must have an equal number of rows")
-	if ( nrow(y) != nrow(ycoord) )
-		stop("y and ycoord must have an equal number of rows")
-	if ( ncol(xcoord) != ncol(ycoord) )
-		stop("xcoord and ycoord must have an equal number of columns")
-	scale <- rep_len(scale, ncol(x))
-	# TODO
+	if ( any(i < 1L | i > nrow(x)) )
+		stop("subscript out of bounds")
+	if ( length(i) != length(list) )
+		stop("list and i must have the same length")
+	list <- lapply(list, as.integer)
+	.Call(C_rowDistAt, x, as.integer(i), list,
+		as_metric(metric), p, PACKAGE="matter")
 }
 
-sp_rowdist_int <- function(x, y, i, j, xcoord, ycoord, nbi = NULL, nbj = NULL,
-	weights = "gaussian", metric = "euclidean", p = 2, scale = 1)
-{
-	# TODO
-}
-
-sp_coldist <- function(x, y, i, j, xcoord, ycoord, tol = 0, tol.ref = "abs",
-	weights = "gaussian", metric = "euclidean", p = 2, scale = 1)
+coldist_at <- function(x, i, list, metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
-	y <- as.matrix(y)
-	if ( nrow(x) != nrow(y) )
-		stop("x and y must have equal number of rows")
-	if ( ncol(x) != nrow(xcoord) )
-		stop("xcoord must have a number of rows equal to columns of x")
-	if ( ncol(y) != nrow(ycoord) )
-		stop("ycoord must have a number of rows equal to columns of y")
-	if ( ncol(xcoord) != ncol(ycoord) )
-		stop("xcoord and ycoord must have an equal number of columns")
-	scale <- rep_len(scale, nrow(x))
-	# TODO
-}
-
-sp_coldist_int <- function(x, y, i, j, xcoord, ycoord, nbi = NULL, nbj = NULL,
-	weights = "gaussian", metric = "euclidean", p = 2, scale = 1)
-{
-	# TODO
+	if ( any(i < 1L | i > ncol(x)) )
+		stop("subscript out of bounds")
+	if ( length(i) != length(list) )
+		stop("list and i must have the same length")
+	list <- lapply(list, as.integer)
+	.Call(C_colDistAt, x, as.integer(i), list,
+		as_metric(metric), p, PACKAGE="matter")
 }

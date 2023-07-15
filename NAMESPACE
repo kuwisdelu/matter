@@ -375,7 +375,9 @@ export(
 export(
 	"inpoly",
 	"rowdist",
-	"coldist")
+	"coldist",
+	"rowdist_at",
+	"coldist_at")
 
 export(
 	"roll",

@@ -611,6 +611,7 @@ index_t kd_tree_search(int * ptr, T * x, T * data, size_t k, size_t n,
 			}
 		}
 	}
+	quick_sort<int,void*>(ptr, 0, num_matches);
 	return num_matches;
 }
 

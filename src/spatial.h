@@ -3,6 +3,7 @@
 
 #include "matterDefines.h"
 #include "search.h"
+#include "signal.h"
 
 // spatial weights
 #define WTS_GAUSS	1 // Gaussian weights
@@ -89,6 +90,34 @@ void col_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
 			T * yy = y + (iy * k);
 			buffer[iy * nx + ix] = do_dist(xx, yy, k, 1, 1, metric, p);
 		}
+	}
+}
+
+template<typename T>
+void row_dist_at(T * x, index_t at, int * indx, size_t nx, size_t ni, size_t k,
+	double * buffer, int metric = DIST_EUC, double p = 2)
+{
+	for ( index_t i = 0; i < ni; i++ )
+	{
+		if ( at < 0 || at >= nx || indx[i] < 0 || indx[i] >= nx )
+			Rf_error("subscript out of bounds");
+		T * xx = x + indx[i];
+		T * xi = x + at;
+		buffer[i] = do_dist(xx, xi, k, nx, nx, metric, p);
+	}
+}
+
+template<typename T>
+void col_dist_at(T * x, index_t at, int * indx, size_t nx, size_t ni, size_t k,
+	double * buffer, int metric = DIST_EUC, double p = 2)
+{
+	for ( index_t i = 0; i < ni; i++ )
+	{
+		if ( at < 0 || at >= nx || indx[i] < 0 || indx[i] >= nx )
+			Rf_error("subscript out of bounds");
+		T * xx = x + (indx[i] * k);
+		T * xi = x + (at * k);
+		buffer[i] = do_dist(xx, xi, k, 1, 1, metric, p);
 	}
 }
 

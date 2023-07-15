@@ -5,6 +5,72 @@
 #include "search.h"
 #include "signal.h"
 
+//// Summarize via statistic 
+//---------------------------
+
+template<typename T>
+size_t do_len_at(T * x, int * indx, size_t n)
+{
+	size_t len = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( !isNA(x[indx[i]]) )
+			len++;
+	}
+	return len;
+}
+
+template<typename T>
+double do_sum_at(T * x, int * indx, size_t n)
+{
+	double sx = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( !isNA(x[indx[i]]) )
+			sx += x[indx[i]];
+	}
+	return coerce_cast<double>(sx);
+}
+
+template<typename T>
+double do_mean_at(T * x, int * indx, size_t n)
+{
+	double sx = do_sum_at(x, indx, n);
+	return sx / do_len_at(x, indx, n);
+}
+
+template<typename T>
+double do_max_at(T * x, int * indx, size_t n)
+{
+	if ( n <= 0 )
+		return NA_REAL;
+	T mx = x[indx[0]];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			continue;
+		if ( x[indx[i]] > mx || isNA(mx) )
+			mx = x[indx[i]];
+	}
+	return coerce_cast<double>(mx);
+}
+
+template<typename T>
+double do_min_at(T * x, int * indx, size_t n)
+{
+	if ( n <= 0 )
+		return NA_REAL;
+	T mx = x[indx[0]];
+	for ( index_t i = 0; i < n; i++ )
+	{
+		if ( isNA(x[indx[i]]) )
+			continue;
+		if ( x[indx[i]] < mx || isNA(mx) )
+			mx = x[indx[i]];
+	}
+	return coerce_cast<double>(mx);
+}
+
 //// Summarize via kernel 
 //-------------------------
 
@@ -221,7 +287,7 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 	double sddist, double sdrange, double spar, double * buffer)
 {
 	int r = width / 2;
-	index_t n = nr * nc;
+	size_t n = nr * nc;
 	index_t ii, jj;
 	double sdd = sddist, sdr = sdrange;
 	double mad, xrange;
@@ -298,7 +364,7 @@ template<typename T>
 void diffusion_filter2(T * x, int nr, int nc, int niter,
 	double K, double rate, int method, double * buffer)
 {
-	index_t n = nr * nc;
+	size_t n = nr * nc;
 	index_t N, S, E, W;
 	double dN, dS, dE, dW, cN, cS, cE, cW, dx;
 	double * tmp = R_Calloc(n, double);
@@ -363,7 +429,7 @@ template<typename T>
 void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	double sdreg, double * buffer)
 {
-	index_t n = nr * nc;
+	size_t n = nr * nc;
 	// allocate buffers for mean filter results
 	double * u = R_Calloc(2 * n, double);
 	double * ug = u;
@@ -442,7 +508,7 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 //------------------------
 
 template<typename T>
-void histeq(T * x, index_t n, int nbins, double * buffer)
+void histeq(T * x, size_t n, int nbins, double * buffer)
 {
 	index_t * v = R_Calloc(n, index_t);
 	int * hist = R_Calloc(nbins, int);
@@ -504,7 +570,7 @@ void adapt_histeq(T * x, int nr, int nc, int width,
 	double clip, int nbins, double * buffer)
 {
 	int r = width / 2;
-	index_t n = nr * nc;
+	size_t n = nr * nc;
 	index_t * v = R_Calloc(n, index_t);
 	int * hist = R_Calloc(nbins, int);
 	int * clhist = R_Calloc(nbins, int);
@@ -649,13 +715,13 @@ double interp2_stat(T * z, int * indx, size_t n, int stat = EST_AVG)
 {
 	switch(stat) {
 		case EST_AVG:
-			return do_mean(z, indx, n);
+			return do_mean_at(z, indx, n);
 		case EST_SUM:
-			return do_sum(z, indx, n);
+			return do_sum_at(z, indx, n);
 		case EST_MAX:
-			return do_max(z, indx, n);
+			return do_max_at(z, indx, n);
 		case EST_MIN:
-			return do_min(z, indx, n);
+			return do_min_at(z, indx, n);
 		default:
 			return NA_REAL;
 	}

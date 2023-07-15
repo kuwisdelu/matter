@@ -148,18 +148,6 @@ size_t do_len(T * x, index_t lower, index_t upper)
 }
 
 template<typename T>
-size_t do_len(T * x, int * indx, size_t n)
-{
-	size_t len = 0;
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( !isNA(x[indx[i]]) )
-			len++;
-	}
-	return len;
-}
-
-template<typename T>
 double do_sum(T * x, index_t lower, index_t upper)
 {
 	double sx = 0;
@@ -172,29 +160,10 @@ double do_sum(T * x, index_t lower, index_t upper)
 }
 
 template<typename T>
-double do_sum(T * x, int * indx, size_t n)
-{
-	double sx = 0;
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( !isNA(x[indx[i]]) )
-			sx += x[indx[i]];
-	}
-	return coerce_cast<double>(sx);
-}
-
-template<typename T>
 double do_mean(T * x, index_t lower, index_t upper)
 {
 	double sx = do_sum(x, lower, upper);
 	return sx / do_len(x, lower, upper);
-}
-
-template<typename T>
-double do_mean(T * x, int * indx, size_t n)
-{
-	double sx = do_sum(x, indx, n);
-	return sx / do_len(x, indx, n);
 }
 
 template<typename T>
@@ -214,22 +183,6 @@ double do_max(T * x, index_t lower, index_t upper)
 }
 
 template<typename T>
-double do_max(T * x, int * indx, size_t n)
-{
-	if ( n <= 0 )
-		return NA_REAL;
-	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			continue;
-		if ( x[indx[i]] > mx || isNA(mx) )
-			mx = x[indx[i]];
-	}
-	return coerce_cast<double>(mx);
-}
-
-template<typename T>
 double do_min(T * x, index_t lower, index_t upper)
 {
 	if ( lower == upper )
@@ -241,22 +194,6 @@ double do_min(T * x, index_t lower, index_t upper)
 			continue;
 		if ( x[i] < mx || isNA(mx) )
 			mx = x[i];
-	}
-	return coerce_cast<double>(mx);
-}
-
-template<typename T>
-double do_min(T * x, int * indx, size_t n)
-{
-	if ( n <= 0 )
-		return NA_REAL;
-	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
-	{
-		if ( isNA(x[indx[i]]) )
-			continue;
-		if ( x[indx[i]] < mx || isNA(mx) )
-			mx = x[indx[i]];
 	}
 	return coerce_cast<double>(mx);
 }
@@ -354,7 +291,7 @@ double do_klanczos1(Tx xi, Tx * x, Ty * y, double a,
 //---------------------------
 
 template<typename T>
-void mean_filter(T * x, index_t n, int width, double * buffer)
+void mean_filter(T * x, size_t n, int width, double * buffer)
 {
 	int r = width / 2;
 	index_t ij, prev, lo, hi;
@@ -401,7 +338,7 @@ void mean_filter(T * x, index_t n, int width, double * buffer)
 }
 
 template<typename T>
-void linear_filter(T * x, index_t n,
+void linear_filter(T * x, size_t n,
 	double * weights, int width, double * buffer)
 {
 	int r = width / 2;
@@ -428,7 +365,7 @@ void linear_filter(T * x, index_t n,
 }
 
 template<typename T>
-void bilateral_filter(T * x, index_t n, int width,
+void bilateral_filter(T * x, size_t n, int width,
 	double sddist, double sdrange, double spar, double * buffer)
 {
 	int r = width / 2;
@@ -492,7 +429,7 @@ void bilateral_filter(T * x, index_t n, int width,
 }
 
 template<typename T>
-void diffusion_filter(T * x, index_t n, int niter,
+void diffusion_filter(T * x, size_t n, int niter,
 	double K, double rate, int method, double * buffer)
 {
 	index_t L, R;
@@ -551,7 +488,7 @@ void diffusion_filter(T * x, index_t n, int niter,
 }
 
 template<typename T>
-void guided_filter(T * x, T * g, index_t n, int width,
+void guided_filter(T * x, T * g, size_t n, int width,
 	double sdreg, double ftol, double * buffer)
 {
 	double gmax, K2;
