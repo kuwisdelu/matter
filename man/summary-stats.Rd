@@ -108,5 +108,4 @@ rowSums(x)
 rowMeans(x)
 }
 
-\keyword{methods}
 \keyword{univar}

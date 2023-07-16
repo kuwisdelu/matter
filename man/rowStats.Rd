@@ -91,5 +91,5 @@ g <- as.factor(rep(letters[1:5], each=20))
 colStats(x, "mean", group=g)
 }
 
-\keyword{methods}
+\keyword{array}
 \keyword{univar}

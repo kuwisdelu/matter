@@ -10,7 +10,7 @@
 \alias{rowsweep,matter_mat-method}
 \alias{rowsweep,sparse_mat-method}
 
-\title{Sweep on Array Summaries Based on Grouping}
+\title{Sweep out Matrix Summaries Based on Grouping}
 
 \description{
     Apply the equivalent of \code{\link[base]{sweep}} to either columns or rows of a matrix, using a grouping variable.
@@ -64,4 +64,4 @@ x <- matrix(1:100, nrow=10, ncol=10)
 colsweep(x, colStats(x, "mean"))
 }
 
-\keyword{methods}
+\keyword{array}

@@ -129,5 +129,4 @@ apply(cbind(A, B), 1, var)
 stat_c(sx, sy) # should be the same
 }
 
-\keyword{methods}
 \keyword{univar}

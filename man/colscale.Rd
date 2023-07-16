@@ -57,4 +57,4 @@ x <- matter(1:100, nrow=10, ncol=10)
 colscale(x)
 }
 
-\keyword{methods}
+\keyword{array}
