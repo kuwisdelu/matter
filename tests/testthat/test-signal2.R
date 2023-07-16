@@ -3,7 +3,7 @@ require(matter)
 
 context("signal-processing-2")
 
-test_that("filter2", {
+test_that("filter 2d", {
 
 	set.seed(1)
 	i <- seq(-4, 4, length.out=12)
@@ -59,7 +59,7 @@ test_that("filter2", {
 
 })
 
-test_that("warp2 + align", {
+test_that("warp + align 2d", {
 
 	set.seed(1)
 	x <- matrix(0, nrow=32, ncol=32)

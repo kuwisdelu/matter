@@ -19,6 +19,12 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(kdTree, 1),
 	CALLDEF(kdSearch, 7),
 	CALLDEF(knnSearch, 8),
+	// distance
+	CALLDEF(rowDist, 4),
+	CALLDEF(colDist, 4),
+	CALLDEF(rowDistAt, 6),
+	CALLDEF(colDistAt, 6),
+	CALLDEF(inPoly, 2),
 	// compression
 	CALLDEF(encodeDRLE, 2),
 	CALLDEF(decodeDRLE, 2),
@@ -73,14 +79,8 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(diffusionFilter2, 5),
 	CALLDEF(guidedFilter2, 4),
 	CALLDEF(histEq, 2),
-	CALLDEF(adaptHisteq, 4),
+	CALLDEF(adaptHistEq, 4),
 	CALLDEF(Approx2, 8),
-	// spatial
-	CALLDEF(inPoly, 2),
-	CALLDEF(rowDist, 4),
-	CALLDEF(colDist, 4),
-	CALLDEF(rowDistAt, 6),
-	CALLDEF(colDistAt, 6),
 	// matter altrep
 	CALLDEF(newMatterAltrep, 6),
 	{NULL, NULL, 0}

@@ -5,11 +5,12 @@
 #include "drle.h"
 #include "atoms.h"
 #include "matter.h"
+#include "sparse.h"
+
+#include "dist.h"
 #include "search.h"
 #include "signal.h"
 #include "signal2.h"
-#include "sparse.h"
-#include "spatial.h"
 
 extern "C" {
 
@@ -28,6 +29,15 @@ SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 	SEXP root, SEXP tol, SEXP tol_ref);
 SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 	SEXP root, SEXP knn, SEXP metric, SEXP p);
+
+// Distance
+//----------
+
+SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p);
+SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p);
+SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
+SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
+SEXP inPoly(SEXP points, SEXP vertices);
 
 // Compression (delta run length encoding)
 //-----------------------------------------
@@ -111,18 +121,9 @@ SEXP diffusionFilter2(SEXP x, SEXP niter,
 SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg);
 SEXP histEq(SEXP x, SEXP nbins);
-SEXP adaptHisteq(SEXP x, SEXP width, SEXP clip, SEXP nbins);
+SEXP adaptHistEq(SEXP x, SEXP width, SEXP clip, SEXP nbins);
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
-
-// Spatial
-//---------
-
-SEXP inPoly(SEXP points, SEXP vertices);
-SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p);
-SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p);
-SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
-SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
 
 } // extern "C"
 

@@ -3,8 +3,15 @@
 
 extern "C" {
 
-// Select (k-th order and median)
-//--------------------------------
+// Search, sort and select
+//------------------------
+
+SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
+{
+	if ( TYPEOF(x) != TYPEOF(y) )
+		Rf_error("'x' and 'y' must have the same type");
+	return Rf_ScalarReal(sdiff(x, y, Rf_asInteger(ref)));
+}
 
 SEXP quickOrder(SEXP x)
 {
@@ -99,16 +106,6 @@ SEXP quickMAD(SEXP x, SEXP center, SEXP constant)
 		default:
 			Rf_error("unsupported data type");
 	}
-}
-
-// Search (binary and approximate)
-//--------------------------------
-
-SEXP relativeDiff(SEXP x, SEXP y, SEXP ref)
-{
-	if ( TYPEOF(x) != TYPEOF(y) )
-		Rf_error("'x' and 'y' must have the same type");
-	return Rf_ScalarReal(sdiff(x, y, Rf_asInteger(ref)));
 }
 
 SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
@@ -231,6 +228,151 @@ SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 			do_knn_search(INTEGER(result), REAL(x), REAL(data), k, nx, ndata,
 				INTEGER(left_child), INTEGER(right_child), Rf_asInteger(root),
 				Rf_asInteger(knn), Rf_asInteger(metric), Rf_asReal(p), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+// Distance
+//----------
+
+SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p)
+{
+	if ( TYPEOF(x) != TYPEOF(y) )
+		Rf_error("'x' and 'y' must have the same type");
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_nrows(y)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			row_dist(INTEGER(x), INTEGER(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+			break;
+		case REALSXP:
+			row_dist(REAL(x), REAL(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p)
+{
+	if ( TYPEOF(x) != TYPEOF(y) )
+		Rf_error("'x' and 'y' must have the same type");
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_ncols(x), Rf_ncols(y)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			col_dist(INTEGER(x), INTEGER(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+			break;
+		case REALSXP:
+			col_dist(REAL(x), REAL(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
+{
+	size_t nout = LENGTH(xat);
+	SEXP result;
+	PROTECT(result = Rf_allocVector(VECSXP, nout));
+	for ( index_t i = 0; i < nout; i++ )
+	{
+		SEXP indx = VECTOR_ELT(xat, i);
+		SEXP indy = VECTOR_ELT(yat, i);
+		int ni = LENGTH(indx);
+		int xrows [ni];
+		int yrows [ni];
+		for ( index_t j = 0; j < ni; j++ )
+		{
+			xrows[j] = INTEGER_ELT(indx, j) - 1;
+			yrows[j] = INTEGER_ELT(indy, j) - 1;
+		}
+		SEXP dist;
+		PROTECT(dist = Rf_allocVector(REALSXP, ni));
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				row_dist_at(INTEGER(x), INTEGER(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
+					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				break;
+			case REALSXP:
+				row_dist_at(REAL(x), REAL(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
+					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
+		SET_VECTOR_ELT(result, i, dist);
+		UNPROTECT(1);
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
+{
+	size_t nout = LENGTH(xat);
+	SEXP result;
+	PROTECT(result = Rf_allocVector(VECSXP, nout));
+	for ( index_t i = 0; i < nout; i++ )
+	{
+		SEXP indx = VECTOR_ELT(xat, i);
+		SEXP indy = VECTOR_ELT(yat, i);
+		int ni = LENGTH(indx);
+		int xcols [ni];
+		int ycols [ni];
+		for ( index_t j = 0; j < ni; j++ )
+		{
+			xcols[j] = INTEGER_ELT(indx, j) - 1;
+			ycols[j] = INTEGER_ELT(indy, j) - 1;
+		}
+		SEXP dist;
+		PROTECT(dist = Rf_allocVector(REALSXP, ni));
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				col_dist_at(INTEGER(x), INTEGER(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
+					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				break;
+			case REALSXP:
+				col_dist_at(REAL(x), REAL(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
+					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
+		SET_VECTOR_ELT(result, i, dist);
+		UNPROTECT(1);
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP inPoly(SEXP points, SEXP vertices)
+{
+	if ( TYPEOF(points) != TYPEOF(vertices) )
+		Rf_error("'points' and 'vertices' must have the same type");
+	SEXP result;
+	PROTECT(result = Rf_allocVector(LGLSXP, Rf_nrows(points)));
+	switch(TYPEOF(points)) {
+		case INTSXP:
+			do_in_poly(LOGICAL(result), INTEGER(points), Rf_nrows(points),
+				INTEGER(vertices), Rf_nrows(vertices));
+			break;
+		case REALSXP:
+			do_in_poly(LOGICAL(result), REAL(points), Rf_nrows(points),
+				REAL(vertices), Rf_nrows(vertices));
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -1143,7 +1285,7 @@ SEXP histEq(SEXP x, SEXP nbins)
 	return result;
 }
 
-SEXP adaptHisteq(SEXP x, SEXP width, SEXP clip, SEXP nbins)
+SEXP adaptHistEq(SEXP x, SEXP width, SEXP clip, SEXP nbins)
 {
 	SEXP result;
 	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
@@ -1217,151 +1359,6 @@ SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 			break;
 		default:
 			Rf_error("z has an unsupported data type");
-	}
-	UNPROTECT(1);
-	return result;
-}
-
-// Spatial
-//---------
-
-SEXP inPoly(SEXP points, SEXP vertices)
-{
-	if ( TYPEOF(points) != TYPEOF(vertices) )
-		Rf_error("'points' and 'vertices' must have the same type");
-	SEXP result;
-	PROTECT(result = Rf_allocVector(LGLSXP, Rf_nrows(points)));
-	switch(TYPEOF(points)) {
-		case INTSXP:
-			do_in_poly(LOGICAL(result), INTEGER(points), Rf_nrows(points),
-				INTEGER(vertices), Rf_nrows(vertices));
-			break;
-		case REALSXP:
-			do_in_poly(LOGICAL(result), REAL(points), Rf_nrows(points),
-				REAL(vertices), Rf_nrows(vertices));
-			break;
-		default:
-			Rf_error("unsupported data type");
-	}
-	UNPROTECT(1);
-	return result;
-}
-
-SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p)
-{
-	if ( TYPEOF(x) != TYPEOF(y) )
-		Rf_error("'x' and 'y' must have the same type");
-	SEXP result;
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_nrows(y)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			row_dist(INTEGER(x), INTEGER(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
-			break;
-		case REALSXP:
-			row_dist(REAL(x), REAL(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
-			break;
-		default:
-			Rf_error("unsupported data type");
-	}
-	UNPROTECT(1);
-	return result;
-}
-
-SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p)
-{
-	if ( TYPEOF(x) != TYPEOF(y) )
-		Rf_error("'x' and 'y' must have the same type");
-	SEXP result;
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_ncols(x), Rf_ncols(y)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			col_dist(INTEGER(x), INTEGER(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
-			break;
-		case REALSXP:
-			col_dist(REAL(x), REAL(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
-			break;
-		default:
-			Rf_error("unsupported data type");
-	}
-	UNPROTECT(1);
-	return result;
-}
-
-SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
-{
-	size_t nout = LENGTH(xat);
-	SEXP result;
-	PROTECT(result = Rf_allocVector(VECSXP, nout));
-	for ( index_t i = 0; i < nout; i++ )
-	{
-		SEXP indx = VECTOR_ELT(xat, i);
-		SEXP indy = VECTOR_ELT(yat, i);
-		int ni = LENGTH(indx);
-		int xrows [ni];
-		int yrows [ni];
-		for ( index_t j = 0; j < ni; j++ )
-		{
-			xrows[j] = INTEGER_ELT(indx, j) - 1;
-			yrows[j] = INTEGER_ELT(indy, j) - 1;
-		}
-		SEXP dist;
-		PROTECT(dist = Rf_allocVector(REALSXP, ni));
-		switch(TYPEOF(x)) {
-			case INTSXP:
-				row_dist_at(INTEGER(x), INTEGER(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
-					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
-				break;
-			case REALSXP:
-				row_dist_at(REAL(x), REAL(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
-					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
-				break;
-			default:
-				Rf_error("unsupported data type");
-		}
-		SET_VECTOR_ELT(result, i, dist);
-		UNPROTECT(1);
-	}
-	UNPROTECT(1);
-	return result;
-}
-
-SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
-{
-	size_t nout = LENGTH(xat);
-	SEXP result;
-	PROTECT(result = Rf_allocVector(VECSXP, nout));
-	for ( index_t i = 0; i < nout; i++ )
-	{
-		SEXP indx = VECTOR_ELT(xat, i);
-		SEXP indy = VECTOR_ELT(yat, i);
-		int ni = LENGTH(indx);
-		int xcols [ni];
-		int ycols [ni];
-		for ( index_t j = 0; j < ni; j++ )
-		{
-			xcols[j] = INTEGER_ELT(indx, j) - 1;
-			ycols[j] = INTEGER_ELT(indy, j) - 1;
-		}
-		SEXP dist;
-		PROTECT(dist = Rf_allocVector(REALSXP, ni));
-		switch(TYPEOF(x)) {
-			case INTSXP:
-				col_dist_at(INTEGER(x), INTEGER(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
-					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
-				break;
-			case REALSXP:
-				col_dist_at(REAL(x), REAL(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
-					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
-				break;
-			default:
-				Rf_error("unsupported data type");
-		}
-		SET_VECTOR_ELT(result, i, dist);
-		UNPROTECT(1);
 	}
 	UNPROTECT(1);
 	return result;

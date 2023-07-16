@@ -3,7 +3,7 @@ require(matter)
 
 context("signal-processing")
 
-test_that("filter", {
+test_that("filter 1d", {
 
 	set.seed(1)
 	t <- seq(from=0, to=6 * pi, length.out=5000)
@@ -24,21 +24,20 @@ test_that("filter", {
 	f <- function(z) sum(wt * z)
 	xg <- vapply(xr, f, numeric(1))
 	
-	xgc <- filt1_conv(x, wt)
+	x1 <- filt1_ma(x, w)
+	x2 <- filt1_gauss(x, w)
+	x2c <- filt1_conv(x, wt)
 
-	expect_equal(xg, xgc)
+	expect_equal(x1, xm)
+	expect_equal(x2, xg)
+	expect_equal(x2c, xg)
 
-	x2 <- filt1_ma(x, w)
-	x3 <- filt1_gauss(x, w)
-	x4 <- filt1_bi(x, w)
-	x5 <- filt1_adapt(x, w)
-	x6 <- filt1_diff(x, w)
-	x7 <- filt1_guide(x, w)
-	x8 <- filt1_pag(x, w)
-	x9 <- filt1_sg(x, w)
-
-	expect_equal(x2, xm)
-	expect_equal(x3, xg)
+	x3 <- filt1_bi(x, w)
+	x4 <- filt1_adapt(x, w)
+	x5 <- filt1_diff(x, w)
+	x6 <- filt1_guide(x, w)
+	x7 <- filt1_pag(x, w)
+	x8 <- filt1_sg(x, w)
 
 	expect_lt(sum((x3 - y)^2), sum((x - y)^2))
 	expect_lt(sum((x4 - y)^2), sum((x - y)^2))
@@ -46,7 +45,6 @@ test_that("filter", {
 	expect_lt(sum((x6 - y)^2), sum((x - y)^2))
 	expect_lt(sum((x7 - y)^2), sum((x - y)^2))
 	expect_lt(sum((x8 - y)^2), sum((x - y)^2))
-	expect_lt(sum((x9 - y)^2), sum((x - y)^2))
 	
 	expect_gt(cor(x3, y), cor(x, y))
 	expect_gt(cor(x4, y), cor(x, y))
@@ -54,11 +52,10 @@ test_that("filter", {
 	expect_gt(cor(x6, y), cor(x, y))
 	expect_gt(cor(x7, y), cor(x, y))
 	expect_gt(cor(x8, y), cor(x, y))
-	expect_gt(cor(x9, y), cor(x, y))
 
 })
 
-test_that("warp + align", {
+test_that("warp + align 1d", {
 
 	t <- seq(from=0, to=6 * pi, length.out=1000)
 	dt <- 0.2 * (sin(t) + 0.6 * sin(2.6 * t))

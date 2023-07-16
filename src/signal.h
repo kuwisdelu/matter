@@ -31,15 +31,15 @@
 #define BIN_SSE		9
 
 // diffusivity
-#define DIFF_PM1	1 // Perona-Malik #1
-#define DIFF_PM2	2 // Perona-Malik #2
+#define DIFF_EQ1	1 // Perona-Malik #1
+#define DIFF_EQ2	2 // Perona-Malik #2
 #define DIFF_PAW	3 // Peak-aware weighting
 
 // wrap index to simulate signal wraparound
 #define wrap_ind(i, n) ((i) < 0 ? (i) % (n) + (n) : (i) % (n))
 
 // normalize index to simulate signal padding
-#define norm_ind(i, n) (max2(min2((i), (n) - 1), 0))
+#define norm_ind(i, n) (min2(max2((i), 0), (n - 1)))
 
 //// Numeric Integration
 //-----------------------
@@ -458,13 +458,13 @@ void diffusion_filter(T * x, size_t n, int niter,
 			dR = isNA(x0[R]) ? 0 : sdiff(x0[R], x0[i]);
 			// calculate conduction
 			switch(method) {
-				case DIFF_PM1:
+				case DIFF_EQ1:
 				{
 					cL = std::exp(-(dL / K) * (dL / K));
 					cR = std::exp(-(dR / K) * (dR / K));
 					break;
 				}
-				case DIFF_PM2:
+				case DIFF_EQ2:
 				{
 					cL = 1 / (1 + (dL / K) * (dL / K));
 					cR = 1 / (1 + (dR / K) * (dR / K));

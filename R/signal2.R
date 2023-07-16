@@ -195,7 +195,7 @@ enhance_hist <- function(x, nbins = 256L)
 enhance_adapt <- function(x, width = sqrt(length(x)) %/% 5L,
 	clip = 0.1, nbins = 256L)
 {
-	y <- .Call(C_adaptHisteq, x, width, clip, nbins, PACKAGE="matter")
+	y <- .Call(C_adaptHistEq, x, width, clip, nbins, PACKAGE="matter")
 	normalize_IQR(y, x)
 }
 

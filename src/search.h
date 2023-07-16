@@ -2,12 +2,7 @@
 #define SEARCH
 
 #include "matterDefines.h"
-
-// distance metrics
-#define DIST_EUC	1 // Euclidean (L2) distance
-#define DIST_MAX	2 // Maximum distance
-#define DIST_ABS	3 // Manhattan (L1) distance 
-#define DIST_MKW	4 // Minkowski distance
+#include "dist.h"
 
 // size to fallback to linear search
 #define LINEAR_THRESHOLD 8
@@ -178,10 +173,11 @@ template<typename Tx, typename Tv>
 void quick_sort(Tx * x, size_t start, size_t end, Tv * v = NULL)
 {
 	index_t pivot, left = start, right = end - 1;
-	if ( left == right )
+	index_t n = end - start;
+	if ( n == 0 )
 		return;
 	// initialize stack
-	int stack_size = 2 * std::ceil(std::log2(end - start));
+	int stack_size = 2 * std::ceil(std::log2(n));
 	int stack [stack_size];
 	int top = -1;
 	stack[++top] = left;
@@ -617,50 +613,6 @@ index_t kd_tree_search(int * ptr, T * x, T * data, size_t k, size_t n,
 
 //// K-NN search
 //-----------------
-
-// calculate distance between k-dim points
-template<typename T>
-double do_dist(T * x, T * y, size_t k, int stepx = 1, int stepy = 1,
-	int metric = DIST_EUC, double p = 2, double * scale = NULL)
-{
-	double si, di, D = 0;
-	for ( index_t i = 0; i < k; i++ )
-	{
-		if ( scale != NULL )
-			si = scale[i];
-		else
-			si = 1;
-		di = udiff(x[i * stepx], y[i * stepy]) / si;
-		switch(metric) {
-			case DIST_EUC:
-				D += di * di;
-				break;
-			case DIST_MAX:
-				D = di > D ? di : D;
-				break;
-			case DIST_ABS:
-				D += di;
-				break;
-			case DIST_MKW:
-				D += std::pow(di, p);
-				break;
-			default:
-				Rf_error("unrecognized distance metric");
-		}
-	}
-	switch(metric) {
-		case DIST_EUC:
-			return std::sqrt(D);
-		case DIST_MAX:
-			return D;
-		case DIST_ABS:
-			return D;
-		case DIST_MKW:
-			return std::pow(D, 1 / p);
-		default:
-			return NA_REAL;
-	}
-}
 
 // search for knn points nearest x, return via ptr
 template<typename T>
