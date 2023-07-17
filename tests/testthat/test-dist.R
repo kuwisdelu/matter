@@ -8,10 +8,12 @@ test_that("rowdist + coldist", {
 	x <- expand.grid(x=1:4, y=1:4, z=1:2)
 	y <- expand.grid(x=1:2, y=1:2, z=1)
 
-	expect_equivalent(as.matrix(dist(x)), rowdist(x))
-	expect_equivalent(as.matrix(dist(y)), rowdist(y))
-	expect_equivalent(as.matrix(dist(t(x))), coldist(x))
-	expect_equivalent(as.matrix(dist(t(y))), coldist(y))
+	f_d <- function(x, ...) as.matrix(dist(x, ...))
+
+	expect_equivalent(f_d(x), rowdist(x))
+	expect_equivalent(f_d(y), rowdist(y))
+	expect_equivalent(f_d(t(x)), coldist(x))
+	expect_equivalent(f_d(t(y)), coldist(y))
 
 	d <- matrix(nrow=nrow(x), ncol=nrow(y))
 	for ( i in seq_len(nrow(x)))
@@ -21,7 +23,27 @@ test_that("rowdist + coldist", {
 	expect_equal(d, rowdist(x, y))
 	expect_equal(d, coldist(t(x), t(y)))
 
-	f_r <- function(x, y, i, j)
+	expect_equivalent(
+		f_d(x, method="maximum"),
+		rowdist(x, metric="maximum"))
+	expect_equivalent(
+		f_d(x, method="manhattan"),
+		rowdist(x, metric="manhattan"))
+	expect_equivalent(
+		f_d(x, method="minkowski", p=3),
+		rowdist(x, metric="minkowski", p=3))
+
+	expect_equivalent(
+		f_d(t(x), method="maximum"),
+		coldist(x, metric="maximum"))
+	expect_equivalent(
+		f_d(t(x), method="manhattan"),
+		coldist(x, metric="manhattan"))
+	expect_equivalent(
+		f_d(t(x), method="minkowski", p=3),
+		coldist(x, metric="minkowski", p=3))
+
+	f_r <- function(x, i, y, j)
 	{
 		Map(function(ii, jj)
 		{
@@ -34,7 +56,7 @@ test_that("rowdist + coldist", {
 		}, i, j)
 	}
 
-	f_c <- function(x, y, i, j)
+	f_c <- function(x, i, y, j)
 	{
 		Map(function(ii, jj)
 		{
@@ -48,24 +70,24 @@ test_that("rowdist + coldist", {
 	}
 
 	set.seed(1)
-	z1 <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
-	z2 <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
-	ii <- roll(1:12, width=3, na.drop=TRUE)
-	jj <- roll(12:1, width=3, na.drop=TRUE)
+	x <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
+	y <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
+	i <- roll(1:12, width=3, na.drop=TRUE)
+	j <- roll(12:1, width=3, na.drop=TRUE)
 	
-	d1a <- rowdist_at(z1, z2, ix=1:12, iy=ii)
-	d1b <- f_r(z1, z2, 1:12, ii)
-	d2a <- rowdist_at(z1, z2, ix=ii, iy=1:12)
-	d2b <- f_r(z1, z2, ii, 1:12)
-	d3a <- rowdist_at(z1, z2, ix=ii, iy=jj)
-	d3b <- f_r(z1, z2, ii, jj)
+	d1a <- rowdist_at(x, 1:12, y, i)
+	d1b <- f_r(x, 1:12, y, i)
+	d2a <- rowdist_at(x, i, y, 1:12)
+	d2b <- f_r(x, i, y, 1:12)
+	d3a <- rowdist_at(x, i, y, j)
+	d3b <- f_r(x, i, y, j)
 	
-	d4a <- coldist_at(z1, z2, ix=1:12, iy=ii)
-	d4b <- f_c(z1, z2, 1:12, ii)
-	d5a <- coldist_at(z1, z2, ix=ii, iy=1:12)
-	d5b <- f_c(z1, z2, ii, 1:12)
-	d6a <- coldist_at(z1, z2, ix=ii, iy=jj)
-	d6b <- f_c(z1, z2, ii, jj)
+	d4a <- coldist_at(x, 1:12, y, i)
+	d4b <- f_c(x, 1:12, y, i)
+	d5a <- coldist_at(x, i, y, 1:12)
+	d5b <- f_c(x, i, y, 1:12)
+	d6a <- coldist_at(x, i, y, j)
+	d6b <- f_c(x, i, y, j)
 
 	expect_equal(d1a, d1b)
 	expect_equal(d2a, d2b)

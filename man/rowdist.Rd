@@ -1,4 +1,4 @@
-\name{coldist}
+\name{rowdist}
 
 \alias{rowdist}
 \alias{coldist}
@@ -16,10 +16,10 @@ rowdist(x, y = x, metric = "euclidean", p = 2)
 
 coldist(x, y = x, metric = "euclidean", p = 2)
 
-rowdist_at(x, y = x, ix, iy,
+rowdist_at(x, ix, y = x, iy = list(1L:nrow(y)),
 	metric = "euclidean", p = 2)
 
-coldist_at(x, y = x, ix, iy,
+coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 	metric = "euclidean", p = 2)
 }
 
@@ -58,6 +58,11 @@ y <- matrix(runif(25), nrow=3, ncol=5)
 
 rowdist(x) # same as as.matrix(dist(x))
 rowdist(x, y)
+
+# distances between:
+# x[1,] vs x[,]
+# x[5,] vs x[,]
+rowdist_at(x, c(1,5))
 
 # distances between:
 # x[1,] vs x[1:3,]

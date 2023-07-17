@@ -28,15 +28,18 @@ coldist <- function(x, y = x, metric = "euclidean", p = 2)
 	.Call(C_colDist, x, y, as_metric(metric), p, PACKAGE="matter")
 }
 
-rowdist_at <- function(x, y = x, ix, iy,
+rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
 	metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
-	if ( length(ix) != length(iy) & length(ix) != 1L & length(iy) != 1L )
-		stop("length of ix and iy must be equal or 1")
+	if ( length(ix) != length(iy) && length(ix) != 1L && length(iy) != 1L )
+		stop("length of ix [", length(ix),
+			"] and iy [", length(iy), "] must be equal or 1")
 	if ( any(lengths(ix) != lengths(iy) & lengths(ix) != 1L & lengths(iy) != 1L) )
-		stop("lengths of ix and iy components must be equal or 1")
+		stop("lengths of ix [", paste_head(lengths(ix), collapse=", "),
+			"] and iy [", paste_head(lengths(iy), collapse=", "),
+			"] components must all be equal or 1")
 	ind <- normalize_lengths2(ix, iy)
 	ix <- lapply(ind[[1L]], as.integer)
 	iy <- lapply(ind[[2L]], as.integer)
@@ -50,15 +53,18 @@ rowdist_at <- function(x, y = x, ix, iy,
 		as_metric(metric), p, PACKAGE="matter")
 }
 
-coldist_at <- function(x, y = x, ix, iy,
+coldist_at <- function(x, ix, y = x, iy = list(1L:ncol(y)),
 	metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
-	if ( length(ix) != length(iy) & length(ix) != 1L & length(iy) != 1L )
-		stop("length of ix and iy must be equal or 1")
+	if ( length(ix) != length(iy) && length(ix) != 1L && length(iy) != 1L )
+		stop("length of ix [", length(ix),
+			"] and iy [", length(iy), "] must be equal or 1")
 	if ( any(lengths(ix) != lengths(iy) & lengths(ix) != 1L & lengths(iy) != 1L) )
-		stop("lengths of ix and iy components must be equal or 1")
+		stop("lengths of ix [", paste_head(lengths(ix), collapse=", "),
+			"] and iy [", paste_head(lengths(iy), collapse=", "),
+			"] components must all be equal or 1")
 	ind <- normalize_lengths2(ix, iy)
 	ix <- lapply(ind[[1L]], as.integer)
 	iy <- lapply(ind[[2L]], as.integer)
