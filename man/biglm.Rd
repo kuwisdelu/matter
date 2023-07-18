@@ -5,16 +5,16 @@
 \alias{bigglm,formula,matter_mat-method}
 \alias{bigglm,formula,sparse_mat-method}
 
-\title{Using ``biglm'' with ``matter''}
+\title{Linear Regression for ``matter'' Matrices}
 
 \description{
-    This method allows \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices with the ``biglm'' package.
+    This method allows bounded memory linear regression with \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices using the ``biglm'' package.
 }
 
 \usage{
-\S4method{bigglm}{formula,matter_mat}(formula, data, \dots, chunksize = NULL, fc = NULL)
+\S4method{bigglm}{formula,matter_mat}(formula, data, \dots, chunksize = NULL)
 
-\S4method{bigglm}{formula,sparse_mat}(formula, data, \dots, chunksize = NULL, fc = NULL)
+\S4method{bigglm}{formula,sparse_mat}(formula, data, \dots, chunksize = NULL)
 }
 
 \arguments{
@@ -23,8 +23,6 @@
     \item{data}{A \code{\linkS4class{matter}} matrix with column names.}
 
     \item{chunksize}{An integer giving the maximum number of rows to process at a time. If left \code{NULL}, this will be calculated by dividing the \code{chunksize} of \code{data} by the number of variables in the formula.}
-
-    \item{fc}{Either column indices or names of variables which are factors.}
 
     \item{\dots}{Additional options passed to \code{\link[biglm]{bigglm}}.}
 }
@@ -49,7 +47,7 @@ colnames(x) <- c(paste0("x", 1:9), "y")
 fm <- paste0("y ~ ", paste0(paste0("x", 1:9), collapse=" + "))
 fm <- as.formula(fm)
 
-fit <- bigglm(fm, data=x, chunksize=50)
+fit <- bigglm(fm, x, chunksize=50)
 coef(fit)
 }
 

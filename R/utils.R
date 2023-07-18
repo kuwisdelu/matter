@@ -7,7 +7,7 @@
 		matter.cast.warning = TRUE,
 		matter.compress.atoms = 3,
 		matter.default.nchunks = 20L,
-		matter.default.chunksize = 1000000L,
+		matter.default.chunksize = 10000L,
 		matter.show.head = TRUE,
 		matter.show.head.n = 6L,
 		matter.coerce.altrep = FALSE,
@@ -481,9 +481,9 @@ paste_head <- function(x, n=getOption("matter.show.head.n"), collapse=" ") {
 	}
 }
 
-preview_vector_data <- function(x, n = getOption("matter.show.head.n")) {
+preview_vector_data <- function(x, n = getOption("matter.show.head.n"), ...) {
 	hdr <- head(x, n=n)
-	out <- format.default(hdr)
+	out <- format.default(hdr, ...)
 	more <- length(x) > length(hdr)
 	if ( !is.null(names(hdr)) ) {
 		nms <- names(hdr)
@@ -497,11 +497,11 @@ preview_vector_data <- function(x, n = getOption("matter.show.head.n")) {
 	matrix(out, nrow=1, dimnames=list("", nms))
 }
 
-preview_vector <- function(x, n = getOption("matter.show.head.n")) {
-	print(preview_vector_data(x, n), quote=FALSE, right=TRUE)
+preview_vector <- function(x, n = getOption("matter.show.head.n"), ...) {
+	print(preview_vector_data(x, n, ...), quote=FALSE, right=TRUE)
 }
 
-preview_matrix_data <- function(x, n = getOption("matter.show.head.n")) {
+preview_matrix_data <- function(x, n = getOption("matter.show.head.n"), ...) {
 	more_i <- nrow(x) > n
 	more_j <- ncol(x) > n
 	if ( more_i ) {
@@ -515,7 +515,7 @@ preview_matrix_data <- function(x, n = getOption("matter.show.head.n")) {
 		j <- 1:ncol(x)
 	}
 	hdr <- x[i,j,drop=FALSE]
-	out <- matrix(format.default(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
+	out <- matrix(format.default(hdr, ...), nrow=nrow(hdr), ncol=ncol(hdr))
 	if ( !is.null(rownames(x)) ) {
 		rnm <- rownames(x)[i]
 	} else {
@@ -538,11 +538,11 @@ preview_matrix_data <- function(x, n = getOption("matter.show.head.n")) {
 	out
 }
 
-preview_matrix <- function(x, n = getOption("matter.show.head.n")) {
-	print(preview_matrix_data(x, n), quote=FALSE, right=TRUE)
+preview_matrix <- function(x, n = getOption("matter.show.head.n"), ...) {
+	print(preview_matrix_data(x, n, ...), quote=FALSE, right=TRUE)
 }
 
-preview_Nd_array <- function(x, n = getOption("matter.show.head.n")) {
+preview_Nd_array <- function(x, n = getOption("matter.show.head.n"), ...) {
 	more_i <- nrow(x) > n
 	more_j <- ncol(x) > n
 	if ( more_i ) {
@@ -558,7 +558,7 @@ preview_Nd_array <- function(x, n = getOption("matter.show.head.n")) {
 	extra <- rep(1L, length(dim(x)) - 2L)
 	inds <- c(list(i, j), as.list(extra))
 	hdr <- do.call("[", c(list(x), inds, list(drop=FALSE)))
-	out <- matrix(format.default(hdr), nrow=nrow(hdr), ncol=ncol(hdr))
+	out <- matrix(format.default(hdr, ...), nrow=nrow(hdr), ncol=ncol(hdr))
 	if ( !is.null(rownames(x)) ) {
 		rnm <- rownames(x)[i]
 	} else {
@@ -586,10 +586,10 @@ preview_Nd_array <- function(x, n = getOption("matter.show.head.n")) {
 	}
 }
 
-preview_list <- function(x, n = getOption("matter.show.head.n")) {
+preview_list <- function(x, n = getOption("matter.show.head.n"), ...) {
 	n1 <- min(n, length(x))
 	for ( i in 1:n1 ) {
-		fmt <- preview_vector_data(x[[i]], n)
+		fmt <- preview_vector_data(x[[i]], n, ...)
 		if ( !is.null(names(x)) ) {
 			rownames(fmt) <- paste0("$", names(x)[i])
 		} else {
@@ -601,7 +601,7 @@ preview_list <- function(x, n = getOption("matter.show.head.n")) {
 		cat("...\n")
 }
 
-preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NULL) {
+preview_table <- function(x, n = getOption("matter.show.head.n"), cls = NULL, ...) {
 	more_i <- nrow(x) > n
 	more_j <- ncol(x) > n
 	if ( more_i ) {
@@ -616,10 +616,13 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NU
 	}
 	hdr <- x[i,j,drop=FALSE]
 	out <- as.matrix(hdr)
-	if ( is.null(classinfo) )
-		classinfo <- sapply(hdr, function(y) class(y)[1])
-	classinfo <- classinfo[j]
-	classinfo <- paste0("<", classinfo, ">")
+	out <- matrix(format.default(out, ...), nrow=nrow(out), ncol=ncol(out))
+	if ( is.null(cls) ) {
+		cls <- vapply(hdr, function(xj) class(xj)[1L], character(1L))
+	} else {
+		cls <- cls[j]
+	}
+	cls <- paste0("<", cls, ">")
 	if ( !is.null(rownames(x)) ) {
 		rnm <- rownames(x)[i]
 	} else {
@@ -637,12 +640,12 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), classinfo = NU
 	if ( more_j ) {
 		out <- cbind(out, "...")
 		cnm <- c(cnm, "...")
-		classinfo <- c(classinfo, "")
+		cls <- c(cls, "")
 	}
-	out <- rbind(classinfo, out)
+	out <- rbind(cls, out)
 	rnm <- c("", rnm)
 	dimnames(out) <- list(rnm, cnm)
-	print(out, quote=FALSE, right=TRUE)
+	print(out, quote=FALSE, right=TRUE, ...)
 }
 
 #### Miscellaneous internal functions ####
@@ -1009,7 +1012,7 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 	}
 	if ( is.list(side) ) {
 		side <- unlist(side, recursive=TRUE)
-		names(side) <- sapply(side, deparse1)
+		names(side) <- vapply(side, deparse1, character(1L))
 	}
 	if ( eval ) {
 		for ( i in seq_along(side) )

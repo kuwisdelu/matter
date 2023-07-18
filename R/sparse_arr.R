@@ -246,7 +246,7 @@ setMethod("describe_for_display", "sparse_vec", function(x) {
 })
 
 setMethod("preview_for_display", "sparse_mat", function(x) {
-	hdr <- preview_matrix_data(x)
+	hdr <- preview_matrix_data(x, zero.print=".")
 	if ( x@transpose ) {
 		if ( is.null(colnames(x)) && !is.null(domain(x)) ) {
 			n <- ncol(hdr)
@@ -272,7 +272,7 @@ setMethod("preview_for_display", "sparse_mat", function(x) {
 })
 
 setMethod("preview_for_display", "sparse_vec", function(x) {
-	hdr <- preview_vector_data(x)
+	hdr <- preview_vector_data(x, zero.print=".")
 	if ( is.null(colnames(x)) && !is.null(domain(x)) ) {
 		n <- ncol(hdr)
 		if ( colnames(hdr)[n] == "..." ) {

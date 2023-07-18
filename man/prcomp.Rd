@@ -3,15 +3,18 @@
 
 \alias{prcomp}
 \alias{prcomp,matter_mat-method}
+\alias{prcomp,sparse_mat-method}
 
 \title{Principal Components Analysis for ``matter'' Matrices}
 
 \description{
-    This method allows computation of a truncated principal components analysis of a \code{\linkS4class{matter_mat}} matrix using the implicitly restarted Lanczos method \code{\link[irlba]{irlba}}.
+    This method allows computation of a truncated principal components analysis of \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices using the implicitly restarted Lanczos method from the ``irlba'' package.
 }
 
 \usage{
 \S4method{prcomp}{matter_mat}(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
+
+\S4method{prcomp}{sparse_mat}(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
 }
 
 \arguments{
