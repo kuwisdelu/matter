@@ -283,7 +283,7 @@ as_binstat <- function(x) {
 	make_code(codes, x[1L], nomatch=1L)
 }
 
-as_metric <- function(x) {
+as_dist <- function(x) {
 	codes <- c(
 		"euclidean", "maximum",
 		"manhattan", "minkowski")

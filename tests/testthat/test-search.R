@@ -272,3 +272,22 @@ test_that("k-dimensional search", {
 	expect_equal(t4$root, 0L)
 
 })
+
+test_that("nearest neighbor pairs", {
+
+	set.seed(1)
+	x <- expand.grid(x=-2:2, y=-2:2)
+	y <- jitter(as.matrix(x))
+	z <- expand.grid(x=0:2, y=0:2)
+
+	p1 <- nnpairs(x, y)
+	p2 <- nnpairs(x, z)
+	p3 <- nnpairs(z, y)
+
+	expect_equal(p1, cbind(1:25, 1:25))
+	expect_setequal(1:25, p2[,1])
+	expect_setequal(1:9, p2[,2])
+	expect_setequal(1:9, p3[,1])
+	expect_setequal(1:25, p3[,2])
+
+})

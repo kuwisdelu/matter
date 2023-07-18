@@ -114,7 +114,18 @@ knnsearch <- function(x, data, k = 1L, metric = "euclidean", p = 2)
 		stop("x must have the same number of columns as data")
 	.Call(C_knnSearch, x, data$data,
 		data$nodes$left_child, data$nodes$right_child,
-		data$root, k, as_metric(metric), p, PACKAGE="matter")
+		data$root, k, as_dist(metric), p, PACKAGE="matter")
+}
+
+nnpairs <- function(x, y, metric = "euclidean", p = 2)
+{
+	x <- as.matrix(x)
+	y <- as.matrix(y)
+	mx <- knnsearch(x, y, 1L, metric, p)
+	my <- knnsearch(y, x, 1L, metric, p)
+	m <- cbind(c(1L:nrow(x), my), c(mx, 1L:nrow(y)))
+	dup <- duplicated(m, MARGIN=1L)
+	m[!dup,,drop=FALSE]
 }
 
 #### Search for k-th largest element ####

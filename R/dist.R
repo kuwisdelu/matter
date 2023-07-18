@@ -12,7 +12,7 @@ rowdist <- function(x, y = x, metric = "euclidean", p = 2)
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
-	.Call(C_rowDist, x, y, as_metric(metric), p, PACKAGE="matter")
+	.Call(C_rowDist, x, y, as_dist(metric), p, PACKAGE="matter")
 }
 
 coldist <- function(x, y = x, metric = "euclidean", p = 2)
@@ -25,7 +25,7 @@ coldist <- function(x, y = x, metric = "euclidean", p = 2)
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
-	.Call(C_colDist, x, y, as_metric(metric), p, PACKAGE="matter")
+	.Call(C_colDist, x, y, as_dist(metric), p, PACKAGE="matter")
 }
 
 rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
@@ -50,7 +50,7 @@ rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
 	.Call(C_rowDistAt, x, y, ix, iy,
-		as_metric(metric), p, PACKAGE="matter")
+		as_dist(metric), p, PACKAGE="matter")
 }
 
 coldist_at <- function(x, ix, y = x, iy = list(1L:ncol(y)),
@@ -75,7 +75,7 @@ coldist_at <- function(x, ix, y = x, iy = list(1L:ncol(y)),
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
 	.Call(C_colDistAt, x, y, ix, iy,
-		as_metric(metric), p, PACKAGE="matter")
+		as_dist(metric), p, PACKAGE="matter")
 }
 
 #### Point in polygon ####
