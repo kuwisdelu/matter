@@ -533,17 +533,53 @@ estnoise_filt <- function(x, snr = 2, nbins = 1L,
 		noise <- (1 + threshold) * y[1L]
 		i <- 2L
 		snr_i <- y[2L] / noise
+		# fit linear model
 		fit <- lr(1L:i, y[1L:i])
 		while ( snr_i < snr )
 		{
 			i <- i + 1L
+			# predict noise level
 			noise <- lr_predict(fit, i)
 			snr_i <- y[i] / noise
+			# update linear model
 			fit <- lr_update(fit, i, y[i])
 		}
 		noise <- rep.int(noise, length(x))
 	}
 	noise
+}
+
+lr <- function(x, y) {
+	ux <- mean(x)
+	uy <- mean(y)
+	sxx <- var(x)
+	sxy <- cov(x, y)
+	b <- sxy / sxx
+	a <- uy - b * ux
+	list(coef=c(a, b), n=length(x),
+		x=ux, y=uy, xx=sxx, xy=sxy)
+}
+
+lr_update <- function(fit, x, y) {
+	n <- fit$n + length(x)
+	ux <- (fit$n * fit$x + sum(x)) / n
+	uy <- (fit$n * fit$y + sum(y)) / n
+	qx <- sqrt(fit$n) * fit$x + sqrt(n) * ux
+	qx <- qx / (sqrt(fit$n) + sqrt(n))
+	qy <- sqrt(fit$n) * fit$y + sqrt(n) * uy
+	qy <- qy / (sqrt(fit$n) + sqrt(n))
+	sxx <- (fit$n - 1) * fit$xx + sum((x - qx) * (x - qx))
+	sxx <- sxx / (n - 1)
+	sxy <- (fit$n - 1) * fit$xy + sum((x - qx) * (y - qy))
+	sxy <- sxy / (n - 1)
+	b <- sxy / sxx
+	a <- uy - b * ux
+	list(coef=c(a, b), n=n,
+		x=ux, y=uy, xx=sxx, xy=sxy)
+}
+
+lr_predict <- function(fit, xi) {
+	sum(fit$coef * c(1, xi))
 }
 
 estnoise_sd <- function(x, width = 25L, wavelet = ricker)

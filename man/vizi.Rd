@@ -5,7 +5,7 @@
 \alias{set_coord}
 \alias{add_mark}
 \alias{add_facets}
-\alias{as_facets}
+\alias{plot_facets}
 
 \alias{vizi_par}
 \alias{vizi_style}
@@ -48,7 +48,7 @@ add_facets(plot, by = NULL, data = NULL,
     nrow = NA, ncol = NA, labels = NULL,
     drop = TRUE, free = "")
 
-as_facets(plotlist, nrow = NA, ncol = NA,
+plot_facets(plotlist, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
 }
 

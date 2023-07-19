@@ -3,37 +3,45 @@
 ## --------------------------------------------
 
 setMethod("bigglm", c("formula", "matter_mat"),
-	function(formula, data, ..., chunksize = NULL)
+	function(formula, data, ..., nchunks = NA, verbose = FALSE)
 {
-	bigglm_int(formula, data, ..., chunksize=chunksize)
+	bigglm_int(formula, data, ..., nchunks=nchunks, verbose=verbose)
 })
 		
 
 setMethod("bigglm", c("formula", "sparse_mat"),
-	function(formula, data, ..., chunksize = NULL)
+	function(formula, data, ..., nchunks = NA, verbose = FALSE)
 {
-	bigglm_int(formula, data, ..., chunksize=chunksize)
+	bigglm_int(formula, data, ..., nchunks=nchunks, verbose=verbose)
 })
 
-bigglm_int <- function(formula, data, ..., chunksize = NULL)
+bigglm_int <- function(formula, data, ...,
+	nchunks = NA, verbose = FALSE)
 {
 	if ( !requireNamespace("biglm") )
 		stop("failed to load required package 'biglm'")
-	if ( is.null(chunksize) )
-		chunksize <- getOption("matter.default.chunksize")
-	n <- nrow(data)
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	vars <- all.vars(formula)
-	current <- 0L
+	INDEX <-  chunkify(seq_len(nrow(data)), nchunks)
+	current <- 1L
+	npass <- 0L
 	datafun <- function(reset = FALSE) {
 		if ( reset ) {
-			current <<- 0L
+			npass <<- npass + 1L
+			if ( verbose )
+				message("pass ", npass)
+			current <<- 1L
 			return(NULL)
 		}
-		if ( current >= n )
+		if ( current > length(INDEX) )
 			return(NULL)
-		start <- current + 1L
-		current <<- current + min(chunksize, n - current)
-		chunk <- data[start:current,vars,drop=FALSE]
+		i <- INDEX[[current]]
+		if ( verbose )
+			message("processing chunk ",
+				attr(i, "chunkid"), "/", length(INDEX))
+		chunk <- as.matrix(data[i,vars,drop=FALSE])
+		current <<- current + 1L
 		as.data.frame(chunk)
 	}
 	bigglm(formula=formula, data=datafun, ...)

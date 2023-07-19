@@ -74,7 +74,7 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	structure(facets, class="vizi_facets")
 }
 
-as_facets <- function(plotlist, nrow = NA, ncol = NA,
+plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 	labels = NULL, drop = TRUE, free = "")
 {
 	plots <- lapply(plotlist, function(plot) {

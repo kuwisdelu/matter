@@ -58,6 +58,14 @@ vizi_style <- function(style = getOption("matter.vizi.style"),
 	}
 }
 
+dpal <- function(palette = "Tableau 10") {
+	function(n) palette.colors(n, palette)
+}
+
+cpal <- function(palette = "Viridis") {
+	function(n) hcl.colors(n, palette)
+}
+
 par_update <- function(params, ..., more = list())
 {
 	update <- c(list(...), more)

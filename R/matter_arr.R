@@ -564,6 +564,40 @@ cbind.matter_arr <- cbind_any
 
 rbind.matter_arr <- rbind_any
 
+setMethod("dim", "matter_vec", function(x) NULL)
+
+setReplaceMethod("dim", "matter_arr", function(x, value) {
+	if ( is.null(value) ) {
+		x@transpose <- FALSE
+		x@dim <- prod(x@dim)
+		x@dimnames <- NULL
+		as(x, "matter_vec")
+	} else {
+		y <- callNextMethod()
+		if ( length(value) == 2L )
+			y <- as(y, "matter_mat")
+		y
+	}
+})
+
+setReplaceMethod("dim", "matter_vec", function(x, value) {
+	if ( !is.null(value) )
+		x <- as(x, "matter_arr")
+	callNextMethod(x, value)
+})
+
+setMethod("Arith", c(e1 = "matter_arr", e2 = "vector"),
+	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
+
+setMethod("Arith", c(e1 = "matter_arr", e2 = "array"),
+	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
+
+setMethod("Arith", c(e1 = "vector", e2 = "matter_arr"),
+	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
+
+setMethod("Arith", c(e1 = "array", e2 = "matter_arr"),
+	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
+
 setMethod("t", "matter_arr", function(x)
 {
 	x@transpose <- !x@transpose
@@ -614,37 +648,26 @@ setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 	}
 })
 
-setMethod("dim", "matter_vec", function(x) NULL)
-
-setReplaceMethod("dim", "matter_arr", function(x, value) {
-	if ( is.null(value) ) {
-		x@transpose <- FALSE
-		x@dim <- prod(x@dim)
-		x@dimnames <- NULL
-		as(x, "matter_vec")
+rmatmul <- function(x, y, useOuter = FALSE) {
+	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
+	if ( useOuter ) {
+		for ( i in 1:ncol(x) )
+			ans <- ans + outer(x[,i], y[i,])
 	} else {
-		y <- callNextMethod()
-		if ( length(value) == 2L )
-			y <- as(y, "matter_mat")
-		y
+		for ( i in 1:nrow(x) )
+			ans[i,] <- x[i,,drop=FALSE] %*% y
 	}
-})
+	ans
+}
 
-setReplaceMethod("dim", "matter_vec", function(x, value) {
-	if ( !is.null(value) )
-		x <- as(x, "matter_arr")
-	callNextMethod(x, value)
-})
-
-setMethod("Arith", c(e1 = "matter_arr", e2 = "vector"),
-	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
-
-setMethod("Arith", c(e1 = "matter_arr", e2 = "array"),
-	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
-
-setMethod("Arith", c(e1 = "vector", e2 = "matter_arr"),
-	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
-
-setMethod("Arith", c(e1 = "array", e2 = "matter_arr"),
-	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
-
+lmatmul <- function(x, y, useOuter = FALSE) {
+	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
+	if ( useOuter ) {
+		for ( i in 1:nrow(y) )
+			ans <- ans + outer(x[,i], y[i,])
+	} else {
+		for ( i in 1:ncol(y) )
+			ans[,i] <- x %*% y[,i,drop=FALSE]
+	}
+	ans
+}

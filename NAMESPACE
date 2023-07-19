@@ -418,7 +418,7 @@ export(
 	"set_coord",
 	"add_mark",
 	"add_facets",
-	"as_facets")
+	"plot_facets")
 
 export(
 	"vizi_par",

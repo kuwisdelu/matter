@@ -683,63 +683,6 @@ roll <- function(x, width, na.drop = FALSE, fill = NA) {
 	x
 }
 
-rmatmul <- function(x, y, useOuter = FALSE) {
-	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
-	if ( useOuter ) {
-		for ( i in 1:ncol(x) )
-			ans <- ans + outer(x[,i], y[i,])
-	} else {
-		for ( i in 1:nrow(x) )
-			ans[i,] <- x[i,,drop=FALSE] %*% y
-	}
-	ans
-}
-
-lmatmul <- function(x, y, useOuter = FALSE) {
-	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
-	if ( useOuter ) {
-		for ( i in 1:nrow(y) )
-			ans <- ans + outer(x[,i], y[i,])
-	} else {
-		for ( i in 1:ncol(y) )
-			ans[,i] <- x %*% y[,i,drop=FALSE]
-	}
-	ans
-}
-
-lr <- function(x, y) {
-	ux <- mean(x)
-	uy <- mean(y)
-	sxx <- var(x)
-	sxy <- cov(x, y)
-	b <- sxy / sxx
-	a <- uy - b * ux
-	list(coef=c(a, b), n=length(x),
-		x=ux, y=uy, xx=sxx, xy=sxy)
-}
-
-lr_update <- function(fit, x, y) {
-	n <- fit$n + length(x)
-	ux <- (fit$n * fit$x + sum(x)) / n
-	uy <- (fit$n * fit$y + sum(y)) / n
-	qx <- sqrt(fit$n) * fit$x + sqrt(n) * ux
-	qx <- qx / (sqrt(fit$n) + sqrt(n))
-	qy <- sqrt(fit$n) * fit$y + sqrt(n) * uy
-	qy <- qy / (sqrt(fit$n) + sqrt(n))
-	sxx <- (fit$n - 1) * fit$xx + sum((x - qx) * (x - qx))
-	sxx <- sxx / (n - 1)
-	sxy <- (fit$n - 1) * fit$xy + sum((x - qx) * (y - qy))
-	sxy <- sxy / (n - 1)
-	b <- sxy / sxx
-	a <- uy - b * ux
-	list(coef=c(a, b), n=n,
-		x=ux, y=uy, xx=sxx, xy=sxy)
-}
-
-lr_predict <- function(fit, xi) {
-	sum(fit$coef * c(1, xi))
-}
-
 # A sequence with half-bin-widths in relative units
 # x = bin center, y = half-width, d = relative diff
 # y[n] = d * x[n]
@@ -775,14 +718,6 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 	attr(y, "mids") <- rowMeans(breaks)
 	names(y) <- labels
 	y
-}
-
-dpal <- function(palette = "Tableau 10") {
-	function(n) palette.colors(n, palette)
-}
-
-cpal <- function(palette = "Viridis") {
-	function(n) hcl.colors(n, palette)
 }
 
 # based on MASS::ginv

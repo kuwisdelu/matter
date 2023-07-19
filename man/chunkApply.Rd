@@ -66,7 +66,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
 
     \item{simplify}{Should the result be simplified into a vector, matrix, or higher dimensional array?}
 
-    \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is inferred from \code{getOption("matter.default.chunksize")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
+    \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
     \item{depends}{A list with length equal to the extent of \code{X}. Each element of \code{depends} should give a vector of indices which correspond to other elements of \code{X} on which each computation depends. These elements are passed to \code{FUN}. For time  efficiency, no attempt is made to verify these indices are valid.}
 

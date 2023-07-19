@@ -12,9 +12,9 @@
 }
 
 \usage{
-\S4method{bigglm}{formula,matter_mat}(formula, data, \dots, chunksize = NULL)
+\S4method{bigglm}{formula,matter_mat}(formula, data, \dots, nchunks = NA, verbose = FALSE)
 
-\S4method{bigglm}{formula,sparse_mat}(formula, data, \dots, chunksize = NULL)
+\S4method{bigglm}{formula,sparse_mat}(formula, data, \dots, nchunks = NA, verbose = FALSE)
 }
 
 \arguments{
@@ -22,7 +22,9 @@
 
     \item{data}{A \code{\linkS4class{matter}} matrix with column names.}
 
-    \item{chunksize}{An integer giving the maximum number of rows to process at a time. If left \code{NULL}, this will be calculated by dividing the \code{chunksize} of \code{data} by the number of variables in the formula.}
+    \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
+
+    \item{verbose}{Should user messages be printed with the current chunk being processed?}
 
     \item{\dots}{Additional options passed to \code{\link[biglm]{bigglm}}.}
 }
@@ -47,7 +49,7 @@ colnames(x) <- c(paste0("x", 1:9), "y")
 fm <- paste0("y ~ ", paste0(paste0("x", 1:9), collapse=" + "))
 fm <- as.formula(fm)
 
-fit <- bigglm(fm, x, chunksize=50)
+fit <- bigglm(fm, x, nchunks=10)
 coef(fit)
 }
 

@@ -650,6 +650,18 @@ setReplaceMethod("[",
 		}
 	})
 
+setMethod("Arith", c(e1 = "sparse_arr", e2 = "vector"),
+	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
+
+setMethod("Arith", c(e1 = "sparse_arr", e2 = "array"),
+	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
+
+setMethod("Arith", c(e1 = "vector", e2 = "sparse_arr"),
+	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
+
+setMethod("Arith", c(e1 = "array", e2 = "sparse_arr"),
+	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
+
 setMethod("t", "sparse_arr", function(x)
 {
 	x@transpose <- !x@transpose
@@ -694,15 +706,3 @@ setMethod("%*%", c("matrix", "sparse_mat"), function(x, y)
 		lmatmul(x, y, useOuter=FALSE)
 	}
 })
-
-setMethod("Arith", c(e1 = "sparse_arr", e2 = "vector"),
-	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
-
-setMethod("Arith", c(e1 = "sparse_arr", e2 = "array"),
-	function(e1, e2) register_op(e1, .Generic, e2, FALSE))
-
-setMethod("Arith", c(e1 = "vector", e2 = "sparse_arr"),
-	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
-
-setMethod("Arith", c(e1 = "array", e2 = "sparse_arr"),
-	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
