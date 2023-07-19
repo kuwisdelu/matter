@@ -4,14 +4,12 @@
 
 .onLoad <- function(libname, pkgname) {
 	options(
-		matter.cast.warning = TRUE,
 		matter.compress.atoms = 3,
 		matter.default.nchunks = 20L,
-		matter.default.chunksize = 10000L,
+		matter.matmul.bpparam = NULL,
 		matter.show.head = TRUE,
 		matter.show.head.n = 6L,
 		matter.coerce.altrep = FALSE,
-		matter.coerce.altrep.list = FALSE,
 		matter.wrap.altrep = FALSE,
 		matter.dump.dir = tempdir(),
 		matter.vizi.par = par_style_new(),
