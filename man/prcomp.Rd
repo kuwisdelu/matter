@@ -2,8 +2,10 @@
 \docType{methods}
 
 \alias{prcomp}
+\alias{prcomp_lanczos}
 \alias{prcomp,matter_mat-method}
 \alias{prcomp,sparse_mat-method}
+
 
 \title{Principal Components Analysis for ``matter'' Matrices}
 
@@ -15,10 +17,13 @@
 \S4method{prcomp}{matter_mat}(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
 
 \S4method{prcomp}{sparse_mat}(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
+
+prcomp_lanczos(x, n = 3L, retx = TRUE,
+    center = TRUE, scale. = FALSE, transpose = FALSE, \dots)
 }
 
 \arguments{
-    \item{x}{A \code{\linkS4class{matter}} matrix.}
+    \item{x}{A \code{\linkS4class{matter}} matrix, or any matrix-like object for \code{prcomp_lanczos}.}
 
     \item{n}{The number of principal componenets to return, must be less than \code{min(dim(x))}.}
 
@@ -28,21 +33,21 @@
 
     \item{scale.}{A logical value indicating whether the variables should be scaled to have unit variance, or a scaling vector of length equal to the number of columns of \code{x}. The scaling is performed implicitly and does not change the out-of-memory data in \code{x}.}
 
-    \item{\dots}{Additional options passed to \code{\link[irlba]{irlba}}.}
+    \item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and calculating the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
+
+    \item{\dots}{Additional options passed to \code{\link[irlba]{irlba}} or \code{prcomp_lanczos}.}
 }
 
 \value{
 	An object of class `prcomp'. See \code{?\link[stats]{prcomp}} for details.
 }
 
-\note{
-	The 'tol' truncation argument found in the default \code{\link[stats]{prcomp}} method is not supported. In place of the truncation tolerance in the original function, the argument \code{n} explicitly gives the number of principal components to return. A warning is generated if the argument 'tol' is used.
-}
-
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\link[biglm]{bigglm}}
+    \code{\link[biglm]{bigglm}},
+    \code{\link[irlba]{irlba}},
+    \code{\link[irlba]{prcomp_irlba}}
 }
 
 \examples{

@@ -291,6 +291,9 @@ export(
 	".colStats")
 
 export(
+	"prcomp_lanczos")
+
+export(
 	"chunk_apply",
 	"chunk_rowapply",
 	"chunk_colapply",

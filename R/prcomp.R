@@ -3,41 +3,59 @@
 ## -----------------------------------------------
 
 setMethod("prcomp", "matter_mat",
-	function(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, ...)
+	function(x, n = 3L, retx = TRUE, center = TRUE, scale. = FALSE, ...)
 {
-	prcomp_int(x, n=n, retx=retx, center=center, scale.=scale., ...)
+	prcomp_lanczos(x, n=n, retx=retx, center=center, scale.=scale., ...)
 })
 
 setMethod("prcomp", "sparse_mat",
-	function(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, ...)
+	function(x, n = 3L, retx = TRUE, center = TRUE, scale. = FALSE, ...)
 {
-	prcomp_int(x, n=n, retx=retx, center=center, scale.=scale., ...)
+	prcomp_lanczos(x, n=n, retx=retx, center=center, scale.=scale., ...)
 })
 
-prcomp_int <- function(x, n, retx, center, scale., ...) {
-	if ( "tol" %in% names(match.call(expand.dots=FALSE)$...) )
-		warning("The 'tol' truncation argument from 'prcomp' is not supported\n",
-			"  for class 'matter_mat'. If specified, 'tol' is passed to 'irlba'\n",
-			"  to control that algorithm's convergence tolerance.")
-	x <- colscale(x, center=center, scale=scale.)
-	sv <- irlba(x, nu=n, nv=n, fastpath=FALSE, ...)
-	ans <- list(sdev = sv$d / sqrt(max(1, nrow(x) - 1)), rotation = sv$v)
-	colnames(ans$rotation) <- paste0("PC", seq_len(ncol(ans$rotation)))
-	if ( !is.null(attr(x, "col-scaled:center")) ) {
-		ans$center <- attr(x, "col-scaled:center")
+prcomp_lanczos <- function(x, n = 3L, retx = TRUE,
+	center = TRUE, scale. = FALSE, transpose = FALSE, ...)
+{
+	if ( transpose ) {
+		x <- rowscale(x, center=center, scale=scale.)
+		center <- attr(x, "row-scaled:center")
+		scale <- attr(x, "row-scaled:scale")
 	} else {
-		ans$center <- FALSE
+		x <- colscale(x, center=center, scale=scale.)
+		center <- attr(x, "col-scaled:center")
+		scale <- attr(x, "col-scaled:scale")
 	}
-	if ( !is.null(attr(x, "col-scaled:scale")) ) {
-		ans$scale <- attr(x, "col-scaled:scale")
+	j <- seq_len(n)
+	s <- irlba(x, nu=n, nv=n, fastpath=is.matrix(x), ...)
+	if ( transpose ) {
+		ans <- list(sdev = s$d / sqrt(max(1, ncol(x) - 1)))
+		ans$rotation <- s$u
+		dimnames(ans$rotation) <- list(rownames(x), paste0("PC", j))
 	} else {
+		ans <- list(sdev = s$d / sqrt(max(1, nrow(x) - 1)))
+		ans$rotation <- s$v
+		dimnames(ans$rotation) <- list(colnames(x), paste0("PC", j))
+	}
+	if ( is.null(center) ) {
+		ans$center <- FALSE
+	} else {
+		ans$center <- center
+	}
+	if ( is.null(scale) ) {
 		ans$scale <- FALSE
+	} else {
+		ans$scale <- scale
 	}
 	if ( retx ) {
-		ans <- c(ans, list(x = sv$d * sv$u))
-		colnames(ans$x) <- paste("PC", seq_len(ncol(ans$rotation)), sep = "")
+		if ( transpose ) {
+			ans$x <- s$v %*% diag(s$d)
+			dimnames(ans$x) <- list(colnames(x), paste0("PC", j))
+		} else {
+			ans$x <- s$u %*% diag(s$d)
+			dimnames(ans$x) <- list(rownames(x), paste0("PC", j))
+		}
 	}
 	class(ans) <- "prcomp"
 	ans
 }
-
