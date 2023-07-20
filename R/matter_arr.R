@@ -648,26 +648,124 @@ setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 	}
 })
 
-rmatmul <- function(x, y, useOuter = FALSE) {
+setMethod("crossprod", c("matter_mat", "ANY"),
+	function(x, y = NULL, ...) t(x) %*% y)
+
+setMethod("crossprod", c("ANY", "matter_mat"),
+	function(x, y = NULL, ...) t(x) %*% y)
+
+setMethod("tcrossprod", c("matter_mat", "ANY"),
+	function(x, y = NULL, ...) x %*% t(y))
+
+setMethod("tcrossprod", c("ANY", "matter_mat"),
+	function(x, y = NULL, ...) x %*% t(y))
+
+rmatmul <- function(x, y, useOuter = FALSE)
+{
+	BPPARAM <- getOption("matter.matmul.bpparam")
+	if ( is.null(BPPARAM) ) {
+		rmatmul_sc(x, y, useOuter)
+	} else {
+		rmatmul_mc(x, y, useOuter, BPPARAM)
+	}
+}
+
+lmatmul <- function(x, y, useOuter = FALSE)
+{
+	BPPARAM <- getOption("matter.matmul.bpparam")
+	if ( is.null(BPPARAM) ) {
+		lmatmul_sc(x, y, useOuter)
+	} else {
+		lmatmul_mc(x, y, useOuter, BPPARAM)
+	}
+}
+
+# serial right matrix mult
+rmatmul_sc <- function(x, y, useOuter = FALSE)
+{
+	nchunks <- getOption("matter.default.nchunks")
+	verbose <- getOption("matter.default.verbose")
 	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
 	if ( useOuter ) {
-		for ( i in 1:ncol(x) )
-			ans <- ans + outer(x[,i], y[i,])
+		INDEX <- chunkify(seq_len(ncol(x)), nchunks)
+		for ( i in INDEX ) {
+			if ( verbose )
+				print_chunk_progress(i, length(INDEX))
+			xi <- as.matrix(x[,i,drop=FALSE])
+			ans <- ans + xi %*% y[i,,drop=FALSE]
+		}
 	} else {
-		for ( i in 1:nrow(x) )
-			ans[i,] <- x[i,,drop=FALSE] %*% y
+		INDEX <- chunkify(seq_len(nrow(x)), nchunks)
+		for ( i in INDEX ) {
+			if ( verbose )
+				print_chunk_progress(i, length(INDEX))
+			xi <- as.matrix(x[i,,drop=FALSE])
+			ans[i,] <- xi %*% y
+		}
 	}
 	ans
 }
 
-lmatmul <- function(x, y, useOuter = FALSE) {
+# parallel right matrix mult
+rmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
+{
+	if ( useOuter ) {
+		add <- function(...) Reduce("+", list(...))
+		matmul <- function(xi) {
+			i <- attr(xi, "index")
+			xi %*% y[i,,drop=FALSE]
+		}
+		ans <- chunk_colapply(x, matmul,
+			simplify=add, BPPARAM=BPPARAM)
+	} else {
+		matmul <- function(xi) xi %*% y
+		ans <- chunk_rowapply(x, matmul,
+			simplify=rbind, BPPARAM=BPPARAM)
+	}
+	ans
+}
+
+# serial left matrix mult
+lmatmul_sc <- function(x, y, useOuter = FALSE)
+{
+	nchunks <- getOption("matter.default.nchunks")
+	verbose <- getOption("matter.default.verbose")
 	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
 	if ( useOuter ) {
-		for ( i in 1:nrow(y) )
-			ans <- ans + outer(x[,i], y[i,])
+		INDEX <- chunkify(seq_len(nrow(y)), nchunks)
+		for ( i in INDEX ) {
+			if ( verbose )
+				print_chunk_progress(i, length(INDEX))
+			yi <- as.matrix(y[i,,drop=FALSE])
+			ans <- ans + x[,i,drop=FALSE] %*% yi
+		}
 	} else {
-		for ( i in 1:ncol(y) )
-			ans[,i] <- x %*% y[,i,drop=FALSE]
+		INDEX <- chunkify(seq_len(ncol(y)), nchunks)
+		for ( i in INDEX ) {
+			if ( verbose )
+				print_chunk_progress(i, length(INDEX))
+			yi <- as.matrix(y[,i,drop=FALSE])
+			ans[,i] <- x %*% yi
+		}
+	}
+	ans
+}
+
+# parallel left matrix mult
+lmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
+{
+	if ( useOuter ) {
+		add <- function(...) Reduce("+", list(...))
+		matmul <- function(yi) {
+			i <- attr(yi, "index")
+			x[,i,drop=FALSE] %*% yi
+		}
+		ans <- chunk_rowapply(y, matmul,
+			simplify=add, BPPARAM=BPPARAM)
+	} else {
+		matmul <- function(yi) x %*% yi
+		ans <- chunk_colapply(y, matmul,
+			simplify=cbind, BPPARAM=BPPARAM)
 	}
 	ans
 }

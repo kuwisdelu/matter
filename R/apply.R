@@ -96,8 +96,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	INDEX <-  chunkify(seq_len(nrow(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
-			message("processing chunk ",
-				attr(i, "chunkid"), "/", length(INDEX))
+			print_chunk_progress(i, length(INDEX))
 		xi <- as.matrix(X[i,,drop=FALSE])
 		xi <- set_attr(xi, attributes(i))
 		FUN(xi, ...)
@@ -121,8 +120,7 @@ chunk_colapply <- function(X, FUN, ...,
 	INDEX <-  chunkify(seq_len(ncol(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
-			message("processing chunk ",
-				attr(i, "chunkid"), "/", length(INDEX))
+			print_chunk_progress(i, length(INDEX))
 		xi <- as.matrix(X[,i,drop=FALSE])
 		xi <- set_attr(xi, attributes(i))
 		FUN(xi, ...)
@@ -193,8 +191,7 @@ chunk_lapply <- function(X, FUN, ...,
 	INDEX <-  chunkify(seq_len(length(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
-			message("processing chunk ",
-				attr(i, "chunkid"), "/", length(INDEX))
+			print_chunk_progress(i, length(INDEX))
 		xi <- as.vector(X[i])
 		xi <- set_attr(xi, attributes(i))
 		FUN(xi, ...)
@@ -278,8 +275,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	INDEX <-  chunkify(seq_len(length(XS[[1L]])), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
-			message("processing chunk ",
-				attr(i, "chunkid"), "/", length(INDEX))
+			print_chunk_progress(i, length(INDEX))
 		xsi <- lapply(XS, `[`, i)
 		xsi[[1L]] <- set_attr(xsi[[1L]], attributes(i))
 		do.call(FUN, c(xsi, list(MoreArgs=MoreArgs)))
@@ -317,6 +313,12 @@ chunkify <- function(x, nchunks = 20L, depends = NULL) {
 	}
 	names(ans) <- names(x)
 	ans
+}
+
+print_chunk_progress <- function(i, nchunks) {
+	message("processing chunk ",
+		attr(i, "chunkid"), "/", nchunks,
+		" (", length(i), " items)")
 }
 
 remote_writer <- function(pid, path) {

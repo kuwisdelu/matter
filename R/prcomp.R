@@ -21,7 +21,7 @@ prcomp_int <- function(x, n, retx, center, scale., ...) {
 			"  to control that algorithm's convergence tolerance.")
 	x <- colscale(x, center=center, scale=scale.)
 	sv <- irlba(x, nu=n, nv=n, fastpath=FALSE, ...)
-	ans <- list(sdev = sv$d/sqrt(max(1, nrow(x) - 1)), rotation = sv$v)
+	ans <- list(sdev = sv$d / sqrt(max(1, nrow(x) - 1)), rotation = sv$v)
 	colnames(ans$rotation) <- paste0("PC", seq_len(ncol(ans$rotation)))
 	if ( !is.null(attr(x, "col-scaled:center")) ) {
 		ans$center <- attr(x, "col-scaled:center")

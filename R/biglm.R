@@ -40,8 +40,7 @@ bigglm_int <- function(formula, data, ...,
 			return(NULL)
 		i <- INDEX[[current]]
 		if ( verbose )
-			message("processing chunk ",
-				attr(i, "chunkid"), "/", length(INDEX))
+			print_chunk_progress(i, length(INDEX))
 		chunk <- as.matrix(data[i,vars,drop=FALSE])
 		current <<- current + 1L
 		as.data.frame(chunk)

@@ -706,3 +706,16 @@ setMethod("%*%", c("matrix", "sparse_mat"), function(x, y)
 		lmatmul(x, y, useOuter=FALSE)
 	}
 })
+
+setMethod("crossprod", c("sparse_mat", "ANY"),
+	function(x, y = NULL, ...) t(x) %*% y)
+
+setMethod("crossprod", c("ANY", "sparse_mat"),
+	function(x, y = NULL, ...) t(x) %*% y)
+
+setMethod("tcrossprod", c("sparse_mat", "ANY"),
+	function(x, y = NULL, ...) x %*% t(y))
+
+setMethod("tcrossprod", c("ANY", "sparse_mat"),
+	function(x, y = NULL, ...) x %*% t(y))
+

@@ -308,3 +308,63 @@ test_that("sparse matrix combining", {
 
 })
 
+test_that("sparse matrix multiplication", {
+
+	set.seed(1)
+	x <- rbinom(35, 1, 0.4)
+	y <- rbinom(35, 1, 0.4)
+	x[x != 0] <- seq_len(sum(x != 0))
+	y[y != 0] <- seq_len(sum(y != 0))
+	dim(x) <- c(5, 7)
+	dim(y) <- c(7, 5)
+
+	options(matter.matmul.bpparam=NULL)
+	xx <- sparse_mat(x)
+	yy <- sparse_mat(y)
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+	options(matter.matmul.bpparam=SerialParam())
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+	options(matter.matmul.bpparam=NULL)
+	xx <- matter_mat(x, rowMaj=TRUE)
+	yy <- matter_mat(y, rowMaj=TRUE)
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+	options(matter.matmul.bpparam=SerialParam())
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+})
+

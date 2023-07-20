@@ -57,6 +57,11 @@
 \alias{\%*\%,matter_mat,vector-method}
 \alias{\%*\%,matter_mat,matrix-method}
 
+\alias{crossprod,matter_mat,ANY-method}
+\alias{crossprod,ANY,matter_mat-method}
+\alias{tcrossprod,matter_mat,ANY-method}
+\alias{tcrossprod,ANY,matter_mat-method}
+
 \title{Out-of-Memory Arrays}
 
 \description{

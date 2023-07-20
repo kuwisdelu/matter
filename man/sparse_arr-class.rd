@@ -57,6 +57,11 @@
 \alias{\%*\%,sparse_mat,vector-method}
 \alias{\%*\%,sparse_mat,matrix-method}
 
+\alias{crossprod,sparse_mat,ANY-method}
+\alias{crossprod,ANY,sparse_mat-method}
+\alias{tcrossprod,sparse_mat,ANY-method}
+\alias{tcrossprod,ANY,sparse_mat-method}
+
 \alias{as.matrix,sparse_arr-method}
 \alias{as.array,sparse_arr-method}
 

@@ -331,3 +331,60 @@ test_that("matter array coercion", {
 
 })
 
+test_that("matter matrix multiplication", {
+
+	set.seed(1)
+	vals1 <- sort(round(10 * runif(35), 2))
+	vals2 <- sort(round(10 * runif(35), 2))
+	x <- matrix(vals1, nrow=5, ncol=7)
+	y <- matrix(vals2, nrow=7, ncol=5)
+
+	options(matter.matmul.bpparam=NULL)
+	xx <- matter_mat(x)
+	yy <- matter_mat(y)
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+	options(matter.matmul.bpparam=SerialParam())
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+	options(matter.matmul.bpparam=NULL)
+	xx <- matter_mat(x, rowMaj=TRUE)
+	yy <- matter_mat(y, rowMaj=TRUE)
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+	options(matter.matmul.bpparam=SerialParam())
+
+	expect_equal(x %*% y, xx %*% y)
+	expect_equal(x %*% y, x %*% yy)
+	expect_equal(y %*% x, yy %*% x)
+	expect_equal(y %*% x, y %*% xx)
+	expect_equal(crossprod(x, x), crossprod(xx, x))
+	expect_equal(crossprod(x, x), crossprod(x, xx))
+	expect_equal(tcrossprod(x, x), tcrossprod(xx, x))
+	expect_equal(tcrossprod(x, x), tcrossprod(x, xx))
+
+})
