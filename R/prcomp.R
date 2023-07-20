@@ -3,20 +3,25 @@
 ## -----------------------------------------------
 
 setMethod("prcomp", "matter_mat",
-	function(x, n = 3L, retx = TRUE, center = TRUE, scale. = FALSE, ...)
+	function(x, k = 3L, retx = TRUE, center = TRUE, scale. = FALSE, ...)
 {
-	prcomp_lanczos(x, n=n, retx=retx, center=center, scale.=scale., ...)
+	prcomp_lanczos(x, k=k, retx=retx, center=center, scale.=scale., ...)
 })
 
 setMethod("prcomp", "sparse_mat",
-	function(x, n = 3L, retx = TRUE, center = TRUE, scale. = FALSE, ...)
+	function(x, k = 3L, retx = TRUE, center = TRUE, scale. = FALSE, ...)
 {
-	prcomp_lanczos(x, n=n, retx=retx, center=center, scale.=scale., ...)
+	prcomp_lanczos(x, k=k, retx=retx, center=center, scale.=scale., ...)
 })
 
-prcomp_lanczos <- function(x, n = 3L, retx = TRUE,
+prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	center = TRUE, scale. = FALSE, transpose = FALSE, ...)
 {
+	if ( "n" %in% names(as.list(match.call())) ) {
+		warning("'n' is deprecated; use 'k' instead")
+		k <- list(...)$n
+	}
+	k <- min(k, dim(x))
 	if ( transpose ) {
 		x <- rowscale(x, center=center, scale=scale.)
 		center <- attr(x, "row-scaled:center")
@@ -26,8 +31,8 @@ prcomp_lanczos <- function(x, n = 3L, retx = TRUE,
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 	}
-	j <- seq_len(n)
-	s <- irlba(x, nu=n, nv=n, fastpath=is.matrix(x), ...)
+	j <- seq_len(k)
+	s <- irlba(x, nu=k, nv=k, fastpath=is.matrix(x), ...)
 	if ( transpose ) {
 		ans <- list(sdev = s$d / sqrt(max(1, ncol(x) - 1)))
 		ans$rotation <- s$u

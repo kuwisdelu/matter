@@ -14,18 +14,18 @@
 }
 
 \usage{
-\S4method{prcomp}{matter_mat}(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
+\S4method{prcomp}{matter_mat}(x, k = 3L, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
 
-\S4method{prcomp}{sparse_mat}(x, n = 3, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
+\S4method{prcomp}{sparse_mat}(x, k = 3L, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
 
-prcomp_lanczos(x, n = 3L, retx = TRUE,
+prcomp_lanczos(x, k = 3L, retx = TRUE,
     center = TRUE, scale. = FALSE, transpose = FALSE, \dots)
 }
 
 \arguments{
     \item{x}{A \code{\linkS4class{matter}} matrix, or any matrix-like object for \code{prcomp_lanczos}.}
 
-    \item{n}{The number of principal componenets to return, must be less than \code{min(dim(x))}.}
+    \item{k}{The number of principal components to return, must be less than \code{min(dim(x))}.}
 
     \item{retx}{A logical value indicating whether the rotated variables should be returned.}
 
@@ -45,8 +45,7 @@ prcomp_lanczos(x, n = 3L, retx = TRUE,
 \author{Kylie A. Bemis}
 
 \seealso{
-    \code{\link[biglm]{bigglm}},
-    \code{\link[irlba]{irlba}},
+    \code{\link[irlba]{irlba}}
     \code{\link[irlba]{prcomp_irlba}}
 }
 

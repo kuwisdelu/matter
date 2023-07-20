@@ -291,7 +291,11 @@ export(
 	".colStats")
 
 export(
+	"nndsvd",
+	"nmf_mu",
 	"prcomp_lanczos")
+
+S3method("print", "nmf")
 
 export(
 	"chunk_apply",

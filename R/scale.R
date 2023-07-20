@@ -20,7 +20,7 @@ setMethod("colscale", "ANY",
 	colscale_int(x, center=center, scale=scale, group=group, ..., BPPARAM=BPPARAM)
 })
 
-rowscale_int <- function(x, center, scale, group, ..., BPPARAM = NULL)
+rowscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 {
 	nr <- nrow(x)
 	if ( isTRUE(center) )
@@ -49,7 +49,7 @@ rowscale_int <- function(x, center, scale, group, ..., BPPARAM = NULL)
     x
 }
 
-colscale_int <- function(x, center, scale, group, ..., BPPARAM = NULL)
+colscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 {
 	nc <- ncol(x)
 	if ( isTRUE(center) )
