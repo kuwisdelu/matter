@@ -3,7 +3,7 @@
 \alias{rollvec}
 \alias{rollvec}
 
-\title{Rolling summaries of a vector}
+\title{Rolling Summaries of a Vector}
 
 \description{
     Summarize a vector in rolling windows.

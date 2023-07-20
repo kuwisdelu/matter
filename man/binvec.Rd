@@ -3,7 +3,7 @@
 \alias{binvec}
 \alias{binvec}
 
-\title{Binned summaries of a vector}
+\title{Binned Summaries of a Vector}
 
 \description{
     Summarize a vector in the bins at the specified indices.

@@ -59,7 +59,7 @@ class DataSources {
 					}
 			}
 			_streams = NULL;
-			R_Free(_streams);
+			Free(_streams);
 		}
 
 		bool readonly() {
@@ -276,6 +276,11 @@ class Atoms {
 		template<typename Tin, typename Tout>
 		size_t read_atom(Tout * ptr, int atom, index_t pos, size_t size, int stride = 1)
 		{
+			// check for user interrupt
+			if ( pendingInterrupt() ) {
+				self_destruct();
+				Rf_error("user interrupt");
+			}
 			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
 				size = extent(atom) - pos;
@@ -283,18 +288,24 @@ class Atoms {
 			index_t off = offset(atom, pos);
 			bool success = _io.rseek(source(atom), off)->read<Tin>(tmp, size);
 			if ( !success ) {
+				Free(tmp);
 				self_destruct();
 				Rf_error("failed to read data elements");
 			}
 			for ( index_t i = 0; i < size; i++ )
 				ptr[stride * i] = coerce_cast<Tout>(tmp[i]);
-			R_Free(tmp);
+			Free(tmp);
 			return size;
 		}
 
 		template<typename Tin, typename Tout>
 		size_t write_atom(Tin * ptr, int atom, index_t pos, size_t size, int stride = 1)
 		{
+			// check for user interrupt
+			if ( pendingInterrupt() ) {
+				self_destruct();
+				Rf_error("user interrupt");
+			}
 			// allow specifying size > extent for convenience
 			if ( pos + size >= extent(atom) )
 				size = extent(atom) - pos; 
@@ -304,10 +315,11 @@ class Atoms {
 			index_t off = offset(atom, pos);
 			bool success = _io.wseek(source(atom), off)->write<Tout>(tmp, size);
 			if ( !success ) {
+				Free(tmp);
 				self_destruct();
 				Rf_error("failed to write data elements");
 			}
-			R_Free(tmp);
+			Free(tmp);
 			return size;
 		}
 

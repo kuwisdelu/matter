@@ -30,6 +30,19 @@
 	#define MTDEBUG2(x, i, j)
 #endif
 
+//// Interrupts
+//--------------
+
+inline void checkInterrupt(void * nothing)
+{
+	R_CheckUserInterrupt();
+}
+
+inline bool pendingInterrupt()
+{
+	return !(R_ToplevelExec(checkInterrupt, NULL));
+}
+
 //// Constants
 //--------------
 

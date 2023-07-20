@@ -8,7 +8,7 @@ nmf_mu <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
 {
 	method <- match.arg(method)
 	if ( method != "euclidean" )
-		x <- as.matrix(x)
+		x <- as_real_memory_matrix(x)
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	k <- min(k, dim(x))

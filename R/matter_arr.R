@@ -252,6 +252,15 @@ setMethod("as.array", "matter_arr",
 		}
 	})
 
+as_real_memory_matrix <- function(x) {
+	if ( is.matrix(x) || is(x, "Matrix") ) {
+		x
+	} else {
+		warning("coercing 'x' to a matrix")
+		as.matrix(x)
+	}
+}
+
 setMethod("describe_for_display", "matter_arr", function(x) {
 	desc1 <- paste0("<", paste0(dim(x), collapse=" x "), " dim> ", class(x))
 	desc2 <- paste0("out-of-memory ", type(x), " array")

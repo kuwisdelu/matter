@@ -21,7 +21,7 @@ nmf_mu(x, k = 3L, method = c("euclidean", "KL", "IS"),
 
 	\item{k}{The number of NMF components to extract.}
 
-	\item{method}{The cost function (i.e., error measure between the reconstructed matrix and original \code{x}) to optimize. 'Euclidean' is the Frobenius norm, 'KL' is the Kullback-Leibler divergence, and 'IS' is the Itakura-Saito divergence.}
+	\item{method}{The cost function (i.e., error measure between the reconstructed matrix and original \code{x}) to optimize. 'Euclidean' is the Frobenius norm, 'KL' is the Kullback-Leibler divergence, and 'IS' is the Itakura-Saito divergence. See \strong{Details}.}
 
 	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and calculating the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
@@ -36,6 +36,8 @@ nmf_mu(x, k = 3L, method = c("euclidean", "KL", "IS"),
 
 \details{
     This function implements nonnegative matrix factorization (NMF) using multiplicative updates from Lee and Seung (2000) and further described by Burred (2014). The algorithm is initialized using nonnegative double singular value decomposition (NNDSVD) from Boutsidis and Gallopoulos (2008).
+
+    Note that \code{method = "euclidean"} is the only method that can handle out-of-memory \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices. \code{x} will be coerced to an in-memory matrix for other methods.
 }
 
 \value{
