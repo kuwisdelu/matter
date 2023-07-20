@@ -12,6 +12,8 @@
 
 	    \item{\code{options(matter.default.nchunks=20L)}:}{The default number of chunks to use when iterating over matter objects.}
 
+	    \item{\code{options(matter.default.verbose=FALSE)}:}{The default verbosity for printing progress messages.}
+
 	    \item{\code{options(matter.matmul.bpparam=NULL)}:}{An optional \code{BiocParallelParam} passed to \code{\link{bplapply}} used when performing matrix multiplication with \code{matter_mat} and \code{sparse_mat} objects.}
 
 	    \item{\code{options(matter.show.head=TRUE)}:}{Should a preview of the beginning of the data be displayed when the object is printed?}

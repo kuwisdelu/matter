@@ -12,9 +12,9 @@
 }
 
 \usage{
-\S4method{bigglm}{formula,matter_mat}(formula, data, \dots, nchunks = NA, verbose = FALSE)
+\S4method{bigglm}{formula,matter_mat}(formula, data, \dots, nchunks = NA, verbose = NA)
 
-\S4method{bigglm}{formula,sparse_mat}(formula, data, \dots, nchunks = NA, verbose = FALSE)
+\S4method{bigglm}{formula,sparse_mat}(formula, data, \dots, nchunks = NA, verbose = NA)
 }
 
 \arguments{
@@ -24,7 +24,7 @@
 
     \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-    \item{verbose}{Should user messages be printed with the current chunk being processed?}
+    \item{verbose}{Should user messages be printed with the current chunk being processed? If \code{NA} (the default), this is taken from \code{getOption("matter.default.verbose")}.}
 
     \item{\dots}{Additional options passed to \code{\link[biglm]{bigglm}}.}
 }

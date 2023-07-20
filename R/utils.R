@@ -6,6 +6,7 @@
 	options(
 		matter.compress.atoms = 3,
 		matter.default.nchunks = 20L,
+		matter.default.verbose = FALSE,
 		matter.matmul.bpparam = NULL,
 		matter.show.head = TRUE,
 		matter.show.head.n = 6L,

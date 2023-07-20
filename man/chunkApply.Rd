@@ -24,33 +24,33 @@
 ## Operate on elements/rows/columns
 chunkApply(X, MARGIN, FUN, \dots,
     simplify = FALSE, outpath = NULL,
-    verbose = FALSE, BPPARAM = bpparam())
+    verbose = NA, BPPARAM = bpparam())
 
 chunkLapply(X, FUN, \dots,
     simplify = FALSE, outpath = NULL,
-    verbose = FALSE, BPPARAM = bpparam())
+    verbose = NA, BPPARAM = bpparam())
 
 chunkMapply(FUN, \dots,
     simplify = FALSE, outpath = NULL,
-    verbose = FALSE, BPPARAM = bpparam())
+    verbose = NA, BPPARAM = bpparam())
 
 
 ## Operate on complete chunks
 chunk_rowapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = FALSE, BPPARAM = bpparam())
+    verbose = NA, BPPARAM = bpparam())
 
 chunk_colapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = FALSE, BPPARAM = bpparam())
+    verbose = NA, BPPARAM = bpparam())
 
 chunk_lapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = FALSE, BPPARAM = bpparam())
+    verbose = NA, BPPARAM = bpparam())
 
 chunk_mapply(FUN, \dots, MoreArgs = NULL,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = FALSE, BPPARAM = bpparam())
+    verbose = NA, BPPARAM = bpparam())
 }
 
 \arguments{
@@ -72,7 +72,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
 
     \item{outpath}{If non-NULL, a file path where the results should be written as they are processed. If specified, \code{FUN} must return a 'raw', 'logical', 'integer', or 'numeric' vector. The result will be returned as a \code{matter} object.}
 
-    \item{verbose}{Should user messages be printed with the current chunk being processed?}
+    \item{verbose}{Should user messages be printed with the current chunk being processed? If \code{NA} (the default), this is taken from \code{getOption("matter.default.verbose")}.}
 
     \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 }

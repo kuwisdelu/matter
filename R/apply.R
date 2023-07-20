@@ -11,11 +11,13 @@ setMethod("apply", "matter_mat",
 
 chunkApply <- function(X, MARGIN, FUN, ...,
 	simplify = FALSE, outpath = NULL,
-	verbose = FALSE, BPPARAM = bpparam())
+	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	if ( !MARGIN %in% c(1L, 2L) )
 		stop("MARGIN must be 1 or 2")
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	outfile <- !is.null(outpath)
 	pid <- ipcid()
 	if ( outfile ) {
@@ -81,7 +83,7 @@ chunk_apply <- function(X, MARGIN, FUN, ...)
 
 chunk_rowapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = FALSE, BPPARAM = bpparam())
+	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
@@ -89,6 +91,8 @@ chunk_rowapply <- function(X, FUN, ...,
 		stop("X must have exactly 2 dimensions")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(nrow(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
@@ -104,7 +108,7 @@ chunk_rowapply <- function(X, FUN, ...,
 
 chunk_colapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = FALSE, BPPARAM = bpparam())
+	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
@@ -112,6 +116,8 @@ chunk_colapply <- function(X, FUN, ...,
 		stop("X must have exactly 2 dimensions")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(ncol(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
@@ -127,9 +133,11 @@ chunk_colapply <- function(X, FUN, ...,
 
 chunkLapply <- function(X, FUN, ...,
 	simplify = FALSE, outpath = NULL,
-	verbose = FALSE, BPPARAM = bpparam())
+	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	outfile <- !is.null(outpath)
 	pid <- ipcid()
 	if ( outfile ) {
@@ -174,12 +182,14 @@ chunkLapply <- function(X, FUN, ...,
 
 chunk_lapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = FALSE, BPPARAM = bpparam())
+	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(length(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
@@ -195,9 +205,11 @@ chunk_lapply <- function(X, FUN, ...,
 
 chunkMapply <- function(FUN, ...,
 	simplify = FALSE, outpath = NULL,
-	verbose = FALSE, BPPARAM = bpparam())
+	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	outfile <- !is.null(outpath)
 	pid <- ipcid()
 	if ( outfile ) {
@@ -243,7 +255,7 @@ chunkMapply <- function(FUN, ...,
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = FALSE, BPPARAM = bpparam())
+	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
@@ -261,6 +273,8 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	}
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(length(XS[[1L]])), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
 		if ( verbose && !bpprogressbar(BPPARAM) )
