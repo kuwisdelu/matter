@@ -1,4 +1,18 @@
 
+CHANGES IN VERSION 2.3.7 [2023-7-21]
+------------------------------------
+
+NEW FEATURES
+
+    o Added NMF (nonnegative matrix factorization)
+    o Added 'nnmf_mult()' (multiplicative updates)
+    o Added 'nnmf_als()' (alternating least squares)
+    o Exported 'prcomp_lanczos()'
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Accessing matter objects now checks for user interrupts
+
 CHANGES IN VERSION 2.3.6 [2023-7-20]
 ------------------------------------
 
