@@ -20,10 +20,20 @@ test_that("nmf - multiplicative updates", {
 	mf1x <- mf1$x %*% t(mf1$activation)
 	mf2x <- mf2$x %*% t(mf2$activation)
 	mf3x <- mf3$x %*% t(mf2$activation)
-	
+
 	expect_equal(mf1x, x, tolerance=1e-2)
 	expect_equal(mf2x, x, tolerance=1e-2)
 	expect_equal(mf2x, x, tolerance=1e-2)
+
+	expect_equivalent(
+		predict(mf1, x),
+		mf1$x, tolerance=2e-1)
+	expect_equivalent(
+		predict(mf2, x),
+		mf2$x, tolerance=2e-1)
+	expect_equivalent(
+		predict(mf3, x),
+		mf3$x, tolerance=2e-1)
 
 })
 

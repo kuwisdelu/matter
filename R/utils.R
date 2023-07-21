@@ -719,7 +719,7 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 	y
 }
 
-# based on MASS::ginv
+# matrix pseudoinverse based on MASS::ginv
 pinv <- function (x, tol = sqrt(.Machine$double.eps)) 
 {
 	x <- as.matrix(x)

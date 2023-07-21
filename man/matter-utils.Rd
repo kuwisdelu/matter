@@ -75,6 +75,8 @@
 \alias{qmedian}
 \alias{qmad}
 
+\alias{pinv}
+
 \alias{shingles}
 
 \alias{sizeof}

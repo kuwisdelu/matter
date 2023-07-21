@@ -290,11 +290,14 @@ export(
 	".rowStats",
 	".colStats")
 
+export("pinv")
+
 export(
 	"nndsvd",
 	"nmf_mu",
 	"prcomp_lanczos")
 
+S3method("predict", "nmf")
 S3method("print", "nmf")
 
 export(

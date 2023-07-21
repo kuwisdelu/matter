@@ -73,6 +73,26 @@ nmf_mu <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	ans
 }
 
+predict.nmf <- function(object, newdata, ...)
+{
+	if ( missing(newdata) )
+		return(object$x)
+	if ( length(dim(newdata)) != 2L )
+		stop("'newdata' must be a matrix or data frame")
+	nm <- rownames(object$activation)
+	if ( !is.null(nm) ) {
+		if ( !all(nm %in% colnames(newdata)) )
+			stop("'newdata' does not have named columns ",
+				"matching one of more of the original columns")
+		newdata <- newdata[,nm,drop=FALSE]
+	} else {
+		if ( ncol(newdata) != nrow(object$activation) )
+			stop("'newdata' does not have the correct number of columns")
+	}
+	x <- newdata %*% pinv(t(object$activation))
+	x * (x >= 0)
+}
+
 print.nmf <- function(x, print.x = FALSE, ...)
 {
 	d <- dim(x$activation)

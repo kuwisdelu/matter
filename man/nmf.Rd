@@ -2,6 +2,7 @@
 
 \alias{nmf}
 \alias{nmf_mu}
+\alias{predict.nmf}
 \alias{nndsvd}
 
 \title{Nonnegative Matrix Factorization}
@@ -14,6 +15,8 @@
 nmf_mu(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	transpose = FALSE, niter = 100L,
 	tol = 1e-5, verbose = NA, \dots)
+
+\S3method{predict}{nmf}(object, newdata, \dots)
 }
 
 \arguments{
@@ -21,7 +24,7 @@ nmf_mu(x, k = 3L, method = c("euclidean", "KL", "IS"),
 
 	\item{k}{The number of NMF components to extract.}
 
-	\item{method}{The cost function (i.e., error measure between the reconstructed matrix and original \code{x}) to optimize. 'Euclidean' is the Frobenius norm, 'KL' is the Kullback-Leibler divergence, and 'IS' is the Itakura-Saito divergence. See \strong{Details}.}
+	\item{method}{The cost function (i.e., error measure between the reconstructed matrix and original \code{x}) to optimize, where 'euclidean' is the Frobenius norm, 'KL' is the Kullback-Leibler divergence, and 'IS' is the Itakura-Saito divergence. See \strong{Details}.}
 
 	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and calculating the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
@@ -32,6 +35,11 @@ nmf_mu(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	\item{verbose}{Should progress be printed for each iteration?}
 
 	\item{\dots}{Additional options passed to \code{\link[irlba]{irlba}}.}
+
+	\item{object}{An object inheriting from \code{nmf}.}
+
+	\item{newdata}{An optional data frame or matrix in which to look for
+    variables with which to predict.}
 }
 
 \details{
