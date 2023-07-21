@@ -3,6 +3,27 @@ require(matter)
 
 context("nnmf")
 
+test_that("nnmf - alternating least squares", {
+
+	set.seed(1)
+	nr <- 100
+	nc <- 25
+	vals1 <- sort(runif(2500))
+	vals2 <- rev(sort(runif(2500)))
+	x1 <- matrix(vals1, nrow=100, ncol=25)
+	x2 <- matrix(vals2, nrow=100, ncol=25)
+	x <- cbind(x1, x2)
+
+	mf <- nnmf_als(x, k=3L)
+	mf.x <- mf$x %*% t(mf$activation)
+
+	expect_equal(mf.x, x, tolerance=1e-2)
+	expect_equivalent(
+		predict(mf, x),
+		mf$x, tolerance=2e-1)
+
+})
+
 test_that("nnmf - multiplicative updates", {
 
 	set.seed(1)
@@ -17,13 +38,13 @@ test_that("nnmf - multiplicative updates", {
 	mf1 <- nnmf_mult(x, k=3L)
 	mf2 <- nnmf_mult(x, k=3L, method="KL")
 	mf3 <- nnmf_mult(x, k=3L, method="IS")
-	mf1x <- mf1$x %*% t(mf1$activation)
-	mf2x <- mf2$x %*% t(mf2$activation)
-	mf3x <- mf3$x %*% t(mf2$activation)
+	mf1.x <- mf1$x %*% t(mf1$activation)
+	mf2.x <- mf2$x %*% t(mf2$activation)
+	mf3.x <- mf3$x %*% t(mf2$activation)
 
-	expect_equal(mf1x, x, tolerance=1e-2)
-	expect_equal(mf2x, x, tolerance=1e-2)
-	expect_equal(mf2x, x, tolerance=1e-2)
+	expect_equal(mf1.x, x, tolerance=1e-2)
+	expect_equal(mf2.x, x, tolerance=1e-2)
+	expect_equal(mf2.x, x, tolerance=1e-2)
 
 	expect_equivalent(
 		predict(mf1, x),
@@ -48,15 +69,23 @@ test_that("nnmf - matter matrix", {
 	x2 <- matrix(vals2, nrow=100, ncol=25)
 	x <- cbind(x1, x2)
 	y <- matter_mat(x)
-	mf.x <- nnmf_mult(x)
-	mf.y <- nnmf_mult(y)
+	mf1.x <- nnmf_als(x)
+	mf1.y <- nnmf_als(y)
+	mf2.x <- nnmf_mult(x)
+	mf2.y <- nnmf_mult(y)
 
 	expect_equal(
-		mf.x$x,
-		mf.y$x, tolerance=1e-5)
+		mf1.x$x,
+		mf1.y$x, tolerance=1e-5)
 	expect_equal(
-		mf.x$activation,
-		mf.y$activation, tolerance=1e-5)
+		mf2.x$x,
+		mf2.y$x, tolerance=1e-5)
+	expect_equal(
+		mf1.x$activation,
+		mf1.y$activation, tolerance=1e-5)
+	expect_equal(
+		mf2.x$activation,
+		mf2.y$activation, tolerance=1e-5)
 
 })
 
@@ -67,14 +96,22 @@ test_that("nnmf - sparse matrix", {
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(100, 50)
 	y <- sparse_mat(x)
-	mf.x <- nnmf_mult(x)
-	mf.y <- nnmf_mult(y)
+	mf1.x <- nnmf_als(x)
+	mf1.y <- nnmf_als(y)
+	mf2.x <- nnmf_mult(x)
+	mf2.y <- nnmf_mult(y)
 
 	expect_equal(
-		mf.x$x,
-		mf.y$x, tolerance=1e-5)
+		mf1.x$x,
+		mf1.y$x, tolerance=1e-5)
 	expect_equal(
-		mf.x$activation,
-		mf.y$activation, tolerance=1e-5)
+		mf2.x$x,
+		mf2.y$x, tolerance=1e-5)
+	expect_equal(
+		mf1.x$activation,
+		mf1.y$activation, tolerance=1e-5)
+	expect_equal(
+		mf2.x$activation,
+		mf2.y$activation, tolerance=1e-5)
 
 })

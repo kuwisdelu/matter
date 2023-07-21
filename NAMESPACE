@@ -294,6 +294,7 @@ export("pinv")
 
 export(
 	"nndsvd",
+	"nnmf_als",
 	"nnmf_mult",
 	"prcomp_lanczos")
 

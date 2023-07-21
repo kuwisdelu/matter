@@ -1,6 +1,7 @@
 \name{nmf}
 
 \alias{nnmf}
+\alias{nnmf_als}
 \alias{nnmf_mult}
 \alias{predict.nnmf}
 \alias{nndsvd}
@@ -12,7 +13,12 @@
 }
 
 \usage{
-nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
+# Alternating least squares
+nnmf_als(x, k = 3L, transpose = FALSE,
+	niter = 100L, tol = 1e-5, verbose = NA, \dots)
+
+# Multiplicative updates
+nnmf_mult(x, k = 3L, cost = c("euclidean", "KL", "IS"),
 	transpose = FALSE, niter = 100L,
 	tol = 1e-5, verbose = NA, \dots)
 
@@ -24,8 +30,6 @@ nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
 
 	\item{k}{The number of NMF components to extract.}
 
-	\item{method}{The cost function (i.e., error measure between the reconstructed matrix and original \code{x}) to optimize, where 'euclidean' is the Frobenius norm, 'KL' is the Kullback-Leibler divergence, and 'IS' is the Itakura-Saito divergence. See \strong{Details}.}
-
 	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and calculating the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
 	\item{niter}{The maximum number of iterations.}
@@ -33,6 +37,8 @@ nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	\item{tol}{The tolerance for convergence, as measured by the Frobenius norm of the differences between the W and H matrices in successive iterations.}
 
 	\item{verbose}{Should progress be printed for each iteration?}
+
+	\item{cost}{The cost function (i.e., error measure between the reconstructed matrix and original \code{x}) to optimize, where 'euclidean' is the Frobenius norm, 'KL' is the Kullback-Leibler divergence, and 'IS' is the Itakura-Saito divergence. See \strong{Details}.}
 
 	\item{\dots}{Additional options passed to \code{\link[irlba]{irlba}}.}
 
@@ -43,7 +49,9 @@ nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
 }
 
 \details{
-    This function implements nonnegative matrix factorization (NMF) using multiplicative updates from Lee and Seung (2000) and further described by Burred (2014). The algorithm is initialized using nonnegative double singular value decomposition (NNDSVD) from Boutsidis and Gallopoulos (2008).
+    This function implements nonnegative matrix factorization (NMF) using either alternating least squares as described by Berry at al. (2007) or multiplicative updates from Lee and Seung (2000) and further described by Burred (2014). The algorithms are initialized using nonnegative double singular value decomposition (NNDSVD) from Boutsidis and Gallopoulos (2008).
+
+    The algorithm using multiplicative updates (\code{nnmf_mult()}) tends to be more stable but converges more slowly. The alternative least squares algorithm (\code{nnmf_als()}) tends to converge to more accurate results faster, but is more computationally intensive at each iteration, and can be susceptible to singularities.
 
     Note that \code{method = "euclidean"} is the only method that can handle out-of-memory \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices. \code{x} will be coerced to an in-memory matrix for other methods.
 }
@@ -54,7 +62,6 @@ nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
     \itemize{
         \item{\code{activation}: The (transposed) coefficient matrix (H).}
         \item{\code{x}: The basis variable matrix (W).}
-        \item{\code{method}: The cost function used.}
         \item{\code{iter}: The number of iterations performed.}
     }
 }
@@ -62,6 +69,8 @@ nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
 \author{Kylie A. Bemis}
 
 \references{
+	M. W. Berry, M. Browne, A. N. Langville, V. P. Pauca, R. J. Plemmons. ``Algorithms and applications for approximate nonnegative matrix factorization.'' Computational Statistics and Data Analysis, vol. 52, issue 1, pp. 155-173, Sept. 2007.
+
     D. D. Lee and H. S. Seung. ``Algorithms for non-negative matrix factorization.''  Proceedings of the 13th International Conference on Neural Information Processing Systems (NIPS), pp. 535-541, Jan. 2000.
 
     C. Boutsidis and E. Gallopoulos. ``SVD based initialization: A head start for nonnegative matrix factorization.''  Pattern Recognition, vol. 41, issue 4, pp. 1350-1362, Apr. 2008.
@@ -77,9 +86,11 @@ nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
 \examples{
 set.seed(1)
 
-x <- matrix(sort(runif(500)), nrow=50, ncol=10)
+x1 <- matrix(sort(runif(500)), nrow=50, ncol=10)
+x2 <- matrix(rev(sort(runif(500))), nrow=50, ncol=10)
+x <- cbind(x1, x2)
 
-mf <- nnmf_mult(x, k=3)
+mf <- nnmf_als(x, k=3)
 }
 
-\keyword{ts}
+\keyword{multivariate}

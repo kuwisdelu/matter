@@ -2,12 +2,62 @@
 #### Nonnegative matrix factorization ####
 ## ---------------------------------------
 
+# Berry at al (2007)
+nnmf_als <- function(x, k = 3L, transpose = FALSE,
+	niter = 100L, tol = 1e-5, verbose = NA, ...)
+{
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
+	k <- min(k, dim(x))
+	init <- nndsvd(x, k=k, ...)
+	w <- init$w
+	h <- init$h
+	dw <- dh <- Inf
+	iter <- 1L
+	while ( iter <= niter && (dw > tol || dh > tol) )
+	{
+		# update H
+		a <- crossprod(w, w)
+		b <- crossprod(w, x)
+		hnew <- solve(a, b)
+		hnew <- hnew * (hnew >= 0)
+		dh <- sqrt(sum((hnew - h)^2))
+		h <- hnew
+		# update W
+		a <- tcrossprod(h, h)
+		b <- tcrossprod(h, x)
+		wnew <- t(solve(a, b))
+		wnew <- wnew * (wnew >= 0)
+		dw <- sqrt(sum((wnew - w)^2))
+		w <- wnew
+		# show progress
+		if ( verbose ) {
+			message("iteration ", iter, ": ",
+				"diff(W) = ", format.default(dw), ", ",
+				"diff(H) = ", format.default(dh))
+		}
+		iter <- iter + 1L
+	}
+	j <- seq_len(k)
+	if ( transpose ) {
+		ans <- list(activation=w, x=t(h), iter=iter - 1L)
+		dimnames(ans$activation) <- list(rownames(x), paste0("C", j))
+		dimnames(ans$x) <- list(colnames(x), paste0("C", j))
+	} else {
+		ans <- list(activation=t(h), x=w, iter=iter - 1L)
+		dimnames(ans$activation) <- list(colnames(x), paste0("C", j))
+		dimnames(ans$x) <- list(rownames(x), paste0("C", j))
+	}
+	class(ans) <- "nnmf"
+	ans
+}
+
 # Lee and Seung (2000)
-nnmf_mult <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
+nnmf_mult <- function(x, k = 3L, cost = c("euclidean", "KL", "IS"),
 	transpose = FALSE, niter = 100L, tol = 1e-5, verbose = NA, ...)
 {
-	method <- match.arg(method)
-	if ( method != "euclidean" )
+	cost <- match.arg(cost)
+	if ( cost != "euclidean" )
 		x <- as_real_memory_matrix(x)
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -20,32 +70,32 @@ nnmf_mult <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	while ( iter <= niter && (dw > tol || dh > tol) )
 	{
 		# update H
-		if ( method == "euclidean" ) {
+		if ( cost == "euclidean" ) {
 			hup <- crossprod(w, x) / (crossprod(w, w) %*% h)
 		} else {
 			wh <- w %*% h
-			if ( method == "KL" ) {
+			if ( cost == "KL" ) {
 				hup <- rowsweep_matrix(crossprod(w, x / wh), colSums(w), "/")
-			} else if ( method == "IS" ) {
+			} else if ( cost == "IS" ) {
 				hup <- crossprod(w, x / wh^2) / crossprod(w, 1 / wh)
 			} else {
-				stop("unsupported method: ", sQuote(method))
+				stop("unsupported cost: ", sQuote(cost))
 			}
 		}
 		hnew <- h * hup
 		dh <- sqrt(sum((hnew - h)^2))
 		h <- hnew
 		# update W
-		if ( method == "euclidean" ) {
+		if ( cost == "euclidean" ) {
 			wup <- tcrossprod(x, h) / (w %*% tcrossprod(h, h))
 		} else {
 			wh <- w %*% h
-			if ( method == "KL" ) {
+			if ( cost == "KL" ) {
 				wup <- colsweep_matrix(tcrossprod(x / wh, h), rowSums(h), "/")
-			} else if ( method == "IS" ) {
+			} else if ( cost == "IS" ) {
 				wup <- tcrossprod(x / wh^2, h) / tcrossprod(1 / wh, h)
 			} else {
-				stop("unsupported method: ", sQuote(method))
+				stop("unsupported cost: ", sQuote(cost))
 			}
 		}
 		wnew <- w * wup
@@ -61,11 +111,11 @@ nnmf_mult <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	}
 	j <- seq_len(k)
 	if ( transpose ) {
-		ans <- list(activation=w, x=t(h), method=method, iter=iter - 1L)
+		ans <- list(activation=w, x=t(h), cost=cost, iter=iter - 1L)
 		dimnames(ans$activation) <- list(rownames(x), paste0("C", j))
 		dimnames(ans$x) <- list(colnames(x), paste0("C", j))
 	} else {
-		ans <- list(activation=t(h), x=w, method=method, iter=iter - 1L)
+		ans <- list(activation=t(h), x=w, cost=cost, iter=iter - 1L)
 		dimnames(ans$activation) <- list(colnames(x), paste0("C", j))
 		dimnames(ans$x) <- list(rownames(x), paste0("C", j))
 	}
@@ -118,10 +168,10 @@ nndsvd <- function(x, k = 3L, ...)
 	for ( i in 2L:k ) {
 		u <- s$u[,i]
 		v <- s$v[,i]
-		up <- (u >= 0) * u
-		un <- (u < 0) * u
-		vp <- (v >= 0) * v
-		vn <- (v < 0) * v
+		up <- u * (u >= 0)
+		un <- u * (u < 0)
+		vp <- v * (v >= 0)
+		vn <- v * (v < 0)
 		upnorm = sqrt(sum(up^2))
 		unnorm = sqrt(sum(un^2))
 		vpnorm = sqrt(sum(vp^2))
