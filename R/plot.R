@@ -1,70 +1,77 @@
 
+#### Plotting methods for 'vizi' marks ####
+## ----------------------------------------
+
+# register marks for S4 methods
+
+setOldClass("vizi_points")
+setOldClass("vizi_lines")
+setOldClass("vizi_peaks")
+
+plot_xy <- function(mark, plot = NULL, ...,
+	nmax = NULL, sampler = NULL, type = "p", add = FALSE)
+{
+	# encode required channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	if ( length(x) == 0L || length(y) == 0L )
+		return()
+	# perform transformations
+	t <- mark$trans
+	if ( !is.null(nmax) )
+		t$nmax <- nmax
+	if ( !is.null(sampler) )
+		t$sampler <- sampler
+	if ( !is.null(t$nmax) && t$nmax < length(x) ) {
+		if ( !is.null(t$sampler) ) {
+			y <- downsample(y, n=t$nmax, domain=x, method=t$sampler)
+		} else {
+			y <- downsample(y, n=t$nmax, domain=x)
+		}
+		i <- attr(y, "sample")
+		x <- x[i]
+	} else {
+		i <- NULL
+	}
+	# encode non-required channels
+	p <- c("shape", "color", "fill", "size", "linewidth", "linetype")
+	p <- lapply(setNames(p, p), encode_var, encoding=encoding,
+		channels=plot$channels, params=mark$params, subset=i)
+	if ( !add ) {
+		plot.new()
+		plot.window(xlim=range(x), ylim=range(y))
+	}
+	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
+		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type, ...)
+	params <- p[!names(p) %in% names(encoding)]
+	invisible(encode_legends(plot$channels, params, type))
+}
+
+plot.vizi_points <- function(x, plot = NULL, add = FALSE, ...,
+	nmax = NULL, sampler = NULL)
+{
+	invisible(plot_xy(mark=x, plot=plot, type="p", add=add, ...))
+}
+
+plot.vizi_lines <- function(x, plot = NULL, add = FALSE, ...,
+	nmax = NULL, sampler = NULL)
+{
+	invisible(plot_xy(mark=x, plot=plot, type="l", add=add, ...))
+}
+
+plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
+	nmax = NULL, sampler = NULL)
+{
+	invisible(plot_xy(mark=x, plot=plot, type="h", add=add, ...))
+}
+
+setMethod("plot", "vizi_points", plot.vizi_points)
+setMethod("plot", "vizi_lines", plot.vizi_lines)
+setMethod("plot", "vizi_peaks", plot.vizi_peaks)
+
 #### Set graphical parameters ####
 ## -------------------------------
-
-vizi_par <- function(..., style = getOption("matter.vizi.style"))
-{
-	params <- getOption("matter.vizi.par")
-	args <- list(...)
-	if ( length(args) > 0L ) {
-		if ( length(args) == 1L ) {
-			if ( is.list(args[[1L]]) && is.null(names(args)) ) {
-				args <- args[[1L]]
-			} else if ( is.null(args[[1L]]) ) {
-				args <- par_style_new()
-				params <- list()
-			}
-		}
-		if ( !is.null(names(args)) ) {
-			params <- par_update(params, more=args)
-			options(matter.vizi.par=params)
-			return(invisible(params))
-		}
-		args <- as.character(unlist(args))
-	} else {
-		args < names(params)
-	}
-	if ( !is.null(style) ) {
-		p <- get(paste0("par_style_", tolower(style)))
-		params <- par_update(p(), more=params)
-	}
-	if ( length(args) > 0L )
-		params <- params[args]
-	if ( length(params) == 1L )
-		params <- params[[1L]]
-	params
-}
-
-vizi_style <- function(style = getOption("matter.vizi.style"),
-	dpal = "Tableau 10", cpal = "Viridis", ...)
-{
-	if ( !missing(style) )
-		options(matter.vizi.style=style)
-	if ( !missing(dpal) ) {
-		options(matter.vizi.dpal=dpal)
-	} else {
-		dpal <- getOption("matter.vizi.dpal")
-	}
-	if ( !missing(cpal) ) {
-		options(matter.vizi.cpal=cpal)
-	} else {
-		cpal <- getOption("matter.vizi.cpal")
-	}
-	style <- c(style=style, dpal=dpal, cpal=cpal)
-	if ( nargs() > 0L ) {
-		invisible(style)
-	} else {
-		style
-	}
-}
-
-dpal <- function(palette = "Tableau 10") {
-	function(n) palette.colors(n, palette)
-}
-
-cpal <- function(palette = "Viridis") {
-	function(n) hcl.colors(n, palette)
-}
 
 par_update <- function(params, ..., more = list())
 {
@@ -131,7 +138,7 @@ par_pad <- function(params, side, adj = 0, outer = FALSE)
 #### Panel and layout navigation ####
 ## -----------------------------------
 
-vizi_panel <- function(dim = c(1, 1),
+panel_grid <- function(dim = c(1, 1),
 	byrow = TRUE, ..., params = vizi_par())
 {
 	if ( missing(dim) )

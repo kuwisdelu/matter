@@ -19,10 +19,6 @@
 \alias{plot,vizi_plot,ANY-method}
 \alias{plot,vizi_facets,ANY-method}
 
-\alias{plot,vizi_points,ANY-method}
-\alias{plot,vizi_lines,ANY-method}
-\alias{plot,vizi_peaks,ANY-method}
-
 \alias{plot,vizi_key,ANY-method}
 \alias{plot,vizi_colorkey,ANY-method}
 
@@ -92,6 +88,12 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
 
 \value{
 	An object of class \code{vizi_plot}.
+}
+
+\seealso{
+    \code{\link{vizi_points}},
+    \code{\link{vizi_lines}},
+    \code{\link{vizi_peaks}}
 }
 
 \author{Kylie A. Bemis}

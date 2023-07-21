@@ -136,9 +136,6 @@ set_coord <- function(plot, xlim = NULL, ylim = NULL,
 
 setOldClass("vizi_plot")
 setOldClass("vizi_facets")
-setOldClass("vizi_points")
-setOldClass("vizi_lines")
-setOldClass("vizi_peaks")
 setOldClass("vizi_key")
 setOldClass("vizi_colorkey")
 
@@ -151,7 +148,7 @@ preplot.vizi_plot <- function(object, ...)
 	w <- needs_legends(object)
 	if ( w > 0L )
 		p <- par_pad(p, "right", w + 1L, outer=TRUE)
-	vizi_panel(dim=c(1L,1L), params=p)
+	panel_grid(dim=c(1L,1L), params=p)
 	xlim <- object$coord$xlim
 	ylim <- object$coord$ylim
 	log <- object$coord$log
@@ -165,10 +162,9 @@ preplot.vizi_plot <- function(object, ...)
 	if ( is.null(asp) )
 		asp <- NA
 	plot.new()
-	localWindow <- function(..., col, bg, pch, cex, lty, lwd) plot.window(...)
 	args <- list(xlim=xlim, ylim=ylim, log=log, asp=asp)
-	args <- c(args, object$params, list(...))
-	do.call(localWindow, args)
+	args <- c(args, object$params)
+	do.call(plot.window, args)
 	if ( isTRUE(object$coord$grid) )
 		grid()
 }
@@ -194,17 +190,14 @@ preplot.vizi_facets <- function(object, ...)
 	}
 	n <- max(nlines(object$labels))
 	p <- par_pad(p, "top", n - 1)
-	vizi_panel(dim=object$dim, params=p)
+	panel_grid(dim=object$dim, params=p)
 }
 
 setMethod("preplot", "vizi_plot", preplot.vizi_plot)
 setMethod("preplot", "vizi_facets", preplot.vizi_facets)
 
-plot.vizi_plot <- function(x, ..., add = FALSE)
+plot.vizi_plot <- function(x, add = FALSE, ...)
 {
-	localAxis <- function(..., col, bg, pch, cex, lty, lwd) Axis(...)
-	localTitle <- function(..., col, bg, pch, cex, lty, lwd) title(...)
-	localBox <- function(..., col, bg, pch, cex, lty, lwd) box(...)
 	if ( !add ) {
 		dev.hold()
 		on.exit(dev.flush())
@@ -218,26 +211,24 @@ plot.vizi_plot <- function(x, ..., add = FALSE)
 	}
 	keys <- merge_legends(keys)
 	if ( !add ) {
-		localAxis(x$channels$x$limits, side=1L, ...)
-		localAxis(x$channels$y$limits, side=2L, ...)
-		localTitle(xlab=x$channels$x$label,
-			ylab=x$channels$y$label, outer=TRUE, ...)
+		Axis(x$channels$x$limits, side=1L)
+		Axis(x$channels$y$limits, side=2L)
+		title(xlab=x$channels$x$label,
+			ylab=x$channels$y$label, outer=TRUE)
 	}
-	localBox(...)
+	box()
 	if ( !add && length(keys) > 0L ) {
 		p <- panel_side("right", split=length(keys), p=c(1, 1))
 		for (k in keys)
-			plot(k, cex=p$cex, ...)
+			plot(k, cex=p$cex)
 		panel_restore(p)
 	}
 	x$keys <- keys
 	invisible(x)
 }
 
-plot.vizi_facets <- function(x, ..., add = FALSE)
+plot.vizi_facets <- function(x, add = FALSE, ...)
 {
-	localAxis <- function(..., col, bg, pch, cex, lty, lwd) Axis(...)
-	localTitle <- function(..., col, bg, pch, cex, lty, lwd) title(...)
 	if ( !add ) {
 		dev.hold()
 		on.exit(dev.flush())
@@ -276,10 +267,9 @@ plot.vizi_facets <- function(x, ..., add = FALSE)
 			if ( is.null(asp) )
 				asp <- NA
 			plot.new()
-			localWindow <- function(..., col, bg, pch, cex, lty, lwd) plot.window(...)
 			args <- list(xlim=xlim, ylim=ylim, log=log, asp=asp)
-			args <- c(args, x$params, list(...))
-			do.call(localWindow, args)
+			args <- c(args, x$params)
+			do.call(plot.window, args)
 			if ( isTRUE(x$coord$grid) )
 				grid()
 		}
@@ -288,9 +278,9 @@ plot.vizi_facets <- function(x, ..., add = FALSE)
 		{
 			mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
 			if ( has_free_x(x) || is_bottom_panel(n) )
-				localAxis(x$channels$x$limits, side=1L, ...)
+				Axis(x$channels$x$limits, side=1L)
 			if ( has_free_y(x) || is_left_panel() )
-				localAxis(x$channels$y$limits, side=2L, ...)
+				Axis(x$channels$y$limits, side=2L)
 		} else {
 			panel_next()
 		}
@@ -299,14 +289,14 @@ plot.vizi_facets <- function(x, ..., add = FALSE)
 	if ( !add ) {
 		xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
 		ylab_offset <- ifelse(has_free_y(x), 0.5, 1.5)
-		localTitle(xlab=x$channels$x$label,
-			line=xlab_offset, outer=TRUE, ...)
-		localTitle(ylab=x$channels$y$label,
-			line=ylab_offset, outer=TRUE, ...)
+		title(xlab=x$channels$x$label,
+			line=xlab_offset, outer=TRUE)
+		title(ylab=x$channels$y$label,
+			line=ylab_offset, outer=TRUE)
 		if ( length(keys) > 0L ) {
 			p <- panel_side("right", split=length(keys), p=c(1, 1))
 			for (k in keys)
-				plot(k, cex=p$cex, ...)
+				plot(k, cex=p$cex)
 			panel_restore(p)
 		}
 		panel_set(1)
@@ -318,65 +308,14 @@ plot.vizi_facets <- function(x, ..., add = FALSE)
 setMethod("plot", "vizi_plot", plot.vizi_plot)
 setMethod("plot", "vizi_facets", plot.vizi_facets)
 
-plot_vizi_xy <- function(mark, plot = NULL, ..., type = "p", add = FALSE)
-{
-	encoding <- merge_encoding(plot$encoding, mark$encoding)
-	x <- encode_var("x", encoding, plot$channels)
-	y <- encode_var("y", encoding, plot$channels)
-	if ( length(x) == 0L || length(y) == 0L )
-		return()
-	t <- mark$trans
-	if ( !is.null(t$nmax) && t$nmax < length(x) ) {
-		if ( !is.null(t$sampler) ) {
-			y <- downsample(y, n=t$nmax, domain=x, method=t$sampler)
-		} else {
-			y <- downsample(y, n=t$nmax, domain=x)
-		}
-		i <- attr(y, "sample")
-		x <- x[i]
-	} else {
-		i <- NULL
-	}
-	p <- c("shape", "color", "fill", "size", "linewidth", "linetype")
-	p <- lapply(setNames(p, p), encode_var, encoding=encoding,
-		channels=plot$channels, params=mark$params, subset=i)
-	if ( !add ) {
-		plot.new()
-		plot.window(xlim=range(x), ylim=range(y))
-	}
-	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
-		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type, ...)
-	params <- p[!names(p) %in% names(encoding)]
-	invisible(encode_legends(plot$channels, params, type))
-}
-
-plot.vizi_points <- function(x, plot = NULL, ..., add = FALSE)
-{
-	invisible(plot_vizi_xy(mark=x, plot=plot, type="p", ..., add=add))
-}
-
-plot.vizi_lines <- function(x, plot = NULL, ..., add = FALSE)
-{
-	invisible(plot_vizi_xy(mark=x, plot=plot, type="l", ..., add=add))
-}
-
-plot.vizi_peaks <- function(x, plot = NULL, ..., add = FALSE)
-{
-	invisible(plot_vizi_xy(mark=x, plot=plot, type="h", ..., add=add))
-}
-
-setMethod("plot", "vizi_points", plot.vizi_points)
-setMethod("plot", "vizi_lines", plot.vizi_lines)
-setMethod("plot", "vizi_peaks", plot.vizi_peaks)
-
 plot.vizi_key <- function(x, cex = 1, ...)
 {
 	plot.new()
-	args <- list(x="left", bty="n", title.adj=0, cex=cex, ...)
+	args <- list(x="left", bty="n", title.adj=0, cex=cex)
 	do.call(legend, c(args, x))
 }
 
-plot.vizi_colorkey <- function(x, cex = 1, ..., p = c(1/3, 2/3))
+plot.vizi_colorkey <- function(x, cex = 1, p = c(1/3, 2/3), ...)
 {
 	plt <- par("plt")
 	p <- rep_len(p, 2L)
@@ -384,14 +323,73 @@ plot.vizi_colorkey <- function(x, cex = 1, ..., p = c(1/3, 2/3))
 	pltnew <- c(0, p[1], dp, 1 - dp)
 	par(plt=pltnew)
 	image(1, x$values, t(x$values), col=x$color, cex=cex,
-		xaxt="n", yaxt="n", xlab="", ylab="", ...)
-	mtext(x$title, side=3L, cex=cex, ...)
-	Axis(x$values, side=4L, las=1L, cex.axis=cex, ...)
+		xaxt="n", yaxt="n", xlab="", ylab="")
+	mtext(x$title, side=3L, cex=cex)
+	Axis(x$values, side=4L, las=1L, cex.axis=cex)
 	par(plt=plt)
 }
 
 setMethod("plot", "vizi_key", plot.vizi_key)
 setMethod("plot", "vizi_colorkey", plot.vizi_colorkey)
+
+#### Graphical parameters for vizi ####
+## ------------------------------------
+
+vizi_par <- function(..., style = getOption("matter.vizi.style"))
+{
+	params <- getOption("matter.vizi.par")
+	args <- list(...)
+	if ( length(args) > 0L ) {
+		if ( length(args) == 1L ) {
+			if ( is.list(args[[1L]]) && is.null(names(args)) ) {
+				args <- args[[1L]]
+			} else if ( is.null(args[[1L]]) ) {
+				args <- par_style_new()
+				params <- list()
+			}
+		}
+		if ( !is.null(names(args)) ) {
+			params <- par_update(params, more=args)
+			options(matter.vizi.par=params)
+			return(invisible(params))
+		}
+		args <- as.character(unlist(args))
+	} else {
+		args < names(params)
+	}
+	if ( !is.null(style) ) {
+		p <- get(paste0("par_style_", tolower(style)))
+		params <- par_update(p(), more=params)
+	}
+	if ( length(args) > 0L )
+		params <- params[args]
+	if ( length(params) == 1L )
+		params <- params[[1L]]
+	params
+}
+
+vizi_style <- function(style = getOption("matter.vizi.style"),
+	dpal = "Tableau 10", cpal = "Viridis", ...)
+{
+	if ( !missing(style) )
+		options(matter.vizi.style=style)
+	if ( !missing(dpal) ) {
+		options(matter.vizi.dpal=dpal)
+	} else {
+		dpal <- getOption("matter.vizi.dpal")
+	}
+	if ( !missing(cpal) ) {
+		options(matter.vizi.cpal=cpal)
+	} else {
+		cpal <- getOption("matter.vizi.cpal")
+	}
+	style <- c(style=style, dpal=dpal, cpal=cpal)
+	if ( nargs() > 0L ) {
+		invisible(style)
+	} else {
+		style
+	}
+}
 
 #### Internal functions for vizi ####
 ## ----------------------------------

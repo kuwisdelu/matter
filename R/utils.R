@@ -682,6 +682,14 @@ roll <- function(x, width, na.drop = FALSE, fill = NA) {
 	x
 }
 
+dpal <- function(palette = "Tableau 10") {
+	function(n) palette.colors(n, palette)
+}
+
+cpal <- function(palette = "Viridis") {
+	function(n) hcl.colors(n, palette)
+}
+
 # A sequence with half-bin-widths in relative units
 # x = bin center, y = half-width, d = relative diff
 # y[n] = d * x[n]
