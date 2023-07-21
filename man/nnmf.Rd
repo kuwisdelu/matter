@@ -51,7 +51,7 @@ nnmf_mult(x, k = 3L, cost = c("euclidean", "KL", "IS"),
 \details{
     This function implements nonnegative matrix factorization (NMF) using either alternating least squares as described by Berry at al. (2007) or multiplicative updates from Lee and Seung (2000) and further described by Burred (2014). The algorithms are initialized using nonnegative double singular value decomposition (NNDSVD) from Boutsidis and Gallopoulos (2008).
 
-    The algorithm using multiplicative updates (\code{nnmf_mult()}) tends to be more stable but converges more slowly. The alternative least squares algorithm (\code{nnmf_als()}) tends to converge to more accurate results faster, but is more computationally intensive at each iteration, and can be susceptible to singularities.
+    The algorithm using multiplicative updates (\code{nnmf_mult()}) tends to be more stable but converges more slowly. The alternative least squares algorithm (\code{nnmf_als()}) tends to converge faster to more accurate results, but can be more susceptible to singularities.
 
     Note that \code{method = "euclidean"} is the only method that can handle out-of-memory \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices. \code{x} will be coerced to an in-memory matrix for other methods.
 }

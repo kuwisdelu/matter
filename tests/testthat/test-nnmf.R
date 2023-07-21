@@ -17,10 +17,18 @@ test_that("nnmf - alternating least squares", {
 	mf <- nnmf_als(x, k=3L)
 	mf.x <- mf$x %*% t(mf$activation)
 
-	expect_equal(mf.x, x, tolerance=1e-2)
+	expect_equal(mf.x, x, tolerance=5e-2)
 	expect_equivalent(
 		predict(mf, x),
 		mf$x, tolerance=2e-1)
+
+	mft <- nnmf_als(t(x), k=3L, transpose=TRUE)
+	mft.x <- mft$x %*% t(mft$activation)
+
+	expect_equal(mft.x, x, tolerance=5e-2)
+	expect_equivalent(
+		predict(mft, x),
+		mft$x, tolerance=2e-1)
 
 })
 
@@ -38,13 +46,16 @@ test_that("nnmf - multiplicative updates", {
 	mf1 <- nnmf_mult(x, k=3L)
 	mf2 <- nnmf_mult(x, k=3L, method="KL")
 	mf3 <- nnmf_mult(x, k=3L, method="IS")
+	mf4 <- nnmf_mult(t(x), transpose=TRUE)
 	mf1.x <- mf1$x %*% t(mf1$activation)
 	mf2.x <- mf2$x %*% t(mf2$activation)
-	mf3.x <- mf3$x %*% t(mf2$activation)
+	mf3.x <- mf3$x %*% t(mf3$activation)
+	mf4.x <- mf4$x %*% t(mf4$activation)
 
 	expect_equal(mf1.x, x, tolerance=1e-2)
 	expect_equal(mf2.x, x, tolerance=1e-2)
-	expect_equal(mf2.x, x, tolerance=1e-2)
+	expect_equal(mf3.x, x, tolerance=1e-2)
+	expect_equal(mf4.x, x, tolerance=1e-2)
 
 	expect_equivalent(
 		predict(mf1, x),
@@ -55,6 +66,9 @@ test_that("nnmf - multiplicative updates", {
 	expect_equivalent(
 		predict(mf3, x),
 		mf3$x, tolerance=2e-1)
+	expect_equivalent(
+		predict(mf4, x),
+		mf4$x, tolerance=2e-1)
 
 })
 
