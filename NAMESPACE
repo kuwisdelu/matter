@@ -294,11 +294,11 @@ export("pinv")
 
 export(
 	"nndsvd",
-	"nmf_mu",
+	"nnmf_mult",
 	"prcomp_lanczos")
 
-S3method("predict", "nmf")
-S3method("print", "nmf")
+S3method("predict", "nnmf")
+S3method("print", "nnmf")
 
 export(
 	"chunk_apply",

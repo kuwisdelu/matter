@@ -1,8 +1,8 @@
 \name{nmf}
 
-\alias{nmf}
-\alias{nmf_mu}
-\alias{predict.nmf}
+\alias{nnmf}
+\alias{nnmf_mult}
+\alias{predict.nnmf}
 \alias{nndsvd}
 
 \title{Nonnegative Matrix Factorization}
@@ -12,11 +12,11 @@
 }
 
 \usage{
-nmf_mu(x, k = 3L, method = c("euclidean", "KL", "IS"),
+nnmf_mult(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	transpose = FALSE, niter = 100L,
 	tol = 1e-5, verbose = NA, \dots)
 
-\S3method{predict}{nmf}(object, newdata, \dots)
+\S3method{predict}{nnmf}(object, newdata, \dots)
 }
 
 \arguments{
@@ -49,7 +49,7 @@ nmf_mu(x, k = 3L, method = c("euclidean", "KL", "IS"),
 }
 
 \value{
-    An object of class \code{nmf}, with the following components:
+    An object of class \code{nnmf}, with the following components:
 
     \itemize{
         \item{\code{activation}: The (transposed) coefficient matrix (H).}
@@ -79,7 +79,7 @@ set.seed(1)
 
 x <- matrix(sort(runif(500)), nrow=50, ncol=10)
 
-mf <- nmf_mu(x, k=3)
+mf <- nnmf_mult(x, k=3)
 }
 
 \keyword{ts}

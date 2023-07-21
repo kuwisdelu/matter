@@ -3,7 +3,7 @@
 ## ---------------------------------------
 
 # Lee and Seung (2000)
-nmf_mu <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
+nnmf_mult <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
 	transpose = FALSE, niter = 100L, tol = 1e-5, verbose = NA, ...)
 {
 	method <- match.arg(method)
@@ -69,11 +69,11 @@ nmf_mu <- function(x, k = 3L, method = c("euclidean", "KL", "IS"),
 		dimnames(ans$activation) <- list(colnames(x), paste0("C", j))
 		dimnames(ans$x) <- list(rownames(x), paste0("C", j))
 	}
-	class(ans) <- "nmf"
+	class(ans) <- "nnmf"
 	ans
 }
 
-predict.nmf <- function(object, newdata, ...)
+predict.nnmf <- function(object, newdata, ...)
 {
 	if ( missing(newdata) )
 		return(object$x)
@@ -93,7 +93,7 @@ predict.nmf <- function(object, newdata, ...)
 	x * (x >= 0)
 }
 
-print.nmf <- function(x, print.x = FALSE, ...)
+print.nnmf <- function(x, print.x = FALSE, ...)
 {
 	d <- dim(x$activation)
 	cat(sprintf("Activation (n x k) = (%d x %d):\n", d[1], d[2]))

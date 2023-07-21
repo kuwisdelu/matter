@@ -1,9 +1,9 @@
 require(testthat)
 require(matter)
 
-context("nmf")
+context("nnmf")
 
-test_that("nmf - multiplicative updates", {
+test_that("nnmf - multiplicative updates", {
 
 	set.seed(1)
 	nr <- 100
@@ -14,9 +14,9 @@ test_that("nmf - multiplicative updates", {
 	x2 <- matrix(vals2, nrow=100, ncol=25)
 	x <- cbind(x1, x2)
 
-	mf1 <- nmf_mu(x, k=3L)
-	mf2 <- nmf_mu(x, k=3L, method="KL")
-	mf3 <- nmf_mu(x, k=3L, method="IS")
+	mf1 <- nnmf_mult(x, k=3L)
+	mf2 <- nnmf_mult(x, k=3L, method="KL")
+	mf3 <- nnmf_mult(x, k=3L, method="IS")
 	mf1x <- mf1$x %*% t(mf1$activation)
 	mf2x <- mf2$x %*% t(mf2$activation)
 	mf3x <- mf3$x %*% t(mf2$activation)
@@ -37,7 +37,7 @@ test_that("nmf - multiplicative updates", {
 
 })
 
-test_that("nmf - matter matrix", {
+test_that("nnmf - matter matrix", {
 
 	set.seed(1)
 	nr <- 100
@@ -48,8 +48,8 @@ test_that("nmf - matter matrix", {
 	x2 <- matrix(vals2, nrow=100, ncol=25)
 	x <- cbind(x1, x2)
 	y <- matter_mat(x)
-	mf.x <- nmf_mu(x)
-	mf.y <- nmf_mu(y)
+	mf.x <- nnmf_mult(x)
+	mf.y <- nnmf_mult(y)
 
 	expect_equal(
 		mf.x$x,
@@ -60,15 +60,15 @@ test_that("nmf - matter matrix", {
 
 })
 
-test_that("nmf - sparse matrix", {
+test_that("nnmf - sparse matrix", {
 
 	set.seed(1)
 	x <- rbinom(5000, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(100, 50)
 	y <- sparse_mat(x)
-	mf.x <- nmf_mu(x)
-	mf.y <- nmf_mu(y)
+	mf.x <- nnmf_mult(x)
+	mf.y <- nnmf_mult(y)
 
 	expect_equal(
 		mf.x$x,
