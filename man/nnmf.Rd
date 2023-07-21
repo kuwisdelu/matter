@@ -1,4 +1,4 @@
-\name{nmf}
+\name{nnmf}
 
 \alias{nnmf}
 \alias{nnmf_als}
@@ -86,9 +86,9 @@ nnmf_mult(x, k = 3L, cost = c("euclidean", "KL", "IS"),
 \examples{
 set.seed(1)
 
-x1 <- matrix(sort(runif(500)), nrow=50, ncol=10)
-x2 <- matrix(rev(sort(runif(500))), nrow=50, ncol=10)
-x <- cbind(x1, x2)
+a <- matrix(sort(runif(500)), nrow=50, ncol=10)
+b <- matrix(rev(sort(runif(500))), nrow=50, ncol=10)
+x <- cbind(a, b)
 
 mf <- nnmf_als(x, k=3)
 }
