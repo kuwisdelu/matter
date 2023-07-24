@@ -306,6 +306,9 @@ S3method("print", "nnmf")
 S3method("predict", "pls")
 S3method("print", "pls")
 
+S3method("predict", "opls")
+S3method("print", "opls")
+
 export(
 	"chunk_apply",
 	"chunk_rowapply",

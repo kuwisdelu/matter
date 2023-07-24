@@ -130,14 +130,20 @@ predict.nnmf <- function(object, newdata, ...)
 	if ( length(dim(newdata)) != 2L )
 		stop("'newdata' must be a matrix or data frame")
 	nm <- rownames(object$activation)
+	v <- if (object$transpose) rownames(newdata) else colnames(newdata)
+	p <- if (object$transpose) nrow(newdata) else ncol(newdata)
 	if ( !is.null(nm) ) {
-		if ( !all(nm %in% colnames(newdata)) )
-			stop("'newdata' does not have named columns ",
-				"matching one of more of the original columns")
-		newdata <- newdata[,nm,drop=FALSE]
+		if ( !all(nm %in% v) )
+			stop("'newdata' does not have named features ",
+				"matching one of more of the original features")
+		if ( transpose ) {
+			newdata <- newdata[nm,,drop=FALSE]
+		} else {
+			newdata <- newdata[,nm,drop=FALSE]
+		}
 	} else {
-		if ( ncol(newdata) != nrow(object$activation) )
-			stop("'newdata' does not have the correct number of columns")
+		if ( p != nrow(object$activation) )
+			stop("'newdata' does not have the correct number of features")
 	}
 	x <- newdata %*% pinv(t(object$activation))
 	x * (x >= 0)

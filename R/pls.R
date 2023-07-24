@@ -138,14 +138,20 @@ predict.pls <- function(object, newdata,
 	if ( length(dim(newdata)) != 2L )
 		stop("'newdata' must be a matrix or data frame")
 	nm <- rownames(object$loadings)
+	v <- if (object$transpose) rownames(newdata) else colnames(newdata)
+	p <- if (object$transpose) nrow(newdata) else ncol(newdata)
 	if ( !is.null(nm) ) {
-		if ( !all(nm %in% colnames(newdata)) )
-			stop("'newdata' does not have named columns ",
-				"matching one of more of the original columns")
-		newdata <- newdata[,nm,drop=FALSE]
+		if ( !all(nm %in% v) )
+			stop("'newdata' does not have named features ",
+				"matching one of more of the original features")
+		if ( transpose ) {
+			newdata <- newdata[nm,,drop=FALSE]
+		} else {
+			newdata <- newdata[,nm,drop=FALSE]
+		}
 	} else {
-		if ( ncol(newdata) != nrow(object$loadings) )
-			stop("'newdata' does not have the correct number of columns")
+		if ( p != nrow(object$loadings) )
+			stop("'newdata' does not have the correct number of features")
 	}
 	# extract relevant components
 	if ( k > ncol(object$loadings) )
@@ -178,7 +184,7 @@ predict.pls <- function(object, newdata,
 
 print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
-	cat(sprintf("Partial least squares (k = %d)\n", ncol(x$loadings)))
+	cat(sprintf("Partial least squares (k=%d)\n", ncol(x$loadings)))
 	if (length(coef(x))) {
 		cat("\nCoefficients:\n")
 		print.default(format(t(coef(x)), digits = digits), print.gap = 2L, 
@@ -189,7 +195,6 @@ print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 	cat("\n")
 	invisible(x)
 }
-
 
 #### Orthogonal partial least squares ####
 ## ---------------------------------------
@@ -236,11 +241,12 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(pnames, paste0("C", j)))
 	scores <- matrix(nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
+	ratio <- numeric(k)
 	y0 <- y
 	if ( transpose ) {
-		w0 <- (xt %*% y) / drop(crossprod(y, y))
+		w0 <- colsweep((xt %*% y), colSums(y^2), "/")
 	} else {
-		w0 <- crossprod(x, y) / drop(crossprod(y, y))
+		w0 <- colsweep(crossprod(x, y), colSums(y^2), "/")
 	}
 	tw <- prcomp(w0, center=FALSE)$x
 	tw <- tw[,colSums(tw^2) / sum(w0^2) > tol,drop=FALSE]
@@ -274,6 +280,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		if ( transpose ) {
 			p <- xt %*% t / drop(crossprod(t, t))
 			wo <- p - colsweep(tw, crossprod(tw, p) / drop(crossprod(tw, tw)), "*")
+			r <- sqrt(sum(wo^2)) / sqrt(sum(p^2))
 			wo <- wo / sqrt(sum(wo^2))
 			to <- t(crossprod(wo, xt)) / drop(crossprod(wo, wo))
 			po <- (xt %*% to) / drop(crossprod(to, to))
@@ -281,6 +288,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		} else {
 			p <- crossprod(x, t) / drop(crossprod(t, t))
 			wo <- p - colsweep(tw, crossprod(tw, p) / drop(crossprod(tw, tw)), "*")
+			r <- sqrt(sum(wo^2)) / sqrt(sum(p^2))
 			wo <- wo / sqrt(sum(wo^2))
 			to <- (x %*% wo) / drop(crossprod(wo, wo))
 			po <- crossprod(x, to) / drop(crossprod(to, to))
@@ -289,11 +297,13 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		weights[,i] <- wo
 		loadings[,i] <- po
 		scores[,i] <- to
+		ratio[i] <- r
 	}
 	# return results
-	ans <- list(weights=weights, loadings=loadings, scores=scores)
+	x <- if (transpose) xt else x
+	ans <- list(weights=weights, loadings=loadings,
+		scores=scores, ratio=ratio, x=x)
 	ans$transpose <- transpose
-	ans$x <- if (transpose) xt else x
 	if ( is.null(center) ) {
 		ans$center <- FALSE
 	} else {
@@ -307,5 +317,64 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans$algorithm <- "nipals"
 	class(ans) <- "opls"
 	ans
+}
+
+predict.opls <- function(object, newdata,
+	type = c("x", "ortho"), k = NULL, ...)
+{
+	type <- match.arg(type)
+	if ( missing(newdata) && is.null(k) )
+		return(object$x)
+	if ( missing(newdata) )
+		stop("'newdata' must be specified if 'k' is specified")
+	if ( is.null(k) )
+		k <- ncol(object$loadings)
+	if ( length(dim(newdata)) != 2L )
+		stop("'newdata' must be a matrix or data frame")
+	nm <- rownames(object$loadings)
+	v <- if (object$transpose) rownames(newdata) else colnames(newdata)
+	p <- if (object$transpose) nrow(newdata) else ncol(newdata)
+	if ( !is.null(nm) ) {
+		if ( !all(nm %in% v) )
+			stop("'newdata' does not have named features ",
+				"matching one of more of the original features")
+		if ( transpose ) {
+			newdata <- newdata[nm,,drop=FALSE]
+		} else {
+			newdata <- newdata[,nm,drop=FALSE]
+		}
+	} else {
+		if ( p != nrow(object$loadings) )
+			stop("'newdata' does not have the correct number of features")
+	}
+	# extract relevant components
+	if ( k > ncol(object$loadings) )
+		stop("'k' is larger than the number of components")
+	weights <- object$weights[,1:k,drop=FALSE]
+	loadings <- object$loadings[,1:k,drop=FALSE]
+	# predict new values
+	if ( object$transpose ) {
+		xt <- rowscale(newdata, center=object$center, scale=object$scale)
+		scores <- t(crossprod(weights, xt))
+		xo <- tcrossprod(loadings, scores)
+		x <- xt
+	} else {
+		x <- colscale(newdata, center=object$center, scale=object$scale)
+		scores <- x %*% weights
+		xo <- tcrossprod(scores, loadings)
+	}
+	if ( type == "ortho" ) {
+		xo
+	} else {
+		x - xo
+	}
+}
+
+print.opls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
+{
+	cat(sprintf("Orthogonal partial least squares (k=%d)\n", ncol(x$loadings)))
+	cat(sprintf("\nComponent ratios (1, .., k=%d):\n", length(x$ratio)))
+    print(x$ratio, ...)
+	invisible(x)
 }
 
