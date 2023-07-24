@@ -296,7 +296,8 @@ export(
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",
-	"prcomp_lanczos")
+	"prcomp_lanczos"
+	"pls_nipals")
 
 S3method("predict", "nnmf")
 S3method("print", "nnmf")
