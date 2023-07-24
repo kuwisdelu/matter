@@ -69,8 +69,6 @@
 \alias{roll}
 \alias{seq_rel}
 
-\alias{estres}
-
 \alias{qrank}
 \alias{qorder}
 \alias{qselect}
