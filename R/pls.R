@@ -37,9 +37,11 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
 	}
-	# prepare matrices
-	y <- as.matrix(y)
 	j <- seq_len(k)
+	# prepare matrices
+	if ( is.factor(y) || is.character(y) )
+		y <- encode_dummy(y)
+	y <- as.matrix(y)
 	weights <- matrix(nrow=P, ncol=k,
 		dimnames=list(pnames, paste0("C", j)))
 	loadings <- matrix(nrow=P, ncol=k,
@@ -69,7 +71,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 				t <- x %*% w / drop(crossprod(w, w))
 			}
 			q <- crossprod(y, t) / drop(crossprod(t, t))
-			unew <- tcrossprod(y, q) / drop(crossprod(q, q))
+			unew <- (y %*% q) / drop(crossprod(q, q))
 			du <- sqrt(sum((unew - u)^2))
 			u <- unew
 			iter <- iter + 1
@@ -123,14 +125,16 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.pls <- function(object, newdata, k, ...)
+predict.pls <- function(object, newdata,
+	type = c("response", "class"), k = NULL, ...)
 {
-	if ( missing(newdata) && missing(k) )
-		return(object$x)
-	if ( missing(k) )
-		k <- ncol(object$loadings)
+	type <- match.arg(type)
+	if ( missing(newdata) && is.null(k) )
+		return(fitted(object))
 	if ( missing(newdata) )
 		stop("'newdata' must be specified if 'k' is specified")
+	if ( is.null(k) )
+		k <- ncol(object$loadings)
 	if ( length(dim(newdata)) != 2L )
 		stop("'newdata' must be a matrix or data frame")
 	nm <- rownames(object$loadings)
@@ -155,12 +159,21 @@ predict.pls <- function(object, newdata, k, ...)
 	# predict new values
 	if ( object$transpose ) {
 		xt <- rowscale(newdata, center=object$center, scale=object$scale)
-		yhat <- t(t(b) %*% xt)
+		pred <- t(t(b) %*% xt)
 	} else {
 		x <- colscale(newdata, center=object$center, scale=object$scale)
-		yhat <- x %*% b
+		pred <- x %*% b
 	}
-	yhat
+	if ( type == "class" ) {
+		if ( is.null(colnames(pred)) ) {
+			labs <- seq_len(ncol(pred))
+		} else {
+			labs <- colnames(pred)
+		}		
+		pred <- apply(pred, 1L, which.max)
+		pred <- factor(pred, labels=labs)
+	}
+	pred
 }
 
 print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
@@ -212,9 +225,11 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
 	}
-	# prepare matrices
-	y <- as.matrix(y)
 	j <- seq_len(k)
+	# prepare matrices
+	if ( is.factor(y) || is.character(y) )
+		y <- encode_dummy(y)
+	y <- as.matrix(y)
 	weights <- matrix(nrow=P, ncol=k,
 		dimnames=list(pnames, paste0("C", j)))
 	loadings <- matrix(nrow=P, ncol=k,
@@ -247,7 +262,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 				t <- x %*% w / drop(crossprod(w, w))
 			}
 			q <- crossprod(y, t) / drop(crossprod(t, t))
-			unew <- tcrossprod(y, q) / drop(crossprod(q, q))
+			unew <- (y %*% q) / drop(crossprod(q, q))
 			du <- sqrt(sum((unew - u)^2))
 			u <- unew
 			iter <- iter + 1

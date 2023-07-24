@@ -26,23 +26,28 @@ test_that("pls - nipals", {
 	npt0 <- pls_nipals(t(x0), y, k=1, center=FALSE, transpose=TRUE)
 	npt1 <- pls_nipals(x1, y, k=2, center=FALSE)
 
+	np0f <- predict(np0)
+	np1f <- predict(np1)
+	np0p <- predict(np0, x0)
+	np1p <- predict(np1, x1)
+
 	expect_equal(coef(np0), np0$coefficients)
 	expect_equal(resid(np0), np0$residuals)
 	expect_equal(fitted(np0), np0$fitted.values)
 	expect_equal(loadings(np0), np0$loadings)
 
-	np0p <- predict(np0, x0)
-	np1p <- predict(np1, x1)
+	expect_equal(np0$fitted.values, np0f)
+	expect_equal(np1$fitted.values, np1f)
+	expect_equal(np0$fitted.values, np0p)
+	expect_equal(np1$fitted.values, np1p)
 
 	expect_equivalent(np0$weights, w10, tolerance=1e-2)
 	expect_equivalent(np0$loadings, p10, tolerance=1e-2)
 	expect_equivalent(np0$coefficients, b0, tolerance=1e-2)
-	expect_equal(np0$fitted.values, np0p)
 
 	expect_equivalent(np1$weights[,1L], w11, tolerance=1e-2)
 	expect_equivalent(np1$loadings[,1L], p11, tolerance=1e-2)
 	expect_equivalent(np1$coefficients, b1, tolerance=1e-2)
-	expect_equal(np1$fitted.values, np1p)
 
 	expect_equivalent(npt0$weights, w10, tolerance=1e-2)
 	expect_equivalent(npt0$loadings, p10, tolerance=1e-2)
@@ -73,5 +78,21 @@ test_that("pls - nipals", {
 	expect_equivalent(nop1$weights, w10, tolerance=1e-2)
 	expect_equivalent(nop1$loadings, p10, tolerance=1e-2)
 	expect_equivalent(nop1$coefficients, bo1, tolerance=1e-2)
+
+})
+
+test_that("plsda - nipals", {
+
+	x <- cbind(
+		c(-1, -5, -7.5, 10, -2.5, 5, 5),
+		c(-1, -2.5, -7.5, 7.5, 12.5, 10, 5))
+	y <- factor(c("a", "a", "a", "b", "a", "b", "b"))
+
+	np0 <- pls_nipals(x, y, k=2)
+	yf <- apply(fitted(np0), 1L, which.max)
+	yp <- predict(np0, x, type="class")
+
+	expect_equal(as.integer(y), yf)
+	expect_equal(y, yp)
 
 })

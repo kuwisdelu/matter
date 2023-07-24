@@ -729,6 +729,19 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 	y
 }
 
+# encode a dummy (one-hot) variable
+encode_dummy <- function(x, drop = TRUE) {
+	x <- as.factor(x)
+	if ( drop )
+		x <- droplevels(x)
+	v <- levels(x)
+	d <- matrix(0L, nrow=length(x), ncol=length(v))
+	for ( i in seq_along(v) )
+		d[x == v[i],i] <- 1L
+	dimnames(d) <- list(names(x), v)
+	d
+}
+
 # matrix pseudoinverse based on MASS::ginv
 pinv <- function (x, tol = sqrt(.Machine$double.eps)) 
 {
