@@ -1046,6 +1046,39 @@ approx1 <- function(x, y, xout, interp = "linear", n = length(x),
 		extrap, as_interp(interp), PACKAGE="matter")
 }
 
+#### Resolution (rate) estimation ####
+## -----------------------------------
+
+estres <- function(x, tol = 1e-6, tol.ref = NA_character_)
+{
+	if ( length(x) <= 1L )
+		return(NA_real_)
+	x <- sort(x)
+	from <- x[-length(x)]
+	to <- x[-1L]
+	rx <- 2 * ((to / from ) - 1) / ((to / from) + 1)
+	dx <- diff(x)
+	if ( (is.na(tol.ref) && diff(range(rx)) > tol) || 
+		(!is.na(tol.ref) && tol.ref == "abs" ) )
+	{
+		dx <- dx[dx > tol]
+		if ( all(dx %% min(dx) <= tol) ) {
+			res <- c(absolute = min(dx))
+		} else {
+			res <- c(absolute = NA_real_)
+		}
+	} else
+	{
+		rx <- rx[rx > tol]
+		if ( all(rx %% min(rx) <= tol) ) {
+			res <- c(relative = min(rx))
+		} else {
+			res <- c(relative = NA_real_)
+		}
+	}
+	res
+}
+
 #### Simulation ####
 ## -----------------
 

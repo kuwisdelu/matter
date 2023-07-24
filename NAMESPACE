@@ -365,6 +365,7 @@ export(
 	"peakareas",
 	"binpeaks",
 	"mergepeaks",
+	"estres",
 	"simspec",
 	"simspec1")
 

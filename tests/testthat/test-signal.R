@@ -310,6 +310,33 @@ test_that("peakareas", {
 
 })
 
+test_that("estres", {
+
+	x <- 1:100
+	y <- seq(1001L, 1100L, by=3L)
+	z <- seq_rel(501, 600, 1e-3)
+	u <- runif(100)
+
+	expect_equal(estres(x), c(absolute=1L))
+	expect_equal(estres(y), c(absolute=3L))
+	expect_equal(estres(z), c(relative=1e-3))
+	expect_equal(estres(u), c(absolute=NA_real_))
+
+	p <- expand.grid(x=1:10, y=1:10)
+	q <- expand.grid(
+		x=seq(1L, 28L, by=3L),
+		y=seq(1L, 28L, by=3L))
+	r <- jitter(as.matrix(p))
+
+	expect_equal(estres(p[,1L]), c(absolute=1L))
+	expect_equal(estres(p[,2L]), c(absolute=1L))
+	expect_equal(estres(q[,1L]), c(absolute=3L))
+	expect_equal(estres(q[,2L]), c(absolute=3L))
+	expect_equal(estres(r[,1L]), c(absolute=NA_real_))
+	expect_equal(estres(r[,2L]), c(absolute=NA_real_))
+
+})
+
 test_that("approx1 (sorted)", {
 
 	x <- c(1.0, 1.01, 1.11, 2.0, 2.22, 3.0, 3.33, 3.333, 4.0)

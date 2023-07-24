@@ -682,10 +682,12 @@ roll <- function(x, width, na.drop = FALSE, fill = NA) {
 	x
 }
 
+# discrete palette
 dpal <- function(palette = "Tableau 10") {
 	function(n) palette.colors(n, palette)
 }
 
+# continuous palette
 cpal <- function(palette = "Viridis") {
 	function(n) hcl.colors(n, palette)
 }
