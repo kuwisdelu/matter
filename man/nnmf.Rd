@@ -14,11 +14,11 @@
 
 \usage{
 # Alternating least squares
-nnmf_als(x, k = 3L, transpose = FALSE,
+nnmf_als(x, k = 3L, s = 1e-9, transpose = FALSE,
 	niter = 100L, tol = 1e-5, verbose = NA, \dots)
 
 # Multiplicative updates
-nnmf_mult(x, k = 3L, cost = c("euclidean", "KL", "IS"),
+nnmf_mult(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 	transpose = FALSE, niter = 100L,
 	tol = 1e-5, verbose = NA, \dots)
 
@@ -29,6 +29,8 @@ nnmf_mult(x, k = 3L, cost = c("euclidean", "KL", "IS"),
 	\item{x}{A nonnegative matrix.}
 
 	\item{k}{The number of NMF components to extract.}
+
+	\item{s}{A regularization parameter to prevent singularities.}
 
 	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and calculating the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
@@ -51,7 +53,7 @@ nnmf_mult(x, k = 3L, cost = c("euclidean", "KL", "IS"),
 \details{
     This function implements nonnegative matrix factorization (NMF) using either alternating least squares as described by Berry at al. (2007) or multiplicative updates from Lee and Seung (2000) and further described by Burred (2014). The algorithms are initialized using nonnegative double singular value decomposition (NNDSVD) from Boutsidis and Gallopoulos (2008).
 
-    The algorithm using multiplicative updates (\code{nnmf_mult()}) tends to be more stable but converges more slowly. The alternative least squares algorithm (\code{nnmf_als()}) tends to converge faster to more accurate results, but can be more susceptible to singularities.
+    The algorithm using multiplicative updates (\code{nnmf_mult()}) tends to be more stable but converges more slowly. The alternative least squares algorithm (\code{nnmf_als()}) tends to converge faster to more accurate results, but can be less numerically stable than the multiplicative updates algorithm.
 
     Note that \code{method = "euclidean"} is the only method that can handle out-of-memory \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices. \code{x} will be coerced to an in-memory matrix for other methods.
 }

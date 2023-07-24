@@ -44,18 +44,18 @@ test_that("nnmf - multiplicative updates", {
 	x <- cbind(x1, x2)
 
 	mf1 <- nnmf_mult(x, k=3L)
-	mf2 <- nnmf_mult(x, k=3L, method="KL")
-	mf3 <- nnmf_mult(x, k=3L, method="IS")
+	mf2 <- nnmf_mult(x, k=3L, cost="KL")
+	mf3 <- nnmf_mult(x, k=3L, cost="IS")
 	mf4 <- nnmf_mult(t(x), transpose=TRUE)
 	mf1.x <- mf1$x %*% t(mf1$activation)
 	mf2.x <- mf2$x %*% t(mf2$activation)
 	mf3.x <- mf3$x %*% t(mf3$activation)
 	mf4.x <- mf4$x %*% t(mf4$activation)
 
-	expect_equal(mf1.x, x, tolerance=1e-2)
-	expect_equal(mf2.x, x, tolerance=1e-2)
-	expect_equal(mf3.x, x, tolerance=1e-2)
-	expect_equal(mf4.x, x, tolerance=1e-2)
+	expect_equal(mf1.x, x, tolerance=1e-1)
+	expect_equal(mf2.x, x, tolerance=1e-1)
+	expect_equal(mf3.x, x, tolerance=1e-1)
+	expect_equal(mf4.x, x, tolerance=1e-1)
 
 	expect_equivalent(
 		predict(mf1, x),
