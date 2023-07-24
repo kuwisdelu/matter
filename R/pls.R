@@ -52,6 +52,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(colnames(y), paste0("C", j)))
 	y.scores <- matrix(nrow=nrow(y), ncol=k,
 		dimnames=list(rownames(y), paste0("C", j)))
+	inner <- numeric(k)
 	y0 <- y
 	for ( i in j )
 	{
@@ -96,19 +97,21 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		scores[,i] <- t
 		y.loadings[,i] <- q
 		y.scores[,i] <- u
+		inner[i] <- c
 	}
 	# calculate regression coefficients
 	h <- weights %*% solve(crossprod(loadings, weights))
-	b <- tcrossprod(h, y.loadings)
+	cq <- tcrossprod(inner * diag(k), y.loadings)
+	b <- h %*% cq
 	if ( transpose ) {
 		yhat <- t(t(b) %*% xt0)
 	} else {
 		yhat <- x0 %*% b
 	}
 	# return results
-	ans <- list(coefficients=b, residuals=y0 - yhat,
-		fitted.values=yhat, weights=weights, loadings=loadings,
-		scores=scores, y.loadings=y.loadings, y.scores=y.scores)
+	ans <- list(coefficients=b, residuals=y0 - yhat, fitted.values=yhat,
+		weights=weights, loadings=loadings, scores=scores,
+		y.loadings=y.loadings, y.scores=y.scores, inner=inner)
 	ans$transpose <- transpose
 	if ( is.null(center) ) {
 		ans$center <- FALSE
@@ -161,7 +164,8 @@ predict.pls <- function(object, newdata,
 	y.loadings <- object$y.loadings[,1:k,drop=FALSE]
 	# calculate regression coefficients
 	h <- weights %*% solve(crossprod(loadings, weights))
-	b <- tcrossprod(h, y.loadings)
+	cq <- tcrossprod(object$inner * diag(k), y.loadings)
+	b <- h %*% cq
 	# predict new values
 	if ( object$transpose ) {
 		xt <- rowscale(newdata, center=object$center, scale=object$scale)
