@@ -96,8 +96,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		y.scores[,i] <- u
 	}
 	# calculate regression coefficients
-	hat <- weights %*% solve(crossprod(loadings, weights))
-	b <- tcrossprod(hat, y.loadings)
+	h <- weights %*% solve(crossprod(loadings, weights))
+	b <- tcrossprod(h, y.loadings)
 	if ( transpose ) {
 		yhat <- t(t(b) %*% xt0)
 	} else {
@@ -123,10 +123,14 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.pls <- function(object, newdata, ...)
+predict.pls <- function(object, newdata, k, ...)
 {
-	if ( missing(newdata) )
+	if ( missing(newdata) && missing(k) )
 		return(object$x)
+	if ( missing(k) )
+		k <- ncol(object$loadings)
+	if ( missing(newdata) )
+		stop("'newdata' must be specified if 'k' is specified")
 	if ( length(dim(newdata)) != 2L )
 		stop("'newdata' must be a matrix or data frame")
 	nm <- rownames(object$loadings)
@@ -139,19 +143,29 @@ predict.pls <- function(object, newdata, ...)
 		if ( ncol(newdata) != nrow(object$loadings) )
 			stop("'newdata' does not have the correct number of columns")
 	}
+	# extract relevant components
+	if ( k > ncol(object$loadings) )
+		stop("'k' is larger than the number of components")
+	weights <- object$weights[,1:k,drop=FALSE]
+	loadings <- object$loadings[,1:k,drop=FALSE]
+	y.loadings <- object$y.loadings[,1:k,drop=FALSE]
+	# calculate regression coefficients
+	h <- weights %*% solve(crossprod(loadings, weights))
+	b <- tcrossprod(h, y.loadings)
+	# predict new values
 	if ( object$transpose ) {
 		xt <- rowscale(newdata, center=object$center, scale=object$scale)
-		yhat <- t(t(object$coefficients) %*% xt)
+		yhat <- t(t(b) %*% xt)
 	} else {
 		x <- colscale(newdata, center=object$center, scale=object$scale)
-		yhat <- x %*% object$coefficients
+		yhat <- x %*% b
 	}
 	yhat
 }
 
 print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
-	cat(sprintf("Partial least squares (k = %d)\n", nrow(x$loadings)))
+	cat(sprintf("Partial least squares (k = %d)\n", ncol(x$loadings)))
 	if (length(coef(x))) {
 		cat("\nCoefficients:\n")
 		print.default(format(t(coef(x)), digits = digits), print.gap = 2L, 
@@ -263,8 +277,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	}
 	# return results
 	ans <- list(weights=weights, loadings=loadings, scores=scores)
-	ans$x <- if (transpose) xt else x
 	ans$transpose <- transpose
+	ans$x <- if (transpose) xt else x
 	if ( is.null(center) ) {
 		ans$center <- FALSE
 	} else {
