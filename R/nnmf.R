@@ -146,7 +146,7 @@ predict.nnmf <- function(object, newdata, ...)
 print.nnmf <- function(x, print.x = FALSE, ...)
 {
 	d <- dim(x$activation)
-	cat(sprintf("Activation (n x k) = (%d x %d):\n", d[1], d[2]))
+	cat(sprintf("Activation (n x k) = (%d x %d):\n", d[1L], d[2L]))
 	print(x$activation, ...)
 	if ( print.x && length(x$x) ) {
 		cat("\nBasis variables:\n")

@@ -42,4 +42,26 @@ test_that("pls - nipals", {
 	expect_equivalent(npt1$loadings[,1L], p11, tolerance=1e-2)
 	expect_equivalent(npt1$coefficients, b1, tolerance=1e-2)
 
+	no1 <- opls_nipals(x1, y, k=1, center=FALSE)
+	not1 <- opls_nipals(t(x1), y, k=1, center=FALSE, transpose=TRUE)
+	nop1 <- pls_nipals(no1$x, y, k=1, center=FALSE)
+
+	wo1 <- c(-0.89, 0.45)
+	po1 <- c(-1.16, -0.09)
+	to1 <- c(0.97, -1.71, 1.11, -0.37)
+	
+	bo1 <- c(-0.41, -0.82)
+
+	expect_equivalent(no1$weights, wo1, tolerance=1e-2)
+	expect_equivalent(no1$loadings, po1, tolerance=1e-2)
+	expect_equivalent(no1$scores, to1, tolerance=1e-2)
+
+	expect_equivalent(not1$weights, wo1, tolerance=1e-2)
+	expect_equivalent(not1$loadings, po1, tolerance=1e-2)
+	expect_equivalent(not1$scores, to1, tolerance=1e-2)
+
+	expect_equivalent(nop1$weights, w10, tolerance=1e-2)
+	expect_equivalent(nop1$loadings, p10, tolerance=1e-2)
+	expect_equivalent(nop1$coefficients, bo1, tolerance=1e-2)
+
 })

@@ -256,7 +256,7 @@ as_real_memory_matrix <- function(x) {
 	if ( is.matrix(x) || is(x, "Matrix") ) {
 		x
 	} else {
-		warning("coercing 'x' to a matrix")
+		warning("coercing input to a local matrix")
 		as.matrix(x)
 	}
 }
