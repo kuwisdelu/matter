@@ -2,7 +2,7 @@
 #### Partial least squares ####
 ## ----------------------------
 
-# the idea is to decompose x and y
+# basic idea is to decompose x and y
 # x = t * p.t
 # y = u * q.t
 # using the cross-covariance s(x,y)
@@ -17,7 +17,13 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 {
 	x <- as_real_memory_matrix(x)
 	k <- min(k, dim(x))
-	# center and scale x
+	# center and scale x and y
+	if ( is.factor(y) || is.character(y) )
+		y <- encode_dummy(y)
+	y <- as.matrix(y)
+	y <- colscale(y, center=center, scale=scale.)
+	y.center <- attr(y, "col-scaled:center")
+	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
 		P <- nrow(x)
 		N <- ncol(x)
@@ -37,11 +43,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
 	}
-	j <- seq_len(k)
 	# prepare matrices
-	if ( is.factor(y) || is.character(y) )
-		y <- encode_dummy(y)
-	y <- as.matrix(y)
+	j <- seq_len(k)
 	weights <- matrix(nrow=P, ncol=k,
 		dimnames=list(pnames, paste0("C", j)))
 	loadings <- matrix(nrow=P, ncol=k,
@@ -108,21 +111,19 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	} else {
 		yhat <- x0 %*% b
 	}
+	if ( is.numeric(y.scale) )
+		yhat <- colsweep(yhat, y.scale, "*")
+	if ( is.numeric(y.center) )
+		yhat <- colsweep(yhat, y.center, "+")
 	# return results
 	ans <- list(coefficients=b, residuals=y0 - yhat, fitted.values=yhat,
 		weights=weights, loadings=loadings, scores=scores,
 		y.loadings=y.loadings, y.scores=y.scores, inner=inner)
 	ans$transpose <- transpose
-	if ( is.null(center) ) {
-		ans$center <- FALSE
-	} else {
-		ans$center <- center
-	}
-	if ( is.null(scale) ) {
-		ans$scale <- FALSE
-	} else {
-		ans$scale <- scale
-	}
+	ans$center <- if(is.null(center)) FALSE else center
+	ans$scale <- if(is.null(scale)) FALSE else scale
+	ans$y.center <- if(is.null(y.center)) FALSE else y.center
+	ans$y.scale <- if(is.null(y.scale)) FALSE else y.scale
 	ans$algorithm <- "nipals"
 	class(ans) <- "pls"
 	ans
@@ -132,8 +133,13 @@ predict.pls <- function(object, newdata,
 	type = c("response", "class"), k = NULL, ...)
 {
 	type <- match.arg(type)
-	if ( missing(newdata) && is.null(k) )
-		return(fitted(object))
+	if ( missing(newdata) && is.null(k) ) {
+		if ( type == "class" ) {
+			return(predict_class(fitted(object)))
+		} else {
+			return(fitted(object))
+		}
+	}
 	if ( missing(newdata) )
 		stop("'newdata' must be specified if 'k' is specified")
 	if ( is.null(k) )
@@ -174,15 +180,12 @@ predict.pls <- function(object, newdata,
 		x <- colscale(newdata, center=object$center, scale=object$scale)
 		pred <- x %*% b
 	}
-	if ( type == "class" ) {
-		if ( is.null(colnames(pred)) ) {
-			labs <- seq_len(ncol(pred))
-		} else {
-			labs <- colnames(pred)
-		}		
-		pred <- apply(pred, 1L, which.max)
-		pred <- factor(pred, labels=labs)
-	}
+	if ( is.numeric(object$y.scale) )
+		pred <- colsweep(pred, object$y.scale, "*")
+	if ( is.numeric(object$y.center) )
+		pred <- colsweep(pred, object$y.center, "+")
+	if ( type == "class" )
+		pred <- predict_class(pred)
 	pred
 }
 
@@ -214,7 +217,13 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 {
 	x <- as_real_memory_matrix(x)
 	k <- min(k, dim(x))
-	# center and scale x
+	# center and scale x and y
+	if ( is.factor(y) || is.character(y) )
+		y <- encode_dummy(y)
+	y <- as.matrix(y)
+	y <- colscale(y, center=center, scale=scale.)
+	y.center <- attr(y, "col-scaled:center")
+	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
 		P <- nrow(x)
 		N <- ncol(x)
@@ -234,11 +243,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
 	}
-	j <- seq_len(k)
 	# prepare matrices
-	if ( is.factor(y) || is.character(y) )
-		y <- encode_dummy(y)
-	y <- as.matrix(y)
+	j <- seq_len(k)
 	weights <- matrix(nrow=P, ncol=k,
 		dimnames=list(pnames, paste0("C", j)))
 	loadings <- matrix(nrow=P, ncol=k,
@@ -308,16 +314,10 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans <- list(weights=weights, loadings=loadings,
 		scores=scores, ratio=ratio, x=x)
 	ans$transpose <- transpose
-	if ( is.null(center) ) {
-		ans$center <- FALSE
-	} else {
-		ans$center <- center
-	}
-	if ( is.null(scale) ) {
-		ans$scale <- FALSE
-	} else {
-		ans$scale <- scale
-	}
+	ans$center <- if(is.null(center)) FALSE else center
+	ans$scale <- if(is.null(scale)) FALSE else scale
+	ans$y.center <- if(is.null(y.center)) FALSE else y.center
+	ans$y.scale <- if(is.null(y.scale)) FALSE else y.scale
 	ans$algorithm <- "nipals"
 	class(ans) <- "opls"
 	ans

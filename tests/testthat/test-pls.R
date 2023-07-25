@@ -66,10 +66,12 @@ test_that("pls - da", {
 		c(-1, -2.5, -7.5, 7.5, 12.5, 10, 5))
 	y <- factor(c("a", "a", "a", "b", "a", "b", "b"))
 
-	np0 <- pls_nipals(x, y, k=2)
-	yf <- apply(fitted(np0), 1L, which.max)
-	yp <- predict(np0, x, type="class")
+	np1 <- pls_nipals(x, y, k=2)
+	yf <- apply(fitted(np1), 1L, which.max)
+	yp <- predict(np1, x, type="class")
 
+	expect_equal(y, predict(np1, type="class"))
+	expect_equal(fitted(np1), predict(np1, x))
 	expect_equal(as.integer(y), yf)
 	expect_equal(y, yp)
 
@@ -126,11 +128,15 @@ test_that("opls - da", {
 		c(-1, -2.5, -7.5, 7.5, 12.5, 10, 5))
 	y <- factor(c("a", "a", "a", "b", "a", "b", "b"))
 
-	no0 <- opls_nipals(x, y, k=1)
-	np0 <- pls_nipals(no0$x, y, k=1)
-	yf <- apply(fitted(np0), 1L, which.max)
-	yp <- predict(np0, no0$x, type="class")
+	no1 <- opls_nipals(x, y, k=1)
+	np1 <- pls_nipals(no1$x, y, k=1)
+	yf <- apply(fitted(np1), 1L, which.max)
+	yp <- predict(np1, no1$x, type="class")
 
+	expect_equal(no1$x, predict(no1))
+	
+	expect_equal(y, predict(np1, type="class"))
+	expect_equal(fitted(np1), predict(np1, no1$x))
 	expect_equal(as.integer(y), yf)
 	expect_equal(y, yp)
 

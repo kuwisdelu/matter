@@ -294,8 +294,8 @@ as_weights <- function(x) {
 	make_code(codes, x[1L], nomatch=1L)
 }
 
-#### Miscellaneous utility functions ####
-## --------------------------------------
+#### Data structure utility functions ####
+## ---------------------------------------
 
 is_nil <- function(x) is.na(x) || is.null(x)
 
@@ -647,8 +647,8 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), cls = NULL, ..
 	print(out, quote=FALSE, right=TRUE, ...)
 }
 
-#### Miscellaneous internal functions ####
-## --------------------------------------
+#### Algorithmic internal functions ####
+## -------------------------------------
 
 apply_int <- function(X, MARGIN, FUN, FUN.VALUE, ...) {
 	FUN <- match.fun(FUN)
@@ -740,6 +740,17 @@ encode_dummy <- function(x, drop = TRUE) {
 		d[x == v[i],i] <- 1L
 	dimnames(d) <- list(names(x), v)
 	d
+}
+
+# get predicted classes from scores
+predict_class <- function(scores) {
+	if ( is.null(colnames(scores)) ) {
+		labs <- seq_len(ncol(scores))
+	} else {
+		labs <- colnames(scores)
+	}		
+	cls <- apply(scores, 1L, which.max)
+	factor(cls, labels=labs)
 }
 
 # matrix pseudoinverse based on MASS::ginv
