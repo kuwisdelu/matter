@@ -56,6 +56,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	y.scores <- matrix(nrow=nrow(y), ncol=k,
 		dimnames=list(rownames(y), paste0("C", j)))
 	inner <- setNames(numeric(k), paste0("C", j))
+	cvar <- setNames(numeric(k), paste0("C", j))
 	y0 <- y
 	for ( i in j )
 	{
@@ -95,6 +96,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			x <- x - tcrossprod(t, p)
 			y <- y - drop(c) * tcrossprod(t, q)
 		}
+		cvar[i] <- crossprod(t, u)
 		weights[,i] <- w
 		loadings[,i] <- p
 		scores[,i] <- t
@@ -116,9 +118,9 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.numeric(y.center) )
 		yhat <- colsweep(yhat, y.center, "+")
 	# return results
-	ans <- list(coefficients=b, residuals=y0 - yhat, fitted.values=yhat,
-		weights=weights, loadings=loadings, scores=scores,
-		y.loadings=y.loadings, y.scores=y.scores, inner=inner)
+	ans <- list(coefficients=b, residuals=y0 - yhat,
+		fitted.values=yhat, weights=weights, loadings=loadings, scores=scores,
+		y.loadings=y.loadings, y.scores=y.scores, inner=inner, cvar=cvar)
 	ans$transpose <- transpose
 	ans$center <- if(is.null(center)) FALSE else center
 	ans$scale <- if(is.null(scale)) FALSE else scale
@@ -193,6 +195,8 @@ predict.pls <- function(object, newdata, k = NULL,
 print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
 	cat(sprintf("Partial least squares (k=%d)\n", ncol(x$loadings)))
+	cat(sprintf("\nCovariances (1, .., k=%d):\n", length(x$cvar)))
+    print(x$cvar, ...)
 	if (length(coef(x))) {
 		cat("\nCoefficients:\n")
 		print.default(format(t(coef(x)), digits = digits), print.gap = 2L, 
@@ -316,8 +320,9 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		ratio[i] <- ro
 	}
 	# return results
+	x <- if (transpose) xt else x
 	ans <- list(weights=weights, loadings=loadings,
-		scores=scores, ratio=ratio, x=if (transpose) xt else x)
+		scores=scores, ratio=ratio, x=x)
 	ans$transpose <- transpose
 	ans$center <- if(is.null(center)) FALSE else center
 	ans$scale <- if(is.null(scale)) FALSE else scale
