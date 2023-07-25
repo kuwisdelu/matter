@@ -298,6 +298,7 @@ export(
 	"nnmf_mult",
 	"prcomp_lanczos",
 	"pls_nipals",
+	"pls_kernel",
 	"opls_nipals")
 
 S3method("predict", "nnmf")

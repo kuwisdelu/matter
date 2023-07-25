@@ -55,8 +55,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(colnames(y), paste0("C", j)))
 	y.scores <- matrix(nrow=nrow(y), ncol=k,
 		dimnames=list(rownames(y), paste0("C", j)))
-	inner <- setNames(numeric(k), paste0("C", j))
 	cvar <- setNames(numeric(k), paste0("C", j))
+	inner <- numeric(k)
 	y0 <- y
 	for ( i in j )
 	{
@@ -66,17 +66,19 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		# calculate projections vectors
 		while ( iter <= niter && du > tol )
 		{
+			uu <- sum(u^2)
 			if ( transpose ) {
-				w <- xt %*% u / drop(crossprod(u, u))
+				w <- xt %*% u / uu
 				w <- w / sqrt(sum(w^2))
-				t <- crossprod(xt, w) / drop(crossprod(w, w))
+				t <- crossprod(xt, w) / sum(w^2)
 			} else {
-				w <- crossprod(x, u) / drop(crossprod(u, u))
+				w <- crossprod(x, u) / uu
 				w <- w / sqrt(sum(w^2))
-				t <- x %*% w / drop(crossprod(w, w))
+				t <- x %*% w / sum(w^2)
 			}
-			q <- crossprod(y, t) / drop(crossprod(t, t))
-			unew <- (y %*% q) / drop(crossprod(q, q))
+			tt <- sum(t^2)
+			q <- crossprod(y, t) / tt
+			unew <- (y %*% q) / sum(q^2)
 			du <- sqrt(sum((unew - u)^2))
 			u <- unew
 			iter <- iter + 1
@@ -86,16 +88,17 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 				iter - 1, " iterations for component ", i)
 		# deflate x and y based on projection
 		if ( transpose ) {
-			p <- xt %*% t / drop(crossprod(t, t))
-			c <- crossprod(u, t) / drop(crossprod(t, t))
+			p <- xt %*% t / tt
+			c <- crossprod(u, t) / tt
 			xt <- xt - tcrossprod(p, t)
 			y <- y - drop(c) * tcrossprod(t, q)
 		} else {
-			p <- crossprod(x, t) / drop(crossprod(t, t))
-			c <- crossprod(u, t) / drop(crossprod(t, t))
+			p <- crossprod(x, t) / tt
+			c <- crossprod(u, t) / tt
 			x <- x - tcrossprod(t, p)
 			y <- y - drop(c) * tcrossprod(t, q)
 		}
+		# save current results
 		cvar[i] <- crossprod(t, u)
 		weights[,i] <- w
 		loadings[,i] <- p
@@ -105,9 +108,10 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		inner[i] <- c
 	}
 	# calculate regression coefficients
-	h <- weights %*% solve(crossprod(loadings, weights))
-	cq <- tcrossprod(inner * diag(k), y.loadings)
-	b <- h %*% cq
+	projection <- weights %*% solve(crossprod(loadings, weights))
+	projection <- projection %*% (inner * diag(k))
+	dimnames(projection) <- list(pnames, paste0("C", j))
+	b <- tcrossprod(projection, y.loadings)
 	if ( transpose ) {
 		yhat <- t(t(b) %*% xt0)
 	} else {
@@ -118,9 +122,124 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.numeric(y.center) )
 		yhat <- colsweep(yhat, y.center, "+")
 	# return results
-	ans <- list(coefficients=b, residuals=y0 - yhat,
+	ans <- list(coefficients=b, projection=projection, residuals=y0 - yhat,
 		fitted.values=yhat, weights=weights, loadings=loadings, scores=scores,
-		y.loadings=y.loadings, y.scores=y.scores, inner=inner, cvar=cvar)
+		y.loadings=y.loadings, y.scores=y.scores, cvar=cvar)
+	ans$transpose <- transpose
+	ans$center <- if(is.null(center)) FALSE else center
+	ans$scale <- if(is.null(scale)) FALSE else scale
+	ans$y.center <- if(is.null(y.center)) FALSE else y.center
+	ans$y.scale <- if(is.null(y.scale)) FALSE else y.scale
+	ans$algorithm <- "nipals"
+	class(ans) <- "pls"
+	ans
+}
+
+# Kernel (#1 and #2)
+pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
+	transpose = FALSE, method = 1L, verbose = NA, ...)
+{
+	k <- min(k, dim(x))
+	# center and scale x and y + calculate covariance
+	if ( is.factor(y) || is.character(y) )
+		y <- encode_dummy(y)
+	y <- as.matrix(y)
+	y <- colscale(y, center=center, scale=scale.)
+	y.center <- attr(y, "col-scaled:center")
+	y.scale <- attr(y, "col-scaled:scale")
+	if ( transpose ) {
+		P <- nrow(x)
+		N <- ncol(x)
+		pnames <- rownames(x)
+		snames <- colnames(x)
+		xt <- rowscale(x, center=center, scale=scale.)
+		center <- attr(xt, "row-scaled:center")
+		scale <- attr(xt, "row-scaled:scale")
+		xy <- xt %*% y
+		if ( method == 2L )
+			xx <- tcrossprod(xt, xt)
+	} else {
+		P <- ncol(x)
+		N <- nrow(x)
+		pnames <- colnames(x)
+		snames <- rownames(x)
+		x <- colscale(x, center=center, scale=scale.)
+		center <- attr(x, "col-scaled:center")
+		scale <- attr(x, "col-scaled:scale")
+		xy <- crossprod(x, y)
+		if ( method == 2L )
+			xx <- crossprod(x, x)
+	}
+	# prepare matrices
+	j <- seq_len(k)
+	projection <- matrix(nrow=P, ncol=k,
+		dimnames=list(pnames, paste0("C", j)))
+	weights <- matrix(nrow=P, ncol=k,
+		dimnames=list(pnames, paste0("C", j)))
+	loadings <- matrix(nrow=P, ncol=k,
+		dimnames=list(pnames, paste0("C", j)))
+	y.loadings <- matrix(nrow=ncol(y), ncol=k,
+		dimnames=list(colnames(y), paste0("C", j)))
+	for ( i in j )
+	{
+		# calculate projection vectors
+		if ( ncol(y) < P ) {
+			yxxy <- crossprod(xy, xy)
+			q <- eigen(yxxy, symmetric=TRUE)$vectors[,1L,drop=FALSE]
+			w <- xy %*% q
+		} else {
+			xyyx <- tcrossprod(xy, xy)
+			w <- eigen(xyyx, symmetric=TRUE)$vectors[,1L,drop=FALSE]
+		}
+		w <- w / sqrt(sum(w^2))
+		r <- w
+		if ( i > 1L ) {
+			pk <- loadings[,1L:(i - 1L),drop=FALSE]
+			rk <- projection[,1L:(i - 1L),drop=FALSE]
+			r <- r - colSums(crossprod(w, pk) %*% t(rk))
+		}
+		# calculate loadings
+		if ( method == 1L ) {
+			if ( transpose ) {
+				t <- t(crossprod(r, xt))
+				tt <- sum(t^2)
+				p <- (xt %*% t) / tt
+			} else {
+				t <- x %*% r
+				tt <- sum(t^2)
+				p <- crossprod(x, t) / tt
+			}
+			q <- crossprod(xy, r) / tt
+		} else if ( method == 2L ) {
+			tt <- drop(crossprod(r, xx %*% r))
+			p <- crossprod(xx, r) / tt
+			q <- crossprod(xy, r) / tt
+		} else {
+			stop("unrecognized kernel method: ", method)
+		}
+		# update covariance
+		xy <- xy - tcrossprod(p, q) * tt
+		# save current results
+		weights[,i] <- w
+		loadings[,i] <- p
+		y.loadings[,i] <- q
+		projection[,i] <- r
+	}
+	# calculate regression coefficients
+	b <- tcrossprod(projection, y.loadings)
+	if ( transpose ) {
+		yhat <- t(t(b) %*% xt)
+	} else {
+		yhat <- x %*% b
+	}
+	if ( is.numeric(y.scale) )
+		yhat <- colsweep(yhat, y.scale, "*")
+	if ( is.numeric(y.center) )
+		yhat <- colsweep(yhat, y.center, "+")
+	# return results
+	ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
+		fitted.values=yhat, weights=weights, loadings=loadings,
+		y.loadings=y.loadings)
 	ans$transpose <- transpose
 	ans$center <- if(is.null(center)) FALSE else center
 	ans$scale <- if(is.null(scale)) FALSE else scale
@@ -167,14 +286,10 @@ predict.pls <- function(object, newdata, k = NULL,
 	# extract relevant components
 	if ( k > ncol(object$loadings) )
 		stop("'k' is larger than the number of components")
-	inner <- object$inner[1:k]
-	weights <- object$weights[,1:k,drop=FALSE]
-	loadings <- object$loadings[,1:k,drop=FALSE]
+	projection <- object$projection[,1:k,drop=FALSE]
 	y.loadings <- object$y.loadings[,1:k,drop=FALSE]
 	# calculate regression coefficients
-	h <- weights %*% solve(crossprod(loadings, weights))
-	cq <- tcrossprod(inner * diag(k), y.loadings)
-	b <- h %*% cq
+	b <- tcrossprod(projection, y.loadings)
 	# predict new values
 	if ( object$transpose ) {
 		xt <- rowscale(newdata, center=object$center, scale=object$scale)
@@ -272,17 +387,19 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		# projection same as regular pls
 		while ( iter <= niter && du > tol )
 		{
+			uu <- sum(u^2)
 			if ( transpose ) {
-				w <- xt %*% u / drop(crossprod(u, u))
+				w <- xt %*% u / uu
 				w <- w / sqrt(sum(w^2))
-				t <- crossprod(xt, w) / drop(crossprod(w, w))
+				t <- crossprod(xt, w) / sum(w^2)
 			} else {
-				w <- crossprod(x, u) / drop(crossprod(u, u))
+				w <- crossprod(x, u) / uu
 				w <- w / sqrt(sum(w^2))
-				t <- x %*% w / drop(crossprod(w, w))
+				t <- x %*% w / sum(w^2)
 			}
-			q <- crossprod(y, t) / drop(crossprod(t, t))
-			unew <- (y %*% q) / drop(crossprod(q, q))
+			tt <- sum(t^2)
+			q <- crossprod(y, t) / tt
+			unew <- (y %*% q) / sum(q^2)
 			du <- sqrt(sum((unew - u)^2))
 			u <- unew
 			iter <- iter + 1
@@ -292,26 +409,26 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 				iter - 1, " iterations for component ", i)
 		# orthogonalize projection
 		if ( transpose ) {
-			p <- xt %*% t / drop(crossprod(t, t))
+			p <- xt %*% t / tt
 			pnorm <- sqrt(sum(p^2))
 			for ( l in seq_len(ncol(tw)) )
 				p <- p - drop(crossprod(tw[,l], p) / sum(tw[,l]^2)) * tw[,l]
 			wo <- p
 			ro <- sqrt(sum(wo^2)) / pnorm
 			wo <- wo / sqrt(sum(wo^2))
-			to <- t(crossprod(wo, xt)) / drop(crossprod(wo, wo))
-			po <- (xt %*% to) / drop(crossprod(to, to))
+			to <- t(crossprod(wo, xt)) / sum(wo^2)
+			po <- (xt %*% to) / sum(to^2)
 			xt <- xt - tcrossprod(po, to)
 		} else {
-			p <- crossprod(x, t) / drop(crossprod(t, t))
+			p <- crossprod(x, t) / tt
 			pnorm <- sqrt(sum(p^2))
 			for ( l in seq_len(ncol(tw)) )
 				p <- p - drop(crossprod(tw[,l], p) / sum(tw[,l]^2)) * tw[,l]
 			wo <- p
 			ro <- sqrt(sum(wo^2)) / pnorm
 			wo <- wo / sqrt(sum(wo^2))
-			to <- (x %*% wo) / drop(crossprod(wo, wo))
-			po <- crossprod(x, to) / drop(crossprod(to, to))
+			to <- (x %*% wo) / sum(wo^2)
+			po <- crossprod(x, to) / sum(to^2)
 			x <- x - tcrossprod(to, po)
 		}
 		weights[,i] <- wo

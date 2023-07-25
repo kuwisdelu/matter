@@ -24,22 +24,7 @@ test_that("pls - nipals", {
 	np0 <- pls_nipals(x0, y, k=1, center=FALSE)
 	np1 <- pls_nipals(x1, y, k=2, center=FALSE)
 	npt0 <- pls_nipals(t(x0), y, k=1, center=FALSE, transpose=TRUE)
-	npt1 <- pls_nipals(x1, y, k=2, center=FALSE)
-
-	np0f <- predict(np0)
-	np1f <- predict(np1)
-	np0p <- predict(np0, x0)
-	np1p <- predict(np1, x1)
-
-	expect_equal(coef(np0), np0$coefficients)
-	expect_equal(resid(np0), np0$residuals)
-	expect_equal(fitted(np0), np0$fitted.values)
-	expect_equal(loadings(np0), np0$loadings)
-
-	expect_equal(np0$fitted.values, np0f)
-	expect_equal(np1$fitted.values, np1f)
-	expect_equal(np0$fitted.values, np0p)
-	expect_equal(np1$fitted.values, np1p)
+	npt1 <- pls_nipals(t(x1), y, k=2, center=FALSE, transpose=TRUE)
 
 	expect_equivalent(np0$weights, w10, tolerance=1e-2)
 	expect_equivalent(np0$loadings, p10, tolerance=1e-2)
@@ -56,6 +41,133 @@ test_that("pls - nipals", {
 	expect_equivalent(npt1$weights[,1L], w11, tolerance=1e-2)
 	expect_equivalent(npt1$loadings[,1L], p11, tolerance=1e-2)
 	expect_equivalent(npt1$coefficients, b1, tolerance=1e-2)
+
+	np0f <- predict(np0)
+	np1f <- predict(np1)
+	np0p <- predict(np0, x0)
+	np1p <- predict(np1, x1)
+
+	expect_equal(np0$fitted.values, np0f)
+	expect_equal(np1$fitted.values, np1f)
+	expect_equal(np0$fitted.values, np0p)
+	expect_equal(np1$fitted.values, np1p)
+
+	expect_equal(coef(np0), np0$coefficients)
+	expect_equal(resid(np0), np0$residuals)
+	expect_equal(fitted(np0), np0$fitted.values)
+	expect_equal(loadings(np0), np0$loadings)
+
+})
+
+test_that("pls - kernel #1", {
+
+	x0 <- cbind(
+		c(-1, 1, -1, 1),
+		c(-1, -1, 1, 1))
+	x1 <- cbind(
+		c(-2.18, 1.84, -0.48, 0.83),
+		c(-2.18, -0.16, 1.52, 0.83))
+	y <- as.matrix(c(2, 2, 0, -4))
+
+	w10 <- c(-0.45, -0.89)
+	p10 <- c(-0.45, -0.89)
+	b0 <- c(-1, -2)
+
+	w11 <- c(-0.45, -0.89)
+	p11 <- c(-0.69, -0.77)
+	b1 <- c(0.08, -1.08)
+
+	kp0 <- pls_kernel(x0, y, k=1, center=FALSE)
+	kp1 <- pls_kernel(x1, y, k=2, center=FALSE)
+	kpt0 <- pls_kernel(t(x0), y, k=1, center=FALSE, transpose=TRUE)
+	kpt1 <- pls_kernel(t(x1), y, k=2, center=FALSE, transpose=TRUE)
+
+	expect_equivalent(kp0$weights, w10, tolerance=1e-2)
+	expect_equivalent(kp0$loadings, p10, tolerance=1e-2)
+	expect_equivalent(kp0$coefficients, b0, tolerance=1e-2)
+
+	expect_equivalent(kp1$weights[,1L], w11, tolerance=1e-2)
+	expect_equivalent(kp1$loadings[,1L], p11, tolerance=1e-2)
+	expect_equivalent(kp1$coefficients, b1, tolerance=1e-2)
+
+	expect_equivalent(kpt0$weights, w10, tolerance=1e-2)
+	expect_equivalent(kpt0$loadings, p10, tolerance=1e-2)
+	expect_equivalent(kpt0$coefficients, b0, tolerance=1e-2)
+
+	expect_equivalent(kpt1$weights[,1L], w11, tolerance=1e-2)
+	expect_equivalent(kpt1$loadings[,1L], p11, tolerance=1e-2)
+	expect_equivalent(kpt1$coefficients, b1, tolerance=1e-2)
+
+	kp0f <- predict(kp0)
+	kp1f <- predict(kp1)
+	kp0p <- predict(kp0, x0)
+	kp1p <- predict(kp1, x1)
+
+	expect_equal(kp0$fitted.values, kp0f)
+	expect_equal(kp1$fitted.values, kp1f)
+	expect_equal(kp0$fitted.values, kp0p)
+	expect_equal(kp1$fitted.values, kp1p)
+
+	expect_equal(coef(kp0), kp0$coefficients)
+	expect_equal(resid(kp0), kp0$residuals)
+	expect_equal(fitted(kp0), kp0$fitted.values)
+	expect_equal(loadings(kp0), kp0$loadings)
+
+})
+
+test_that("pls - kernel #2", {
+
+	x0 <- cbind(
+		c(-1, 1, -1, 1),
+		c(-1, -1, 1, 1))
+	x1 <- cbind(
+		c(-2.18, 1.84, -0.48, 0.83),
+		c(-2.18, -0.16, 1.52, 0.83))
+	y <- as.matrix(c(2, 2, 0, -4))
+
+	w10 <- c(-0.45, -0.89)
+	p10 <- c(-0.45, -0.89)
+	b0 <- c(-1, -2)
+
+	w11 <- c(-0.45, -0.89)
+	p11 <- c(-0.69, -0.77)
+	b1 <- c(0.08, -1.08)
+
+	kp0 <- pls_kernel(x0, y, k=1, method=2, center=FALSE)
+	kp1 <- pls_kernel(x1, y, k=2, method=2, center=FALSE)
+	kpt0 <- pls_kernel(t(x0), y, k=1, method=2, center=FALSE, transpose=TRUE)
+	kpt1 <- pls_kernel(t(x1), y, k=2, method=2, center=FALSE, transpose=TRUE)
+
+	expect_equivalent(kp0$weights, w10, tolerance=1e-2)
+	expect_equivalent(kp0$loadings, p10, tolerance=1e-2)
+	expect_equivalent(kp0$coefficients, b0, tolerance=1e-2)
+
+	expect_equivalent(kp1$weights[,1L], w11, tolerance=1e-2)
+	expect_equivalent(kp1$loadings[,1L], p11, tolerance=1e-2)
+	expect_equivalent(kp1$coefficients, b1, tolerance=1e-2)
+
+	expect_equivalent(kpt0$weights, w10, tolerance=1e-2)
+	expect_equivalent(kpt0$loadings, p10, tolerance=1e-2)
+	expect_equivalent(kpt0$coefficients, b0, tolerance=1e-2)
+
+	expect_equivalent(kpt1$weights[,1L], w11, tolerance=1e-2)
+	expect_equivalent(kpt1$loadings[,1L], p11, tolerance=1e-2)
+	expect_equivalent(kpt1$coefficients, b1, tolerance=1e-2)
+
+	kp0f <- predict(kp0)
+	kp1f <- predict(kp1)
+	kp0p <- predict(kp0, x0)
+	kp1p <- predict(kp1, x1)
+
+	expect_equal(kp0$fitted.values, kp0f)
+	expect_equal(kp1$fitted.values, kp1f)
+	expect_equal(kp0$fitted.values, kp0p)
+	expect_equal(kp1$fitted.values, kp1p)
+
+	expect_equal(coef(kp0), kp0$coefficients)
+	expect_equal(resid(kp0), kp0$residuals)
+	expect_equal(fitted(kp0), kp0$fitted.values)
+	expect_equal(loadings(kp0), kp0$loadings)
 
 })
 
