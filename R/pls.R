@@ -137,7 +137,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 
 # Kernel (#1 and #2)
 pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, method = 1L, verbose = NA, ...)
+	transpose = FALSE, method = 1L, retscores = TRUE, verbose = NA, ...)
 {
 	k <- min(k, dim(x))
 	# center and scale x and y + calculate covariance
@@ -180,6 +180,13 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(pnames, paste0("C", j)))
 	y.loadings <- matrix(nrow=ncol(y), ncol=k,
 		dimnames=list(colnames(y), paste0("C", j)))
+	if ( retscores ) {
+		scores <- matrix(nrow=N, ncol=k,
+			dimnames=list(snames, paste0("C", j)))
+		y.scores <- matrix(nrow=nrow(y), ncol=k,
+			dimnames=list(rownames(y), paste0("C", j)))
+		cvar <- setNames(numeric(k), paste0("C", j))
+	}
 	for ( i in j )
 	{
 		# calculate projection vectors
@@ -211,6 +218,13 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			}
 			q <- crossprod(xy, r) / tt
 		} else if ( method == 2L ) {
+			if ( retscores ) {
+				if ( transpose ) {
+					t <- t(crossprod(r, xt))
+				} else {
+					t <- x %*% r
+				}
+			}
 			tt <- drop(crossprod(r, xx %*% r))
 			p <- crossprod(xx, r) / tt
 			q <- crossprod(xy, r) / tt
@@ -224,6 +238,16 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		loadings[,i] <- p
 		y.loadings[,i] <- q
 		projection[,i] <- r
+		if ( retscores ) {
+			u <- y %*% q / sum(q^2)
+			if ( i > 1L ) {
+				tk <- scores[,1L:(i - 1L),drop=FALSE]
+				u <- u - tk %*% crossprod(tk, u) / colSums(tk^2)
+			}
+			cvar[i] <- crossprod(t, u)
+			scores[,i] <- t
+			y.scores[,i] <- u
+		}
 	}
 	# calculate regression coefficients
 	b <- tcrossprod(projection, y.loadings)
@@ -237,9 +261,15 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.numeric(y.center) )
 		yhat <- colsweep(yhat, y.center, "+")
 	# return results
-	ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
-		fitted.values=yhat, weights=weights, loadings=loadings,
-		y.loadings=y.loadings)
+	if ( retscores ) {
+		ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
+			fitted.values=yhat, weights=weights, loadings=loadings, scores=scores,
+			y.loadings=y.loadings, y.scores=y.scores, cvar=cvar)
+	} else {
+		ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
+			fitted.values=yhat, weights=weights, loadings=loadings,
+			y.loadings=y.loadings)
+	}
 	ans$transpose <- transpose
 	ans$center <- if(is.null(center)) FALSE else center
 	ans$scale <- if(is.null(scale)) FALSE else scale
@@ -310,8 +340,10 @@ predict.pls <- function(object, newdata, k = NULL,
 print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
 	cat(sprintf("Partial least squares (k=%d)\n", ncol(x$loadings)))
-	cat(sprintf("\nCovariances (1, .., k=%d):\n", length(x$cvar)))
-    print(x$cvar, ...)
+	if ( !is.null(x$cvar) ) {
+		cat(sprintf("\nCovariances (1, .., k=%d):\n", length(x$cvar)))
+	    print(x$cvar, ...)
+	}
 	if (length(coef(x))) {
 		cat("\nCoefficients:\n")
 		print.default(format(t(coef(x)), digits = digits), print.gap = 2L, 

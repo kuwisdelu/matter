@@ -179,13 +179,31 @@ test_that("pls - da", {
 	y <- factor(c("a", "a", "a", "b", "a", "b", "b"))
 
 	np1 <- pls_nipals(x, y, k=2)
-	yf <- apply(fitted(np1), 1L, which.max)
-	yp <- predict(np1, x, type="class")
+	ynf1 <- apply(fitted(np1), 1L, which.max)
+	ynp1 <- predict(np1, x, type="class")
 
 	expect_equal(y, predict(np1, type="class"))
 	expect_equal(fitted(np1), predict(np1, x))
-	expect_equal(as.integer(y), yf)
-	expect_equal(y, yp)
+	expect_equal(as.integer(y), ynf1)
+	expect_equal(y, ynp1)
+
+	kp1 <- pls_kernel(x, y, k=2, method=1)
+	ykf1 <- apply(fitted(kp1), 1L, which.max)
+	ykp1 <- predict(kp1, x, type="class")
+
+	expect_equal(y, predict(kp1, type="class"))
+	expect_equal(fitted(kp1), predict(kp1, x))
+	expect_equal(as.integer(y), ykf1)
+	expect_equal(y, ykp1)
+
+	kp2 <- pls_kernel(x, y, k=2, method=2)
+	ykf2 <- apply(fitted(kp2), 1L, which.max)
+	ykp2 <- predict(kp2, x, type="class")
+
+	expect_equal(y, predict(kp1, type="class"))
+	expect_equal(fitted(kp1), predict(kp1, x))
+	expect_equal(as.integer(y), ykf2)
+	expect_equal(y, ykp2)
 
 })
 
@@ -253,14 +271,14 @@ test_that("opls - da", {
 
 	no1 <- opls_nipals(x, y, k=1)
 	np1 <- pls_nipals(no1$x, y, k=1)
-	yf <- apply(fitted(np1), 1L, which.max)
-	yp <- predict(np1, no1$x, type="class")
+	ynf1 <- apply(fitted(np1), 1L, which.max)
+	ynp1 <- predict(np1, no1$x, type="class")
 
 	expect_equal(no1$x, predict(no1))
 
 	expect_equal(y, predict(np1, type="class"))
 	expect_equal(fitted(np1), predict(np1, no1$x))
-	expect_equal(as.integer(y), yf)
-	expect_equal(y, yp)
+	expect_equal(as.integer(y), ynf1)
+	expect_equal(y, ynp1)
 
 })
