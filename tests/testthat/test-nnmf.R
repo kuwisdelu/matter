@@ -27,7 +27,7 @@ test_that("nnmf - alternating least squares", {
 
 	expect_equal(mft.x, x, tolerance=5e-2)
 	expect_equivalent(
-		predict(mft, x),
+		predict(mft, t(x)),
 		mft$x, tolerance=2e-1)
 
 })
@@ -67,7 +67,7 @@ test_that("nnmf - multiplicative updates", {
 		predict(mf3, x),
 		mf3$x, tolerance=2e-1)
 	expect_equivalent(
-		predict(mf4, x),
+		predict(mf4, t(x)),
 		mf4$x, tolerance=2e-1)
 
 })

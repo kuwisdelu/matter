@@ -48,6 +48,7 @@ nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
 		dimnames(ans$activation) <- list(colnames(x), paste0("C", j))
 		dimnames(ans$x) <- list(rownames(x), paste0("C", j))
 	}
+	ans$transpose <- transpose
 	class(ans) <- "nnmf"
 	ans
 }
@@ -119,6 +120,7 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 		dimnames(ans$activation) <- list(colnames(x), paste0("C", j))
 		dimnames(ans$x) <- list(rownames(x), paste0("C", j))
 	}
+	ans$transpose <- transpose
 	class(ans) <- "nnmf"
 	ans
 }
@@ -136,7 +138,7 @@ predict.nnmf <- function(object, newdata, ...)
 		if ( !all(nm %in% v) )
 			stop("'newdata' does not have named features ",
 				"matching one of more of the original features")
-		if ( transpose ) {
+		if ( object$transpose ) {
 			newdata <- newdata[nm,,drop=FALSE]
 		} else {
 			newdata <- newdata[,nm,drop=FALSE]
@@ -145,7 +147,11 @@ predict.nnmf <- function(object, newdata, ...)
 		if ( p != nrow(object$activation) )
 			stop("'newdata' does not have the correct number of features")
 	}
-	x <- newdata %*% pinv(t(object$activation))
+	if ( object$transpose ) {
+		x <- t(pinv(object$activation) %*% newdata)
+	} else {
+		x <- newdata %*% pinv(t(object$activation))
+	}
 	x * (x >= 0)
 }
 

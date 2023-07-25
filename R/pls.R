@@ -280,11 +280,11 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.pls <- function(object, newdata, k = NULL,
+predict.pls <- function(object, newdata, k,
 	type = c("response", "class"), ...)
 {
 	type <- match.arg(type)
-	if ( missing(newdata) && is.null(k) ) {
+	if ( missing(newdata) && missing(k) ) {
 		if ( type == "class" ) {
 			return(predict_class(fitted(object)))
 		} else {
@@ -293,7 +293,7 @@ predict.pls <- function(object, newdata, k = NULL,
 	}
 	if ( missing(newdata) )
 		stop("'newdata' must be specified if 'k' is specified")
-	if ( is.null(k) )
+	if ( missing(k) )
 		k <- ncol(object$loadings)
 	if ( length(dim(newdata)) != 2L )
 		stop("'newdata' must be a matrix or data frame")
@@ -482,13 +482,13 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.opls <- function(object, newdata, k = NULL, ...)
+predict.opls <- function(object, newdata, k, ...)
 {
-	if ( missing(newdata) && is.null(k) )
+	if ( missing(newdata) && missing(k) )
 		return(object$x)
 	if ( missing(newdata) )
 		stop("'newdata' must be specified if 'k' is specified")
-	if ( is.null(k) )
+	if ( missing(k) )
 		k <- ncol(object$loadings)
 	if ( length(dim(newdata)) != 2L )
 		stop("'newdata' must be a matrix or data frame")
