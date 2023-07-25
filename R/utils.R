@@ -297,6 +297,15 @@ as_weights <- function(x) {
 #### Data structure utility functions ####
 ## ---------------------------------------
 
+as_real_memory_matrix <- function(x) {
+	if ( is.matrix(x) || is(x, "Matrix") ) {
+		x
+	} else {
+		warning("coercing input to a local matrix")
+		as.matrix(x)
+	}
+}
+
 is_nil <- function(x) is.na(x) || is.null(x)
 
 is_discrete <- function(x) {
@@ -744,13 +753,14 @@ encode_dummy <- function(x, drop = TRUE) {
 
 # get predicted classes from scores
 predict_class <- function(scores) {
+	i <- seq_len(ncol(scores))
 	if ( is.null(colnames(scores)) ) {
-		labs <- seq_len(ncol(scores))
+		labs <- i
 	} else {
 		labs <- colnames(scores)
-	}		
+	}
 	cls <- apply(scores, 1L, which.max)
-	factor(cls, labels=labs)
+	factor(cls, levels=i, labels=labs)
 }
 
 # matrix pseudoinverse based on MASS::ginv

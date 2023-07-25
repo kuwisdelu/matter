@@ -55,7 +55,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(colnames(y), paste0("C", j)))
 	y.scores <- matrix(nrow=nrow(y), ncol=k,
 		dimnames=list(rownames(y), paste0("C", j)))
-	inner <- numeric(k)
+	inner <- setNames(numeric(k), paste0("C", j))
 	y0 <- y
 	for ( i in j )
 	{
@@ -129,8 +129,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.pls <- function(object, newdata,
-	type = c("response", "class"), k = NULL, ...)
+predict.pls <- function(object, newdata, k = NULL,
+	type = c("response", "class"), ...)
 {
 	type <- match.arg(type)
 	if ( missing(newdata) && is.null(k) ) {
@@ -153,7 +153,7 @@ predict.pls <- function(object, newdata,
 		if ( !all(nm %in% v) )
 			stop("'newdata' does not have named features ",
 				"matching one of more of the original features")
-		if ( transpose ) {
+		if ( object$transpose ) {
 			newdata <- newdata[nm,,drop=FALSE]
 		} else {
 			newdata <- newdata[,nm,drop=FALSE]
@@ -165,12 +165,13 @@ predict.pls <- function(object, newdata,
 	# extract relevant components
 	if ( k > ncol(object$loadings) )
 		stop("'k' is larger than the number of components")
+	inner <- object$inner[1:k]
 	weights <- object$weights[,1:k,drop=FALSE]
 	loadings <- object$loadings[,1:k,drop=FALSE]
 	y.loadings <- object$y.loadings[,1:k,drop=FALSE]
 	# calculate regression coefficients
 	h <- weights %*% solve(crossprod(loadings, weights))
-	cq <- tcrossprod(object$inner * diag(k), y.loadings)
+	cq <- tcrossprod(inner * diag(k), y.loadings)
 	b <- h %*% cq
 	# predict new values
 	if ( object$transpose ) {
@@ -251,15 +252,14 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(pnames, paste0("C", j)))
 	scores <- matrix(nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
-	ratio <- numeric(k)
+	ratio <- setNames(numeric(k), paste0("C", j))
 	y0 <- y
 	if ( transpose ) {
 		w0 <- colsweep((xt %*% y), colSums(y^2), "/")
 	} else {
 		w0 <- colsweep(crossprod(x, y), colSums(y^2), "/")
 	}
-	tw <- prcomp(w0, center=FALSE)$x
-	tw <- tw[,colSums(tw^2) / sum(w0^2) > tol,drop=FALSE]
+	tw <- prcomp(w0, center=FALSE, tol=tol)$x
 	for ( i in j )
 	{
 		u <- y[,which.max(colSums(y)),drop=FALSE]
@@ -289,16 +289,22 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		# orthogonalize projection
 		if ( transpose ) {
 			p <- xt %*% t / drop(crossprod(t, t))
-			wo <- p - colsweep(tw, crossprod(tw, p) / drop(crossprod(tw, tw)), "*")
-			r <- sqrt(sum(wo^2)) / sqrt(sum(p^2))
+			pnorm <- sqrt(sum(p^2))
+			for ( l in seq_len(ncol(tw)) )
+				p <- p - drop(crossprod(tw[,l], p) / sum(tw[,l]^2)) * tw[,l]
+			wo <- p
+			ro <- sqrt(sum(wo^2)) / pnorm
 			wo <- wo / sqrt(sum(wo^2))
 			to <- t(crossprod(wo, xt)) / drop(crossprod(wo, wo))
 			po <- (xt %*% to) / drop(crossprod(to, to))
 			xt <- xt - tcrossprod(po, to)
 		} else {
 			p <- crossprod(x, t) / drop(crossprod(t, t))
-			wo <- p - colsweep(tw, crossprod(tw, p) / drop(crossprod(tw, tw)), "*")
-			r <- sqrt(sum(wo^2)) / sqrt(sum(p^2))
+			pnorm <- sqrt(sum(p^2))
+			for ( l in seq_len(ncol(tw)) )
+				p <- p - drop(crossprod(tw[,l], p) / sum(tw[,l]^2)) * tw[,l]
+			wo <- p
+			ro <- sqrt(sum(wo^2)) / pnorm
 			wo <- wo / sqrt(sum(wo^2))
 			to <- (x %*% wo) / drop(crossprod(wo, wo))
 			po <- crossprod(x, to) / drop(crossprod(to, to))
@@ -307,12 +313,11 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		weights[,i] <- wo
 		loadings[,i] <- po
 		scores[,i] <- to
-		ratio[i] <- r
+		ratio[i] <- ro
 	}
 	# return results
-	x <- if (transpose) xt else x
 	ans <- list(weights=weights, loadings=loadings,
-		scores=scores, ratio=ratio, x=x)
+		scores=scores, ratio=ratio, x=if (transpose) xt else x)
 	ans$transpose <- transpose
 	ans$center <- if(is.null(center)) FALSE else center
 	ans$scale <- if(is.null(scale)) FALSE else scale
@@ -323,10 +328,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.opls <- function(object, newdata,
-	type = c("x", "ortho"), k = NULL, ...)
+predict.opls <- function(object, newdata, k = NULL, ...)
 {
-	type <- match.arg(type)
 	if ( missing(newdata) && is.null(k) )
 		return(object$x)
 	if ( missing(newdata) )
@@ -342,7 +345,7 @@ predict.opls <- function(object, newdata,
 		if ( !all(nm %in% v) )
 			stop("'newdata' does not have named features ",
 				"matching one of more of the original features")
-		if ( transpose ) {
+		if ( object$transpose ) {
 			newdata <- newdata[nm,,drop=FALSE]
 		} else {
 			newdata <- newdata[,nm,drop=FALSE]
@@ -359,18 +362,18 @@ predict.opls <- function(object, newdata,
 	# predict new values
 	if ( object$transpose ) {
 		xt <- rowscale(newdata, center=object$center, scale=object$scale)
-		scores <- t(crossprod(weights, xt))
-		xo <- tcrossprod(loadings, scores)
-		x <- xt
+		for ( i in seq_len(k) ) {
+			to <- t(t(weights[,i]) %*% xt) / sum(weights[,i]^2)
+			xt <- xt - tcrossprod(loadings[,i], to)
+		}
+		xt
 	} else {
 		x <- colscale(newdata, center=object$center, scale=object$scale)
-		scores <- x %*% weights
-		xo <- tcrossprod(scores, loadings)
-	}
-	if ( type == "ortho" ) {
-		xo
-	} else {
-		x - xo
+		for ( i in seq_len(k) ) {
+			to <- (x %*% weights[,i]) / sum(weights[,i]^2)
+			x <- x - tcrossprod(to, loadings[,i])
+		}
+		x
 	}
 }
 

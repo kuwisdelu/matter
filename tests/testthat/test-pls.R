@@ -119,6 +119,17 @@ test_that("opls - nipals", {
 	expect_equal(not1f, not1$x)
 	expect_equal(not1p, not1$x)
 
+	no2 <- opls_nipals(x1, y, k=2, center=FALSE)
+	nop2 <- pls_nipals(no2$x, y, k=1, center=FALSE)
+
+	no2f <- predict(no2)
+	no2p1 <- predict(no2, x1, k=1)
+	no2p2 <- predict(no2, x1, k=2)
+
+	expect_equal(no2f, no2$x)
+	expect_equal(no2p1, no1$x)
+	expect_equal(no2p2, no2$x)
+
 })
 
 test_that("opls - da", {
@@ -134,7 +145,7 @@ test_that("opls - da", {
 	yp <- predict(np1, no1$x, type="class")
 
 	expect_equal(no1$x, predict(no1))
-	
+
 	expect_equal(y, predict(np1, type="class"))
 	expect_equal(fitted(np1), predict(np1, no1$x))
 	expect_equal(as.integer(y), yf)
