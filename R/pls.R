@@ -242,7 +242,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			u <- y %*% q / sum(q^2)
 			if ( i > 1L ) {
 				tk <- scores[,1L:(i - 1L),drop=FALSE]
-				u <- u - tk %*% crossprod(tk, u) / colSums(tk^2)
+				u <- u - tk %*% (crossprod(tk, u) / colSums(tk^2))
 			}
 			cvar[i] <- crossprod(t, u)
 			scores[,i] <- t
