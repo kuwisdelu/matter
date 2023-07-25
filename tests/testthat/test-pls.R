@@ -59,6 +59,56 @@ test_that("pls - nipals", {
 
 })
 
+test_that("pls - simpls", {
+
+	x0 <- cbind(
+		c(-1, 1, -1, 1),
+		c(-1, -1, 1, 1))
+	x1 <- cbind(
+		c(-2.18, 1.84, -0.48, 0.83),
+		c(-2.18, -0.16, 1.52, 0.83))
+	y <- as.matrix(c(2, 2, 0, -4))
+
+	p10 <- c(-0.45, -0.89)
+	b0 <- c(-1, -2)
+
+	p11 <- c(-0.69, -0.77)
+	b1 <- c(0.08, -1.08)
+
+	sp0 <- pls_simpls(x0, y, k=1, center=FALSE)
+	sp1 <- pls_simpls(x1, y, k=2, center=FALSE)
+	spt0 <- pls_simpls(t(x0), y, k=1, center=FALSE, transpose=TRUE)
+	spt1 <- pls_simpls(t(x1), y, k=2, center=FALSE, transpose=TRUE)
+
+	expect_equivalent(sp0$loadings, p10, tolerance=1e-2)
+	expect_equivalent(sp0$coefficients, b0, tolerance=1e-2)
+
+	expect_equivalent(sp1$loadings[,1L], p11, tolerance=1e-2)
+	expect_equivalent(sp1$coefficients, b1, tolerance=1e-2)
+
+	expect_equivalent(spt0$loadings, p10, tolerance=1e-2)
+	expect_equivalent(spt0$coefficients, b0, tolerance=1e-2)
+
+	expect_equivalent(spt1$loadings[,1L], p11, tolerance=1e-2)
+	expect_equivalent(spt1$coefficients, b1, tolerance=1e-2)
+
+	sp0f <- predict(sp0)
+	sp1f <- predict(sp1)
+	sp0p <- predict(sp0, x0)
+	sp1p <- predict(sp1, x1)
+
+	expect_equal(sp0$fitted.values, sp0f)
+	expect_equal(sp1$fitted.values, sp1f)
+	expect_equal(sp0$fitted.values, sp0p)
+	expect_equal(sp1$fitted.values, sp1p)
+
+	expect_equal(coef(sp0), sp0$coefficients)
+	expect_equal(resid(sp0), sp0$residuals)
+	expect_equal(fitted(sp0), sp0$fitted.values)
+	expect_equal(loadings(sp0), sp0$loadings)
+
+})
+
 test_that("pls - kernel #1", {
 
 	x0 <- cbind(
@@ -186,6 +236,15 @@ test_that("pls - da", {
 	expect_equal(fitted(np1), predict(np1, x))
 	expect_equal(as.integer(y), ynf1)
 	expect_equal(y, ynp1)
+
+	sp1 <- pls_nipals(x, y, k=2)
+	ysf1 <- apply(fitted(sp1), 1L, which.max)
+	ysp1 <- predict(sp1, x, type="class")
+
+	expect_equal(y, predict(sp1, type="class"))
+	expect_equal(fitted(sp1), predict(sp1, x))
+	expect_equal(as.integer(y), ysf1)
+	expect_equal(y, ysp1)
 
 	kp1 <- pls_kernel(x, y, k=2, method=1)
 	ykf1 <- apply(fitted(kp1), 1L, which.max)

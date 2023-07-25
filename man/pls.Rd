@@ -2,6 +2,7 @@
 
 \alias{pls}
 \alias{pls_nipals}
+\alias{pls_simpls}
 \alias{pls_kernel}
 \alias{predict.pls}
 
@@ -19,6 +20,10 @@
 # NIPALS algorithm
 pls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-5, verbose = NA, \dots)
+
+# SIMPLS algorithm
+pls_simpls(x, y, k = 3L, center = TRUE, scale. = FALSE,
+	transpose = FALSE, method = 1L, retscores = TRUE, verbose = NA, \dots)
 
 # Kernel algorithm
 pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
@@ -67,11 +72,13 @@ opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 }
 
 \details{
-    These functions implement partial least squares (PLS) using the original NIPALS algorithm by Wold et al. (1983) or the kernel algorithms from Dayal and MacGregor (1997). A function for calculating orthogonal partial least squares (OPLS) using the NIPALS algorithm by Trygg and Wold (2002) is also provided.
+    These functions implement partial least squares (PLS) using the original NIPALS algorithm by Wold et al. (1983), the SIMPLS algorithm by de Jong (1993), or the kernel algorithms by Dayal and MacGregor (1997). A function for calculating orthogonal partial least squares (OPLS) processing using the NIPALS algorithm by Trygg and Wold (2002) is also provided.
 
     Both regression and classification can be performed. If passed a \code{factor}, then partial least squares discriminant analysis (PLS-DA) will be performed as described by M. Barker and W. Rayens (2003).
 
-    The kernel algorithms (\code{pls_kernel()}) tend to be faster for larger data matrices. The original NIPALS method (\code{pls_nipals()}) is the reference implementation. The results from these algorithms are proven to be equivalent for both univariate and multivariate responses.
+    The SIMPLS algorithm (\code{pls_simpls()}) is relatively fast as it does not require the deflation of the data matrix. However, the results will differ slightly from the NIPALS and kernel algorithms for multivariate responses. In these cases, only the first component will be identical. The differences are not meaningful in most cases, but it is worth noting.
+
+    The kernel algorithms (\code{pls_kernel()}) tend to be faster than NIPALS for larger data matrices. The original NIPALS algorithm (\code{pls_nipals()}) is the reference implementation. The results from these algorithms are proven to be equivalent for both univariate and multivariate responses.
 
     Note that the NIPALS algorithms cannot handle out-of-memory \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices due to the need to deflate the data matrix for each component. \code{x} will be coerced to an in-memory matrix.
 }
@@ -84,7 +91,7 @@ opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
         \item{\code{projection}: The projection matrix used to calculate the coefficients from the y-loadings.}
         \item{\code{residuals}: The residuals from regression.}
         \item{\code{fitted.values}: The fitted y matrix.}
-        \item{\code{weights}: The x-weights.}
+        \item{\code{weights}: (Optional) The x-weights.}
         \item{\code{loadings}: The x-loadings.}
         \item{\code{scores}: (Optional) The x-scores.}
         \item{\code{y.loadings}: The y-loadings.}
@@ -107,6 +114,8 @@ opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 
 \references{
 	S. Wold, H. Martens, and H. Wold. ``The multivariate calibration method in chemistry solved by the PLS method.'' Proceedings on the Conference on Matrix Pencils, Lecture Notes in Mathematics, Heidelberg, Springer-Verlag, pp. 286 - 293, 1983.
+
+	S. de Jong. ``SIMPLS: An alternative approach to partial least squares regression.'' Chemometrics and Intelligent Laboratory Systems, vol. 18, issue 3, pp. 251 - 263, 1993.
 
 	B. S. Dayal and J. F. MacGregor. ``Improved PLS algorithms.'' Journal of Chemometrics, vol. 11, pp. 73 - 85, 1997.
 

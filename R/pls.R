@@ -9,7 +9,7 @@
 # where
 # w, c are weights
 # p, q are loadings
-# t, u are scroes
+# t, u are scores
 
 # NIPALS
 pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
@@ -131,6 +131,123 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans$y.center <- if(is.null(y.center)) FALSE else y.center
 	ans$y.scale <- if(is.null(y.scale)) FALSE else y.scale
 	ans$algorithm <- "nipals"
+	class(ans) <- "pls"
+	ans
+}
+
+# SIMPLS
+pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
+	transpose = FALSE, method = 1L, retscores = TRUE, verbose = NA, ...)
+{
+	k <- min(k, dim(x))
+	# center and scale x and y + calculate covariance
+	if ( is.factor(y) || is.character(y) )
+		y <- encode_dummy(y)
+	y <- as.matrix(y)
+	y <- colscale(y, center=center, scale=scale.)
+	y.center <- attr(y, "col-scaled:center")
+	y.scale <- attr(y, "col-scaled:scale")
+	if ( transpose ) {
+		P <- nrow(x)
+		N <- ncol(x)
+		pnames <- rownames(x)
+		snames <- colnames(x)
+		xt <- rowscale(x, center=center, scale=scale.)
+		center <- attr(xt, "row-scaled:center")
+		scale <- attr(xt, "row-scaled:scale")
+		xy <- xt %*% y
+	} else {
+		P <- ncol(x)
+		N <- nrow(x)
+		pnames <- colnames(x)
+		snames <- rownames(x)
+		x <- colscale(x, center=center, scale=scale.)
+		center <- attr(x, "col-scaled:center")
+		scale <- attr(x, "col-scaled:scale")
+		xy <- crossprod(x, y)
+	}
+	# prepare matrices
+	j <- seq_len(k)
+	projection <- matrix(nrow=P, ncol=k,
+		dimnames=list(pnames, paste0("C", j)))
+	loadings <- matrix(nrow=P, ncol=k,
+		dimnames=list(pnames, paste0("C", j)))
+	y.loadings <- matrix(nrow=ncol(y), ncol=k,
+		dimnames=list(colnames(y), paste0("C", j)))
+	basis <- matrix(nrow=P, ncol=k)
+	if ( retscores ) {
+		scores <- matrix(nrow=N, ncol=k,
+			dimnames=list(snames, paste0("C", j)))
+		y.scores <- matrix(nrow=nrow(y), ncol=k,
+			dimnames=list(rownames(y), paste0("C", j)))
+		cvar <- setNames(numeric(k), paste0("C", j))
+	}
+	for ( i in j )
+	{
+		# calculate scores and loadings
+		s <- svd(xy)
+		r <- s$u[,1L,drop=FALSE]
+		if ( transpose ) {
+			t <- t(crossprod(r, xt))
+			tt <- sum(t^2)
+			p <- (xt %*% t) / tt
+		} else {
+			t <- x %*% r
+			tt <- sum(t^2)
+			p <- crossprod(x, t) / tt
+		}
+		q <- crossprod(y, t) / tt
+		# update covariance
+		v <- p
+		if ( i > 1L ) {
+			vk <- basis[,1L:(i - 1L),drop=FALSE]
+			v <- v - vk %*% crossprod(vk, p)
+		}
+		v <- v / sqrt(sum(v^2))
+		xy <- xy - v %*% crossprod(v, xy)
+		# save current results
+		loadings[,i] <- p
+		y.loadings[,i] <- q
+		projection[,i] <- r
+		basis[,i] <- v
+		if ( retscores ) {
+			u <- y %*% q / sum(q^2)
+			if ( i > 1L ) {
+				tk <- scores[,1L:(i - 1L),drop=FALSE]
+				u <- u - tk %*% (crossprod(tk, u) / colSums(tk^2))
+			}
+			cvar[i] <- crossprod(t, u)
+			scores[,i] <- t
+			y.scores[,i] <- u
+		}
+	}
+	# calculate regression coefficients
+	b <- tcrossprod(projection, y.loadings)
+	if ( transpose ) {
+		yhat <- t(t(b) %*% xt)
+	} else {
+		yhat <- x %*% b
+	}
+	if ( is.numeric(y.scale) )
+		yhat <- colsweep(yhat, y.scale, "*")
+	if ( is.numeric(y.center) )
+		yhat <- colsweep(yhat, y.center, "+")
+	# return results
+	if ( retscores ) {
+		ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
+			fitted.values=yhat, loadings=loadings, scores=scores,
+			y.loadings=y.loadings, y.scores=y.scores, cvar=cvar)
+	} else {
+		ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
+			fitted.values=yhat, loadings=loadings,
+			y.loadings=y.loadings)
+	}
+	ans$transpose <- transpose
+	ans$center <- if(is.null(center)) FALSE else center
+	ans$scale <- if(is.null(scale)) FALSE else scale
+	ans$y.center <- if(is.null(y.center)) FALSE else y.center
+	ans$y.scale <- if(is.null(y.scale)) FALSE else y.scale
+	ans$algorithm <- "simpls"
 	class(ans) <- "pls"
 	ans
 }
@@ -275,7 +392,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans$scale <- if(is.null(scale)) FALSE else scale
 	ans$y.center <- if(is.null(y.center)) FALSE else y.center
 	ans$y.scale <- if(is.null(y.scale)) FALSE else y.scale
-	ans$algorithm <- "nipals"
+	ans$algorithm <- paste0("kern", method)
 	class(ans) <- "pls"
 	ans
 }

@@ -302,6 +302,7 @@ export(
 	"nnmf_mult",
 	"prcomp_lanczos",
 	"pls_nipals",
+	"pls_simpls",
 	"pls_kernel",
 	"opls_nipals")
 
