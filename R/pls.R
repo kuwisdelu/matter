@@ -472,6 +472,26 @@ print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 	invisible(x)
 }
 
+vip <- function(object, type = c("projection", "weights"))
+{
+	type <- match.arg(type)
+	w0 <- object[[type]]
+	if ( is.null(w0) )
+		stop("missing component: ", sQuote(type))
+	P <- nrow(w0)
+	scores <- object$scores
+	y.loadings <- object$y.loadings
+	if ( is.null(scores) )
+		stop("missing component: 'scores'")
+	if ( is.null(y.loadings) )
+		stop("missing component: 'y.loadings'")
+	w0 <- colsweep(w0, sqrt(colSums(w0^2)), "/")
+	ssy <- colSums(scores^2) * colSums(y.loadings^2)
+	vip <- sqrt(P * rowSums(ssy * w0^2) / sum(ssy))
+	names(vip) <- rownames(w0)
+	vip
+}
+
 #### Orthogonal partial least squares ####
 ## ---------------------------------------
 
@@ -655,4 +675,3 @@ print.opls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
     print(x$ratio, ...)
 	invisible(x)
 }
-

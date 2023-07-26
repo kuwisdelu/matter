@@ -10,6 +10,8 @@
 \alias{opls_nipals}
 \alias{predict.opls}
 
+\alias{vip}
+
 \title{Partial Least Squares}
 
 \description{
@@ -32,11 +34,14 @@ pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
 \S3method{predict}{pls}(object, newdata, k,
 	type = c("response", "class"), \dots)
 
-# NIPALS for O-PLS
+# O-PLS algorithm
 opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-9, verbose = NA, \dots)
 
 \S3method{predict}{opls}(object, newdata, k, \dots)
+
+# Variable importance in projection
+vip(object, type = c("projection", "weights"))
 }
 
 \arguments{
@@ -81,6 +86,8 @@ opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
     The kernel algorithms (\code{pls_kernel()}) tend to be faster than NIPALS for larger data matrices. The original NIPALS algorithm (\code{pls_nipals()}) is the reference implementation. The results from these algorithms are proven to be equivalent for both univariate and multivariate responses.
 
     Note that the NIPALS algorithms cannot handle out-of-memory \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices due to the need to deflate the data matrix for each component. \code{x} will be coerced to an in-memory matrix.
+
+    Variable importance in projection (VIP) scores proposed by Wold et al. (1993) measure of the influence each variable has on the PLS model. They can be calculated with \code{vip()}. Note that non-NIPALS models must have \code{retscores = TRUE} for VIP to be calculated. In practice, a VIP score greater than ~1 is a useful criterion for variable selection, although there is no statistical basis for this rule.
 }
 
 \value{
@@ -122,6 +129,8 @@ opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	M. Barker and W. Rayens. ``Partial least squares for discrimination.'' Journal of Chemometrics, vol. 17, pp. 166-173, 2003.
 
 	J. Trygg and S. Wold. ``Orthogonal projections to latent structures.'' Journal of Chemometrics, vol. 16, issue 3, pp. 119 - 128, 2002.
+
+	S. Wold, A. Johansson, and M. Cocchi. ``PLS: Partial least squares projections to latent structures.'' 3D QSAR in Drug Design: Theory, Methods and Applications, ESCOM Science Publishers: Leiden, pp. 523 - 550, 1993.
 }
 
 \seealso{

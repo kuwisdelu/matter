@@ -304,6 +304,7 @@ export(
 	"pls_nipals",
 	"pls_simpls",
 	"pls_kernel",
+	"vip",
 	"opls_nipals")
 
 S3method("predict", "nnmf")
