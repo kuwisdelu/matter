@@ -15,24 +15,40 @@ setMethod("prcomp", "sparse_mat",
 })
 
 prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
-	center = TRUE, scale. = FALSE, transpose = FALSE, ...)
+	center = TRUE, scale. = FALSE, transpose = FALSE,
+	verbose = NA, ..., BPPARAM = bpparam())
 {
 	if ( "n" %in% names(as.list(match.call())) ) {
 		warning("'n' is deprecated; use 'k' instead")
 		k <- list(...)$n
 	}
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	k <- min(k, dim(x))
+	# center and scale x
+	if ( verbose && (!isFALSE(center) || !isFALSE(scale.)) ) {
+		msg <- character()
+		if ( !isFALSE(center) )
+			msg <- c(msg, "centering")
+		if ( !isFALSE(scale.) )
+			msg <- c(msg, "scaling")
+		msg <- paste0(msg, collapse=" and ")
+		message(msg, " data matrix")
+	}
 	if ( transpose ) {
-		x <- rowscale(x, center=center, scale=scale.)
+		x <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(x, "row-scaled:center")
 		scale <- attr(x, "row-scaled:scale")
 	} else {
-		x <- colscale(x, center=center, scale=scale.)
+		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 	}
+	if ( verbose )
+		message("fitting principal components via IRLBA")
+	# calculate PCA via SVD
 	j <- seq_len(k)
-	s <- irlba(x, nu=k, nv=k, fastpath=is.matrix(x), ...)
+	s <- irlba(x, nu=k, nv=k, fastpath=is.matrix(x), verbose=verbose, ...)
 	if ( transpose ) {
 		ans <- list(sdev = s$d / sqrt(max(1, ncol(x) - 1)))
 		ans$rotation <- s$u

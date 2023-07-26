@@ -2,26 +2,22 @@
 #### Partial least squares ####
 ## ----------------------------
 
-# basic idea is to decompose x and y
-# x = t * p.t
-# y = u * q.t
-# using the cross-covariance s(x,y)
-# where
-# w, c are weights
-# p, q are loadings
-# t, u are scores
-
 # NIPALS
 pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, niter = 100L, tol = 1e-5, verbose = NA, ...)
+	transpose = FALSE, niter = 100L, tol = 1e-5,
+	verbose = NA, ..., BPPARAM = bpparam())
 {
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	x <- as_real_memory_matrix(x)
 	k <- min(k, dim(x))
 	# center and scale x and y
+	if ( verbose )
+		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale.)
+	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -29,7 +25,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale.)
+		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xt0 <- xt
@@ -38,7 +34,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale.)
+		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
@@ -60,6 +56,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	y0 <- y
 	for ( i in j )
 	{
+		if ( verbose )
+			message("fitting PLS component ", i)
 		u <- y[,which.max(colSums(y)),drop=FALSE]
 		du <- Inf
 		iter <- 1
@@ -108,6 +106,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		inner[i] <- c
 	}
 	# calculate regression coefficients
+	if ( verbose )
+		message("fitting regression coefficients")
 	projection <- weights %*% solve(crossprod(loadings, weights))
 	projection <- projection %*% (inner * diag(k))
 	dimnames(projection) <- list(pnames, paste0("C", j))
@@ -118,9 +118,9 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		yhat <- x0 %*% b
 	}
 	if ( is.numeric(y.scale) )
-		yhat <- colsweep(yhat, y.scale, "*")
+		yhat <- colsweep_matrix(yhat, y.scale, "*")
 	if ( is.numeric(y.center) )
-		yhat <- colsweep(yhat, y.center, "+")
+		yhat <- colsweep_matrix(yhat, y.center, "+")
 	# return results
 	ans <- list(coefficients=b, projection=projection, residuals=y0 - yhat,
 		fitted.values=yhat, weights=weights, loadings=loadings, scores=scores,
@@ -137,14 +137,19 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 
 # SIMPLS
 pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, method = 1L, retscores = TRUE, verbose = NA, ...)
+	transpose = FALSE, method = 1L, retscores = TRUE,
+	verbose = NA, ..., BPPARAM = bpparam())
 {
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	k <- min(k, dim(x))
 	# center and scale x and y + calculate covariance
+	if ( verbose )
+		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale.)
+	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -152,7 +157,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale.)
+		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xy <- xt %*% y
@@ -161,7 +166,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale.)
+		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		xy <- crossprod(x, y)
@@ -184,6 +189,9 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	}
 	for ( i in j )
 	{
+		# show progress
+		if ( verbose )
+			message("fitting PLS component ", i)
 		# calculate scores and loadings
 		s <- svd(xy)
 		r <- s$u[,1L,drop=FALSE]
@@ -222,6 +230,8 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		}
 	}
 	# calculate regression coefficients
+	if ( verbose )
+		message("fitting regression coefficients")
 	b <- tcrossprod(projection, y.loadings)
 	if ( transpose ) {
 		yhat <- t(t(b) %*% xt)
@@ -229,9 +239,9 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		yhat <- x %*% b
 	}
 	if ( is.numeric(y.scale) )
-		yhat <- colsweep(yhat, y.scale, "*")
+		yhat <- colsweep_matrix(yhat, y.scale, "*")
 	if ( is.numeric(y.center) )
-		yhat <- colsweep(yhat, y.center, "+")
+		yhat <- colsweep_matrix(yhat, y.center, "+")
 	# return results
 	if ( retscores ) {
 		ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
@@ -254,14 +264,19 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 
 # Kernel (#1 and #2)
 pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, method = 1L, retscores = TRUE, verbose = NA, ...)
+	transpose = FALSE, method = 1L, retscores = TRUE,
+	verbose = NA, ..., BPPARAM = bpparam())
 {
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	k <- min(k, dim(x))
 	# center and scale x and y + calculate covariance
+	if ( verbose )
+		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale.)
+	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -269,7 +284,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale.)
+		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xy <- xt %*% y
@@ -280,7 +295,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale.)
+		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		xy <- crossprod(x, y)
@@ -306,6 +321,9 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	}
 	for ( i in j )
 	{
+		# show progress
+		if ( verbose )
+			message("fitting PLS component ", i)
 		# calculate projection vectors
 		if ( ncol(y) < P ) {
 			yxxy <- crossprod(xy, xy)
@@ -367,6 +385,8 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		}
 	}
 	# calculate regression coefficients
+	if ( verbose )
+		message("fitting regression coefficients")
 	b <- tcrossprod(projection, y.loadings)
 	if ( transpose ) {
 		yhat <- t(t(b) %*% xt)
@@ -374,9 +394,9 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		yhat <- x %*% b
 	}
 	if ( is.numeric(y.scale) )
-		yhat <- colsweep(yhat, y.scale, "*")
+		yhat <- colsweep_matrix(yhat, y.scale, "*")
 	if ( is.numeric(y.center) )
-		yhat <- colsweep(yhat, y.center, "+")
+		yhat <- colsweep_matrix(yhat, y.center, "+")
 	# return results
 	if ( retscores ) {
 		ans <- list(coefficients=b, projection=projection, residuals=y - yhat,
@@ -398,7 +418,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 }
 
 predict.pls <- function(object, newdata, k,
-	type = c("response", "class"), ...)
+	type = c("response", "class"), ..., BPPARAM = bpparam())
 {
 	type <- match.arg(type)
 	if ( missing(newdata) && missing(k) ) {
@@ -439,16 +459,16 @@ predict.pls <- function(object, newdata, k,
 	b <- tcrossprod(projection, y.loadings)
 	# predict new values
 	if ( object$transpose ) {
-		xt <- rowscale(newdata, center=object$center, scale=object$scale)
+		xt <- rowscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
 		pred <- t(t(b) %*% xt)
 	} else {
-		x <- colscale(newdata, center=object$center, scale=object$scale)
+		x <- colscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
 		pred <- x %*% b
 	}
 	if ( is.numeric(object$y.scale) )
-		pred <- colsweep(pred, object$y.scale, "*")
+		pred <- colsweep_matrix(pred, object$y.scale, "*")
 	if ( is.numeric(object$y.center) )
-		pred <- colsweep(pred, object$y.center, "+")
+		pred <- colsweep_matrix(pred, object$y.center, "+")
 	if ( type == "class" )
 		pred <- predict_class(pred)
 	pred
@@ -485,7 +505,7 @@ vip <- function(object, type = c("projection", "weights"))
 		stop("missing component: 'scores'")
 	if ( is.null(y.loadings) )
 		stop("missing component: 'y.loadings'")
-	w0 <- colsweep(w0, sqrt(colSums(w0^2)), "/")
+	w0 <- colsweep_matrix(w0, sqrt(colSums(w0^2)), "/")
 	ssy <- colSums(scores^2) * colSums(y.loadings^2)
 	vip <- sqrt(P * rowSums(ssy * w0^2) / sum(ssy))
 	names(vip) <- rownames(w0)
@@ -495,22 +515,22 @@ vip <- function(object, type = c("projection", "weights"))
 #### Orthogonal partial least squares ####
 ## ---------------------------------------
 
-# improve interpretation of pls model:
-# 1st, preprocessing the data matrix
-# by removing non-correlated variation
-# 2nd, do pls with 1 component (not here)
-
 # NIPALS
 opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, niter = 100L, tol = 1e-9, verbose = NA, ...)
+	transpose = FALSE, niter = 100L, tol = 1e-9,
+	verbose = NA, ..., BPPARAM = bpparam())
 {
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	x <- as_real_memory_matrix(x)
 	k <- min(k, dim(x))
 	# center and scale x and y
+	if ( verbose )
+		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale.)
+	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -518,7 +538,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale.)
+		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xt0 <- xt
@@ -527,7 +547,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale.)
+		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
@@ -543,13 +563,16 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ratio <- setNames(numeric(k), paste0("C", j))
 	y0 <- y
 	if ( transpose ) {
-		w0 <- colsweep((xt %*% y), colSums(y^2), "/")
+		w0 <- colsweep_matrix((xt %*% y), colSums(y^2), "/")
 	} else {
-		w0 <- colsweep(crossprod(x, y), colSums(y^2), "/")
+		w0 <- colsweep_matrix(crossprod(x, y), colSums(y^2), "/")
 	}
 	tw <- prcomp(w0, center=FALSE, tol=tol)$x
 	for ( i in j )
 	{
+		# show progress
+		if ( verbose )
+			message("fitting OPLS component ", i)
 		u <- y[,which.max(colSums(y)),drop=FALSE]
 		du <- Inf
 		iter <- 1
@@ -619,7 +642,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.opls <- function(object, newdata, k, ...)
+predict.opls <- function(object, newdata, k, ..., BPPARAM = bpparam())
 {
 	if ( missing(newdata) && missing(k) )
 		return(object$x)
@@ -652,14 +675,14 @@ predict.opls <- function(object, newdata, k, ...)
 	loadings <- object$loadings[,1:k,drop=FALSE]
 	# predict new values
 	if ( object$transpose ) {
-		xt <- rowscale(newdata, center=object$center, scale=object$scale)
+		xt <- rowscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
 		for ( i in seq_len(k) ) {
 			to <- t(t(weights[,i]) %*% xt) / sum(weights[,i]^2)
 			xt <- xt - tcrossprod(loadings[,i], to)
 		}
 		xt
 	} else {
-		x <- colscale(newdata, center=object$center, scale=object$scale)
+		x <- colscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
 		for ( i in seq_len(k) ) {
 			to <- (x %*% weights[,i]) / sum(weights[,i]^2)
 			x <- x - tcrossprod(to, loadings[,i])

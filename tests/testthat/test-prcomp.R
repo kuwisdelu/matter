@@ -6,6 +6,7 @@ context("prcomp")
 test_that("prcomp - irlba", {
 
 	set.seed(1)
+	register(SerialParam())
 	x <- matrix(rnorm(5000), nrow=100, ncol=50)
 	xt <- t(x)
 	pc.x <- prcomp(x, rank.=3L)
@@ -47,6 +48,7 @@ test_that("prcomp - irlba", {
 test_that("prcomp - matter matrix", {
 
 	set.seed(1)
+	register(SerialParam())
 	x <- matrix(rnorm(5000), nrow=100, ncol=50)
 	y <- matter_mat(x, nrow=100, ncol=50)
 	pc.x <- prcomp(x, rank.=3L)
@@ -74,6 +76,7 @@ test_that("prcomp - matter matrix", {
 test_that("prcomp - sparse matrix", {
 
 	set.seed(1)
+	register(SerialParam())
 	x <- rbinom(5000, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(100, 50)

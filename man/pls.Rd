@@ -21,24 +21,28 @@
 \usage{
 # NIPALS algorithm
 pls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, niter = 100L, tol = 1e-5, verbose = NA, \dots)
+	transpose = FALSE, niter = 100L, tol = 1e-5,
+	verbose = NA, \dots, BPPARAM = bpparam())
 
 # SIMPLS algorithm
 pls_simpls(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, method = 1L, retscores = TRUE, verbose = NA, \dots)
+	transpose = FALSE, method = 1L, retscores = TRUE,
+	verbose = NA, \dots, BPPARAM = bpparam())
 
 # Kernel algorithm
 pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, method = 1L, retscores = TRUE, verbose = NA, \dots)
+	transpose = FALSE, method = 1L, retscores = TRUE,
+	verbose = NA, \dots, BPPARAM = bpparam())
 
 \S3method{predict}{pls}(object, newdata, k,
-	type = c("response", "class"), \dots)
+	type = c("response", "class"), \dots, BPPARAM = bpparam())
 
 # O-PLS algorithm
 opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, niter = 100L, tol = 1e-9, verbose = NA, \dots)
+	transpose = FALSE, niter = 100L, tol = 1e-9,
+	verbose = NA, \dots, BPPARAM = bpparam())
 
-\S3method{predict}{opls}(object, newdata, k, \dots)
+\S3method{predict}{opls}(object, newdata, k, \dots, BPPARAM = bpparam())
 
 # Variable importance in projection
 vip(object, type = c("projection", "weights"))
@@ -68,6 +72,8 @@ vip(object, type = c("projection", "weights"))
 	\item{retscores}{Should the scores be computed and returned? This also computes the amount of explained covariance for each component. This is done automatically for NIPALS, but requires additional computation for the kernel algorithms.}
 
 	\item{\dots}{Not currently used.}
+
+	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}. Currently only used for centering and scaling. Use \code{options(matter.matmul.bpparam=TRUE)} to enable parallel matrix multiplication for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices.}
 
 	\item{object}{An object inheriting from \code{pls} or \code{opls}.}
 

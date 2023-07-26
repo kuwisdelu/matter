@@ -2,10 +2,9 @@
 \docType{methods}
 
 \alias{prcomp}
-\alias{prcomp_lanczos}
 \alias{prcomp,matter_mat-method}
 \alias{prcomp,sparse_mat-method}
-
+\alias{prcomp_lanczos}
 
 \title{Principal Components Analysis for ``matter'' Matrices}
 
@@ -19,7 +18,8 @@
 \S4method{prcomp}{sparse_mat}(x, k = 3L, retx = TRUE, center = TRUE, scale. = FALSE, \dots)
 
 prcomp_lanczos(x, k = 3L, retx = TRUE,
-    center = TRUE, scale. = FALSE, transpose = FALSE, \dots)
+    center = TRUE, scale. = FALSE, transpose = FALSE,
+    verbose = NA, \dots, BPPARAM = bpparam())
 }
 
 \arguments{
@@ -35,7 +35,15 @@ prcomp_lanczos(x, k = 3L, retx = TRUE,
 
     \item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and storing the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
+    \item{verbose}{Should progress messages be printed?}
+
     \item{\dots}{Additional options passed to \code{\link[irlba]{irlba}} or \code{prcomp_lanczos}.}
+
+    \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}. Currently only used for centering and scaling. Use \code{options(matter.matmul.bpparam=TRUE)} to enable parallel matrix multiplication for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices.}
+}
+
+\note{
+    The built-in \code{predict()} method (from the stats package) is not compatible with the argument \code{transpose=TRUE}.
 }
 
 \value{

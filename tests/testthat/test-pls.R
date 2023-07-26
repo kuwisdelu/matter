@@ -5,6 +5,7 @@ context("pls")
 
 test_that("pls - nipals", {
 
+	register(SerialParam())
 	x0 <- cbind(
 		c(-1, 1, -1, 1),
 		c(-1, -1, 1, 1))
@@ -61,6 +62,7 @@ test_that("pls - nipals", {
 
 test_that("pls - simpls", {
 
+	register(SerialParam())
 	x0 <- cbind(
 		c(-1, 1, -1, 1),
 		c(-1, -1, 1, 1))
@@ -111,6 +113,7 @@ test_that("pls - simpls", {
 
 test_that("pls - kernel #1", {
 
+	register(SerialParam())
 	x0 <- cbind(
 		c(-1, 1, -1, 1),
 		c(-1, -1, 1, 1))
@@ -167,6 +170,7 @@ test_that("pls - kernel #1", {
 
 test_that("pls - kernel #2", {
 
+	register(SerialParam())
 	x0 <- cbind(
 		c(-1, 1, -1, 1),
 		c(-1, -1, 1, 1))
@@ -223,6 +227,7 @@ test_that("pls - kernel #2", {
 
 test_that("pls - da", {
 
+	register(SerialParam())
 	x <- cbind(
 		c(-1, -5, -7.5, 10, -2.5, 5, 5),
 		c(-1, -2.5, -7.5, 7.5, 12.5, 10, 5))
@@ -268,6 +273,7 @@ test_that("pls - da", {
 
 test_that("opls - nipals", {
 
+	register(SerialParam())
 	x1 <- cbind(
 		c(-2.18, 1.84, -0.48, 0.83),
 		c(-2.18, -0.16, 1.52, 0.83))
@@ -323,6 +329,7 @@ test_that("opls - nipals", {
 
 test_that("opls - da", {
 
+	register(SerialParam())
 	x <- cbind(
 		c(-1, -5, -7.5, 10, -2.5, 5, 5),
 		c(-1, -2.5, -7.5, 7.5, 12.5, 10, 5))
