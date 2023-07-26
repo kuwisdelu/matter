@@ -88,14 +88,14 @@ opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 
     \itemize{
         \item{\code{coefficients}: The regression coefficients.}
-        \item{\code{projection}: The projection matrix used to calculate the coefficients from the y-loadings.}
+        \item{\code{projection}: The projection weights of the regression used to calculate the coefficients from the y-loadings or to project the data to the scores.}
         \item{\code{residuals}: The residuals from regression.}
         \item{\code{fitted.values}: The fitted y matrix.}
-        \item{\code{weights}: (Optional) The x-weights.}
-        \item{\code{loadings}: The x-loadings.}
-        \item{\code{scores}: (Optional) The x-scores.}
-        \item{\code{y.loadings}: The y-loadings.}
-        \item{\code{y.scores}: (Optional) The y-scores.}
+        \item{\code{weights}: (Optional) The x-weights of the regression.}
+        \item{\code{loadings}: The x-loadings of the latent variables.}
+        \item{\code{scores}: (Optional) The x-scores of the latent variables.}
+        \item{\code{y.loadings}: The y-loadings of the latent variables.}
+        \item{\code{y.scores}: (Optional) The y-scores of the latent variables.}
         \item{\code{cvar}: (Optional) The covariance explained by each component.}
     }
 
