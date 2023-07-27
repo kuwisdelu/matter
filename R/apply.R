@@ -327,9 +327,9 @@ remote_writer <- function(pid, path) {
 		eof <- file.size(path)
 		eof <- if (is.na(eof)) 0 else eof
 		if ( !is.atomic(x) || is.complex(x) || is.character(x) )
-			stop(paste0("file output must be of type ",
+			stop("file output must be of type ",
 				"'raw', 'logical', 'integer', or 'double' ",
-					"(", sQuote(class(x)), " provided)"))
+					"(", sQuote(class(x)), " provided)")
 		ans <- matter_arr(x, type=typeof(x),
 			path=path, offset=eof, readonly=FALSE)
 		ipcunlock(pid)

@@ -300,12 +300,13 @@ export(
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",
+	"fastmap_fun",
 	"prcomp_lanczos",
 	"pls_nipals",
 	"pls_simpls",
 	"pls_kernel",
-	"vip",
-	"opls_nipals")
+	"opls_nipals",
+	"vip")
 
 S3method("predict", "nnmf")
 S3method("print", "nnmf")
@@ -418,11 +419,11 @@ exportMethods(
 	"lapply",
 	"sapply")
 
-exportMethods("scale")
-
-exportMethods("prcomp")
-
-exportMethods("bigglm")
+exportMethods(
+	"scale",
+	"fastmap",
+	"prcomp",
+	"bigglm")
 
 export(
 	"qrank",

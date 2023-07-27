@@ -46,6 +46,11 @@ setGeneric("colscale", signature=c("x"),
 setGeneric("rowStats", function(x, ...) standardGeneric("rowStats"))
 setGeneric("colStats", function(x, ...) standardGeneric("colStats"))
 
+#### Define new generics for statistical methods ####
+## -------------------------------------------------
+
+setGeneric("fastmap", function(x, ...) standardGeneric("fastmap"))
+
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------
 
@@ -69,14 +74,14 @@ setGeneric("domain<-", function(x, value) standardGeneric("domain<-"))
 setGeneric("tolerance<-", function(object, ..., value) standardGeneric("tolerance<-"))
 setGeneric("sampler", function(object, ...) standardGeneric("sampler"))
 setGeneric("sampler<-", function(object, ..., value) standardGeneric("sampler<-"))
-setGeneric("keys", function(object) standardGeneric("keys"))
-setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 
 #### Additional generic functions ####
 ## ------------------------------------
 
 setGeneric("as.altrep", function(x, ...) standardGeneric("as.altrep"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
+setGeneric("keys", function(object) standardGeneric("keys"))
+setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 
 #### Internal generic functions ####
 ## ----------------------------------
@@ -93,8 +98,8 @@ setMethod("type", "array", function(x) typeof(x))
 setMethod("combine", c("ANY", "ANY"),
 	function(x, y, ...) c(x, y))
 
-#### Deprecated generics ####
-## ---------------------------
+#### Defunct generics ####
+## -----------------------
 
 setGeneric("paths", function(x) standardGeneric("paths")) # use BiocGenerics 'path()'
 setMethod("paths", "ANY",

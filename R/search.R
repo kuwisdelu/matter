@@ -1,4 +1,54 @@
 
+#### Search for k-th largest element ####
+## --------------------------------------
+
+qorder <- function(x)
+{
+	.Call(C_quickOrder, x, PACKAGE="matter")
+}
+
+qrank <- function(x, ties.max = FALSE)
+{
+	.Call(C_quickRank, x, ties.max, PACKAGE="matter")
+}
+
+qselect <- function(x, k = (length(x) + 1L) %/% 2L)
+{
+	if ( any(k < 1L | k > length(x)) )
+		stop("k is out of bounds")
+	.Call(C_quickSelect, x, as.integer(k - 1L), PACKAGE="matter")
+}
+
+qmedian <- function(x, na.rm = FALSE)
+{
+	if ( na.rm ) {
+		x <- x[!is.na(x)]
+	} else if ( anyNA(x) ) {
+		return(NA_real_)
+	}
+	if ( length(x) == 0L ) {
+		return(NA_real_)
+	} else {
+		.Call(C_quickMedian, x, PACKAGE="matter")
+	}
+}
+
+qmad <- function(x, center = qmedian(x),
+	constant = 1.4826, na.rm = FALSE)
+{
+	if ( na.rm ) {
+		x <- x[!is.na(x)]
+	} else if ( anyNA(x) ) {
+		return(NA_real_)
+	}
+	if ( length(x) == 0L ) {
+		return(NA_real_)
+	} else {
+		.Call(C_quickMAD, x, as.double(center),
+			as.double(constant), PACKAGE="matter")
+	}
+}
+
 #### Approximate 1D search ####
 ## -----------------------------
 
@@ -128,52 +178,3 @@ nnpairs <- function(x, y, metric = "euclidean", p = 2)
 	m[!dup,,drop=FALSE]
 }
 
-#### Search for k-th largest element ####
-## --------------------------------------
-
-qorder <- function(x)
-{
-	.Call(C_quickOrder, x, PACKAGE="matter")
-}
-
-qrank <- function(x, ties.max = FALSE)
-{
-	.Call(C_quickRank, x, ties.max, PACKAGE="matter")
-}
-
-qselect <- function(x, k = (length(x) + 1L) %/% 2L)
-{
-	if ( any(k < 1L | k > length(x)) )
-		stop("k is out of bounds")
-	.Call(C_quickSelect, x, as.integer(k - 1L), PACKAGE="matter")
-}
-
-qmedian <- function(x, na.rm = FALSE)
-{
-	if ( na.rm ) {
-		x <- x[!is.na(x)]
-	} else if ( anyNA(x) ) {
-		return(NA_real_)
-	}
-	if ( length(x) == 0L ) {
-		return(NA_real_)
-	} else {
-		.Call(C_quickMedian, x, PACKAGE="matter")
-	}
-}
-
-qmad <- function(x, center = qmedian(x),
-	constant = 1.4826, na.rm = FALSE)
-{
-	if ( na.rm ) {
-		x <- x[!is.na(x)]
-	} else if ( anyNA(x) ) {
-		return(NA_real_)
-	}
-	if ( length(x) == 0L ) {
-		return(NA_real_)
-	} else {
-		.Call(C_quickMAD, x, as.double(center),
-			as.double(constant), PACKAGE="matter")
-	}
-}
