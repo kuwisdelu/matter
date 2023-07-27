@@ -641,8 +641,7 @@ stream_stat_fun <- function(name) {
 	if ( !is.character(name) )
 		stop("stat must be a string")
 	if ( !name %in% names(f) )
-		stop(paste0("stat = ", sQuote(name),
-			" not supported"))
+		stop("stat = ", sQuote(name), " not supported")
 	f[[name, exact=TRUE]]
 }
 
@@ -686,8 +685,8 @@ s_rowstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
 		if ( stat %in% "range" )
 			stop("'range' stat not allowed with non-NULL group")
 		if ( length(group) %% ncol(x) != 0 )
-			stop(paste0("length of groups [", length(group), "] ",
-				"is not a multiple of column extent [", ncol(x), "]"))
+			stop("length of groups [", length(group), "] ",
+				"is not a multiple of column extent [", ncol(x), "]")
 		group <- as.factor(rep_len(group, ncol(x)))
 		ans <- lapply(levels(group), function(g) {
 				xi <- x[,which(group == g),drop=FALSE]
@@ -714,8 +713,8 @@ s_colstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
 		if ( stat %in% "range" )
 			stop("'range' stat not allowed with non-NULL group")
 		if ( length(group) %% nrow(x) != 0 )
-			stop(paste0("length of groups [", length(group), "] ",
-				"is not a multiple of row extent [", nrow(x), "]"))
+			stop("length of groups [", length(group), "] ",
+				"is not a multiple of row extent [", nrow(x), "]")
 		group <- as.factor(rep_len(group, nrow(x)))
 		ans <- lapply(levels(group), function(g) {
 				xi <- x[which(group == g),,drop=FALSE]

@@ -53,8 +53,8 @@ rowStats_int <- function(x, stat, group = NULL,
 		stop("iter.dim must be 1 or 2")
 	if ( !is.null(group) ) {
 		if ( length(group) %% ncol(x) != 0 )
-			stop(paste0("length of groups [", length(group), "] ",
-				"is not a multiple of column extent [", ncol(x), "]"))
+			stop("length of groups [", length(group), "] ",
+				"is not a multiple of column extent [", ncol(x), "]")
 		group <- as.factor(rep_len(group, ncol(x)))
 	}
 	if ( iter.dim == 1L ) {
@@ -97,8 +97,8 @@ colStats_int <- function(x, stat, group = NULL,
 		stop("iter.dim must be 1 or 2")
 	if ( !is.null(group) ) {
 		if ( length(group) %% nrow(x) != 0 )
-			stop(paste0("length of groups [", length(group), "] ",
-				"is not a multiple of row extent [", nrow(x), "]"))
+			stop("length of groups [", length(group), "] ",
+				"is not a multiple of row extent [", nrow(x), "]")
 		group <- as.factor(rep_len(group, nrow(x)))
 	}
 	if ( iter.dim == 1L ) {

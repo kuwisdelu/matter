@@ -101,8 +101,8 @@ register_op <- function(x, op, arg = NULL, rhs = FALSE)
 			ldim <- dim(x)
 		}
 		if ( length(ldim) != length(rdim) )
-			stop(paste0("number of dimensions are not equal for ",
-				"lhs [", length(ldim), "] and rhs [", length(rdim), "]"))
+			stop("number of dimensions are not equal for ",
+				"lhs [", length(ldim), "] and rhs [", length(rdim), "]")
 		margin <- which(dim(arg) != 1L)
 	}
 	if ( length(margin) == 0L )
@@ -121,8 +121,8 @@ register_op <- function(x, op, arg = NULL, rhs = FALSE)
 			lext <- xlen
 		}
 		if ( lext != rext )
-			stop(paste0("extent of array is not equal for ",
-				"lhs [", lext, "] and rhs [", rext, "]"))
+			stop("extent of array is not equal for ",
+				"lhs [", lext, "] and rhs [", rext, "]")
 	}
 	margins <- c(margin, NA_integer_)
 	x@ops <- append_op(x@ops, op=op, arg=arg, rhs=rhs, margins=margins)
@@ -146,12 +146,12 @@ register_group_op <- function(x, op, arg, group,
 		lext <- xlen1
 	}
 	if ( lext != rext )
-		stop(paste0("extent of array is not equal for ",
-			"lhs [", lext, "] and rhs [", rext, "]"))
+		stop("extent of array is not equal for ",
+			"lhs [", lext, "] and rhs [", rext, "]")
 	xlen2 <- if (is.null(dim(x))) length(x) else dim(x)[margins[2L]]
 	if ( xlen2 != length(group) )
-		stop(paste0("length of groups [", length(group),
-			" are not equal to array extent [", xlen2, "]"))
+		stop("length of groups [", length(group),
+			" are not equal to array extent [", xlen2, "]")
 	x@ops <- append_op(x@ops, op=op, arg=arg,
 		rhs=rhs, margins=margins, group=group)
 	x@type <- as_Rtype("double")

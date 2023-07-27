@@ -121,8 +121,8 @@ as.matter <- function(x) {
 	} else if ( is.character(x) ) {
 		matter_str(x)
 	} else {
-		stop(paste0("cannot coerce object of class ",
-			sQuote(class(x)), " to a 'matter' object"))
+		stop("cannot coerce object of class ",
+			sQuote(class(x)), " to a 'matter' object")
 	}
 }
 
