@@ -22,17 +22,17 @@
 }
 
 \usage{
-\S4method{rowStats}{ANY}(x, \dots, BPPARAM = bpparam())
+\S4method{rowStats}{ANY}(x, stat, \dots, BPPARAM = bpparam())
 
-\S4method{colStats}{ANY}(x, \dots, BPPARAM = bpparam())
+\S4method{colStats}{ANY}(x, stat, \dots, BPPARAM = bpparam())
 
-\S4method{rowStats}{matter_mat}(x, \dots, BPPARAM = bpparam())
+\S4method{rowStats}{matter_mat}(x, stat, \dots, BPPARAM = bpparam())
 
-\S4method{colStats}{matter_mat}(x, \dots, BPPARAM = bpparam())
+\S4method{colStats}{matter_mat}(x, stat, \dots, BPPARAM = bpparam())
 
-\S4method{rowStats}{sparse_mat}(x, \dots, BPPARAM = bpparam())
+\S4method{rowStats}{sparse_mat}(x, stat, \dots, BPPARAM = bpparam())
 
-\S4method{colStats}{sparse_mat}(x, \dots, BPPARAM = bpparam())
+\S4method{colStats}{sparse_mat}(x, stat, \dots, BPPARAM = bpparam())
 
 .rowStats(x, stat, group = NULL,
     na.rm = FALSE, simplify = TRUE, drop = TRUE,
