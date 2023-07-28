@@ -5,8 +5,8 @@ context("apply")
 
 test_that("chunkLapply", {
 
-	set.seed(1)
 	register(SerialParam())
+	set.seed(1)
 	a <- replicate(100, rnorm(10), simplify=FALSE)
 	b <- replicate(100, runif(10), simplify=FALSE)
 
@@ -52,8 +52,8 @@ test_that("chunkLapply", {
 
 test_that("chunkLapply i/o", {
 
-	set.seed(1)
 	register(SerialParam())
+	set.seed(1)
 	y <- replicate(100, rexp(10), simplify=FALSE)
 	path <- tempfile()
 
@@ -69,8 +69,8 @@ test_that("chunkLapply i/o", {
 
 test_that("chunkApply", {
 
-	set.seed(1)
 	register(SerialParam())
+	set.seed(1)
 	vals <- sort(round(10 * rexp(140), 2))
 	x <- matrix(vals, nrow=20, ncol=7)
 
@@ -118,8 +118,8 @@ test_that("chunkApply", {
 
 test_that("chunkApply i/o", {
 
-	set.seed(1)
 	register(SerialParam())
+	set.seed(1)
 	vals <- sort(round(10 * rexp(140), 2))
 	x <- matrix(vals, nrow=20, ncol=7)
 	path <- tempfile()

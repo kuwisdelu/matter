@@ -98,6 +98,174 @@ test_that("rowdist + coldist", {
 
 })
 
+test_that("rowDists + colDists", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
+	y <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
+
+	expect_equivalent(rowdist(x), rowDists(x))
+	expect_equivalent(rowdist(y), rowDists(y))
+	expect_equivalent(coldist(x), colDists(x))
+	expect_equivalent(coldist(y), colDists(y))
+
+	expect_equivalent(rowdist(x, y), rowDists(x, y))
+	expect_equivalent(rowdist(y, x), rowDists(y, x))
+	expect_equivalent(coldist(x, y), colDists(x, y))
+	expect_equivalent(coldist(y, x), colDists(y, x))
+
+	expect_equivalent(rowdist(x), rowDists(x, iter.dim=2L))
+	expect_equivalent(rowdist(y), rowDists(y, iter.dim=2L))
+	expect_equivalent(coldist(x), colDists(x, iter.dim=1L))
+	expect_equivalent(coldist(y), colDists(y, iter.dim=1L))
+
+	expect_equivalent(
+		rowdist(x, metric="maximum"),
+		rowDists(x, metric="maximum"))
+	expect_equivalent(
+		rowdist(x, metric="manhattan"),
+		rowDists(x, metric="manhattan"))
+	expect_equivalent(
+		rowdist(x, metric="minkowski", p=3),
+		rowDists(x, metric="minkowski", p=3))
+	expect_equivalent(
+		coldist(x, metric="maximum"),
+		colDists(x, metric="maximum"))
+	expect_equivalent(
+		coldist(x, metric="manhattan"),
+		colDists(x, metric="manhattan"))
+	expect_equivalent(
+		coldist(x, metric="minkowski", p=3),
+		colDists(x, metric="minkowski", p=3))
+
+	expect_equivalent(
+		rowdist(x, metric="maximum"),
+		rowDists(x, metric="maximum", iter.dim=2L))
+	expect_equivalent(
+		rowdist(x, metric="manhattan"),
+		rowDists(x, metric="manhattan", iter.dim=2L))
+	expect_equivalent(
+		rowdist(x, metric="minkowski", p=3),
+		rowDists(x, metric="minkowski", p=3, iter.dim=2L))
+	expect_equivalent(
+		coldist(x, metric="maximum"),
+		colDists(x, metric="maximum", iter.dim=1L))
+	expect_equivalent(
+		coldist(x, metric="manhattan"),
+		colDists(x, metric="manhattan", iter.dim=1L))
+	expect_equivalent(
+		coldist(x, metric="minkowski", p=3),
+		colDists(x, metric="minkowski", p=3, iter.dim=1L))
+
+})
+
+test_that("rowDists + colDists - matter matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- matrix(rnorm(30), nrow=5, ncol=6)
+	y <- matrix(rnorm(30), nrow=5, ncol=6)
+	xx <- matter_mat(x)
+	yy <- matter_mat(y)
+
+	expect_equal(rowdist(x, y), rowDists(xx, y))
+	expect_equal(rowdist(y, x), rowDists(y, xx))
+	expect_equal(rowdist(x, y), rowDists(x, yy))
+	expect_equal(rowdist(y, x), rowDists(yy, x))
+
+	expect_equal(coldist(x, y), colDists(xx, y))
+	expect_equal(coldist(y, x), colDists(y, xx))
+	expect_equal(coldist(x, y), colDists(x, yy))
+	expect_equal(coldist(y, x), colDists(yy, x))
+
+	xx <- matter_mat(x, rowMaj=TRUE)
+	yy <- matter_mat(y, rowMaj=TRUE)
+
+	expect_equal(rowdist(x, y), rowDists(xx, y))
+	expect_equal(rowdist(y, x), rowDists(y, xx))
+	expect_equal(rowdist(x, y), rowDists(x, yy))
+	expect_equal(rowdist(y, x), rowDists(yy, x))
+
+	expect_equal(coldist(x, y), colDists(xx, y))
+	expect_equal(coldist(y, x), colDists(y, xx))
+	expect_equal(coldist(x, y), colDists(x, yy))
+	expect_equal(coldist(y, x), colDists(yy, x))
+
+})
+
+test_that("rowDists + colDists - matter matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- matrix(rnorm(30), nrow=5, ncol=6)
+	y <- matrix(rnorm(30), nrow=5, ncol=6)
+	xx <- matter_mat(x)
+	yy <- matter_mat(y)
+
+	expect_equal(rowdist(x, y), rowDists(xx, y))
+	expect_equal(rowdist(y, x), rowDists(y, xx))
+	expect_equal(rowdist(x, y), rowDists(x, yy))
+	expect_equal(rowdist(y, x), rowDists(yy, x))
+
+	expect_equal(coldist(x, y), colDists(xx, y))
+	expect_equal(coldist(y, x), colDists(y, xx))
+	expect_equal(coldist(x, y), colDists(x, yy))
+	expect_equal(coldist(y, x), colDists(yy, x))
+
+	xx <- matter_mat(x, rowMaj=TRUE)
+	yy <- matter_mat(y, rowMaj=TRUE)
+
+	expect_equal(rowdist(x, y), rowDists(xx, y))
+	expect_equal(rowdist(y, x), rowDists(y, xx))
+	expect_equal(rowdist(x, y), rowDists(x, yy))
+	expect_equal(rowdist(y, x), rowDists(yy, x))
+
+	expect_equal(coldist(x, y), colDists(xx, y))
+	expect_equal(coldist(y, x), colDists(y, xx))
+	expect_equal(coldist(x, y), colDists(x, yy))
+	expect_equal(coldist(y, x), colDists(yy, x))
+
+})
+
+test_that("rowDists + colDists - sparse matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- rbinom(30, 1, 0.5)
+	x[x != 0] <- seq_len(sum(x != 0))
+	dim(x) <- c(5, 6)
+	y <- rbinom(30, 1, 0.5)
+	y[y != 0] <- seq_len(sum(y != 0))
+	dim(y) <- c(5, 6)
+	xx <- sparse_mat(x)
+	yy <- sparse_mat(y)
+
+	expect_equal(rowdist(x, y), rowDists(xx, y))
+	expect_equal(rowdist(y, x), rowDists(y, xx))
+	expect_equal(rowdist(x, y), rowDists(x, yy))
+	expect_equal(rowdist(y, x), rowDists(yy, x))
+
+	expect_equal(coldist(x, y), colDists(xx, y))
+	expect_equal(coldist(y, x), colDists(y, xx))
+	expect_equal(coldist(x, y), colDists(x, yy))
+	expect_equal(coldist(y, x), colDists(yy, x))
+
+	xx <- sparse_mat(x, rowMaj=TRUE)
+	yy <- sparse_mat(y, rowMaj=TRUE)
+
+	expect_equal(rowdist(x, y), rowDists(xx, y))
+	expect_equal(rowdist(y, x), rowDists(y, xx))
+	expect_equal(rowdist(x, y), rowDists(x, yy))
+	expect_equal(rowdist(y, x), rowDists(yy, x))
+
+	expect_equal(coldist(x, y), colDists(xx, y))
+	expect_equal(coldist(y, x), colDists(y, xx))
+	expect_equal(coldist(x, y), colDists(x, yy))
+	expect_equal(coldist(y, x), colDists(yy, x))
+
+})
+
 test_that("point in poly", {
 
 	poly <- data.frame(

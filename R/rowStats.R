@@ -1,4 +1,7 @@
 
+#### Statistics for matter matrices ####
+## -------------------------------------
+
 setMethod("rowStats", "ANY",
 	function(x, stat, ..., BPPARAM = bpparam()) {
 		rowStats_int(x, stat=stat, ..., BPPARAM = BPPARAM)

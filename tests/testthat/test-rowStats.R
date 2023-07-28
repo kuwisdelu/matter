@@ -3,7 +3,7 @@ require(matter)
 
 context("matrix-stats")
 
-test_that("row-stats", {
+test_that("rowStats", {
 
 	register(SerialParam())
 	set.seed(1)
@@ -46,7 +46,7 @@ test_that("row-stats", {
 
 })
 
-test_that("row-stats (iter by col)", {
+test_that("rowStats (iter by col)", {
 
 	register(SerialParam())
 	set.seed(1)
@@ -89,7 +89,7 @@ test_that("row-stats (iter by col)", {
 
 })
 
-test_that("col-stats", {
+test_that("colStats", {
 
 	register(SerialParam())
 	set.seed(1)
@@ -132,7 +132,7 @@ test_that("col-stats", {
 
 })
 
-test_that("col-stats (iter by row)", {
+test_that("colStats (iter by row)", {
 
 	register(SerialParam())
 	set.seed(1)
@@ -175,3 +175,78 @@ test_that("col-stats (iter by row)", {
 
 })
 
+test_that("rowStats + colStats - matter matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- matrix(runif(600), nrow=30, ncol=20)
+	y <- matter_mat(x)
+
+	expect_equal(
+		rowStats(x, "mean"),
+		rowStats(y, "mean"))
+	expect_equal(
+		rowStats(x, "var"),
+		rowStats(y, "var"))
+	expect_equal(
+		colStats(x, "mean"),
+		colStats(y, "mean"))
+	expect_equal(
+		colStats(x, "var"),
+		colStats(y, "var"))
+
+	y <- matter_mat(x, rowMaj=TRUE)
+
+	expect_equal(
+		rowStats(x, "mean"),
+		rowStats(y, "mean"))
+	expect_equal(
+		rowStats(x, "var"),
+		rowStats(y, "var"))
+	expect_equal(
+		colStats(x, "mean"),
+		colStats(y, "mean"))
+	expect_equal(
+		colStats(x, "var"),
+		colStats(y, "var"))
+
+})
+
+test_that("rowStats + colStats - sparse matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- rbinom(600, 1, 0.2)
+	x[x != 0] <- seq_len(sum(x != 0))
+	dim(x) <- c(30, 20)
+	y <- sparse_mat(x)
+
+	expect_equal(
+		rowStats(x, "mean"),
+		rowStats(y, "mean"))
+	expect_equal(
+		rowStats(x, "var"),
+		rowStats(y, "var"))
+	expect_equal(
+		colStats(x, "mean"),
+		colStats(y, "mean"))
+	expect_equal(
+		colStats(x, "var"),
+		colStats(y, "var"))
+
+	y <- sparse_mat(x, rowMaj=TRUE)
+
+	expect_equal(
+		rowStats(x, "mean"),
+		rowStats(y, "mean"))
+	expect_equal(
+		rowStats(x, "var"),
+		rowStats(y, "var"))
+	expect_equal(
+		colStats(x, "mean"),
+		colStats(y, "mean"))
+	expect_equal(
+		colStats(x, "var"),
+		colStats(y, "var"))
+
+})

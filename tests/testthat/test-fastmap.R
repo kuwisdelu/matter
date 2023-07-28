@@ -5,8 +5,8 @@ context("fastmap")
 
 test_that("fastmap", {
 
-	set.seed(1)
 	register(SerialParam())
+	set.seed(1)
 
 	# Arithmetic example from Faloutsos and Lin
 

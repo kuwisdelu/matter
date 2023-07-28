@@ -46,6 +46,9 @@ setGeneric("colscale", signature=c("x"),
 setGeneric("rowStats", function(x, ...) standardGeneric("rowStats"))
 setGeneric("colStats", function(x, ...) standardGeneric("colStats"))
 
+setGeneric("rowDists", function(x, y, ...) standardGeneric("rowDists"))
+setGeneric("colDists", function(x, y, ...) standardGeneric("colDists"))
+
 #### Define new generics for statistical methods ####
 ## -------------------------------------------------
 

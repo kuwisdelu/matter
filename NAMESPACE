@@ -407,6 +407,14 @@ export(
 	"rowdist_at",
 	"coldist_at")
 
+exportMethods(
+	"rowDists",
+	"colDists")
+
+export(
+	".rowDists",
+	".colDists")
+
 export(
 	"roll",
 	"seq_rel",

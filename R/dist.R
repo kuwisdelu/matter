@@ -1,6 +1,133 @@
 
-#### Distance ####
-## ---------------
+#### Distances for matter matrices ####
+## ------------------------------------
+
+setMethod("rowDists", c("matrix", "missing"),
+	function(x, ..., BPPARAM = bpparam()) {
+		rowDists_int(x, x, ..., BPPARAM = BPPARAM)
+	})
+
+setMethod("colDists", c("matrix", "missing"),
+	function(x, ..., BPPARAM = bpparam()) {
+		colDists_int(x, x, ..., BPPARAM = BPPARAM)
+	})
+
+setMethod("rowDists", c("matrix", "matrix"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		rowDists_int(x, y, ..., BPPARAM = BPPARAM)
+	})
+
+setMethod("colDists", c("matrix", "matrix"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		colDists_int(x, y, ..., BPPARAM = BPPARAM)
+	})
+
+# matter matrices
+setMethod("rowDists", c("matter_mat", "matrix"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			rowDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
+		} else {
+			rowDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)
+		}
+	})
+
+setMethod("rowDists", c("matrix", "matter_mat"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		t(rowDists(y, x, ..., BPPARAM = BPPARAM))
+	})
+
+setMethod("colDists", c("matter_mat", "matrix"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			colDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
+		} else {
+			colDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)
+		}
+	})
+
+setMethod("colDists", c("matrix", "matter_mat"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		t(colDists(y, x, ..., BPPARAM = BPPARAM))
+	})
+
+# sparse matrices
+setMethod("rowDists", c("sparse_mat", "matrix"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			rowDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
+		} else {
+			rowDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)
+		}
+	})
+
+setMethod("rowDists", c("matrix", "sparse_mat"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		t(rowDists(y, x, ..., BPPARAM = BPPARAM))
+	})
+
+setMethod("colDists", c("sparse_mat", "matrix"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		if ( x@transpose ) {
+			colDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
+		} else {
+			colDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)
+		}
+	})
+
+setMethod("colDists", c("matrix", "sparse_mat"),
+	function(x, y, ..., BPPARAM = bpparam()) {
+		t(colDists(y, x, ..., BPPARAM = BPPARAM))
+	})
+
+rowDists_int <- function(x, y, metric = "euclidean", p = 2,
+	iter.dim = 1L, BPPARAM = bpparam(), ...)
+{
+	if ( !iter.dim %in% c(1L, 2L) )
+		stop("iter.dim must be 1 or 2")
+	if ( iter.dim == 1L ) {
+		ans <- chunk_rowapply(x, rowdist, y=y, metric=metric, p=p,
+			simplify=rbind, BPPARAM=BPPARAM, ...)
+	} else {
+		BIND <- function(x, ...) dist_c(x, ..., metric=metric, p=p)
+		ans <- chunk_colapply(x,
+			function(xi) {
+				yi <- y[,attr(xi, "index"),drop=FALSE]
+				rowdist(xi, yi, metric=metric, p=p)
+			}, simplify=BIND, BPPARAM=BPPARAM, ...)
+	}
+	if ( !is.null(rownames(x)) || !is.null(rownames(y)) )
+		dimnames(ans) <- list(rownames(x), rownames(y))
+	ans
+}
+
+.rowDists <- rowDists_int
+
+colDists_int <- function(x, y, metric = "euclidean", p = 2,
+	iter.dim = 1L, BPPARAM = bpparam(), ...)
+{
+	if ( !iter.dim %in% c(1L, 2L) )
+		stop("iter.dim must be 1 or 2")
+	if ( iter.dim == 1L ) {
+		BIND <- function(x, ...) dist_c(x, ..., metric=metric, p=p)
+		ans <- chunk_rowapply(x,
+			function(xi) {
+				yi <- y[attr(xi, "index"),,drop=FALSE]
+				coldist(xi, yi, metric=metric, p=p)
+			}, simplify=BIND, BPPARAM=BPPARAM, ...)
+	} else {
+		ans <- chunk_colapply(x, coldist, y=y, metric=metric, p=p,
+			simplify=rbind, BPPARAM=BPPARAM, ...)
+	}
+	if ( !is.null(rownames(x)) || !is.null(rownames(y)) )
+		dimnames(ans) <- list(rownames(x), rownames(y))
+	ans
+}
+
+.colDists <- colDists_int
+
+#### Distances ####
+## ----------------
 
 rowdist <- function(x, y = x, metric = "euclidean", p = 2)
 {
@@ -27,6 +154,23 @@ coldist <- function(x, y = x, metric = "euclidean", p = 2)
 		storage.mode(y) <- "double"
 	.Call(C_colDist, x, y, as_dist(metric), p, PACKAGE="matter")
 }
+
+dist_c <- function(x, y, ..., metric = "euclidean", p = 2)
+{
+	metric <- as_dist(metric)
+	if ( missing(y) )
+		return(x)
+	if ( ...length() > 0L )
+		y <- do.call(dist_c, list(y, ..., metric=metric, p=p))
+	switch(as.character(metric),
+		euclidean = sqrt(x^2 + y^2),
+		maximum = pmax(x, y),
+		manhattan = x + y,
+		minkowski = (x^p + y^p)^(1/p))
+}
+
+#### Distances at specific indices ####
+## ------------------------------------
 
 rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
 	metric = "euclidean", p = 2)
