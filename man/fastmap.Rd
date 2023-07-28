@@ -18,6 +18,7 @@ fastmap(x, k = 3L, distfun = NULL,
 
 \S3method{predict}{fastmap}(object, newdata, \dots)
 
+# Distance functionals
 rowDistFun(x, y, metric = "euclidean", p = 2,
 	BPPARAM = bpparam())
 colDistFun(x, y, metric = "euclidean", p = 2,
@@ -29,7 +30,7 @@ colDistFun(x, y, metric = "euclidean", p = 2,
 
 	\item{k}{The number of FastMap components to project.}
 
-	\item{distfun}{The function of the form \code{function(x, y, \dots)} used to generate a distance function taking a single argument \code{i} giving the distances between the \code{i}th object in \code{x} and all objects in \code{y}.}
+	\item{distfun}{The function of the form \code{function(x, y, \dots)} used to generate a distance function of the form \code{function(i)} giving the distances between the \code{i}th object in \code{x} and all objects in \code{y}.}
 
 	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This only used internally to indicate whether the input matrix is (P x N) or (N x P), and therefore extract the number of objects and their names.}
 
@@ -55,7 +56,7 @@ colDistFun(x, y, metric = "euclidean", p = 2,
 
     A custom distance function can be passed via \code{distfun}. If not provided, then this defaults to \code{rowDistFun()} if \code{transpose=FALSE} or \code{colDistFun()} if \code{transpose=TRUE}.
 
-    If a custom function is passed, it should take the form \code{function(x, y, \dots)}, and it must \emph{return} a function that takes a single argument \code{i}. The returned function should return the distances between the \code{i}th object in \code{x} and all objects in \code{y}. \code{rowDistFun()} and \code{colDistFun()} are examples of functions that satisfy these properties.
+    If a custom function is passed, it should take the form \code{function(x, y, \dots)}, and it must \emph{return} a function of the form \code{function(i)}. The returned function should return the distances between the \code{i}th object in \code{x} and all objects in \code{y}. \code{rowDistFun()} and \code{colDistFun()} are examples of functions that satisfy these properties.
 }
 
 \value{
