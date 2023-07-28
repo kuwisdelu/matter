@@ -12,6 +12,7 @@ setMethod("colStats", "ANY",
 		colStats_int(x, stat=stat, ..., BPPARAM = BPPARAM)
 	})
 
+# matter matrices
 setMethod("rowStats", "matter_mat",
 	function(x, stat, ..., BPPARAM = bpparam()) {
 		if ( x@transpose ) {
@@ -30,6 +31,7 @@ setMethod("colStats", "matter_mat",
 		}
 	})
 
+# sparse matrices
 setMethod("rowStats", "sparse_mat",
 	function(x, stat, ..., BPPARAM = bpparam()) {
 		if ( x@transpose ) {

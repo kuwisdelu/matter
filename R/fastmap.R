@@ -3,33 +3,64 @@
 ## -------------------------
 
 setMethod("fastmap", "matrix",
-	function(x, k = 3L, transpose = FALSE, ...)
+	function(x, k = 3L, transpose = FALSE, ...,
+		verbose = NA, BPPARAM = bpparam())
 {
 	if ( transpose ) {
-		distfun <- coldistfun
-		MARGIN <- 2L
+		fastmap_func(x, k=k, distfun=colDistFun, transpose=TRUE,
+			verbose=verbose, ..., BPPARAM=BPPARAM)
 	} else {
-		distfun <- rowdistfun
-		MARGIN <- 1L
+		fastmap_func(x, k=k, distfun=rowDistFun, transpose=FALSE,
+			verbose=verbose, ..., BPPARAM=BPPARAM)
 	}
-	fastmap_fun(x, k=k, distfun=distfun, MARGIN=MARGIN, ...)
 })
 
-fastmap_fun <- function(x, k = 3L, distfun = rowdistfun,
-	MARGIN = 1L, niter = 3L, verbose = NA, ...)
+setMethod("fastmap", "matter_mat",
+	function(x, k = 3L, transpose = FALSE, ...,
+		verbose = NA, BPPARAM = bpparam())
+{
+	if ( transpose ) {
+		fastmap_func(x, k=k, distfun=colDistFun, transpose=TRUE,
+			verbose=verbose, ..., BPPARAM=BPPARAM)
+	} else {
+		fastmap_func(x, k=k, distfun=rowDistFun, transpose=FALSE,
+			verbose=verbose, ..., BPPARAM=BPPARAM)
+	}
+})
+
+setMethod("fastmap", "sparse_mat",
+	function(x, k = 3L, transpose = FALSE, ...,
+		verbose = NA, BPPARAM = bpparam())
+{
+	if ( transpose ) {
+		fastmap_func(x, k=k, distfun=colDistFun, transpose=TRUE,
+			verbose=verbose, ..., BPPARAM=BPPARAM)
+	} else {
+		fastmap_func(x, k=k, distfun=rowDistFun, transpose=FALSE,
+			verbose=verbose, ..., BPPARAM=BPPARAM)
+	}
+})
+
+fastmap_func <- function(x, k = 3L, distfun = rowDistFun,
+	transpose = FALSE, niter = 3L, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	k <- min(k, dim(x))
 	# prepare matrices
 	j <- seq_len(k)
-	N <- dim(x)[MARGIN]
-	snames <- dimnames(x)[[MARGIN]]
+	if ( transpose ) {
+		N <- NCOL(x)
+		snames <- colnames(x)
+	} else {
+		N <- NROW(x)
+		snames <- rownames(x)
+	}
 	scores <- matrix(0, nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
-	pivots <- matrix(nrow=k, ncol=2L,
-		dimnames=list(paste0("C", j), NULL))
-	fx <- distfun(x, seq_len(N), ...)
+	pivots <- matrix(nrow=k, ncol=3L,
+		dimnames=list(paste0("C", j), c("p1", "p2", "dist")))
+	fx <- distfun(x, x, ...)
 	for ( i in j )
 	{
 		if ( verbose )
@@ -43,13 +74,13 @@ fastmap_fun <- function(x, k = 3L, distfun = rowdistfun,
 		for ( iter in seq_len(niter) )
 		{
 			# get distances to pivot 1
-			d1x <- fx(x, p1)
+			d1x <- fx(p1)
 			d1proj <- rowdist_at(scores, p1)[[1L]]
 			d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
 			# update pivot 2
 			p2 <- which.max(d1)
 			# get distances to pivot 2
-			d2x <- fx(x, p2)
+			d2x <- fx(p2)
 			d2proj <- rowdist_at(scores, p2)[[1L]]
 			d2 <- sqrt(pmax(d2x^2 - d2proj^2, 0))
 			# update pivot 1
@@ -66,7 +97,7 @@ fastmap_fun <- function(x, k = 3L, distfun = rowdistfun,
 			}
 		}
 		# finally, get distances to pivot 1
-		d1x <- fx(x, p1)
+		d1x <- fx(p1)
 		d1proj <- rowdist_at(scores, p1)[[1L]]
 		d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
 		if ( verbose )
@@ -76,29 +107,100 @@ fastmap_fun <- function(x, k = 3L, distfun = rowdistfun,
 			message("projecting component ", i)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
 		scores[,i] <- xi
-		pivots[i,] <- c(p1, p2)
+		pivots[i,] <- c(p1, p2, d12)
 	}
-	ans <- list(x=scores, pivots=pivots, distfun=distfun(x, pivots, ...))
+	pindex <- as.vector(pivots[,1:2])
+	if ( transpose ) {
+		xp <- x[,pindex,drop=FALSE]
+	} else {
+		xp <- x[pindex,,drop=FALSE]
+	}
+	ans <- list(x=scores, sdev=apply(scores, 2L, sd),
+		pivots=pivots, pivot.array=xp, distfun=distfun)
+	names(ans$sdev) <- paste0("C", j)
 	colnames(ans$x) <- paste0("C", j)
 	rownames(ans$pivots) <- paste0("C", j)
+	ans$transpose <- transpose
 	class(ans) <- "fastmap"
 	ans
 }
 
-rowdistfun <- function(y, j = NULL, metric = "euclidean", p = 2)
+print.fastmap <- function(x, print.x = FALSE, ...)
 {
-	if ( !is.null(j) )
-		y <- y[j,,drop=FALSE]
-	function(x, i) {
-		rowdist_at(x, i, y, metric=metric, p=p)[[1L]]
+	cat(sprintf("FastMap (k=%d)\n", ncol(x$x)))
+	if ( !is.null(x$sdev) ) {
+		cat(sprintf("\nStandard deviations (1, .., k=%d):\n", length(x$sdev)))
+	    print(x$sdev, ...)
+	}
+	if ( print.x ) {
+		cat("\nProjected variables:\n")
+		print(x$x, ...)
+	}
+	invisible(x)
+}
+
+predict.fastmap <- function(object, newdata, ...)
+{
+	if ( missing(newdata) )
+		return(object$x)
+	if ( length(dim(newdata)) != 2L )
+		stop("'newdata' must be a matrix or data frame")
+	k <- nrow(object$pivots)
+	xp <- object$pivot.array
+	if (object$transpose) {
+		N <- NCOL(newdata)
+		snames <- colnames(newdata)
+	} else {
+		N <- NROW(newdata)
+		snames <- rownames(newdata)
+	}
+	j <- seq_len(k)
+	pred <- matrix(0, nrow=N, ncol=k,
+		dimnames=list(snames, paste0("C", j)))
+	fx <- object$distfun(xp, newdata, ...)
+	for ( i in j ) {
+		p1 <- object$pivots[i,1L]
+		p2 <- object$pivots[i,2L]
+		d12 <- object$pivots[i,3L]
+		# get distances to pivot 1
+		d1x <- fx(i)
+		if ( i > 1L ) {
+			proj1 <- object$x[p1,1L:(i - 1L),drop=FALSE]
+			d1proj <- rowdist(pred[,1L:(i - 1L),drop=FALSE], proj1)
+			d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
+		} else {
+			d1 <- d1x
+		}
+		# get distances to pivot 2
+		d2x <- fx(i + k)
+		if ( i > 1L ) {
+			proj2 <- object$x[p2,1L:(i - 1L),drop=FALSE]
+			d2proj <- rowdist(pred[,1L:(i - 1L),drop=FALSE], proj2)
+			d2 <- sqrt(pmax(d2x^2 - d2proj^2, 0))
+		} else {
+			d2 <- d2x
+		}
+		# project current component
+		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
+		pred[,i] <- xi
+	}
+	pred
+}
+
+rowDistFun <- function(x, y, metric = "euclidean", p = 2,
+	BPPARAM = bpparam())
+{
+	function(i) {
+		rowDists(y, x[i,,drop=FALSE],
+			metric=metric, p=p, BPPARAM=BPPARAM)
 	}
 }
 
-coldistfun <- function(y, j = NULL, metric = "euclidean", p = 2)
+colDistFun <- function(x, y, metric = "euclidean", p = 2,
+	BPPARAM = bpparam())
 {
-	if ( !is.null(j) )
-		y <- y[,j,drop=FALSE]
-	function(x, i) {
-		coldist_at(x, i, y, metric=metric, p=p)[[1L]]
+	function(i) {
+		colDists(y, x[,i,drop=FALSE],
+			metric=metric, p=p, BPPARAM=BPPARAM)
 	}
 }

@@ -6,7 +6,6 @@ context("fastmap")
 test_that("fastmap", {
 
 	register(SerialParam())
-	set.seed(1)
 
 	# Arithmetic example from Faloutsos and Lin
 
@@ -31,7 +30,7 @@ test_that("fastmap", {
 	# Note: due to ties in the example data
 	# there are multiple "correct" pivot
 	# so initialization matters --
-	# the seed above reproduces paper results
+	# the seed below reproduces paper results
 
 	f1 <- c(0, 0.005, 0.005, 100, 99.995)
 	f2 <- c(0.707089, 1.41418, 1.06062, 0.707089, 0)
@@ -44,7 +43,8 @@ test_that("fastmap", {
 
 	f <- cbind(f1, f2, f3)
 
-	fm <- fastmap_fun(x)
+	set.seed(1)
+	fm <- fastmap(x)
 
 	expect_equivalent(f[,1:2], fm$x[,1:2], tolerance=1e-5)
 
@@ -54,6 +54,51 @@ test_that("fastmap", {
 
 	p <- rbind(p1, p2, p3)
 
-	expect_equivalent(p[1:2,], fm$pivots[1:2,])
+	expect_equivalent(p[1:2,], fm$pivots[1:2,1:2])
+
+	pred <- predict(fm, x)
+
+	expect_equivalent(fm$x, pred)
 	
 })
+
+test_that("fastmap - matter matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	nr <- 100
+	nc <- 25
+	vals1 <- sort(runif(2500))
+	vals2 <- rev(sort(runif(2500)))
+	x1 <- matrix(vals1, nrow=100, ncol=25)
+	x2 <- matrix(vals2, nrow=100, ncol=25)
+	x <- cbind(x1, x2)
+	y <- matter_mat(x)
+
+	set.seed(1)
+	fmx <- fastmap(x)
+	set.seed(1)
+	fmy <- fastmap(y)
+
+	expect_equal(fmx$x, fmy$x)
+
+})
+
+test_that("fastmap - sparse matrix", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- rbinom(5000, 1, 0.2)
+	x[x != 0] <- seq_len(sum(x != 0))
+	dim(x) <- c(100, 50)
+	y <- sparse_mat(x)
+
+	set.seed(1)
+	fmx <- fastmap(x)
+	set.seed(1)
+	fmy <- fastmap(y)
+
+	expect_equal(fmx$x, fmy$x)
+
+})
+

@@ -300,7 +300,7 @@ export(
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",
-	"fastmap_fun",
+	"fastmap_func",
 	"prcomp_lanczos",
 	"pls_nipals",
 	"pls_simpls",
@@ -310,6 +310,9 @@ export(
 
 S3method("predict", "nnmf")
 S3method("print", "nnmf")
+
+S3method("predict", "fastmap")
+S3method("print", "fastmap")
 
 S3method("predict", "pls")
 S3method("print", "pls")
