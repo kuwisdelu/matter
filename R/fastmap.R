@@ -2,50 +2,13 @@
 #### FastMap Projection ####
 ## -------------------------
 
-setMethod("fastmap", "matrix",
-	function(x, k = 3L, transpose = FALSE, ...,
-		verbose = NA, BPPARAM = bpparam())
-{
-	if ( transpose ) {
-		fastmap_func(x, k=k, distfun=colDistFun, transpose=TRUE,
-			verbose=verbose, ..., BPPARAM=BPPARAM)
-	} else {
-		fastmap_func(x, k=k, distfun=rowDistFun, transpose=FALSE,
-			verbose=verbose, ..., BPPARAM=BPPARAM)
-	}
-})
-
-setMethod("fastmap", "matter_mat",
-	function(x, k = 3L, transpose = FALSE, ...,
-		verbose = NA, BPPARAM = bpparam())
-{
-	if ( transpose ) {
-		fastmap_func(x, k=k, distfun=colDistFun, transpose=TRUE,
-			verbose=verbose, ..., BPPARAM=BPPARAM)
-	} else {
-		fastmap_func(x, k=k, distfun=rowDistFun, transpose=FALSE,
-			verbose=verbose, ..., BPPARAM=BPPARAM)
-	}
-})
-
-setMethod("fastmap", "sparse_mat",
-	function(x, k = 3L, transpose = FALSE, ...,
-		verbose = NA, BPPARAM = bpparam())
-{
-	if ( transpose ) {
-		fastmap_func(x, k=k, distfun=colDistFun, transpose=TRUE,
-			verbose=verbose, ..., BPPARAM=BPPARAM)
-	} else {
-		fastmap_func(x, k=k, distfun=rowDistFun, transpose=FALSE,
-			verbose=verbose, ..., BPPARAM=BPPARAM)
-	}
-})
-
-fastmap_func <- function(x, k = 3L, distfun = rowDistFun,
+fastmap <- function(x, k = 3L, distfun = NULL,
 	transpose = FALSE, niter = 3L, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( is.null(distfun) )
+		distfun <- if (transpose) colDistFun else rowDistFun
 	k <- min(k, dim(x))
 	# prepare matrices
 	j <- seq_len(k)

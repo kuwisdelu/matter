@@ -297,30 +297,6 @@ export(
 export("pinv")
 
 export(
-	"nndsvd",
-	"nnmf_als",
-	"nnmf_mult",
-	"fastmap_func",
-	"prcomp_lanczos",
-	"pls_nipals",
-	"pls_simpls",
-	"pls_kernel",
-	"opls_nipals",
-	"vip")
-
-S3method("predict", "nnmf")
-S3method("print", "nnmf")
-
-S3method("predict", "fastmap")
-S3method("print", "fastmap")
-
-S3method("predict", "pls")
-S3method("print", "pls")
-
-S3method("predict", "opls")
-S3method("print", "opls")
-
-export(
 	"chunk_apply",
 	"chunk_rowapply",
 	"chunk_colapply",
@@ -415,8 +391,8 @@ exportMethods(
 	"colDists")
 
 export(
-	".rowDists",
-	".colDists")
+	"rowDistFun",
+	"colDistFun")
 
 export(
 	"roll",
@@ -430,9 +406,9 @@ exportMethods(
 	"lapply",
 	"sapply")
 
+exportMethods("scale")
+
 exportMethods(
-	"scale",
-	"fastmap",
 	"prcomp",
 	"bigglm")
 
@@ -450,6 +426,30 @@ export(
 	"knnsearch")
 
 S3method("print", "kdtree")
+
+export(
+	"fastmap",
+	"nndsvd",
+	"nnmf_als",
+	"nnmf_mult",
+	"prcomp_lanczos",
+	"pls_nipals",
+	"pls_simpls",
+	"pls_kernel",
+	"opls_nipals",
+	"vip")
+
+S3method("predict", "fastmap")
+S3method("print", "fastmap")
+
+S3method("predict", "nnmf")
+S3method("print", "nnmf")
+
+S3method("predict", "pls")
+S3method("print", "pls")
+
+S3method("predict", "opls")
+S3method("print", "opls")
 
 export(
 	"vizi",

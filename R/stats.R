@@ -1,4 +1,57 @@
 
+#### Summarize matrices ####
+## -------------------------
+
+# matter matrices
+setMethod("rowSums", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="sum", ..., na.rm=na.rm)
+	})
+
+setMethod("colSums", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="sum", ..., na.rm=na.rm)
+	})
+
+setMethod("rowMeans", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="mean", ..., na.rm=na.rm)
+	})
+
+setMethod("colMeans", "matter_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="mean", ..., na.rm=na.rm)
+	})
+
+# sparse matrices
+setMethod("rowSums", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="sum", ..., na.rm=na.rm)
+	})
+
+setMethod("colSums", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="sum", ..., na.rm=na.rm)
+	})
+
+setMethod("rowMeans", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		rowStats(x, stat="mean", ..., na.rm=na.rm)
+	})
+
+setMethod("colMeans", "sparse_mat",
+	function(x, na.rm = FALSE, dims = 1, ...)
+	{
+		colStats(x, stat="mean", ..., na.rm=na.rm)
+	})
+
 #### Summarize arrays ####
 ## -----------------------
 
@@ -70,58 +123,4 @@ setMethod("all", "matter_arr",
 	{
 		drop_attr(chunk_lapply(x, FUN=s_all,
 			na.rm=na.rm, simplify=stat_c, ...))
-	})
-
-#### Summarize matrix rows ####
-## ----------------------------
-
-setMethod("rowSums", "matter_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		rowStats(x, stat="sum", ..., na.rm=na.rm)
-	})
-
-setMethod("rowMeans", "matter_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		rowStats(x, stat="mean", ..., na.rm=na.rm)
-	})
-
-setMethod("rowSums", "sparse_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		rowStats(x, stat="sum", ..., na.rm=na.rm)
-	})
-
-setMethod("rowMeans", "sparse_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		rowStats(x, stat="mean", ..., na.rm=na.rm)
-	})
-
-#### Summarize matrix columns ####
-## -------------------------------
-
-setMethod("colSums", "matter_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		colStats(x, stat="sum", ..., na.rm=na.rm)
-	})
-
-setMethod("colMeans", "matter_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		colStats(x, stat="mean", ..., na.rm=na.rm)
-	})
-
-setMethod("colSums", "sparse_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		colStats(x, stat="sum", ..., na.rm=na.rm)
-	})
-
-setMethod("colMeans", "sparse_mat",
-	function(x, na.rm = FALSE, dims = 1, ...)
-	{
-		colStats(x, stat="mean", ..., na.rm=na.rm)
 	})

@@ -9,7 +9,9 @@ nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	k <- min(k, dim(x))
-	init <- nndsvd(x, k=k, ...)
+	if ( verbose )
+		message("initializing with nonnegative double SVD")
+	init <- nndsvd(x, k=k, verbose=verbose, ...)
 	w <- init$w
 	h <- init$h
 	dw <- dh <- Inf
@@ -63,7 +65,9 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	k <- min(k, dim(x))
-	init <- nndsvd(x, k=k, ...)
+	if ( verbose )
+		message("initializing with nonnegative double SVD")
+	init <- nndsvd(x, k=k, verbose=verbose, ...)
 	w <- init$w
 	h <- init$h
 	dw <- dh <- Inf

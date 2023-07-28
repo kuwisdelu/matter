@@ -58,6 +58,7 @@ prcomp_lanczos(x, k = 3L, retx = TRUE,
 }
 
 \examples{
+register(SerialParam())
 set.seed(1)
 
 x <- matter_mat(rnorm(1000), nrow=100, ncol=10)

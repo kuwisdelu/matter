@@ -144,6 +144,8 @@ vip(object, type = c("projection", "weights"))
 }
 
 \examples{
+register(SerialParam())
+
 x <- cbind(
 		c(-2.18, 1.84, -0.48, 0.83),
 		c(-2.18, -0.16, 1.52, 0.83))

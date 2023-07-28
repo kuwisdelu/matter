@@ -23,6 +23,9 @@ nnmf_mult(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 	tol = 1e-5, verbose = NA, \dots)
 
 \S3method{predict}{nnmf}(object, newdata, \dots)
+
+# Nonnegative double SVD
+nndsvd(x, k = 3L, \dots)
 }
 
 \arguments{

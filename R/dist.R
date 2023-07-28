@@ -101,8 +101,6 @@ rowDists_int <- function(x, y, metric = "euclidean", p = 2,
 	ans
 }
 
-.rowDists <- rowDists_int
-
 colDists_int <- function(x, y, metric = "euclidean", p = 2,
 	iter.dim = 1L, BPPARAM = bpparam(), ...)
 {
@@ -123,8 +121,6 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 		dimnames(ans) <- list(rownames(x), rownames(y))
 	ans
 }
-
-.colDists <- colDists_int
 
 #### Distances ####
 ## ----------------
