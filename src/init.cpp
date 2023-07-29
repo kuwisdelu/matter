@@ -20,10 +20,10 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(kdSearch, 7),
 	CALLDEF(knnSearch, 8),
 	// distance
-	CALLDEF(rowDist, 4),
-	CALLDEF(colDist, 4),
-	CALLDEF(rowDistAt, 6),
-	CALLDEF(colDistAt, 6),
+	CALLDEF(rowDist, 5),
+	CALLDEF(colDist, 5),
+	CALLDEF(rowDistAt, 7),
+	CALLDEF(colDistAt, 7),
 	CALLDEF(inPoly, 2),
 	// compression
 	CALLDEF(encodeDRLE, 2),

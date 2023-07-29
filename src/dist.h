@@ -15,28 +15,28 @@
 // calculate distance between k-dim points
 template<typename T>
 double do_dist(T * x, T * y, size_t k, int stepx = 1, int stepy = 1,
-	int metric = DIST_EUC, double p = 2, double * scale = NULL)
+	int metric = DIST_EUC, double p = 2, double * weights = NULL)
 {
-	double si, di, D = 0;
+	double wi, di, D = 0;
 	for ( index_t i = 0; i < k; i++ )
 	{
-		if ( scale != NULL )
-			si = scale[i];
+		if ( weights != NULL )
+			wi = weights[i];
 		else
-			si = 1;
-		di = udiff(x[i * stepx], y[i * stepy]) / si;
+			wi = 1;
+		di = udiff(x[i * stepx], y[i * stepy]);
 		switch(metric) {
 			case DIST_EUC:
-				D += di * di;
+				D += wi * di * di;
 				break;
 			case DIST_MAX:
-				D = di > D ? di : D;
+				D = wi * di > D ? wi * di : D;
 				break;
 			case DIST_ABS:
-				D += di;
+				D += wi * di;
 				break;
 			case DIST_MKW:
-				D += std::pow(di, p);
+				D += wi * std::pow(di, p);
 				break;
 			default:
 				Rf_error("unrecognized distance metric");
@@ -57,8 +57,8 @@ double do_dist(T * x, T * y, size_t k, int stepx = 1, int stepy = 1,
 }
 
 template<typename T>
-void row_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
-	double * buffer, int metric = DIST_EUC, double p = 2)
+void row_dist(T * x, T * y, size_t nx, size_t ny, size_t k, double * buffer,
+	int metric = DIST_EUC, double p = 2, double * weights = NULL)
 {
 	for ( index_t ix = 0; ix < nx; ix++ )
 	{
@@ -66,14 +66,15 @@ void row_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
 		{
 			T * xx = x + ix;
 			T * yy = y + iy;
-			buffer[iy * nx + ix] = do_dist(xx, yy, k, nx, ny, metric, p);
+			buffer[iy * nx + ix] = do_dist(xx, yy,
+				k, nx, ny, metric, p, weights);
 		}
 	}
 }
 
 template<typename T>
-void col_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
-	double * buffer, int metric = DIST_EUC, double p = 2)
+void col_dist(T * x, T * y, size_t nx, size_t ny, size_t k, double * buffer,
+	int metric = DIST_EUC, double p = 2, double * weights = NULL)
 {
 	for ( index_t ix = 0; ix < nx; ix++ )
 	{
@@ -81,14 +82,16 @@ void col_dist(T * x, T * y, size_t nx, size_t ny, size_t k,
 		{
 			T * xx = x + (ix * k);
 			T * yy = y + (iy * k);
-			buffer[iy * nx + ix] = do_dist(xx, yy, k, 1, 1, metric, p);
+			buffer[iy * nx + ix] = do_dist(xx, yy,
+				k, 1, 1, metric, p, weights);
 		}
 	}
 }
 
 template<typename T>
 void row_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
-	size_t ni, size_t k, double * buffer, int metric = DIST_EUC, double p = 2)
+	size_t ni, size_t k, double * buffer, int metric = DIST_EUC, double p = 2,
+	double * weights = NULL)
 {
 	for ( index_t i = 0; i < ni; i++ )
 	{
@@ -98,13 +101,14 @@ void row_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
 			Rf_error("subscript out of bounds");
 		T * xx = x + indx[i];
 		T * yy = y + indy[i];
-		buffer[i] = do_dist(xx, yy, k, nx, ny, metric, p);
+		buffer[i] = do_dist(xx, yy, k, nx, ny, metric, p, weights);
 	}
 }
 
 template<typename T>
 void col_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
-	size_t ni, size_t k, double * buffer, int metric = DIST_EUC, double p = 2)
+	size_t ni, size_t k, double * buffer, int metric = DIST_EUC, double p = 2,
+	double * weights = NULL)
 {
 	for ( index_t i = 0; i < ni; i++ )
 	{
@@ -114,7 +118,7 @@ void col_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
 			Rf_error("subscript out of bounds");
 		T * xx = x + (indx[i] * k);
 		T * yy = y + (indy[i] * k);
-		buffer[i] = do_dist(xx, yy, k, 1, 1, metric, p);
+		buffer[i] = do_dist(xx, yy, k, 1, 1, metric, p, weights);
 	}
 }
 

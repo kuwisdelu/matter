@@ -239,20 +239,23 @@ SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 // Distance
 //----------
 
-SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p)
+SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p, SEXP weights)
 {
 	if ( TYPEOF(x) != TYPEOF(y) )
 		Rf_error("'x' and 'y' must have the same type");
 	SEXP result;
 	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_nrows(y)));
+	double * wts = NULL;
+	if ( !Rf_isNull(weights) )
+		wts = REAL(weights);
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			row_dist(INTEGER(x), INTEGER(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p), wts);
 			break;
 		case REALSXP:
 			row_dist(REAL(x), REAL(y), Rf_nrows(x), Rf_nrows(y), Rf_ncols(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p), wts);
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -261,20 +264,23 @@ SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p)
 	return result;
 }
 
-SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p)
+SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p, SEXP weights)
 {
 	if ( TYPEOF(x) != TYPEOF(y) )
 		Rf_error("'x' and 'y' must have the same type");
 	SEXP result;
 	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_ncols(x), Rf_ncols(y)));
+	double * wts = NULL;
+	if ( !Rf_isNull(weights) )
+		wts = REAL(weights);
 	switch(TYPEOF(x)) {
 		case INTSXP:
 			col_dist(INTEGER(x), INTEGER(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p), wts);
 			break;
 		case REALSXP:
 			col_dist(REAL(x), REAL(y), Rf_ncols(x), Rf_ncols(y), Rf_nrows(x),
-				REAL(result), Rf_asInteger(metric), Rf_asReal(p));
+				REAL(result), Rf_asInteger(metric), Rf_asReal(p), wts);
 			break;
 		default:
 			Rf_error("unsupported data type");
@@ -283,11 +289,15 @@ SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p)
 	return result;
 }
 
-SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
+SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat,
+	SEXP metric, SEXP p, SEXP weights)
 {
 	size_t nout = LENGTH(xat);
 	SEXP result;
 	PROTECT(result = Rf_allocVector(VECSXP, nout));
+	double * wts = NULL;
+	if ( !Rf_isNull(weights) )
+		wts = REAL(weights);
 	for ( index_t i = 0; i < nout; i++ )
 	{
 		SEXP indx = VECTOR_ELT(xat, i);
@@ -305,11 +315,11 @@ SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
 		switch(TYPEOF(x)) {
 			case INTSXP:
 				row_dist_at(INTEGER(x), INTEGER(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
-					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p), wts);
 				break;
 			case REALSXP:
 				row_dist_at(REAL(x), REAL(y), xrows, yrows, Rf_nrows(x), Rf_nrows(y),
-					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+					ni, Rf_ncols(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p), wts);
 				break;
 			default:
 				Rf_error("unsupported data type");
@@ -321,11 +331,15 @@ SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
 	return result;
 }
 
-SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
+SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat,
+	SEXP metric, SEXP p, SEXP weights)
 {
 	size_t nout = LENGTH(xat);
 	SEXP result;
 	PROTECT(result = Rf_allocVector(VECSXP, nout));
+	double * wts = NULL;
+	if ( !Rf_isNull(weights) )
+		wts = REAL(weights);
 	for ( index_t i = 0; i < nout; i++ )
 	{
 		SEXP indx = VECTOR_ELT(xat, i);
@@ -343,11 +357,11 @@ SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p)
 		switch(TYPEOF(x)) {
 			case INTSXP:
 				col_dist_at(INTEGER(x), INTEGER(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
-					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p), wts);
 				break;
 			case REALSXP:
 				col_dist_at(REAL(x), REAL(y), xcols, ycols, Rf_ncols(x), Rf_ncols(y),
-					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p));
+					ni, Rf_nrows(x), REAL(dist), Rf_asInteger(metric), Rf_asReal(p), wts);
 				break;
 			default:
 				Rf_error("unsupported data type");

@@ -160,6 +160,40 @@ test_that("rowDists + colDists", {
 
 })
 
+test_that("weighted rowDists + colDists", {
+
+	register(SerialParam())
+	set.seed(1)
+	x <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
+	y <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
+
+	wc <- runif(ncol(x))
+	wr <- runif(nrow(x))
+
+	dr <- apply(x, 1L,
+		function(xi) {
+			d <- colsweep(x, xi, "-")
+			d <- rowSums(colsweep(d^2, wc, "*"))
+			sqrt(d)
+		})
+
+	dc <- apply(x, 2L,
+		function(xi) {
+			d <- rowsweep(x, xi, "-")
+			d <- colSums(rowsweep(d^2, wr, "*"))
+			sqrt(d)
+		})
+	
+	expect_equal(dr, rowdist(x, weights=wc))
+	expect_equal(dr, rowDists(x, weights=wc, iter.dim=1L))
+	expect_equal(dr, rowDists(x, weights=wc, iter.dim=2L))
+
+	expect_equal(dc, coldist(x, weights=wr))
+	expect_equal(dc, colDists(x, weights=wr, iter.dim=1L))
+	expect_equal(dc, colDists(x, weights=wr, iter.dim=2L))
+
+})
+
 test_that("rowDists + colDists - matter matrix", {
 
 	register(SerialParam())

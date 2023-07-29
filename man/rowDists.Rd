@@ -45,15 +45,15 @@
 
 \S4method{colDists}{matrix,sparse_mat}(x, y, \dots, BPPARAM = bpparam())
 
-rowdist(x, y = x, metric = "euclidean", p = 2)
+rowdist(x, y = x, metric = "euclidean", p = 2, weights = NULL)
 
-coldist(x, y = x, metric = "euclidean", p = 2)
+coldist(x, y = x, metric = "euclidean", p = 2, weights = NULL)
 
 rowdist_at(x, ix, y = x, iy = list(1L:nrow(y)),
-	metric = "euclidean", p = 2)
+	metric = "euclidean", p = 2, weights = NULL)
 
 coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
-	metric = "euclidean", p = 2)
+	metric = "euclidean", p = 2, weights = NULL)
 }
 
 \arguments{
@@ -62,6 +62,8 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 	\item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 
 	\item{p}{The power for the Minkowski distance.}
+
+	\item{weights}{A numeric vector of weights for the distance components if calculating weighted distances. For example, the weighted Euclidean distance is \code{sqrt(sum(w * (x - y)^2))}.}
 
 	\item{ix, iy}{A list of specific row or column indices for which to calculate the pairwise distances. Numeric vectors will be coerced to lists. Each list element should give a vector of indices to use for a distance computation. Elements of length 1 will be recycled to an appropriate length.}
 

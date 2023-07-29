@@ -81,19 +81,24 @@ setMethod("colDists", c("matrix", "sparse_mat"),
 	})
 
 rowDists_int <- function(x, y, metric = "euclidean", p = 2,
-	iter.dim = 1L, BPPARAM = bpparam(), ...)
+	weights = NULL, iter.dim = 1L, BPPARAM = bpparam(), ...)
 {
 	if ( !iter.dim %in% c(1L, 2L) )
 		stop("iter.dim must be 1 or 2")
 	if ( iter.dim == 1L ) {
 		ans <- chunk_rowapply(x, rowdist, y=y, metric=metric, p=p,
-			simplify=rbind, BPPARAM=BPPARAM, ...)
+			weights=weights, simplify=rbind, BPPARAM=BPPARAM, ...)
 	} else {
 		BIND <- function(x, ...) dist_c(x, ..., metric=metric, p=p)
 		ans <- chunk_colapply(x,
 			function(xi) {
+				if ( !is.null(weights) ){
+					wi <- weights[attr(xi, "index")]
+				} else {
+					wi <- NULL
+				}
 				yi <- y[,attr(xi, "index"),drop=FALSE]
-				rowdist(xi, yi, metric=metric, p=p)
+				rowdist(xi, yi, metric=metric, p=p, weights=wi)
 			}, simplify=BIND, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.null(rownames(x)) || !is.null(rownames(y)) )
@@ -102,7 +107,7 @@ rowDists_int <- function(x, y, metric = "euclidean", p = 2,
 }
 
 colDists_int <- function(x, y, metric = "euclidean", p = 2,
-	iter.dim = 1L, BPPARAM = bpparam(), ...)
+	weights = NULL, iter.dim = 1L, BPPARAM = bpparam(), ...)
 {
 	if ( !iter.dim %in% c(1L, 2L) )
 		stop("iter.dim must be 1 or 2")
@@ -110,12 +115,17 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 		BIND <- function(x, ...) dist_c(x, ..., metric=metric, p=p)
 		ans <- chunk_rowapply(x,
 			function(xi) {
+				if ( !is.null(weights) ){
+					wi <- weights[attr(xi, "index")]
+				} else {
+					wi <- NULL
+				}
 				yi <- y[attr(xi, "index"),,drop=FALSE]
-				coldist(xi, yi, metric=metric, p=p)
+				coldist(xi, yi, metric=metric, p=p, weights=wi)
 			}, simplify=BIND, BPPARAM=BPPARAM, ...)
 	} else {
 		ans <- chunk_colapply(x, coldist, y=y, metric=metric, p=p,
-			simplify=rbind, BPPARAM=BPPARAM, ...)
+			weights=weights, simplify=rbind, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.null(rownames(x)) || !is.null(rownames(y)) )
 		dimnames(ans) <- list(rownames(x), rownames(y))
@@ -125,7 +135,7 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 #### Distances ####
 ## ----------------
 
-rowdist <- function(x, y = x, metric = "euclidean", p = 2)
+rowdist <- function(x, y = x, metric = "euclidean", p = 2, weights = NULL)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -135,10 +145,15 @@ rowdist <- function(x, y = x, metric = "euclidean", p = 2)
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
-	.Call(C_rowDist, x, y, as_dist(metric), p, PACKAGE="matter")
+	if ( !is.null(weights) ) {
+		if ( length(weights) != ncol(x) )
+			stop("length of weights must match number of columns")
+		weights <- as.double(weights)
+	}
+	.Call(C_rowDist, x, y, as_dist(metric), p, weights, PACKAGE="matter")
 }
 
-coldist <- function(x, y = x, metric = "euclidean", p = 2)
+coldist <- function(x, y = x, metric = "euclidean", p = 2, weights = NULL)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -148,7 +163,12 @@ coldist <- function(x, y = x, metric = "euclidean", p = 2)
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
-	.Call(C_colDist, x, y, as_dist(metric), p, PACKAGE="matter")
+	if ( !is.null(weights) ) {
+		if ( length(weights) != nrow(x) )
+			stop("length of weights must match number of rows")
+		weights <- as.double(weights)
+	}
+	.Call(C_colDist, x, y, as_dist(metric), p, weights, PACKAGE="matter")
 }
 
 dist_c <- function(x, y, ..., metric = "euclidean", p = 2)
@@ -169,7 +189,7 @@ dist_c <- function(x, y, ..., metric = "euclidean", p = 2)
 ## ------------------------------------
 
 rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
-	metric = "euclidean", p = 2)
+	metric = "euclidean", p = 2, weights = NULL)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -189,12 +209,17 @@ rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
+	if ( !is.null(weights) ) {
+		if ( length(weights) != ncol(x) )
+			stop("length of weights must match number of columns")
+		weights <- as.double(weights)
+	}
 	.Call(C_rowDistAt, x, y, ix, iy,
-		as_dist(metric), p, PACKAGE="matter")
+		as_dist(metric), p, weights, PACKAGE="matter")
 }
 
 coldist_at <- function(x, ix, y = x, iy = list(1L:ncol(y)),
-	metric = "euclidean", p = 2)
+	metric = "euclidean", p = 2, weights = NULL)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -214,8 +239,13 @@ coldist_at <- function(x, ix, y = x, iy = list(1L:ncol(y)),
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(y) )
 		storage.mode(y) <- "double"
+	if ( !is.null(weights) ) {
+		if ( length(weights) != nrow(x) )
+			stop("length of weights must match number of rows")
+		weights <- as.double(weights)
+	}
 	.Call(C_colDistAt, x, y, ix, iy,
-		as_dist(metric), p, PACKAGE="matter")
+		as_dist(metric), p, weights, PACKAGE="matter")
 }
 
 #### Point in polygon ####

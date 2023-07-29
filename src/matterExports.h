@@ -33,10 +33,14 @@ SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 // Distance
 //----------
 
-SEXP rowDist(SEXP x, SEXP y, SEXP metric, SEXP p);
-SEXP colDist(SEXP x, SEXP y, SEXP metric, SEXP p);
-SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
-SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat, SEXP metric, SEXP p);
+SEXP rowDist(SEXP x, SEXP y,
+	SEXP metric, SEXP p, SEXP weights);
+SEXP colDist(SEXP x, SEXP y,
+	SEXP metric, SEXP p, SEXP weights);
+SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat,
+	SEXP metric, SEXP p, SEXP weights);
+SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat,
+	SEXP metric, SEXP p, SEXP weights);
 SEXP inPoly(SEXP points, SEXP vertices);
 
 // Compression (delta run length encoding)
