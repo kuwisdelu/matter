@@ -49,11 +49,6 @@ setGeneric("colStats", function(x, ...) standardGeneric("colStats"))
 setGeneric("rowDists", function(x, y, ...) standardGeneric("rowDists"))
 setGeneric("colDists", function(x, y, ...) standardGeneric("colDists"))
 
-#### Define new generics for statistical methods ####
-## -------------------------------------------------
-
-setGeneric("fastmap", function(x, ...) standardGeneric("fastmap"))
-
 #### Basic accessor, setter, and manipulation ####
 ## -----------------------------------------------
 
