@@ -127,6 +127,24 @@ filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
+convolve_at <- function(x, index, weights, ...)
+{
+	if ( !is.list(index) )
+		stop("index must be a list")
+	if ( length(index) != length(x) )
+		stop("index and x must have the same length")
+	if ( is.numeric(weights) )
+		weights <- list(weights)
+	weights <- rep_len(weights, length(x))
+	if ( !all(lengths(index) == lengths(weights)) )
+		stop("lengths of index and weights must match")
+	vapply(seq_along(x),
+		function(i) {
+			ii <- index[[i]]
+			sum(weights[[i]] * x[ii], ...)
+		}, numeric(1L))
+}
+
 #### Alignment and warping ####
 ## ----------------------------
 

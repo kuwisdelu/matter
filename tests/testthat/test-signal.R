@@ -53,6 +53,14 @@ test_that("filter 1d", {
 	expect_gt(cor(x7, y), cor(x, y))
 	expect_gt(cor(x8, y), cor(x, y))
 
+	i <- roll(seq_along(x), width=5)
+	wts <- rep_len(list(rep.int(1/5, 5)), length(i))
+	x9 <- convolve_at(x, i, wts)
+	x10 <- convolve_at(x, i, wt)
+	
+	expect_equal(x1[3:4998], x9[3:4998])
+	expect_equal(x2[3:4998], x10[3:4998])
+
 })
 
 test_that("warp + align 1d", {

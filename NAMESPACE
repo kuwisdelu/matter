@@ -332,6 +332,7 @@ export(
 	"filt1_guide",
 	"filt1_pag",
 	"filt1_sg",
+	"convolve_at",
 	"warp1_loc",
 	"warp1_dtw",
 	"warp1_cow",
