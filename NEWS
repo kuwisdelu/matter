@@ -1,4 +1,23 @@
 
+CHANGES IN VERSION 2.3.8 [2023-7-29]
+------------------------------------
+
+NEW FEATURES
+
+    o Added PLS (partial least squares)
+    o Added 'pls_nipals' (NIPALS)
+    o Added 'pls_simpls' (SIMPLS)
+    o Added 'pls_kernel' (kernel algorithms #1 and #2)
+    o Added OPLS (orthogonal PLS)
+    o Added 'opls_nipals' (NIPALS)
+    o Added FastMap projection with 'fastmap()'
+    o Added 'rowDists()' and 'colDists()'
+    o Added 'convolve_at()'
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Added regularization to NMF functions for stability
+
 CHANGES IN VERSION 2.3.7 [2023-7-21]
 ------------------------------------
 
