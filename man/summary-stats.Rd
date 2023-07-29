@@ -3,9 +3,10 @@
 
 \alias{Summary}
 
-\alias{mean}
-\alias{sd}
-\alias{var}
+\alias{colMeans}
+\alias{colSums}
+\alias{rowMeans}
+\alias{rowSums}
 
 \alias{range,matter_arr-method}
 \alias{min,matter_arr-method}
