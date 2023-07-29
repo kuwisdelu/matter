@@ -158,6 +158,28 @@ test_that("rowDists + colDists", {
 		coldist(x, metric="minkowski", p=3),
 		colDists(x, metric="minkowski", p=3, iter.dim=1L))
 
+	ir <- roll(1:5, width=3, na.drop=TRUE)
+	ic <- roll(1:6, width=3, na.drop=TRUE)
+
+	expect_equal(
+		rowdist_at(x, ix=1:5, iy=ir),
+		rowDists(x, at=ir))
+	
+	expect_equal(
+		coldist_at(x, ix=1:6, iy=ic),
+		colDists(x, at=ic))
+
+	ir <- roll(1:5, width=3, na.drop=FALSE)
+	ic <- roll(1:6, width=3, na.drop=FALSE)
+
+	expect_equal(
+		rowdist_at(x, ix=1:5, iy=ir),
+		rowDists(x, at=ir))
+	
+	expect_equal(
+		coldist_at(x, ix=1:6, iy=ic),
+		colDists(x, at=ic))
+
 })
 
 test_that("weighted rowDists + colDists", {
@@ -247,6 +269,17 @@ test_that("rowDists + colDists - matter matrix", {
 	expect_equal(coldist(x, y), colDists(x, yy))
 	expect_equal(coldist(y, x), colDists(yy, x))
 
+	ir <- roll(1:5, width=3, na.drop=TRUE)
+	ic <- roll(1:6, width=3, na.drop=TRUE)
+
+	expect_equal(
+		rowdist_at(x, ix=1:5, iy=ir),
+		rowDists(xx, at=ir))
+	
+	expect_equal(
+		coldist_at(x, ix=1:6, iy=ic),
+		colDists(xx, at=ic))
+
 	xx <- matter_mat(x, rowMaj=TRUE)
 	yy <- matter_mat(y, rowMaj=TRUE)
 
@@ -259,6 +292,14 @@ test_that("rowDists + colDists - matter matrix", {
 	expect_equal(coldist(y, x), colDists(y, xx))
 	expect_equal(coldist(x, y), colDists(x, yy))
 	expect_equal(coldist(y, x), colDists(yy, x))
+
+	expect_equal(
+		rowdist_at(x, ix=1:5, iy=ir),
+		rowDists(xx, at=ir))
+	
+	expect_equal(
+		coldist_at(x, ix=1:6, iy=ic),
+		colDists(xx, at=ic))
 
 })
 
@@ -285,6 +326,17 @@ test_that("rowDists + colDists - sparse matrix", {
 	expect_equal(coldist(x, y), colDists(x, yy))
 	expect_equal(coldist(y, x), colDists(yy, x))
 
+	ir <- roll(1:5, width=3, na.drop=TRUE)
+	ic <- roll(1:6, width=3, na.drop=TRUE)
+
+	expect_equal(
+		rowdist_at(x, ix=1:5, iy=ir),
+		rowDists(xx, at=ir))
+	
+	expect_equal(
+		coldist_at(x, ix=1:6, iy=ic),
+		colDists(xx, at=ic))
+
 	xx <- sparse_mat(x, rowMaj=TRUE)
 	yy <- sparse_mat(y, rowMaj=TRUE)
 
@@ -297,6 +349,14 @@ test_that("rowDists + colDists - sparse matrix", {
 	expect_equal(coldist(y, x), colDists(y, xx))
 	expect_equal(coldist(x, y), colDists(x, yy))
 	expect_equal(coldist(y, x), colDists(yy, x))
+
+	expect_equal(
+		rowdist_at(x, ix=1:5, iy=ir),
+		rowDists(xx, at=ir))
+	
+	expect_equal(
+		coldist_at(x, ix=1:6, iy=ic),
+		colDists(xx, at=ic))
 
 })
 

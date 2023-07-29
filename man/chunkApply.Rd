@@ -100,7 +100,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
 
         \item{"index":}{The indices of the elements of the chunk, as elements/rows/columns in the original matrix/vector.}
 
-        \item{"depends" (optional):}{If \code{depends} is given, then this is a list of indices within the chunk. The length of the list is equal to the number of elements/rows/columns that should be processed in the chunk. Each list element is a vector of indices giving the elements/rows/columns of the chunk that should be processed.}
+        \item{"depends" (optional):}{If \code{depends} is given, then this is a list of indices within the chunk. The length of the list is equal to the number of elements/rows/columns in the chunk. Each list element either \code{NULL} or a vector of indices giving the elements/rows/columns of the chunk that should be processed for that index. The indices that should be processed will be non-\code{NULL}, and indices that should be ignored will be \code{NULL}.}
 
     }
 

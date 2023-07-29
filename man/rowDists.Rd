@@ -3,14 +3,14 @@
 \alias{colDists}
 \alias{rowDists}
 
-\alias{colDists,matrix,missing-method}
+\alias{colDists,ANY,missing-method}
 \alias{colDists,matrix,matrix-method}
 \alias{colDists,matter_mat,matrix-method}
 \alias{colDists,matrix,matter_mat-method}
 \alias{colDists,sparse_mat,matrix-method}
 \alias{colDists,matrix,sparse_mat-method}
 
-\alias{rowDists,matrix,missing-method}
+\alias{rowDists,ANY,missing-method}
 \alias{rowDists,matrix,matrix-method}
 \alias{rowDists,matter_mat,matrix-method}
 \alias{rowDists,matrix,matter_mat-method}
@@ -29,9 +29,9 @@
 }
 
 \usage{
-\S4method{rowDists}{matrix,missing}(x, \dots, BPPARAM = bpparam())
+\S4method{rowDists}{ANY,missing}(x, at, \dots, BPPARAM = bpparam())
 
-\S4method{colDists}{matrix,missing}(x, \dots, BPPARAM = bpparam())
+\S4method{colDists}{ANY,missing}(x, at, \dots, BPPARAM = bpparam())
 
 \S4method{rowDists}{matrix,matrix}(x, y, \dots, BPPARAM = bpparam())
 
@@ -59,6 +59,8 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 \arguments{
 	\item{x, y}{Numeric matrices for which distances should be calculated according to rows or columns.}
 
+	\item{at}{A list of specific row or column indices for which to calculate the distances. Each row or column of \code{x} will be compared to the rows or columns indicated by the corresponding element of \code{at}.}
+
 	\item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 
 	\item{p}{The power for the Minkowski distance.}
@@ -84,6 +86,8 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
     For \code{rowdist()} and \code{coldist()}, a matrix with rows equal to the number of observations in \code{x} and columns equal to the number of observations in \code{y}.
 
     For \code{rowdist_at()} and \code{coldist_at()}, a list where each element gives the pairwise distances corresponding to the indices given by \code{ix} and \code{iy}.
+
+    \code{rowDists()} and \code{colDists()} have corresponding return values depending on whether \code{at} has been specified.
 }
 
 \author{Kylie A. Bemis}
@@ -112,6 +116,10 @@ rowdist_at(x, c(1,5))
 # x[1,] vs x[1:3,]
 # x[5,] vs x[3:5,]
 rowdist_at(x, ix=c(1,5), iy=list(1:3, 3:5))
+
+# distances between:
+# x[i,] vs x[(i-1):(i+1),]
+rowDists(x, at=roll(1:5, width=3))
 }
 
 \keyword{array}

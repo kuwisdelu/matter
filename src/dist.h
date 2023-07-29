@@ -95,6 +95,10 @@ void row_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
 {
 	for ( index_t i = 0; i < ni; i++ )
 	{
+		if ( isNA(indx[i]) || isNA(indy[i]) ) {
+			buffer[i] = NA_REAL;
+			continue;
+		}
 		if ( indx[i] < 0 || indx[i] >= nx )
 			Rf_error("subscript out of bounds");
 		if ( indy[i] < 0 || indy[i] >= ny )
@@ -112,6 +116,10 @@ void col_dist_at(T * x, T * y, int * indx, int * indy, size_t nx, size_t ny,
 {
 	for ( index_t i = 0; i < ni; i++ )
 	{
+		if ( isNA(indx[i]) || isNA(indy[i]) ) {
+			buffer[i] = NA_REAL;
+			continue;
+		}
 		if ( indx[i] < 0 || indx[i] >= nx )
 			Rf_error("subscript out of bounds");
 		if ( indy[i] < 0 || indy[i] >= ny )

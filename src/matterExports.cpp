@@ -302,13 +302,15 @@ SEXP rowDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat,
 	{
 		SEXP indx = VECTOR_ELT(xat, i);
 		SEXP indy = VECTOR_ELT(yat, i);
-		int ni = LENGTH(indx);
+		int ix, iy, ni = LENGTH(indx);
 		int xrows [ni];
 		int yrows [ni];
 		for ( index_t j = 0; j < ni; j++ )
 		{
-			xrows[j] = INTEGER_ELT(indx, j) - 1;
-			yrows[j] = INTEGER_ELT(indy, j) - 1;
+			ix = INTEGER_ELT(indx, j);
+			iy = INTEGER_ELT(indy, j);
+			xrows[j] = isNA(ix) ? NA_INTEGER : ix - 1;
+			yrows[j] = isNA(iy) ? NA_INTEGER : iy - 1;
 		}
 		SEXP dist;
 		PROTECT(dist = Rf_allocVector(REALSXP, ni));
@@ -344,13 +346,15 @@ SEXP colDistAt(SEXP x, SEXP y, SEXP xat, SEXP yat,
 	{
 		SEXP indx = VECTOR_ELT(xat, i);
 		SEXP indy = VECTOR_ELT(yat, i);
-		int ni = LENGTH(indx);
+		int ix, iy, ni = LENGTH(indx);
 		int xcols [ni];
 		int ycols [ni];
 		for ( index_t j = 0; j < ni; j++ )
 		{
-			xcols[j] = INTEGER_ELT(indx, j) - 1;
-			ycols[j] = INTEGER_ELT(indy, j) - 1;
+			ix = INTEGER_ELT(indx, j);
+			iy = INTEGER_ELT(indy, j);
+			xcols[j] = isNA(ix) ? NA_INTEGER : ix - 1;
+			ycols[j] = isNA(iy) ? NA_INTEGER : iy - 1;
 		}
 		SEXP dist;
 		PROTECT(dist = Rf_allocVector(REALSXP, ni));

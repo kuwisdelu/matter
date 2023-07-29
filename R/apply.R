@@ -285,6 +285,8 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 }
 
 chunkify <- function(x, nchunks = 20L, depends = NULL) {
+	if ( !is.null(depends) && length(depends) != length(x) )
+		stop("length of 'depends' must match extent of 'x'")
 	nchunks <- min(ceiling(length(x) / 2L), nchunks)
 	index <- seq_along(x)
 	if ( nchunks > 1L ) {
@@ -298,6 +300,8 @@ chunkify <- function(x, nchunks = 20L, depends = NULL) {
 			di <- depends[index[[i]]]
 			ind <- c(index[[i]], unlist(di))
 			ind <- sort(unique(ind))
+			if ( any(ind < 1L | ind > length(x)) )
+				stop("'depends' subscript out of bounds")
 			dep <- lapply(di, match, ind)
 			dep <- dep[match(ind, index[[i]])]
 		} else {

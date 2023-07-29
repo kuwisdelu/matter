@@ -306,6 +306,8 @@ as_real_memory_matrix <- function(x) {
 	}
 }
 
+non_null <- function(x) !vapply(x, is.null, logical(1L))
+
 is_nil <- function(x) is.na(x) || is.null(x)
 
 is_discrete <- function(x) {

@@ -2,14 +2,22 @@
 #### Distances for matter matrices ####
 ## ------------------------------------
 
-setMethod("rowDists", c("matrix", "missing"),
-	function(x, ..., BPPARAM = bpparam()) {
-		rowDists_int(x, x, ..., BPPARAM = BPPARAM)
+setMethod("rowDists", c("ANY", "missing"),
+	function(x, at, ..., BPPARAM = bpparam()) {
+		if ( missing(at) ) {
+			rowDists(x, x, ..., BPPARAM = BPPARAM)
+		} else {
+			rowDistsAt_int(x, at, ..., BPPARAM = BPPARAM)
+		}
 	})
 
-setMethod("colDists", c("matrix", "missing"),
-	function(x, ..., BPPARAM = bpparam()) {
-		colDists_int(x, x, ..., BPPARAM = BPPARAM)
+setMethod("colDists", c("ANY", "missing"),
+	function(x, at, ..., BPPARAM = bpparam()) {
+		if ( missing(at) ) {
+			colDists(x, x, ..., BPPARAM = BPPARAM)
+		} else {
+			colDistsAt_int(x, at, ..., BPPARAM = BPPARAM)
+		}
 	})
 
 setMethod("rowDists", c("matrix", "matrix"),
@@ -89,7 +97,7 @@ rowDists_int <- function(x, y, metric = "euclidean", p = 2,
 		ans <- chunk_rowapply(x, rowdist, y=y, metric=metric, p=p,
 			weights=weights, simplify=rbind, BPPARAM=BPPARAM, ...)
 	} else {
-		BIND <- function(x, ...) dist_c(x, ..., metric=metric, p=p)
+		BIND <- function(...) dist_c(..., metric=metric, p=p)
 		ans <- chunk_colapply(x,
 			function(xi) {
 				if ( !is.null(weights) ){
@@ -112,7 +120,7 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 	if ( !iter.dim %in% c(1L, 2L) )
 		stop("iter.dim must be 1 or 2")
 	if ( iter.dim == 1L ) {
-		BIND <- function(x, ...) dist_c(x, ..., metric=metric, p=p)
+		BIND <- function(...) dist_c(..., metric=metric, p=p)
 		ans <- chunk_rowapply(x,
 			function(xi) {
 				if ( !is.null(weights) ){
@@ -129,6 +137,46 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 	}
 	if ( !is.null(rownames(x)) || !is.null(rownames(y)) )
 		dimnames(ans) <- list(rownames(x), rownames(y))
+	ans
+}
+
+rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
+	weights = NULL, BPPARAM = bpparam(), ...)
+{
+	a <- names(as.list(match.call()))
+	if ( "iter.dim" %in% a )
+		stop("iter.dim will be ignored when 'at' is used")
+	if ( length(at) != nrow(x) )
+		at <- rep_len(at, nrow(x))
+	ans <- chunk_rowapply(x,
+		function(xi) {
+			di <- attr(xi, "depends")
+			i <- which(non_null(di))
+			j <- di[non_null(di)]
+			rowdist_at(xi, ix=i, iy=j,
+				metric=metric, p=p, weights=weights)
+		}, depends=at, BPPARAM=BPPARAM, ...)
+	names(ans) <- rownames(x)
+	ans
+}
+
+colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
+	weights = NULL, BPPARAM = bpparam(), ...)
+{
+	a <- names(as.list(match.call()))
+	if ( "iter.dim" %in% a )
+		stop("iter.dim will be ignored when 'at' is used")
+	if ( length(at) != ncol(x) )
+		at <- rep_len(at, ncol(x))
+	ans <- chunk_colapply(x,
+		function(xi) {
+			di <- attr(xi, "depends")
+			i <- which(non_null(di))
+			j <- di[non_null(di)]
+			coldist_at(xi, ix=i, iy=j,
+				metric=metric, p=p, weights=weights)
+		}, depends=at, BPPARAM=BPPARAM, ...)
+	names(ans) <- colnames(x)
 	ans
 }
 
