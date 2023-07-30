@@ -33,7 +33,7 @@ add_mark <- function(plot, mark,
 		mks <- rep.int(list(mk), length(plot$plots))
 		for ( i in seq_along(mks) ) {
 			v <- plot$subscripts[[i]]
-			if ( !is.null(encoding) ) {
+			if ( !is.null(encoding) && !is.null(v) ) {
 				e <- lapply(encoding, function(x) x[v])
 				mks[[i]]$encoding <- e
 			}
@@ -68,6 +68,8 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	facets <- compute_facets(plot, by, nshingles)
 	if ( !is.null(labels) )
 		facets$labels <- labels
+	if ( is.null(facets$labels) )
+		facets$labels <- character(length(facets$plots))
 	n <- length(facets$plots)
 	facets$dim <- get_dim(n, facets$dim, nrow, ncol)
 	facets$drop <- drop
@@ -78,21 +80,33 @@ add_facets <- function(plot, by = NULL, data = NULL,
 plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 	labels = NULL, drop = TRUE, free = "")
 {
-	plots <- lapply(plotlist, function(plot) {
-		if ( !is(plot, "vizi_plot") )
-			stop("each subplot must inherit from 'vizi_plot'")
-		structure(list(encoding=plot$encoding,
-			marks=plot$marks, params=plot$params), class="vizi_plot")
-	})
-	channels <- lapply(plotlist, function(plot) plot$channels)
-	channels <- merge_channels(channels)
-	subscripts <- lapply(plotlist,
-		function(plot) seq_len(max(lengths(plot$encoding))))
+	all_plots <- all(vapply(plotlist, is, logical(1L), "vizi_plot"))
+	all_facets <- all(vapply(plotlist, is, logical(1L), "vizi_facets"))
+	if ( !all_plots && !all_facets )
+		stop("all plots must inherit from 'vizi_plot' or 'vizi_facets")
 	if ( is.null(labels) )
 		labels <- names(plotlist)
-	dim <- get_dim(length(plotlist), nrow=nrow, ncol=ncol)
+	if ( all_plots ) {
+		if ( is.null(labels) )
+			labels <- character(length(plotlist))
+		plots <- lapply(plotlist,
+			function(plot) {
+				structure(list(encoding=plot$encoding,
+					marks=plot$marks, params=plot$params), class="vizi_plot")
+			})
+	} else {
+		if ( is.null(labels) )
+			labels <- character(sum(lengths(plotlist)))
+		labels <- lapply(plotlist, function(f) paste0(labels, f$labels))
+		labels <- unlist(labels)
+		plots <- lapply(plotlist, function(f) f$plots)
+		plots <- unlist(plots, recursive=FALSE)
+	}
+	channels <- lapply(plotlist, function(plot) plot$channels)
+	channels <- do.call(merge_channels, channels)
+	dim <- get_dim(length(plots), nrow=nrow, ncol=ncol)
 	structure(list(plots=plots, channels=channels,
-		coord=plotlist[[1L]]$coord, subscripts=subscripts,
+		coord=plotlist[[1L]]$coord, subscripts=NULL,
 		labels=labels, dim=dim, drop=drop, free=free), class="vizi_facets")
 }
 
@@ -195,7 +209,11 @@ preplot.vizi_facets <- function(object, ...)
 		if ( is.null(p$bty) || p$bty == "n" )
 			p$bty <- "l"
 	}
-	n <- max(nlines(object$labels))
+	if ( is.null(object$labels) ) {
+		n <- 1L
+	} else {
+		n <- max(nlines(object$labels))
+	}
 	p <- par_pad(p, "top", n - 1)
 	panel_grid(dim=object$dim, params=p)
 }
@@ -458,6 +476,8 @@ to_vizi_name <- function(ch)
 
 merge_encoding <- function(e1, e2, ...)
 {
+	if ( missing(e2) )
+		return(e1)
 	if ( ...length() > 0L )
 		e2 <- do.call(merge_encoding, list(e2, ...))
 	if ( !is.null(e1) && !is.null(e2) ) {
@@ -478,6 +498,8 @@ merge_encoding <- function(e1, e2, ...)
 
 merge_channels <- function(c1, c2, ...)
 {
+	if ( missing(c2) )
+		return(c1)
 	if ( ...length() > 0L )
 		c2 <- do.call(merge_channels, list(c2, ...))
 	chs <- list()
