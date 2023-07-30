@@ -703,6 +703,21 @@ cpal <- function(palette = "Viridis") {
 	function(n) hcl.colors(n, palette)
 }
 
+# continuous palette
+add_alpha <- function(colors, alpha = 1) {
+	if ( any(alpha < 0 | alpha > 1) )
+		stop("alpha must be between 0 and 1")
+	n <- max(length(colors), length(alpha))
+	if ( length(alpha) != n)
+		alpha <- rep_len(alpha, n)
+	if ( length(colors) != n)
+		colors <- rep_len(colors, n)
+	colors <- col2rgb(colors, alpha=TRUE)
+	colors <- rgb(colors[1L,], colors[2L,], colors[3L,],
+		alpha=255 * alpha, maxColorValue=255)
+	colors
+}
+
 # A sequence with half-bin-widths in relative units
 # x = bin center, y = half-width, d = relative diff
 # y[n] = d * x[n]

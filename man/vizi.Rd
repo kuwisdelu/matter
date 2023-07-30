@@ -13,6 +13,7 @@
 
 \alias{cpal}
 \alias{dpal}
+\alias{add_alpha}
 
 \alias{preplot,vizi_plot-method}
 \alias{preplot,vizi_facets-method}

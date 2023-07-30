@@ -10,6 +10,8 @@ importFrom("grDevices",
 	"dev.cur",
 	"dev.flush",
 	"dev.hold",
+	"col2rgb",
+	"rgb",
 	"hcl.colors",
 	"palette.colors",
 	"xy.coords")
@@ -404,7 +406,8 @@ export(
 	"seq_rel",
 	"shingles",
 	"dpal",
-	"cpal")
+	"cpal",
+	"add_alpha")
 
 exportMethods(
 	"apply",

@@ -347,7 +347,9 @@ plot.vizi_key <- function(x, cex = 1, ...)
 {
 	plot.new()
 	args <- list(x="left", bty="n", title.adj=0, cex=cex)
-	do.call(legend, c(args, x))
+	args <- c(args, x)
+	valid <- names(args) %in% names(formals(legend))
+	do.call(legend, args[valid])
 }
 
 plot.vizi_colorkey <- function(x, cex = 1, p = c(1/3, 2/3), ...)
@@ -493,7 +495,9 @@ merge_encoding <- function(e1, e2, ...)
 	} else {
 		e <- NULL
 	}
-	normalize_lengths(e)
+	if ( length(e) > 0L )
+		normalize_lengths(e)
+	e
 }
 
 merge_channels <- function(c1, c2, ...)
@@ -680,6 +684,8 @@ encode_var <- function(name, encoding = NULL,
 		# search non-data graphical parameters
 		e <- params[[name]]
 		if ( is.null(e) )
+			e <- switch(name, alpha=1, NULL)
+		if ( is.null(e) )
 			e <- vizi_par(to_par_name(name))
 		if ( is.null(e) )
 			e <- par(to_par_name(name))
@@ -758,6 +764,7 @@ get_discrete_scheme <- function(channel)
 		shape = seq_fun(14),
 		color = discrete_pal,
 		fill = discrete_pal,
+		alpha = stop(msg),
 		size = stop(msg),
 		linewidth = stop(msg),
 		linetype = seq_fun(6),
@@ -772,6 +779,7 @@ get_continuous_scheme <- function(channel)
 		shape = stop(msg),
 		color = continuous_pal,
 		fill = continuous_pal,
+		alpha = range_fun(0, 1),
 		size = range_fun(1, 6),
 		linewidth = range_fun(1, 6),
 		linetype = stop(msg),

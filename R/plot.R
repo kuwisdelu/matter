@@ -2,12 +2,6 @@
 #### Plotting methods for 'vizi' marks ####
 ## ----------------------------------------
 
-# register marks for S4 methods
-
-setOldClass("vizi_points")
-setOldClass("vizi_lines")
-setOldClass("vizi_peaks")
-
 plot_xy <- function(mark, plot = NULL, ...,
 	n = Inf, downsampler = "lttb", type = "p", add = FALSE)
 {
@@ -31,15 +25,17 @@ plot_xy <- function(mark, plot = NULL, ...,
 		i <- NULL
 	}
 	# encode non-required channels
-	p <- c("shape", "color", "fill", "size", "linewidth", "linetype")
+	params <- merge_encoding(mark$params, as_encoding(...))
+	p <- c("shape", "color", "fill", "alpha", "size", "linewidth", "linetype")
 	p <- lapply(setNames(p, p), encode_var, encoding=encoding,
-		channels=plot$channels, params=mark$params, subset=i)
+		channels=plot$channels, params=params, subset=i)
+	p$color <- add_alpha(p$color, p$alpha)
 	if ( !add ) {
 		plot.new()
 		plot.window(xlim=range(x), ylim=range(y))
 	}
 	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
-		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type, ...)
+		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
 	params <- p[!names(p) %in% names(encoding)]
 	invisible(encode_legends(plot$channels, params, type))
 }
@@ -64,6 +60,10 @@ plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
 	invisible(plot_xy(mark=x, plot=plot, type="h", add=add, ...,
 		n = Inf, downsampler = "lttb"))
 }
+
+setOldClass("vizi_points")
+setOldClass("vizi_lines")
+setOldClass("vizi_peaks")
 
 setMethod("plot", "vizi_points", plot.vizi_points)
 setMethod("plot", "vizi_lines", plot.vizi_lines)
