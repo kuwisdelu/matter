@@ -1,4 +1,4 @@
-\name{plot}
+\name{plot-vizi}
 
 \alias{vizi_points}
 \alias{vizi_lines}
@@ -15,18 +15,18 @@
 \title{Plotting Graphical Marks}
 
 \description{
-    These functions provide plotting methods for various graphical marks.
+    These functions provide plotting methods for various graphical marks. They are not intended to be called directly.
 }
 
 \usage{
 \S3method{plot}{vizi_points}(x, plot = NULL, add = FALSE, \dots,
-    nmax = NULL, sampler = NULL)
+    n = Inf, downsampler = "lttb")
 
 \S3method{plot}{vizi_lines}(x, plot = NULL, add = FALSE, \dots,
-    nmax = NULL, sampler = NULL)
+    n = Inf, downsampler = "lttb")
 
 \S3method{plot}{vizi_peaks}(x, plot = NULL, add = FALSE, \dots,
-    nmax = NULL, sampler = NULL)
+    n = Inf, downsampler = "lttb")
 }
 
 \arguments{
@@ -38,9 +38,9 @@
 
     \item{\dots}{Additional graphical parameters passed to the underlying base graphics plotting function.}
 
-    \item{nmax}{Maximum number of points to plot. This is useful for downsampling series with far more data points than are useful to plot. See \code{\link{downsample}} for details.}
+    \item{n}{Maximum number of points to plot. This is useful for downsampling series with far more data points than are useful to plot. See \code{\link{downsample}} for details.}
 
-    \item{sampler}{If \code{nmax} is specified, then this is the downsampling method to use. See \code{\link{downsample}} for details.}
+    \item{downsampler}{If \code{n} is less than the number of points, then this is the downsampling method to use. See \code{\link{downsample}} for details.}
 }
 
 \seealso{

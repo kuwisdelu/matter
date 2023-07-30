@@ -9,7 +9,7 @@ setOldClass("vizi_lines")
 setOldClass("vizi_peaks")
 
 plot_xy <- function(mark, plot = NULL, ...,
-	nmax = NULL, sampler = NULL, type = "p", add = FALSE)
+	n = Inf, downsampler = "lttb", type = "p", add = FALSE)
 {
 	# encode required channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -19,16 +19,12 @@ plot_xy <- function(mark, plot = NULL, ...,
 		return()
 	# perform transformations
 	t <- mark$trans
-	if ( !is.null(nmax) )
-		t$nmax <- nmax
-	if ( !is.null(sampler) )
-		t$sampler <- sampler
-	if ( !is.null(t$nmax) && t$nmax < length(x) ) {
-		if ( !is.null(t$sampler) ) {
-			y <- downsample(y, n=t$nmax, domain=x, method=t$sampler)
-		} else {
-			y <- downsample(y, n=t$nmax, domain=x)
-		}
+	if ( !is.null(t$n) )
+		n <- t$n
+	if ( !is.null(t$downsampler) )
+		downsampler <- t$downsampler
+	if ( n < length(y) ) {
+		y <- downsample(y, n=n, domain=x, method=downsampler)
 		i <- attr(y, "sample")
 		x <- x[i]
 	} else {
@@ -49,21 +45,24 @@ plot_xy <- function(mark, plot = NULL, ...,
 }
 
 plot.vizi_points <- function(x, plot = NULL, add = FALSE, ...,
-	nmax = NULL, sampler = NULL)
+	n = Inf, downsampler = "lttb")
 {
-	invisible(plot_xy(mark=x, plot=plot, type="p", add=add, ...))
+	invisible(plot_xy(mark=x, plot=plot, type="p", add=add, ...,
+		n = Inf, downsampler = "lttb"))
 }
 
 plot.vizi_lines <- function(x, plot = NULL, add = FALSE, ...,
-	nmax = NULL, sampler = NULL)
+	n = Inf, downsampler = "lttb")
 {
-	invisible(plot_xy(mark=x, plot=plot, type="l", add=add, ...))
+	invisible(plot_xy(mark=x, plot=plot, type="l", add=add, ...,
+		n = Inf, downsampler = "lttb"))
 }
 
 plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
-	nmax = NULL, sampler = NULL)
+	n = Inf, downsampler = "lttb")
 {
-	invisible(plot_xy(mark=x, plot=plot, type="h", add=add, ...))
+	invisible(plot_xy(mark=x, plot=plot, type="h", add=add, ...,
+		n = Inf, downsampler = "lttb"))
 }
 
 setMethod("plot", "vizi_points", plot.vizi_points)
