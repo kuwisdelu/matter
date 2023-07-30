@@ -1,26 +1,27 @@
-\name{profmem}
+\name{memtime}
 
-\alias{profmem}
 \alias{mem}
+\alias{memtime}
+\alias{profmem}
 
-\title{Profile Memory Use}
+\title{Check Memory Use}
 
 \description{
-    These are utility functions for profiling memory used by objects and by R during the execution of an expression.
+    These are utility functions for checking memory used by objects and by R during the execution of an expression.
 }
 
 \usage{
-profmem(expr)
-
 mem(x, reset = FALSE)
+
+memtime(expr)
 }
 
 \arguments{
-	\item{expr}{An expression to be evaluated.}
-
 	\item{x}{An object, to identify how much memory it is using.}
 
 	\item{reset}{Should the maximum memory used by R be reset?}
+
+    \item{expr}{An expression to be evaluated.}
 }
 
 \details{
@@ -28,7 +29,7 @@ mem(x, reset = FALSE)
 }
 
 \value{
-    For \code{profmem}, a vector giving [1] the amount of memory used at the start of execution, [2] the amount of memory used at the end of execution, [3] the maximum amount of memory used during execution, [4] the memory overhead as defined by the maximum memory used minus the starting memory use, and [5] the execution time in seconds.
+    For \code{memtime}, a vector giving [1] the amount of memory used at the start of execution, [2] the amount of memory used at the end of execution, [3] the maximum amount of memory used during execution, [4] the memory overhead as defined by the maximum memory used minus the starting memory use, and [5] the execution time in seconds.
 
     For \code{mem}, either a single numeric value giving the memory used by an object, or a vector providing a more readable version of the information returned by \code{\link{gc}} (see its help page for details).
 }
@@ -44,7 +45,7 @@ x <- 1:100
 
 mem(x)
 
-profmem(mean(x + 1))
+memtime(mean(x + 1))
 }
 
 \keyword{utilities}

@@ -485,6 +485,7 @@ exportMethods(
 
 export(
 	"mem",
+	"memtime",
 	"profmem")
 
 useDynLib("matter", .registration=TRUE, .fixes="C_")

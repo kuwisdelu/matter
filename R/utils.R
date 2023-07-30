@@ -908,7 +908,7 @@ mem <- function(x, reset = FALSE)
 	size_bytes(mem)
 }
 
-profmem <- function(expr)
+memtime <- function(expr)
 {
 	start <- mem(reset = TRUE)
 	t.start <- proc.time()
@@ -924,6 +924,12 @@ profmem <- function(expr)
 	names(mem) <- c("start", "finish",
 		"max", "overhead", "time")
 	print.default(mem, quote=FALSE, right=TRUE)
+}
+
+profmem <- function(expr)
+{
+	.Deprecated("memtime")
+	memtime(expr)
 }
 
 #### Formula parsing ####
