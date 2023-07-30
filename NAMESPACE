@@ -458,6 +458,7 @@ S3method("print", "opls")
 
 export(
 	"vizi",
+	"set_title",
 	"set_channel",
 	"set_coord",
 	"add_mark",
@@ -472,6 +473,9 @@ S3method("preplot", "vizi_plot")
 S3method("preplot", "vizi_facets")
 S3method("plot", "vizi_plot")
 S3method("plot", "vizi_facets")
+S3method("print", "vizi_plot")
+S3method("print", "vizi_facets")
+
 S3method("plot", "vizi_key")
 S3method("plot", "vizi_colorkey")
 

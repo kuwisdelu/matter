@@ -1,6 +1,7 @@
 \name{vizi}
 
 \alias{vizi}
+\alias{set_title}
 \alias{set_channel}
 \alias{set_coord}
 \alias{add_mark}
@@ -19,6 +20,9 @@
 \alias{plot,vizi_plot,ANY-method}
 \alias{plot,vizi_facets,ANY-method}
 
+\alias{print,vizi_plot,ANY-method}
+\alias{print,vizi_facets,ANY-method}
+
 \alias{plot,vizi_key,ANY-method}
 \alias{plot,vizi_colorkey,ANY-method}
 
@@ -30,6 +34,8 @@
 
 \usage{
 vizi(data, \dots, encoding = NULL, params = NULL)
+
+set_title(plot, title, \dots)
 
 set_channel(plot, channel, label = NULL,
     limits = NULL, scheme = NULL, \dots)
@@ -58,6 +64,8 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
     \item{params}{Additional graphical parameters that are not mapped to the data, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size)}
 
     \item{plot, plotlist}{A \code{vizi_plot} object, or a list of such objects, respectively.}
+
+    \item{title}{The title of the plot.}
 
     \item{channel}{The channel to modify, using ggplot-style names (e.g., shape, size).}
 

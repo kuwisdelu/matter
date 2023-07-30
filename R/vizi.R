@@ -54,9 +54,10 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) )
 		stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
 	if ( is(by, "formula") ) {
-		by <- parse_formula(by)
+		by <- parse_formula(by, data)
 		by <- c(by$lhs, by$rhs)
 	} else {
+		by <- list(by)
 		by <- compute_variables(by, data)
 	}
 	if ( any(!is.na(c(nrow, ncol))) ) {
@@ -93,6 +94,12 @@ plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 	structure(list(plots=plots, channels=channels,
 		coord=plotlist[[1L]]$coord, subscripts=subscripts,
 		labels=labels, dim=dim, drop=drop, free=free), class="vizi_facets")
+}
+
+set_title <- function(plot, title, ...)
+{
+	plot$title <- as.character(title)
+	plot
 }
 
 set_channel <- function(plot, channel,
@@ -213,8 +220,10 @@ plot.vizi_plot <- function(x, add = FALSE, ...)
 	if ( !add ) {
 		Axis(x$channels$x$limits, side=1L)
 		Axis(x$channels$y$limits, side=2L)
-		title(xlab=x$channels$x$label,
-			ylab=x$channels$y$label, outer=TRUE)
+		title(xlab=x$channels$x$label, outer=TRUE)
+		title(ylab=x$channels$y$label, outer=TRUE)
+		if ( !is.null(x$title) )
+			title(main=x$title, outer=TRUE)
 	}
 	box()
 	if ( !add && length(keys) > 0L ) {
@@ -293,6 +302,8 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 			line=xlab_offset, outer=TRUE)
 		title(ylab=x$channels$y$label,
 			line=ylab_offset, outer=TRUE)
+		if ( !is.null(x$title) )
+			title(main=x$title, outer=TRUE)
 		if ( length(keys) > 0L ) {
 			p <- panel_side("right", split=length(keys), p=c(1, 1))
 			for (k in keys)
@@ -307,6 +318,12 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 
 setMethod("plot", "vizi_plot", plot.vizi_plot)
 setMethod("plot", "vizi_facets", plot.vizi_facets)
+
+print.vizi_plot <- plot.vizi_plot
+print.vizi_facets <- plot.vizi_facets
+
+setMethod("show", "vizi_plot", function(object) print.vizi_plot(object))
+setMethod("show", "vizi_facets", function(object) print.vizi_facets(object))
 
 plot.vizi_key <- function(x, cex = 1, ...)
 {
