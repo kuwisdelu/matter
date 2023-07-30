@@ -103,6 +103,45 @@ test_that("contrast enhancement", {
 
 })
 
+test_that("rasterization", {
+
+	set.seed(1)
+	i <- seq(-4, 4, length.out=12)
+	j <- seq(1, 3, length.out=9)
+	co <- expand.grid(x=i, y=j)
+	z <- matrix(atan(co$x / co$y), nrow=12, ncol=9)
+	z <- 10 * (z - min(z)) / diff(range(z))
+	d1 <- expand.grid(x=1:12, y=1:9)
+	d1$vals <- as.vector(z)
+
+	expect_equal(c(x=12, y=9), estdim(d1[1:2]))
+	expect_equal(z, to_raster(d1$x, d1$y, d1$vals))
+
+	d2 <- d1
+	d2$x <- jitter(d2$x)
+	d2$y <- jitter(d2$y)
+
+	expect_equal(c(x=12, y=9), estdim(d2[1:2]))
+	expect_equal(z, to_raster(d2$x, d2$y, d2$vals))
+
+	set.seed(1)
+	zn <- z
+	rm <- rbinom(length(z), 1, 0.2)
+	rm <- which(rm > 0)
+	zn[rm] <- NA
+	dn1 <- d1[-rm,,drop=FALSE]
+	dn2 <- d2[-rm,,drop=FALSE]
+
+	expect_equal(zn, to_raster(dn1$x, dn1$y, dn1$vals))
+
+	za <- array(c(z, z, z), dim=c(x=12, y=9, z=3))
+	d3 <- expand.grid(x=1:12, y=1:9, z=1:3)
+	d3$vals <- as.vector(za)
+
+	expect_equal(za, to_raster3(d3$x, d3$y, d3$z, d3$vals))
+
+})
+
 test_that("approx2", {
 
 	x <- matrix(1:25, nrow=5, ncol=5)

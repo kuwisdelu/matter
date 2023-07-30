@@ -1042,28 +1042,6 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 	peaks
 }
 
-#### Resampling with interpolation ####
-## ------------------------------------
-
-approx1 <- function(x, y, xout, interp = "linear", n = length(x),
-	tol = NA_real_, tol.ref = "abs", extrap = NA_real_)
-{
-	if ( missing(xout) )
-		xout <- seq(from=min(x), to=max(x), length.out=n)
-	if ( is.integer(x) && is.double(xout) )
-		x <- as.double(x)
-	if ( is.double(x) && is.integer(xout) )
-		xout <- as.double(xout)
-	if ( is.na(tol) ) {
-		# guess tol as ~2x the max gap between samples
-		ref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 2 * max(abs(reldiff(sort(x), ref=ref)))
-	}
-	extrap <- as.numeric(extrap)
-	.Call(C_Approx1, xout, x, y, tol, as_tol_ref(tol.ref),
-		extrap, as_interp(interp), PACKAGE="matter")
-}
-
 #### Resolution (rate) estimation ####
 ## -----------------------------------
 
@@ -1075,6 +1053,7 @@ estres <- function(x, tol = 1e-6, tol.ref = NA_character_)
 	from <- x[-length(x)]
 	to <- x[-1L]
 	rx <- 2 * ((to / from ) - 1) / ((to / from) + 1)
+	rx <- ifelse(is.na(rx), Inf, rx)
 	dx <- diff(x)
 	if ( (is.na(tol.ref) && diff(range(rx)) > tol) || 
 		(!is.na(tol.ref) && tol.ref == "abs" ) )
@@ -1095,6 +1074,28 @@ estres <- function(x, tol = 1e-6, tol.ref = NA_character_)
 		}
 	}
 	res
+}
+
+#### Resampling with interpolation ####
+## ------------------------------------
+
+approx1 <- function(x, y, xout, interp = "linear", n = length(x),
+	tol = NA_real_, tol.ref = "abs", extrap = NA_real_)
+{
+	if ( missing(xout) )
+		xout <- seq(from=min(x), to=max(x), length.out=n)
+	if ( is.integer(x) && is.double(xout) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(xout) )
+		xout <- as.double(xout)
+	if ( is.na(tol) ) {
+		# guess tol as ~2x the max gap between samples
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 2 * max(abs(reldiff(sort(x), ref=ref)))
+	}
+	extrap <- as.numeric(extrap)
+	.Call(C_Approx1, xout, x, y, tol, as_tol_ref(tol.ref),
+		extrap, as_interp(interp), PACKAGE="matter")
 }
 
 #### Simulation ####

@@ -378,6 +378,10 @@ export(
 	"mi",
 	"enhance_hist",
 	"enhance_adapt",
+	"is_gridded",
+	"to_raster",
+	"to_raster3",
+	"estdim",
 	"trans2d")
 
 export(

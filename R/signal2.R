@@ -213,6 +213,113 @@ normalize_IQR <- function(x, y)
 	x <- x + center
 }
 
+#### Rasterize a scattered image ####
+## ----------------------------------
+
+is_gridded <- function(x, tol = 0.5)
+{
+	if ( length(dim(x)) != 2L )
+		stop("x must be a matrix or data frame")
+	!anyNA(apply(x, 2L, estres,
+		tol = tol, tol.ref="abs"))
+}
+
+to_raster <- function(x, y, vals)
+{
+	xy <- cbind(x, y)
+	gridded <- is_gridded(xy)
+	dim <- estdim(xy)
+	nx <- dim[1L]
+	ny <- dim[2L]
+	xr <- range(x, na.rm=TRUE)
+	yr <- range(y, na.rm=TRUE)
+	rx <- (xr[2L] - xr[1L]) / (nx - 1)
+	ry <- (yr[2L] - yr[1L]) / (ny - 1)
+	rx <- ifelse(is.na(rx), 1, rx)
+	ry <- ifelse(is.na(ry), 1, ry)
+	if ( gridded ) {
+		rows <- as.integer(round((x - xr[1L]) / rx))
+		cols <- as.integer(round((y - yr[1L]) / ry))
+		init <- as.vector(NA, mode=typeof(vals))
+		rs <- matrix(init, nrow=nx, ncol=ny)
+		ind <- ((cols * nx) + rows) + 1L
+		vals <- vals[!is.na(ind)]
+		ind <- ind[!is.na(ind)]
+		ind[ind > length(rs)] <- length(rs)
+		rs[ind] <- vals
+	} else {
+		rs <- approx2(x, y, vals, interp="none",
+			nx=nx, ny=ny, tol=c(rx, ry) / 2)
+	}
+	rs
+}
+
+to_raster3 <- function(x, y, z, vals)
+{
+	xyz <- cbind(x, y, z)
+	gridded <- is_gridded(xyz)
+	if ( !gridded )
+		warning("data is not gridded")
+	dim <- estdim(xyz)
+	xr <- range(x, na.rm=TRUE)
+	yr <- range(y, na.rm=TRUE)
+	zr <- range(z, na.rm=TRUE)
+	nx <- dim[1L]
+	ny <- dim[2L]
+	nz <- dim[3L]
+	rx <- (xr[2L] - xr[1L]) / (nx - 1)
+	ry <- (yr[2L] - yr[1L]) / (ny - 1)
+	rz <- (zr[2L] - zr[1L]) / (nz - 1)
+	rx <- ifelse(is.na(rx), 1, rx)
+	ry <- ifelse(is.na(ry), 1, ry)
+	rz <- ifelse(is.na(rz), 1, rz)
+	ix <- as.integer(round((x - xr[1]) / rx))
+	iy <- as.integer(round((y - yr[1]) / ry))
+	iz <- as.integer(round((z - zr[1]) / rz))
+	init <- as.vector(NA, mode=typeof(vals))
+	rs <- array(init, dim=c(nx, ny, nz))
+	ind <- ((iz * nx * ny) + (iy * nx) + ix) + 1L
+	ind[ind > length(rs)] <- length(rs)
+	rs[ind] <- vals
+	rs
+}
+
+estdim <- function(x, tol = 1e-6)
+{
+	if ( length(dim(x)) != 2L )
+		stop("x must be a matrix or data frame")
+	res <- apply(x, 2L, estres, tol = tol, tol.ref="abs")
+	if ( anyNA(res) ) {
+		if ( ncol(x) == 2L ) {
+			xr <- range(x[,1L], na.rm=TRUE)
+			yr <- range(x[,2L], na.rm=TRUE)
+			asp <- diff(yr) / diff(xr)
+			nx <- round(sqrt(nrow(x) / asp))
+			ny <- round(asp * nx)
+			dim <- c(nx, ny)
+		} else if ( ncol(x) == 3L ) {
+			xr <- range(x[,1L], na.rm=TRUE)
+			yr <- range(x[,2L], na.rm=TRUE)
+			zr <- range(x[,3L], na.rm=TRUE)
+			axy <- diff(yr) / diff(xr)
+			axz <- diff(zr) / diff(xr)
+			ayz <- diff(zr) / diff(yr)
+			nx <- round((nrow(x) / (axz * axy))^(1/3))
+			ny <- round((axz / ayz) * nx)
+			nz <- round((ayz * axy) * nx)
+			dim <- c(nx, ny, nz)
+		} else {
+			stop("only 2 or 3 dimensions supported",
+				" for irregular coordinates")
+		}
+		names(dim) <- colnames(x)
+	} else {
+		dx <- apply(x, 2L, function(xi) diff(range(xi)))
+		dim <- (dx / res) + 1
+	}
+	dim
+}
+
 #### 2D Resampling with interpolation ####
 ## ---------------------------------------
 
