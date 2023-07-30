@@ -83,6 +83,28 @@ filt2_guide <- function(x, width = 5L, guide = x,
 		sdreg, PACKAGE="matter")
 }
 
+filt2_fun <- function(method)
+{
+	method <- tolower(method)
+	options <- list(
+		"ma" = 			filt1_ma,
+		"mean" = 		filt1_ma,
+		"gauss" = 		filt1_gauss,
+		"gaussian" = 	filt1_gauss,
+		"bi" = 			filt1_bi,
+		"bilateral" = 	filt1_bi,
+		"adapt" = 		filt1_adapt,
+		"adaptive" = 	filt1_adapt,
+		"diff" = 		filt1_diff,
+		"diffusion" = 	filt1_diff,
+		"guide" = 		filt1_guide,
+		"guided" = 		filt1_guide)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
+}
+
 #### 2D Alignment and warping ####
 ## ---------------------------------
 
@@ -183,6 +205,17 @@ mi <- function(x, y, n = 64L)
 	sum(pxy[nz] * log2(pxy[nz] / (px[nz] * py[nz])))
 }
 
+warp2_fun <- function(method)
+{
+	method <- tolower(method)
+	options <- list(
+		"trans" = 	warp2_trans)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
+}
+
 #### Contrast enhancement ####
 ## ---------------------------
 
@@ -211,6 +244,22 @@ normalize_IQR <- function(x, y)
 	if ( qy != 0 )
 		x <- x * qy
 	x <- x + center
+}
+
+enhance_fun <- function(method)
+{
+	method <- tolower(method)
+	options <- list(
+		"hist" = 		enhance_hist,
+		"histeq" = 		enhance_hist,
+		"histogram" = 	enhance_hist,
+		"adapt" = 		enhance_adapt,
+		"adaptive" = 	enhance_adapt,
+		"clahe" =	 	enhance_adapt)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
 }
 
 #### Rasterize a scattered image ####

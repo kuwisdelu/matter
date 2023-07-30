@@ -13,8 +13,8 @@
 \usage{
 # Find peaks
 findpeaks(x, width = 5L, prominence = NULL,
-    snr = NULL, noise = c("quant", "diff", "filt", "sd", "mad"),
-    relheight = 0.005, bounds = TRUE, \dots)
+    snr = NULL, noise = "quant", relheight = 0.005,
+    bounds = TRUE, \dots)
 
 # Local maxima
 locmax(x, width = 5)

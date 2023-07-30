@@ -1,7 +1,33 @@
 
 import("methods")
 
-import("biglm")
+importFrom("utils",
+	"head",
+	"tail",
+	"object.size")
+
+importFrom("grDevices",
+	"dev.cur",
+	"dev.flush",
+	"dev.hold",
+	"hcl.colors",
+	"palette.colors",
+	"xy.coords")
+
+importFrom("graphics",
+	"Axis",
+	"box",
+	"co.intervals",
+	"grid",
+	"legend",
+	"mtext",
+	"par",
+	"plot.new",
+	"plot.window",
+	"plot.xy",
+	"strheight",
+	"strwidth",
+	"title")
 
 importFrom("digest",
 	"digest")
@@ -47,39 +73,13 @@ importFrom("stats4",
 	"update",
 	"summary")
 
+import("biglm")
+
 import("BiocParallel")
 
 import("BiocGenerics")
 
 import("ProtGenerics")
-
-importFrom("utils",
-	"head",
-	"tail",
-	"object.size")
-
-importFrom("grDevices",
-	"dev.cur",
-	"dev.flush",
-	"dev.hold",
-	"hcl.colors",
-	"palette.colors",
-	"xy.coords")
-
-importFrom("graphics",
-	"Axis",
-	"box",
-	"co.intervals",
-	"grid",
-	"legend",
-	"mtext",
-	"par",
-	"plot.new",
-	"plot.window",
-	"plot.xy",
-	"strheight",
-	"strwidth",
-	"title")
 
 exportClasses(
 	"drle",

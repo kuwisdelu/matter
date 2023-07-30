@@ -127,6 +127,31 @@ filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
+filt1_fun <- function(method)
+{
+	method <- tolower(method)
+	options <- list(
+		"ma" = 			filt1_ma,
+		"mean" = 		filt1_ma,
+		"gauss" = 		filt1_gauss,
+		"gaussian" = 	filt1_gauss,
+		"bi" = 			filt1_bi,
+		"bilateral" = 	filt1_bi,
+		"adapt" = 		filt1_adapt,
+		"adaptive" = 	filt1_adapt,
+		"diff" = 		filt1_diff,
+		"diffusion" = 	filt1_diff,
+		"guide" = 		filt1_guide,
+		"guided" = 		filt1_guide,
+		"pag" = 		filt1_pag,
+		"sg" = 			filt1_sg,
+		"sgolay" = 		filt1_sg)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
+}
+
 convolve_at <- function(x, index, weights, ...)
 {
 	if ( !is.list(index) )
@@ -315,6 +340,20 @@ icor <- function(x, y)
 	.Call(C_iCorr, x, y, PACKAGE="matter")
 }
 
+warp1_fun <- function(method)
+{
+	method <- tolower(method)
+	options <- list(
+		"loc" = 	warp1_loc,
+		"local" = 	warp1_loc,
+		"dtw" = 	warp1_dtw,
+		"cow" = 	warp1_cow)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
+}
+
 #### Binning and downsampling ####
 ## -------------------------------
 
@@ -500,6 +539,22 @@ estbase_med <- function(x, width = 100L)
 	runmed(x, k = 1L + 2L * (width %/% 2L))
 }
 
+estbase_fun <- function(method)
+{
+	method <- tolower(method)
+	options <- list(
+		"loc" = 	estbase_loc,
+		"local" = 	estbase_loc,
+		"hull" = 	estbase_hull,
+		"snip" = 	estbase_snip,
+		"med" = 	estbase_med,
+		"median" = 	estbase_med)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
+}
+
 #### Noise estimation ####
 ## -----------------------
 
@@ -616,6 +671,24 @@ estnoise_mad <- function(x, width = 25L, wavelet = ricker)
 	rollvec(x, width, stat="sd")
 }
 
+estnoise_fun <- function(method)
+{
+	method <- tolower(method)
+	options <- list(
+		"quant" = 		estnoise_quant,
+		"quantile" = 	estnoise_quant,
+		"diff" = 		estnoise_diff,
+		"derivate" = 	estnoise_diff,
+		"filt" = 		estnoise_filt,
+		"filter" = 		estnoise_filt,
+		"sd" = 			estnoise_sd,
+		"mad" = 		estnoise_mad)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
+}
+
 #### Peak detection ####
 ## ---------------------
 
@@ -630,8 +703,8 @@ locmin <- function(x, width = 5L)
 }
 
 findpeaks <- function(x, width = 5L, prominence = NULL,
-	snr = NULL, noise = c("quant", "diff", "filt", "sd", "mad"),
-	relheight = 0.005, bounds = TRUE, ...)
+	snr = NULL, noise = "quant", relheight = 0.005,
+	bounds = TRUE, ...)
 {
 	peaks <- which(locmax(x, width))
 	ann <- data.frame(row.names=seq_along(peaks))
@@ -675,8 +748,7 @@ findpeaks <- function(x, width = 5L, prominence = NULL,
 	}
 	if ( isTRUE(snr) || is.numeric(snr) )
 	{
-		noise <- match.arg(noise)
-		fn <- get(paste0("estnoise_", noise))
+		fn <- estnoise_fun(noise)
 		noise <- fn(x, ...)
 		ann$snr <- x[peaks] / noise[peaks]
 		if ( is.numeric(snr) )
