@@ -658,8 +658,8 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), cls = NULL, ..
 	print(out, quote=FALSE, right=TRUE, ...)
 }
 
-#### Algorithmic internal functions ####
-## -------------------------------------
+#### Miscellaneous internal functions ####
+## ---------------------------------------
 
 apply_int <- function(X, MARGIN, FUN, FUN.VALUE, ...) {
 	FUN <- match.fun(FUN)
