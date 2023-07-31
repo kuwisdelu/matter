@@ -463,12 +463,12 @@ S3method("print", "opls")
 
 export(
 	"vizi",
+	"add_mark",
+	"add_facets",
 	"set_title",
 	"set_channel",
 	"set_coord",
 	"set_par",
-	"add_mark",
-	"add_facets",
 	"plot_facets")
 
 export(

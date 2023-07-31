@@ -1,12 +1,12 @@
 \name{vizi}
 
 \alias{vizi}
+\alias{add_mark}
+\alias{add_facets}
 \alias{set_title}
 \alias{set_channel}
 \alias{set_coord}
 \alias{set_par}
-\alias{add_mark}
-\alias{add_facets}
 \alias{plot_facets}
 
 \alias{vizi_par}
@@ -38,6 +38,14 @@
 # Initialize a plot
 vizi(data, \dots, encoding = NULL, params = NULL)
 
+# Add plot components
+add_mark(plot, mark, \dots, encoding = NULL, data = NULL,
+    trans = NULL, params = NULL)
+
+add_facets(plot, by = NULL, data = NULL,
+    nrow = NA, ncol = NA, labels = NULL,
+    drop = TRUE, free = "")
+
 # Set plot attributes
 set_title(plot, title)
 
@@ -49,14 +57,6 @@ set_coord(plot, xlim = NULL, ylim = NULL,
 
 set_par(plot, \dots)
 
-# Add plot components
-add_mark(plot, mark, encoding = NULL, data = NULL,
-    trans = NULL, \dots)
-
-add_facets(plot, by = NULL, data = NULL,
-    nrow = NA, ncol = NA, labels = NULL,
-    drop = TRUE, free = "")
-
 # Combine plots
 plot_facets(plotlist, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
@@ -65,7 +65,7 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
 \arguments{
     \item{data}{A \code{data.frame}.}
 
-    \item{\dots}{For \code{vizi}, these should be named arguments specifying the encoding for the plot. The argument names should specify channels, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size). One-sided formula arguments will be evaluated in the environment of \code{data}. Non-formula arguments will be used as-is. For other functions, these specify additional graphical parameters.}
+    \item{\dots}{For \code{vizi} and \code{add_mark}, these should be named arguments specifying the encoding for the plot. The argument names should specify channels, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size). One-sided formula arguments will be evaluated in the environment of \code{data}. Non-formula arguments will be used as-is. For \code{set_par}, these specify additional graphical parameters (as in \code{\link{par}}).}
 
     \item{encoding}{Encodings specified as a list rather than using \dots.}
 

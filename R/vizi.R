@@ -13,20 +13,21 @@ vizi <- function(data, ..., encoding = NULL, params = NULL)
 		marks=list(), coord=coord, params=params), class="vizi_plot")
 }
 
-add_mark <- function(plot, mark,
-	encoding = NULL, data = NULL, trans = NULL, ...)
+add_mark <- function(plot, mark, ..., encoding = NULL,
+	data = NULL, trans = NULL, params = NULL)
 {
 	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) )
 		stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
 	cls <- paste0("vizi_", mark)
 	if ( !existsMethod("plot", cls) )
 		stop("no known plot() method for class: ", sQuote(cls))
-	if ( !is.null(encoding) ) {
-		props <- compute_properties(normalize_encoding(encoding), data=data)
+	if ( ...length() > 0L || !is.null(encoding) ) {
+		encoding <- merge_encoding(encoding, as_encoding(...))
+		props <- compute_properties(encoding, data=data)
 		plot$channels <- merge_channels(props$channels, plot$channels)
 		encoding <- props$encoding
 	}
-	params <- normalize_encoding(as_encoding(...))
+	params <- normalize_encoding(params)
 	mk <- structure(list(encoding=encoding,
 		params=params, trans=trans), class=cls)
 	if ( is(plot, "vizi_facets") ) {
