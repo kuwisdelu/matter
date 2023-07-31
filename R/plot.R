@@ -64,7 +64,8 @@ plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
 }
 
 plot_mark_pixels <- function(mark, plot = NULL, ...,
-	enhance = FALSE, smooth = FALSE, add = FALSE)
+	enhance = FALSE, smooth = FALSE, useRaster = TRUE,
+	add = FALSE)
 {
 	# encode required channels (except color)
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -138,26 +139,52 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	zc <- encode_scheme(zc, zcol, zlim)
 	zc <- add_alpha(zc, za)
 	dim(zc) <- dm
-	# encode non-required channels
+	# plot the image
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)
 	if ( !add ) {
 		plot.new()
 		plot.window(xlim=xr, ylim=yr)
 	}
-	zc <- t(zc)[ncol(zc):1L,,drop=FALSE]
-	rasterImage(as.raster(zc),
-		xleft=xr[1L], ybottom=yr[1L],
-		xright=xr[2L], ytop=yr[2L],
-		interpolate=FALSE)
+	ras <- dev.capabilities("rasterImage")$rasterImage
+	if ( useRaster && ras != "yes" )
+		useRaster <- FALSE
+	if ( useRaster ) {
+		zc <- t(zc)[ncol(zc):1L,,drop=FALSE]
+		dx <- 0.5 * (xr[2L] - xr[1L]) / (dim(zc)[1L] - 1)
+		dy <- 0.5 * (yr[2L] - yr[1L]) / (dim(zc)[2L] - 1)
+		rasterImage(as.raster(zc),
+			xleft=xr[1L] - dx, ybottom=yr[1L] - dy,
+			xright=xr[2L] + dx, ytop=yr[2L] + dy,
+			interpolate=FALSE)
+	} else {
+		p <- pix2poly(xr, yr, dim(zc))
+		polygon(p$x, p$y, col=zc, border=zc)
+	}
 	invisible(encode_legends(plot$channels, list()))
 }
 
+pix2poly <- function(xlim, ylim, dim)
+{
+	dx <- 0.5 * (xlim[2L] - xlim[1L]) / (dim[1L] - 1)
+	dy <- 0.5 * (ylim[2L] - ylim[1L]) / (dim[2L] - 1)
+	px <- seq(xlim[1L], xlim[2L], length.out=dim[1L])
+	py <- seq(ylim[1L], ylim[2L], length.out=dim[2L])
+	p <- expand.grid(x=px, y=py)
+	x <- rbind(
+		bottomleft=p$x - dx, topleft=p$x - dx,
+		topright=p$x + dx, bottomright=p$x + dx, NA_real_)
+	y <- rbind(
+		bottomleft=p$y - dy, topleft=p$y + dy,
+		topright=p$y + dy, bottomright=p$y - dy, NA_real_)
+	list(x=x, y=y)
+}
+
 plot.vizi_pixels <- function(x, plot = NULL, add = FALSE, ...,
-	enhance = FALSE, smooth = FALSE)
+	enhance = FALSE, smooth = FALSE, useRaster = TRUE)
 {
 	invisible(plot_mark_pixels(mark=x, plot=plot, add=add, ...,
-		enhance = enhance, smooth = smooth))
+		enhance=enhance, smooth=smooth, useRaster=useRaster))
 }
 
 setOldClass("vizi_points")

@@ -32,7 +32,7 @@
     n = Inf, downsampler = "lttb")
 
 \S3method{plot}{vizi_pixels}(x, plot = NULL, add = FALSE, \dots,
-    enhance = FALSE, smooth = FALSE)
+    enhance = FALSE, smooth = FALSE, useRaster = TRUE)
 }
 
 \arguments{
@@ -51,6 +51,8 @@
     \item{enhance}{The name of a contrast enhancement method, such as \code{"hist"} or \code{"adapt"} for \code{enhance_hist()} and \code{enhance_adapt()}, etc. See \code{\link{enhance}} for details.}
 
     \item{smooth}{The name of a smoothing method, such as \code{"gauss"} or \code{"bi"} for \code{filt2_gauss()} and \code{filt2_bi()}, etc. See \code{\link{filt2}} for details.}
+
+    \item{useRaster}{Should a bitmap raster be used for plotting? This is typically faster on supported devices. A fallback to polygon-based plotting is used if raster plotting is not supported.}
 }
 
 \seealso{
