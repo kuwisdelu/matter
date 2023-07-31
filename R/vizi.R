@@ -193,6 +193,23 @@ setOldClass("vizi_colorkey")
 #### Plotting methods for 'vizi' ####
 ## ----------------------------------
 
+plot_init <- function(xlim, ylim, ...,
+	more = NULL, plot = NULL, n = 1L)
+{
+	plot.new()
+	args <- list(xlim=xlim, ylim=ylim, ...)
+	args <- c(args, more)
+	do.call(plot.window, args)
+	if ( has_free_x(plot) || is_bottom_panel(n) )
+		Axis(xlim, side=1L)
+	if ( has_free_y(plot) || is_left_panel() )
+		Axis(ylim, side=2L)
+	if ( isTRUE(plot$coord$grid) )
+		grid()
+}
+
+# preplot methods
+
 preplot.vizi_plot <- function(object, ...)
 {
 	p <- vizi_par()
@@ -212,10 +229,7 @@ preplot.vizi_plot <- function(object, ...)
 		log <- ""
 	if ( is.null(asp) )
 		asp <- NA
-	plot.new()
-	args <- list(xlim=xlim, ylim=ylim, log=log, asp=asp)
-	args <- c(args, object$params)
-	do.call(plot.window, args)
+	plot_init(xlim, ylim, log=log, asp=asp, more=object$params)
 	if ( isTRUE(object$coord$grid) )
 		grid()
 }
@@ -251,13 +265,17 @@ preplot.vizi_facets <- function(object, ...)
 setMethod("preplot", "vizi_plot", preplot.vizi_plot)
 setMethod("preplot", "vizi_facets", preplot.vizi_facets)
 
+# plot methods
+
 plot.vizi_plot <- function(x, add = FALSE, ...)
 {
 	if ( !add ) {
 		dev.hold()
 		on.exit(dev.flush())
 		preplot(x)
+		box()
 	}
+	# plot marks
 	keys <- list()
 	for ( i in seq_along(x$marks) )
 	{
@@ -266,19 +284,18 @@ plot.vizi_plot <- function(x, add = FALSE, ...)
 	}
 	keys <- merge_legends(keys)
 	if ( !add ) {
-		Axis(x$channels$x$limits, side=1L)
-		Axis(x$channels$y$limits, side=2L)
+		# add figure titles
 		title(xlab=x$channels$x$label, outer=TRUE)
 		title(ylab=x$channels$y$label, outer=TRUE)
 		if ( !is.null(x$title) )
 			title(main=x$title, outer=TRUE)
-	}
-	box()
-	if ( !add && length(keys) > 0L ) {
-		p <- panel_side("right", split=length(keys), p=c(1, 1))
-		for (k in keys)
-			plot(k, cex=p$cex)
-		panel_restore(p)
+		# add legends
+		if ( length(keys) > 0L ) {
+			p <- panel_side("right", split=length(keys), p=c(1, 1))
+			for (key in keys)
+				plot(key, cex=p$cex)
+			panel_restore(p)
+		}
 	}
 	x$keys <- keys
 	invisible(x)
@@ -295,12 +312,14 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 	}
 	keys <- list()
 	n <- length(x$plots)
+	# loop through facets
 	for ( i in seq_len(n) )
 	{
 		plot <- x$plots[[i]]
 		plot$channels <- x$channels
 		if ( !add )
 		{
+			# initialize plot
 			xlim <- x$coord$xlim
 			ylim <- x$coord$ylim
 			log <- x$coord$log
@@ -323,27 +342,18 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 				log <- ""
 			if ( is.null(asp) )
 				asp <- NA
-			plot.new()
-			args <- list(xlim=xlim, ylim=ylim, log=log, asp=asp)
-			args <- c(args, x$params)
-			do.call(plot.window, args)
-			if ( isTRUE(x$coord$grid) )
-				grid()
-		}
-		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
-		if ( !add )
-		{
+			plot_init(xlim, ylim, log=log, asp=asp,
+				more=x$params, plot=x, n=n)
 			mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
-			if ( has_free_x(x) || is_bottom_panel(n) )
-				Axis(x$channels$x$limits, side=1L)
-			if ( has_free_y(x) || is_left_panel() )
-				Axis(x$channels$y$limits, side=2L)
-		} else {
-			panel_next()
 		}
+		# plot marks
+		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
+		if ( add )
+			panel_next()
 	}
 	keys <- merge_legends(keys)
 	if ( !add ) {
+		# add figure titles
 		xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
 		ylab_offset <- ifelse(has_free_y(x), 0.5, 1.5)
 		title(xlab=x$channels$x$label,
@@ -352,10 +362,11 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 			line=ylab_offset, outer=TRUE)
 		if ( !is.null(x$title) )
 			title(main=x$title, outer=TRUE)
+		# add legends
 		if ( length(keys) > 0L ) {
 			p <- panel_side("right", split=length(keys), p=c(1, 1))
-			for (k in keys)
-				plot(k, cex=p$cex)
+			for (key in keys)
+				plot(key, cex=p$cex)
 			panel_restore(p)
 		}
 		panel_set(1)

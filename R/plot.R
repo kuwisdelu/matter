@@ -33,8 +33,7 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 	if ( !add ) {
 		xr <- range(x, na.rm=TRUE)
 		yr <- range(y, na.rm=TRUE)
-		plot.new()
-		plot.window(xlim=xr, ylim=yr)
+		plot_init(xr, yr)
 	}
 	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
 		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
@@ -142,10 +141,8 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	# plot the image
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)
-	if ( !add ) {
-		plot.new()
-		plot.window(xlim=xr, ylim=yr)
-	}
+	if ( !add )
+		plot_init(xr, yr)
 	ras <- dev.capabilities("rasterImage")$rasterImage
 	if ( useRaster && ras != "yes" )
 		useRaster <- FALSE
@@ -442,6 +439,8 @@ is_top_panel <- function(pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
+	if ( is.null(pgrid) )
+		return(TRUE)
 	panel_get(pgrid, arr.ind=TRUE)[2L] == 1L
 }
 
@@ -449,6 +448,8 @@ is_left_panel <- function(pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
+	if ( is.null(pgrid) )
+		return(TRUE)
 	panel_get(pgrid, arr.ind=TRUE)[2L] == 1L
 }
 
@@ -456,6 +457,8 @@ is_bottom_panel <- function(n, pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
+	if ( is.null(pgrid) )
+		return(TRUE)
 	ind <- panel_get(pgrid, arr.ind=TRUE)
 	test <- ind[1L] == nrow(pgrid$mat)
 	if ( test || missing(n) )
@@ -471,6 +474,8 @@ is_right_panel <- function(n, pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
+	if ( is.null(pgrid) )
+		return(TRUE)
 	ind <- panel_get(pgrid, arr.ind=TRUE)
 	test <- ind[2L] == ncol(pgrid$mat)
 	if ( test || missing(n) )
@@ -486,6 +491,8 @@ is_last_panel <- function(pgrid = NULL)
 {
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
+	if ( is.null(pgrid) )
+		return(TRUE)
 	panel_get(pgrid) == length(pgrid$mat)
 }
 
