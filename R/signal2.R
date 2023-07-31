@@ -85,20 +85,21 @@ filt2_guide <- function(x, width = 5L, guide = x,
 
 filt2_fun <- function(method)
 {
-	method <- tolower(method)
+	if ( is.character(method) )
+		method <- tolower(method)
 	options <- list(
-		"ma" = 			filt1_ma,
-		"mean" = 		filt1_ma,
-		"gauss" = 		filt1_gauss,
-		"gaussian" = 	filt1_gauss,
-		"bi" = 			filt1_bi,
-		"bilateral" = 	filt1_bi,
-		"adapt" = 		filt1_adapt,
-		"adaptive" = 	filt1_adapt,
-		"diff" = 		filt1_diff,
-		"diffusion" = 	filt1_diff,
-		"guide" = 		filt1_guide,
-		"guided" = 		filt1_guide)
+		"ma" = 			filt2_ma,
+		"mean" = 		filt2_ma,
+		"gauss" = 		filt2_gauss,
+		"gaussian" = 	filt2_gauss,
+		"bi" = 			filt2_bi,
+		"bilateral" = 	filt2_bi,
+		"adapt" = 		filt2_adapt,
+		"adaptive" = 	filt2_adapt,
+		"diff" = 		filt2_diff,
+		"diffusion" = 	filt2_diff,
+		"guide" = 		filt2_guide,
+		"guided" = 		filt2_guide)
 	fn <- options[[method, exact=FALSE]]
 	if ( is.null(fn) )
 		stop("couldn't find method ", sQuote(method))
@@ -207,7 +208,8 @@ mi <- function(x, y, n = 64L)
 
 warp2_fun <- function(method)
 {
-	method <- tolower(method)
+	if ( is.character(method) )
+		method <- tolower(method)
 	options <- list(
 		"trans" = 	warp2_trans)
 	fn <- options[[method, exact=FALSE]]
@@ -244,11 +246,13 @@ normalize_IQR <- function(x, y)
 	if ( qy != 0 )
 		x <- x * qy
 	x <- x + center
+	x
 }
 
 enhance_fun <- function(method)
 {
-	method <- tolower(method)
+	if ( is.character(method) )
+		method <- tolower(method)
 	options <- list(
 		"hist" = 		enhance_hist,
 		"histeq" = 		enhance_hist,
@@ -277,9 +281,9 @@ to_raster <- function(x, y, vals)
 {
 	xy <- cbind(x, y)
 	gridded <- is_gridded(xy)
-	dim <- estdim(xy)
-	nx <- dim[1L]
-	ny <- dim[2L]
+	dm <- estdim(xy)
+	nx <- dm[1L]
+	ny <- dm[2L]
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)
 	rx <- (xr[2L] - xr[1L]) / (nx - 1)
@@ -309,13 +313,13 @@ to_raster3 <- function(x, y, z, vals)
 	gridded <- is_gridded(xyz)
 	if ( !gridded )
 		warning("data is not gridded")
-	dim <- estdim(xyz)
+	dm <- estdim(xyz)
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)
 	zr <- range(z, na.rm=TRUE)
-	nx <- dim[1L]
-	ny <- dim[2L]
-	nz <- dim[3L]
+	nx <- dm[1L]
+	ny <- dm[2L]
+	nz <- dm[3L]
 	rx <- (xr[2L] - xr[1L]) / (nx - 1)
 	ry <- (yr[2L] - yr[1L]) / (ny - 1)
 	rz <- (zr[2L] - zr[1L]) / (nz - 1)
@@ -345,7 +349,7 @@ estdim <- function(x, tol = 1e-6)
 			asp <- diff(yr) / diff(xr)
 			nx <- round(sqrt(nrow(x) / asp))
 			ny <- round(asp * nx)
-			dim <- c(nx, ny)
+			dm <- c(nx, ny)
 		} else if ( ncol(x) == 3L ) {
 			xr <- range(x[,1L], na.rm=TRUE)
 			yr <- range(x[,2L], na.rm=TRUE)
@@ -356,17 +360,17 @@ estdim <- function(x, tol = 1e-6)
 			nx <- round((nrow(x) / (axz * axy))^(1/3))
 			ny <- round((axz / ayz) * nx)
 			nz <- round((ayz * axy) * nx)
-			dim <- c(nx, ny, nz)
+			dm <- c(nx, ny, nz)
 		} else {
 			stop("only 2 or 3 dimensions supported",
 				" for irregular coordinates")
 		}
-		names(dim) <- colnames(x)
+		names(dm) <- colnames(x)
 	} else {
 		dx <- apply(x, 2L, function(xi) diff(range(xi)))
-		dim <- (dx / res) + 1
+		dm <- (dx / res) + 1
 	}
-	dim
+	dm
 }
 
 #### 2D Resampling with interpolation ####

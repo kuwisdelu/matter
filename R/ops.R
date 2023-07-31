@@ -17,7 +17,7 @@ setClass("deferred_ops",
 			rhs=length(object@rhs),
 			margins=nrow(object@margins),
 			group=length(object@group))
-		if ( length(unique(lens)) != 1 )
+		if ( n_unique(lens) != 1L )
 			errors <- c(errors, paste0("lengths of ",
 				"'ops' [", lens["ops"], "], ",
 				"'arg' [", lens["arg"], "], ",

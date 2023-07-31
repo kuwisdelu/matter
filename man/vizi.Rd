@@ -4,6 +4,7 @@
 \alias{set_title}
 \alias{set_channel}
 \alias{set_coord}
+\alias{set_par}
 \alias{add_mark}
 \alias{add_facets}
 \alias{plot_facets}
@@ -34,16 +35,21 @@
 }
 
 \usage{
+# Initialize a plot
 vizi(data, \dots, encoding = NULL, params = NULL)
 
-set_title(plot, title, \dots)
+# Set plot attributes
+set_title(plot, title)
 
 set_channel(plot, channel, label = NULL,
-    limits = NULL, scheme = NULL, \dots)
+    limits = NULL, scheme = NULL)
 
 set_coord(plot, xlim = NULL, ylim = NULL,
-    log = "", asp = NA, grid = TRUE, \dots)
+    log = "", asp = NA, grid = TRUE)
 
+set_par(plot, \dots)
+
+# Add plot components
 add_mark(plot, mark, encoding = NULL, data = NULL,
     trans = NULL, \dots)
 
@@ -51,6 +57,7 @@ add_facets(plot, by = NULL, data = NULL,
     nrow = NA, ncol = NA, labels = NULL,
     drop = TRUE, free = "")
 
+# Combine plots
 plot_facets(plotlist, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
 }

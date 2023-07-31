@@ -12,7 +12,7 @@ setClass("drle",
 	validity = function(object) {
 		errors <- NULL
 		lens <- c(length(object@values), length(object@lengths), length(object@deltas))
-		if ( length(unique(lens)) != 1 )
+		if ( n_unique(lens) != 1L )
 			errors <- c(errors, "'values', 'deltas', and 'lengths' must have the same length")
 		if ( any(object@lengths < 1) )
 			errors <- c(errors, "all 'lengths' must be positive")

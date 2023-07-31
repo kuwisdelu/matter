@@ -259,7 +259,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	XS <- list(...)
 	if ( length(XS) > 1L ) {
 		len <- vapply(XS, length, integer(1L))
-		if ( length(unique(len)) != 1L ) {
+		if ( n_unique(len) != 1L ) {
 			max.len <- max(len)
 			if ( max.len && any(len == 0L) )
 				stop("zero-length and non-zero length inputs cannot be mixed")
@@ -353,7 +353,7 @@ remote_collect <- function(ans, path, simplify) {
 	offset <- ans[,2]
 	extent <- ans[,3]
 	maybe_vector <- all(extent == 1L)
-	maybe_matrix <- length(unique(extent)) == 1L
+	maybe_matrix <- n_unique(extent) == 1L
 	simplify <- isTRUE(simplify)
 	if ( simplify && maybe_vector ) {
 		x <- matter_vec(type=type, path=path,

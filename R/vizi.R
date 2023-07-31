@@ -110,14 +110,14 @@ plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 		labels=labels, dim=dim, drop=drop, free=free), class="vizi_facets")
 }
 
-set_title <- function(plot, title, ...)
+set_title <- function(plot, title)
 {
 	plot$title <- as.character(title)
 	plot
 }
 
 set_channel <- function(plot, channel,
-	label = NULL, limits = NULL, scheme = NULL, ...)
+	label = NULL, limits = NULL, scheme = NULL)
 {
 	channel <- to_vizi_name(channel)
 	ch <- plot$channels[[channel]]
@@ -134,7 +134,7 @@ set_channel <- function(plot, channel,
 }
 
 set_coord <- function(plot, xlim = NULL, ylim = NULL,
-	log = "", asp = NA, grid = TRUE, ...)
+	log = "", asp = NA, grid = TRUE)
 {
 	co <- plot$coord
 	if ( is.null(co) )
@@ -150,6 +150,16 @@ set_coord <- function(plot, xlim = NULL, ylim = NULL,
 	if ( !missing(grid) )
 		co$grid <- grid
 	plot$coord <- co
+	plot
+}
+
+set_par <- function(plot, ...)
+{
+	if ( ...length() > 0L ) {
+		params <- list(...)
+		for ( nm in names(params) )
+			plot$params[[nm]] <- params[[nm]]
+	}
 	plot
 }
 
@@ -813,7 +823,7 @@ encode_scheme <- function(x, scheme, limits)
 		if ( is_discrete(x) ) {
 			n <- length(limits)
 		} else {
-			n <- length(unique(x))
+			n <- n_unique(x)
 		}
 		n <- max(1L, min(n, 256L))
 		scheme <- fx(n)

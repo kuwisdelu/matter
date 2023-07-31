@@ -129,7 +129,8 @@ filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
 
 filt1_fun <- function(method)
 {
-	method <- tolower(method)
+	if ( is.character(method) )
+		method <- tolower(method)
 	options <- list(
 		"ma" = 			filt1_ma,
 		"mean" = 		filt1_ma,
@@ -342,7 +343,8 @@ icor <- function(x, y)
 
 warp1_fun <- function(method)
 {
-	method <- tolower(method)
+	if ( is.character(method) )
+		method <- tolower(method)
 	options <- list(
 		"loc" = 	warp1_loc,
 		"local" = 	warp1_loc,
@@ -541,7 +543,8 @@ estbase_med <- function(x, width = 100L)
 
 estbase_fun <- function(method)
 {
-	method <- tolower(method)
+	if ( is.character(method) )
+		method <- tolower(method)
 	options <- list(
 		"loc" = 	estbase_loc,
 		"local" = 	estbase_loc,
@@ -673,7 +676,8 @@ estnoise_mad <- function(x, width = 25L, wavelet = ricker)
 
 estnoise_fun <- function(method)
 {
-	method <- tolower(method)
+	if ( is.character(method) )
+		method <- tolower(method)
 	options <- list(
 		"quant" = 		estnoise_quant,
 		"quantile" = 	estnoise_quant,

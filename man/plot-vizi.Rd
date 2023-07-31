@@ -3,14 +3,17 @@
 \alias{vizi_points}
 \alias{vizi_lines}
 \alias{vizi_peaks}
+\alias{vizi_pixels}
 
 \alias{plot.vizi_points}
 \alias{plot.vizi_lines}
 \alias{plot.vizi_peaks}
+\alias{plot.vizi_pixels}
 
 \alias{plot,vizi_points,ANY-method}
 \alias{plot,vizi_lines,ANY-method}
 \alias{plot,vizi_peaks,ANY-method}
+\alias{plot,vizi_pixels,ANY-method}
 
 \title{Plotting Graphical Marks}
 
@@ -27,6 +30,9 @@
 
 \S3method{plot}{vizi_peaks}(x, plot = NULL, add = FALSE, \dots,
     n = Inf, downsampler = "lttb")
+
+\S3method{plot}{vizi_pixels}(x, plot = NULL, add = FALSE, \dots,
+    enhance = FALSE, smooth = FALSE)
 }
 
 \arguments{
@@ -41,6 +47,10 @@
     \item{n}{Maximum number of points to plot. This is useful for downsampling series with far more data points than are useful to plot. See \code{\link{downsample}} for details.}
 
     \item{downsampler}{If \code{n} is less than the number of points, then this is the downsampling method to use. See \code{\link{downsample}} for details.}
+
+    \item{enhance}{The name of a contrast enhancement method, such as \code{"hist"} or \code{"adapt"} for \code{enhance_hist()} and \code{enhance_adapt()}, etc. See \code{\link{enhance}} for details.}
+
+    \item{smooth}{The name of a smoothing method, such as \code{"gauss"} or \code{"bi"} for \code{filt2_gauss()} and \code{filt2_bi()}, etc. See \code{\link{filt2}} for details.}
 }
 
 \seealso{

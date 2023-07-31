@@ -23,7 +23,7 @@ setClass("atoms",
 			offset=length(object@offset),
 			extent=length(object@extent),
 			group=length(object@group))
-		if ( length(unique(lens)) != 1 )
+		if ( n_unique(lens) != 1L )
 			errors <- c(errors, paste0("lengths of ",
 				"'source' [", lens["source"], "], ",
 				"'type' [", lens["type"], "], ",
@@ -116,9 +116,9 @@ setMethod("show", "atoms", function(object) {
 	n <- sum(as.numeric(object@extent))
 	nrows <- min(dms)
 	ncols <- length(dms)
-	desc1 <- paste0(n, " element", if (n != 1) "s")
-	desc2 <- paste0(nrows, if (length(unique(dms)) > 1) "+" else "", " per group")
-	desc3 <- paste0(ncols, " group", if (ncols != 1) "s" else "")
+	desc1 <- paste0(n, " element", if (n != 1L) "s")
+	desc2 <- paste0(nrows, if (n_unique(dms) > 1L) "+" else "", " per group")
+	desc3 <- paste0(ncols, " group", if (ncols != 1L) "s" else "")
 	cat("(", desc1, " | ", desc2, " | ", desc3, ")\n", sep="")
 })
 

@@ -12,6 +12,7 @@ importFrom("grDevices",
 	"dev.hold",
 	"col2rgb",
 	"rgb",
+	"as.raster",
 	"hcl.colors",
 	"palette.colors",
 	"xy.coords")
@@ -27,6 +28,7 @@ importFrom("graphics",
 	"plot.new",
 	"plot.window",
 	"plot.xy",
+	"rasterImage",
 	"strheight",
 	"strwidth",
 	"title")
@@ -464,6 +466,7 @@ export(
 	"set_title",
 	"set_channel",
 	"set_coord",
+	"set_par",
 	"add_mark",
 	"add_facets",
 	"plot_facets")

@@ -705,16 +705,21 @@ cpal <- function(palette = "Viridis") {
 
 # continuous palette
 add_alpha <- function(colors, alpha = 1) {
-	if ( any(alpha < 0 | alpha > 1) )
-		stop("alpha must be between 0 and 1")
+	dm <- dim(colors)
+	if ( is.null(dm) && !is.null(dim(alpha)) )
+		dm <- dim(alpha)
+	alpha <- ifelse(alpha >= 0 & alpha <= 1, alpha, NA_real_)
 	n <- max(length(colors), length(alpha))
 	if ( length(alpha) != n)
 		alpha <- rep_len(alpha, n)
 	if ( length(colors) != n)
 		colors <- rep_len(colors, n)
+	na <- is.na(colors)
 	colors <- col2rgb(colors, alpha=TRUE)
 	colors <- rgb(colors[1L,], colors[2L,], colors[3L,],
 		alpha=255 * alpha, maxColorValue=255)
+	colors[na] <- NA_character_
+	dim(colors) <- dm
 	colors
 }
 
@@ -766,6 +771,15 @@ encode_dummy <- function(x, drop = TRUE) {
 		d[x == v[i],i] <- 1L
 	dimnames(d) <- list(names(x), v)
 	d
+}
+
+n_unique <- function(x, na.rm = TRUE) {
+	x <- unique(as.vector(x))
+	if ( is.atomic(x) && na.rm ) {
+		length(x[!is.na(x)])
+	} else {
+		length(x)
+	}
 }
 
 # get predicted classes from scores

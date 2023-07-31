@@ -2,7 +2,7 @@
 #### Plotting methods for 'vizi' marks ####
 ## ----------------------------------------
 
-plot_xy <- function(mark, plot = NULL, ...,
+plot_mark_xy <- function(mark, plot = NULL, ...,
 	n = Inf, downsampler = "lttb", type = "p", add = FALSE)
 {
 	# encode required channels
@@ -31,8 +31,10 @@ plot_xy <- function(mark, plot = NULL, ...,
 		channels=plot$channels, params=params, subset=i)
 	p$color <- add_alpha(p$color, p$alpha)
 	if ( !add ) {
+		xr <- range(x, na.rm=TRUE)
+		yr <- range(y, na.rm=TRUE)
 		plot.new()
-		plot.window(xlim=range(x), ylim=range(y))
+		plot.window(xlim=xr, ylim=yr)
 	}
 	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
 		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
@@ -43,31 +45,116 @@ plot_xy <- function(mark, plot = NULL, ...,
 plot.vizi_points <- function(x, plot = NULL, add = FALSE, ...,
 	n = Inf, downsampler = "lttb")
 {
-	invisible(plot_xy(mark=x, plot=plot, type="p", add=add, ...,
+	invisible(plot_mark_xy(mark=x, plot=plot, type="p", add=add, ...,
 		n = Inf, downsampler = "lttb"))
 }
 
 plot.vizi_lines <- function(x, plot = NULL, add = FALSE, ...,
 	n = Inf, downsampler = "lttb")
 {
-	invisible(plot_xy(mark=x, plot=plot, type="l", add=add, ...,
+	invisible(plot_mark_xy(mark=x, plot=plot, type="l", add=add, ...,
 		n = Inf, downsampler = "lttb"))
 }
 
 plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
 	n = Inf, downsampler = "lttb")
 {
-	invisible(plot_xy(mark=x, plot=plot, type="h", add=add, ...,
+	invisible(plot_mark_xy(mark=x, plot=plot, type="h", add=add, ...,
 		n = Inf, downsampler = "lttb"))
+}
+
+plot_mark_pixels <- function(mark, plot = NULL, ...,
+	enhance = FALSE, smooth = FALSE, add = FALSE)
+{
+	# encode required channels (except color)
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	alpha <- encode_var("alpha", encoding, plot$channels)
+	if ( length(x) == 0L || length(y) == 0L )
+		return()
+	# rasterize color/alpha (pre-encoding)
+	color <- encoding$color
+	if ( is.null(color) )
+		color <- encoding$fill
+	if ( length(color) == 0L || all(is.na(color)) )
+		return()
+	if ( length(alpha) == 0L || all(is.na(alpha)) )
+		return()
+	n <- max(length(color), length(alpha))
+	const_color <- n_unique(color) == 1L
+	const_alpha <- n_unique(alpha) == 1L
+	if ( length(color) != n )
+		color <- rep_len(color, n)
+	if ( length(alpha) != n )
+		alpha <- rep_len(alpha, n)
+	zc <- to_raster(x, y, color)
+	za <- to_raster(x, y, alpha)
+	# encode color limits
+	zlim <- plot$channels[["color"]]$limits
+	if ( is.null(zlim) )
+		zlim <- get_limits(zc)
+	zc <- encode_limits(zc, zlim)
+	# perform transformations
+	t <- mark$trans
+	if ( !is.null(t$enhance) )
+		enhance <- t$enhance
+	if ( !is.null(t$smooth) )
+		smooth <- t$smooth
+	if ( is.character(enhance) || isTRUE(enhance) ) {
+		fn <- enhance_fun(enhance)
+		if ( !const_color )
+			zc <- fn(zc)
+		if ( !const_alpha )
+			za <- fn(za)
+	}
+	if ( is.character(smooth) || isTRUE(smooth) ) {
+		fn <- filt2_fun(smooth)
+		if ( !const_color )
+			zc <- fn(zc)
+		if ( !const_alpha )
+			za <- fn(za)
+	}
+	# update color limits
+	zlim <- range(zc, na.rm=TRUE)
+	# encode color scheme
+	zcol <- plot$channels[["color"]]$scheme
+	if ( is.null(zcol) )
+		zcol <- get_scheme("color", zc)
+	zc <- encode_scheme(zc, zcol, zlim)
+	# encode alpha channel
+	zc <- add_alpha(zc, za)
+	# encode non-required channels
+	xr <- range(x, na.rm=TRUE)
+	yr <- range(y, na.rm=TRUE)
+	if ( !add ) {
+		plot.new()
+		plot.window(xlim=xr, ylim=yr)
+	}
+	zc <- t(zc)[ncol(zc):1L,,drop=FALSE]
+	rasterImage(as.raster(zc),
+		xleft=xr[1L], ybottom=yr[1L],
+		xright=xr[2L], ytop=yr[2L],
+		interpolate=FALSE)
+	invisible(encode_legends(plot$channels, list()))
+}
+
+plot.vizi_pixels <- function(x, plot = NULL, add = FALSE, ...,
+	enhance = FALSE, smooth = FALSE)
+{
+	invisible(plot_mark_pixels(mark=x, plot=plot, add=add, ...,
+		enhance = enhance, smooth = smooth))
 }
 
 setOldClass("vizi_points")
 setOldClass("vizi_lines")
 setOldClass("vizi_peaks")
+setOldClass("vizi_pixels")
 
 setMethod("plot", "vizi_points", plot.vizi_points)
 setMethod("plot", "vizi_lines", plot.vizi_lines)
 setMethod("plot", "vizi_peaks", plot.vizi_peaks)
+setMethod("plot", "vizi_pixels", plot.vizi_pixels)
 
 #### Set graphical parameters ####
 ## -------------------------------
