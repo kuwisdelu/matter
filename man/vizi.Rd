@@ -42,7 +42,7 @@ vizi(data, \dots, encoding = NULL, params = NULL)
 set_title(plot, title)
 
 set_channel(plot, channel, label = NULL,
-    limits = NULL, scheme = NULL)
+    limits = NULL, scheme = NULL, key = TRUE)
 
 set_coord(plot, xlim = NULL, ylim = NULL,
     log = "", asp = NA, grid = TRUE)
@@ -82,6 +82,8 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
     \item{limits}{The limits for the channel, specified as \code{c(min, max)} for continuous variables or a character vector of possible levels for discrete variables. The data will be constrained to these limits \emph{before} plotting.}
 
     \item{scheme}{A function or vector giving the scheme for encoding the channel. For example, a vector of colors, or a function that returns a vector of \code{n} colors.}
+
+    \item{key}{Should a key be generated for the channel?}
 
     \item{xlim, ylim}{The plot limits. These only affect the plotting window, not the data. See \code{\link[graphics]{plot.window}}}
 

@@ -73,7 +73,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	alpha <- encode_var("alpha", encoding, plot$channels)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
-	# rasterize color/alpha (pre-encoding)
+	# get color variable (w/out encoding)
 	color <- encoding$color
 	if ( is.null(color) )
 		color <- encoding$fill
@@ -82,48 +82,62 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	if ( length(alpha) == 0L || all(is.na(alpha)) )
 		return()
 	n <- max(length(color), length(alpha))
-	const_color <- n_unique(color) == 1L
-	const_alpha <- n_unique(alpha) == 1L
 	if ( length(color) != n )
 		color <- rep_len(color, n)
 	if ( length(alpha) != n )
 		alpha <- rep_len(alpha, n)
-	zc <- to_raster(x, y, color)
-	za <- to_raster(x, y, alpha)
 	# encode color limits
 	zlim <- plot$channels[["color"]]$limits
 	if ( is.null(zlim) )
-		zlim <- get_limits(zc)
-	zc <- encode_limits(zc, zlim)
+		zlim <- get_limits(color)
+	color <- encode_limits(color, zlim)
+	# rasterize color/alpha
+	if ( is.factor(color) )
+		color <- as.character(color)
+	if ( is.factor(alpha) )
+		alpha <- as.character(alpha)
+	zc <- to_raster(x, y, color)
+	za <- to_raster(x, y, alpha)
+	dm <- dim(zc)
 	# perform transformations
 	t <- mark$trans
 	if ( !is.null(t$enhance) )
 		enhance <- t$enhance
 	if ( !is.null(t$smooth) )
 		smooth <- t$smooth
+	const_color <- n_unique(color) == 1L
+	const_alpha <- n_unique(alpha) == 1L
 	if ( is.character(enhance) || isTRUE(enhance) ) {
 		fn <- enhance_fun(enhance)
-		if ( !const_color )
+		if ( !const_color && is.numeric(zc) ) {
 			zc <- fn(zc)
-		if ( !const_alpha )
+			zlim <- range(zc, na.rm=TRUE)
+		}
+		if ( !const_alpha && is.numeric(za) ) {
 			za <- fn(za)
+			za <- za - min(za, na.rm=TRUE)
+			za <- za / max(za, na.rm=TRUE)
+		}
 	}
 	if ( is.character(smooth) || isTRUE(smooth) ) {
 		fn <- filt2_fun(smooth)
-		if ( !const_color )
+		if ( !const_color && is.numeric(zc) ) {
 			zc <- fn(zc)
-		if ( !const_alpha )
+			zlim <- range(zc, na.rm=TRUE)
+		}
+		if ( !const_alpha && is.numeric(za) ) {
 			za <- fn(za)
+			za <- za - min(za, na.rm=TRUE)
+			za <- za / max(za, na.rm=TRUE)
+		}
 	}
-	# update color limits
-	zlim <- range(zc, na.rm=TRUE)
 	# encode color scheme
 	zcol <- plot$channels[["color"]]$scheme
 	if ( is.null(zcol) )
 		zcol <- get_scheme("color", zc)
 	zc <- encode_scheme(zc, zcol, zlim)
-	# encode alpha channel
 	zc <- add_alpha(zc, za)
+	dim(zc) <- dm
 	# encode non-required channels
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)

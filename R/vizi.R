@@ -116,8 +116,8 @@ set_title <- function(plot, title)
 	plot
 }
 
-set_channel <- function(plot, channel,
-	label = NULL, limits = NULL, scheme = NULL)
+set_channel <- function(plot, channel, label = NULL,
+	limits = NULL, scheme = NULL, key = TRUE)
 {
 	channel <- to_vizi_name(channel)
 	ch <- plot$channels[[channel]]
@@ -129,6 +129,8 @@ set_channel <- function(plot, channel,
 		ch$limits <- limits
 	if ( !is.null(scheme) )
 		ch$scheme <- scheme
+	if ( !missing(key) )
+		ch$key <- key
 	plot$channels[[channel]] <- ch
 	plot
 }
@@ -369,7 +371,8 @@ plot.vizi_colorkey <- function(x, cex = 1, p = c(1/3, 2/3), ...)
 	dp <- (1 - p[2]) / 2
 	pltnew <- c(0, p[1], dp, 1 - dp)
 	par(plt=pltnew)
-	image(1, x$values, t(x$values), col=x$color, cex=cex,
+	col <- add_alpha(x$color, x$alpha)
+	image(1, x$values, t(x$values), col=col, cex=cex,
 		xaxt="n", yaxt="n", xlab="", ylab="")
 	mtext(x$title, side=3L, cex=cex)
 	Axis(x$values, side=4L, las=1L, cex.axis=cex)
@@ -541,7 +544,7 @@ merge_limits <- function(l1, l2, ...)
 	if ( ...length() > 0L )
 		l2 <- do.call(merge_limits, list(l2, ...))
 	if ( is_discrete(l1) && is_discrete(l2) ) {
-		union(l1, l2)
+		sort(union(l1, l2))
 	} else if ( !is_discrete(l1) && !is_discrete(l2) ) {
 		range(l1, l2)
 	} else {
@@ -830,7 +833,8 @@ encode_scheme <- function(x, scheme, limits)
 	}
 	n <- length(scheme)
 	if ( is_discrete(x) ) {
-		x <- as.factor(x)
+		if ( !is.factor(x) )
+			x <- factor(x, levels=limits)
 		scheme <- rep_len(scheme, nlevels(x))
 	} else {
 		dx <- diff(limits)
@@ -851,6 +855,9 @@ encode_legends <- function(channels, params, type = NULL)
 	keys <- list()
 	for ( nm in setdiff(names(channels), c("x", "y", "z")) )
 	{
+		omit <- isFALSE(channels[[nm]]$key)
+		if ( omit )
+			next
 		key <- params[!names(params) %in% nm]
 		names(key) <- to_par_name(names(key))
 		lab <- channels[[nm]]$label
@@ -868,9 +875,15 @@ encode_legends <- function(channels, params, type = NULL)
 			key[[pnm]] <- encode_scheme(lim, sch, lim)
 			class(key) <- "vizi_key"
 		} else {
-			if ( nm %in% c("color", "fill") ) {
+			if ( nm %in% c("color", "fill", "alpha") ) {
 				key$values <- seq.int(lim[1L], lim[2L], length.out=256L)
-				key$color <- encode_scheme(key$values, sch, lim)
+				if ( nm == "alpha" ) {
+					key$color <- encode_var("color")
+					key$alpha <- encode_scheme(key$values, sch, lim)
+				} else {
+					key$color <- encode_scheme(key$values, sch, lim)
+					key$alpha <- encode_var("alpha")
+				}
 				class(key) <- "vizi_colorkey"
 			} else {
 				x <- seq.int(lim[1L], lim[2L], length.out=3L)
@@ -899,6 +912,12 @@ encode_legends <- function(channels, params, type = NULL)
 					key$lty <- encode_var("lty")
 				if ( !"lwd" %in% names(key) )
 					key$lwd <- encode_var("lwd")
+			}
+		} else if ( is(key, "vizi_key") ) {
+			if ( !"pch" %in% names(key) ) {
+				if ( !"fill" %in% names(key) )
+					key$fill <- key$col
+				key$border <- NA
 			}
 		}
 		if ( lab %in% names(keys) ) {
