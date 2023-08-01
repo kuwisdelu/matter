@@ -747,14 +747,16 @@ get_var <- function(x, data)
 }
 
 encode_var <- function(name, encoding = NULL,
-	channels = NULL, params = NULL, subset = NULL)
+	channels = NULL, params = NULL, subscripts = NULL)
 {
 	e <- encoding[[name]]
 	if ( is.null(e) ) {
 		# search non-data graphical parameters
 		e <- params[[name]]
+		# search vizi graphics parameters
 		if ( is.null(e) )
 			e <- switch(name, alpha=1, NULL)
+		# search base graphics parameters
 		if ( is.null(e) )
 			e <- vizi_par(to_par_name(name))
 		if ( is.null(e) )
@@ -772,9 +774,9 @@ encode_var <- function(name, encoding = NULL,
 		if ( is.null(sch) )
 			sch <- get_scheme(name, e)
 		e <- encode_scheme(e, sch, lim)
-		# subset
-		if ( !is.null(subset) )
-			e <- e[subset]
+		# subscripts
+		if ( !is.null(subscripts) )
+			e <- e[subscripts]
 	}
 	e
 }

@@ -5,7 +5,7 @@
 plot_mark_xy <- function(mark, plot = NULL, ...,
 	n = Inf, downsampler = "lttb", type = "p", add = FALSE)
 {
-	# encode required channels
+	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
 	y <- encode_var("y", encoding, plot$channels)
@@ -14,7 +14,6 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
 	# perform transformations
-	i <- NULL
 	if ( is2d(plot) ) {
 		# downsample
 		t <- mark$trans
@@ -26,24 +25,29 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 			y <- downsample(y, n=n, domain=x, method=downsampler)
 			i <- attr(y, "sample")
 			x <- x[i]
+		} else {
+			i <- NULL
 		}
 	} else {
 		# project 3d points
 		pmat <- trans3d_get()
 		t <- trans3d(x, y, z, pmat)
-		x <- t$x
-		y <- t$y
+		i <- trans3d_sort(x, y, z, pmat)
+		x <- t$x[i]
+		y <- t$y[i]
 	}
 	# encode non-required channels
 	params <- merge_encoding(mark$params, as_encoding(...))
 	p <- c("shape", "color", "fill", "alpha", "size", "linewidth", "linetype")
-	p <- lapply(setNames(p, p), encode_var, encoding=encoding,
-		channels=plot$channels, params=params, subset=i)
+	p <- setNames(p, p)
+	p <- lapply(p, encode_var, encoding=encoding,
+		channels=plot$channels, params=params, subscripts=i)
 	p$color <- add_alpha(p$color, p$alpha)
 	if ( !add )
 		plot_init(plot)
 	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
 		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
+	# encode legends
 	params <- p[!names(p) %in% names(encoding)]
 	invisible(encode_legends(plot$channels, params, type))
 }
@@ -69,23 +73,31 @@ plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
 		n = Inf, downsampler = "lttb"))
 }
 
-plot_mark_pixels <- function(mark, plot = NULL, ...,
+compute_raster <- function(mark, plot = NULL, ...,
 	enhance = FALSE, smooth = FALSE, scale = FALSE,
-	useRaster = TRUE, add = FALSE)
+	slice = NULL, tol = 1e-6)
 {
-	# encode required channels (except color)
+	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
 	y <- encode_var("y", encoding, plot$channels)
 	if ( !is2d(plot) )
 		z <- encode_var("z", encoding, plot$channels)
-	alpha <- encode_var("alpha", encoding, plot$channels)
+	# encode alpha (allow setting via ...)
+	params <- merge_encoding(mark$params, as_encoding(...))
+	alpha <- encode_var("alpha", encoding, plot$channels, params)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
+	# get name of color channel
+	if ( "color" %in% names(plot$channels) ) {
+		cname <- "color"
+	} else if ( "fill" %in% names(plot$channels) ) {
+		cname <- "fill"
+	} else {
+		stop("couldn't find encoding for 'color' or 'fill'")
+	}
 	# get color variable (w/out encoding)
-	color <- encoding$color
-	if ( is.null(color) )
-		color <- encoding$fill
+	color <- encoding[[cname]]
 	if ( length(color) == 0L || all(is.na(color)) )
 		return()
 	if ( length(alpha) == 0L || all(is.na(alpha)) )
@@ -96,17 +108,50 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	if ( length(alpha) != n )
 		alpha <- rep_len(alpha, n)
 	# encode color limits
-	clim <- plot$channels[["color"]]$limits
+	clim <- plot$channels[[cname]]$limits
 	if ( is.null(clim) )
 		clim <- get_limits(color)
 	color <- encode_limits(color, clim)
-	# rasterize color/alpha
+	# encode discrete values
 	if ( is.factor(color) )
 		color <- as.character(color)
 	if ( is.factor(alpha) )
 		alpha <- as.character(alpha)
-	rc <- to_raster(x, y, color)
-	ra <- to_raster(x, y, alpha)
+	# rasterize color/alpha
+	if ( !is2d(plot) && !is.null(slice) ) {
+		# 3d to 2d slice
+		ortho <- names(slice)
+		if ( length(slice) != 1L || is.null(ortho) )
+			stop("slice must be a named scalar")
+		if ( !ortho %in% c("x", "y", "z") )
+			stop("slice must be named x, y, or z")
+		subset <- switch(ortho,
+			x=(x >= slice - tol & x <= slice + tol),
+			y=(y >= slice - tol & y <= slice + tol),
+			z=(z >= slice - tol & z <= slice + tol))
+		x <- x[subset]
+		y <- y[subset]
+		z <- z[subset]
+		color <- color[subset]
+		alpha <- alpha[subset]
+		if ( ortho == "z" ) {
+			i <- x
+			j <- y
+		} else if ( ortho == "y" ) {
+			i <- x
+			j <- z
+		} else if ( ortho == "x" ) {
+			i <- y
+			j <- z
+		}
+	} else {
+		# 2d image
+		ortho <- "z"
+		i <- x
+		j <- y
+	}
+	rc <- to_raster(i, j, color)
+	ra <- to_raster(i, j, alpha)
 	dm <- dim(rc)
 	# perform transformations
 	t <- mark$trans
@@ -145,34 +190,71 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		clim <- c(0, 100)
 		rc <- rescale(rc, clim)
 	}
-	plot$channels$color$limits <- clim
 	# encode color scheme
-	csch <- plot$channels[["color"]]$scheme
+	csch <- plot$channels[[cname]]$scheme
 	if ( is.null(csch) )
-		csch <- get_scheme("color", rc)
+		csch <- get_scheme(cname, rc)
 	rc <- encode_scheme(rc, csch, clim)
 	rc <- add_alpha(rc, ra)
 	dim(rc) <- dm
+	# return raster
+	if ( is2d(plot) ) {
+		list(raster=rc, channel=cname,
+			limits=clim, ortho=ortho,
+			i=range(i, na.rm=TRUE),
+			j=range(j, na.rm=TRUE),
+			x=x, y=y)
+	} else {
+		list(raster=rc, channel=cname,
+			limits=clim, ortho=ortho,
+			i=range(i, na.rm=TRUE),
+			j=range(j, na.rm=TRUE),
+			x=x, y=y, z=z)
+	}
+}
+
+plot_mark_pixels <- function(mark, plot = NULL, ...,
+	enhance = FALSE, smooth = FALSE, scale = FALSE,
+	useRaster = TRUE, add = FALSE)
+{
+	rs <- compute_raster(mark, plot,
+		enhance=enhance, smooth=smooth,
+		scale=scale, ...)
+	rc <- rs$raster
 	# plot the image
 	if ( !add )
 		plot_init(plot)
-	xr <- range(x, na.rm=TRUE)
-	yr <- range(y, na.rm=TRUE)
-	ras <- dev.capabilities("rasterImage")$rasterImage
-	if ( !is2d(plot) || ras != "yes" )
+	hasRaster <- dev.capabilities("rasterImage")$rasterImage
+	if ( !is2d(plot) || hasRaster != "yes" )
 		useRaster <- FALSE
 	if ( useRaster ) {
+		# plot raster
 		rc <- t(rc)[ncol(rc):1L,,drop=FALSE]
-		dx <- 0.5 * (xr[2L] - xr[1L]) / (dim(rc)[1L] - 1)
-		dy <- 0.5 * (yr[2L] - yr[1L]) / (dim(rc)[2L] - 1)
+		di <- 0.5 * diff(rs$i) / (dim(rc)[1L] - 1)
+		dj <- 0.5 * diff(rs$j) / (dim(rc)[2L] - 1)
 		rasterImage(as.raster(rc),
-			xleft=xr[1L] - dx, ybottom=yr[1L] - dy,
-			xright=xr[2L] + dx, ytop=yr[2L] + dy,
+			xleft=rs$i[1L] - di, ybottom=rs$j[1L] - dj,
+			xright=rs$i[2L] + di, ytop=rs$j[2L] + dj,
 			interpolate=FALSE)
 	} else {
-		p <- pix2poly(xr, yr, dim(rc))
+		# plot polygons
+		p <- pix2poly(rs$i, rs$j, dim(rc))
+		if ( !is2d(plot) ) {
+			pmat <- trans3d_get()
+			i <- as.vector(p$x)
+			j <- as.vector(p$y)
+			if ( rs$ortho == "z" ) {
+				p <- trans3d(i, j, rs$z, pmat)
+			} else if ( rs$ortho == "y" ) {
+				p <- trans3d(i, rs$y, j, pmat)
+			} else if ( rs$ortho == "x" ) {
+				p <- trans3d(rs$x, i, j, pmat)
+			}
+		}
 		polygon(p$x, p$y, col=rc, border=rc)
 	}
+	# encode legends
+	plot$channels[[rs$channel]]$limits <- rs$limits
 	invisible(encode_legends(plot$channels, list()))
 }
 
@@ -544,3 +626,14 @@ trans3d_set <- function(pmat, i, pgrid = NULL)
 	pmat
 }
 
+trans3d_depth <- function(x, y, z, pmat)
+{
+	tr <- cbind(x, y, z, 1, deparse.level = 0L) %*% pmat
+	-tr[,4L,drop=TRUE]
+}
+
+trans3d_sort <- function(x, y, z, pmat)
+{
+	depth <- trans3d_depth(x, y, z, pmat)
+	sort.list(depth)
+}
