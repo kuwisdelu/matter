@@ -485,8 +485,10 @@ export(
 
 S3method("preplot", "vizi_plot")
 S3method("preplot", "vizi_facets")
+
 S3method("plot", "vizi_plot")
 S3method("plot", "vizi_facets")
+
 S3method("print", "vizi_plot")
 S3method("print", "vizi_facets")
 
@@ -496,6 +498,8 @@ S3method("plot", "vizi_colorkey")
 S3method("plot", "vizi_points")
 S3method("plot", "vizi_lines")
 S3method("plot", "vizi_peaks")
+S3method("plot", "vizi_pixels")
+S3method("plot", "vizi_voxels")
 
 exportMethods(
 	"preplot",

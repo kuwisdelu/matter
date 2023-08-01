@@ -4,16 +4,19 @@
 \alias{vizi_lines}
 \alias{vizi_peaks}
 \alias{vizi_pixels}
+\alias{vizi_voxels}
 
 \alias{plot.vizi_points}
 \alias{plot.vizi_lines}
 \alias{plot.vizi_peaks}
 \alias{plot.vizi_pixels}
+\alias{plot.vizi_voxels}
 
 \alias{plot,vizi_points,ANY-method}
 \alias{plot,vizi_lines,ANY-method}
 \alias{plot,vizi_peaks,ANY-method}
 \alias{plot,vizi_pixels,ANY-method}
+\alias{plot,vizi_voxels,ANY-method}
 
 \title{Plotting Graphical Marks}
 
@@ -34,6 +37,9 @@
 \S3method{plot}{vizi_pixels}(x, plot = NULL, add = FALSE, \dots,
     enhance = FALSE, smooth = FALSE, scale = FALSE,
     useRaster = TRUE)
+
+\S3method{plot}{vizi_voxels}(x, plot = NULL, add = FALSE, \dots,
+    xslice = NULL, yslice = NULL, zslice = NULL)
 }
 
 \arguments{
@@ -56,6 +62,8 @@
     \item{scale}{If \code{TRUE}, then all image values will be scaled to the range [0, 100]. This is useful for comparing images with differing intensity levels across facets or layers.}
 
     \item{useRaster}{Should a bitmap raster be used for plotting? This is typically faster on supported devices. A fallback to polygon-based plotting is used if raster plotting is not supported.}
+
+    \item{xslice, yslice, zslice}{Numeric vectors giving the x, y, and/or z coordinates of the volumetric slices to plot. If none are provided, defaults to plotting all z-slices.}
 }
 
 \seealso{

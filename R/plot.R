@@ -217,9 +217,9 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	enhance = FALSE, smooth = FALSE, scale = FALSE,
 	useRaster = TRUE, add = FALSE)
 {
+	# compute the image
 	rs <- compute_raster(mark, plot,
-		enhance=enhance, smooth=smooth,
-		scale=scale, ...)
+		enhance=enhance, smooth=smooth, scale=scale, ...)
 	rc <- rs$raster
 	# plot the image
 	if ( !add )
@@ -258,6 +258,86 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	invisible(encode_legends(plot$channels, list()))
 }
 
+plot_mark_voxels <- function(mark, plot = NULL, ...,
+	enhance = FALSE, smooth = FALSE, scale = FALSE,
+	xslice = NULL, yslice = NULL, zslice = NULL, add = FALSE)
+{
+	# encode position channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	z <- encode_var("z", encoding, plot$channels)
+	# compute slices
+	xslice <- if (is.null(xslice)) integer() else xslice
+	yslice <- if (is.null(yslice)) integer() else yslice
+	zslice <- if (is.null(zslice)) integer() else zslice
+	slices <- c(
+		setNames(xslice, rep.int("x", length(xslice))),
+		setNames(yslice, rep.int("y", length(xslice))),
+		setNames(zslice, rep.int("z", length(xslice))))
+	if ( length(slices) == 0L ) {
+		slices <- sort(unique(z))
+		names(slices) <- rep.int("z", length(slices))
+	}
+	n <- length(slices)
+	slices <- lapply(seq_len(n), function(k) slices[k])
+	# compute rasters
+	px <- list()
+	py <- list()
+	colors <- list()
+	depths <- list()
+	for ( slice in slices ) {
+		# compute raster slice
+		rs <- compute_raster(mark, plot,
+			enhance=enhance, smooth=smooth, scale=scale,
+			slice=slice, ...)
+		rc <- rs$raster
+		# project raster to 3d polygons
+		p <- pix2poly(rs$i, rs$j, dim(rc))
+			pmat <- trans3d_get()
+			i <- as.vector(p$x)
+			j <- as.vector(p$y)
+			if ( rs$ortho == "z" ) {
+				p <- trans3d(i, j, rs$z, pmat)
+				d <- trans3d_depth(i, j, rs$z, pmat)
+			} else if ( rs$ortho == "y" ) {
+				p <- trans3d(i, rs$y, j, pmat)
+				d <- trans3d_depth(i, rs$y, j, pmat)
+			} else if ( rs$ortho == "x" ) {
+				p <- trans3d(rs$x, i, j, pmat)
+				d <- trans3d_depth(rs$x, i, j, pmat)
+			}
+		# compute polygon depth
+		dim(d) <- c(5L, length(rc))
+		d <- colMeans(d, na.rm=TRUE)
+		# re-structure
+		dim(rc) <- NULL
+		dim(p$x) <- c(5L, length(rc))
+		dim(p$y) <- c(5L, length(rc))
+		# assign polygons to list
+		px <- c(px, list(p$x))
+		py <- c(py, list(p$y))
+		colors <- c(colors, list(rc))
+		depths <- c(depths, list(d))
+	}
+	# sort polygons by depth
+	px <- do.call(cbind, px)
+	py <- do.call(cbind, py)
+	colors <- do.call(c, colors)
+	depths <- do.call(c, depths)
+	i <- sort.list(depths)
+	px <- px[,i,drop=FALSE]
+	py <- py[,i,drop=FALSE]
+	colors <- colors[i]
+	# plot the polygons
+	if ( !add )
+		plot_init(plot)
+	polygon(px, py, col=colors, border=colors)
+	# encode legends
+	plot$channels[[rs$channel]]$limits <- rs$limits
+	invisible(encode_legends(plot$channels, list()))
+}
+
 pix2poly <- function(xlim, ylim, dim)
 {
 	dx <- 0.5 * (xlim[2L] - xlim[1L]) / (dim[1L] - 1)
@@ -283,15 +363,24 @@ plot.vizi_pixels <- function(x, plot = NULL, add = FALSE, ...,
 		useRaster=useRaster))
 }
 
+plot.vizi_voxels <- function(x, plot = NULL, add = FALSE, ...,
+	xslice = NULL, yslice = NULL, zslice = NULL)
+{
+	invisible(plot_mark_voxels(mark=x, plot=plot, add=add, ...,
+		xslice=xslice, yslice=yslice, zslice=zslice))
+}
+
 setOldClass("vizi_points")
 setOldClass("vizi_lines")
 setOldClass("vizi_peaks")
 setOldClass("vizi_pixels")
+setOldClass("vizi_voxels")
 
 setMethod("plot", "vizi_points", plot.vizi_points)
 setMethod("plot", "vizi_lines", plot.vizi_lines)
 setMethod("plot", "vizi_peaks", plot.vizi_peaks)
 setMethod("plot", "vizi_pixels", plot.vizi_pixels)
+setMethod("plot", "vizi_voxels", plot.vizi_voxels)
 
 #### Set graphical parameters ####
 ## -------------------------------
