@@ -77,6 +77,8 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
 	y <- encode_var("y", encoding, plot$channels)
+	if ( !is2d(plot) )
+		z <- encode_var("z", encoding, plot$channels)
 	alpha <- encode_var("alpha", encoding, plot$channels)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
@@ -94,18 +96,18 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	if ( length(alpha) != n )
 		alpha <- rep_len(alpha, n)
 	# encode color limits
-	zlim <- plot$channels[["color"]]$limits
-	if ( is.null(zlim) )
-		zlim <- get_limits(color)
-	color <- encode_limits(color, zlim)
+	clim <- plot$channels[["color"]]$limits
+	if ( is.null(clim) )
+		clim <- get_limits(color)
+	color <- encode_limits(color, clim)
 	# rasterize color/alpha
 	if ( is.factor(color) )
 		color <- as.character(color)
 	if ( is.factor(alpha) )
 		alpha <- as.character(alpha)
-	zc <- to_raster(x, y, color)
-	za <- to_raster(x, y, alpha)
-	dm <- dim(zc)
+	rc <- to_raster(x, y, color)
+	ra <- to_raster(x, y, alpha)
+	dm <- dim(rc)
 	# perform transformations
 	t <- mark$trans
 	if ( !is.null(t$enhance) )
@@ -117,40 +119,40 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	if ( is.character(enhance) || isTRUE(enhance) ) {
 		# contrast enhancement
 		fn <- enhance_fun(enhance)
-		if ( !const_color && is.numeric(zc) ) {
-			zc <- fn(zc)
-			zlim <- range(zc, na.rm=TRUE)
+		if ( !const_color && is.numeric(rc) ) {
+			rc <- fn(rc)
+			clim <- range(rc, na.rm=TRUE)
 		}
-		if ( !const_alpha && is.numeric(za) ) {
-			za <- fn(za)
-			za <- rescale(za, c(0, 1))
+		if ( !const_alpha && is.numeric(ra) ) {
+			ra <- fn(ra)
+			ra <- rescale(ra, c(0, 1))
 		}
 	}
 	if ( is.character(smooth) || isTRUE(smooth) ) {
 		# smoothing
 		fn <- filt2_fun(smooth)
-		if ( !const_color && is.numeric(zc) ) {
-			zc <- fn(zc)
-			zlim <- range(zc, na.rm=TRUE)
+		if ( !const_color && is.numeric(rc) ) {
+			rc <- fn(rc)
+			clim <- range(rc, na.rm=TRUE)
 		}
-		if ( !const_alpha && is.numeric(za) ) {
-			za <- fn(za)
-			za <- rescale(za, c(0, 1))
+		if ( !const_alpha && is.numeric(ra) ) {
+			ra <- fn(ra)
+			ra <- rescale(ra, c(0, 1))
 		}
 	}
-	if ( is.numeric(zc) && isTRUE(scale) ) {
+	if ( is.numeric(rc) && isTRUE(scale) ) {
 		# scaling
-		zlim <- c(0, 100)
-		zc <- rescale(zc, zlim)
+		clim <- c(0, 100)
+		rc <- rescale(rc, clim)
 	}
-	plot$channels$color$limits <- zlim
+	plot$channels$color$limits <- clim
 	# encode color scheme
-	zcol <- plot$channels[["color"]]$scheme
-	if ( is.null(zcol) )
-		zcol <- get_scheme("color", zc)
-	zc <- encode_scheme(zc, zcol, zlim)
-	zc <- add_alpha(zc, za)
-	dim(zc) <- dm
+	csch <- plot$channels[["color"]]$scheme
+	if ( is.null(csch) )
+		csch <- get_scheme("color", rc)
+	rc <- encode_scheme(rc, csch, clim)
+	rc <- add_alpha(rc, ra)
+	dim(rc) <- dm
 	# plot the image
 	if ( !add )
 		plot_init(plot)
@@ -160,16 +162,16 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	if ( !is2d(plot) || ras != "yes" )
 		useRaster <- FALSE
 	if ( useRaster ) {
-		zc <- t(zc)[ncol(zc):1L,,drop=FALSE]
-		dx <- 0.5 * (xr[2L] - xr[1L]) / (dim(zc)[1L] - 1)
-		dy <- 0.5 * (yr[2L] - yr[1L]) / (dim(zc)[2L] - 1)
-		rasterImage(as.raster(zc),
+		rc <- t(rc)[ncol(rc):1L,,drop=FALSE]
+		dx <- 0.5 * (xr[2L] - xr[1L]) / (dim(rc)[1L] - 1)
+		dy <- 0.5 * (yr[2L] - yr[1L]) / (dim(rc)[2L] - 1)
+		rasterImage(as.raster(rc),
 			xleft=xr[1L] - dx, ybottom=yr[1L] - dy,
 			xright=xr[2L] + dx, ytop=yr[2L] + dy,
 			interpolate=FALSE)
 	} else {
-		p <- pix2poly(xr, yr, dim(zc))
-		polygon(p$x, p$y, col=zc, border=zc)
+		p <- pix2poly(xr, yr, dim(rc))
+		polygon(p$x, p$y, col=rc, border=rc)
 	}
 	invisible(encode_legends(plot$channels, list()))
 }
