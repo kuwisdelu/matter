@@ -15,6 +15,7 @@
 		matter.dump.dir = tempdir(),
 		matter.vizi.par = par_style_new(),
 		matter.vizi.panelgrid = NULL,
+		matter.vizi.trans3d = NULL,
 		matter.vizi.style = "light",
 		matter.vizi.dpal = "Tableau 10",
 		matter.vizi.cpal = "Viridis")
@@ -780,6 +781,13 @@ n_unique <- function(x, na.rm = TRUE) {
 	} else {
 		length(x)
 	}
+}
+
+rescale <- function(x, limits) {
+	x <- x - min(x, na.rm=TRUE)
+	x <- x / max(x, na.rm=TRUE)
+	x <- diff(limits) * x
+	x + min(limits)
 }
 
 # get predicted classes from scores

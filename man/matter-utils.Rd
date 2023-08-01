@@ -68,16 +68,15 @@
 
 \alias{roll}
 \alias{seq_rel}
+\alias{shingles}
+\alias{rescale}
+\alias{pinv}
 
 \alias{qrank}
 \alias{qorder}
 \alias{qselect}
 \alias{qmedian}
 \alias{qmad}
-
-\alias{pinv}
-
-\alias{shingles}
 
 \alias{sizeof}
 

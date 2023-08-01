@@ -13,6 +13,7 @@ importFrom("grDevices",
 	"dev.hold",
 	"col2rgb",
 	"rgb",
+	"trans3d",
 	"as.raster",
 	"hcl.colors",
 	"palette.colors",
@@ -29,6 +30,7 @@ importFrom("graphics",
 	"plot.new",
 	"plot.window",
 	"plot.xy",
+	"persp",
 	"polygon",
 	"rasterImage",
 	"strheight",
@@ -300,7 +302,7 @@ export(
 	".rowStats",
 	".colStats")
 
-export("pinv")
+
 
 export(
 	"chunk_apply",
@@ -409,6 +411,10 @@ export(
 	"roll",
 	"seq_rel",
 	"shingles",
+	"rescale",
+	"pinv")
+
+export(
 	"dpal",
 	"cpal",
 	"add_alpha")

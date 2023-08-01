@@ -9,20 +9,30 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
 	y <- encode_var("y", encoding, plot$channels)
+	if ( !is2d(plot) )
+		z <- encode_var("z", encoding, plot$channels)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
 	# perform transformations
-	t <- mark$trans
-	if ( !is.null(t$n) )
-		n <- t$n
-	if ( !is.null(t$downsampler) )
-		downsampler <- t$downsampler
-	if ( n < length(y) ) {
-		y <- downsample(y, n=n, domain=x, method=downsampler)
-		i <- attr(y, "sample")
-		x <- x[i]
+	i <- NULL
+	if ( is2d(plot) ) {
+		# downsample
+		t <- mark$trans
+		if ( !is.null(t$n) )
+			n <- t$n
+		if ( !is.null(t$downsampler) )
+			downsampler <- t$downsampler
+		if ( n < length(y) ) {
+			y <- downsample(y, n=n, domain=x, method=downsampler)
+			i <- attr(y, "sample")
+			x <- x[i]
+		}
 	} else {
-		i <- NULL
+		# project 3d points
+		pmat <- trans3d_get()
+		t <- trans3d(x, y, z, pmat)
+		x <- t$x
+		y <- t$y
 	}
 	# encode non-required channels
 	params <- merge_encoding(mark$params, as_encoding(...))
@@ -30,11 +40,8 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 	p <- lapply(setNames(p, p), encode_var, encoding=encoding,
 		channels=plot$channels, params=params, subset=i)
 	p$color <- add_alpha(p$color, p$alpha)
-	if ( !add ) {
-		xr <- range(x, na.rm=TRUE)
-		yr <- range(y, na.rm=TRUE)
-		plot_init(xr, yr)
-	}
+	if ( !add )
+		plot_init(plot)
 	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
 		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
 	params <- p[!names(p) %in% names(encoding)]
@@ -116,8 +123,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		}
 		if ( !const_alpha && is.numeric(za) ) {
 			za <- fn(za)
-			za <- za - min(za, na.rm=TRUE)
-			za <- za / max(za, na.rm=TRUE)
+			za <- rescale(za, c(0, 1))
 		}
 	}
 	if ( is.character(smooth) || isTRUE(smooth) ) {
@@ -129,16 +135,13 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		}
 		if ( !const_alpha && is.numeric(za) ) {
 			za <- fn(za)
-			za <- za - min(za, na.rm=TRUE)
-			za <- za / max(za, na.rm=TRUE)
+			za <- rescale(za, c(0, 1))
 		}
 	}
-	if ( isTRUE(scale) ) {
+	if ( is.numeric(zc) && isTRUE(scale) ) {
 		# scaling
-		zc <- zc - min(zc, na.rm=TRUE)
-		zc <- zc / max(zc, na.rm=TRUE)
-		zc <- 100 * zc
-		zlim <- range(zc, na.rm=TRUE)
+		zlim <- c(0, 100)
+		zc <- rescale(zc, zlim)
 	}
 	plot$channels$color$limits <- zlim
 	# encode color scheme
@@ -149,10 +152,10 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	zc <- add_alpha(zc, za)
 	dim(zc) <- dm
 	# plot the image
+	if ( !add )
+		plot_init(plot)
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)
-	if ( !add )
-		plot_init(xr, yr)
 	ras <- dev.capabilities("rasterImage")$rasterImage
 	if ( useRaster && ras != "yes" )
 		useRaster <- FALSE
@@ -354,6 +357,8 @@ panel_get <- function(pgrid = NULL, arr.ind = FALSE)
 		stop("no graphics device open")
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
+	if ( is.null(pgrid) )
+		return(NA_integer_)
 	mfg <- par("mfg")
 	i <- pgrid$mat[mfg[1], mfg[2]]
 	if ( arr.ind ) {
@@ -506,5 +511,34 @@ is_last_panel <- function(pgrid = NULL)
 	if ( is.null(pgrid) )
 		return(TRUE)
 	panel_get(pgrid) == length(pgrid$mat)
+}
+
+#### 3D to 2D transformations ####
+## -------------------------------
+
+trans3d_get <- function(i, pgrid = NULL)
+{
+	plist <- getOption("matter.vizi.trans3d")
+	if ( missing(i) )
+		i <- panel_get(pgrid)
+	if ( !is.null(plist) ) {
+		plist[[i]]
+	} else {
+		NULL
+	}
+}
+
+trans3d_set <- function(pmat, i, pgrid = NULL)
+{
+	plist <- getOption("matter.vizi.trans3d")
+	if ( missing(i) )
+		i <- panel_get(pgrid)
+	if ( is.na(i) )
+		i <- 1L
+	if ( is.null(plist) )
+		plist <- list()
+	plist[[i]] <- pmat
+	options(matter.vizi.trans3d=plist)
+	pmat
 }
 

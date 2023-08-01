@@ -9,7 +9,7 @@ vizi <- function(data, ..., encoding = NULL, params = NULL)
 	encoding <- props$encoding
 	channels <- props$channels
 	coord <- list(xlim=NULL, ylim=NULL, log="", asp=NA, grid=TRUE)
-	structure(list(encoding=encoding, channels=channels,
+	plot <- structure(list(encoding=encoding, channels=channels,
 		marks=list(), coord=coord, params=params), class="vizi_plot")
 }
 
@@ -104,8 +104,9 @@ plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 			labels <- character(length(plotlist))
 		plots <- lapply(plotlist,
 			function(plot) {
-				structure(list(encoding=plot$encoding,
-					marks=plot$marks, params=plot$params), class="vizi_plot")
+				structure(list(
+					encoding=plot$encoding,
+					marks=plot$marks), class="vizi_plot")
 			})
 	} else {
 		# combine vizi-facets
@@ -119,13 +120,17 @@ plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 		plots <- lapply(plotlist, function(f) f$plots)
 		plots <- unlist(plots, recursive=FALSE)
 	}
+	# inherit coord and params
+	coord <- plotlist[[1L]]$coord
+	params <- plotlist[[1L]]$params
 	# merge channels and return facets
 	channels <- lapply(plotlist, function(plot) plot$channels)
 	channels <- do.call(merge_channels, unname(channels))
 	dim <- get_dim(length(plots), nrow=nrow, ncol=ncol)
-	structure(list(plots=plots, channels=channels,
-		coord=plotlist[[1L]]$coord, subscripts=NULL,
-		labels=labels, dim=dim, drop=drop, free=free), class="vizi_facets")
+	facets <- list(plots=plots, channels=channels, coord=coord,
+		params=params, subscripts=NULL, labels=labels,
+		dim=dim, drop=drop, free=free)
+	structure(facets, class="vizi_facets")
 }
 
 set_title <- function(plot, title)
@@ -193,19 +198,59 @@ setOldClass("vizi_colorkey")
 #### Plotting methods for 'vizi' ####
 ## ----------------------------------
 
-plot_init <- function(xlim, ylim, ...,
-	more = NULL, plot = NULL, n = 1L)
+plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 {
-	plot.new()
-	args <- list(xlim=xlim, ylim=ylim, ...)
+	args <- list(...)
 	args <- c(args, more)
-	do.call(plot.window, args)
-	if ( has_free_x(plot) || is_bottom_panel(n) )
-		Axis(xlim, side=1L)
-	if ( has_free_y(plot) || is_left_panel() )
-		Axis(ylim, side=2L)
-	if ( isTRUE(plot$coord$grid) )
-		grid()
+	# get x/y limits
+	if ( is.null(args$xlim) )
+		args$xlim <- plot$coord$xlim
+	if ( is.null(args$ylim) )
+		args$ylim <- plot$coord$ylim
+	if ( is.null(args$xlim) )
+		args$xlim <- plot$channels$x$limits
+	if ( is.null(args$ylim) )
+		args$ylim <- plot$channels$y$limits
+	if ( is2d(plot) ) {
+		# get x/y aspect ratio and scale
+		if ( is.null(args$log) )
+			args$log <- plot$coord$log
+		if ( is.null(args$asp) )
+			args$asp <- plot$coord$asp
+		# initialize the 2d plot
+		plot.new()
+		do.call(plot.window, args)
+		# add annotations
+		if ( has_free_x(plot) || is_bottom_panel(n) )
+			Axis(args$xlim, side=1L)
+		if ( has_free_y(plot) || is_left_panel() )
+			Axis(args$ylim, side=2L)
+		if ( isTRUE(plot$coord$grid) )
+			grid()
+	} else {
+		# get z limits
+		if ( is.null(args$zlim) )
+			args$zlim <- plot$channels$z$limits
+		# get x/y/z labels
+		if ( is.null(args$xlab) )
+			args$xlab <- plot$channels$x$label
+		if ( is.null(args$ylab) )
+			args$ylab <- plot$channels$y$label
+		if ( is.null(args$zlab) )
+			args$zlab <- plot$channels$z$label
+		# initialize the 3d plot
+		args$x <- args$xlim
+		args$y <- args$ylim
+		args$z <- matrix(args$zlim, nrow=2L, ncol=2L)
+		args$col <- NA
+		args$border <- NA
+		VT <- do.call(persp, args)
+		trans3d_set(VT)
+	}
+}
+
+is2d <- function(plot) {
+	isFALSE("z" %in% names(plot$channels))
 }
 
 # preplot methods
@@ -217,21 +262,7 @@ preplot.vizi_plot <- function(object, ...)
 	if ( w > 0L )
 		p <- par_pad(p, "right", w + 1L, outer=TRUE)
 	panel_grid(dim=c(1L,1L), params=p)
-	xlim <- object$coord$xlim
-	ylim <- object$coord$ylim
-	log <- object$coord$log
-	asp <- object$coord$asp
-	if ( is.null(xlim) )
-		xlim <- object$channels$x$limits
-	if ( is.null(ylim) )
-		ylim <- object$channels$y$limits
-	if ( is.null(log) )
-		log <- ""
-	if ( is.null(asp) )
-		asp <- NA
-	plot_init(xlim, ylim, log=log, asp=asp, more=object$params)
-	if ( isTRUE(object$coord$grid) )
-		grid()
+	plot_init(object, more=object$params, n=1L)
 }
 
 preplot.vizi_facets <- function(object, ...)
@@ -285,8 +316,10 @@ plot.vizi_plot <- function(x, add = FALSE, ...)
 	keys <- merge_legends(keys)
 	if ( !add ) {
 		# add figure titles
-		title(xlab=x$channels$x$label, outer=TRUE)
-		title(ylab=x$channels$y$label, outer=TRUE)
+		if ( is2d(x) ) {
+			title(xlab=x$channels$x$label, outer=TRUE)
+			title(ylab=x$channels$y$label, outer=TRUE)
+		}
 		if ( !is.null(x$title) )
 			title(main=x$title, outer=TRUE)
 		# add legends
@@ -322,8 +355,6 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 			# initialize plot
 			xlim <- x$coord$xlim
 			ylim <- x$coord$ylim
-			log <- x$coord$log
-			asp <- x$coord$asp
 			if ( is.null(xlim) ) {
 				if ( has_free_x(x) ) {
 					xlim <- get_var_range(plot, "x")
@@ -338,15 +369,10 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 					ylim <- x$channels$y$limits
 				}
 			}
-			if ( is.null(log) )
-				log <- ""
-			if ( is.null(asp) )
-				asp <- NA
-			plot_init(xlim, ylim, log=log, asp=asp,
-				more=x$params, plot=x, n=n)
+			plot_init(x, xlim=xlim, ylim=ylim, more=x$params, n=n)
 			mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
 		}
-		# plot marks
+		# plot facets
 		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
 		if ( add )
 			panel_next()
@@ -354,12 +380,14 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 	keys <- merge_legends(keys)
 	if ( !add ) {
 		# add figure titles
-		xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
-		ylab_offset <- ifelse(has_free_y(x), 0.5, 1.5)
-		title(xlab=x$channels$x$label,
-			line=xlab_offset, outer=TRUE)
-		title(ylab=x$channels$y$label,
-			line=ylab_offset, outer=TRUE)
+		if ( is2d(plot) ) {
+			xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
+			ylab_offset <- ifelse(has_free_y(x), 0.5, 1.5)
+			title(xlab=x$channels$x$label,
+				line=xlab_offset, outer=TRUE)
+			title(ylab=x$channels$y$label,
+				line=ylab_offset, outer=TRUE)
+		}
 		if ( !is.null(x$title) )
 			title(main=x$title, outer=TRUE)
 		# add legends
@@ -658,8 +686,7 @@ compute_facets <- function(plot, by, nshingles = 6L)
 			mk$encoding <- lapply(mk$encoding, fsub)
 			mk
 		})
-		structure(list(encoding=e, marks=mks,
-			params=p$params), class="vizi_plot")
+		structure(list(encoding=e, marks=mks), class="vizi_plot")
 	}
 	subscripts <- merge_subscripts(subscripts)
 	if ( is(plot, "vizi_facets") ) {
@@ -673,7 +700,8 @@ compute_facets <- function(plot, by, nshingles = 6L)
 		plots <- lapply(subscripts, ffac, p=plot)
 	}
 	list(plots=plots, channels=plot$channels, coord=plot$coord,
-		subscripts=subscripts, labels=labels, dim=dim)
+		params=plot$params, subscripts=subscripts, labels=labels,
+		dim=dim)
 }
 
 has_free_x <- function(plot)
