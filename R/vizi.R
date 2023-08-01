@@ -883,9 +883,8 @@ encode_scheme <- function(x, scheme, limits)
 		if ( is_discrete(x) ) {
 			n <- length(limits)
 		} else {
-			n <- n_unique(x)
+			n <- 256L
 		}
-		n <- max(1L, min(n, 256L))
 		scheme <- fx(n)
 	}
 	n <- length(scheme)
@@ -933,7 +932,14 @@ encode_legends <- function(channels, params, type = NULL)
 			class(key) <- "vizi_key"
 		} else {
 			if ( nm %in% c("color", "fill", "alpha") ) {
-				key$values <- seq.int(lim[1L], lim[2L], length.out=256L)
+				# colormap key
+				valmin <- lim[1L]
+				valmax <- lim[2L]
+				if ( valmin == valmax ) {
+					valmin <- valmin - 1
+					valmax <- valmax + 1
+				}
+				key$values <- seq.int(valmin, valmax, length.out=256L)
 				if ( nm == "alpha" ) {
 					key$color <- encode_var("color")
 					key$alpha <- encode_scheme(key$values, sch, lim)
@@ -943,6 +949,7 @@ encode_legends <- function(channels, params, type = NULL)
 				}
 				class(key) <- "vizi_colorkey"
 			} else {
+				# standard key
 				x <- seq.int(lim[1L], lim[2L], length.out=3L)
 				key[[pnm]] <- encode_scheme(x, sch, lim)
 				key$legend <- format(x)

@@ -157,7 +157,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)
 	ras <- dev.capabilities("rasterImage")$rasterImage
-	if ( useRaster && ras != "yes" )
+	if ( !is2d(plot) || ras != "yes" )
 		useRaster <- FALSE
 	if ( useRaster ) {
 		zc <- t(zc)[ncol(zc):1L,,drop=FALSE]
