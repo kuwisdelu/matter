@@ -63,8 +63,8 @@ plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
 }
 
 plot_mark_pixels <- function(mark, plot = NULL, ...,
-	enhance = FALSE, smooth = FALSE, useRaster = TRUE,
-	add = FALSE)
+	enhance = FALSE, smooth = FALSE, scale = FALSE,
+	useRaster = TRUE, add = FALSE)
 {
 	# encode required channels (except color)
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -108,6 +108,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	const_color <- n_unique(color) == 1L
 	const_alpha <- n_unique(alpha) == 1L
 	if ( is.character(enhance) || isTRUE(enhance) ) {
+		# contrast enhancement
 		fn <- enhance_fun(enhance)
 		if ( !const_color && is.numeric(zc) ) {
 			zc <- fn(zc)
@@ -120,6 +121,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		}
 	}
 	if ( is.character(smooth) || isTRUE(smooth) ) {
+		# smoothing
 		fn <- filt2_fun(smooth)
 		if ( !const_color && is.numeric(zc) ) {
 			zc <- fn(zc)
@@ -131,6 +133,14 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 			za <- za / max(za, na.rm=TRUE)
 		}
 	}
+	if ( isTRUE(scale) ) {
+		# scaling
+		zc <- zc - min(zc, na.rm=TRUE)
+		zc <- zc / max(zc, na.rm=TRUE)
+		zc <- 100 * zc
+		zlim <- range(zc, na.rm=TRUE)
+	}
+	plot$channels$color$limits <- zlim
 	# encode color scheme
 	zcol <- plot$channels[["color"]]$scheme
 	if ( is.null(zcol) )
@@ -178,10 +188,12 @@ pix2poly <- function(xlim, ylim, dim)
 }
 
 plot.vizi_pixels <- function(x, plot = NULL, add = FALSE, ...,
-	enhance = FALSE, smooth = FALSE, useRaster = TRUE)
+	enhance = FALSE, smooth = FALSE, scale = FALSE,
+	useRaster = TRUE)
 {
 	invisible(plot_mark_pixels(mark=x, plot=plot, add=add, ...,
-		enhance=enhance, smooth=smooth, useRaster=useRaster))
+		enhance=enhance, smooth=smooth, scale=scale,
+		useRaster=useRaster))
 }
 
 setOldClass("vizi_points")
