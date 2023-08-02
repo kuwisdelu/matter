@@ -370,17 +370,6 @@ setReplaceMethod("domain", "sparse_arr", function(x, value) {
 		x
 })
 
-setMethod("keys", "sparse_arr", function(object) {
-	.Defunct("domain")
-	domain(object)
-})
-
-setReplaceMethod("keys", "sparse_arr", function(object, value) {
-	.Defunct("domain<-")
-	domain(object) <- value
-	object
-})
-
 setMethod("tolerance", "sparse_arr", function(object, ...) object@tolerance)
 
 setReplaceMethod("tolerance", "sparse_arr", function(object, ..., value) {

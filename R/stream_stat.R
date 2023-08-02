@@ -661,16 +661,6 @@ stream_stat_class <- function(name) {
 	c(cls[[name, exact=TRUE]], "stream_stat")
 }
 
-rowstreamStats <- function(x, ...) {
-	.Defunct("s_rowstats")
-	s_rowstats(x, ...)
-}
-
-colstreamStats <- function(x, ...) {
-	.Defunct("s_colstats")
-	s_colstats(x, ...)
-}
-
 s_rowstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
 	if ( !is.character(stat) )
 		stop("stat must be a string")

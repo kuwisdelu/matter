@@ -29,16 +29,6 @@
 \alias{rowMeans,sparse_mat-method}
 \alias{rowSums,sparse_mat-method}
 
-\alias{colSds}
-\alias{colVars}
-\alias{colSds,ANY-method}
-\alias{colVars,ANY-method}
-
-\alias{rowSds}
-\alias{rowVars}
-\alias{rowSds,ANY-method}
-\alias{rowVars,ANY-method}
-
 \title{Summary Statistics for ``matter'' Objects}
 
 \description{

@@ -151,9 +151,7 @@ exportMethods(
 	"path",
 	"path<-",
 	"readonly",
-	"readonly<-",
-	"chunksize",
-	"chunksize<-")
+	"readonly<-")
 
 exportMethods(
 	"aindex",
@@ -172,14 +170,8 @@ exportMethods(
 exportMethods(
 	"keys",
 	"keys<-",
-	"paths",
-	"paths<-",
-	"datamode",
-	"datamode<-",
-	"filemode",
-	"filemode<-",
-	"combiner",
-	"combiner<-")
+	"chunksize",
+	"chunksize<-")
 
 exportMethods("checksum")
 
@@ -240,12 +232,6 @@ exportMethods(
 	"colSums",
 	"colMeans")
 
-exportMethods(
-	"rowVars",
-	"rowSds",
-	"colVars",
-	"colSds")
-
 export(
 	"s_range",
 	"s_min",
@@ -261,10 +247,6 @@ export(
 	"s_colstats",
 	"s_rowstats",
 	"stat_c")
-
-export(
-	"colstreamStats",
-	"rowstreamStats")
 
 S3method("c", "stream_stat")
 S3method("cbind", "stream_stat")

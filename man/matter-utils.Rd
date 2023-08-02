@@ -44,23 +44,7 @@
 \alias{chunksize<-}
 \alias{chunksize,ANY-method}
 \alias{chunksize<-,ANY-method}
-\alias{datamode}
-\alias{datamode<-}
-\alias{datamode,ANY-method}
-\alias{datamode<-,ANY-method}
-\alias{filemode}
-\alias{filemode<-}
-\alias{filemode,ANY-method}
-\alias{filemode<-,ANY-method}
-\alias{paths}
-\alias{paths<-}
-\alias{paths,ANY-method}
-\alias{paths<-,ANY-method}
 
-\alias{combiner}
-\alias{combiner<-}
-\alias{combiner,ANY-method}
-\alias{combiner<-,ANY-method}
 \alias{keys}
 \alias{keys<-}
 \alias{keys,ANY-method}

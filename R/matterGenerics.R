@@ -54,8 +54,6 @@ setGeneric("atomdata", function(object, ...) standardGeneric("atomdata"))
 setGeneric("atomdata<-", function(object, ..., value) standardGeneric("atomdata<-"))
 setGeneric("readonly", function(x) standardGeneric("readonly"))
 setGeneric("readonly<-", function(x, value) standardGeneric("readonly<-"))
-setGeneric("chunksize", function(x) standardGeneric("chunksize"))
-setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 
 setGeneric("aindex", function(object, ...) standardGeneric("aindex"))
 setGeneric("atomindex", function(object, ...) standardGeneric("atomindex"))
@@ -75,6 +73,12 @@ setGeneric("sampler<-", function(object, ..., value) standardGeneric("sampler<-"
 
 setGeneric("as.altrep", function(x, ...) standardGeneric("as.altrep"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
+
+# not currently used -- remove?
+setGeneric("chunksize", function(x) standardGeneric("chunksize"))
+setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
+
+# no longer used -- remove?
 setGeneric("keys", function(object) standardGeneric("keys"))
 setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 
@@ -92,99 +96,4 @@ setMethod("type", "vector", function(x) typeof(x))
 setMethod("type", "array", function(x) typeof(x))
 setMethod("combine", c("ANY", "ANY"),
 	function(x, y, ...) c(x, y))
-
-#### Defunct generics ####
-## -----------------------
-
-setGeneric("paths", function(x) standardGeneric("paths")) # use BiocGenerics 'path()'
-setMethod("paths", "ANY",
-	function(x) {
-		.Defunct("path")
-		path(x)
-	})
-
-setGeneric("paths<-", function(x, value) standardGeneric("paths<-")) # use BiocGenerics 'path()'
-setReplaceMethod("paths", "ANY",
-	function(x, value) {
-		.Defunct("path<-")
-		path(x) <- value
-		x
-	})
-
-setGeneric("datamode", function(x) standardGeneric("datamode"))
-setMethod("datamode", "ANY",
-	function(x) {
-		.Defunct("type")
-		type(x)
-	})
-
-setGeneric("datamode<-", function(x, value) standardGeneric("datamode<-"))
-setReplaceMethod("datamode", "ANY",
-	function(x, value) {
-		.Defunct("datamode<-")
-		type(x) <- value
-		x
-	})
-
-setGeneric("filemode", function(x) standardGeneric("filemode"))
-setMethod("filemode", "ANY",
-	function(x) {
-		.Defunct("readonly")
-		if (readonly(x)) "r" else "rw"
-	})
-
-setGeneric("filemode<-", function(x, value) standardGeneric("filemode<-"))
-setReplaceMethod("filemode", "ANY",
-	function(x, value) {
-		.Defunct("readonly<-")
-		readonly(x) <- switch(value, "r"=TRUE, "rw"=FALSE)
-		x
-	})
-
-setGeneric("combiner", function(object) standardGeneric("combiner"))
-setMethod("combiner", "ANY",
-	function(object) {
-		.Defunct("sampler")
-		sampler(object)
-	})
-
-setGeneric("combiner<-", function(object, value) standardGeneric("combiner<-"))
-setReplaceMethod("combiner", "ANY",
-	function(object, value) {
-		.Defunct("sampler<-")
-		sampler(object) <- value
-		object
-	})
-
-setGeneric("rowVars", function(x, ...) standardGeneric("rowVars"))
-setMethod("rowVars", "ANY",
-	function(x, ..., na.rm = FALSE)
-	{
-		.Defunct("colStats")
-		rowStats(x, stat="var", ..., na.rm=na.rm)
-	})
-
-setGeneric("rowSds", function(x, ...) standardGeneric("rowSds"))
-setMethod("rowSds", "ANY",
-	function(x, ..., na.rm = FALSE)
-	{
-		.Defunct("colStats")
-		rowStats(x, stat="sd", ..., na.rm=na.rm)
-	})
-
-setGeneric("colVars", function(x, ...) standardGeneric("colVars"))
-setMethod("colVars", "ANY",
-	function(x, ..., na.rm = FALSE)
-	{
-		.Defunct("colStats")
-		colStats(x, stat="var", ..., na.rm=na.rm)
-	})
-
-setGeneric("colSds", function(x, ...) standardGeneric("colSds"))
-setMethod("colSds", "ANY",
-	function(x, ..., na.rm = FALSE)
-	{
-		.Defunct("colStats")
-		colStats(x, stat="sd", ..., na.rm=na.rm)
-	})
 
