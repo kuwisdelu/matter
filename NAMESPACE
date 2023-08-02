@@ -420,13 +420,6 @@ export(
 	"add_alpha")
 
 exportMethods(
-	"apply",
-	"lapply",
-	"sapply")
-
-exportMethods("scale")
-
-exportMethods(
 	"prcomp",
 	"bigglm")
 

@@ -1,9 +1,6 @@
 \name{colscale}
 \docType{methods}
 
-\alias{scale}
-\alias{scale,matter_mat-method}
-
 \alias{colscale}
 \alias{colscale,ANY-method}
 \alias{rowscale}

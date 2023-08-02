@@ -1,14 +1,11 @@
 \name{chunkApply}
 \docType{methods}
 
-\alias{apply}
-\alias{apply,matter_mat-method}
-\alias{chunk_apply}
-
 \alias{chunkApply}
 \alias{chunkLapply}
 \alias{chunkMapply}
 
+\alias{chunk_apply}
 \alias{chunk_rowapply}
 \alias{chunk_colapply}
 \alias{chunk_lapply}

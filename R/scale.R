@@ -2,12 +2,6 @@
 #### Scaling for matter matrices ####
 ## ----------------------------------
 
-setMethod("scale", "matter_mat", function(x, center=TRUE, scale=TRUE)
-{
-	.Defunct("colscale")
-	colscale(x, center=center, scale=scale)
-})
-
 setMethod("rowscale", "ANY",
 	function(x, center=TRUE, scale=TRUE, group = NULL, ..., BPPARAM = bpparam())
 {

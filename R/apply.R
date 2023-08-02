@@ -2,13 +2,6 @@
 #### Chunk-Apply functions over vectors and arrays ####
 ## ----------------------------------------------------
 
-setMethod("apply", "matter_mat",
-	function(X, MARGIN, FUN, ..., simplify = TRUE)
-	{
-		.Defunct("chunkApply")
-		chunkApply(X, MARGIN, FUN, ..., simplify=simplify)
-	})
-
 chunkApply <- function(X, MARGIN, FUN, ...,
 	simplify = FALSE, outpath = NULL,
 	verbose = NA, BPPARAM = bpparam())

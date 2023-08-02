@@ -6,9 +6,6 @@ setGeneric("as.matrix")
 setGeneric("as.array")
 setGeneric("as.factor")
 
-setGeneric("apply", signature="X")
-setGeneric("scale", signature="x")
-
 setGeneric("levels")
 setGeneric("levels<-")
 
