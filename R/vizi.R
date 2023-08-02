@@ -158,7 +158,8 @@ set_channel <- function(plot, channel, label = NULL,
 	plot
 }
 
-set_coord <- function(plot, xlim = NULL, ylim = NULL,
+set_coord <- function(plot,
+	xlim = NULL, ylim = NULL, zlim = NULL,
 	log = "", asp = NA, grid = TRUE)
 {
 	co <- plot$coord
@@ -168,6 +169,8 @@ set_coord <- function(plot, xlim = NULL, ylim = NULL,
 		co$xlim <- xlim
 	if ( !is.null(ylim) )
 		co$ylim <- ylim
+	if ( !is.null(zlim) )
+		co$zlim <- zlim
 	if ( !missing(log) )
 		co$log <- log
 	if ( !missing(asp) )
@@ -229,6 +232,8 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 			grid()
 	} else {
 		# get z limits
+		if ( is.null(args$zlim) )
+			args$zlim <- plot$coord$zlim
 		if ( is.null(args$zlim) )
 			args$zlim <- plot$channels$z$limits
 		# get x/y/z labels

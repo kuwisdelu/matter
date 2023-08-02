@@ -35,10 +35,10 @@
 }
 
 \usage{
-# Initialize a plot
+## Initialize a plot
 vizi(data, \dots, encoding = NULL, params = NULL)
 
-# Add plot components
+## Add plot components
 add_mark(plot, mark, \dots, encoding = NULL, data = NULL,
     trans = NULL, params = NULL)
 
@@ -46,18 +46,18 @@ add_facets(plot, by = NULL, data = NULL,
     nrow = NA, ncol = NA, labels = NULL,
     drop = TRUE, free = "")
 
-# Set plot attributes
+## Set plot attributes
 set_title(plot, title)
 
 set_channel(plot, channel, label = NULL,
     limits = NULL, scheme = NULL, key = TRUE)
 
-set_coord(plot, xlim = NULL, ylim = NULL,
+set_coord(plot, xlim = NULL, ylim = NULL, zlim = NULL,
     log = "", asp = NA, grid = TRUE)
 
 set_par(plot, \dots)
 
-# Combine plots
+## Combine plots
 plot_facets(plotlist, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
 }
@@ -65,7 +65,7 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
 \arguments{
     \item{data}{A \code{data.frame}.}
 
-    \item{\dots}{For \code{vizi} and \code{add_mark}, these should be named arguments specifying the encoding for the plot. The argument names should specify channels, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size). One-sided formula arguments will be evaluated in the environment of \code{data}. Non-formula arguments will be used as-is. For \code{set_par}, these specify additional graphical parameters (as in \code{\link{par}}).}
+    \item{\dots}{For \code{vizi} and \code{add_mark}, these should be named arguments specifying the encoding for the plot. The argument names should specify channels, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size). One-sided formula arguments will be evaluated in the environment of \code{data}. Non-formula arguments will be used as-is. For \code{set_par}, these specify additional graphical parameters (as in \code{\link[graphics]{par}}) or arguments to \code{\link[graphics]{persp}} for 3D plots.}
 
     \item{encoding}{Encodings specified as a list rather than using \dots.}
 
@@ -85,7 +85,7 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
 
     \item{key}{Should a key be generated for the channel?}
 
-    \item{xlim, ylim}{The plot limits. These only affect the plotting window, not the data. See \code{\link[graphics]{plot.window}}}
+    \item{xlim, ylim, zlim}{The plot limits. These only affect the plotting window, not the data. See \code{\link[graphics]{plot.window}}}
 
     \item{log, asp}{See \code{\link[graphics]{plot.window}}.}
 
@@ -111,12 +111,16 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
 \seealso{
     \code{\link{vizi_points}},
     \code{\link{vizi_lines}},
-    \code{\link{vizi_peaks}}
+    \code{\link{vizi_peaks}},
+    \code{\link{vizi_pixels}},
+    \code{\link{vizi_voxels}}
 }
 
 \author{Kylie A. Bemis}
 
 \examples{
+require(datasets)
+
 if ( interactive() ) {
     vizi(mtcars, x=~disp, y=~mpg) |>
         add_mark("points") |>

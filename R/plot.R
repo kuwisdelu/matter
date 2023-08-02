@@ -273,8 +273,8 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 	zslice <- if (is.null(zslice)) integer() else zslice
 	slices <- c(
 		setNames(xslice, rep.int("x", length(xslice))),
-		setNames(yslice, rep.int("y", length(xslice))),
-		setNames(zslice, rep.int("z", length(xslice))))
+		setNames(yslice, rep.int("y", length(yslice))),
+		setNames(zslice, rep.int("z", length(zslice))))
 	if ( length(slices) == 0L ) {
 		slices <- sort(unique(z))
 		names(slices) <- rep.int("z", length(slices))
