@@ -6,6 +6,10 @@ NEW FEATURES
 
     o Added 'rowMaj' S4 generic and methods
 
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Remove defunct S4 generics
+
 CHANGES IN VERSION 2.3.9 [2023-8-2]
 -----------------------------------
 
