@@ -169,8 +169,6 @@ double do_mean(T * x, index_t lower, index_t upper)
 template<typename T>
 double do_max(T * x, index_t lower, index_t upper)
 {
-	if ( lower == upper )
-		return NA_REAL;
 	T mx = x[lower];
 	for ( index_t i = lower; i <= upper; i++ )
 	{
@@ -185,8 +183,6 @@ double do_max(T * x, index_t lower, index_t upper)
 template<typename T>
 double do_min(T * x, index_t lower, index_t upper)
 {
-	if ( lower == upper )
-		return NA_REAL;
 	T mx = x[lower];
 	for ( index_t i = lower; i <= upper; i++ )
 	{

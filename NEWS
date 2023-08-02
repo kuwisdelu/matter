@@ -10,6 +10,10 @@ SIGNIFICANT USER-VISIBLE CHANGES
 
     o Remove defunct S4 generics
 
+BUG FIXES
+
+    o Fixed bug in 'approx1' for "max" and "min" interpolation
+
 CHANGES IN VERSION 2.3.9 [2023-8-2]
 -----------------------------------
 

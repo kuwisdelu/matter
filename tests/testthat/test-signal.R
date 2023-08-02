@@ -385,6 +385,9 @@ test_that("approx1 (sorted)", {
 	s <- dnorm(t)
 	expect_equal(1, approx1(t, s, 0, tol=4, interp="area"), tolerance=1e-3)
 
+	test6 <- c(2.0, 3.0)
+	expect_equal(test6, approx1(x, y, c(2, 3), tol=0.1, interp="max"))
+
 })
 
 test_that("approx1 (unsorted)", {
@@ -422,5 +425,8 @@ test_that("approx1 (unsorted)", {
 
 	xi3 <- seq(from=1, to=3, by=0.05)
 	expect_equal(xi3, approx1(x, y, xi3, tol=1, interp="linear"))
+
+	test6 <- c(2.0, 3.0)
+	expect_equal(test6, approx1(x, y, c(2, 3), tol=0.1, interp="max"))
 
 })

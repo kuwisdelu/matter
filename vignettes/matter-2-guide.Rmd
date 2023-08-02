@@ -145,6 +145,13 @@ Transposing a `matter` matrix simply switches whether it is treated as column-ma
 t(m2)
 ```
 
+Use `rowMaj()` to check whether the data is stored in column-major or row-major order. It is much faster to iterate over a matrix in the same direction as its data orientation.
+
+```{r matrix-4}
+rowMaj(t(m2))
+rowMaj(m2)
+```
+
 
 ## Deferred arithmetic
 
@@ -257,7 +264,7 @@ mz <- replicate(5, 100 * sort(runif(sample(10, 1))), simplify=FALSE)
 intensity <- lapply(mz, function(m) 10 * runif(length(m)))
 
 layout(matrix(1:4, nrow=2))
-for (i in 1:4) plot(mz[[i]], intensity[[i]], type='h', xlim=c(1,100), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
+for (i in 1:4) plot(mz[[i]], intensity[[i]], type='h', xlim=c(1,100), ylim=c(0,10), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
 ```
 
 Representing these spectra as columns of a matrix with a common *m/z* axis would typically require binning or resampling. But this would sacrifice the sparsity of the data.
@@ -271,7 +278,7 @@ spectra
 
 ```{r nonuniform-3}
 layout(matrix(1:4, nrow=2))
-for (i in 1:4) plot(1:100, spectra[,i], type='h', xlim=c(1,100), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
+for (i in 1:4) plot(1:100, spectra[,i], type='h', xlim=c(1,100), ylim=c(0,10), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
 ```
 
 
