@@ -71,11 +71,10 @@ t <- seq(from=0, to=6 * pi, length.out=2000)
 x <- sin(t) + 0.6 * sin(2.6 * t)
 lo <- estbase_hull(x)
 hi <- estbase_hull(x, upper=TRUE)
-if ( interactive() ) {
-    plot(x, type="l")
-    lines(lo, col="red")
-    lines(hi, col="blue")
-}
+
+plot(x, type="l")
+lines(lo, col="red")
+lines(hi, col="blue")
 }
 
 \keyword{ts}

@@ -103,11 +103,10 @@ x <- matrix(atan(co$i / co$j), nrow=12, ncol=9)
 x <- 10 * (x - min(x)) / diff(range(x))
 x <- x + 2.5 * runif(length(x))
 xs <- filt2_gauss(x)
-if ( interactive() ) {
-    par(mfcol=c(1,2))
-    image(x, col=hcl.colors(256), main="original")
-    image(xs, col=hcl.colors(256), main="smoothed")
-}
+
+par(mfcol=c(1,2))
+image(x, col=hcl.colors(256), main="original")
+image(xs, col=hcl.colors(256), main="smoothed")
 }
 
 \keyword{spatial}

@@ -75,11 +75,10 @@ dt <- 0.3 * (sin(t) + 0.6 * sin(2.6 * t))
 x <- sin(t + dt) + 0.6 * sin(2.6 * (t + dt))
 y <- sin(t) + 0.6 * sin(2.6 * t)
 xw <- warp1_dtw(x, y)
-if ( interactive() ) {
-    plot(y, type="l")
-    lines(x, col="blue")
-    lines(xw, col="red", lty=2)
-}
+
+plot(y, type="l")
+lines(x, col="blue")
+lines(xw, col="red", lty=2)
 }
 
 \keyword{spatial}

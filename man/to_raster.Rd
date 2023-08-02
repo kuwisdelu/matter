@@ -44,7 +44,7 @@ is_gridded(x, tol = 0.5)
 }
 
 \examples{
-# Create an image
+# create an image
 set.seed(1)
 i <- seq(-4, 4, length.out=12)
 j <- seq(1, 3, length.out=9)
@@ -52,11 +52,11 @@ co <- expand.grid(x=i, y=j)
 z <- matrix(atan(co$x / co$y), nrow=12, ncol=9)
 vals <- 10 * (z - min(z)) / diff(range(z))
 
-# Scatter coordinates and flatten image
+# scatter coordinates and flatten image
 d <- expand.grid(x=jitter(1:12), y=jitter(1:9))
 d$vals <- as.vector(z)
 
-# Rasterize
+# rasterize
 to_raster(d$x, d$y, d$vals)
 }
 

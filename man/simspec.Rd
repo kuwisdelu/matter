@@ -63,10 +63,9 @@ simspec1(x, y, xout, peakwidths = NA_real_,
 set.seed(1)
 y <- simspec(2)
 x <- attr(y, "domain")
-if ( interactive() ) {
-	plot(x, y[,1], type="l", ylim=c(-max(y), max(y)))
-	lines(x, -y[,2], col="red")
-}
+
+plot(x, y[,1], type="l", ylim=c(-max(y), max(y)))
+lines(x, -y[,2], col="red")
 }
 
 \keyword{ts}

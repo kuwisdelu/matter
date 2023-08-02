@@ -126,10 +126,9 @@ t <- seq(from=0, to=6 * pi, length.out=5000)
 y <- sin(t) + 0.6 * sin(2.6 * t)
 x <- y + runif(length(y))
 xs <- filt1_gauss(x, width=25)
-if ( interactive() ) {
-    plot(x, type="l")
-    lines(xs, col="red")
-}
+
+plot(x, type="l")
+lines(xs, col="red")
 }
 
 \keyword{ts}

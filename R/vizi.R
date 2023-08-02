@@ -570,8 +570,6 @@ merge_encoding <- function(e1, e2, ...)
 	} else {
 		e <- NULL
 	}
-	if ( length(e) > 0L )
-		normalize_lengths(e)
 	e
 }
 

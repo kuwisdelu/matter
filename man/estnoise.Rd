@@ -84,10 +84,9 @@ x <- x + 90 * dnorm(seq_along(x), mean=n/4)
 x <- x + 80 * dnorm(seq_along(x), mean=n/2)
 x <- x + 70 * dnorm(seq_along(x), mean=3*n/4)
 ns <- estnoise_quant(x)
-if ( interactive() ) {
-    plot(x, type="l")
-    lines(ns, col="blue")
-}
+
+plot(x, type="l")
+lines(ns, col="blue")
 }
 
 \keyword{ts}

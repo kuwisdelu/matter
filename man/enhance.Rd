@@ -57,12 +57,11 @@ x[9:24,9:24] <- 10
 x <- x + runif(length(x))
 y <- x + rlnorm(length(x))
 z <- enhance_hist(y)
-if ( interactive() ) {
-    par(mfcol=c(1,3))
-    image(x, col=hcl.colors(256), main="original")
-    image(y, col=hcl.colors(256), main="multiplicative noise")
-    image(z, col=hcl.colors(256), main="histogram equalization")
-}
+
+par(mfcol=c(1,3))
+image(x, col=hcl.colors(256), main="original")
+image(y, col=hcl.colors(256), main="multiplicative noise")
+image(z, col=hcl.colors(256), main="histogram equalization")
 }
 
 \keyword{spatial}

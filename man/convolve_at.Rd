@@ -43,10 +43,9 @@ wt <- dnorm((-7):7, sd=7/2)
 wt <- wt / sum(wt)
 
 xs <- convolve_at(x, i, wt)
-if ( interactive() ) {
-    plot(x, type="l")
-    lines(xs, col="red")
-}
+
+plot(x, type="l")
+lines(xs, col="red")
 }
 
 \keyword{ts}

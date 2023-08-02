@@ -60,12 +60,11 @@ x[9:24,9:24] <- 10
 x <- x + runif(length(x))
 xt <- trans2d(x, rotate=15, translate=c(-5, 5))
 xw <- warp2_trans(xt, x)
-if ( interactive() ) {
-    par(mfcol=c(1,3))
-    image(x, col=hcl.colors(256), main="original")
-    image(xt, col=hcl.colors(256), main="transformed")
-    image(xw, col=hcl.colors(256), main="registered")
-}
+
+par(mfcol=c(1,3))
+image(x, col=hcl.colors(256), main="original")
+image(xt, col=hcl.colors(256), main="transformed")
+image(xw, col=hcl.colors(256), main="registered")
 }
 
 \keyword{spatial}

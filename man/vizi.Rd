@@ -121,12 +121,28 @@ plot_facets(plotlist, nrow = NA, ncol = NA,
 \examples{
 require(datasets)
 
-if ( interactive() ) {
-    vizi(mtcars, x=~disp, y=~mpg) |>
-        add_mark("points") |>
-        add_facets(~as.factor(mtcars$am)) |>
-        plot()
-}
+mtcars <- transform(mtcars,
+    am=factor(am, labels=c("auto", "manual")))
+
+# faceted scatter plot
+vizi(mtcars, x=~disp, y=~mpg) |>
+    add_mark("points") |>
+    add_facets(~mtcars$am)
+
+# faceted scatter plot with color
+vizi(mtcars, x=~disp, y=~mpg, color=~am) |>
+    add_mark("points",
+        params=list(shape=20, size=2, alpha=0.8)) |>
+    add_facets(~mtcars$am)
+
+
+coords <- expand.grid(x=1:nrow(volcano), y=1:ncol(volcano))
+
+# volcano image
+vizi(coords, x=~x, y=~y, color=volcano) |>
+    add_mark("pixels") |>
+    set_coord(grid=FALSE) |>
+    set_par(xaxs="i", yaxs="i")
 }
 
 \keyword{aplot}

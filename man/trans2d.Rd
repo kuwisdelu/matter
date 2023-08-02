@@ -50,11 +50,10 @@ x <- matrix(0, nrow=32, ncol=32)
 x[9:24,9:24] <- 10
 x <- x + runif(length(x))
 xt <- trans2d(x, rotate=15, translate=c(-5, 5))
-if ( interactive() ) {
-    par(mfcol=c(1,2))
-    image(x, col=hcl.colors(256), main="original")
-    image(xt, col=hcl.colors(256), main="transformed")
-}
+
+par(mfcol=c(1,2))
+image(x, col=hcl.colors(256), main="original")
+image(xt, col=hcl.colors(256), main="transformed")
 }
 
 \keyword{spatial}

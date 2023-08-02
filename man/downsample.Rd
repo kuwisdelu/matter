@@ -49,10 +49,9 @@ x <- sin(t) + 0.6 * sin(2.6 * t)
 x <- x + runif(length(x))
 xs <- downsample(x, n=200)
 s <- attr(xs, "sample")
-if ( interactive() ) {
-	plot(x, type="l")
-	points(s, xs, col="red", type="b")
-}
+
+plot(x, type="l")
+points(s, xs, col="red", type="b")
 }
 
 \keyword{ts}

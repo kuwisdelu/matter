@@ -71,11 +71,19 @@ locmin(x, width = 5)
 }
 
 \examples{
+# simple signal
 x <- c(0, 1, 1, 2, 3, 2, 1, 4, 5, 1, 1, 0)
-
 locmax(x)
-
 findpeaks(x)
+
+# simulated spectrum
+set.seed(1)
+x <- simspec(size=1000)
+
+# find peaks with snr >= 2
+p <- findpeaks(x, snr=2, noise="diff")
+plot(x, type="l")
+points(p, x[p], col="red")
 }
 
 \keyword{ts}
