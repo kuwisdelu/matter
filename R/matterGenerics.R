@@ -82,6 +82,18 @@ setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
 setGeneric("keys", function(object) standardGeneric("keys"))
 setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
 
+setGeneric("rowMaj", function(x) standardGeneric("rowMaj"))
+setMethod("rowMaj", "matrix", function(x) TRUE)
+setMethod("rowMaj", "Matrix", function(x) {
+	if ( is(x, "RsparseMatrix") ) {
+			FALSE
+		} else if ( is(x, "generalMatrix") ) {
+			TRUE
+		} else {
+			NA
+		}
+})
+
 #### Internal generic functions ####
 ## ----------------------------------
 

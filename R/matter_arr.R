@@ -495,7 +495,7 @@ setReplaceMethod("[", c(x = "matter_mat"),
 
 setMethod("combine", "matter_arr",
 	function(x, y, ...) {
-		if ( x@transpose || y@transpose )
+		if ( rowMaj(x) || rowMaj(y) )
 			stop("can't combine row-major arrays")
 		data <- rbind(
 			ungroup_atoms(x@data),
@@ -525,7 +525,7 @@ setMethod("cbind2", c("matter_mat", "matter_mat"),
 	function(x, y, ...) {
 		if ( nrow(x) != nrow(y) )
 			stop("number of rows of matrices must match")
-		if ( x@transpose || y@transpose )
+		if ( rowMaj(x) || rowMaj(y) )
 			stop("can't cbind row-major matrices")
 		if ( !is.null(x@ops) || !is.null(y@ops) )
 			warning("deferred operations will be dropped")
@@ -598,6 +598,11 @@ setMethod("Arith", c(e1 = "vector", e2 = "matter_arr"),
 setMethod("Arith", c(e1 = "array", e2 = "matter_arr"),
 	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
 
+setMethod("rowMaj", "matter_arr", function(x)
+{
+	isTRUE(x@transpose)
+})
+
 setMethod("t", "matter_arr", function(x)
 {
 	x@transpose <- !x@transpose
@@ -614,7 +619,7 @@ setMethod("t", "matter_vec", function(x)
 
 setMethod("%*%", c("matter_mat", "vector"), function(x, y)
 {
-	if ( x@transpose ) {
+	if ( rowMaj(x) ) {
 		rmatmul(x, as.matrix(y), useOuter=FALSE)
 	} else {
 		rmatmul(x, as.matrix(y), useOuter=TRUE)
@@ -623,7 +628,7 @@ setMethod("%*%", c("matter_mat", "vector"), function(x, y)
 
 setMethod("%*%", c("vector", "matter_mat"), function(x, y)
 {
-	if ( y@transpose ) {
+	if ( rowMaj(y) ) {
 		lmatmul(t(x), y, useOuter=TRUE)
 	} else {
 		lmatmul(t(x), y, useOuter=FALSE)
@@ -632,7 +637,7 @@ setMethod("%*%", c("vector", "matter_mat"), function(x, y)
 
 setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
 {
-	if ( x@transpose ) {
+	if ( rowMaj(x) ) {
 		rmatmul(x, y, useOuter=FALSE)
 	} else {
 		rmatmul(x, y, useOuter=TRUE)
@@ -641,7 +646,7 @@ setMethod("%*%", c("matter_mat", "matrix"), function(x, y)
 
 setMethod("%*%", c("matrix", "matter_mat"), function(x, y)
 {
-	if ( y@transpose ) {
+	if ( rowMaj(y) ) {
 		lmatmul(x, y, useOuter=TRUE)
 	} else {
 		lmatmul(x, y, useOuter=FALSE)

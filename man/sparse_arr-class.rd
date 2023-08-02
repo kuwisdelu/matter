@@ -2,6 +2,7 @@
 \docType{class}
 
 \alias{class:sparse_arr}
+\alias{sparse_arr}
 \alias{sparse_arr-class}
 
 \alias{class:sparse_mat}
@@ -43,6 +44,8 @@
 \alias{[,sparse_arr,ANY,ANY,ANY-method}
 \alias{[<-,sparse_arr-method}
 \alias{[<-,sparse_arr,ANY,ANY,ANY-method}
+
+\alias{rowMaj,sparse_arr-method}
 
 \alias{t,sparse_arr-method}
 
@@ -161,13 +164,38 @@ as.sparse(x, \dots)
 }
 
 \section{Methods}{
+    Class-specific methods:
+    \describe{
+        \item{\code{atomdata(x)}:}{Access the 'data' slot.}
+
+        \item{\code{adata(x)}:}{An alias for atomdata(x).}
+
+        \item{\code{atomindex(x)}:}{Access the 'index' slot.}
+
+        \item{\code{aindex(x)}:}{An alias for atomindex(x).}
+
+        \item{\code{pointers(x)}:}{Access the 'pointers' slot.}
+
+        \item{\code{domain(x)}:}{Access the 'domain' slot.}
+
+        \item{\code{tolerance(x), tolerance(x) <- value}:}{Get or set resampling 'tolerance'.}
+
+        \item{\code{sampler(x), sampler(x) <- value}:}{Get or set the 'sampler' method.}
+    }
+
     Standard generic methods:
     \describe{
+        \item{\code{dim(x):}}{Get 'dim'.}
+
+        \item{\code{dimnames(x), dimnames(x) <- value}:}{Get or set 'dimnames'.}
+
         \item{\code{x[i, j, ..., drop], x[i, j] <- value}:}{Get or set the elements of the sparse matrix. Use \code{drop = NULL} to return a subset of the same class as the object.}
 
         \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine sparse matrices by row or column.}
 
         \item{\code{t(x)}:}{Transpose a matrix. This is a quick operation which only changes metadata and does not touch the data representation.}
+
+        \item{\code{rowMaj(x)}:}{Check the data orientation.}
     }
 }
 

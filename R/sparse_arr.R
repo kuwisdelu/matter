@@ -247,7 +247,7 @@ setMethod("describe_for_display", "sparse_vec", function(x) {
 
 setMethod("preview_for_display", "sparse_mat", function(x) {
 	hdr <- preview_matrix_data(x, zero.print=".")
-	if ( x@transpose ) {
+	if ( rowMaj(x) ) {
 		if ( is.null(colnames(x)) && !is.null(domain(x)) ) {
 			n <- ncol(hdr)
 			if ( colnames(hdr)[n] == "..." ) {
@@ -556,7 +556,7 @@ setMethod("cbind2", c("sparse_mat", "sparse_mat"),
 	function(x, y, ...) {
 		if ( nrow(x) != nrow(y) )
 			stop("number of rows of matrices must match")
-		if ( x@transpose || y@transpose )
+		if ( rowMaj(x) || rowMaj(y) )
 			stop("can't cbind row-major matrices")
 		if ( !is.null(x@ops) )
 			warning("deferred operations will be dropped")
@@ -651,6 +651,11 @@ setMethod("Arith", c(e1 = "vector", e2 = "sparse_arr"),
 setMethod("Arith", c(e1 = "array", e2 = "sparse_arr"),
 	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
 
+setMethod("rowMaj", "sparse_arr", function(x)
+{
+	isTRUE(x@transpose)
+})
+
 setMethod("t", "sparse_arr", function(x)
 {
 	x@transpose <- !x@transpose
@@ -662,7 +667,7 @@ setMethod("t", "sparse_arr", function(x)
 
 setMethod("%*%", c("sparse_mat", "vector"), function(x, y)
 {
-	if ( x@transpose ) {
+	if ( rowMaj(x) ) {
 		rmatmul(x, as.matrix(y), useOuter=FALSE)
 	} else {
 		rmatmul(x, as.matrix(y), useOuter=TRUE)
@@ -671,7 +676,7 @@ setMethod("%*%", c("sparse_mat", "vector"), function(x, y)
 
 setMethod("%*%", c("vector", "sparse_mat"), function(x, y)
 {
-	if ( y@transpose ) {
+	if ( rowMaj(y) ) {
 		lmatmul(t(x), y, useOuter=TRUE)
 	} else {
 		lmatmul(t(x), y, useOuter=FALSE)
@@ -680,7 +685,7 @@ setMethod("%*%", c("vector", "sparse_mat"), function(x, y)
 
 setMethod("%*%", c("sparse_mat", "matrix"), function(x, y)
 {
-	if ( x@transpose ) {
+	if ( rowMaj(x) ) {
 		rmatmul(x, y, useOuter=FALSE)
 	} else {
 		rmatmul(x, y, useOuter=TRUE)
@@ -689,7 +694,7 @@ setMethod("%*%", c("sparse_mat", "matrix"), function(x, y)
 
 setMethod("%*%", c("matrix", "sparse_mat"), function(x, y)
 {
-	if ( y@transpose ) {
+	if ( rowMaj(y) ) {
 		lmatmul(x, y, useOuter=TRUE)
 	} else {
 		lmatmul(x, y, useOuter=FALSE)

@@ -33,7 +33,7 @@ setMethod("colDists", c("matrix", "matrix"),
 # matter matrices
 setMethod("rowDists", c("matter_mat", "matrix"),
 	function(x, y, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			rowDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			rowDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)
@@ -47,7 +47,7 @@ setMethod("rowDists", c("matrix", "matter_mat"),
 
 setMethod("colDists", c("matter_mat", "matrix"),
 	function(x, y, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			colDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			colDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)
@@ -62,7 +62,7 @@ setMethod("colDists", c("matrix", "matter_mat"),
 # sparse matrices
 setMethod("rowDists", c("sparse_mat", "matrix"),
 	function(x, y, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			rowDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			rowDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)
@@ -76,7 +76,7 @@ setMethod("rowDists", c("matrix", "sparse_mat"),
 
 setMethod("colDists", c("sparse_mat", "matrix"),
 	function(x, y, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			colDists_int(x, y, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			colDists_int(x, y, ..., iter.dim=2L, BPPARAM = BPPARAM)

@@ -15,7 +15,7 @@ setMethod("colStats", "ANY",
 # matter matrices
 setMethod("rowStats", "matter_mat",
 	function(x, stat, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			rowStats_int(x, stat=stat, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			rowStats_int(x, stat=stat, ..., iter.dim=2L, BPPARAM = BPPARAM)
@@ -24,7 +24,7 @@ setMethod("rowStats", "matter_mat",
 
 setMethod("colStats", "matter_mat",
 	function(x, stat, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			colStats_int(x, stat=stat, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			colStats_int(x, stat=stat, ..., iter.dim=2L, BPPARAM = BPPARAM)
@@ -34,7 +34,7 @@ setMethod("colStats", "matter_mat",
 # sparse matrices
 setMethod("rowStats", "sparse_mat",
 	function(x, stat, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			rowStats_int(x, stat=stat, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			rowStats_int(x, stat=stat, ..., iter.dim=2L, BPPARAM = BPPARAM)
@@ -43,7 +43,7 @@ setMethod("rowStats", "sparse_mat",
 
 setMethod("colStats", "sparse_mat",
 	function(x, stat, ..., BPPARAM = bpparam()) {
-		if ( x@transpose ) {
+		if ( rowMaj(x) ) {
 			colStats_int(x, stat=stat, ..., iter.dim=1L, BPPARAM = BPPARAM)
 		} else {
 			colStats_int(x, stat=stat, ..., iter.dim=2L, BPPARAM = BPPARAM)

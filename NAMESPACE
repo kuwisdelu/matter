@@ -37,19 +37,6 @@ importFrom("graphics",
 	"strwidth",
 	"title")
 
-importFrom("digest",
-	"digest")
-
-importFrom("irlba",
-	"irlba")
-
-importFrom("Matrix",
-	"nnzero",
-	"rowSums",
-	"rowMeans",
-	"colSums",
-	"colMeans")
-
 importFrom("stats",
 	"approx",
 	"cov",
@@ -80,6 +67,19 @@ importFrom("stats4",
 	"plot",
 	"update",
 	"summary")
+
+importFrom("Matrix",
+	"nnzero",
+	"rowSums",
+	"rowMeans",
+	"colSums",
+	"colMeans")
+
+importFrom("digest",
+	"digest")
+
+importFrom("irlba",
+	"irlba")
 
 import("biglm")
 
@@ -165,7 +165,8 @@ exportMethods(
 	"tolerance<-",
 	"sampler",
 	"sampler<-",
-	"nnzero")
+	"nnzero",
+	"rowMaj")
 
 exportMethods(
 	"keys",

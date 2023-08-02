@@ -36,6 +36,11 @@
 \alias{as.matrix,matter_arr-method}
 \alias{as.array,matter_arr-method}
 
+\alias{rowMaj}
+\alias{rowMaj,matter_arr-method}
+\alias{rowMaj,matrix-method}
+\alias{rowMaj,Matrix-method}
+
 \alias{t,matter_arr-method}
 \alias{t,matter_vec-method}
 
@@ -147,6 +152,12 @@ matter_vec(data, type = "double", path = NULL,
         \item{\code{dimnames(x), dimnames(x) <- value}:}{Get or set 'dimnames'.}
         
         \item{\code{x[...], x[...] <- value}:}{Get or set the elements of the array.}
+
+        \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine matrices by row or column.}
+
+        \item{\code{t(x)}:}{Transpose a matrix. This is a quick operation which only changes metadata and does not touch the data representation.}
+
+        \item{\code{rowMaj(x)}:}{Check the data orientation.}
     }
 }
 
