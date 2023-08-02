@@ -1,4 +1,16 @@
 
+CHANGES IN VERSION 2.3.9 [2023-8-2]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'vizi_pixels' for image plotting
+    o Added 'vizi_voxels' for 3D image plotting
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o In estnoise_xxx() functions, renamed argument 'width' to 'n'
+
 CHANGES IN VERSION 2.3.8 [2023-7-29]
 ------------------------------------
 
