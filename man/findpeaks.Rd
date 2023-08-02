@@ -13,8 +13,8 @@
 \usage{
 # Find peaks
 findpeaks(x, width = 5L, prominence = NULL,
-    snr = NULL, noise = "quant", relheight = 0.005,
-    bounds = TRUE, \dots)
+    snr = NULL, noise = "quant", bounds = TRUE,
+    relheight = 0.005, \dots)
 
 # Local maxima
 locmax(x, width = 5)
@@ -34,9 +34,9 @@ locmin(x, width = 5)
 
     \item{noise}{The method used to estimate the noise. See \emph{Details}.}
 
-    \item{relheight}{The minimum relative height (proportion of the maximum peak value) used for filtering the peaks.}
-
     \item{bounds}{Whether the boundaries of each peak should be calculated and returned. A peak's boundaries are found as the nearest local minima on either side.}
+
+    \item{relheight}{The minimum relative height (proportion of the maximum peak value) used for filtering the peaks.}
 
     \item{\dots}{Arguments passed to the noise estimation function.}
 }
@@ -59,8 +59,8 @@ locmin(x, width = 5)
 
 \seealso{
     \code{\link{findpeaks_cwt}},
-    \code{\link{estnoise_quant}},
     \code{\link{estnoise_diff}},
+    \code{\link{estnoise_quant}},
     \code{\link{estnoise_filt}},
     \code{\link{estnoise_sd}},
     \code{\link{estnoise_mad}},
@@ -78,10 +78,15 @@ findpeaks(x)
 
 # simulated spectrum
 set.seed(1)
-x <- simspec(size=1000)
+x <- simspec(size=5000)
 
-# find peaks with snr >= 2
-p <- findpeaks(x, snr=2, noise="diff")
+# find peaks with snr >= 3
+p <- findpeaks(x, snr=3, noise="quant")
+plot(x, type="l")
+points(p, x[p], col="red")
+
+# find peaks with derivative-based noise
+p <- findpeaks(x, snr=3, noise="diff")
 plot(x, type="l")
 points(p, x[p], col="red")
 }

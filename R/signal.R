@@ -561,11 +561,11 @@ estbase_fun <- function(method)
 #### Noise estimation ####
 ## -----------------------
 
-estnoise_quant <- function(x, width = 25L, prob = 0.95, niter = 3L)
+estnoise_quant <- function(x, n = 25L, prob = 0.95, niter = 3L)
 {
 	y <- filt1_diff(x, method=3L, niter=niter)
 	x <- abs(y - x)
-	width <- min(width, length(x))
+	width <- min(n, length(x))
 	rollvec(x, width, stat="quantile", prob=prob)
 }
 
@@ -587,20 +587,20 @@ estnoise_diff <- function(x, nbins = 1L, dynamic = FALSE)
 	noise
 }
 
-estnoise_filt <- function(x, snr = 2, nbins = 1L,
+estnoise_filt <- function(x, nbins = 1L, msnr = 2,
 	threshold = 0.5, peaks = FALSE)
 {
 	if ( nbins > 1L ) {
 		# Gallia et al (2013) but with lowess
 		xb <- findbins(x, nbins=nbins, dynamic=FALSE)
-		noise <- lapply(xb, estnoise_filt, snr=snr,
+		noise <- lapply(xb, estnoise_filt, msnr=msnr,
 			threshold=threshold, peaks=peaks)
 		noise <- unlist(noise)
 		noise <- lowess(noise)$y
 	} else {
 		# Xu and Freitas (2010) dynamic noise level
 		if ( isFALSE(peaks) || is.null(peaks) ) {
-			y <- sort(x[findpeaks(x)])
+			y <- sort(x[x[which(locmax(x))] > 0])
 		} else {
 			y <- sort(x[x > 0])
 		}
@@ -611,7 +611,7 @@ estnoise_filt <- function(x, snr = 2, nbins = 1L,
 		snr_i <- y[2L] / noise
 		# fit linear model
 		fit <- lr(1L:i, y[1L:i])
-		while ( snr_i < snr )
+		while ( snr_i < msnr )
 		{
 			i <- i + 1L
 			# predict noise level
@@ -658,19 +658,19 @@ lr_predict <- function(fit, xi) {
 	sum(fit$coef * c(1, xi))
 }
 
-estnoise_sd <- function(x, width = 25L, wavelet = ricker)
+estnoise_sd <- function(x, n = 25L, wavelet = ricker)
 {
 	if ( is.function(wavelet) )
 		x <- cwt(x, wavelet, scales=1)
-	width <- min(width, length(x))
+	width <- min(n, length(x))
 	rollvec(x, width, stat="sd")
 }
 
-estnoise_mad <- function(x, width = 25L, wavelet = ricker)
+estnoise_mad <- function(x, n = 25L, wavelet = ricker)
 {
 	if ( is.function(wavelet) )
 		x <- cwt(x, wavelet, scales=1)
-	width <- min(width, length(x))
+	width <- min(n, length(x))
 	rollvec(x, width, stat="sd")
 }
 
@@ -707,8 +707,8 @@ locmin <- function(x, width = 5L)
 }
 
 findpeaks <- function(x, width = 5L, prominence = NULL,
-	snr = NULL, noise = "quant", relheight = 0.005,
-	bounds = TRUE, ...)
+	snr = NULL, noise = "quant", bounds = TRUE,
+	relheight = 0.005, ...)
 {
 	peaks <- which(locmax(x, width))
 	ann <- data.frame(row.names=seq_along(peaks))

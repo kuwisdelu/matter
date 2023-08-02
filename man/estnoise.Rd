@@ -16,26 +16,26 @@
 
 \usage{
 # Quantile-based noise estimation
-estnoise_quant(x, width = 25L, prob = 0.95, niter = 3L)
+estnoise_quant(x, n = 25L, prob = 0.95, niter = 3L)
 
 # Derivative-based noise estimation
 estnoise_diff(x, nbins = 1L, dynamic = FALSE)
 
 # Dynamic noise level filtering
-estnoise_filt(x, snr = 2, nbins = 1L,
+estnoise_filt(x, nbins = 1L, msnr = 2,
     threshold = 0.5, peaks = FALSE)
 
 # SD-based noise estimation
-estnoise_sd(x, width = 25L, wavelet = ricker)
+estnoise_sd(x, n = 25L, wavelet = ricker)
 
 # MAD-based noise estimation
-estnoise_mad(x, width = 25L, wavelet = ricker)
+estnoise_mad(x, n = 25L, wavelet = ricker)
 }
 
 \arguments{
 	\item{x}{A numeric vector.}
 
-    \item{width}{The width of the rolling estimation of quantile, standard deviation, or median absolute deviation.}
+    \item{n}{The number of sample points in the rolling estimation of quantile, standard deviation, or median absolute deviation.}
 
     \item{prob}{The quantile used to estimate the noise.}
 
@@ -45,13 +45,13 @@ estnoise_mad(x, width = 25L, wavelet = ricker)
 
     \item{dynamic}{Should the bins be equally spaced (\code{FALSE}) or dynamically spaced (\code{TRUE}) based on the local signal?}
 
-    \item{snr}{The minimum signal-to-noise ratio for distinguishing signal peaks from noise peaks.}
+    \item{msnr}{The minimum signal-to-noise ratio for distinguishing signal peaks from noise peaks.}
 
     \item{threshold}{The required signal-to-noise difference for the first non-noise peak.}
 
     \item{peaks}{Does \code{x} represent a signal profile (\code{FALSE}) or peaks (\code{TRUE})?}
 
-    \item{wavelet}{The wavelet to be convolved with the signal to produce to the noise estimate. This should be a function that takes as its first argument the width of the wavelet (in number of points). If this is \code{NULL}, then no convolution is performed, and the raw signal is used.}
+    \item{wavelet}{The wavelet to be convolved with the signal to produce the noise estimate. This should be a function that takes as its first argument the width of the wavelet (in number of points). If this is \code{NULL}, then no convolution is performed, and the raw signal is used.}
 }
 
 \details{
@@ -77,14 +77,23 @@ estnoise_mad(x, width = 25L, wavelet = ricker)
 }
 
 \examples{
+# simple signal
 set.seed(1)
 n <- 500
 x <- rnorm(n)
 x <- x + 90 * dnorm(seq_along(x), mean=n/4)
 x <- x + 80 * dnorm(seq_along(x), mean=n/2)
 x <- x + 70 * dnorm(seq_along(x), mean=3*n/4)
-ns <- estnoise_quant(x)
 
+ns <- estnoise_quant(x)
+plot(x, type="l")
+lines(ns, col="blue")
+
+# simulated spectrum
+set.seed(1)
+x <- simspec(size=5000)
+
+ns <- estnoise_quant(x, n=101)
 plot(x, type="l")
 lines(ns, col="blue")
 }

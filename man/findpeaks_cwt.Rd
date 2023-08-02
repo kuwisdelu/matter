@@ -76,11 +76,25 @@ cwt(x, wavelet = ricker, scales = NULL)
 }
 
 \examples{
+# simple signal
 x <- c(0, 1, 1, 2, 3, 2, 1, 4, 5, 1, 1, 0)
-
 locmax(x)
-
 findpeaks(x)
+
+# simulated spectrum
+set.seed(1)
+x <- simspec(size=5000)
+
+# find peaks with snr >= 3
+p <- findpeaks_cwt(x, snr=3)
+plot(x, type="l")
+points(p, x[p], col="red")
+
+# plot ridges
+ridges <- attr(p, "ridges")
+plot(c(0, length(x)), c(0, 25), type="n")
+for ( ri in ridges )
+    lines(ri, type="o", pch=20, cex=0.5)
 }
 
 \keyword{ts}
