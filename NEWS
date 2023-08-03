@@ -1,4 +1,14 @@
 
+CHANGES IN VERSION 2.3.11 [2023-8-3]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Changed specification of 'atoms' data types
+    o Use 'int16', int32', 'uint32', etc. for integer types
+    o Use 'float32' and 'float64' for floating point typess
+    o Added aliases so 'short', 'int', 'double', etc., still work
+
 CHANGES IN VERSION 2.3.10 [2023-8-2]
 -----------------------------------
 
