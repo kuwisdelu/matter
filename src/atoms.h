@@ -248,22 +248,22 @@ class Atoms {
 				case C_UCHAR:
 					add_offset = sizeof(char) * pos;
 					break;
-				case C_SHORT:
-				case C_USHORT:
+				case C_INT16:
+				case C_UINT16:
 					add_offset = sizeof(int16_t) * pos;
 					break;
-				case C_INT:
-				case C_UINT:
+				case C_INT32:
+				case C_UINT32:
 					add_offset = sizeof(int32_t) * pos;
 					break;
-				case C_LONG:
-				case C_ULONG:
+				case C_INT64:
+				case C_UINT64:
 					add_offset = sizeof(int64_t) * pos;
 					break;
-				case C_FLOAT:
+				case C_FLOAT32:
 					add_offset = sizeof(float) * pos;
 					break;
-				case C_DOUBLE:
+				case C_FLOAT64:
 					add_offset = sizeof(double) * pos;
 					break;
 				default:
@@ -331,21 +331,21 @@ class Atoms {
 					return read_atom<char,T>(ptr, atom, pos, size, stride);
 				case C_UCHAR:
 					return read_atom<unsigned char,T>(ptr, atom, pos, size, stride);
-				case C_SHORT:
+				case C_INT16:
 					return read_atom<int16_t,T>(ptr, atom, pos, size, stride);
-				case C_USHORT:
+				case C_UINT16:
 					return read_atom<uint16_t,T>(ptr, atom, pos, size, stride);
-				case C_INT:
+				case C_INT32:
 					return read_atom<int32_t,T>(ptr, atom, pos, size, stride);
-				case C_UINT:
+				case C_UINT32:
 					return read_atom<uint32_t,T>(ptr, atom, pos, size, stride);
-				case C_LONG:
+				case C_INT64:
 					return read_atom<int64_t,T>(ptr, atom, pos, size, stride);
-				case C_ULONG:
+				case C_UINT64:
 					return read_atom<uint64_t,T>(ptr, atom, pos, size, stride);
-				case C_FLOAT:
+				case C_FLOAT32:
 					return read_atom<float,T>(ptr, atom, pos, size, stride);
-				case C_DOUBLE:
+				case C_FLOAT64:
 					return read_atom<double,T>(ptr, atom, pos, size, stride);
 				default:
 					Rf_error("unsupported data type");
@@ -360,21 +360,21 @@ class Atoms {
 					return write_atom<T,char>(ptr, atom, pos, size, stride);
 				case C_UCHAR:
 					return write_atom<T,unsigned char>(ptr, atom, pos, size, stride);
-				case C_SHORT:
+				case C_INT16:
 					return write_atom<T,int16_t>(ptr, atom, pos, size, stride);
-				case C_USHORT:
+				case C_UINT16:
 					return write_atom<T,uint16_t>(ptr, atom, pos, size, stride);
-				case C_INT:
+				case C_INT32:
 					return write_atom<T,int32_t>(ptr, atom, pos, size, stride);
-				case C_UINT:
+				case C_UINT32:
 					return write_atom<T,uint32_t>(ptr, atom, pos, size, stride);
-				case C_LONG:
+				case C_INT64:
 					return write_atom<T,int64_t>(ptr, atom, pos, size, stride);
-				case C_ULONG:
+				case C_UINT64:
 					return write_atom<T,uint64_t>(ptr, atom, pos, size, stride);
-				case C_FLOAT:
+				case C_FLOAT32:
 					return write_atom<T,float>(ptr, atom, pos, size, stride);
-				case C_DOUBLE:
+				case C_FLOAT64:
 					return write_atom<T,double>(ptr, atom, pos, size, stride);
 				default:
 					Rf_error("unsupported data type");

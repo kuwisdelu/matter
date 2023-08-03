@@ -106,7 +106,7 @@ path(a2)
 
 A `matter` array can be constructed from data in an existing file(s) by specifying the following:
 
-- `type` : the data type (see `?matter-datatypes`)
+- `type` : the data type (see `?"matter-types"`)
 - `path` : the file path(s)
 - `offset` : the byte offset(s) within the file(s)
 - `extent` : the number of data elements at each file/offset

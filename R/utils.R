@@ -138,14 +138,29 @@ make_code <- function(codes, x, nomatch = NA_integer_) {
 }
 
 get_Rtypes <- function() {
-	codes <- c("raw", "logical", "integer",
+	c("raw", "logical", "integer",
 		"double", "character", "list")
 }
 
 get_Ctypes <- function() {
-	codes <- c("char", "uchar", "short", "ushort",
-		"int", "uint", "long", "ulong",
-		"float", "double")
+	c("char", "uchar", "int16", "uint16",
+		"int32", "uint32", "int64", "uint64",
+		"float32", "float64")
+}
+
+get_Caliases <- function() {
+	c(short="int16", ushort="uint16",
+		`16-bit integer`="int16",
+		`16-bit unsigned integer`="uint16",
+		int="int32", uint="uint32",
+		`32-bit integer`="int32",
+		`32-bit unsigned integer`="uint32",
+		long="int64", ulong="uint64",
+		`64-bit integer`="int64",
+		`64-bit unsigned integer`="uint64",
+		float="float32", double="float64",
+		`32-bit float`="float32",
+		`64-bit float`="float64")
 }
 
 as_Rtype <- function(x) {
@@ -171,8 +186,9 @@ as_Ctype <- function(x) {
 			return(x)
 		if ( is_Rtype(x) && !is_Ctype(x) )
 			return(to_Ctype(as_Rtype(x)))
+		if ( is_Calias(x) )
+			x <- unalias_Ctype(x)
 	}
-	
 	make_code(get_Ctypes(), x)
 }
 
@@ -188,26 +204,36 @@ is_Ctype <- function(x, strict = FALSE) {
 	valid || (all(x %in% codes) && !strict)
 }
 
+is_Calias <- function(x) {
+	aliases <- names(get_Caliases())
+	any(x %in% aliases)
+}
+
+unalias_Ctype <- function(x) {
+	aliases <- get_Caliases()
+	ifelse(x %in% names(aliases), aliases[x], x)
+}
+
 to_Rtype <- function(x) {
 	codes <- c(char = "character", uchar = "raw",
-		short = "integer", ushort = "integer",
-		int = "integer", uint = "integer",
-		long = "double", ulong = "double",
-		float = "double", double = "double")
+		int16 = "integer", uint16 = "integer",
+		int32 = "integer", uint32 = "integer",
+		int64 = "double", uint64 = "double",
+		float32 = "double", float64 = "double")
 	as_Rtype(codes[as.integer(as_Ctype(x))])
 }
 
 to_Ctype <- function(x) {
-	codes <- c(raw = "uchar", logical = "int",
-		integer = "int", numeric = "double",
+	codes <- c(raw = "uchar", logical = "int32",
+		integer = "int32", numeric = "float64",
 		character = "char", list = NA_character_)
 	as_Ctype(codes[as.integer(as_Rtype(x))])
 }
 
 sizeof <- function(x) {
-	sizes <- c(char = 1L, uchar = 1L, short = 2L, ushort = 2L,
-		int = 4L, uint = 4L, long = 8L, ulong = 8L,
-		float = 4L, double = 8L)
+	sizes <- c(char = 1L, uchar = 1L, int16 = 2L, uint16 = 2L,
+		int32 = 4L, uint32 = 4L, int64 = 8L, uint64 = 8L,
+		float32 = 4L, float64 = 8L)
 	sizes[as.integer(as_Ctype(x))]
 }
 

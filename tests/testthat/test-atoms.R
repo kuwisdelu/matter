@@ -54,7 +54,29 @@ test_that("atoms read/write - raw", {
 
 })
 
-test_that("atoms read/write - integer", {
+test_that("atoms read/write - short", {
+
+	path <- tempfile()
+	file.create(path)
+	x <- atoms(path, "short", extent=10, readonly=FALSE)
+	value <- 1:10
+	i <- c(1,3,5:9)
+	write_atom(x, 1L, value)
+	
+	expect_equal(value, read_atom(x, 1L, "integer"))
+	expect_equal(value[i], read_atoms(x, i, "integer"))
+	expect_equal(value[rev(i)], read_atoms(x, rev(i), "integer"))
+	
+	value[i] <- value[i] + 100
+	write_atoms(x, i, value[i])
+	
+	expect_equal(value, read_atom(x, 1L, "integer"))
+	expect_equal(value[i], read_atoms(x, i, "integer"))
+	expect_equal(value[rev(i)], read_atoms(x, rev(i), "integer"))
+
+})
+
+test_that("atoms read/write - int", {
 
 	path <- tempfile()
 	file.create(path)
@@ -73,6 +95,50 @@ test_that("atoms read/write - integer", {
 	expect_equal(value, read_atom(x, 1L, "integer"))
 	expect_equal(value[i], read_atoms(x, i, "integer"))
 	expect_equal(value[rev(i)], read_atoms(x, rev(i), "integer"))
+
+})
+
+test_that("atoms read/write - long", {
+
+	path <- tempfile()
+	file.create(path)
+	x <- atoms(path, "long", extent=10, readonly=FALSE)
+	value <- 1:10
+	i <- c(1,3,5:9)
+	write_atom(x, 1L, value)
+	
+	expect_equal(value, read_atom(x, 1L, "integer"))
+	expect_equal(value[i], read_atoms(x, i, "integer"))
+	expect_equal(value[rev(i)], read_atoms(x, rev(i), "integer"))
+	
+	value[i] <- value[i] + 100
+	write_atoms(x, i, value[i])
+	
+	expect_equal(value, read_atom(x, 1L, "integer"))
+	expect_equal(value[i], read_atoms(x, i, "integer"))
+	expect_equal(value[rev(i)], read_atoms(x, rev(i), "integer"))
+
+})
+
+test_that("atoms read/write - float", {
+
+	path <- tempfile()
+	file.create(path)
+	y <- atoms(path, "float", extent=10, readonly=FALSE)
+	value <- (1:10 + 1:10 * 0.11)
+	i <- c(1,3,5:9)
+	write_atom(y, 1L, value)
+	
+	expect_equal(value, read_atom(y, 1L, "double"), tolerance=1e-5)
+	expect_equal(value[i], read_atoms(y, i, "double"), tolerance=1e-5)
+	expect_equal(value[rev(i)], read_atoms(y, rev(i), "double"), tolerance=1e-5)
+
+	value[i] <- value[i] + 100
+	write_atoms(y, i, value[i])
+	
+	expect_equal(value, read_atom(y, 1L, "double"), tolerance=1e-5)
+	expect_equal(value[i], read_atoms(y, i, "double"), tolerance=1e-5)
+	expect_equal(value[rev(i)], read_atoms(y, rev(i), "double"), tolerance=1e-5)
 
 })
 

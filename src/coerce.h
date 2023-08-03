@@ -19,7 +19,7 @@ template<> inline
 char coerce_cast(int32_t x) {
 	if ( x < R_CHAR_MIN || x > R_CHAR_MAX )
 	{
-		if ( x != NA_INTEGER )
+		if ( x != NA_INT32 )
 			Rf_warning("value is out of range for type 'char', element will be set to NA");
 		return NA_CHAR;
 	}
@@ -81,7 +81,7 @@ template<> inline
 Rbyte coerce_cast(int32_t x) {
 	if ( x < 0 || x > R_UCHAR_MAX )
 	{
-		if ( x == NA_INTEGER )
+		if ( x == NA_INT32 )
 			Rf_warning("NAs not supported for type 'uchar', element will be set to 0");
 		else
 			Rf_warning("value is out of range for type 'uchar', element will be set to 0");
@@ -104,7 +104,7 @@ template<> inline
 Rbyte coerce_cast(int64_t x) {
 	if ( x < 0 || x > R_UCHAR_MAX )
 	{
-		if ( x == NA_LONG )
+		if ( x == NA_INT64 )
 			Rf_warning("value is out of range for type 'uchar', element will be set to 0");
 		else
 			Rf_warning("value is out of range for type 'uchar', element will be set to 0");
@@ -148,40 +148,40 @@ Rbyte coerce_cast(double x) {
 	return static_cast<Rbyte>(x);
 }
 
-// short
+// int16
 
 template<> inline
 int16_t coerce_cast(int32_t x) {
-	if ( x < R_SHORT_MIN || x > R_SHORT_MAX )
+	if ( x < R_INT16_MIN || x > R_INT16_MAX )
 	{
-		if ( x != NA_INTEGER )
-			Rf_warning("value is out of range for type 'short', element will be set to NA");
-		return NA_SHORT;
+		if ( x != NA_INT32 )
+			Rf_warning("value is out of range for type 'int16', element will be set to NA");
+		return NA_INT16;
 	}
 	return static_cast<int16_t>(x);
 }
 
 template<> inline
 int16_t coerce_cast(double x) {
-	if ( x < R_SHORT_MIN || x > R_SHORT_MAX || !R_FINITE(x) )
+	if ( x < R_INT16_MIN || x > R_INT16_MAX || !R_FINITE(x) )
 	{
 		if ( !ISNA(x) )
-			Rf_warning("value is out of range for type 'short', element will be set to NA");
-		return NA_SHORT;
+			Rf_warning("value is out of range for type 'int16', element will be set to NA");
+		return NA_INT16;
 	}
 	return static_cast<int16_t>(x);
 }
 
-// unsigned short
+// unsigned int16
 
 template<> inline
 uint16_t coerce_cast(int32_t x) {
-	if ( x < 0 || x > R_USHORT_MAX )
+	if ( x < 0 || x > R_UINT16_MAX )
 	{
-		if ( x == NA_INTEGER )
-			Rf_warning("NAs not supported for type 'ushort', element will be set to 0");
+		if ( x == NA_INT32 )
+			Rf_warning("NAs not supported for type 'uint16', element will be set to 0");
 		else
-			Rf_warning("value is out of range for type 'ushort', element will be set to 0");
+			Rf_warning("value is out of range for type 'uint16', element will be set to 0");
 		return 0;
 	}
 	return static_cast<uint16_t>(x);
@@ -189,52 +189,52 @@ uint16_t coerce_cast(int32_t x) {
 
 template<> inline
 uint16_t coerce_cast(double x) {
-	if ( x < 0 || x > R_USHORT_MAX || !R_FINITE(x) )
+	if ( x < 0 || x > R_UINT16_MAX || !R_FINITE(x) )
 	{
 		if ( ISNA(x) )
-			Rf_warning("NAs not supported for type 'ushort', element will be set to 0");
+			Rf_warning("NAs not supported for type 'uint16', element will be set to 0");
 		else
-			Rf_warning("value is out of range for type 'ushort', element will be set to 0");
+			Rf_warning("value is out of range for type 'uint16', element will be set to 0");
 		return 0;
 	}
 	return static_cast<uint16_t>(x);
 }
 
-// int
+// int32
 
 template<> inline
 int32_t coerce_cast(char x) {
 	if ( x == NA_CHAR )
-		return NA_INTEGER;
+		return NA_INT32;
 	else
 		return static_cast<int32_t>(x);
 }
 
 template<> inline
-int32_t coerce_cast(short x) {
-	if ( x == NA_SHORT )
-		return NA_INTEGER;
+int32_t coerce_cast(int16_t x) {
+	if ( x == NA_INT16 )
+		return NA_INT32;
 	else
 		return static_cast<int32_t>(x);
 }
 
 template<> inline
 int32_t coerce_cast(uint32_t x) {
-	if ( x > R_INT_MAX )
+	if ( x > R_INT32_MAX )
 	{
-		Rf_warning("value is out of range for type 'int', element will be set to NA");
-		return NA_INTEGER;
+		Rf_warning("value is out of range for type 'int32', element will be set to NA");
+		return NA_INT32;
 	}
 	return static_cast<int32_t>(x);
 }
 
 template<> inline
 int32_t coerce_cast(int64_t x) {
-	if ( x < R_INT_MIN || x > R_INT_MAX )
+	if ( x < R_INT32_MIN || x > R_INT32_MAX )
 	{
-		if ( x != NA_LONG )
-			Rf_warning("value is out of range for type 'int', element will be set to NA");
-		return NA_INTEGER;
+		if ( x != NA_INT64 )
+			Rf_warning("value is out of range for type 'int32', element will be set to NA");
+		return NA_INT32;
 	}
 	else
 		return static_cast<int>(x);
@@ -242,10 +242,10 @@ int32_t coerce_cast(int64_t x) {
 
 template<> inline
 int32_t coerce_cast(uint64_t x) {
-	if ( x > R_INT_MAX )
+	if ( x > R_INT32_MAX )
 	{
-		Rf_warning("value is out of range for type 'int', element will be set to NA");
-		return NA_INTEGER;
+		Rf_warning("value is out of range for type 'int32', element will be set to NA");
+		return NA_INT32;
 	}
 	return static_cast<int32_t>(x);
 }
@@ -253,32 +253,32 @@ int32_t coerce_cast(uint64_t x) {
 template<> inline
 int32_t coerce_cast(float x) {
 	if ( std::isnan(x) )
-		return NA_INTEGER;
+		return NA_INT32;
 	else
 		return static_cast<int32_t>(x);
 }
 
 template<> inline
 int32_t coerce_cast(double x) {
-	if ( x < R_INT_MIN || x > R_INT_MAX || !R_FINITE(x) )
+	if ( x < R_INT32_MIN || x > R_INT32_MAX || !R_FINITE(x) )
 	{
 		if ( !ISNA(x) )
-			Rf_warning("value is out of range for type 'int', element will be set to NA");
-		return NA_INTEGER;
+			Rf_warning("value is out of range for type 'int32', element will be set to NA");
+		return NA_INT32;
 	}
 	return static_cast<int32_t>(x);
 }
 
-// unsigned int
+// unsigned int32
 
 template<> inline
 uint32_t coerce_cast(int32_t x) {
 	if ( x < 0 )
 	{
-		if ( x == NA_INTEGER )
-			Rf_warning("NAs not supported for type 'uint', element will be set to 0");
+		if ( x == NA_INT32 )
+			Rf_warning("NAs not supported for type 'uint32', element will be set to 0");
 		else
-			Rf_warning("value is out of range for type 'uint', element will be set to 0");
+			Rf_warning("value is out of range for type 'uint32', element will be set to 0");
 		return 0;
 	}
 	return static_cast<uint32_t>(x);
@@ -286,23 +286,23 @@ uint32_t coerce_cast(int32_t x) {
 
 template<> inline
 uint32_t coerce_cast(double x) {
-	if ( x < 0 || x > R_UINT_MAX || !R_FINITE(x) )
+	if ( x < 0 || x > R_UINT32_MAX || !R_FINITE(x) )
 	{
 		if ( ISNA(x) )
-			Rf_warning("NAs not supported for type 'uint', element will be set to 0");
+			Rf_warning("NAs not supported for type 'uint32', element will be set to 0");
 		else
-			Rf_warning("value is out of range for type 'uint', element will be set to 0");
+			Rf_warning("value is out of range for type 'uint32', element will be set to 0");
 		return 0;
 	}
 	return static_cast<uint32_t>(x);
 }
 
-// long
+// int64
 
 template<> inline
 int64_t coerce_cast(int32_t x) {
-	if ( x == NA_INTEGER )
-		return NA_LONG;
+	if ( x == NA_INT32 )
+		return NA_INT64;
 	else
 		return static_cast<int64_t>(x);
 }
@@ -312,22 +312,22 @@ int64_t coerce_cast(double x) {
 	if ( !R_FINITE(x) )
 	{
 		if ( ISNA(x) )
-			Rf_warning("value is out of range for type 'long', element will be set to NA");
-		return NA_LONG;
+			Rf_warning("value is out of range for type 'int64', element will be set to NA");
+		return NA_INT64;
 	}
 	return static_cast<int64_t>(x);
 }
 
-// unsigned long
+// unsigned int64
 
 template<> inline
 uint64_t coerce_cast(int32_t x) {
 	if ( x < 0 )
 	{
-		if ( x == NA_INTEGER )
-			Rf_warning("NAs not supported for type 'ulong', element will be set to 0");
+		if ( x == NA_INT32 )
+			Rf_warning("NAs not supported for type 'uint64', element will be set to 0");
 		else
-			Rf_warning("value is out of range for type 'ulong', element will be set to 0");
+			Rf_warning("value is out of range for type 'uint64', element will be set to 0");
 		return 0;
 	}
 	else
@@ -339,29 +339,29 @@ uint64_t coerce_cast(double x) {
 	if ( x < 0 || !R_FINITE(x) )
 	{
 		if ( ISNA(x) )
-			Rf_warning("NAs not supported for type 'ulong', element will be set to 0");
+			Rf_warning("NAs not supported for type 'uint64', element will be set to 0");
 		else
-			Rf_warning("value is out of range for type 'ulong', element will be set to 0");
+			Rf_warning("value is out of range for type 'uint64', element will be set to 0");
 		return 0;
 	}
 	return static_cast<uint64_t>(x);
 }
 
-// float
+// float32
 
 template<> inline
 float coerce_cast(int32_t x) {
-	if ( x == NA_INTEGER )
+	if ( x == NA_INT32 )
 		return static_cast<float>(NA_REAL);
 	else
 		return static_cast<float>(x);
 }
 
-// double
+// float64
 
 template<> inline
 double coerce_cast(int16_t x) {
-	if ( x == NA_SHORT )
+	if ( x == NA_INT16 )
 		return NA_REAL;
 	else
 		return static_cast<double>(x);
@@ -377,7 +377,7 @@ double coerce_cast(int32_t x) {
 
 template<> inline
 double coerce_cast(int64_t x) {
-	if ( x == NA_LONG )
+	if ( x == NA_INT64 )
 		return NA_REAL;
 	else
 		return static_cast<double>(x);
@@ -392,12 +392,12 @@ Rbyte coerce_cast(SEXP x) {
 
 template<> inline
 int32_t coerce_cast(SEXP x) {
-	Rf_error("don't know how to coerce 'SEXP' to 'int'");
+	Rf_error("don't know how to coerce 'SEXP' to 'int32'");
 }
 
 template<> inline
 double coerce_cast(SEXP x) {
-	Rf_error("don't know how to coerce 'SEXP' to 'double'");
+	Rf_error("don't know how to coerce 'SEXP' to 'float64'");
 }
 
 #endif // COERCE

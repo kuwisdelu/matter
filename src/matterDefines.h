@@ -64,14 +64,14 @@ inline bool pendingInterrupt()
 // C-level data types
 #define C_CHAR		1
 #define C_UCHAR		2
-#define C_SHORT		3
-#define C_USHORT	4
-#define C_INT		5
-#define C_UINT		6
-#define C_LONG		7
-#define C_ULONG		8
-#define C_FLOAT		9
-#define C_DOUBLE	10
+#define C_INT16		3
+#define C_UINT16	4
+#define C_INT32		5
+#define C_UINT32	6
+#define C_INT64		7
+#define C_UINT64	8
+#define C_FLOAT32	9
+#define C_FLOAT64	10
 
 // Arith
 #define OP_ADD		1	// +
@@ -119,25 +119,22 @@ inline bool pendingInterrupt()
 #define NA_CHAR CHAR_MIN
 #define R_CHAR_MIN (1+CHAR_MIN)
 #define R_CHAR_MAX CHAR_MAX
-
-#define NA_SHORT INT16_MIN
-#define R_SHORT_MIN (1+INT16_MIN)
-#define R_SHORT_MAX INT16_MAX
-
-#define R_INT_MIN (1+INT32_MIN)
-#define R_INT_MAX INT32_MAX
-
-#define R_DOUBLE_MIN R_NegInf
-#define R_DOUBLE_MAX R_PosInf
-
 #define R_UCHAR_MAX UCHAR_MAX
-#define R_USHORT_MAX UINT16_MAX
-#define R_UINT_MAX UINT32_MAX
-#define R_ULONG_MAX UINT64_MAX
 
-#define NA_LONG INT64_MIN
-#define R_LONG_MIN (1+INT64_MIN)
-#define R_LONG_MAX INT64_MAX
+#define NA_INT16 INT16_MIN
+#define R_INT16_MIN (1+INT16_MIN)
+#define R_INT16_MAX INT16_MAX
+#define R_UINT16_MAX UINT16_MAX
+
+#define NA_INT32 NA_INTEGER
+#define R_INT32_MIN -INT32_MAX
+#define R_INT32_MAX INT32_MAX
+#define R_UINT32_MAX UINT32_MAX
+
+#define NA_INT64 INT64_MIN
+#define R_INT64_MIN (1+INT64_MIN)
+#define R_INT64_MAX INT64_MAX
+#define R_UINT64_MAX UINT64_MAX
 
 //// Typedefs
 //-------------------
