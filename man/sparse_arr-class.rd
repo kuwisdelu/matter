@@ -100,7 +100,7 @@ as.sparse(x, \dots)
 
         \item{index}{For \code{sparse_vec}, the indices of the non-zero items. For \code{sparse_mat}, either the row-indices or column-indices of the non-zero items, depending on the value of \code{rowMaj}.}
 
-        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are R numeric and logical types ('logical', 'integer', 'numeric') and their C equivalents.}
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
 
         \item{nrow, ncol, length}{The number of rows and columns, or the length of the array.}
 

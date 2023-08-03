@@ -93,7 +93,7 @@ matter_vec(data, type = "double", path = NULL,
 \arguments{
         \item{data}{An optional data vector which will be initially written to virtual memory if provided.}
 
-        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. Allowable values are the C types ('char', 'uchar', short', 'ushort', 'int', 'uint', 'long', 'ulong', 'float') and their R equivalents ('raw', 'logical', 'integer', 'numeric'). See \code{?datatypes} for details.}
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
 
         \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
