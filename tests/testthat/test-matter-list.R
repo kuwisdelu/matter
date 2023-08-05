@@ -32,6 +32,9 @@ test_that("matter list", {
 
 	expect_equal(c(x, x), c(y, y)[])
 
+	y$dbl[3L] <- 3.333
+	expect_equal(3.333, y$dbl[3L])
+
 })
 
 test_that("matter struct", {
@@ -42,5 +45,18 @@ test_that("matter struct", {
 
 	expect_equal(2L, x$first)
 	expect_equal(3.333, x$second)
+
+	y <- struct(first=c(short=2), second=c(long=2))
+	y$first <- c(0L, 1L)
+	y$second <- c(1000L, 9999L)
+
+	expect_equal(c(0L, 1L), y$first)
+	expect_equal(c(1000L, 9999L), y$second)
+
+	y$first[1L] <- 10L	
+	y$second[1L] <- -99L
+
+	expect_equal(c(10L, 1L), y$first)
+	expect_equal(c(-99L, 9999L), y$second)
 
 })

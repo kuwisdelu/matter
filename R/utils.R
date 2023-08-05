@@ -167,8 +167,12 @@ as_Rtype <- function(x) {
 	if ( !missing(x) ) {
 		if ( is_Rtype(x, strict=TRUE) )
 			return(x)
-		if ( is_Ctype(x) && !is_Rtype(x) )
-			return(to_Rtype(as_Ctype(x)))
+		if ( !is_Rtype(x) ) {
+			if ( is_Ctype(x) )
+				return(to_Rtype(as_Ctype(x)))
+			if ( is_Calias(x) )
+				return(to_Rtype(unalias_Ctype(x)))
+		}
 	}
 	if ( !missing(x) && is.character(x) ) {
 		# allow 'numeric' as synonym for 'double'
@@ -184,10 +188,12 @@ as_Ctype <- function(x) {
 	if ( !missing(x) ) {
 		if ( is_Ctype(x, strict=TRUE) )
 			return(x)
-		if ( is_Rtype(x) && !is_Ctype(x) )
-			return(to_Ctype(as_Rtype(x)))
-		if ( is_Calias(x) )
-			x <- unalias_Ctype(x)
+		if ( !is_Ctype(x) ) {
+			if ( is_Rtype(x) )
+				return(to_Ctype(as_Rtype(x)))
+			if ( is_Calias(x) )
+				x <- unalias_Ctype(x)
+		}
 	}
 	make_code(get_Ctypes(), x)
 }

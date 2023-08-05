@@ -16,6 +16,8 @@ setClass("matter",
 	contains = "VIRTUAL",
 	validity = function(object) {
 		errors <- NULL
+		if ( anyNA(object@type) )
+			errors <- c(errors, "'type' must not contain missing values")
 		if ( !is.null(object@names) && length(object@names) != length(object) )
 			errors <- c(errors, paste0("names [length ", length(object@names), "] ",
 				"do not match length of object [", length(object), "]"))
