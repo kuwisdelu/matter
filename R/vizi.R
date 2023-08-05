@@ -1036,9 +1036,11 @@ needs_legends <- function(plot)
 		max(2, w)
 	}
 	if ( length(chs) > 0L ) {
+		nokey <- vapply(chs, function(ch) isFALSE(ch$key), logical(1L))
 		lens1 <- vapply(chs, function(ch) fn(ch$limits), numeric(1L))
 		lens2 <- vapply(chs, function(ch) fn(ch$label), numeric(1L))
-		floor(max(c(lens1, lens2)))
+		lens <- ifelse(nokey, 0, pmax(lens1, lens2))
+		floor(max(lens))
 	} else {
 		FALSE
 	}

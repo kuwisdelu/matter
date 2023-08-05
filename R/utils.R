@@ -720,36 +720,6 @@ roll <- function(x, width, na.drop = FALSE, fill = NA) {
 	x
 }
 
-# discrete palette
-dpal <- function(palette = "Tableau 10") {
-	function(n) palette.colors(n, palette)
-}
-
-# continuous palette
-cpal <- function(palette = "Viridis") {
-	function(n) hcl.colors(n, palette)
-}
-
-# continuous palette
-add_alpha <- function(colors, alpha = 1, exp = 2) {
-	dm <- dim(colors)
-	if ( is.null(dm) && !is.null(dim(alpha)) )
-		dm <- dim(alpha)
-	alpha <- ifelse(alpha >= 0 & alpha <= 1, alpha, 0)
-	n <- max(length(colors), length(alpha))
-	if ( length(alpha) != n)
-		alpha <- rep_len(alpha, n)
-	if ( length(colors) != n)
-		colors <- rep_len(colors, n)
-	na <- is.na(colors) | is.na(alpha)
-	colors <- col2rgb(colors, alpha=TRUE)
-	colors <- rgb(colors[1L,], colors[2L,], colors[3L,],
-		alpha=255 * alpha^exp, maxColorValue=255)
-	colors[na] <- NA_character_
-	dim(colors) <- dm
-	colors
-}
-
 # A sequence with half-bin-widths in relative units
 # x = bin center, y = half-width, d = relative diff
 # y[n] = d * x[n]

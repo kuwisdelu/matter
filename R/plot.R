@@ -1,4 +1,94 @@
 
+#### Image method for 'formula' ####
+## ---------------------------------
+
+setMethod("image", "formula",
+	function(x, data = NULL, zlim, xlim, ylim, col = NULL,
+		add = FALSE, xaxs = "i", yaxs = "i", zlab, xlab, ylab,
+		key = FALSE, useRaster = TRUE, ...)
+{
+	if ( missing(zlim) )
+		zlim <- NULL
+	if ( missing(xlim) )
+		xlim <- NULL
+	if ( missing(ylim) )
+		ylim <- NULL
+	if ( missing(zlab) )
+		zlab <- NULL
+	if ( missing(xlab) )
+		xlab <- NULL
+	if ( missing(ylab) )
+		ylab <- NULL
+	plot_image_formula(x, data=data, zlim=zlim,
+		xlim=xlim, ylim=ylim, col=col, add=add,
+		xaxs=xaxs, yaxs=yaxs, zlab=zlab, xlab=xlab, ylab=ylab,
+		key=key, useRaster=useRaster, ...)
+})
+
+plot_image_formula <- function(formula, data = NULL,
+	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, add = FALSE,
+	zlab = NULL, xlab = NULL, ylab = NULL,
+	enhance = NULL, smooth = NULL, scale = NULL,
+	key = FALSE, useRaster = TRUE, ...)
+{
+	fm <- parse_formula(formula, data)
+	x <- fm$rhs[[1L]]
+	y <- fm$rhs[[2L]]
+	z <- fm$lhs[[1L]]
+	by <- fm$g[[1L]]
+	if ( is.null(xlab) )
+		xlab <- names(fm$rhs)[1L]
+	if ( is.null(ylab) )
+		ylab <- names(fm$rhs)[2L]
+	if ( is.null(zlab) )
+		zlab <- names(fm$lhs)[1L]
+	img <- vizi(x=x, y=y, color=z)
+	img <- add_mark(img, "pixels",
+		trans=list(enhance=enhance, smooth=smooth, scale=scale))
+	img <- set_coord(img, xlim=xlim, ylim=ylim, grid=FALSE)
+	img <- set_channel(img, "x", label=xlab)
+	img <- set_channel(img,"y", label=ylab)
+	img <- set_channel(img, "color", label=zlab,
+		limits=zlim, scheme=col, key=key)
+	img <- set_par(img, ...)
+	if ( !is.null(by) )
+		img <- add_facets(img, by=by)
+	plot(img, add=add, useRaster=useRaster)
+}
+
+#### Color palettes and transparency ####
+## ----------------------------------------
+
+# discrete palette
+dpal <- function(palette = "Tableau 10") {
+	function(n) palette.colors(n, palette)
+}
+
+# continuous palette
+cpal <- function(palette = "Viridis") {
+	function(n) hcl.colors(n, palette)
+}
+
+# continuous palette
+add_alpha <- function(colors, alpha = 1, exp = 2) {
+	dm <- dim(colors)
+	if ( is.null(dm) && !is.null(dim(alpha)) )
+		dm <- dim(alpha)
+	alpha <- ifelse(alpha >= 0 & alpha <= 1, alpha, 0)
+	n <- max(length(colors), length(alpha))
+	if ( length(alpha) != n)
+		alpha <- rep_len(alpha, n)
+	if ( length(colors) != n)
+		colors <- rep_len(colors, n)
+	na <- is.na(colors) | is.na(alpha)
+	colors <- col2rgb(colors, alpha=TRUE)
+	colors <- rgb(colors[1L,], colors[2L,], colors[3L,],
+		alpha=255 * alpha^exp, maxColorValue=255)
+	colors[na] <- NA_character_
+	dim(colors) <- dm
+	colors
+}
+
 #### Plotting methods for 'vizi' marks ####
 ## ----------------------------------------
 
