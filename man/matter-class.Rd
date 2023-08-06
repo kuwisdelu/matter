@@ -60,12 +60,6 @@
 \alias{cbind2,atoms,ANY-method}
 \alias{rbind2,atoms,ANY-method}
 
-\alias{read_atom}
-\alias{write_atom}
-
-\alias{read_atoms}
-\alias{write_atoms}
-
 \alias{c,atoms-method}
 \alias{c,matter-method}
 

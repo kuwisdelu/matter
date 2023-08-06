@@ -99,10 +99,11 @@ matter_arr <- function(data, type = "double", path = NULL,
 		if ( missing(data) && any(extent > 0) && !is.null(data) )
 			warning("creating uninitialized backing file(s): ",
 				paste0(sQuote(path[!exists]), collapse=", "))
-		success <- file.create(path)
+		newfile <- path[!exists]
+		success <- file.create(newfile)
 		if ( !all(success) )
 			stop("error creating file(s): ",
-				paste0(sQuote(path[!success]), collapse=", "))
+				paste0(sQuote(newfile[!success]), collapse=", "))
 	}
 	x <- new("matter_arr",
 		data=atoms(

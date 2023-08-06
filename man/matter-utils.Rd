@@ -62,6 +62,12 @@
 \alias{qmedian}
 \alias{qmad}
 
+\alias{read_atom}
+\alias{write_atom}
+
+\alias{read_atoms}
+\alias{write_atoms}
+
 \alias{sizeof}
 
 \alias{type,vector-method}
