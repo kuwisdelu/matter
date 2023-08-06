@@ -29,6 +29,16 @@ setClass("matter_mat",
 			errors <- c(errors, "matrix must have exactly 2 dimensions")
 		if ( length(object@indexed) != 1L )
 			errors <- c(errors, "'indexed' must be a scalar (length 1)")
+		if ( isTRUE(object@indexed) && length(object) != 0L ) {
+			adims <- dim(object@data)
+			if ( isTRUE(object@transpose) )
+				adims <- rev(adims)
+			if ( !all(object@dim == adims) )
+				errors <- c(errors, paste0("'indexed' is true but atoms groups [",
+					paste0(adims, collapse=", "),
+					"] are non-comforbable with array dimensions [",
+					paste0(object@dim, collapse=", "), "]"))
+		}
 		if ( is.null(errors) ) TRUE else errors
 	})
 
