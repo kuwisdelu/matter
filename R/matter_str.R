@@ -16,7 +16,7 @@ setClass("matter_str",
 
 matter_str <- function(data, encoding, path = NULL,
 	nchar = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
-	readonly = NA, ...)
+	readonly = NA, append = FALSE, ...)
 {
 	if ( !missing(data) && !is.null(data) ) {
 		if ( !is.character(data) )
@@ -30,7 +30,7 @@ matter_str <- function(data, encoding, path = NULL,
 	}
 	x <- matter_list(NULL, type="character", path=path, lengths=nchar,
 		names=names, offset=offset, extent=extent,
-		readonly=readonly, ...)
+		readonly=readonly, append=append, ...)
 	x <- as(x, "matter_str")
 	x@encoding <- if (missing(encoding)) "unknown" else encoding
 	if ( !missing(data) && !is.null(data) )

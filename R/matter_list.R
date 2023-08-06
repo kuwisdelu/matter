@@ -6,7 +6,7 @@ setClass("matter_list", contains = "matter_")
 
 matter_list <- function(data, type = "double", path = NULL,
 	lengths = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
-	readonly = NA, ...)
+	readonly = NA, append = FALSE, ...)
 {
 	if ( !missing(data) && !is.null(data) ) {
 		if ( !is.list(data) )
@@ -30,10 +30,15 @@ matter_list <- function(data, type = "double", path = NULL,
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
 	path <- normalizePath(path, mustWork=FALSE)
 	exists <- file.exists(path)
+	if ( append ) {
+		readonly <- FALSE
+		size <- file.size(path)
+		offset <- ifelse(exists, offset + size, offset)
+	}
 	if ( is.na(readonly) )
-		readonly <- all(exists)
-	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
-		overwrite <- offset != file.size(path)
+		readonly <- all(exists) && !missing(data) && !is.null(data)
+	if ( any(exists) && !readonly ) {
+		overwrite <- offset < file.size(path)
 		if ( any(overwrite) )
 			warning("data may overwrite existing file(s): ",
 				paste0(sQuote(path[overwrite]), collapse=", "))

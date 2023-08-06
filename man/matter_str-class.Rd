@@ -33,7 +33,7 @@
 ## Instance creation
 matter_str(data, encoding, path = NULL,
     nchar = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
-    readonly = NA, \dots)
+    readonly = NA, append = FALSE, \dots)
 
 ## Additional methods documented below
 }
@@ -54,6 +54,8 @@ matter_str(data, encoding, path = NULL,
         \item{extent}{A vector giving the length of the data for each file in 'path', specifying the number of elements of size 'type' to be accessed from each file.}
 
         \item{readonly}{Whether the data and file(s) should be treated as read-only or read/write.}
+
+        \item{append}{If \code{TRUE}, then all offsets will be adjusted to be from the \emph{end-of-file} (for all files in \code{path}), and \code{readonly} will be set to \code{FALSE}.}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

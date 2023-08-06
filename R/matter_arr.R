@@ -53,7 +53,7 @@ setClass("matter_vec",
 
 matter_arr <- function(data, type = "double", path = NULL,
 	dim = NA_integer_, dimnames = NULL, offset = 0, extent = NA_real_,
-	readonly = NA, rowMaj = FALSE, ...)
+	readonly = NA, append = FALSE, rowMaj = FALSE, ...)
 {
 	if ( !missing(data) && !is.null(data) ) {
 		if ( missing(type) )
@@ -70,16 +70,22 @@ matter_arr <- function(data, type = "double", path = NULL,
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
 	path <- normalizePath(path, mustWork=FALSE)
 	exists <- file.exists(path)
+	if ( append ) {
+		readonly <- FALSE
+		size <- file.size(path)
+		offset <- ifelse(exists, offset + size, offset)
+	}
 	if ( is.na(readonly) )
-		readonly <- all(exists)
-	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
-		overwrite <- offset != file.size(path)
+		readonly <- all(exists) && !missing(data) && !is.null(data)
+	if ( any(exists) && !readonly ) {
+		overwrite <- offset < file.size(path)
 		if ( any(overwrite) )
 			warning("data may overwrite existing file(s): ",
 				paste0(sQuote(path[overwrite]), collapse=", "))
 	}
 	if ( all(exists) && missing(data) ) {
-		# can we infer the NA dims instead of overwriting all?
+		# TODO try to infer the dims from the type and file size
+		# can we infer only the NA dims instead of overwriting all?
 		if ( anyNA(dim) && anyNA(extent) ) {
 			sizes <- file.size(path)
 			dim <- sum((sizes - offset) %/% sizeof(type))
@@ -129,7 +135,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 
 matter_vec <- function(data, type = "double", path = NULL,
 	length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
-	readonly = NA, rowMaj = FALSE, ...)
+	readonly = NA, append = FALSE, rowMaj = FALSE, ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(type) )
@@ -141,13 +147,14 @@ matter_vec <- function(data, type = "double", path = NULL,
 	}
 	x <- matter_arr(data, type=type, path=path, dim=length,
 		names=names, offset=offset, extent=extent,
-		readonly=readonly, rowMaj=rowMaj, ...)
+		readonly=readonly, append=append, rowMaj=rowMaj, ...)
 	as(x, "matter_vec")
 }
 
 matter_mat <- function(data, type = "double", path = NULL,
 	nrow = NA_integer_, ncol = NA_integer_, dimnames = NULL,
-	offset = 0, extent = NA_real_, readonly = NA, rowMaj = FALSE, ...)
+	offset = 0, extent = NA_real_, readonly = NA,
+	append = FALSE, rowMaj = FALSE, ...)
 {
 	if ( !missing(data) ) {
 		if ( missing(type) )
@@ -172,7 +179,7 @@ matter_mat <- function(data, type = "double", path = NULL,
 	}
 	x <- matter_arr(data=NULL, type=type, path=path, dim=c(nrow, ncol),
 		dimnames=dimnames, offset=offset, extent=extent,
-		readonly=readonly, rowMaj=rowMaj, ...)
+		readonly=readonly, append=append, rowMaj=rowMaj, ...)
 	x <- as(x, "matter_mat")
 	if ( x@transpose ) {
 		n1 <- nrow(x)

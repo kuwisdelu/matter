@@ -20,7 +20,7 @@ setClass("matter_fct",
 
 matter_fct <- function(data, levels, path = NULL,
 	length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
-	readonly = NA, labels = as.character(levels), ...)
+	readonly = NA, append = FALSE, labels = as.character(levels), ...)
 {
 	if ( !missing(data) && !is.null(data) ) {
 		if ( is.na(length) )
@@ -35,7 +35,7 @@ matter_fct <- function(data, levels, path = NULL,
 	}
 	x <- matter_vec(NULL, type=typeof(levels), path=path, length=length,
 		names=names, offset=offset, extent=extent,
-		readonly=readonly, rowMaj=FALSE, ...)
+		readonly=readonly, append=append, rowMaj=FALSE, ...)
 	x <- as(x, "matter_fct")
 	x@levels <- levels
 	x@labels <- labels

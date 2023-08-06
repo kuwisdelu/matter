@@ -77,15 +77,16 @@
 ## Instance creation
 matter_arr(data, type = "double", path = NULL,
     dim = NA_integer_, dimnames = NULL, offset = 0, extent = NA_real_,
-    readonly = NA, rowMaj = FALSE, \dots)
+    readonly = NA, append = FALSE, rowMaj = FALSE, \dots)
 
 matter_mat(data, type = "double", path = NULL,
     nrow = NA_integer_, ncol = NA_integer_, dimnames = NULL,
-    offset = 0, extent = NA_real_, readonly = NA, rowMaj = FALSE, \dots)
+    offset = 0, extent = NA_real_, readonly = NA,
+    append = FALSE, rowMaj = FALSE, \dots)
 
 matter_vec(data, type = "double", path = NULL,
     length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
-    readonly = NA, rowMaj = FALSE, \dots)
+    readonly = NA, append = FALSE, rowMaj = FALSE, \dots)
 
 ## Additional methods documented below
 }
@@ -106,6 +107,8 @@ matter_vec(data, type = "double", path = NULL,
         \item{extent}{A vector giving the length of the data for each file in 'path', specifying the number of elements of size 'type' to be accessed from each file.}
 
         \item{readonly}{Whether the data and file(s) should be treated as read-only or read/write.}
+
+        \item{append}{If \code{TRUE}, then all offsets will be adjusted to be from the \emph{end-of-file} (for all files in \code{path}), and \code{readonly} will be set to \code{FALSE}.}
 
         \item{rowMaj}{Whether the data is stored in row-major or column-major order. The default is to use column-major order, which is the same as native R matrices.}
 
