@@ -25,7 +25,7 @@
 
 \usage{
 ## Instance creation
-matter_fct(data, levels, type = "integer", path = NULL,
+matter_fct(data, levels, path = NULL,
     length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
     readonly = NA, labels = as.character(levels), \dots)
 
@@ -35,9 +35,7 @@ matter_fct(data, levels, type = "integer", path = NULL,
 \arguments{
         \item{data}{An optional data vector which will be initially written to the data in virtual memory if provided.}
 
-        \item{levels}{The levels of the factor.}
-
-        \item{type}{Should be 'integer' type for factors.}
+        \item{levels}{The levels of the factor. These should be of the same type as the data. (Use \code{labels} for the string representation of the levels.)}
 
         \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 

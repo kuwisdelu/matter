@@ -31,9 +31,9 @@
 
 \usage{
 ## Instance creation
-matter_str(data, type = "character", path = NULL,
+matter_str(data, encoding, path = NULL,
     nchar = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
-    readonly = NA, encoding = "unknown", \dots)
+    readonly = NA, \dots)
 
 ## Additional methods documented below
 }
@@ -41,7 +41,7 @@ matter_str(data, type = "character", path = NULL,
 \arguments{
         \item{data}{An optional data vector which will be initially written to virtual memory if provided.}
 
-        \item{type}{Should be 'character' type for characters.}
+        \item{encoding}{The character encoding to use (if known).}
 
         \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
 
@@ -54,8 +54,6 @@ matter_str(data, type = "character", path = NULL,
         \item{extent}{A vector giving the length of the data for each file in 'path', specifying the number of elements of size 'type' to be accessed from each file.}
 
         \item{readonly}{Whether the data and file(s) should be treated as read-only or read/write.}
-
-        \item{encoding}{The character encoding to use (if known).}
 
         \item{\dots}{Additional arguments to be passed to constructor.}
 }

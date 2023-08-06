@@ -37,8 +37,8 @@ setClass("atoms",
 			errors <- c(errors, "offset must be of type 'double'")
 		if ( type(object@extent) != "double" )
 			errors <- c(errors, "extent must be of type 'double'")
-		# FIXME: shouldn't need to realize drle vectors[]
-		# (add support for these functions on drle directly)
+		# TODO we shouldn't need to realize drle vectors[]
+		# add support for these functions on drle directly
 		if ( any(object@offset[] < 0) )
 			errors <- c(errors, "'offset' must be non-negative")
 		if ( any(object@extent[] < 0) )
@@ -262,11 +262,14 @@ setMethod("as.data.frame", "atoms",
 setMethod("as.list", "atoms",
 	function(x, ...) as.list(as.data.frame(x, ...)))
 
+# no. of atoms
 setMethod("length", "atoms", function(x) length(x@offset))
 
+# lengths of atoms
 setMethod("lengths", "atoms",
 	function(x, use.names = TRUE) as.double(x@extent))
 
+# nrows = length of groups, ncols = no. of groups
 setMethod("dim", "atoms",
 	function(x) {
 		extents <- as.double(x@extent)
@@ -281,6 +284,7 @@ setMethod("dim", "atoms",
 		c(nrows, ncols)
 	})
 
+# lengths of groups
 setMethod("dims", "atoms",
 	function(x, use.names = TRUE) {
 		extents <- as.double(x@extent)

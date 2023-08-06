@@ -18,7 +18,7 @@ setClass("matter_fct",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_fct <- function(data, levels, type = "integer", path = NULL,
+matter_fct <- function(data, levels, path = NULL,
 	length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, labels = as.character(levels), ...)
 {
@@ -33,61 +33,16 @@ matter_fct <- function(data, levels, type = "integer", path = NULL,
 		levels <- seq_len(nlevels(data))
 		labels <- levels(data)
 	}
-	if ( is.null(path) )
-		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
-	path <- normalizePath(path, mustWork=FALSE)
-	exists <- file.exists(path)
-	if ( is.na(readonly) )
-		readonly <- all(exists)
-	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
-		overwrite <- offset != file.size(path)
-		if ( any(overwrite) )
-			warning("data may overwrite existing file(s): ",
-				paste0(sQuote(path[overwrite]), collapse=", "))
-	}
-	if ( all(exists) && missing(data) ) {
-		if ( is.na(length) && anyNA(extent) ) {
-			sizes <- file.size(path)
-			length <- sum((sizes - offset) %/% sizeof(type))
-		}
-	}
-	if ( is.na(length) && anyNA(extent) ) {
-		extent <- lengths <- 0
-	} else if ( anyNA(extent) ) {
-		extent <- length
-	} else if ( anyNA(lengths) ) {
-		length <- sum(extent)
-	}
-	if ( length(offset) != length(extent) && length(path) == 1L ) {
-		sizes <- sizeof(type) * extent
-		offset <- cumsum(c(offset, sizes[-length(sizes)]))
-	}
-	if ( any(!exists) ) {
-		if ( missing(data) && any(extent > 0) && !is.null(data) )
-			warning("creating uninitialized backing file(s): ",
-				paste0(sQuote(path[!exists]), collapse=", "))
-		success <- file.create(path)
-		if ( !all(success) )
-			stop("error creating file(s): ",
-				paste0(sQuote(path[!success]), collapse=", "))
-	}
-	x <- new("matter_fct",
-		data=atoms(
-			source=path,
-			type=as_Ctype(type),
-			offset=as.double(offset),
-			extent=as.double(extent),
-			group=0L,
-			readonly=readonly),
-		type=topmode_Rtype(type),
-		dim=length,
-		names=names,
-		levels=levels,
-		labels=labels,
-		transpose=FALSE, ...)
+	x <- matter_vec(NULL, type=typeof(levels), path=path, length=length,
+		names=names, offset=offset, extent=extent,
+		readonly=readonly, rowMaj=FALSE, ...)
+	x <- as(x, "matter_fct")
+	x@levels <- levels
+	x@labels <- labels
 	if ( !missing(data) && !is.null(data) )
 		x[] <- data
-	x
+	if ( validObject(x) )
+		x
 }
 
 setMethod("as.factor", "matter_fct",

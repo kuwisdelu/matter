@@ -22,8 +22,9 @@ matter_list <- function(data, type = "double", path = NULL,
 		}
 		if ( is.null(names) )
 			names <- names(data)
-		if ( !all(vapply(data, is.atomic, logical(1))) )
-			stop("all list elements must be atomic vectors")
+		valid <- valid_matter_list_elts(data)
+		if ( !isTRUE(valid) )
+			stop(valid)
 	}
 	if ( is.null(path) )
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
@@ -74,6 +75,17 @@ matter_list <- function(data, type = "double", path = NULL,
 	x
 }
 
+valid_matter_list_elts <- function(list)
+{
+	for ( x in list ) {
+		if ( !is.atomic(x) || is.complex(x) || (is.character(x) && length(x) != 1L) )
+			return(paste0("matter list elements must be of type ",
+				"'raw', 'logical', 'integer', 'double', or _scalar_ 'character' ",
+					"(", sQuote(class(x)), " provided)"))
+	}
+	TRUE
+}
+
 struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
 {
 	args <- list(...)
@@ -93,8 +105,6 @@ struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
 
 setMethod("as.list", "matter_list",
 	function(x, ...) {
-		names(x) <- NULL
-		dimnames(x) <- NULL
 		if ( getOption("matter.coerce.altrep") ) {
 			as.altrep(x)
 		} else {

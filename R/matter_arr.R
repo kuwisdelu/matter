@@ -69,7 +69,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 				paste0(sQuote(path[overwrite]), collapse=", "))
 	}
 	if ( all(exists) && missing(data) ) {
-		# FIXME: can we infer the NA dims instead of overwriting all?
+		# can we infer the NA dims instead of overwriting all?
 		if ( anyNA(dim) && anyNA(extent) ) {
 			sizes <- file.size(path)
 			dim <- sum((sizes - offset) %/% sizeof(type))
