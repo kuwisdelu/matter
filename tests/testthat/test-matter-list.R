@@ -32,8 +32,17 @@ test_that("matter list", {
 
 	expect_equal(c(x, x), c(y, y)[])
 
+	x$dbl[3L] <- 3.333
 	y$dbl[3L] <- 3.333
 	expect_equal(3.333, y$dbl[3L])
+
+	x2 <- list(
+		extra1=c(100, 101, 102),
+		extra2=c(2020, 2021, 2022))
+	y2 <- matter_list(x2, path=path(y), append=TRUE)
+	
+	expect_equal(c(x, x2), c(y, y2)[])
+	expect_equal(path(y), path(y2))
 
 })
 

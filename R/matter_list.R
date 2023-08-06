@@ -65,6 +65,7 @@ matter_list <- function(data, type = "double", path = NULL,
 			stop("error creating file(s): ",
 				paste0(sQuote(newfile[!success]), collapse=", "))
 	}
+	path <- normalizePath(path, mustWork=TRUE)
 	x <- new("matter_list",
 		data=atoms(
 			source=path,

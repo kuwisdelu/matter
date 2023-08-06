@@ -282,8 +282,9 @@ test_that("matter matrix combining", {
 	v1 <- sort(round(10 * runif(10)))
 	v2 <- sort(round(10 * runif(10)))
 	x <- matter_vec(v1)
-	y <- matter_vec(v2)
+	y <- matter_vec(v2, path=path(x), append=TRUE)
 	expect_equal(c(v1, v2), c(x, y)[])
+	expect_equal(path(x), path(y))
 
 	set.seed(1)
 	vals <- sort(round(10 * runif(35), 2))

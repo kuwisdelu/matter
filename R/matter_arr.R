@@ -33,7 +33,7 @@ setClass("matter_mat",
 			adims <- dim(object@data)
 			if ( isTRUE(object@transpose) )
 				adims <- rev(adims)
-			if ( !all(object@dim == adims) )
+			if ( !isTRUE(all(object@dim == adims)) )
 				errors <- c(errors, paste0("'indexed' is true but atoms groups [",
 					paste0(adims, collapse=", "),
 					"] are non-comforbable with array dimensions [",
@@ -111,6 +111,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 			stop("error creating file(s): ",
 				paste0(sQuote(newfile[!success]), collapse=", "))
 	}
+	path <- normalizePath(path, mustWork=TRUE)
 	x <- new("matter_arr",
 		data=atoms(
 			source=path,
