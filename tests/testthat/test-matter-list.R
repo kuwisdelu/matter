@@ -46,6 +46,23 @@ test_that("matter list", {
 
 })
 
+test_that("matter list coercion", {
+
+	x <- list(
+		a=c(1L, 2L, 3L, 4L, 5L, 6L),
+		b=c(1.0, 1.01, 1.11, 2.0, 2.22, 3.33))
+	y <- matter_list(x)
+
+	y2 <- as(y, "matter_arr")
+	y3 <- as(y, "matter_vec")
+	y4 <- as(y, "matter_mat")
+	
+	expect_equivalent(unlist(x), y2[])
+	expect_equivalent(unlist(x), y3[])
+	expect_equal(simplify2array(x), y4[])
+
+})
+
 test_that("matter struct", {
 
 	x <- struct(first=c(int=1), second=c(double=1))

@@ -47,7 +47,7 @@ setAs("matter_list", "matter_str",
 			type=from@type,
 			dim=from@dim,
 			names=from@names,
-			dimnames=from@dimnames,
+			dimnames=NULL,
 			encoding="unknown")
 		if ( validObject(x) )
 			x
@@ -60,7 +60,7 @@ setAs("matter_str", "matter_list",
 			type=from@type,
 			dim=from@dim,
 			names=from@names,
-			dimnames=from@dimnames)
+			dimnames=NULL)
 		if ( validObject(x) )
 			x
 	})

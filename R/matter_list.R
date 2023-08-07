@@ -110,6 +110,41 @@ struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
 		lengths=lens, names=names, readonly=readonly)
 }
 
+setAs("matter_list", "matter_arr",
+	function(from) {
+		x <- new("matter_arr",
+			data=ungroup_atoms(from@data),
+			type=topmode_Rtype(from@type),
+			dim=sum(from@dim),
+			names=NULL,
+			dimnames=NULL,
+			ops=NULL,
+			transpose=FALSE)
+		if ( validObject(x) )
+			x
+	})
+
+setAs("matter_list", "matter_vec",
+	function(from) as(as(from, "matter_arr"), "matter_vec"))
+
+setAs("matter_list", "matter_mat",
+	function(from) {
+		adims <- dim(from@data)
+		if ( anyNA(adims) )
+			stop("can't coerce matter list with different lengths to a matrix")
+		x <- new("matter_mat",
+			data=from@data,
+			type=topmode_Rtype(from@type),
+			dim=adims,
+			names=NULL,
+			dimnames=if (is.null(from@names)) NULL else list(NULL, from@names),
+			ops=NULL,
+			transpose=FALSE,
+			indexed=TRUE)
+		if ( validObject(x) )
+			x
+	})
+
 setMethod("as.list", "matter_list",
 	function(x, ...) {
 		if ( getOption("matter.coerce.altrep") ) {

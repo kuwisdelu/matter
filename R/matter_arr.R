@@ -202,10 +202,10 @@ matter_mat <- function(data, type = "double", path = NULL,
 }
 
 setAs("matter_arr", "matter_vec",
-	function(from) new("matter_vec", from, dim=length(from)))
+	function(from) new("matter_vec", from, dim=length(from), dimnames=NULL))
 
 setAs("matter_mat", "matter_vec",
-	function(from) new("matter_vec", from, dim=length(from)))
+	function(from) new("matter_vec", from, dim=length(from), dimnames=NULL))
 
 setAs("matter_arr", "matter_mat",
 	function(from) {
@@ -217,7 +217,7 @@ setAs("matter_arr", "matter_mat",
 setAs("matter_vec", "matter_mat",
 	function(from) {
 		dm <- c(length(from), 1L)
-		x <- new("matter_mat", from, dim=dm, indexed=FALSE)
+		x <- new("matter_mat", from, dim=dm, names=NULL, indexed=FALSE)
 		if ( validObject(x) )
 			x
 	})
