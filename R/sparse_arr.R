@@ -374,7 +374,7 @@ setMethod("nnzero", "sparse_arr",
 	function(x, na.counted = NA) {
 		if ( !missing(na.counted) )
 			warning("argument 'na.counted' will be ignored")
-		if ( is(x@data, "matter_OR_list") ) {
+		if ( is_sparse_arr_LIL(x) ) {
 			sum(lengths(x@data))
 		} else {
 			length(x@data)

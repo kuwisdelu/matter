@@ -51,5 +51,5 @@ setMethod("as.altrep", "matter_str",
 setMethod("as.altrep", "matter_list",
 	function(x, ...)
 	{
-		stop("not implemented yet")
+		stop("ALTREP for matter list not implemented yet") # TODO
 	})

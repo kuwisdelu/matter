@@ -1,4 +1,21 @@
 
+CHANGES IN VERSION 2.3.14 [2023-8-7]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Added 'append' argument to matter constructors
+    o Simplified 'sparse_arr' implementation by removing
+        shared index representation (which was not really used)
+    o When writing to an output file, 'chunkApply()' and friends
+        now write entire chunks instead of each element
+    o Added coercions from 'matter_list' to 'matter_arr', etc.
+
+BUG FIXES
+
+    o No longer truncate existing files when creating a matter object
+        if nonexistent files are also included in the path
+
 CHANGES IN VERSION 2.3.13 [2023-8-5]
 -----------------------------------
 
