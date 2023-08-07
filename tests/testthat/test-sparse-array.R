@@ -203,57 +203,6 @@ test_that("sparse matrix subsetting (csr)", {
 
 })
 
-test_that("sparse matrix subsetting w/ shared index", {
-
-	set.seed(1)
-	x <- round(runif(200), 2)
-	dim(x) <- c(20, 10)
-	y <- sparse_mat(x, index=seq_len(20L) - 1L)
-
-	expect_equal(x, y[])
-	expect_equal(x[,1], y[,1])
-	expect_equal(x[1,], y[1,])
-	expect_equal(x[,10], y[,10])
-	expect_equal(x[20,], y[20,])
-	expect_equal(x[1:10,1:5], y[1:10,1:5])
-	expect_equal(x[10:1,5:1], y[10:1,5:1])
-	expect_equal(x[11:20,6:10], y[11:20,6:10])
-	expect_equal(x[,c(1,NA,10)], y[,c(1,NA,10)])
-	expect_equal(x[c(1,NA,10),], y[c(1,NA,10),])
-	expect_error(y[,-1])
-	expect_error(y[-1,])
-	expect_error(y[,ncol(y) + 1])
-	expect_error(y[nrow(y) + 1,])
-
-	z <- y[1:5,1:5,drop=NULL]
-
-	expect_is(z, "sparse_mat")
-	expect_equal(x[1:5,1:5], z[])
-
-	y <- sparse_mat(x, index=seq_len(10L) - 1L, rowMaj=TRUE)
-
-	expect_equal(x, y[])
-	expect_equal(x[,1], y[,1])
-	expect_equal(x[1,], y[1,])
-	expect_equal(x[,10], y[,10])
-	expect_equal(x[20,], y[20,])
-	expect_equal(x[1:10,1:5], y[1:10,1:5])
-	expect_equal(x[10:1,5:1], y[10:1,5:1])
-	expect_equal(x[11:20,6:10], y[11:20,6:10])
-	expect_equal(x[,c(1,NA,10)], y[,c(1,NA,10)])
-	expect_equal(x[c(1,NA,10),], y[c(1,NA,10),])
-	expect_error(y[,-1])
-	expect_error(y[-1,])
-	expect_error(y[,ncol(y) + 1])
-	expect_error(y[nrow(y) + 1,])
-
-	z <- y[1:5,1:5,drop=NULL]
-
-	expect_is(z, "sparse_mat")
-	expect_equal(x[1:5,1:5], z[])
-
-})
-
 test_that("sparse matrix subsetting w/ interpolation", {
 
 	set.seed(1)

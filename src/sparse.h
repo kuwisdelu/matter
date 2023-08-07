@@ -178,10 +178,7 @@ class SparseArray : public Sparse {
 		}
 
 		bool has_list_storage() {
-			if ( Rf_isS4(_data) )
-				return Rf_inherits(_data, "matter_list");
-			else
-				return Rf_isVectorList(_data);
+			return !has_pointers();
 		}
 
 		template<typename T>
@@ -249,7 +246,7 @@ class SparseArray : public Sparse {
 				else
 					ans = VECTOR_ELT(_data, i);
 			}
-			else if ( has_pointers() )
+			else
 			{
 				if ( Rf_isS4(_data) )
 				{
@@ -258,24 +255,6 @@ class SparseArray : public Sparse {
 				}
 				else
 					ans = extract_region(_data, p.first, p.second - p.first);
-			}
-			else
-			{
-				size_t n;
-				if ( Rf_isS4(_index) )
-				{
-					MatterArray x(_index);
-					n = x.length();
-				}
-				else
-					n = XLENGTH(_index);
-				if ( Rf_isS4(_data) )
-				{
-					MatterArray x(_data);
-					ans = x.get_region(i * n, n);
-				}
-				else
-					ans = extract_region(_data, i * n, n);
 			}
 			PROTECT(ans);
 			ans = Rf_coerceVector(ans, datatype());
@@ -301,7 +280,7 @@ class SparseArray : public Sparse {
 				else
 					ans = VECTOR_ELT(_index, i);
 			}
-			else if ( has_pointers() )
+			else
 			{
 				if ( Rf_isS4(_index) )
 				{
@@ -310,16 +289,6 @@ class SparseArray : public Sparse {
 				}
 				else
 					ans = extract_region(_index, p.first, p.second - p.first);
-			}
-			else
-			{
-				if ( Rf_isS4(_index) )
-				{
-					MatterArray x(_index);
-					ans = x.get_region(0, x.length());
-				}
-				else
-					ans = _index;
 			}
 			PROTECT(ans);
 			ans = Rf_coerceVector(ans, indextype());

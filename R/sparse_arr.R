@@ -46,8 +46,10 @@ setClass("sparse_arr",
 			ddim <- object@dim[length(object@dim)]
 			sdim <- prod(object@dim[-length(object@dim)])
 		}
-		if ( is(object@data, "matter_OR_list") ) {
-			# data and index are both lists
+		if ( is.null(object@pointers) ) {
+			# data and index should both be lists
+			if ( !is(object@data, "matter_OR_list") || !is(object@index, "matter_OR_list") )
+				errors <- c(errors, "'data' and 'index' must both be list-like when pointers are NULL")
 			if ( length(object@data) != length(object@index) )
 				errors <- c(errors, paste0("length of 'data' [", length(object@data),
 					"] must match length of 'index' [", length(object@index), "]"))
@@ -56,8 +58,10 @@ setClass("sparse_arr",
 			if ( length(object@data) != ddim )
 				errors <- c(errors, paste0("length of 'data' [", length(object@data),
 					"] must match dense extent of array [", ddim, "]"))
-		} else if ( !is.null(object@pointers) ) {
-			# data and index are both arrays
+		} else {
+			# data and index should both be arrays
+			if ( !is(object@data, "matter_OR_array") || !is(object@index, "matter_OR_array") )
+				errors <- c(errors, "'data' and 'index' must both be array-like when pointers are non-NULL")
 			if ( length(object@data) != length(object@index) )
 				errors <- c(errors, paste0("length of 'data' [", length(object@data),
 					"] must match length of 'index' [", length(object@index), "]"))
@@ -68,13 +72,6 @@ setClass("sparse_arr",
 			if ( length(object@pointers) != ddim + 1 )
 				errors <- c(errors, paste0("length of 'pointers' [", length(object@pointers),
 					"] must match dense extent of array [", ddim, "] plus 1"))
-		} else {
-			# data is an array with shared index
-			if ( length(object@data) %% length(object@index) != 0 )
-				errors <- c(errors, "'index' and 'data' have non-conformable lengths")
-			if ( length(object@data) / length(object@index) != ddim )
-				errors <- c(errors, paste0("division of lengths of 'data' and 'index' must ",
-					"match dense extent of array [", ddim, "]"))
 		}
 		if ( !is.null(object@domain) && length(object@domain) != sdim )
 			errors <- c(errors, paste0("length of 'domain' [", length(object@domain),
@@ -126,7 +123,7 @@ sparse_vec <- function(data, index, type = "double",
 		data=data,
 		type=as_Rtype(type),
 		index=index,
-		pointers=NULL,
+		pointers=c(0, length(data)),
 		domain=domain,
 		offset=as.integer(offset),
 		dim=length,
@@ -183,8 +180,8 @@ sparse_mat <- function(data, index, type = "double",
 			}
 		}
 	}
-	if ( is(data, "matter_OR_list") ) {
-		# data and index are both lists
+	if ( is.null(pointers) ) {
+		# data and index should both be lists
 		if ( missing(nrow) && rowMaj )
 			nrow <- length(data)
 		if ( missing(nrow) && !rowMaj )
@@ -193,8 +190,8 @@ sparse_mat <- function(data, index, type = "double",
 			ncol <- length(domain)
 		if ( missing(ncol) && !rowMaj )
 			ncol <- length(data)
-	} else if ( !is.null(pointers) ) {
-		# data and index are both arrays
+	} else {
+		# data and index should both be arrays
 		if ( missing(nrow) && rowMaj )
 			nrow <- length(pointers) - 1L
 		if ( missing(nrow) && !rowMaj )
@@ -203,12 +200,6 @@ sparse_mat <- function(data, index, type = "double",
 			ncol <- length(domain)
 		if ( missing(ncol) && !rowMaj )
 			ncol <- length(pointers) - 1L
-	} else {
-		# data is an array with shared index
-		if ( missing(nrow) && rowMaj )
-			nrow <- length(data) / length(index)
-		if ( missing(ncol) && !rowMaj )
-			ncol <- length(data) / length(index)
 	}
 	new("sparse_mat",
 		data=data,
@@ -290,18 +281,15 @@ setMethod("atomdata", "sparse_arr",
 	function(object, i = NULL, ...)
 	{
 		if ( !is.null(i) ) {
-			if ( is(object@data, "matter_OR_list") ) {
+			if ( is_sparse_arr_LIL(object) ) {
 				object@data[[i]]
-			} else if ( !is.null(object@pointers) ) {
+			} else {
 				j <- c(object@pointers[i] + 1L, object@pointers[i + 1L])
 				if ( j[1L] != j[2L] ) {
 					object@data[j[1L]:j[2L]]
 				} else {
 					vector(type(object))
 				}
-			} else {
-				j <- ((i - 1L) * length(object@index)) + 1L
-				object@data[j:(j + length(object@index) - 1L)]
 			}
 		} else {
 			object@data
@@ -315,17 +303,15 @@ setMethod("atomindex", "sparse_arr",
 	function(object, i = NULL, ...)
 	{
 		if ( !is.null(i) ) {
-			if ( is(object@index, "matter_OR_list") ) {
+			if ( is_sparse_arr_LIL(object) ) {
 				object@index[[i]]
-			} else if ( !is.null(object@pointers) ) {
+			} else {
 				j <- c(object@pointers[i] + 1L, object@pointers[i + 1L])
 				if ( j[1L] != j[2L] ) {
 					object@index[j[1L]:j[2L]]
 				} else {
 					vector(type(object))
 				}
-			} else {
-				object@index
 			}
 		} else {
 			object@index
@@ -397,12 +383,10 @@ setMethod("nnzero", "sparse_arr",
 
 setMethod("lengths", "sparse_arr",
 	function(x, use.names = TRUE) {
-		if ( is(x@data, "matter_OR_list") ) {
+		if ( is_sparse_arr_LIL(x) ) {
 			lens <- lengths(x@data)
-		} else if ( !is.null(x@pointers) ) {
-			lens <- diff(x@pointers)
 		} else {
-			lens <- rep.int(length(x@index), length(x@data) / length(x@index))
+			lens <- diff(x@pointers)
 		}
 		if ( x@transpose ) {
 			set_names(lens, rownames(x))
@@ -414,15 +398,15 @@ setMethod("lengths", "sparse_arr",
 setMethod("dim", "sparse_vec", function(x) NULL)
 
 is_sparse_arr_CSX <- function(x) {
-	is(x@data, "matter_OR_array")
+	!is.null(x@pointers)
 }
 
 is_sparse_arr_LIL <- function(x) {
-	is(x@data, "matter_OR_list")
+	is.null(x@pointers)
 }
 
 convert_sparse_arr_CSX <- function(x) {
-	if ( is(x@data, "matter_OR_array") )
+	if ( is_sparse_arr_CSX(x) )
 		return(x)
 	x@pointers <- c(0, cumsum(lengths(x@index)))
 	x@index <- unlist(x@index)
@@ -432,7 +416,7 @@ convert_sparse_arr_CSX <- function(x) {
 }
 
 convert_sparse_arr_LIL <- function(x) {
-	if ( is(x@data, "matter_OR_list") )
+	if ( is_sparse_arr_LIL(x) )
 		return(x)
 	fun <- function(i, j, X) {
 		if ( i == j ) {
@@ -441,20 +425,11 @@ convert_sparse_arr_LIL <- function(x) {
 			X[(i + 1L):j]
 		}
 	}
-	if ( is.null(x@pointers) ) {
-		ddim <- length(x@data) / length(x@index)
-		pointers <- rep.int(length(x@index), ddim)
-		pointers <- cumsum(c(0, pointers))
-		x@data <- mapply(fun, pointers[-length(pointers)],
-			pointers[-1L], MoreArgs=list(X=x@data), SIMPLIFY=FALSE)
-		x@index <- rep(list(x@index), ddim)
-	} else {
-		pointers <- x@pointers
-		x@data <- mapply(fun, pointers[-length(pointers)],
-			pointers[-1L], MoreArgs=list(X=x@data), SIMPLIFY=FALSE)
-		x@index <- mapply(fun, pointers[-length(pointers)],
-			pointers[-1L], MoreArgs=list(X=x@index), SIMPLIFY=FALSE)
-	}
+	pointers <- x@pointers
+	x@data <- mapply(fun, pointers[-length(pointers)],
+		pointers[-1L], MoreArgs=list(X=x@data), SIMPLIFY=FALSE)
+	x@index <- mapply(fun, pointers[-length(pointers)],
+		pointers[-1L], MoreArgs=list(X=x@index), SIMPLIFY=FALSE)
 	x@pointers <- NULL
 	if ( validObject(x) )
 		x
@@ -482,7 +457,7 @@ get_sparse_arr_elts <- function(x, i = NULL) {
 }
 
 set_sparse_arr_elts <- function(x, i = NULL, value = 0) {
-	stop("sparse array assignment is not implemented yet")
+	stop("sparse array assignment is not supported yet") # TODO
 }
 
 subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL) {
@@ -494,34 +469,17 @@ subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL) {
 		jj <- j
 	}
 	if ( !is.null(jj) ) {
-		if ( is(x@data, "matter_OR_array") )
-		{
-			sdim <- length(x@index)
-			ddim <- length(x@data) / sdim
-			if ( is.null(pointers) ) {
-				if ( is.null(dim(x@data)) )
-					dim(x@data) <- c(sdim, ddim)
-				if ( is.matter(x@data) ) {
-					x@data <- x@data[,jj,drop=NULL]
-				} else {
-					x@data <- x@data[,jj,drop=FALSE]
-				}
-			} else {
-				x <- convert_sparse_arr_LIL(x)
-			}
+		if ( is_sparse_arr_CSX(x) )
+			x <- convert_sparse_arr_LIL(x)
+		if ( is.matter(x@data) ) {
+			x@data <- x@data[jj,drop=NULL]
+		} else {
+			x@data <- x@data[jj,drop=FALSE]
 		}
-		if ( is(x@data, "matter_OR_list") )
-		{
-			if ( is.matter(x@data) ) {
-				x@data <- x@data[jj,drop=NULL]
-			} else {
-				x@data <- x@data[jj,drop=FALSE]
-			}
-			if ( is.matter(x@index) ) {
-				x@index <- x@index[jj,drop=NULL]
-			} else {
-				x@index <- x@index[jj,drop=FALSE]
-			}
+		if ( is.matter(x@index) ) {
+			x@index <- x@index[jj,drop=NULL]
+		} else {
+			x@index <- x@index[jj,drop=FALSE]
 		}
 	}
 	if ( !is.null(ii) ) {
@@ -549,7 +507,7 @@ get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE) {
 }
 
 set_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0) {
-	stop("sparse array assignment is not implemented yet")
+	stop("sparse array assignment is not implemented yet") # TODO
 }
 
 setMethod("cbind2", c("sparse_mat", "sparse_mat"),
@@ -560,13 +518,17 @@ setMethod("cbind2", c("sparse_mat", "sparse_mat"),
 			stop("can't cbind row-major matrices")
 		if ( !is.null(x@ops) )
 			warning("deferred operations will be dropped")
+		if ( is.null(x@pointers) && is.null(y@pointers) ) {
+			pointers <- NULL
+		} else {
+			if ( is.null(x@pointers) )
+				x <- convert_sparse_arr_CSX(x)
+			if ( is.null(y@pointers) )
+				y <- convert_sparse_arr_CSX(y)
+			pointers <- c(x@pointers, y@pointers + max(x@pointers))
+		}
 		data <- c(x@data, y@data)
 		index <- c(x@index, y@index)
-		if ( !is.null(x@pointers) ) {
-			pointers <- c(x@pointers, y@pointers + max(x@pointers))
-		} else {
-			pointers <- NULL
-		}
 		new(class(x), x, data=data,
 			index=index, pointers=pointers,
 			dim=c(nrow(x), ncol(x) + ncol(y)),
@@ -582,13 +544,17 @@ setMethod("rbind2", c("sparse_mat", "sparse_mat"),
 			stop("can't rbind column-major matrices")
 		if ( !is.null(x@ops) )
 			warning("deferred operations will be dropped")
+		if ( is.null(x@pointers) && is.null(y@pointers) ) {
+			pointers <- NULL
+		} else {
+			if ( is.null(x@pointers) )
+				x <- convert_sparse_arr_CSX(x)
+			if ( is.null(y@pointers) )
+				y <- convert_sparse_arr_CSX(y)
+			pointers <- c(x@pointers, y@pointers + max(x@pointers))
+		}
 		data <- c(x@data, y@data)
 		index <- c(x@index, y@index)
-		if ( !is.null(x@pointers) ) {
-			pointers <- c(x@pointers, y@pointers + max(x@pointers))
-		} else {
-			pointers <- NULL
-		}
 		new(class(x), x, data=data,
 			index=index, pointers=pointers,
 			dim=c(nrow(x) + nrow(y), ncol(x)),
