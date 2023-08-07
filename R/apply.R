@@ -19,7 +19,7 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 		outpath <- normalizePath(outpath, mustWork=FALSE)
 		if ( verbose )
 			message("writing output to path = ", sQuote(outpath))
-		put <- remote_writer(pid, outpath)
+		put <- chunk_writer(pid, outpath)
 	}
 	CHUNKFUN <- function(X, ...) {
 		dn <- switch(MARGIN, nrow(X), ncol(X))
@@ -40,11 +40,13 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 					X[,dp[[i]],drop=FALSE])
 			}
 			ans[[ii]] <- FUN(xi, ...)
-			if ( outfile )
-				ans[[ii]] <- put(ans[[ii]])
 			ii <- ii + 1L
 		}
-		ans
+		if ( outfile ) {
+			put(ans)
+		} else {
+			ans
+		}
 	}
 	if ( MARGIN == 1L ) {
 		ans.list <- chunk_rowapply(X, CHUNKFUN, ...,
@@ -55,8 +57,8 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 			verbose=verbose, BPPARAM=BPPARAM)
 		names(ans.list) <- dimnames(X)[[2L]]
 	}
-	if ( outfile ) {
-		ans.list <- remote_collect(ans.list, outpath, simplify)
+	if ( outfile && isTRUE(simplify) ) {
+		ans.list <- simplify2matter(ans.list)
 	} else if ( is.function(simplify) || is.character(simplify) ) {
 		ans.list <- match.fun(simplify)(ans.list)
 	} else if ( isTRUE(simplify) ) {
@@ -137,7 +139,7 @@ chunkLapply <- function(X, FUN, ...,
 		outpath <- normalizePath(outpath, mustWork=FALSE)
 		if ( verbose )
 			message("writing output to path = ", sQuote(outpath))
-		put <- remote_writer(pid, outpath)
+		put <- chunk_writer(pid, outpath)
 	}
 	CHUNKFUN <- function(X, ...) {
 		ans <- vector("list", attr(X, "chunksize"))
@@ -153,16 +155,18 @@ chunkLapply <- function(X, FUN, ...,
 				xi <- X[dp[[i]]]
 			}
 			ans[[ii]] <- FUN(xi, ...)
-			if ( outfile )
-				ans[[ii]] <- put(ans[[ii]])
 			ii <- ii + 1L
 		}
-		ans
+		if ( outfile ) {
+			put(ans)
+		} else {
+			ans
+		}
 	}
 	ans.list <- chunk_lapply(X, CHUNKFUN, ..., verbose=verbose, BPPARAM=BPPARAM)
 	names(ans.list) <- names(X)
-	if ( outfile ) {
-		ans.list <- remote_collect(ans.list, outpath, simplify)
+	if ( outfile && isTRUE(simplify) ) {
+		ans.list <- simplify2matter(ans.list)
 	} else if ( is.function(simplify) || is.character(simplify) ) {
 		ans.list <- match.fun(simplify)(ans.list)
 	} else if ( isTRUE(simplify) ) {
@@ -208,7 +212,7 @@ chunkMapply <- function(FUN, ...,
 		outpath <- normalizePath(outpath, mustWork=FALSE)
 		if ( verbose )
 			message("writing output to path = ", sQuote(outpath))
-		put <- remote_writer(pid, outpath)
+		put <- chunk_writer(pid, outpath)
 	}
 	CHUNKFUN <- function(..., MoreArgs) {
 		XS <- list(...)
@@ -225,16 +229,18 @@ chunkMapply <- function(FUN, ...,
 				xsi <- lapply(XS, `[`, dp[[i]])
 			}
 			ans[[ii]] <- do.call(FUN, c(xsi, MoreArgs))
-			if ( outfile )
-				ans[[ii]] <- put(ans[[ii]])
 			ii <- ii + 1L
 		}
-		ans
+		if ( outfile ) {
+			put(ans)
+		} else {
+			ans
+		}
 	}
 	ans.list <- chunk_mapply(CHUNKFUN, ..., verbose=verbose, BPPARAM=BPPARAM)
 	names(ans.list) <- names(...elt(1L))
-	if ( outfile ) {
-		ans.list <- remote_collect(ans.list, outpath, simplify)
+	if ( outfile && isTRUE(simplify) ) {
+		ans.list <- simplify2matter(ans.list)
 	} else if ( is.function(simplify) || is.character(simplify) ) {
 		ans.list <- match.fun(simplify)(ans.list)
 	} else if ( isTRUE(simplify) ) {
@@ -312,51 +318,29 @@ chunkify <- function(x, nchunks = 20L, depends = NULL) {
 	ans
 }
 
+chunk_writer <- function(pid, path) {
+	function(x) {
+		ipclock(pid)
+		ans <- matter_list(x, path=path, append=TRUE)
+		ipcunlock(pid)
+		ans
+	}
+}
+
 print_chunk_progress <- function(i, nchunks) {
 	message("processing chunk ",
 		attr(i, "chunkid"), "/", nchunks,
 		" (", length(i), " items)")
 }
 
-remote_writer <- function(pid, path) {
-	fun <- function(x) {
-		ipclock(pid)
-		eof <- file.size(path)
-		eof <- if (is.na(eof)) 0 else eof
-		if ( !is.atomic(x) || is.complex(x) || is.character(x) )
-			stop("file output must be of type ",
-				"'raw', 'logical', 'integer', or 'double' ",
-					"(", sQuote(class(x)), " provided)")
-		ans <- matter_arr(x, type=typeof(x),
-			path=path, offset=eof, readonly=FALSE)
-		ipcunlock(pid)
-		as.double(c(
-			type=type(ans),
-			offset=eof,
-			extent=length(ans)))
+simplify2matter <- function(ans) {
+	adims <- dim(atomdata(ans))
+	if ( anyNA(adims) ) {
+		ans
+	} else if ( any(adims == 1L) ) {
+		as(ans, "matter_vec")
+	} else {
+		as(ans, "matter_mat")
 	}
-	fun
 }
 
-remote_collect <- function(ans, path, simplify) {
-	nms <- names(ans)
-	dnm <- if (is.null(nms)) NULL else list(NULL, nms)
-	ans <- do.call(rbind, ans)
-	type <- as_Rtype(ans[,1])
-	offset <- ans[,2]
-	extent <- ans[,3]
-	maybe_vector <- all(extent == 1L)
-	maybe_matrix <- n_unique(extent) == 1L
-	simplify <- isTRUE(simplify)
-	if ( simplify && maybe_vector ) {
-		x <- matter_vec(type=type, path=path,
-			offset=offset, extent=extent, names=nms)
-	} else if ( simplify && maybe_matrix ) {
-		x <- matter_mat(type=type, path=path,
-			offset=offset, extent=extent, dimnames=dnm)
-	} else {
-		x <- matter_list(type=type, path=path,
-			offset=offset, extent=extent, names=nms)
-	}
-	x
-}

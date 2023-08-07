@@ -110,9 +110,9 @@ struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
 		lengths=lens, names=names, readonly=readonly)
 }
 
-setAs("matter_list", "matter_arr",
+setAs("matter_list", "matter_vec",
 	function(from) {
-		x <- new("matter_arr",
+		x <- new("matter_vec",
 			data=ungroup_atoms(from@data),
 			type=topmode_Rtype(from@type),
 			dim=sum(from@dim),
@@ -123,9 +123,6 @@ setAs("matter_list", "matter_arr",
 		if ( validObject(x) )
 			x
 	})
-
-setAs("matter_list", "matter_vec",
-	function(from) as(as(from, "matter_arr"), "matter_vec"))
 
 setAs("matter_list", "matter_mat",
 	function(from) {
@@ -144,6 +141,9 @@ setAs("matter_list", "matter_mat",
 		if ( validObject(x) )
 			x
 	})
+
+setAs("matter_list", "matter_arr",
+	function(from) as(as(from, "matter_vec"), "matter_arr"))
 
 setMethod("as.list", "matter_list",
 	function(x, ...) {

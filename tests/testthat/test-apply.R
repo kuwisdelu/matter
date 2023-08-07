@@ -27,8 +27,8 @@ test_that("chunkLapply", {
 		chunkMapply(`+`, a, b, nchunks=10),
 		mapply(`+`, a, b, SIMPLIFY=FALSE))
 
-	set.seed(1)
 	register(SerialParam())
+	set.seed(1)	
 	u <- sort(runif(100))
 	v <- rev(u)
 	ind <- roll(seq_along(u), width=5, na.drop=TRUE)
@@ -64,6 +64,16 @@ test_that("chunkLapply i/o", {
 	expect_equal(ans1[], lapply(y, log1p))
 	expect_equal(ans2[], sapply(y, log1p))
 	expect_equal(ans3[], sapply(y, mean))
+
+	register(SerialParam())
+	set.seed(1)
+	u <- replicate(10, runif(10), simplify=FALSE)
+	v <- replicate(10, runif(10), simplify=FALSE)
+	f <- function(x, y) x + y
+
+	ans4 <- chunkMapply(f, u, v, outpath=path)
+
+	expect_equal(ans4[], Map(f, u, v))
 
 })
 
