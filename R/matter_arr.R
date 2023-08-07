@@ -72,8 +72,8 @@ matter_arr <- function(data, type = "double", path = NULL,
 	exists <- file.exists(path)
 	if ( append ) {
 		readonly <- FALSE
-		size <- file.size(path)
-		offset <- ifelse(exists, offset + size, offset)
+		eof <- file.size(path)
+		offset <- ifelse(exists, offset + eof, offset)
 	}
 	if ( is.na(readonly) )
 		readonly <- all(exists) && !missing(data) && !is.null(data)
