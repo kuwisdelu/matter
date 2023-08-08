@@ -654,7 +654,7 @@ void knn_search(int * ptr, T * x, T * data, size_t k, size_t n,
 			// sort this neighbor into place
 			while ( i > 0 && lt(best[i], best[i - 1]) )
 			{
-				swap(ptr[i], ptr[i - 1], double);
+				swap(ptr[i], ptr[i - 1], int);
 				swap(best[i], best[i - 1], double);
 				i--;
 			}
