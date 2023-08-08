@@ -77,7 +77,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 	}
 	if ( is.na(readonly) )
 		readonly <- all(exists) && !missing(data) && !is.null(data)
-	if ( any(exists) && !readonly ) {
+	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
 		overwrite <- offset < file.size(path)
 		if ( any(overwrite) )
 			warning("data may overwrite existing file(s): ",
