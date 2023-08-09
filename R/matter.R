@@ -228,7 +228,7 @@ setReplaceMethod("readonly", "matter_",
 	})
 
 setMethod("checksum", "matter_",
-	function(x, algo="sha1", ...) {
-		checksum(x@data, algo=algo, ...)
+	function(x, algo = "sha1", ...) {
+		checksum(path(x), algo=algo, ...)
 	})
 

@@ -142,12 +142,18 @@ setReplaceMethod("readonly", "atoms",
 			x
 	})
 
-setMethod("checksum", "atoms",
-	function(x, algo="sha1", ...) {
-		hash <- sapply(path(x), function(filename)
+setMethod("checksum", "character",
+	function(x, algo = "sha1", ...) {
+		x <- normalizePath(x, mustWork=TRUE)
+		hash <- sapply(x, function(filename)
 			digest(filename, algo=algo, file=TRUE, ...))
 		attr(hash, "algo") <- algo
 		hash
+	})
+
+setMethod("checksum", "atoms",
+	function(x, algo = "sha1", ...) {
+		checksum(path(x), algo=algo, ...)
 	})
 
 read_atom <- function(x, atom, type = "double")

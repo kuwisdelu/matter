@@ -2,23 +2,26 @@
 \docType{methods}
 
 \alias{checksum}
+\alias{checksum,character-method}
 \alias{checksum,atoms-method}
 \alias{checksum,matter_-method}
 
 \title{Calculate Checksums and Cryptographic Hashes}
 
 \description{
-    This is a generic function for applying cryptographic hash functions and calculating checksums for arbitrary R objects.
+    This is a generic function for applying cryptographic hash functions and calculating checksums for externally-stored R objects.
 }
 
 \usage{
 checksum(x, \dots)
 
+\S4method{checksum}{character}(x, algo = "sha1", \dots)
+
 \S4method{checksum}{matter_}(x, algo = "sha1", \dots)
 }
 
 \arguments{
-    \item{x}{An object to be hashed.}
+    \item{x}{A file path or an object to be hashed.}
     
     \item{algo}{The hash function to use.}
 
