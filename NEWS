@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.3.17 [2023-8-11]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Parameter 'filename' in 'struct()' is now 'path'
+
 CHANGES IN VERSION 2.3.16 [2023-8-8]
 -----------------------------------
 

@@ -93,20 +93,24 @@ valid_matter_list_elts <- function(list)
 	TRUE
 }
 
-struct <- function(..., filename = NULL, readonly = FALSE, offset = 0)
+struct <- function(..., path = NULL, readonly = FALSE, offset = 0, filename)
 {
 	args <- list(...)
 	if ( any(lengths(args) != 1L) )
 		stop("all arguments must be length 1")
 	if ( any(sapply(args, function(a) is.null(names(a)))) )
 		stop("all arguments must be a named scalar")
-	if ( !is.null(filename) && length(filename) != 1L )
-		stop("'filename' must be a scalar string")
+	if ( !missing(filename) ) {
+		.Deprecated(msg="'filename' is deprecated, use 'path' instead")
+		path <- filename
+	}
+	if ( !is.null(path) && length(path) != 1L )
+		stop("'path' must be a scalar string")
 	names <- names(args)
 	types <- sapply(args, names, USE.NAMES=FALSE)
 	lens <- as.integer(unlist(args))
 	offset <- offset + c(0, cumsum(sizeof(types) * lens)[-length(lens)])
-	matter_list(NULL, path=filename, type=types, offset=offset,
+	matter_list(NULL, path=path, type=types, offset=offset,
 		lengths=lens, names=names, readonly=readonly)
 }
 

@@ -9,13 +9,13 @@
 }
 
 \usage{
-struct(\dots, filename = NULL, readonly = FALSE, offset = 0)
+struct(\dots, path = NULL, readonly = FALSE, offset = 0, filename)
 }
 
 \arguments{
 	\item{\dots}{Named integers giving the members of the \code{struct}. They should be of the form \code{name=c(type=length)}.}
 
-	\item{filename}{A single string giving the name of the file.}
+	\item{path, filename}{A single string giving the name of the file.}
 
 	\item{readonly}{Should the file be treated as read-only?}
 
