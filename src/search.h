@@ -177,7 +177,7 @@ void quick_sort(Tx * x, size_t start, size_t end, Tv * v = NULL)
 	if ( n == 0 )
 		return;
 	// initialize stack
-	int stack_size = 2 * std::ceil(std::log2(n));
+	int stack_size = 2 * std::ceil(std::log2(n) + 1);
 	int stack [stack_size];
 	int top = -1;
 	stack[++top] = left;
