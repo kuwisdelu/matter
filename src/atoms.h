@@ -188,7 +188,7 @@ class Atoms {
 			AtomInfo ap;
 			while ( i >= 0 && group(atom) == grp && atom < natoms() )
 			{
-				size_t len = extent(atom);
+				index_t len = extent(atom);
 				if ( j <= i && i < j + len ) {
 					ap = {atom, i - j};
 					return ap;
@@ -292,7 +292,7 @@ class Atoms {
 				self_destruct();
 				Rf_error("failed to read data elements");
 			}
-			for ( index_t i = 0; i < size; i++ )
+			for ( size_t i = 0; i < size; i++ )
 				ptr[stride * i] = coerce_cast<Tout>(tmp[i]);
 			Free(tmp);
 			return size;
@@ -310,7 +310,7 @@ class Atoms {
 			if ( pos + size >= extent(atom) )
 				size = extent(atom) - pos; 
 			Tout * tmp = (Tout *) R_Calloc(size, Tout);
-			for ( index_t i = 0; i < size; i++ )
+			for ( size_t i = 0; i < size; i++ )
 				tmp[i] = coerce_cast<Tout>(ptr[stride * i]);
 			index_t off = offset(atom, pos);
 			bool success = _io.wseek(source(atom), off)->write<Tout>(tmp, size);
@@ -561,7 +561,7 @@ class Atoms {
 			int k = 0, num_atoms = 0;
 			for ( int grp = 0; grp < ngroups(); grp++ )
 			{
-				index_t i = 0;
+				size_t i = 0;
 				while ( i < size )
 				{
 					run = compute_run<T>(pindx, i, size, true);
@@ -581,7 +581,7 @@ class Atoms {
 			double * pext = REAL(extents);
 			for ( int grp = 0; grp < ngroups(); grp++ )
 			{
-				index_t i = 0;
+				size_t i = 0;
 				while ( i < size )
 				{
 					run = compute_run<T>(pindx, i, size, true);

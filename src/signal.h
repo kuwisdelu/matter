@@ -45,10 +45,10 @@
 //-----------------------
 
 template<typename Tx, typename Ty>
-double trapz(Tx * x, Ty * y, size_t lower, size_t upper)
+double trapz(Tx * x, Ty * y, index_t lower, index_t upper)
 {
 	double sum = 0, dx;
-	for ( size_t i = lower + 1; i <= upper; i++ )
+	for ( index_t i = lower + 1; i <= upper; i++ )
 	{
 		dx = sdiff(x[i], x[i - 1]);
 		sum += 0.5 * (y[i] + y[i - 1]) * dx;
@@ -507,7 +507,7 @@ void guided_filter(T * x, T * g, size_t n, int width,
 	// calculate variances and covariances
 	double * gg = ptr1;
 	double * gx = ptr2;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(g[i]) || isNA(x[i]) )
 		{
@@ -524,7 +524,7 @@ void guided_filter(T * x, T * g, size_t n, int width,
 	double * sgx = ptr4;
 	mean_filter(gg, n, width, sg);
 	mean_filter(gx, n, width, sgx);
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(g[i]) || isNA(x[i]) )
 		{
@@ -540,7 +540,7 @@ void guided_filter(T * x, T * g, size_t n, int width,
 	// calculate coefficients a and b
 	double * a = ptr1;
 	double * b = ptr2;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		double s0 = sdreg * sdreg;
 		if ( !isNA(ftol) && !isNA(g[i]) )
@@ -565,7 +565,7 @@ void guided_filter(T * x, T * g, size_t n, int width,
 	mean_filter(a, n, width, ua);
 	mean_filter(b, n, width, ub);
 	// calculate output signal
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(g[i]) || isNA(x[i]) )
 			buffer[i] = NA_REAL;
@@ -752,7 +752,7 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 	// interpolate x to match length of y
 	if ( nx != ny )
 	{
-		for ( index_t i = 0, j = 0; i < nx - 1; i++ )
+		for ( size_t i = 0, j = 0; i < nx - 1; i++ )
 		{
 			while ( (j / Ly) <= ((i + 1) / Lx) )
 			{
@@ -767,12 +767,12 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 	}
 	else
 	{
-		for ( index_t i = 0; i < nx; i++ )
+		for ( size_t i = 0; i < nx; i++ )
 			xi[i] = x[i];
 	}
 	// calculate correlation(x, y)
 	double ux = 0, uy = 0;
-	for ( index_t i = 0; i < ny; i++ )
+	for ( size_t i = 0; i < ny; i++ )
 	{
 		ux += xi[i];
 		uy += y[i];
@@ -780,7 +780,7 @@ double icor(T * x, T * y, size_t nx, size_t ny)
 	ux /= ny;
 	uy /= ny;
 	double Sxx = 0, Syy = 0, Sxy = 0;
-	for ( index_t i = 0; i < ny; i++ )
+	for ( size_t i = 0; i < ny; i++ )
 	{
 		Sxx += (ux - xi[i]) * (ux - xi[i]);
 		Syy += (uy - y[i]) * (uy - y[i]);
@@ -942,7 +942,7 @@ inline void bin_update(double * score, int * lower, int * upper,
 	double split_score = score[0];
 	bool did_merge = false, did_split = false;
 	// find which bins to merge and split
-	for ( size_t i = 1; i < nbin; i++ )
+	for ( index_t i = 1; i < nbin; i++ )
 	{
 		if ( score[i - 1] + score[i] < merge_score )
 		{
@@ -956,7 +956,7 @@ inline void bin_update(double * score, int * lower, int * upper,
 		}
 	}
 	// update the bins
-	for ( size_t i = 0; i < nbin; i++ )
+	for ( index_t i = 0; i < nbin; i++ )
 	{
 		if ( i != merge && i != split )
 		{
@@ -1023,11 +1023,11 @@ void downsample_ltob(Tx * x, Tt * t, int n, int * lower, int * upper,
 	double area;
 	Tx xj[3];
 	Tt tj[3];
-	for ( size_t i = 0; i < nbin; i++ )
+	for ( index_t i = 0; i < nbin; i++ )
 	{
 		buffer[i] = lower[i] + ind1;
 		double max_area = 0;
-		for ( size_t j = lower[i]; j <= upper[i]; j++ )
+		for ( index_t j = lower[i]; j <= upper[i]; j++ )
 		{
 			xj[0] = j > 0 ? x[j - 1] : x[0];
 			tj[0] = j > 0 ? t[j - 1] : t[0];
@@ -1056,7 +1056,7 @@ void downsample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
 	double area;
 	Tx xj[3];
 	Tt tj[3];
-	for ( size_t i = 0; i < nbin; i++ )
+	for ( index_t i = 0; i < nbin; i++ )
 	{
 		buffer[i] = lower[i] + ind1;
 		// select left point from previous bucket
@@ -1076,7 +1076,7 @@ void downsample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
 		else {
 			xj[2] = 0;
 			tj[2] = 0;
-			for ( size_t j = lower[i + 1]; j <= upper[i + 1]; j++ )
+			for ( index_t j = lower[i + 1]; j <= upper[i + 1]; j++ )
 			{
 				xj[2] += x[j];
 				tj[2] += t[j];
@@ -1086,7 +1086,7 @@ void downsample_lttb(Tx * x, Tt * t, int n, int * lower, int * upper,
 		}
 		// rank points in current bucket
 		double max_area = 0;
-		for ( size_t j = lower[i]; j <= upper[i]; j++ )
+		for ( index_t j = lower[i]; j <= upper[i]; j++ )
 		{
 			xj[1] = x[j];
 			tj[1] = t[j];
@@ -1196,14 +1196,14 @@ template<typename T>
 size_t local_maxima(T * x, size_t n, int * buffer, int width = 5)
 {
 	int nmax = 0, a = 0, b = n, r = abs(width / 2);
-	for ( int i = 0; i < n; i++ )
+	for ( index_t i = 0; i < n; i++ )
 	{
 		buffer[i] = false;
 		if ( i < r || i > n - r )
 			continue;
 		a = (i - r) > 0 ? (i - r) : 0;
 		b = (i + r) < n - 1 ? (i + r) : n - 1;
-		for ( int j = a; j <= b; j++ )
+		for ( index_t j = a; j <= b; j++ )
 		{
 			buffer[i] = true;
 			if ( j < i && x[j] >= x[i] )
@@ -1303,7 +1303,7 @@ template<typename T>
 void peak_boundaries(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
 {
-	for ( int i = 0; i < npeaks; i++ )
+	for ( size_t i = 0; i < npeaks; i++ )
 	{
 		if ( peaks[i] < 0 || peaks[i] >= n )
 			Rf_error("peak index out of range");
@@ -1317,7 +1317,7 @@ template<typename T>
 void peak_bases(T * x, size_t n, int * peaks, size_t npeaks,
 	int * left_buffer, int * right_buffer)
 {
-	for ( int i = 0; i < npeaks; i++ )
+	for ( size_t i = 0; i < npeaks; i++ )
 	{
 		if ( peaks[i] < 0 || peaks[i] >= n )
 			Rf_error("peak index out of range");
@@ -1349,7 +1349,7 @@ void peak_widths(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	double * left_buffer, double * right_buffer)
 {
 	double pt;
-	for ( int i = 0; i < npeaks; i++ )
+	for ( size_t i = 0; i < npeaks; i++ )
 	{
 		if ( peaks[i] < 0 || peaks[i] >= n )
 			Rf_error("peak index out of range");
@@ -1387,7 +1387,7 @@ template<typename Tx, typename Tt>
 void peak_areas(Tx * x, Tt * t, size_t n, int * peaks, size_t npeaks,
 	int * left_limit, int * right_limit, double * buffer)
 {
-	for ( int i = 0; i < npeaks; i++ )
+	for ( size_t i = 0; i < npeaks; i++ )
 	{
 		if ( peaks[i] < 0 || peaks[i] >= n )
 			Rf_error("peak index out of range");
@@ -1607,7 +1607,7 @@ Tout approx1(Tx xi, Tx * x, Ty * y, size_t start, size_t end,
 
 // approximate y ~ x at xi with interpolation
 template<typename Tx, typename Ty, typename Tout>
-index_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
+size_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	size_t start, size_t end, double tol, int tol_ref, Tout nomatch,
 	int interp = EST_NEAR, int stride = 1)
 {
@@ -1628,7 +1628,7 @@ index_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	}
 	if ( start >= end )
 		return 0;
-	index_t num_matches = 0;
+	size_t num_matches = 0;
 	Tx * xs = x;
 	Ty * ys = y;
 	// check if x (and therefore y) are unsorted

@@ -12,7 +12,7 @@ template<typename T>
 size_t do_len_at(T * x, int * indx, size_t n)
 {
 	size_t len = 0;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( !isNA(x[indx[i]]) )
 			len++;
@@ -24,7 +24,7 @@ template<typename T>
 double do_sum_at(T * x, int * indx, size_t n)
 {
 	double sx = 0;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( !isNA(x[indx[i]]) )
 			sx += x[indx[i]];
@@ -45,7 +45,7 @@ double do_max_at(T * x, int * indx, size_t n)
 	if ( n <= 0 )
 		return NA_REAL;
 	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(x[indx[i]]) )
 			continue;
@@ -61,7 +61,7 @@ double do_min_at(T * x, int * indx, size_t n)
 	if ( n <= 0 )
 		return NA_REAL;
 	T mx = x[indx[0]];
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(x[indx[i]]) )
 			continue;
@@ -79,7 +79,7 @@ double do_klinear2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 	double rx, double ry, int * indx, size_t n)
 {
 	double zi = 0, K0 = 0, ki, kj;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(z[indx[i]]) )
 			continue;
@@ -97,7 +97,7 @@ double do_kcubic2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 {
 	double zi = 0, K0 = 0, ki, kj;
 	double r2x = 0.5 * rx, r2y = 0.5 * ry;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(z[indx[i]]) )
 			continue;
@@ -114,7 +114,7 @@ double do_kgaussian2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 	double sdx, double sdy, int * indx, size_t n)
 {
 	double zi = 0, K0 = 0, ki, kj;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(z[indx[i]]) )
 			continue;
@@ -131,7 +131,7 @@ double do_klanczos2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 	double ax, double ay, int * indx, size_t n)
 {
 	double zi = 0, K0 = 0, ki, kj;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(z[indx[i]]) )
 			continue;
@@ -446,7 +446,7 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	// calculate variances and covariances
 	double * gg = ptr1;
 	double * gx = ptr2;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(g[i]) || isNA(x[i]) )
 		{
@@ -463,7 +463,7 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	double * sgx = ptr4;
 	mean_filter2(gg, nr, nc, width, sg);
 	mean_filter2(gx, nr, nc, width, sgx);
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(g[i]) || isNA(x[i]) )
 		{
@@ -480,7 +480,7 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	double * a = ptr1;
 	double * b = ptr2;
 	double s0 = sdreg * sdreg;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(g[i]) || isNA(x[i]) )
 		{
@@ -498,7 +498,7 @@ void guided_filter2(T * x, T * g, int nr, int nc, int width,
 	mean_filter2(a, nr, nc, width, ua);
 	mean_filter2(b, nr, nc, width, ub);
 	// calculate output signal
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 		buffer[i] = ua[i] * g[i] + ub[i];
 	Free(tmp);
 	Free(u);
@@ -516,7 +516,7 @@ void histeq(T * x, size_t n, int nbins, double * buffer)
 	T xmin = do_min(x, 0, n - 1);
 	T xmax = do_max(x, 0, n - 1);
 	// scale x to count of bins and store in v
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(x[i]) )
 		{
@@ -532,7 +532,7 @@ void histeq(T * x, size_t n, int nbins, double * buffer)
 	// calculate histogram
 	for ( index_t i = 0; i < nbins; i++ )
 		hist[i] = 0;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( !isNA(v[i]) )
 			hist[v[i]]++;
@@ -546,7 +546,7 @@ void histeq(T * x, size_t n, int nbins, double * buffer)
 			ecdf[i] = ecdf[i - 1] + hist[i];
 	}
 	// transform pixels
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(v[i]) )
 			buffer[i] = NA_REAL;
@@ -555,7 +555,7 @@ void histeq(T * x, size_t n, int nbins, double * buffer)
 	}
 	// normalize to [0, 1]
 	double vmax = do_max(buffer, 0, n - 1);
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( !isNA(buffer[i]) )
 			buffer[i] /= vmax;
@@ -577,7 +577,7 @@ void adapt_histeq(T * x, int nr, int nc, int width,
 	T xmin = do_min(x, 0, n - 1);
 	T xmax = do_max(x, 0, n - 1);
 	// scale x to count of bins and store in v
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(x[i]) )
 		{
@@ -696,7 +696,7 @@ void adapt_histeq(T * x, int nr, int nc, int width,
 	}
 	// normalize to [0, 1]
 	double vmax = do_max(buffer, 0, n - 1);
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( !isNA(buffer[i]) )
 			buffer[i] /= vmax;
@@ -762,7 +762,7 @@ double interp2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 		case EST_NEAR:
 		{
 			double d2 [n];
-			for ( index_t i = 0; i < n; i++ )
+			for ( size_t i = 0; i < n; i++ )
 			{
 				dx = sdiff(xi, x[indx[i]], tol_ref);
 				dy = sdiff(yi, y[indx[i]], tol_ref);
@@ -810,14 +810,14 @@ Tout approx2(Txy xi, Txy yi, Txy * xy, Tz * z, int * indx, size_t n,
 
 // approximate z ~ (x, y) at (xi, yi) with interpolation
 template<typename Txy, typename Tz, typename Tout>
-index_t do_approx2(Tout * ptr, Txy * xi, Txy * yi, size_t ni, Txy * xy, Tz * z, size_t n,
+size_t do_approx2(Tout * ptr, Txy * xi, Txy * yi, size_t ni, Txy * xy, Tz * z, size_t n,
 	double tol[2], int tol_ref, Tout nomatch, int interp = EST_NEAR, int stride = 1)
 {
-	for ( index_t i = 0; i < ni; i++ )
+	for ( size_t i = 0; i < ni; i++ )
 		ptr[i * stride] = nomatch;
 	if ( n == 0 )
 		return 0;
-	index_t num_matches = 0;
+	size_t num_matches = 0;
 	int * indx = R_Calloc(n, int);
 	int * left_child = R_Calloc(n, int);
 	int * right_child = R_Calloc(n, int);

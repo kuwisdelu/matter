@@ -494,7 +494,7 @@ class SparseMatrix : public SparseArray
 			int s2 = is_transposed() ? stride : (nr * stride);
 			if ( is_transposed() )
 			{
-				for ( size_t k = 0; k < nr; k++ )
+				for ( index_t k = 0; k < nr; k++ )
 				{
 					index_t row = k;
 					if ( !Rf_isNull(i) ) {
@@ -511,7 +511,7 @@ class SparseMatrix : public SparseArray
 			}
 			else
 			{
-				for ( size_t k = 0; k < nc; k++ )
+				for ( index_t k = 0; k < nc; k++ )
 				{
 					index_t col = k;
 					if ( !Rf_isNull(j) ) {

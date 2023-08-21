@@ -290,7 +290,7 @@ class MatterMatrix : public MatterArray {
 			int s2 = is_transposed() ? stride : (nr * stride);
 			if ( is_transposed() )
 			{
-				for ( size_t k = 0; k < nr; k++ )
+				for ( index_t k = 0; k < nr; k++ )
 				{
 					index_t row = k;
 					if ( !Rf_isNull(i) ) {
@@ -307,7 +307,7 @@ class MatterMatrix : public MatterArray {
 			}
 			else
 			{
-				for ( size_t k = 0; k < nc; k++ )
+				for ( index_t k = 0; k < nc; k++ )
 				{
 					index_t col = k;
 					if ( !Rf_isNull(j) ) {
@@ -345,7 +345,7 @@ class MatterMatrix : public MatterArray {
 			int s2 = is_transposed() ? stride : (nr * stride);
 			if ( is_transposed() )
 			{
-				for ( size_t k = 0; k < nr; k++ )
+				for ( index_t k = 0; k < nr; k++ )
 				{
 					index_t row = k;
 					if ( !Rf_isNull(i) ) {
@@ -364,7 +364,7 @@ class MatterMatrix : public MatterArray {
 			}
 			else
 			{
-				for ( size_t k = 0; k < nc; k++ )
+				for ( index_t k = 0; k < nc; k++ )
 				{
 					index_t col = k;
 					if ( !Rf_isNull(j) ) {
@@ -631,7 +631,7 @@ class MatterList : public Matter {
 			else
 				len = XLENGTH(i);
 			PROTECT(x = Rf_allocVector(VECSXP, len));
-			for ( size_t k = 0; k < len; k++ )
+			for ( index_t k = 0; k < len; k++ )
 			{
 				index_t indk;
 				if ( Rf_isNull(i) )
@@ -655,7 +655,7 @@ class MatterList : public Matter {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
-			for ( size_t k = 0; k < len; k++ )
+			for ( index_t k = 0; k < len; k++ )
 			{
 				index_t indk;
 				if ( Rf_isNull(i) )
@@ -727,7 +727,7 @@ class MatterStringList : public MatterList {
 			else
 				len = XLENGTH(i);
 			PROTECT(x = Rf_allocVector(STRSXP, len));
-			for ( size_t k = 0; k < len; k++ )
+			for ( index_t k = 0; k < len; k++ )
 			{
 				index_t indk;
 				if ( Rf_isNull(i) )
@@ -751,7 +751,7 @@ class MatterStringList : public MatterList {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
-			for ( size_t k = 0; k < len; k++ )
+			for ( index_t k = 0; k < len; k++ )
 			{
 				index_t indk;
 				if ( Rf_isNull(i) )

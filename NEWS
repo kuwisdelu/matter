@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.3.18 [2023-8-21]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed bug in 'kdtree()' stack size allocation
+    o Cleaned up a few C++ compiler warnings
+
 CHANGES IN VERSION 2.3.17 [2023-8-11]
 -----------------------------------
 

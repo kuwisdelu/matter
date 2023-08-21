@@ -206,11 +206,11 @@ class CompressedVector {
 				_length = 0;
 				switch(TYPEOF(_lengths)) {
 					case INTSXP:
-						for ( size_t i = 0; i < _truelength; i++ )
+						for ( index_t i = 0; i < _truelength; i++ )
 							_length += INTEGER_ELT(_lengths, i);
 						break;
 					case REALSXP:
-						for ( size_t i = 0; i < _truelength; i++ )
+						for ( index_t i = 0; i < _truelength; i++ )
 							_length += REAL_ELT(_lengths, i);
 						break;
 				}
@@ -348,7 +348,7 @@ class CompressedVector {
 		size_t getElements(SEXP indx, T * buffer)
 		{
 			R_xlen_t ni = XLENGTH(indx);
-			size_t j;
+			index_t j;
 			for ( j = 0; j < ni; j++ )
 			{
 				index_t i = IndexElt(indx, j);
@@ -376,7 +376,7 @@ class CompressedVector {
 			if ( is_compressed() )
 			{
 				index_t i = 0;
-				for ( size_t run = 0; run < truelength(); run++ ) {
+				for ( index_t run = 0; run < truelength(); run++ ) {
 					T delta = value - values(run);
 					T mvalue = values(run) + (deltas(run) * (lengths(run) - 1));
 					if ( equal<T>(delta, 0) )

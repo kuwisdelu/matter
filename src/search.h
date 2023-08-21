@@ -66,12 +66,12 @@ bool gteq(T x, T y)
 }
 
 template<typename T>
-index_t argmin(T * x, size_t n)
+size_t argmin(T * x, size_t n)
 {
 	if ( n == 0 )
 		return NA_INTEGER;
-	index_t arg = 0;
-	for ( index_t i = 1; i < n; i++ )
+	size_t arg = 0;
+	for ( size_t i = 1; i < n; i++ )
 	{
 		if ( lt(x[i], x[arg]) )
 			arg = i;
@@ -80,12 +80,12 @@ index_t argmin(T * x, size_t n)
 }
 
 template<typename T>
-index_t argmax(T * x, size_t n)
+size_t argmax(T * x, size_t n)
 {
 	if ( n == 0 )
 		return NA_INTEGER;
-	index_t arg = 0;
-	for ( index_t i = 1; i < n; i++ )
+	size_t arg = 0;
+	for ( size_t i = 1; i < n; i++ )
 	{
 		if ( gt(x[i], x[arg]) )
 			arg = i;
@@ -191,9 +191,9 @@ void quick_sort(Tx * x, size_t start, size_t end, Tv * v = NULL)
 		if ( right - left < LINEAR_THRESHOLD )
 		{
 			// use insertion sort for small subarrays
-			for ( size_t i = left + 1; i <= right; i++ )
+			for ( index_t i = left + 1; i <= right; i++ )
 			{
-				size_t j = i;
+				index_t j = i;
 				while ( j > left && lt(x[j], x[j - 1]) )
 				{
 					swap(x[j], x[j - 1], Tx);
@@ -303,7 +303,7 @@ index_t do_quick_rank(int * ptr, T * x, size_t start, size_t end, bool ties_max 
 
 // find the k-th element of array x (modifed in-place!!!)
 template<typename T>
-T quick_select(T * x, size_t start, size_t end, size_t k)
+T quick_select(T * x, size_t start, size_t end, index_t k)
 {
 	index_t pivot, left = start, right = end - 1;
 	do {
@@ -331,7 +331,7 @@ void do_quick_select(T * ptr, T * x, size_t start, size_t end, int * k, size_t n
 	T * dup = R_Calloc(n, T);
 	std::memcpy(dup, x + start, n * sizeof(T));
 	ptr[0] = quick_select(dup, 0, n, k[0]);
-	for ( index_t i = 1; i < nk; i++ )
+	for ( size_t i = 1; i < nk; i++ )
 	{
 		if ( k[i] > k[i - 1] )
 			ptr[i] = quick_select(dup, k[i - 1] + 1, n, k[i]);
@@ -354,7 +354,7 @@ double quick_median(T * x, size_t n)
 	T * dup = R_Calloc(n, T);
 	std::memcpy(dup, x, n * sizeof(T));
 	size_t len = 0;
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( !isNA(x[i]) )
 			len++;
@@ -381,7 +381,7 @@ double quick_mad(T * x, size_t n, double center = NA_REAL, double scale = 1.4826
 	double * dev = R_Calloc(n, double);
 	if ( isNA(center) )
 		center = quick_median(x, n);
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		if ( isNA(x[i]) )
 			dev[i] = NA_REAL;
@@ -468,7 +468,7 @@ index_t kd_tree_build(T * x, size_t k, size_t n,
 	// initialize indices and working buffer
 	T * xs = R_Calloc(n, T);
 	int * indx = R_Calloc(n, int);
-	for ( index_t i = 0; i < n; i++ )
+	for ( size_t i = 0; i < n; i++ )
 	{
 		left_child[i] = NA_INTEGER;
 		right_child[i] = NA_INTEGER;
@@ -682,14 +682,14 @@ void do_knn_search(int * ptr, T * x, T * data, size_t k, size_t nx, size_t ndata
 {
 	T xi [k];
 	int nn [knn];
-	for ( index_t i = 0; i < nx; i++ )
+	for ( size_t i = 0; i < nx; i++ )
 	{
-		for ( index_t j = 0; j < k; j++ )
+		for ( size_t j = 0; j < k; j++ )
 			xi[j] = x[j * nx + i];
 		knn_search(nn, xi, data, k, ndata,
 			left_child, right_child, root, knn, metric, p, ind1);
-		for ( index_t j = 0; j < knn; j++ )
-			ptr[j * nx + i] = nn[j];
+		for ( int l = 0; l < knn; l++ )
+			ptr[l * nx + i] = nn[l];
 	}
 }
 
