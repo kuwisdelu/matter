@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.5.1 [2024-1-26]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed bug in 'simspec()' not respecting 'units'
+    o Enabled calling 'vizi()' with no arguments
+
 CHANGES IN VERSION 2.3.18 [2023-8-21]
 -----------------------------------
 

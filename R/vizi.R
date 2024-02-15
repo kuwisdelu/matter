@@ -513,6 +513,7 @@ as_encoding <- function(x, y, ..., env = NULL)
 		args <- c(list(y=y), args)
 	if ( !missing(x) )
 		args <- c(list(x=x), args)
+	args <- args[!vapply(args, is.null, logical(1L))]
 	encoding <- lapply(args, function(e)
 	{
 		if ( is(e, "formula") && !is.null(env) )
@@ -604,7 +605,7 @@ merge_limits <- function(l1, l2, ...)
 	if ( ...length() > 0L )
 		l2 <- do.call(merge_limits, list(l2, ...))
 	if ( is_discrete(l1) && is_discrete(l2) ) {
-		sort(union(l1, l2))
+		union(l1, l2)
 	} else if ( !is_discrete(l1) && !is_discrete(l2) ) {
 		range(l1, l2)
 	} else {
@@ -977,6 +978,7 @@ encode_legends <- function(channels, params, type = NULL)
 			}
 			if ( type %in% c("l", "h") ) {
 				key$pch <- NULL
+				key$cex <- NULL
 				if ( !"lty" %in% names(key) )
 					key$lty <- encode_var("lty")
 				if ( !"lwd" %in% names(key) )

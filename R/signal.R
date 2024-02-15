@@ -1204,7 +1204,7 @@ simspec <- function(n = 1L, npeaks = 50L,
 		yout <- replicate(n, simspec(x=x, y=y,
 			domain=domain, size=size, sdx=sdx, sdy=sdy, sdymult=sdymult,
 			sdnoise=sdnoise, resolution=resolution, fmax=fmax,
-			baseline=baseline, decay=decay))
+			baseline=baseline, decay=decay, units=units))
 	} else {
 		# calculate peak widths
 		dx <- x / resolution
@@ -1216,7 +1216,7 @@ simspec <- function(n = 1L, npeaks = 50L,
 		y2 <- y + yerr
 		# calculate x error
 		errtype <- pmatch(units, c("relative", "absolute"), nomatch=1L)
-		xerr <- rnorm(1L) * c(x * sdx, sdx)[errtype]
+		xerr <- rnorm(1L) * switch(errtype, x * sdx, sdx)
 		x2 <- x + xerr
 		# calculate baseline
 		b <- baseline * exp(-(decay/max(xout)) * (xout - min(xout)))

@@ -472,10 +472,12 @@ check_comformable_dims <- function(x, y, margin = 1L) {
 }
 
 normalize_lengths <- function(list) {
-	ns <- lengths(list)
-	nmax <- max(ns)
-	if ( any(ns != nmax) )
-		list <- lapply(list, rep_len, length.out=nmax)
+	if ( length(list) > 0L ) {
+		ns <- lengths(list)
+		nmax <- max(ns)
+		if ( any(ns != nmax) )
+			list <- lapply(list, rep_len, length.out=nmax)
+	}
 	list
 }
 

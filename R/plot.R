@@ -127,7 +127,8 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 		y <- t$y[i]
 	}
 	# encode non-required channels
-	params <- merge_encoding(mark$params, as_encoding(...))
+	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
+	params <- normalize_encoding(params)
 	p <- c("shape", "color", "fill", "alpha", "size", "linewidth", "linetype")
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
@@ -174,7 +175,8 @@ compute_raster <- function(mark, plot = NULL, ...,
 	if ( !is2d(plot) )
 		z <- encode_var("z", encoding, plot$channels)
 	# encode alpha (allow setting via ...)
-	params <- merge_encoding(mark$params, as_encoding(...))
+	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
+	params <- normalize_encoding(params)
 	alpha <- encode_var("alpha", encoding, plot$channels, params)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
@@ -384,19 +386,19 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 		rc <- rs$raster
 		# project raster to 3d polygons
 		p <- pix2poly(rs$i, rs$j, dim(rc))
-			pmat <- trans3d_get()
-			i <- as.vector(p$x)
-			j <- as.vector(p$y)
-			if ( rs$ortho == "z" ) {
-				p <- trans3d(i, j, rs$z, pmat)
-				d <- trans3d_depth(i, j, rs$z, pmat)
-			} else if ( rs$ortho == "y" ) {
-				p <- trans3d(i, rs$y, j, pmat)
-				d <- trans3d_depth(i, rs$y, j, pmat)
-			} else if ( rs$ortho == "x" ) {
-				p <- trans3d(rs$x, i, j, pmat)
-				d <- trans3d_depth(rs$x, i, j, pmat)
-			}
+		pmat <- trans3d_get()
+		i <- as.vector(p$x)
+		j <- as.vector(p$y)
+		if ( rs$ortho == "z" ) {
+			p <- trans3d(i, j, rs$z, pmat)
+			d <- trans3d_depth(i, j, rs$z, pmat)
+		} else if ( rs$ortho == "y" ) {
+			p <- trans3d(i, rs$y, j, pmat)
+			d <- trans3d_depth(i, rs$y, j, pmat)
+		} else if ( rs$ortho == "x" ) {
+			p <- trans3d(rs$x, i, j, pmat)
+			d <- trans3d_depth(rs$x, i, j, pmat)
+		}
 		# compute polygon depth
 		dim(d) <- c(5L, length(rc))
 		d <- colMeans(d, na.rm=TRUE)
