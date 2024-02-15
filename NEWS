@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.5.2 [2024-2-14]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o For 'estres()', allow 'tol=NA' or 'tol=Inf'
+
 CHANGES IN VERSION 2.5.1 [2024-1-26]
 -----------------------------------
 

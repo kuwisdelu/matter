@@ -1131,22 +1131,40 @@ estres <- function(x, tol = 1e-6, tol.ref = NA_character_)
 	rx <- 2 * ((to / from ) - 1) / ((to / from) + 1)
 	rx <- ifelse(is.na(rx), Inf, rx)
 	dx <- diff(x)
-	if ( (is.na(tol.ref) && diff(range(rx)) > tol) || 
-		(!is.na(tol.ref) && tol.ref == "abs" ) )
-	{
-		dx <- dx[dx > tol]
-		if ( all(dx %% min(dx) <= tol) ) {
-			res <- c(absolute = min(dx))
-		} else {
-			res <- c(absolute = NA_real_)
+	if ( is.finite(tol) ) {
+		if ( (is.na(tol.ref) && diff(range(rx)) > tol) || 
+			(!is.na(tol.ref) && tol.ref == "abs" ) )
+		{
+			dx <- dx[dx > tol]
+			if ( all(dx %% min(dx) <= tol) ) {
+				res <- c(absolute = min(dx))
+			} else {
+				res <- c(absolute = NA_real_)
+			}
+		} else
+		{
+			rx <- rx[rx > tol]
+			if ( all(rx %% min(rx) <= tol) ) {
+				res <- c(relative = min(rx))
+			} else {
+				res <- c(relative = NA_real_)
+			}
 		}
-	} else
-	{
-		rx <- rx[rx > tol]
-		if ( all(rx %% min(rx) <= tol) ) {
-			res <- c(relative = min(rx))
+	} else {
+		drx <- abs(min(rx) - median(rx)) / mad(rx)
+		ddx <- abs(min(dx) - median(dx)) / mad(dx)
+		if ( is.na(tol.ref) ) {
+			if ( ddx < drx ) {
+				res <- c(absolute = min(dx))
+			} else {
+				res <- c(relative = min(rx))
+			}
 		} else {
-			res <- c(relative = NA_real_)
+			if ( tol.ref == "abs" ) {
+				res <- c(absolute = min(dx))
+			} else {
+				res <- c(relative = min(rx))
+			}
 		}
 	}
 	res

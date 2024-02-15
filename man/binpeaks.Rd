@@ -24,7 +24,7 @@ mergepeaks(peaks, n = nobs(peaks), x = peaks,
 \arguments{
     \item{peaklist, xlist}{A list of vectors of peak indices (or domain values), and the values to be binned according to the peak locations.}
 
-    \item{peaks, x}{The indices (or domain values) of peaks which should be merged, or for which the widths or areas should be calculated. If \code{n} is not provided, this should be a numeric \code{stream_stat} vector produced by \code{binpeaks()}.}
+    \item{peaks, x}{The indices (or domain values) of peaks which should be merged, or for which the corresponding values should be averaged. If \code{n} is not provided, this should be a numeric \code{stream_stat} vector produced by \code{binpeaks()}.}
 
 	\item{domain}{The domain variable of the signal.}
 
