@@ -1081,29 +1081,32 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 	dmin <- which.min(d)
 	while ( d[dmin] <= tol )
 	{
-		# average overlapping peaks
+		# find overlapping peaks
 		i <- p[dmin]
-		j <- p[dmin + 1L]
-		ni <- n[i]
-		nj <- n[j]
-		mpeaks <- (ni * peaks[i] + nj * peaks[j]) / (ni + nj)
-		mx <- (ni * x[i] + nj * x[j]) / (ni + nj)
-		# update overlapping peaks with average
-		if ( ni > nj ) {
-			peaks[i] <- mpeaks
-			x[i] <- mx
-			n[i] <- ni + nj
-			peaks[j] <- NA_real_
-			x[j] <- NA_real_
-			n[j] <- 0
-		} else {
-			peaks[j] <- mpeaks
-			x[j] <- mx
-			n[j] <- ni + nj
-			peaks[i] <- NA_real_
-			x[i] <- NA_real_
-			n[i] <- 0
+		j <- p[dmin]
+		while ( i - 1L > 0L && n[i - 1L] > 0L && 
+			reldiff(peaks[(i - 1L):i], ref=tol.ref) <= tol )
+		{
+			i <- i - 1L
 		}
+		while ( j + 1L <= length(peaks) && n[j + 1L] > 0L && 
+			reldiff(peaks[j:(j + 1L)], ref=tol.ref) <= tol )
+		{
+			j <- j + 1L
+		}
+		# average overlapping peaks
+		ij <- i:j
+		mpeaks <- sum(n[ij] * peaks[ij]) / sum(n[ij])
+		mx <- sum(n[ij] * x[ij]) / sum(n[ij])
+		# update overlapping peaks with average
+		i <- as.integer(mean(ij))
+		j <- setdiff(ij, i)
+		peaks[i] <- mpeaks
+		x[i] <- mx
+		n[i] <- sum(n[ij])
+		peaks[j] <- NA_real_
+		x[j] <- NA_real_
+		n[j] <- 0
 		# find next smallest gap between peaks
 		p <- which(!is.na(peaks))
 		d <- reldiff(peaks[p], ref=tol.ref)
