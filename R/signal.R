@@ -1066,6 +1066,9 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 	tol = NA_real_, tol.ref = "abs", na.drop = TRUE)
 {
+	n <- as.vector(n)
+	x <- as.vector(x)
+	peaks <- as.vector(peaks)
 	if ( length(peaks) != length(x) )
 		stop("length of 'peaks' and 'x' must match")
 	if ( is.unsorted(peaks, na.rm=TRUE) )
@@ -1076,20 +1079,18 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 		tol <- 0.01 * mean(reldiff(peaks, ref=ref), na.rm=TRUE)
 	}
 	# find smallest gap between peaks
-	p <- which(!is.na(peaks))
-	d <- reldiff(peaks[p], ref=tol.ref)
-	dmin <- which.min(d)
-	while ( d[dmin] <= tol )
+	k <- min(which(!is.na(peaks)))
+	while ( k <= length(peaks) )
 	{
 		# find overlapping peaks
-		i <- p[dmin]
-		j <- p[dmin]
-		while ( i - 1L > 0L && n[i - 1L] > 0L && 
+		i <- k
+		j <- k
+		while ( i - 1L > 0L && !is.na(peaks[i - 1L]) && 
 			reldiff(peaks[(i - 1L):i], ref=tol.ref) <= tol )
 		{
 			i <- i - 1L
 		}
-		while ( j + 1L <= length(peaks) && n[j + 1L] > 0L && 
+		while ( j + 1L <= length(peaks) && !is.na(peaks[j + 1L]) && 
 			reldiff(peaks[j:(j + 1L)], ref=tol.ref) <= tol )
 		{
 			j <- j + 1L
@@ -1099,18 +1100,20 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 		mpeaks <- sum(n[ij] * peaks[ij]) / sum(n[ij])
 		mx <- sum(n[ij] * x[ij]) / sum(n[ij])
 		# update overlapping peaks with average
-		i <- as.integer(mean(ij))
-		j <- setdiff(ij, i)
-		peaks[i] <- mpeaks
-		x[i] <- mx
-		n[i] <- sum(n[ij])
-		peaks[j] <- NA_real_
-		x[j] <- NA_real_
-		n[j] <- 0
+		p <- as.integer(mean(ij))
+		q <- setdiff(ij, p)
+		peaks[p] <- mpeaks
+		x[p] <- mx
+		n[p] <- sum(n[ij])
+		peaks[q] <- NA_real_
+		x[q] <- NA_real_
+		n[q] <- 0
 		# find next smallest gap between peaks
-		p <- which(!is.na(peaks))
-		d <- reldiff(peaks[p], ref=tol.ref)
-		dmin <- which.min(d)
+		k <- j + 1L
+		while ( k <= length(peaks) && is.na(peaks[k]) )
+		{
+			k <- k + 1L
+		}
 	}
 	# create output peaks
 	peaks <- structure(x, na.rm=TRUE, nobs=n,

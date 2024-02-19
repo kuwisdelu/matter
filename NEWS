@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.5.4 [2024-2-18]
+-----------------------------------
+
+BUG FIXES
+
+    o Improved 'mergepeaks()' efficiency
+
 CHANGES IN VERSION 2.5.3 [2024-2-18]
 -----------------------------------
 
