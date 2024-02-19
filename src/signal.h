@@ -1612,7 +1612,7 @@ size_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 	int interp = EST_NEAR, int stride = 1)
 {
 	// initialize ptr
-	bool processed[ni];
+	bool * processed = R_Calloc(ni, bool);
 	for ( size_t i = 0; i < ni; i++ )
 	{
 		if ( isNA(xi[i]) )
@@ -1712,6 +1712,7 @@ size_t do_approx1(Tout * ptr, Tx * xi, size_t ni, Tx * x, Ty * y,
 			}
 		}
 	}
+	Free(processed);
 	if ( need_sort )
 	{
 		Free(xs);

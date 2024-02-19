@@ -314,11 +314,12 @@ class SparseArray : public Sparse {
 			size_t nnz = 0;
 			if ( has_domain() )
 			{
-				Tind subscripts [size];
+				Tind * subscripts = R_Calloc(size, Tind);
 				copy_domain<Tind>(i, size, subscripts);
 				nnz = do_approx1<Tind,Tval>(buffer, subscripts, size,
 					DataPtr<Tind>(j), DataPtr<Tval>(x), 0, XLENGTH(j),
 					tol(), tol_ref(), zero<Tval>(), sampler(), stride);
+				Free(subscripts);
 			}
 			else
 			{
@@ -354,11 +355,12 @@ class SparseArray : public Sparse {
 			SEXP j, x;
 			PROTECT(j = index(at));
 			PROTECT(x = data(at));
-			Tind subscripts [XLENGTH(indx)];
+			Tind * subscripts = R_Calloc(XLENGTH(indx), Tind);
 			copy_domain<Tind>(indx, subscripts);
 			size_t nnz = do_approx1<Tind,Tval>(buffer, subscripts,
 				XLENGTH(indx), DataPtr<Tind>(j), DataPtr<Tval>(x), 0, XLENGTH(j),
 				tol(), tol_ref(), zero<Tval>(), sampler(), stride);
+			Free(subscripts);
 			UNPROTECT(2);
 			return nnz;
 		}
