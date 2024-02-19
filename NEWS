@@ -5,6 +5,7 @@ CHANGES IN VERSION 2.5.3 [2024-2-18]
 BUG FIXES
 
     o Fixed stack overflow in 'sparse_mat' subsetting
+    o Fixed 'mergepeaks()' failing for missing peaks
 
 CHANGES IN VERSION 2.5.2 [2024-2-14]
 -----------------------------------

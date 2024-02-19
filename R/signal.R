@@ -1068,7 +1068,7 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 {
 	if ( length(peaks) != length(x) )
 		stop("length of 'peaks' and 'x' must match")
-	if ( is.unsorted(peaks) )
+	if ( is.unsorted(peaks, na.rm=TRUE) )
 		stop("'peaks' must be sorted")
 	if ( is.na(tol) ) {
 		# guess tol as ~1/100 of average gap between peaks
