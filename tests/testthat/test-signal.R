@@ -328,7 +328,12 @@ test_that("estres", {
 	expect_equal(estres(x), c(absolute=1L))
 	expect_equal(estres(y), c(absolute=3L))
 	expect_equal(estres(z), c(relative=1e-3))
-	expect_equal(estres(u), c(absolute=NA_real_))
+	expect_equal(estres(u), c(absolute=min(diff(sort(u)))))
+
+	expect_equal(estres(x, tol=1e-6), c(absolute=1L))
+	expect_equal(estres(y, tol=1e-6), c(absolute=3L))
+	expect_equal(estres(z, tol=1e-6), c(relative=1e-3))
+	expect_equal(estres(u, tol=1e-6), c(absolute=NA_real_))
 
 	p <- expand.grid(x=1:10, y=1:10)
 	q <- expand.grid(
@@ -336,12 +341,12 @@ test_that("estres", {
 		y=seq(1L, 28L, by=3L))
 	r <- jitter(as.matrix(p))
 
-	expect_equal(estres(p[,1L]), c(absolute=1L))
-	expect_equal(estres(p[,2L]), c(absolute=1L))
-	expect_equal(estres(q[,1L]), c(absolute=3L))
-	expect_equal(estres(q[,2L]), c(absolute=3L))
-	expect_equal(estres(r[,1L]), c(absolute=NA_real_))
-	expect_equal(estres(r[,2L]), c(absolute=NA_real_))
+	expect_equal(estres(p[,1L], tol=1e-6), c(absolute=1L))
+	expect_equal(estres(p[,2L], tol=1e-6), c(absolute=1L))
+	expect_equal(estres(q[,1L], tol=1e-6), c(absolute=3L))
+	expect_equal(estres(q[,2L], tol=1e-6), c(absolute=3L))
+	expect_equal(estres(r[,1L], tol=1e-6), c(absolute=NA_real_))
+	expect_equal(estres(r[,2L], tol=1e-6), c(absolute=NA_real_))
 
 })
 

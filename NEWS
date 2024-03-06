@@ -1,4 +1,26 @@
 
+CHANGES IN VERSION 2.5.5 [2024-3-6]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added 'plot_signal()' and 'plot_image()'
+    o Added new mark 'vizi_text'
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Implement 'vm_used()' for 'sparse_arr' objects
+    o Implement 'combine()' for 'vizi_plot' objects
+    o Rename 'plot_facets()' to 'as_facets()'
+
+BUG FIXES
+
+    o Fixed 'matter_list' subsetting not subsetting type
+    o Fixed 'vizi_pixels' issues with y-axis
+    o Fixed plotting functions not passing along parameters
+    o Handle mixed int/double types in 'ltob()' and 'lttb()'
+    o Implement 'vm_used()' for 'sparse_arr'
+
 CHANGES IN VERSION 2.5.4 [2024-2-18]
 -----------------------------------
 

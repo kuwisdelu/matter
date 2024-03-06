@@ -85,14 +85,14 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	structure(facets, class="vizi_facets")
 }
 
-plot_facets <- function(plotlist, nrow = NA, ncol = NA,
+as_facets <- function(plotlist, nrow = NA, ncol = NA,
 	labels = NULL, drop = TRUE, free = "")
 {
 	# check all plots
 	all_plots <- all(vapply(plotlist, is, logical(1L), "vizi_plot"))
 	all_facets <- all(vapply(plotlist, is, logical(1L), "vizi_facets"))
 	if ( !all_plots && !all_facets )
-		stop("all plots must inherit from 'vizi_plot' or 'vizi_facets")
+		stop("all plots must inherit from one of 'vizi_plot' or 'vizi_facets")
 	if ( is.null(labels) ) {
 		labels <- names(plotlist)
 	} else {
@@ -111,11 +111,11 @@ plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 	} else {
 		# combine vizi-facets
 		if ( is.null(labels) ) {
-			ns <- vapply(plotlist,
-				function(p) length(p$plots), integer(1L))
-			labels <- character(sum(ns))
+			labels <- lapply(plotlist, function(p) character(length(p$plots)))
+		} else {
+			labels <- paste0(labels, "\n")
 		}
-		labels <- Map(function(lab, f) paste0(lab, "\n", f$labels), labels, plotlist)
+		labels <- Map(function(lab, f) paste0(lab, f$labels), labels, plotlist)
 		labels <- unlist(labels)
 		plots <- lapply(plotlist, function(f) f$plots)
 		plots <- unlist(plots, recursive=FALSE)
@@ -131,6 +131,46 @@ plot_facets <- function(plotlist, nrow = NA, ncol = NA,
 		params=params, subscripts=NULL, labels=labels,
 		dim=dim, drop=drop, free=free)
 	structure(facets, class="vizi_facets")
+}
+
+merge_facets <- function(plot1, plot2)
+{
+	# check all plots
+	if ( !(is(plot1, "vizi_plot") && is(plot2, "vizi_plot")) &&
+		!(is(plot1, "vizi_facets") && is(plot2, "vizi_facets")) )
+	{
+		stop("all plots must inherit from one of 'vizi_plot' or 'vizi_facets")
+	}
+	# merge channels
+	channels <- merge_channels(plot1$channels, plot2$channels)
+	if ( is(plot1, "vizi_plot") ) {
+		# merge vizi-plots
+		marks <- c(plot1$marks, plot2$marks)
+		encoding <- merge_encoding(plot1$encoding, plot2$encoding)
+		structure(list(encoding=encoding, channels=channels, marks=marks,
+			coord=plot1$coord, params=plot1$params), class="vizi_plot")
+	} else {
+		# merge vizi-facets
+		labels <- union(plot1$labels, plot2$labels)
+		plots <- vector("list", length(labels))
+		for ( i in seq_along(labels) ) {
+			p1 <- plot1$plots[which(plot1$labels %in% labels[i])]
+			p2 <- plot2$plots[which(plot2$labels %in% labels[i])]
+			m1 <- lapply(p1, function(p) p$marks)
+			m2 <- lapply(p2, function(p) p$marks)
+			marks <- unlist(c(m1, m2), recursive=FALSE)
+			e1 <- lapply(p1, function(p) p$encoding)
+			e2 <- lapply(p2, function(p) p$encoding)
+			encoding <- do.call(merge_encoding, c(e1, e2))
+			plots[[i]] <- structure(list(
+				encoding=encoding,
+				marks=marks), class="vizi_plot")
+		}
+		dim <- get_dim(length(plots))
+		structure(list(plots=plots, channels=channels, coord=plot1$coord,
+			params=plot1$params, subscripts=NULL, labels=labels,
+			dim=dim, drop=plot1$drop, free=plot1$free), class="vizi_facets")
+	}
 }
 
 set_title <- function(plot, title)
@@ -197,6 +237,28 @@ setOldClass("vizi_plot")
 setOldClass("vizi_facets")
 setOldClass("vizi_key")
 setOldClass("vizi_colorkey")
+
+setMethod("combine", c("vizi_plot", "vizi_plot"),
+	function(x, y, ...) merge_facets(x, y))
+
+setMethod("combine", c("vizi_facets", "vizi_facets"),
+	function(x, y, ...) merge_facets(x, y))
+
+setMethod("c", "vizi_plot", function(x, ...)
+{
+	if ( ...length() > 0 )
+		x <- do.call(combine, list(x, ...))
+	if ( validObject(x) )
+		x
+})
+
+setMethod("c", "vizi_facets", function(x, ...)
+{
+	if ( ...length() > 0 )
+		x <- do.call(combine, list(x, ...))
+	if ( validObject(x) )
+		x
+})
 
 #### Plotting methods for 'vizi' ####
 ## ----------------------------------
@@ -355,6 +417,7 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 	{
 		plot <- x$plots[[i]]
 		plot$channels <- x$channels
+		plot$params <- x$params
 		if ( !add )
 		{
 			# initialize plot
@@ -718,7 +781,7 @@ has_free_y <- function(plot)
 	isTRUE(plot$free %in% c("y", "xy", "yx"))
 }
 
-get_dim <- function(n, dim, nrow, ncol)
+get_dim <- function(n, dim, nrow = NA, ncol = NA)
 {
 	if ( missing(dim) )
 		dim <- panel_dim_n(n)
@@ -792,14 +855,18 @@ get_var_range <- function(plot, channel)
 	} else {
 		rc <- range(plot$encoding[[channel]], na.rm=TRUE)
 	}
-	rs <- unlist(lapply(plot$marks,
-		function(mk) {
-			if ( is.null(mk$encoding[[channel]]) ) {
-				numeric()
-			} else {
-				range(mk$encoding[[channel]], na.rm=TRUE)
-			}
-		}))
+	if ( is(plot, "vizi_plot") ) {
+		rs <- unlist(lapply(plot$marks,
+			function(mk) {
+				if ( is.null(mk$encoding[[channel]]) ) {
+					numeric()
+				} else {
+					range(mk$encoding[[channel]], na.rm=TRUE)
+				}
+			}))
+	} else {
+		rs <- unlist(lapply(plot$plots, get_var_range, channel))
+	}
 	range(c(rc, rs))
 }
 
@@ -836,7 +903,7 @@ get_discrete_scheme <- function(channel)
 {
 	msg <- paste0("can't make discrete scheme for ", sQuote(channel))
 	switch(channel,
-		x =, y =, z = NULL,
+		x =, y =, z =, text = NULL,
 		shape = seq_fun(14),
 		color = discrete_pal,
 		fill = discrete_pal,
@@ -851,7 +918,7 @@ get_continuous_scheme <- function(channel)
 {
 	msg <- paste0("can't make continuous scheme for ", sQuote(channel))
 	switch(channel,
-		x =, y =, z = NULL,
+		x =, y =, z =, text = NULL,
 		shape = stop(msg),
 		color = continuous_pal,
 		fill = continuous_pal,
@@ -878,6 +945,46 @@ range_fun <- function(from, to) {
 
 seq_fun <- function(max_n) {
 	function(n) seq_len(max(n, max_n))
+}
+
+shape_pal <- function(n = 20L) {
+	pal <- c(
+		"circle" = 1L,
+		"triangle point up" = 2L,
+		"plus" = 3L,
+		"cross" = 4L,
+		"diamond" = 5L,
+		"triangle point down" = 6L,
+		"square cross" = 7L,
+		"star" = 8L,
+		"diamond plus" = 9L,
+		"circle plus" = 10L,
+		"triangles up and down" = 11L,
+		"square plus" = 12L,
+		"circle cross" = 13L,
+		"square and triangle down" = 14L,
+		"filled square" = 15L,
+		"filled circle" = 16L,
+		"filled triangle point-up" = 17L,
+		"filled diamond" = 18L,
+		"solid circle" = 19,
+		"bullet" = 20L)
+	if ( n > length(pal) )
+		stop("n [", n, "] too large for shape palette")
+	pal[seq_len(n)]
+}
+
+line_pal <- function(n = 6L) {
+	pal <- c(
+		"solid" = 1L,
+		"dashed" = 2L,
+		"dotted" = 3L,
+		"dotdash" = 4L,
+		"longdash" = 5L,
+		"twodash" = 6L)
+	if ( n > length(pal) )
+		stop("n [", n, "] too large for line palette")
+	pal[seq_len(n)]
 }
 
 encode_scheme <- function(x, scheme, limits)
@@ -915,7 +1022,7 @@ encode_scheme <- function(x, scheme, limits)
 encode_legends <- function(channels, params, type = NULL)
 {
 	keys <- list()
-	for ( nm in setdiff(names(channels), c("x", "y", "z")) )
+	for ( nm in setdiff(names(channels), c("x", "y", "z", "text")) )
 	{
 		omit <- isFALSE(channels[[nm]]$key)
 		if ( omit )
@@ -1029,7 +1136,7 @@ merge_legends <- function(keys, ...)
 needs_legends <- function(plot)
 {
 	chs <- names(plot$channels)
-	chs <- setdiff(chs, c("x", "y", "z"))
+	chs <- setdiff(chs, c("x", "y", "z", "text"))
 	chs <- plot$channels[chs]
 	fn <- function(x) {
 		if ( is.numeric(x) )
@@ -1042,7 +1149,7 @@ needs_legends <- function(plot)
 		lens1 <- vapply(chs, function(ch) fn(ch$limits), numeric(1L))
 		lens2 <- vapply(chs, function(ch) fn(ch$label), numeric(1L))
 		lens <- ifelse(nokey, 0, pmax(lens1, lens2))
-		floor(max(lens))
+		floor(max(lens, na.rm=TRUE))
 	} else {
 		FALSE
 	}

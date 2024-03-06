@@ -1,60 +1,196 @@
 
-#### Image method for 'formula' ####
-## ---------------------------------
 
-setMethod("image", "formula",
-	function(x, data = NULL, zlim, xlim, ylim, col = NULL,
-		add = FALSE, xaxs = "i", yaxs = "i", zlab, xlab, ylab,
-		key = FALSE, useRaster = TRUE, ...)
-{
-	if ( missing(zlim) )
-		zlim <- NULL
-	if ( missing(xlim) )
-		xlim <- NULL
-	if ( missing(ylim) )
-		ylim <- NULL
-	if ( missing(zlab) )
-		zlab <- NULL
-	if ( missing(xlab) )
-		xlab <- NULL
-	if ( missing(ylab) )
-		ylab <- NULL
-	plot_image_formula(x, data=data, zlim=zlim,
-		xlim=xlim, ylim=ylim, col=col, add=add,
-		xaxs=xaxs, yaxs=yaxs, zlab=zlab, xlab=xlab, ylab=ylab,
-		key=key, useRaster=useRaster, ...)
-})
+#### Plot a list of signals ####
+## -----------------------------
 
-plot_image_formula <- function(formula, data = NULL,
-	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, add = FALSE,
-	zlab = NULL, xlab = NULL, ylab = NULL,
-	enhance = NULL, smooth = NULL, scale = NULL,
-	key = FALSE, useRaster = TRUE, ...)
+plot_signal <- function(x, y, by = names(y), group = NULL,
+	xlim = NULL, ylim = NULL, col = NULL,
+	xlab = NULL, ylab = NULL, layout = NULL,
+	n = Inf, downsampler = "lttb", key = TRUE,
+	isPeaks = FALSE, annPeaks = 0, ...)
 {
-	fm <- parse_formula(formula, data)
-	x <- fm$rhs[[1L]]
-	y <- fm$rhs[[2L]]
-	z <- fm$lhs[[1L]]
-	by <- fm$g[[1L]]
-	if ( is.null(xlab) )
-		xlab <- names(fm$rhs)[1L]
-	if ( is.null(ylab) )
-		ylab <- names(fm$rhs)[2L]
-	if ( is.null(zlab) )
-		zlab <- names(fm$lhs)[1L]
-	img <- vizi(x=x, y=y, color=z)
-	img <- add_mark(img, "pixels",
-		trans=list(enhance=enhance, smooth=smooth, scale=scale))
-	img <- set_coord(img, xlim=xlim, ylim=ylim, grid=FALSE)
-	img <- set_channel(img, "x", label=xlab)
-	img <- set_channel(img,"y", label=ylab)
-	img <- set_channel(img, "color", label=zlab,
-		limits=zlim, scheme=col, key=key)
-	img <- set_par(img, ...)
+	if ( is.array(x) ) {
+		if ( length(dim(x)) > 2L )
+			stop("'x' must have at most 2 dimensions")
+		y <- apply(x, 2L, identity, simplify=FALSE)
+		x <- seq_along(y[[1L]])
+	} else if ( is.array(y) ) {
+		if ( length(dim(y)) > 2L )
+			stop("'y' must have at most 2 dimensions")
+		y <- apply(y, 2L, identity, simplify=FALSE)
+	}
+	if ( !is.list(y) )
+		y <- list(y)
+	if ( !is.list(x) )
+		x <- rep_len(list(x), length(y))
 	if ( !is.null(by) )
-		img <- add_facets(img, by=by)
-	plot(img, add=add, useRaster=useRaster)
+		by <- rep_len(factor(by, levels=unique(by)), length(y))
+	if ( !is.null(group) )
+		group <- rep_len(factor(group, levels=unique(group)), length(y))
+	if ( length(annPeaks) != 1L || (!is.numeric(annPeaks) && !is.character(annPeaks)) )
+		stop("'annPeaks' must be a scalar string or integer")
+	isPeaks <- rep_len(isPeaks, length(y))
+	mark <- ifelse(isPeaks, "peaks", "lines")
+	if ( is.null(by) ) {
+		plot <- vizi()
+		for ( i in seq_along(y) ) {
+			plot <- add_mark(plot, mark[[i]],
+				x=x[[i]], y=y[[i]], color=group[[i]],
+				trans=list(n=n, downsampler=downsampler))
+			if ( isPeaks[[i]] ) {
+				if ( is.character(annPeaks) ) {
+					pch <- shape_pal()[annPeaks]
+					plot <- add_mark(plot, "points",
+						x=x[[i]], y=y[[i]], color=group[[i]],
+						params=list(shape=pch))
+				} else if ( annPeaks > 0 ) {
+					j <- tail(order(y[[i]]), n=annPeaks)
+					labs <- as.character(round(x[[i]][j], digits=4L))
+					plot <- add_mark(plot, "text",
+						x=x[[i]][j], y=y[[i]][j], text=labs,
+						params=list(pos=3L, offset=0.2))
+				}
+			}
+		}
+	} else {
+		plot <- lapply(levels(by), function(lvl)
+		{
+			p <- vizi()
+			for ( i in which(by == lvl) ) {
+				p <- add_mark(p, mark[[i]],
+					x=x[[i]], y=y[[i]], color=group[[i]],
+					trans=list(n=n, downsampler=downsampler))
+				if ( isPeaks[[i]] ) {
+					if ( is.character(annPeaks) ) {
+						pch <- shape_pal()[annPeaks]
+						p <- add_mark(p, "points",
+							x=x[[i]], y=y[[i]], color=group[[i]],
+							params=list(shape=pch))
+					} else if ( annPeaks > 0 ) {
+						j <- tail(order(y[[i]]), n=annPeaks)
+						labs <- as.character(round(x[[i]][j], digits=4L))
+						p <- add_mark(p, "text",
+							x=x[[i]][j], y=y[[i]][j], text=labs,
+							params=list(pos=3L, offset=0.2))
+					}
+				}
+			}
+			p
+		})
+		if ( is.null(layout) ) {
+			plot <- as_facets(plot, labels=levels(by))
+		} else {
+			plot <- as_facets(plot, labels=levels(by),
+				nrow=layout[1L], ncol=layout[2L])
+		}
+	}
+	plot <- set_coord(plot, xlim=xlim, ylim=ylim)
+	plot <- set_channel(plot, "x", label=xlab)
+	plot <- set_channel(plot, "y", label=ylab)
+	if ( !is.null(group) ) {
+		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
+	} else {
+		plot <- set_par(plot, col=col)
+	}
+	plot <- set_par(plot, ...)
+	plot
 }
+
+
+#### Plot a list of images ####
+## -----------------------------
+
+plot_image <- function(x, y, vals, by = names(vals), group = NULL,
+	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL,
+	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL,
+	enhance = NULL, smooth = NULL, scale = NULL,
+	key = TRUE, asp = 1, useRaster = TRUE, ...)
+{
+	if ( is.array(x) || (missing(vals) && is.list(x) && is.matrix(x[[1L]])) )
+	{
+		if ( is.array(x) && length(dim(x)) > 3L )
+			stop("'x' must have at most 2 dimensions")
+		if ( is.array(x) && length(dim(x)) > 2L ) {
+			vals <- apply(x, 3L, identity, simplify=FALSE)
+		} else if ( !is.list(x) ) {
+			vals <- list(x)
+		} else {
+			vals <- x
+		}
+		pos <- lapply(vals, function(v) expand.grid(x=1:dim(v)[1L], y=1:dim(v)[2L]))
+		x <- lapply(pos, function(p) p$x)
+		y <- lapply(pos, function(p) p$y)
+	}
+	if ( !is.list(vals) )
+		vals <- list(vals)
+	if ( !is.list(x) )
+		x <- rep_len(list(x), length(vals))
+	if ( !is.list(y) )
+		y <- rep_len(list(y), length(vals))
+	if ( !is.null(by) )
+		by <- rep_len(factor(by, levels=unique(by)), length(vals))
+	if ( !is.null(group) )
+		group <- rep_len(factor(group, levels=unique(group)), length(vals))
+	vals <- lapply(vals, as.vector)
+	if ( is.null(by) ) {
+		plot <- vizi()
+		for ( i in seq_along(vals) ) {
+			if ( is.null(group) ) {
+				plot <- add_mark(plot, "pixels",
+					x=x[[i]], y=y[[i]], color=vals[[i]],
+					trans=list(enhance=enhance, smooth=smooth, scale=scale),
+					params=list(useRaster=useRaster))
+			} else {
+				plot <- add_mark(plot, "pixels",
+					x=x[[i]], y=y[[i]], alpha=vals[[i]], color=group[[i]],
+					trans=list(enhance=enhance, smooth=smooth, scale=scale),
+					params=list(useRaster=useRaster))
+			}
+		}
+	} else {
+		plot <- lapply(levels(by), function(lvl)
+		{
+			p <- vizi()
+			for ( i in which(by == lvl) ) {
+				if ( is.null(group) ) {
+					p <- add_mark(p, "pixels",
+						x=x[[i]], y=y[[i]], color=vals[[i]],
+						trans=list(enhance=enhance, smooth=smooth, scale=scale),
+						params=list(useRaster=useRaster))
+				} else {
+					p <- add_mark(p, "pixels",
+						x=x[[i]], y=y[[i]], alpha=vals[[i]], color=group[[i]],
+						trans=list(enhance=enhance, smooth=smooth, scale=scale),
+						params=list(useRaster=useRaster))
+				}
+			}
+			p
+		})
+		if ( is.null(layout) ) {
+			plot <- as_facets(plot, labels=levels(by))
+		} else {
+			plot <- as_facets(plot, labels=levels(by),
+				nrow=layout[1L], ncol=layout[2L])
+		}
+	}
+	if ( is.null(xlim) )
+		xlim <- get_var_range(plot, "x")
+	if ( is.null(ylim) )
+		ylim <- get_var_range(plot, "y")
+	plot <- set_coord(plot, xlim=xlim, ylim=rev(ylim), asp=asp)
+	plot <- set_channel(plot, "x", label=xlab)
+	plot <- set_channel(plot, "y", label=ylab)
+	if ( is.null(group) ) {
+		clab <- if(isTRUE(scale)) "%" else "\n"
+		plot <- set_channel(plot, "color", label=clab, limits=zlim, scheme=col, key=key)
+	} else {
+		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
+		plot <- set_channel(plot, "alpha", limits=zlim, key=FALSE)
+	}
+	plot <- set_par(plot, ...)
+	plot
+}
+
 
 #### Color palettes and transparency ####
 ## ----------------------------------------
@@ -147,21 +283,74 @@ plot.vizi_points <- function(x, plot = NULL, add = FALSE, ...,
 	n = Inf, downsampler = "lttb")
 {
 	invisible(plot_mark_xy(mark=x, plot=plot, type="p", add=add, ...,
-		n = Inf, downsampler = "lttb"))
+		n=n, downsampler=downsampler))
 }
 
 plot.vizi_lines <- function(x, plot = NULL, add = FALSE, ...,
 	n = Inf, downsampler = "lttb")
 {
 	invisible(plot_mark_xy(mark=x, plot=plot, type="l", add=add, ...,
-		n = Inf, downsampler = "lttb"))
+		n=n, downsampler=downsampler))
 }
 
 plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
 	n = Inf, downsampler = "lttb")
 {
 	invisible(plot_mark_xy(mark=x, plot=plot, type="h", add=add, ...,
-		n = Inf, downsampler = "lttb"))
+		n=n, downsampler=downsampler))
+}
+
+plot_mark_text <- function(mark, plot = NULL, ...,
+	adj = NULL, pos = NULL, offset = 0.5, add = FALSE)
+{
+	# encode position + label channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	text <- encode_var("text", encoding, plot$channels)
+	if ( !is2d(plot) )
+		z <- encode_var("z", encoding, plot$channels)
+	if ( length(x) == 0L || length(y) == 0L )
+		return()
+	# get parameters
+	if ( !is.null(mark$params$adj) )
+		adj <- mark$params$adj
+	if ( !is.null(mark$params$pos) )
+		pos <- mark$params$pos
+	if ( !is.null(mark$params$offset) )
+		offset <- mark$params$offset
+	# perform transformations
+	if ( !is2d(plot) ) {
+		# project 3d points
+		pmat <- trans3d_get()
+		t <- trans3d(x, y, z, pmat)
+		i <- trans3d_sort(x, y, z, pmat)
+		x <- t$x[i]
+		y <- t$y[i]
+	} else {
+		i <- NULL
+	}
+	# encode non-required channels
+	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
+	params <- normalize_encoding(params)
+	p <- c("color", "alpha", "size")
+	p <- setNames(p, p)
+	p <- lapply(p, encode_var, encoding=encoding,
+		channels=plot$channels, params=params, subscripts=i)
+	p$color <- add_alpha(p$color, p$alpha)
+	if ( !add )
+		plot_init(plot)
+	text.default(x, y, labels=text, adj=adj, pos=pos,
+		offset=offset, cex=p$size, col=p$color)
+	# encode legends
+	invisible(encode_legends(plot$channels, list()))
+}
+
+plot.vizi_text <- function(x, plot = NULL, add = FALSE, ...,
+	adj = NULL, pos = NULL, offset = 0.5)
+{
+	invisible(plot_mark_text(mark=x, plot=plot, add=add, ...,
+		adj=adj, pos=pos, offset=offset))
 }
 
 compute_raster <- function(mark, plot = NULL, ...,
@@ -251,6 +440,8 @@ compute_raster <- function(mark, plot = NULL, ...,
 		enhance <- t$enhance
 	if ( !is.null(t$smooth) )
 		smooth <- t$smooth
+	if ( !is.null(t$scale) )
+		scale <- t$scale
 	const_color <- n_unique(color) == 1L
 	const_alpha <- n_unique(alpha) == 1L
 	if ( is.character(enhance) || isTRUE(enhance) ) {
@@ -313,15 +504,23 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	rs <- compute_raster(mark, plot,
 		enhance=enhance, smooth=smooth, scale=scale, ...)
 	rc <- rs$raster
+	# flip x axis?
+	if ( par("usr")[1L] > par("usr")[2L] )
+		rc <- rc[nrow(rc):1L,,drop=FALSE]
+	# flip y axis?
+	if ( par("usr")[3L] < par("usr")[4L] )
+		rc <- rc[,ncol(rc):1L,drop=FALSE]
 	# plot the image
 	if ( !add )
 		plot_init(plot)
 	hasRaster <- dev.capabilities("rasterImage")$rasterImage
 	if ( !is2d(plot) || hasRaster != "yes" )
 		useRaster <- FALSE
+	if ( !is.null(mark$params$useRaster) )
+		useRaster <- useRaster && isTRUE(mark$params$useRaster)
 	if ( useRaster ) {
 		# plot raster
-		rc <- t(rc)[ncol(rc):1L,,drop=FALSE]
+		rc <- t(rc)
 		di <- 0.5 * diff(rs$i) / (dim(rc)[1L] - 1)
 		dj <- 0.5 * diff(rs$j) / (dim(rc)[2L] - 1)
 		rasterImage(as.raster(rc),
@@ -465,12 +664,14 @@ plot.vizi_voxels <- function(x, plot = NULL, add = FALSE, ...,
 setOldClass("vizi_points")
 setOldClass("vizi_lines")
 setOldClass("vizi_peaks")
+setOldClass("vizi_text")
 setOldClass("vizi_pixels")
 setOldClass("vizi_voxels")
 
 setMethod("plot", "vizi_points", plot.vizi_points)
 setMethod("plot", "vizi_lines", plot.vizi_lines)
 setMethod("plot", "vizi_peaks", plot.vizi_peaks)
+setMethod("plot", "vizi_text", plot.vizi_text)
 setMethod("plot", "vizi_pixels", plot.vizi_pixels)
 setMethod("plot", "vizi_voxels", plot.vizi_voxels)
 

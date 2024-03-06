@@ -77,6 +77,7 @@
 \alias{vm_used,ANY-method}
 \alias{vm_used,atoms-method}
 \alias{vm_used,matter_-method}
+\alias{vm_used,sparse_arr-method}
 
 \title{Internal Utilities for ``matter'' Package}
 

@@ -35,6 +35,7 @@ importFrom("graphics",
 	"rasterImage",
 	"strheight",
 	"strwidth",
+	"text.default",
 	"title")
 
 importFrom("stats",
@@ -417,7 +418,8 @@ export(
 	"bsearch",
 	"kdtree",
 	"kdsearch",
-	"knnsearch")
+	"knnsearch",
+	"nnpairs")
 
 S3method("print", "kdtree")
 
@@ -453,7 +455,7 @@ export(
 	"set_channel",
 	"set_coord",
 	"set_par",
-	"plot_facets")
+	"as_facets")
 
 export(
 	"vizi_par",
@@ -476,6 +478,10 @@ S3method("plot", "vizi_lines")
 S3method("plot", "vizi_peaks")
 S3method("plot", "vizi_pixels")
 S3method("plot", "vizi_voxels")
+
+export(
+	"plot_signal",
+	"plot_image")
 
 exportMethods(
 	"preplot",

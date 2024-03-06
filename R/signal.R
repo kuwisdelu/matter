@@ -451,6 +451,12 @@ findbins <- function(x, nbins, dynamic = TRUE,
 
 ltob <- function(x, t, lower, upper)
 {
+	if ( is.integer(x) && is.double(t) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(t) )
+		t <- as.double(t)
+	if ( is.unsorted(t) )
+		stop("domain 't' must be sorted")
 	lower <- as.integer(lower - 1L)
 	upper <- as.integer(upper - 1L)
 	.Call(C_downsampleLTOB, x, t, lower, upper, PACKAGE="matter")
@@ -458,6 +464,12 @@ ltob <- function(x, t, lower, upper)
 
 lttb <- function(x, t, lower, upper)
 {
+	if ( is.integer(x) && is.double(t) )
+		x <- as.double(x)
+	if ( is.double(x) && is.integer(t) )
+		t <- as.double(t)
+	if ( is.unsorted(t) )
+		stop("domain 't' must be sorted")
 	lower <- as.integer(lower - 1L)
 	upper <- as.integer(upper - 1L)
 	.Call(C_downsampleLTTB, x, t, lower, upper, PACKAGE="matter")
@@ -600,7 +612,7 @@ estnoise_filt <- function(x, nbins = 1L, msnr = 2,
 	} else {
 		# Xu and Freitas (2010) dynamic noise level
 		if ( isFALSE(peaks) || is.null(peaks) ) {
-			y <- sort(x[x[which(locmax(x))] > 0])
+			y <- sort(x[x > 0 & locmax(x)])
 		} else {
 			y <- sort(x[x > 0])
 		}
@@ -1006,7 +1018,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 		# guess tol as ~1/2 the min gap between same-signal peaks
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		fun <- function(peaks) min(reldiff(peaks, ref=ref), na.rm=TRUE)
-		tol <- 0.5 * min(vapply(peaklist, fun, numeric(1)), na.rm=TRUE)
+		tol <- 0.5 * median(vapply(peaklist, fun, numeric(1)), na.rm=TRUE)
 	}
 	if ( is.null(domain) ) {
 		# guess domain
@@ -1030,9 +1042,9 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 		while ( any(dup) ) {
 			# remove duplicates
 			pdup <- p[which(dup)[1L]]
-			pdup <- which(p == p[pdup])
-			diff <- reldiff(peaklist[[i]][pdup],
-				domain[p[pdup]], ref=tol.ref)
+			pdup <- which(p == pdup)
+			diff <- abs(reldiff(peaklist[[i]][pdup],
+				domain[p[pdup]], ref=tol.ref))
 			p[pdup[diff > min(diff)]] <- NA_integer_
 			dup <- duplicated(p, NA_integer_)
 		}
@@ -1127,7 +1139,7 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 #### Resolution (rate) estimation ####
 ## -----------------------------------
 
-estres <- function(x, tol = 1e-6, tol.ref = NA_character_)
+estres <- function(x, tol = NA, tol.ref = NA_character_)
 {
 	if ( length(x) <= 1L )
 		return(NA_real_)
@@ -1157,10 +1169,8 @@ estres <- function(x, tol = 1e-6, tol.ref = NA_character_)
 			}
 		}
 	} else {
-		drx <- abs(min(rx) - median(rx)) / mad(rx)
-		ddx <- abs(min(dx) - median(dx)) / mad(dx)
 		if ( is.na(tol.ref) ) {
-			if ( ddx < drx ) {
+			if ( mad(dx) < mad(rx) ) {
 				res <- c(absolute = min(dx))
 			} else {
 				res <- c(relative = min(rx))
@@ -1228,7 +1238,8 @@ simspec <- function(n = 1L, npeaks = 50L,
 		yout <- replicate(n, simspec(x=x, y=y,
 			domain=domain, size=size, sdx=sdx, sdy=sdy, sdymult=sdymult,
 			sdnoise=sdnoise, resolution=resolution, fmax=fmax,
-			baseline=baseline, decay=decay, units=units))
+			baseline=baseline, decay=decay, units=units), simplify=TRUE)
+		colnames(yout) <- seq_len(ncol(yout))
 	} else {
 		# calculate peak widths
 		dx <- x / resolution

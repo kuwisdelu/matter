@@ -63,6 +63,19 @@ setGeneric("pointers<-", function(object, value) standardGeneric("pointers<-"))
 setGeneric("domain", function(x) standardGeneric("domain"))
 setGeneric("domain<-", function(x, value) standardGeneric("domain<-"))
 
+setMethod("domain", "vector", function(x) attr(x, "domain"))
+setReplaceMethod("domain", "vector",
+	function(x, value) {
+		attr(x, "domain") <- value
+		x
+	})
+setMethod("domain", "array", function(x) attr(x, "domain"))
+setReplaceMethod("domain", "array",
+	function(x, value) {
+		attr(x, "domain") <- value
+		x
+	})
+
 # setGeneric("tolerance", function(object, ...) standardGeneric("tolerance")) # use ProtGenerics
 setGeneric("tolerance<-", function(object, ..., value) standardGeneric("tolerance<-"))
 setGeneric("sampler", function(object, ...) standardGeneric("sampler"))

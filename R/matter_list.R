@@ -146,6 +146,19 @@ setAs("matter_list", "matter_mat",
 			x
 	})
 
+setAs("matter_mat", "matter_list",
+	function(from) {
+		if ( !isTRUE(from@indexed) )
+			stop("can't coerce matter list that isn't 'indexed' to a matrix")
+		x <- new("matter_list",
+			data=from@data,
+			type=topmode_Rtype(from@type),
+			dim=rep.int(nrow(from@data), ncol(from@data)),
+			names=NULL)
+		if ( validObject(x) )
+			x
+	})
+
 setAs("matter_list", "matter_arr",
 	function(from) as(as(from, "matter_vec"), "matter_arr"))
 
@@ -190,7 +203,8 @@ subset_matter_list_sublist <- function(x, i = NULL)
 {
 	data <- subset_atoms1(x@data, i)
 	y <- new(class(x), x, data=data,
-		dim=x@dim[i], names=x@names[i])
+		type=x@type[i], dim=x@dim[i],
+		names=x@names[i])
 	if ( validObject(y) )
 		y
 }

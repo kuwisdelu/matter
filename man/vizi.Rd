@@ -7,7 +7,7 @@
 \alias{set_channel}
 \alias{set_coord}
 \alias{set_par}
-\alias{plot_facets}
+\alias{as_facets}
 
 \alias{vizi_par}
 \alias{vizi_style}
@@ -23,6 +23,12 @@
 
 \alias{plot,vizi_key,ANY-method}
 \alias{plot,vizi_colorkey,ANY-method}
+
+\alias{c,vizi_plot-method}
+\alias{c,vizi_facets-method}
+
+\alias{combine,vizi_plot,vizi_plot-method}
+\alias{combine,vizi_facets,vizi_facets-method}
 
 \title{A Simple Grammar of Base Graphics}
 
@@ -54,7 +60,7 @@ set_coord(plot, xlim = NULL, ylim = NULL, zlim = NULL,
 set_par(plot, \dots)
 
 ## Combine plots
-plot_facets(plotlist, nrow = NA, ncol = NA,
+as_facets(plotlist, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
 }
 

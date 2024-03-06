@@ -97,11 +97,11 @@ test_that("vizi - facets", {
 	v3c <- vizi(x=xc, y=yc)
 	v3d <- vizi(x=xd, y=yd)
 
-	v3 <- plot_facets(list(v3a, v3b, v3c, v3d))
+	v3 <- as_facets(list(v3a, v3b, v3c, v3d))
 	expect_equal(v1$plots, v3$plots)
 	expect_equal(v1$channels, v3$channels)
 
-	v4 <- plot_facets(list(v2, v2))
+	v4 <- as_facets(list(v2, v2))
 	expect_equal(c(v2$plots, v2$plots), v4$plots)
 	expect_equal(v2$channels, v4$channels)
 

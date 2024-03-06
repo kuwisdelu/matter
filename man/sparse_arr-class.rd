@@ -21,8 +21,12 @@
 \alias{atomindex<-}
 \alias{atomindex<-,sparse_arr-method}
 \alias{domain}
+\alias{domain,array-method}
+\alias{domain,vector-method}
 \alias{domain,sparse_arr-method}
 \alias{domain<-}
+\alias{domain<-,array-method}
+\alias{domain<-,vector-method}
 \alias{domain<-,sparse_arr-method}
 \alias{pointers}
 \alias{pointers,sparse_arr-method}

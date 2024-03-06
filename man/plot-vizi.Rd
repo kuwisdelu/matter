@@ -9,12 +9,14 @@
 \alias{plot.vizi_points}
 \alias{plot.vizi_lines}
 \alias{plot.vizi_peaks}
+\alias{plot.vizi_text}
 \alias{plot.vizi_pixels}
 \alias{plot.vizi_voxels}
 
 \alias{plot,vizi_points,ANY-method}
 \alias{plot,vizi_lines,ANY-method}
 \alias{plot,vizi_peaks,ANY-method}
+\alias{plot,vizi_text,ANY-method}
 \alias{plot,vizi_pixels,ANY-method}
 \alias{plot,vizi_voxels,ANY-method}
 
@@ -33,6 +35,9 @@
 
 \S3method{plot}{vizi_peaks}(x, plot = NULL, add = FALSE, \dots,
     n = Inf, downsampler = "lttb")
+
+\S3method{plot}{vizi_text}(x, plot = NULL, add = FALSE, \dots,
+    adj = NULL, pos = NULL, offset = 0.5)
 
 \S3method{plot}{vizi_pixels}(x, plot = NULL, add = FALSE, \dots,
     enhance = FALSE, smooth = FALSE, scale = FALSE,
@@ -54,6 +59,8 @@
     \item{n}{Maximum number of points to plot. This is useful for downsampling series with far more data points than are useful to plot. See \code{\link{downsample}} for details.}
 
     \item{downsampler}{If \code{n} is less than the number of points, then this is the downsampling method to use. See \code{\link{downsample}} for details.}
+
+    \item{adj, pos, offset}{See \code{text.default}.}
 
     \item{enhance}{The name of a contrast enhancement method, such as \code{"hist"} or \code{"adapt"} for \code{enhance_hist()} and \code{enhance_adapt()}, etc. See \code{\link{enhance}} for details.}
 
