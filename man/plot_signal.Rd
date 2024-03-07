@@ -14,13 +14,13 @@ plot_signal(x, y, by = names(y), group = NULL,
     xlim = NULL, ylim = NULL, col = NULL,
     xlab = NULL, ylab = NULL, layout = NULL,
     n = Inf, downsampler = "lttb", key = TRUE,
-    isPeaks = FALSE, annPeaks = 0, \dots)
+    grid = TRUE, isPeaks = FALSE, annPeaks = 0, \dots)
 
 plot_image(x, y, vals, by = names(vals), group = NULL,
     zlim = NULL, xlim = NULL, ylim = NULL, col = NULL,
     zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL,
-    enhance = NULL, smooth = NULL, scale = NULL,
-    key = TRUE, asp = 1, useRaster = TRUE, \dots)
+    enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
+    grid = TRUE, asp = 1, useRaster = TRUE, \dots)
 }
 
 \arguments{
@@ -41,6 +41,8 @@ plot_image(x, y, vals, by = names(vals), group = NULL,
     \item{n, downsampler}{See \code{\link{downsample}} for details.}
 
     \item{key}{Should a color key be generated for the image?}
+
+    \item{grid}{Should a rectangular grid be included in the plot?}
 
     \item{isPeaks}{Whether the signal should be plotted as peaks or as a continuous signal.}
 

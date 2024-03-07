@@ -448,6 +448,14 @@ S3method("predict", "opls")
 S3method("print", "opls")
 
 export(
+	"panel_grid",
+	"panel_dim",
+	"panel_get",
+	"panel_set",
+	"panel_next",
+	"panel_prev")
+
+export(
 	"vizi",
 	"add_mark",
 	"add_facets",

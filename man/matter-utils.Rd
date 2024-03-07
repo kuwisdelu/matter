@@ -56,6 +56,13 @@
 \alias{rescale}
 \alias{pinv}
 
+\alias{panel_grid}
+\alias{panel_dim}
+\alias{panel_get}
+\alias{panel_set}
+\alias{panel_next}
+\alias{panel_prev}
+
 \alias{qrank}
 \alias{qorder}
 \alias{qselect}

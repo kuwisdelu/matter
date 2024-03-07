@@ -9,12 +9,14 @@ NEW FEATURES
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
+    o Switch default 'vizi' style to 'classic'
     o Implement 'vm_used()' for 'sparse_arr' objects
     o Implement 'combine()' for 'vizi_plot' objects
     o Rename 'plot_facets()' to 'as_facets()'
 
 BUG FIXES
 
+    o Fixed RStudio plotting bugs due to 'par(bg="transparent")'
     o Fixed 'matter_list' subsetting not subsetting type
     o Fixed 'vizi_pixels' issues with y-axis
     o Fixed plotting functions not passing along parameters

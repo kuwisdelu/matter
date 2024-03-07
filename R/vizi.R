@@ -396,6 +396,7 @@ plot.vizi_plot <- function(x, add = FALSE, ...)
 				plot(key, cex=p$cex)
 			panel_restore(p)
 		}
+		panel_set(new=FALSE)
 	}
 	x$keys <- keys
 	invisible(x)
@@ -465,7 +466,7 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 				plot(key, cex=p$cex)
 			panel_restore(p)
 		}
-		panel_set(1)
+		panel_set(new=FALSE)
 	}
 	x$keys <- keys
 	invisible(x)

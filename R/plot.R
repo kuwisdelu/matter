@@ -7,7 +7,7 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 	xlim = NULL, ylim = NULL, col = NULL,
 	xlab = NULL, ylab = NULL, layout = NULL,
 	n = Inf, downsampler = "lttb", key = TRUE,
-	isPeaks = FALSE, annPeaks = 0, ...)
+	grid = TRUE, isPeaks = FALSE, annPeaks = 0, ...)
 {
 	if ( is.array(x) ) {
 		if ( length(dim(x)) > 2L )
@@ -48,7 +48,7 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 					labs <- as.character(round(x[[i]][j], digits=4L))
 					plot <- add_mark(plot, "text",
 						x=x[[i]][j], y=y[[i]][j], text=labs,
-						params=list(pos=3L, offset=0.2))
+						params=list(pos=3L, offset=0.1))
 				}
 			}
 		}
@@ -71,7 +71,7 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 						labs <- as.character(round(x[[i]][j], digits=4L))
 						p <- add_mark(p, "text",
 							x=x[[i]][j], y=y[[i]][j], text=labs,
-							params=list(pos=3L, offset=0.2))
+							params=list(pos=3L, offset=0.1))
 					}
 				}
 			}
@@ -84,7 +84,7 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 				nrow=layout[1L], ncol=layout[2L])
 		}
 	}
-	plot <- set_coord(plot, xlim=xlim, ylim=ylim)
+	plot <- set_coord(plot, xlim=xlim, ylim=ylim, grid=grid)
 	plot <- set_channel(plot, "x", label=xlab)
 	plot <- set_channel(plot, "y", label=ylab)
 	if ( !is.null(group) ) {
@@ -103,8 +103,8 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL,
 	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL,
-	enhance = NULL, smooth = NULL, scale = NULL,
-	key = TRUE, asp = 1, useRaster = TRUE, ...)
+	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
+	grid = TRUE, asp = 1, useRaster = TRUE, ...)
 {
 	if ( is.array(x) || (missing(vals) && is.list(x) && is.matrix(x[[1L]])) )
 	{
@@ -177,7 +177,7 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 		xlim <- get_var_range(plot, "x")
 	if ( is.null(ylim) )
 		ylim <- get_var_range(plot, "y")
-	plot <- set_coord(plot, xlim=xlim, ylim=rev(ylim), asp=asp)
+	plot <- set_coord(plot, xlim=xlim, ylim=rev(ylim), grid=grid, asp=asp)
 	plot <- set_channel(plot, "x", label=xlab)
 	plot <- set_channel(plot, "y", label=ylab)
 	if ( is.null(group) ) {
@@ -693,6 +693,21 @@ par_style_new <- function(params = list(), ...)
 		mar = c(0.5, 0.5, 1, 1),	# inner margins
 		oma = c(3, 3, 1, 1),		# outer margins
 		mgp = c(1.5, 0.5, 0))		# adjust axes
+	par_update(p, ..., more=params)
+}
+
+par_style_classic <- function(params = list(), ..., new = TRUE)
+{
+	if ( new )
+		params <- par_update(par_style_new(), more=params)
+	p <- list(
+		fg="black",
+		bg="white",
+		col="black",
+		col.axis="black",
+		col.lab="black",
+		col.main="black",
+		col.sub="black")
 	par_update(p, ..., more=params)
 }
 
