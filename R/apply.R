@@ -90,7 +90,7 @@ chunk_rowapply <- function(X, FUN, ...,
 		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(nrow(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
-		if ( verbose && !bpprogressbar(BPPARAM) )
+		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xi <- as.matrix(X[i,,drop=FALSE])
 		xi <- set_attr(xi, attributes(i))
@@ -114,7 +114,7 @@ chunk_colapply <- function(X, FUN, ...,
 		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(ncol(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
-		if ( verbose && !bpprogressbar(BPPARAM) )
+		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xi <- as.matrix(X[,i,drop=FALSE])
 		xi <- set_attr(xi, attributes(i))
@@ -187,7 +187,7 @@ chunk_lapply <- function(X, FUN, ...,
 		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(length(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
-		if ( verbose && !bpprogressbar(BPPARAM) )
+		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xi <- as.vector(X[i])
 		xi <- set_attr(xi, attributes(i))
@@ -273,7 +273,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		verbose <- getOption("matter.default.verbose")
 	INDEX <-  chunkify(seq_len(length(XS[[1L]])), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
-		if ( verbose && !bpprogressbar(BPPARAM) )
+		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xsi <- lapply(XS, `[`, i)
 		xsi[[1L]] <- set_attr(xsi[[1L]], attributes(i))

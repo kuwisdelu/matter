@@ -31,6 +31,15 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 		stop("'annPeaks' must be a scalar string or integer")
 	isPeaks <- rep_len(isPeaks, length(y))
 	mark <- ifelse(isPeaks, "peaks", "lines")
+	if ( any(isPeaks) ) {
+		for ( i in which(isPeaks) ) {
+			nz <- which(y[[i]] != 0)
+			if ( length(nz) > 0L ) {
+				x[[i]] <- x[[i]][nz]
+				y[[i]] <- y[[i]][nz]
+			}
+		}
+	}
 	if ( is.null(by) ) {
 		plot <- vizi()
 		for ( i in seq_along(y) ) {
@@ -702,7 +711,7 @@ par_style_classic <- function(params = list(), ..., new = TRUE)
 		params <- par_update(par_style_new(), more=params)
 	p <- list(
 		fg="black",
-		bg="white",
+		bg="transparent",
 		col="black",
 		col.axis="black",
 		col.lab="black",
@@ -717,7 +726,7 @@ par_style_light <- function(params = list(), ..., new = TRUE)
 		params <- par_update(par_style_new(), more=params)
 	p <- list(
 		fg="black",
-		bg="transparent",
+		bg="white",
 		col="black",
 		col.axis="black",
 		col.lab="black",

@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.5.6 [2024-3-7]
+-----------------------------------
+
+BUG FIXES
+
+    o Fix error in apply functions when 'BPPARAM=NULL'
+    o Remove zero-height peaks in 'plot_signal()'
+
 CHANGES IN VERSION 2.5.5 [2024-3-6]
 -----------------------------------
 
@@ -9,7 +17,7 @@ NEW FEATURES
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
-    o Switch default 'vizi' style to 'classic'
+    o Add 'vizi' style 'classic' for transparent background
     o Implement 'vm_used()' for 'sparse_arr' objects
     o Implement 'combine()' for 'vizi_plot' objects
     o Rename 'plot_facets()' to 'as_facets()'
