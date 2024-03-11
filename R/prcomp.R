@@ -18,7 +18,7 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	center = TRUE, scale. = FALSE, transpose = FALSE,
 	verbose = NA, ..., BPPARAM = bpparam())
 {
-	if ( "n" %in% names(as.list(match.call())) ) {
+	if ( "n" %in% ...names() ) {
 		warning("'n' is deprecated; use 'k' instead")
 		k <- list(...)$n
 	}

@@ -87,14 +87,6 @@ setGeneric("sampler<-", function(object, ..., value) standardGeneric("sampler<-"
 setGeneric("as.altrep", function(x, ...) standardGeneric("as.altrep"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
 
-# not currently used -- remove?
-setGeneric("chunksize", function(x) standardGeneric("chunksize"))
-setGeneric("chunksize<-", function(x, value) standardGeneric("chunksize<-"))
-
-# no longer used -- remove?
-setGeneric("keys", function(object) standardGeneric("keys"))
-setGeneric("keys<-", function(object, value) standardGeneric("keys<-"))
-
 setGeneric("rowMaj", function(x) standardGeneric("rowMaj"))
 setMethod("rowMaj", "matrix", function(x) TRUE)
 setMethod("rowMaj", "Matrix", function(x) {

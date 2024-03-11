@@ -1,4 +1,17 @@
 
+CHANGES IN VERSION 2.5.7 [2024-3-11]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Moved 'keys' and 'keys<-' generics to Cardinal
+    o Removed 'chunksize' and 'chunksize<-' generics
+
+BUG FIXES
+
+    o Fix error with NAs in 'add_alpha()'
+    o Fix flipped x/y coordinates in 'inpoly()'
+
 CHANGES IN VERSION 2.5.6 [2024-3-7]
 -----------------------------------
 

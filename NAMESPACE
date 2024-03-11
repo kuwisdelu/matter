@@ -169,12 +169,6 @@ exportMethods(
 	"nnzero",
 	"rowMaj")
 
-exportMethods(
-	"keys",
-	"keys<-",
-	"chunksize",
-	"chunksize<-")
-
 exportMethods("checksum")
 
 exportMethods(
