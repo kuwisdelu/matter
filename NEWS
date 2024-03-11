@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.4.1 [2024-3-11]
+-----------------------------------
+
+BUG FIXES
+
+    o Fixed flipped x/y coordinates in 'inpoly()'
+
 CHANGES IN VERSION 2.3.18 [2023-8-21]
 -----------------------------------
 

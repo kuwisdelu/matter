@@ -175,7 +175,7 @@ index_t do_in_poly(int * ptr, T * points, size_t n,
 	index_t num_contained = 0;
 	for ( index_t i = 0; i < n; i++ )
 	{
-		ptr[i] = in_poly(x[i], y[i], vy, vx, nvert);
+		ptr[i] = in_poly(x[i], y[i], vx, vy, nvert);
 		num_contained += ptr[i];
 	}
 	return num_contained;
