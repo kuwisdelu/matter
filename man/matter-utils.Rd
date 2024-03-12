@@ -53,7 +53,6 @@
 \alias{roll}
 \alias{seq_rel}
 \alias{shingles}
-\alias{rescale}
 \alias{pinv}
 
 \alias{panel_grid}

@@ -168,6 +168,26 @@ test_that("binvec + rollvec", {
 
 })
 
+test_that("rescale", {
+
+	set.seed(1)
+	x <- rnorm(1000)
+	i <- 1L
+
+	x2 <- rescale_rms(x, 1)
+	x3 <- rescale_sum(x, 1)
+	x4 <- rescale_ref(x, ref=i, scale=1)
+	x5 <- rescale_range(x, c(0, 1))
+	x6 <- rescale_iqr(x, 1)
+	
+	expect_equal(sqrt(mean(x2^2)), 1)
+	expect_equal(sum(abs(x3)), 1)
+	expect_equal(x4[i], 1)
+	expect_equal(range(x5), c(0, 1))
+	expect_equal(IQR(x6), 1)
+
+})
+
 test_that("downsample", {
 
 	set.seed(1)

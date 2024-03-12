@@ -224,29 +224,14 @@ warp2_fun <- function(method)
 enhance_hist <- function(x, nbins = 256L)
 {
 	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
-	normalize_IQR(y, x)
+	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 }
 
 enhance_adapt <- function(x, width = sqrt(length(x)) %/% 5L,
 	clip = 0.1, nbins = 256L)
 {
 	y <- .Call(C_adaptHistEq, x, width, clip, nbins, PACKAGE="matter")
-	normalize_IQR(y, x)
-}
-
-normalize_IQR <- function(x, y)
-{
-	# normalize x's median+IQR to y's
-	qy <- IQR(y, na.rm=TRUE)
-	qx <- IQR(x, na.rm=TRUE)
-	center <- median(y, na.rm=TRUE)
-	x <- x - median(x, na.rm=TRUE)
-	if ( qx != 0 )
-		x <- x / qx
-	if ( qy != 0 )
-		x <- x * qy
-	x <- x + center
-	x
+	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 }
 
 enhance_fun <- function(method)

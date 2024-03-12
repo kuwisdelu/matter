@@ -463,7 +463,7 @@ compute_raster <- function(mark, plot = NULL, ...,
 		}
 		if ( !const_alpha && is.numeric(ra) ) {
 			ra <- fn(ra)
-			ra <- rescale(ra, c(0, 1))
+			ra <- rescale_range(ra, c(0, 1))
 		}
 	}
 	if ( is.character(smooth) || isTRUE(smooth) ) {
@@ -475,13 +475,13 @@ compute_raster <- function(mark, plot = NULL, ...,
 		}
 		if ( !const_alpha && is.numeric(ra) ) {
 			ra <- fn(ra)
-			ra <- rescale(ra, c(0, 1))
+			ra <- rescale_range(ra, c(0, 1))
 		}
 	}
 	if ( is.numeric(rc) && isTRUE(scale) ) {
 		# scaling
 		clim <- c(0, 100)
-		rc <- rescale(rc, clim)
+		rc <- rescale_range(rc, clim)
 	}
 	# encode color scheme
 	csch <- plot$channels[[cname]]$scheme

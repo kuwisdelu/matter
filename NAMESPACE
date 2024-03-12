@@ -341,6 +341,11 @@ export(
 	"findpeaks",
 	"findpeaks_cwt",
 	"findridges",
+	"rescale_rms",
+	"rescale_sum",
+	"rescale_ref",
+	"rescale_range",
+	"rescale_iqr",
 	"ricker",
 	"cwt",
 	"peakwidths",
@@ -389,7 +394,6 @@ export(
 	"roll",
 	"seq_rel",
 	"shingles",
-	"rescale",
 	"pinv")
 
 export(

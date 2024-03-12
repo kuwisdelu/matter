@@ -787,13 +787,6 @@ n_unique <- function(x, na.rm = TRUE) {
 	}
 }
 
-rescale <- function(x, limits) {
-	x <- x - min(x, na.rm=TRUE)
-	x <- x / max(x, na.rm=TRUE)
-	x <- diff(limits) * x
-	x + min(limits)
-}
-
 # get predicted classes from scores
 predict_class <- function(scores) {
 	i <- seq_len(ncol(scores))

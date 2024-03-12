@@ -356,6 +356,83 @@ warp1_fun <- function(method)
 	fn
 }
 
+#### Scaling and Normalization ####
+## --------------------------------
+
+rescale_rms <- function(x, scale = 1)
+{
+	b <- sqrt(mean(x^2, na.rm=TRUE))
+	if ( b > 0 ) {
+		scale * x / b
+	} else {
+		rep.int(0, length(x))
+	}
+}
+
+rescale_sum <- function(x, scale = length(x))
+{
+	b <- sum(abs(x), na.rm=TRUE)
+	if ( b > 0 ) {
+		scale * x / b
+	} else {
+		rep.int(0, length(x))
+	}
+}
+
+rescale_ref <- function(x, ref = 1L, scale = 1, domain = NULL)
+{
+	if ( missing(domain) || is.null(domain) )
+		domain <- seq_along(x)
+	if ( length(x) != length(domain) )
+		stop("length of 'domain' must match length of 'x'")
+	if ( ref < min(domain) || ref > max(domain) )
+		stop("'ref' is outside of domain limits")
+	i <- bsearch(ref, domain, nearest=TRUE)
+	if ( x[i] != 0 ) {
+		scale * x / x[i]
+	} else {
+		rep.int(0, length(x))
+	}
+}
+
+rescale_range <- function(x, limits = c(0, 1))
+{
+	x <- x - min(x, na.rm=TRUE)
+	x <- x / max(x, na.rm=TRUE)
+	x <- diff(limits) * x
+	x + min(limits)
+}
+
+rescale_iqr <- function(x, width = 1, center = 0)
+{
+	iqr <- IQR(x, na.rm=TRUE)
+	x <- x - median(x, na.rm=TRUE)
+	if ( iqr != 0 )
+		x <- x / iqr
+	if ( width != 0 )
+		x <- x * width
+	x + center
+}
+
+rescale_fun <- function(method)
+{
+	if ( is.character(method) )
+		method <- tolower(method)
+	options <- list(
+		"rms" = 		rescale_rms,
+		"sum" = 		rescale_sum,
+		"tic" = 		rescale_sum,
+		"ref" = 		rescale_ref,
+		"reference" = 	rescale_ref,
+		"range" = 		rescale_range,
+		"iqr" = 		rescale_iqr,
+		"quantile" = 	rescale_iqr)
+	fn <- options[[method, exact=FALSE]]
+	if ( is.null(fn) )
+		stop("couldn't find method ", sQuote(method))
+	fn
+}
+
 #### Binning and downsampling ####
 ## -------------------------------
 

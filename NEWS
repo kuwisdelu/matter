@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.5.8 [2024-3-12]
+-----------------------------------
+
+NEW FEATURES
+
+    o Added scaling functions 'rescale_rms()', 'rescale_sum()',
+        'rescale_ref()', 'rescale_range()', and 'rescale_iqr()'
+
 CHANGES IN VERSION 2.5.7 [2024-3-11]
 -----------------------------------
 
