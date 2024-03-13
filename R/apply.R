@@ -23,6 +23,7 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 	}
 	CHUNKFUN <- function(X, ...) {
 		dn <- switch(MARGIN, nrow(X), ncol(X))
+		cid <- attr(X, "chunkid")
 		ans <- vector("list", attr(X, "chunksize"))
 		ii <- 1L
 		for ( i in seq_len(dn) ) {
@@ -43,7 +44,7 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 			ii <- ii + 1L
 		}
 		if ( outfile ) {
-			put(ans)
+			put(ans, cid)
 		} else {
 			ans
 		}
@@ -57,6 +58,8 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 			verbose=verbose, BPPARAM=BPPARAM)
 		names(ans.list) <- dimnames(X)[[2L]]
 	}
+	if ( outfile )
+		ipcremove(pid)
 	if ( outfile && isTRUE(simplify) ) {
 		ans.list <- simplify2matter(ans.list)
 	} else if ( is.function(simplify) || is.character(simplify) ) {
@@ -142,6 +145,7 @@ chunkLapply <- function(X, FUN, ...,
 		put <- chunk_writer(pid, outpath)
 	}
 	CHUNKFUN <- function(X, ...) {
+		cid <- attr(X, "chunkid")
 		ans <- vector("list", attr(X, "chunksize"))
 		ii <- 1L
 		for ( i in seq_along(X) ) {
@@ -158,13 +162,15 @@ chunkLapply <- function(X, FUN, ...,
 			ii <- ii + 1L
 		}
 		if ( outfile ) {
-			put(ans)
+			put(ans, cid)
 		} else {
 			ans
 		}
 	}
 	ans.list <- chunk_lapply(X, CHUNKFUN, ..., verbose=verbose, BPPARAM=BPPARAM)
 	names(ans.list) <- names(X)
+	if ( outfile )
+		ipcremove(pid)
 	if ( outfile && isTRUE(simplify) ) {
 		ans.list <- simplify2matter(ans.list)
 	} else if ( is.function(simplify) || is.character(simplify) ) {
@@ -216,6 +222,7 @@ chunkMapply <- function(FUN, ...,
 	}
 	CHUNKFUN <- function(..., MoreArgs) {
 		XS <- list(...)
+		cid <- attr(XS[[1L]], "chunkid")
 		ans <- vector("list", attr(XS[[1L]], "chunksize"))
 		ii <- 1L
 		for ( i in seq_along(XS[[1L]]) ) {
@@ -232,13 +239,15 @@ chunkMapply <- function(FUN, ...,
 			ii <- ii + 1L
 		}
 		if ( outfile ) {
-			put(ans)
+			put(ans, cid)
 		} else {
 			ans
 		}
 	}
 	ans.list <- chunk_mapply(CHUNKFUN, ..., verbose=verbose, BPPARAM=BPPARAM)
 	names(ans.list) <- names(...elt(1L))
+	if ( outfile )
+		ipcremove(pid)
 	if ( outfile && isTRUE(simplify) ) {
 		ans.list <- simplify2matter(ans.list)
 	} else if ( is.function(simplify) || is.character(simplify) ) {
@@ -319,10 +328,15 @@ chunkify <- function(x, nchunks = 20L, depends = NULL) {
 }
 
 chunk_writer <- function(pid, path) {
-	function(x) {
+	function(x, i = 0L) {
+		while ( i && ipcvalue(pid) != i ) {
+			Sys.sleep(0.1)
+		}
 		ipclock(pid)
 		ans <- matter_list(x, path=path, append=TRUE)
 		ipcunlock(pid)
+		if ( i )
+			ipcyield(pid)
 		ans
 	}
 }

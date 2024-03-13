@@ -14,6 +14,13 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 			stop("'x' must have at most 2 dimensions")
 		y <- apply(x, 2L, identity, simplify=FALSE)
 		x <- seq_along(y[[1L]])
+	} else if ( missing(y) ) {
+		y <- x
+		if ( is.list(y) ) {
+			x <- lapply(y, seq_along)
+		} else {
+			x <- seq_along(y)
+		}
 	} else if ( is.array(y) ) {
 		if ( length(dim(y)) > 2L )
 			stop("'y' must have at most 2 dimensions")

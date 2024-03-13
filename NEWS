@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.5.9 [2024-3-13]
+-----------------------------------
+
+BUG FIXES
+
+    o When writing to a file in chunk apply functions, preserve
+        order in file even if chunks are processed out-of-order
+
 CHANGES IN VERSION 2.5.8 [2024-3-12]
 -----------------------------------
 

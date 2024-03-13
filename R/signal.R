@@ -175,25 +175,29 @@ convolve_at <- function(x, index, weights, ...)
 ## ----------------------------
 
 warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
-	events = c("maxmin", "max", "min"), lx = NULL, ly = NULL,
-	interp = c("linear", "loess", "spline"), n = length(y),
+	events = c("maxmin", "max", "min"), n = length(y),
+	interp = c("linear", "loess", "spline"),
 	tol = NA_real_, tol.ref = "abs")
 {
 	events <- match.arg(events)
 	# find events in each signal
+	if ( missing(y) || is.null(y) ) {
+		if ( missing(ty) )
+			stop("either 'y' or 'ty' must be specified")
+		ly <- ty
+	} else {
+		ly <- NULL
+	}
 	if ( events == "maxmin" ) {
-		if ( is.null(lx) )
-			lx <- tx[which(locmax(x) | locmin(x))]
+		lx <- tx[which(locmax(x) | locmin(x))]
 		if ( is.null(ly) )
 			ly <- ty[which(locmax(y) | locmin(y))]
 	} else if ( events == "max" ) {
-		if ( is.null(lx) )
-			lx <- tx[which(locmax(x))]
+		lx <- tx[which(locmax(x))]
 		if ( is.null(ly) )
 			ly <- ty[which(locmax(y))]
 	} else if ( events == "min" ) {
-		if ( is.null(lx) )
-			lx <- tx[which(locmin(x))]
+		lx <- tx[which(locmin(x))]
 		if ( is.null(ly) )
 			ly <- ty[which(locmin(y))]
 	}
@@ -241,6 +245,12 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	n = length(y), tol = NA_real_, tol.ref = "abs")
 {
+	if ( missing(y) || is.null(y) ) {
+		if ( missing(ty) )
+			stop("either 'y' or 'ty' must be specified")
+		y <- rep_len(max(x, na.rm=TRUE), length(ty))
+		y <- simspec1(ty, y, tx, resolution=estres(tx, tol.ref="x")^(-1))
+	}
 	if ( is.integer(x) && is.double(y) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(y) )
@@ -279,6 +289,12 @@ warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	nbins = NA_integer_, n = length(y),
 	tol = NA_real_, tol.ref = "abs")
 {
+	if ( missing(y) || is.null(y) ) {
+		if ( missing(ty) )
+			stop("either 'y' or 'ty' must be specified")
+		y <- rep_len(max(x, na.rm=TRUE), length(ty))
+		y <- simspec1(ty, y, tx, resolution=estres(tx, tol.ref="x")^(-1))
+	}
 	if ( is.integer(x) && is.double(y) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(y) )
