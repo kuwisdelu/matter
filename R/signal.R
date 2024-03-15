@@ -203,8 +203,8 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	}
 	if ( is.na(tol) ) {
 		# guess tol as ~5% of the signal length
-		xref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=xref))
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=ref))
 	}
 	# match events between signals
 	tout <- approx(tx, tx, n=n)$y
@@ -261,8 +261,8 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ty <- as.double(ty)
 	if ( is.na(tol) ) {
 		# guess tol as ~5% of the signal length
-		xref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=xref))
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=ref))
 	}
 	# dynamic time warping to align signals
 	d0 <- abs(reldiff(tx[1L], ty[1L], ref=tol.ref))
@@ -305,13 +305,13 @@ warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ty <- as.double(ty)
 	if ( is.na(tol) ) {
 		# guess tol as ~5% of the signal length
-		xref <- ifelse(tol.ref == "abs", "abs", "y")
-		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=xref))
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		tol <- 0.05 * length(x) * mean(reldiff(tx, ref=ref))
 	}
 	if ( is.na(nbins) ) {
 		# guess nbins so that bin widths are ~tol
-		xref <- ifelse(tol.ref == "abs", "abs", "y")
-		nbins <- abs(reldiff(tx[1L], tx[length(tx)], ref=xref)) %/% tol
+		ref <- ifelse(tol.ref == "abs", "abs", "y")
+		nbins <- abs(reldiff(tx[1L], tx[length(tx)], ref=ref)) %/% tol
 	}
 	# initialize nodes
 	if ( nbins < 2L )
