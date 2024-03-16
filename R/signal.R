@@ -1064,8 +1064,8 @@ peakwidths <- function(x, peaks, domain = NULL,
 	# descend peaks to find height at fraction of max
 	heights <- x[peaks] - (1 - fmax) * p
 	thresholds <- .Call(C_peakWidths, x, as.integer(peaks - 1L),
-		as.double(domain), as.integer(left_end - 1L), as.integer(right_end - 1L),
-		as.double(heights), PACKAGE="matter")
+		as.double(domain), as.integer(left_end - 1L),
+		as.integer(right_end - 1L), as.double(heights), PACKAGE="matter")
 	ann <- data.frame(row.names=seq_along(peaks))
 	ann$width_heights <- heights
 	# calculate widths at intersections of reference height
@@ -1082,8 +1082,8 @@ peakareas <- function(x, peaks, domain = NULL)
 		domain <- seq_along(x)
 	if ( is.unsorted(domain) )
 		stop("'domain' must be sorted")
-	left_bounds <- as.integer(attr(peaks, "left_bounds"))
-	right_bounds <- as.integer(attr(peaks, "right_bounds"))
+	left_bounds <- attr(peaks, "left_bounds")
+	right_bounds <- attr(peaks, "right_bounds")
 	if ( is.null(left_bounds) || is.null(right_bounds) )
 	{
 		# find peak boundaries if not provided
@@ -1097,15 +1097,16 @@ peakareas <- function(x, peaks, domain = NULL)
 	ann$right_bounds <- right_bounds
 	# calculate peak areas by numeric integration
 	areas <- .Call(C_peakAreas, x, as.integer(peaks - 1L),
-		as.double(domain), left_bounds - 1L, right_bounds - 1L, PACKAGE="matter")
+		as.double(domain), as.integer(left_bounds - 1L),
+		as.integer(right_bounds - 1L), PACKAGE="matter")
 	attributes(areas) <- ann
 	areas
 }
 
 peakheights <- function(x, peaks)
 {
-	left_bounds <- as.integer(attr(peaks, "left_bounds"))
-	right_bounds <- as.integer(attr(peaks, "right_bounds"))
+	left_bounds <- attr(peaks, "left_bounds")
+	right_bounds <- attr(peaks, "right_bounds")
 	if ( is.null(left_bounds) || is.null(right_bounds) )
 	{
 		# find peak boundaries if not provided
