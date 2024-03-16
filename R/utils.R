@@ -275,9 +275,9 @@ as_Summary <- function(x) {
 }
 
 as_tol <- function(x) {
+	if ( !is.null(attr(x, "tol_type")) )
+		return(x)
 	tol <- x[1L]
-	if ( !is.null(attr(tol, "tol_type")) )
-		return(tol)
 	codes <- c("absolute", "relative")
 	if ( !is.null(names(tol)) ) {
 		tol_type <- pmatch(names(tol), codes, nomatch=1L)
