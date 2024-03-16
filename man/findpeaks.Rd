@@ -65,7 +65,8 @@ locmin(x, width = 5)
     \code{\link{estnoise_sd}},
     \code{\link{estnoise_mad}},
     \code{\link{peakwidths}},
-    \code{\link{peakareas}}
+    \code{\link{peakareas}},
+    \code{\link{peakheights}},
     \code{\link{binpeaks}},
     \code{\link{mergepeaks}}
 }

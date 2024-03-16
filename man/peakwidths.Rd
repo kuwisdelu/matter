@@ -2,6 +2,7 @@
 
 \alias{peakwidths}
 \alias{peakareas}
+\alias{peakheights}
 
 \title{Peak Summarization}
 
@@ -16,6 +17,9 @@ peakwidths(x, peaks, domain = NULL,
 
 # Get peak areas
 peakareas(x, peaks, domain = NULL)
+
+# Get peak heights
+peakheights(x, peaks)
 }
 
 \arguments{
@@ -31,7 +35,7 @@ peakareas(x, peaks, domain = NULL)
 }
 
 \value{
-    A numeric vector giving the widths or areas of the peaks with attributes 'left_bounds' and 'right_bounds' giving the left and right boundaries of the peak.
+    A numeric vector giving the widths, areas, or heights of the peaks with attributes 'left_bounds' and 'right_bounds' giving the left and right boundaries of the peak.
 }
 
 \author{Kylie A. Bemis}
@@ -49,6 +53,7 @@ x <- c(0, 1, 1, 2, 3, 2, 1, 4, 5, 1, 1, 0)
 p <- findpeaks(x)
 
 peakareas(x, p)
+peakheights(x, p)
 }
 
 \keyword{ts}

@@ -338,6 +338,18 @@ test_that("peakareas", {
 
 })
 
+test_that("peakheights", {
+
+	t <- seq(from=-4, to=4, length.out=1000)
+	x <- dnorm(t)
+	p <- findpeaks(x)
+
+	h <- peakheights(x, p)
+
+	expect_equivalent(h, max(x), tolerance=1e-3)
+
+})
+
 test_that("estres", {
 
 	x <- 1:100

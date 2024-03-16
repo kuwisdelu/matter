@@ -1082,24 +1082,45 @@ peakareas <- function(x, peaks, domain = NULL)
 		domain <- seq_along(x)
 	if ( is.unsorted(domain) )
 		stop("'domain' must be sorted")
-	left_bounds <- as.integer(attr(peaks, "left_bounds") - 1L)
-	right_bounds <- as.integer(attr(peaks, "right_bounds") - 1L)
+	left_bounds <- as.integer(attr(peaks, "left_bounds"))
+	right_bounds <- as.integer(attr(peaks, "right_bounds"))
 	if ( is.null(left_bounds) || is.null(right_bounds) )
 	{
 		# find peak boundaries if not provided
 		bounds <- .Call(C_peakBoundaries, x,
 			as.integer(peaks - 1L), PACKAGE="matter")
-		left_bounds <- bounds[[1L]]
-		right_bounds <- bounds[[2L]]
+		left_bounds <- bounds[[1L]] + 1L
+		right_bounds <- bounds[[2L]] + 1L
 	}
 	ann <- data.frame(row.names=seq_along(peaks))
 	ann$left_bounds <- left_bounds
 	ann$right_bounds <- right_bounds
 	# calculate peak areas by numeric integration
 	areas <- .Call(C_peakAreas, x, as.integer(peaks - 1L),
-		as.double(domain), left_bounds, right_bounds, PACKAGE="matter")
+		as.double(domain), left_bounds - 1L, right_bounds - 1L, PACKAGE="matter")
 	attributes(areas) <- ann
 	areas
+}
+
+peakheights <- function(x, peaks)
+{
+	left_bounds <- as.integer(attr(peaks, "left_bounds"))
+	right_bounds <- as.integer(attr(peaks, "right_bounds"))
+	if ( is.null(left_bounds) || is.null(right_bounds) )
+	{
+		# find peak boundaries if not provided
+		bounds <- .Call(C_peakBoundaries, x,
+			as.integer(peaks - 1L), PACKAGE="matter")
+		left_bounds <- bounds[[1L]] + 1L
+		right_bounds <- bounds[[2L]] + 1L
+	}
+	ann <- data.frame(row.names=seq_along(peaks))
+	ann$left_bounds <- left_bounds
+	ann$right_bounds <- right_bounds
+	# calculate peak heights by maximum
+	heights <- binvec(x, left_bounds, right_bounds, stat="max")
+	attributes(heights) <- ann
+	heights
 }
 
 binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,

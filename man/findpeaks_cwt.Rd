@@ -71,6 +71,7 @@ cwt(x, wavelet = ricker, scales = NULL)
     \code{\link{findpeaks}},
     \code{\link{peakwidths}},
     \code{\link{peakareas}},
+    \code{\link{peakheights}},
     \code{\link{binpeaks}},
     \code{\link{mergepeaks}}
 }

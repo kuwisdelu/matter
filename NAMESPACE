@@ -350,6 +350,7 @@ export(
 	"cwt",
 	"peakwidths",
 	"peakareas",
+	"peakheights",
 	"binpeaks",
 	"mergepeaks",
 	"estres",
