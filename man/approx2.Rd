@@ -19,7 +19,7 @@ approx2(x, y, z, xout, yout,
 
 	\item{xout, yout}{The coordinate (grid lines) where the resampling should take place. These are expanded into a rectilinear grid using \code{expand.grid()}.}
 
-	\item{interp}{Interpolation method. One of 'none', 'mean', 'sum', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'.}
+	\item{interp}{Interpolation method. One of 'none', 'sum', 'mean', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'.}
 
 	\item{nx, ny}{If \code{xout} is not given, then interpolation is performed at \code{nx * ny} equally spaced data points along the range of \code{x} and \code{y}.}
 

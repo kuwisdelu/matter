@@ -122,7 +122,7 @@ as.sparse(x, \dots)
 
         \item{tolerance}{For non-\code{NULL} domain, the tolerance used for floating-point equality when matching \code{index} to the \code{domain}. The vector should be named. Use 'absolute' to use absolute differences, and 'relative' to use relative differences.}
 
-        \item{sampler}{For non-zero tolerances, how the \code{data} values should be combined when there are multiple \code{index} values within the tolerance. Must be of 'none', 'mean', 'sum', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'. Note that 'none' means nearest-neighbor interpolation.}
+        \item{sampler}{For non-zero tolerances, how the \code{data} values should be combined when there are multiple \code{index} values within the tolerance. Must be of 'none', 'sum', 'mean', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'. Note that 'none' means nearest-neighbor interpolation.}
 
         \item{x}{An object to check if it is a sparse matrix or coerce to a sparse matrix.}
 

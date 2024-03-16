@@ -296,7 +296,7 @@ as_tol_ref <- function(x) {
 as_interp <- function(x) {
 	codes <- c(
 		# simple interp (1-5)
-		"none", "mean", "sum", "max", "min",
+		"none", "sum", "mean", "max", "min",
 		# peak-based (6)
 		"area",
 		# spline interp (7-8)

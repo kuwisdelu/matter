@@ -8,8 +8,8 @@
 // interpolation scheme
 // (must match factor levels)
 #define EST_NEAR	1 	
-#define EST_AVG		2
-#define EST_SUM		3
+#define EST_SUM		2
+#define EST_AVG		3
 #define EST_MAX		4
 #define EST_MIN		5
 #define EST_AREA	6  // Peak area
@@ -1430,10 +1430,10 @@ double interp1_stat(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 	index_t lower = wlower(xi, x, i, n, tol, tol_ref);
 	index_t upper = wupper(xi, x, i, n, tol, tol_ref);
 	switch(stat) {
+		case EST_SUM:
+			return do_sum(y, lower, upper);
 		case EST_AVG:
 			return do_mean(y, lower, upper);
-		case EST_SUM:
-			return do_sum(y, lower, upper);		
 		case EST_MAX:
 			return do_max(y, lower, upper);
 		case EST_MIN:
@@ -1560,8 +1560,8 @@ double interp1(Tx xi, Tx * x, Ty * y, index_t i, size_t n,
 			else
 				return NA_REAL;
 		}
-		case EST_AVG:
 		case EST_SUM:
+		case EST_AVG:
 		case EST_MAX:
 		case EST_MIN:
 			return interp1_stat(xi, x, y, i, n, tol, tol_ref, interp);

@@ -714,10 +714,10 @@ template<typename T>
 double interp2_stat(T * z, int * indx, size_t n, int stat = EST_AVG)
 {
 	switch(stat) {
-		case EST_AVG:
-			return do_mean_at(z, indx, n);
 		case EST_SUM:
 			return do_sum_at(z, indx, n);
+		case EST_AVG:
+			return do_mean_at(z, indx, n);
 		case EST_MAX:
 			return do_max_at(z, indx, n);
 		case EST_MIN:
@@ -770,8 +770,8 @@ double interp2(Txy xi, Txy yi, Txy * x, Txy * y, Tz * z,
 			}
 			return z[indx[argmin(d2, n)]];
 		}
-		case EST_AVG:
 		case EST_SUM:
+		case EST_AVG:
 		case EST_MAX:
 		case EST_MIN:
 			return interp2_stat(z, indx, n, interp);
