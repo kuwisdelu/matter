@@ -249,7 +249,7 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		if ( missing(ty) )
 			stop("either 'y' or 'ty' must be specified")
 		y <- rep_len(max(x, na.rm=TRUE), length(ty))
-		y <- simspec1(ty, y, tx, resolution=estres(tx, tol.ref="x")^(-1))
+		y <- simspec1(ty, y, tx, resolution=estres(tx, ref="x")^(-1))
 	}
 	if ( is.integer(x) && is.double(y) )
 		x <- as.double(x)
@@ -293,7 +293,7 @@ warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		if ( missing(ty) )
 			stop("either 'y' or 'ty' must be specified")
 		y <- rep_len(max(x, na.rm=TRUE), length(ty))
-		y <- simspec1(ty, y, tx, resolution=estres(tx, tol.ref="x")^(-1))
+		y <- simspec1(ty, y, tx, resolution=estres(tx, ref="x")^(-1))
 	}
 	if ( is.integer(x) && is.double(y) )
 		x <- as.double(x)
@@ -1254,7 +1254,7 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 #### Resolution (rate) estimation ####
 ## -----------------------------------
 
-estres <- function(x, tol = NA, tol.ref = NA_character_)
+estres <- function(x, tol = NA, ref = NA_character_)
 {
 	if ( length(x) <= 1L )
 		return(NA_real_)
@@ -1265,8 +1265,8 @@ estres <- function(x, tol = NA, tol.ref = NA_character_)
 	rx <- ifelse(is.na(rx), Inf, rx)
 	dx <- diff(x)
 	if ( is.finite(tol) ) {
-		if ( (is.na(tol.ref) && diff(range(rx)) > tol) || 
-			(!is.na(tol.ref) && tol.ref == "abs" ) )
+		if ( (is.na(ref) && diff(range(rx)) > tol) || 
+			(!is.na(ref) && ref == "abs" ) )
 		{
 			dx <- dx[dx > tol]
 			if ( all(dx %% min(dx) <= tol) ) {
@@ -1284,14 +1284,14 @@ estres <- function(x, tol = NA, tol.ref = NA_character_)
 			}
 		}
 	} else {
-		if ( is.na(tol.ref) ) {
+		if ( is.na(ref) ) {
 			if ( mad(dx) < mad(rx) ) {
 				res <- c(absolute = min(dx))
 			} else {
 				res <- c(relative = min(rx))
 			}
 		} else {
-			if ( tol.ref == "abs" ) {
+			if ( ref == "abs" ) {
 				res <- c(absolute = min(dx))
 			} else {
 				res <- c(relative = min(rx))

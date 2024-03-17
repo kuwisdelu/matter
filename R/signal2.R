@@ -258,8 +258,7 @@ is_gridded <- function(x, tol = 0.5)
 {
 	if ( length(dim(x)) != 2L )
 		stop("x must be a matrix or data frame")
-	!anyNA(apply(x, 2L, estres,
-		tol = tol, tol.ref="abs"))
+	!anyNA(apply(x, 2L, estres, tol=tol, ref="abs"))
 }
 
 to_raster <- function(x, y, vals)
@@ -326,7 +325,7 @@ estdim <- function(x, tol = 1e-6)
 {
 	if ( length(dim(x)) != 2L )
 		stop("x must be a matrix or data frame")
-	res <- apply(x, 2L, estres, tol = tol, tol.ref="abs")
+	res <- apply(x, 2L, estres, tol=tol, ref="abs")
 	if ( anyNA(res) ) {
 		if ( ncol(x) == 2L ) {
 			xr <- range(x[,1L], na.rm=TRUE)

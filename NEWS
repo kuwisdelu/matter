@@ -6,6 +6,10 @@ NEW FEATURES
 
     o Add function 'peakheights()'
 
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Rename 'estres()' parameter 'tol.ref' to 'ref'
+
 BUG FIXES
 
     o Fix 'tolerance()' returning invalid value for 'tolerance()<-'
