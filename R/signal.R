@@ -892,6 +892,10 @@ findpeaks_cwt <- function(x, snr = 2, wavelet = ricker, scales = NULL,
 	ridges <- ridges[vapply(ridges, nrow, integer(1L)) >= ridgelen]
 	# get peak locations
 	peaks <- vapply(ridges, function(ridge) ridge[1L,1L], integer(1L))
+	# remove duplicate peaks
+	dup <- duplicated(peaks)
+	ridges <- ridges[!dup]
+	peaks <- peaks[!dup]
 	# get signal-to-noise ratio
 	width <- max(5L, width)
 	halfwidth <- width %/% 2L

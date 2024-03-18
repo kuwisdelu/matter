@@ -1,5 +1,5 @@
 
-CHANGES IN VERSION 2.5.10 [2024-3-16]
+CHANGES IN VERSION 2.5.10 [2024-3-17]
 -----------------------------------
 
 NEW FEATURES
@@ -14,6 +14,7 @@ BUG FIXES
 
     o Fix 'tolerance()' returning invalid value for 'tolerance()<-'
     o Fix error in 'peakareas()' when peak boundaries are NULL
+    o Remove duplicate peaks in 'findpeaks_cwt()'
 
 CHANGES IN VERSION 2.5.9 [2024-3-13]
 -----------------------------------
