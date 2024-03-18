@@ -392,10 +392,12 @@ export(
 	"colDistFun")
 
 export(
+	"array_ind",
+	"linear_ind",
+	"pinv",
 	"roll",
 	"seq_rel",
-	"shingles",
-	"pinv")
+	"shingles")
 
 export(
 	"dpal",

@@ -9,6 +9,7 @@ NEW FEATURES
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Rename 'estres()' parameter 'tol.ref' to 'ref'
+    o Export 'array_ind()' and 'linear_ind()'
 
 BUG FIXES
 
