@@ -1164,7 +1164,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 			pdup <- which(p == pdup)
 			diff <- abs(reldiff(peaklist[[i]][pdup],
 				domain[p[pdup]], ref=tol.ref))
-			p[pdup[diff > min(diff)]] <- NA_integer_
+			p[pdup[diff >= min(diff)][1L]] <- NA_integer_
 			dup <- duplicated(p, NA_integer_)
 		}
 		# add peaks to bin sum

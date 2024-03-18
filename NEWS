@@ -15,6 +15,7 @@ BUG FIXES
     o Fix 'tolerance()' returning invalid value for 'tolerance()<-'
     o Fix error in 'peakareas()' when peak boundaries are NULL
     o Remove duplicate peaks in 'findpeaks_cwt()'
+    o Fix potential infinite loop in 'binpeaks()'
 
 CHANGES IN VERSION 2.5.9 [2024-3-13]
 -----------------------------------
