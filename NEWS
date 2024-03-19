@@ -1,5 +1,5 @@
 
-CHANGES IN VERSION 2.5.10 [2024-3-17]
+CHANGES IN VERSION 2.5.10 [2024-3-19]
 -----------------------------------
 
 NEW FEATURES
@@ -17,6 +17,7 @@ BUG FIXES
     o Fix error in 'peakareas()' when peak boundaries are NULL
     o Remove duplicate peaks in 'findpeaks_cwt()'
     o Fix potential infinite loop in 'binpeaks()'
+    o Fix potential incorrect vector lengths in 'simspec()'
 
 CHANGES IN VERSION 2.5.9 [2024-3-13]
 -----------------------------------

@@ -1364,8 +1364,8 @@ simspec <- function(n = 1L, npeaks = 50L,
 		dx <- x / resolution
 		peakwidths <- qnorm(1 - fmax / 2) * dx
 		# calculate peak variance
-		sdy <- rep_len(sdy, npeaks)
-		yerr <- rlnorm(npeaks, sdlog=sdy)
+		sdy <- rep_len(sdy, length(y))
+		yerr <- rlnorm(length(y), sdlog=sdy)
 		yerr <- yerr - exp(sdy^2 / 2)
 		y2 <- y + yerr
 		# calculate x error
