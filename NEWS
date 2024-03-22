@@ -12,6 +12,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Export 'array_ind()' and 'linear_ind()'
     o Add 'nchunks' argument to 'prcomp()' and 'pls()'
     o Vectorize 'predict.pls()' over 'k' argument
+    o Set corresponding attributes to NULL when center/scale
+        are FALSE in 'rowscale()' and 'colscale()'
 
 BUG FIXES
 

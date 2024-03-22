@@ -74,13 +74,14 @@ test_that("nnmf - multiplicative updates", {
 
 test_that("nnmf - matter matrix", {
 
+	register(SerialParam())
 	set.seed(1)
 	nr <- 100
 	nc <- 25
-	vals1 <- sort(runif(2500))
-	vals2 <- rev(sort(runif(2500)))
-	x1 <- matrix(vals1, nrow=100, ncol=25)
-	x2 <- matrix(vals2, nrow=100, ncol=25)
+	vals1 <- sort(runif(nr * nc))
+	vals2 <- rev(sort(runif(nr * nc)))
+	x1 <- matrix(vals1, nrow=nr, ncol=nc)
+	x2 <- matrix(vals2, nrow=nr, ncol=nc)
 	x <- cbind(x1, x2)
 	y <- matter_mat(x)
 	mf1.x <- nnmf_als(x)
@@ -105,10 +106,13 @@ test_that("nnmf - matter matrix", {
 
 test_that("nnmf - sparse matrix", {
 
+	register(SerialParam())
 	set.seed(1)
-	x <- rbinom(5000, 1, 0.2)
+	nr <- 100
+	nc <- 25
+	x <- rbinom(nr * nc, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
-	dim(x) <- c(100, 50)
+	dim(x) <- c(nr, nc)
 	y <- sparse_mat(x)
 	mf1.x <- nnmf_als(x)
 	mf1.y <- nnmf_als(y)

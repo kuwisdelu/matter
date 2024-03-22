@@ -373,7 +373,7 @@ test_that("opls - da", {
 	y <- factor(c("a", "a", "a", "b", "a", "b", "b"))
 
 	no1 <- opls_nipals(x, y, k=1)
-	np1 <- pls_nipals(no1$x, y, k=1)
+	np1 <- pls_nipals(no1$x, y, k=1, center=FALSE, scale.=FALSE)
 	ynf1 <- apply(fitted(np1), 1L, which.max)
 	ynp1 <- predict(np1, no1$x, type="class")
 

@@ -23,6 +23,8 @@ rowscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 		if ( NROW(center) != nr )
 			stop("length of 'center' must be equal to nrow of x")
 		x <- rowsweep(x, center, "-", group=group)
+	} else {
+		center <- NULL
 	}
 	if ( isTRUE(scale) ) {
 		scale <- rowStats(x^2, "sum", group=group, simplify=FALSE, ..., BPPARAM=BPPARAM)
@@ -33,13 +35,12 @@ rowscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 		if ( NROW(scale) != nr )
 			stop("length of 'scale' must be equal to nrow of x")
 		x <- rowsweep(x, scale, "/", group=group)
+	} else {
+		scale <- NULL
 	}
-	if ( is.numeric(center) ) 
-        attr(x, "row-scaled:center") <- center
-    if ( is.numeric(scale) ) 
-        attr(x, "row-scaled:scale") <- scale
-    if ( !is.null(group) )
-    	attr(x, "row-scaled:group") <- group
+    attr(x, "row-scaled:center") <- center
+    attr(x, "row-scaled:scale") <- scale
+	attr(x, "row-scaled:group") <- group
     x
 }
 
@@ -52,6 +53,8 @@ colscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 		if ( NROW(center) != nc )
 			stop("length of 'center' must be equal to ncol of x")
 		x <- colsweep(x, center, "-", group=group)
+	} else {
+		center <- NULL
 	}
 	if ( isTRUE(scale) ) {
 		scale <- colStats(x^2, "sum", group=group, simplify=FALSE, ..., BPPARAM=BPPARAM)
@@ -62,13 +65,12 @@ colscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 		if ( NROW(scale) != nc )
 			stop("length of 'scale' must be equal to ncol of x")
 		x <- colsweep(x, scale, "/", group=group)
+	} else {
+		scale <- NULL
 	}
-	if ( is.numeric(center) ) 
-        attr(x, "col-scaled:center") <- center
-    if ( is.numeric(scale) )
-        attr(x, "col-scaled:scale") <- scale
-    if ( !is.null(group) )
-    	attr(x, "col-scaled:group") <- group
+    attr(x, "col-scaled:center") <- center
+    attr(x, "col-scaled:scale") <- scale
+	attr(x, "col-scaled:group") <- group
     x
 }
 

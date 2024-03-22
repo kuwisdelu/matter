@@ -711,6 +711,7 @@ predict.opls <- function(object, newdata, k, ...)
 			stop("'newdata' does not have the correct number of features")
 	}
 	# extract relevant components
+	k <- max(k)
 	if ( k > ncol(object$loadings) )
 		stop("'k' is larger than the number of components")
 	weights <- object$weights[,1:k,drop=FALSE]
