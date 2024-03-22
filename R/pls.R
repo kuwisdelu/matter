@@ -433,14 +433,8 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 }
 
 predict.pls <- function(object, newdata, k,
-	type = c("response", "class"),
-	verbose = NA, nchunks = NA,
-	BPPARAM = bpparam(), ...)
+	type = c("response", "class"), ...)
 {
-	if ( is.na(verbose) )
-		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	type <- match.arg(type)
 	if ( missing(newdata) && missing(k) ) {
 		if ( type == "class" ) {
@@ -480,12 +474,10 @@ predict.pls <- function(object, newdata, k,
 	b <- tcrossprod(projection, y.loadings)
 	# predict new values
 	if ( object$transpose ) {
-		xt <- rowscale(newdata, center=object$center, scale=object$scale,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		xt <- rowscale(newdata, center=object$center, scale=object$scale)
 		pred <- t(t(b) %*% xt)
 	} else {
-		x <- colscale(newdata, center=object$center, scale=object$scale,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		x <- colscale(newdata, center=object$center, scale=object$scale)
 		pred <- x %*% b
 	}
 	if ( is.numeric(object$y.scale) )
@@ -670,14 +662,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.opls <- function(object, newdata, k,
-	verbose = NA, nchunks = NA,
-	BPPARAM = bpparam(), ...)
+predict.opls <- function(object, newdata, k, ...)
 {
-	if ( is.na(verbose) )
-		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( missing(newdata) && missing(k) )
 		return(object$x)
 	if ( missing(newdata) )
@@ -709,16 +695,14 @@ predict.opls <- function(object, newdata, k,
 	loadings <- object$loadings[,1:k,drop=FALSE]
 	# predict new values
 	if ( object$transpose ) {
-		xt <- rowscale(newdata, center=object$center, scale=object$scale,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		xt <- rowscale(newdata, center=object$center, scale=object$scale)
 		for ( i in seq_len(k) ) {
 			to <- t(t(weights[,i]) %*% xt) / sum(weights[,i]^2)
 			xt <- xt - tcrossprod(loadings[,i], to)
 		}
 		xt
 	} else {
-		x <- colscale(newdata, center=object$center, scale=object$scale,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		x <- colscale(newdata, center=object$center, scale=object$scale)
 		for ( i in seq_len(k) ) {
 			to <- (x %*% weights[,i]) / sum(weights[,i]^2)
 			x <- x - tcrossprod(to, loadings[,i])

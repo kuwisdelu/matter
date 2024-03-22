@@ -35,18 +35,14 @@ pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
 \S3method{predict}{pls}(object, newdata, k,
-	type = c("response", "class"),
-	verbose = NA, nchunks = NA,
-	BPPARAM = bpparam(), \dots)
+	type = c("response", "class"), \dots)
 
 # O-PLS algorithm
 opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-9,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
-\S3method{predict}{opls}(object, newdata, k,
-	verbose = NA, nchunks = NA,
-	BPPARAM = bpparam(), \dots)
+\S3method{predict}{opls}(object, newdata, k, \dots)
 
 # Variable importance in projection
 vip(object, type = c("projection", "weights"))
