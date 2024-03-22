@@ -433,7 +433,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 }
 
 predict.pls <- function(object, newdata, k,
-	type = c("response", "class"), ...)
+	type = c("response", "class"), simplify = TRUE, ...)
 {
 	type <- match.arg(type)
 	if ( missing(newdata) && missing(k) ) {
@@ -465,28 +465,50 @@ predict.pls <- function(object, newdata, k,
 		if ( p != nrow(object$loadings) )
 			stop("'newdata' does not have the correct number of features")
 	}
-	# extract relevant components
-	if ( k > ncol(object$loadings) )
-		stop("'k' is larger than the number of components")
-	projection <- object$projection[,1:k,drop=FALSE]
-	y.loadings <- object$y.loadings[,1:k,drop=FALSE]
-	# calculate regression coefficients
-	b <- tcrossprod(projection, y.loadings)
-	# predict new values
 	if ( object$transpose ) {
 		xt <- rowscale(newdata, center=object$center, scale=object$scale)
-		pred <- t(t(b) %*% xt)
 	} else {
 		x <- colscale(newdata, center=object$center, scale=object$scale)
-		pred <- x %*% b
 	}
-	if ( is.numeric(object$y.scale) )
-		pred <- colsweep_matrix(pred, object$y.scale, "*")
-	if ( is.numeric(object$y.center) )
-		pred <- colsweep_matrix(pred, object$y.center, "+")
-	if ( type == "class" )
-		pred <- predict_class(pred)
-	pred
+	
+	if ( any(k > ncol(object$loadings)) )
+		stop("'k' is larger than the number of components")
+	# predict for each k
+	ans <- lapply(setNames(k, paste0("C", k)),
+		function(ki)
+		{
+			# extract relevant components
+			projection <- object$projection[,1:ki,drop=FALSE]
+			y.loadings <- object$y.loadings[,1:ki,drop=FALSE]
+			# calculate regression coefficients
+			b <- tcrossprod(projection, y.loadings)
+			# predict new values
+			if ( object$transpose ) {
+				pred <- t(t(b) %*% xt)
+			} else {
+				pred <- x %*% b
+			}
+			if ( is.numeric(object$y.scale) )
+				pred <- colsweep_matrix(pred, object$y.scale, "*")
+			if ( is.numeric(object$y.center) )
+				pred <- colsweep_matrix(pred, object$y.center, "+")
+			if ( type == "class" )
+				pred <- predict_class(pred)
+			pred
+		})
+	if ( simplify ) {
+		if ( length(ans) > 1L ) {
+			if ( type == "class" ) {
+				as.data.frame(ans)
+			} else {
+				simplify2array(ans)
+			}
+		} else {
+			ans[[1L]]
+		}
+	} else {
+		ans
+	}
 }
 
 print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)

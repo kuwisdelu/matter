@@ -58,6 +58,13 @@ test_that("pls - nipals", {
 	expect_equal(fitted(np0), np0$fitted.values)
 	expect_equal(loadings(np0), np0$loadings)
 
+	np1f1 <- predict(np1, x1, k=1)
+	np1f2 <- predict(np1, x1, k=2)
+	np1f12 <- predict(np1, x1, k=1:2)
+
+	expect_equivalent(np1f1, np1f12[,,1L])
+	expect_equivalent(np1f2, np1f12[,,2L])
+
 })
 
 test_that("pls - simpls", {
@@ -108,6 +115,13 @@ test_that("pls - simpls", {
 	expect_equal(resid(sp0), sp0$residuals)
 	expect_equal(fitted(sp0), sp0$fitted.values)
 	expect_equal(loadings(sp0), sp0$loadings)
+
+	sp1f1 <- predict(sp1, x1, k=1)
+	sp1f2 <- predict(sp1, x1, k=2)
+	sp1f12 <- predict(sp1, x1, k=1:2)
+
+	expect_equivalent(sp1f1, sp1f12[,,1L])
+	expect_equivalent(sp1f2, sp1f12[,,2L])
 
 })
 
@@ -166,6 +180,13 @@ test_that("pls - kernel #1", {
 	expect_equal(fitted(kp0), kp0$fitted.values)
 	expect_equal(loadings(kp0), kp0$loadings)
 
+	kp1f1 <- predict(kp1, x1, k=1)
+	kp1f2 <- predict(kp1, x1, k=2)
+	kp1f12 <- predict(kp1, x1, k=1:2)
+
+	expect_equivalent(kp1f1, kp1f12[,,1L])
+	expect_equivalent(kp1f2, kp1f12[,,2L])
+
 })
 
 test_that("pls - kernel #2", {
@@ -223,6 +244,13 @@ test_that("pls - kernel #2", {
 	expect_equal(fitted(kp0), kp0$fitted.values)
 	expect_equal(loadings(kp0), kp0$loadings)
 
+	kp1f1 <- predict(kp1, x1, k=1)
+	kp1f2 <- predict(kp1, x1, k=2)
+	kp1f12 <- predict(kp1, x1, k=1:2)
+
+	expect_equivalent(kp1f1, kp1f12[,,1L])
+	expect_equivalent(kp1f2, kp1f12[,,2L])
+
 })
 
 test_that("pls - da", {
@@ -268,6 +296,15 @@ test_that("pls - da", {
 	expect_equal(fitted(kp1), predict(kp1, x))
 	expect_equal(as.integer(y), ykf2)
 	expect_equal(y, ykp2)
+
+	ynf11 <- predict(np1, x, k=1, type="class")
+	ynf12 <- predict(np1, x, k=2, type="class")
+	ynf112 <- predict(np1, x, k=1:2, type="class")
+	ynf112l <- predict(np1, x, k=1:2, type="class", simplify=FALSE)
+
+	expect_equivalent(ynf11, ynf112[,1L])
+	expect_equivalent(ynf12, ynf112[,2L])
+	expect_equal(list(C1=ynf11, C2=ynf12), ynf112l)
 
 })
 

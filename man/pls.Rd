@@ -35,7 +35,7 @@ pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
 \S3method{predict}{pls}(object, newdata, k,
-	type = c("response", "class"), \dots)
+	type = c("response", "class"), simplify = TRUE, \dots)
 
 # O-PLS algorithm
 opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
@@ -53,7 +53,7 @@ vip(object, type = c("projection", "weights"))
 
 	\item{y}{The response matrix. (Can also be a factor.)}
 
-	\item{k}{The number of PLS components to use.}
+	\item{k}{The number of PLS components to use. (Can be a vector for the \code{predict} method.)}
 
 	\item{center}{A logical value indicating whether the variables should be shifted to be zero-centered, or a centering vector of length equal to the number of columns of \code{x}. The centering is performed implicitly and does not change the out-of-memory data in \code{x}.}
 
@@ -82,6 +82,8 @@ vip(object, type = c("projection", "weights"))
 	\item{newdata}{An optional data matrix to use for the prediction.}
 
 	\item{type}{The type of prediction, where \code{"response"} means the fitted response matrix and \code{"class"} will be the vector of class predictions (only valid for discriminant analyses).}
+
+	\item{simplify}{Should the predictions be simplified (from a list) to an array (\code{type="response"}) or data frame (\code{type="class"}) when \code{k} is a vector?}
 }
 
 \details{
