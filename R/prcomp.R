@@ -16,7 +16,7 @@ setMethod("prcomp", "sparse_mat",
 
 prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	center = TRUE, scale. = FALSE, transpose = FALSE,
-	verbose = NA, ..., BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	if ( "n" %in% ...names() ) {
 		warning("'n' is deprecated; use 'k' instead")
@@ -24,6 +24,8 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	}
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	k <- min(k, dim(x))
 	# center and scale x
 	if ( verbose && (!isFALSE(center) || !isFALSE(scale.)) ) {
@@ -36,11 +38,13 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 		message(msg, " data matrix")
 	}
 	if ( transpose ) {
-		x <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		x <- rowscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(x, "row-scaled:center")
 		scale <- attr(x, "row-scaled:scale")
 	} else {
-		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		x <- colscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 	}

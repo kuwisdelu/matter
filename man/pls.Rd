@@ -22,27 +22,31 @@
 # NIPALS algorithm
 pls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-5,
-	verbose = NA, \dots, BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
 # SIMPLS algorithm
 pls_simpls(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, method = 1L, retscores = TRUE,
-	verbose = NA, \dots, BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
 # Kernel algorithm
 pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, method = 1L, retscores = TRUE,
-	verbose = NA, \dots, BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
 \S3method{predict}{pls}(object, newdata, k,
-	type = c("response", "class"), \dots, BPPARAM = bpparam())
+	type = c("response", "class"),
+	verbose = NA, nchunks = NA,
+	BPPARAM = bpparam(), \dots)
 
 # O-PLS algorithm
 opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-9,
-	verbose = NA, \dots, BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
-\S3method{predict}{opls}(object, newdata, k, \dots, BPPARAM = bpparam())
+\S3method{predict}{opls}(object, newdata, k,
+	verbose = NA, nchunks = NA,
+	BPPARAM = bpparam(), \dots)
 
 # Variable importance in projection
 vip(object, type = c("projection", "weights"))
@@ -66,6 +70,8 @@ vip(object, type = c("projection", "weights"))
 	\item{tol}{The tolerance for convergence (per component).}
 
 	\item{verbose}{Should progress be printed for each iteration?}
+
+	\item{nchunks}{The number of chunks to use (for centering and scaling only).}
 
 	\item{method}{The kernel algorithm to use, where \code{1} and \code{2} correspond to the two kernel algorithms described by Dayal and MacGregor (1997). For \code{1}, only of the covariance matrix \code{t(X) \%*\% Y} is computed. For \code{2}, the variance matrix \code{t(X) \%*\% X} is also computed. Typically \code{1} will be faster if the number of predictors is large. For a smaller number of predictors, \code{2} will be more efficient.}
 

@@ -5,10 +5,12 @@
 # NIPALS
 pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-5,
-	verbose = NA, ..., BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	x <- as_real_memory_matrix(x)
 	k <- min(k, dim(x))
 	# center and scale x and y
@@ -17,7 +19,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
+	y <- colscale(y, center=center, scale=scale.,
+		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -25,7 +28,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		xt <- rowscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xt0 <- xt
@@ -34,7 +38,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		x <- colscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
@@ -138,10 +143,12 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 # SIMPLS
 pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, method = 1L, retscores = TRUE,
-	verbose = NA, ..., BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	k <- min(k, dim(x))
 	# center and scale x and y + calculate covariance
 	if ( verbose )
@@ -149,7 +156,8 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
+	y <- colscale(y, center=center, scale=scale.,
+		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -157,7 +165,8 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		xt <- rowscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xy <- xt %*% y
@@ -166,7 +175,8 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		x <- colscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		xy <- crossprod(x, y)
@@ -265,10 +275,12 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 # Kernel (#1 and #2)
 pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, method = 1L, retscores = TRUE,
-	verbose = NA, ..., BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	k <- min(k, dim(x))
 	# center and scale x and y + calculate covariance
 	if ( verbose )
@@ -276,7 +288,8 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
+	y <- colscale(y, center=center, scale=scale.,
+		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -284,7 +297,8 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		xt <- rowscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xy <- xt %*% y
@@ -295,7 +309,8 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		x <- colscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		xy <- crossprod(x, y)
@@ -418,8 +433,14 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 }
 
 predict.pls <- function(object, newdata, k,
-	type = c("response", "class"), ..., BPPARAM = bpparam())
+	type = c("response", "class"),
+	verbose = NA, nchunks = NA,
+	BPPARAM = bpparam(), ...)
 {
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	type <- match.arg(type)
 	if ( missing(newdata) && missing(k) ) {
 		if ( type == "class" ) {
@@ -459,10 +480,12 @@ predict.pls <- function(object, newdata, k,
 	b <- tcrossprod(projection, y.loadings)
 	# predict new values
 	if ( object$transpose ) {
-		xt <- rowscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
+		xt <- rowscale(newdata, center=object$center, scale=object$scale,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		pred <- t(t(b) %*% xt)
 	} else {
-		x <- colscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
+		x <- colscale(newdata, center=object$center, scale=object$scale,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		pred <- x %*% b
 	}
 	if ( is.numeric(object$y.scale) )
@@ -518,10 +541,12 @@ vip <- function(object, type = c("projection", "weights"))
 # NIPALS
 opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-9,
-	verbose = NA, ..., BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	x <- as_real_memory_matrix(x)
 	k <- min(k, dim(x))
 	# center and scale x and y
@@ -530,7 +555,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
-	y <- colscale(y, center=center, scale=scale., BPPARAM=BPPARAM)
+	y <- colscale(y, center=center, scale=scale.,
+		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -538,7 +564,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- ncol(x)
 		pnames <- rownames(x)
 		snames <- colnames(x)
-		xt <- rowscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		xt <- rowscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xt0 <- xt
@@ -547,7 +574,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		N <- nrow(x)
 		pnames <- colnames(x)
 		snames <- rownames(x)
-		x <- colscale(x, center=center, scale=scale., BPPARAM=BPPARAM)
+		x <- colscale(x, center=center, scale=scale.,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
@@ -642,8 +670,14 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
-predict.opls <- function(object, newdata, k, ..., BPPARAM = bpparam())
+predict.opls <- function(object, newdata, k,
+	verbose = NA, nchunks = NA,
+	BPPARAM = bpparam(), ...)
 {
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
 	if ( missing(newdata) && missing(k) )
 		return(object$x)
 	if ( missing(newdata) )
@@ -675,14 +709,16 @@ predict.opls <- function(object, newdata, k, ..., BPPARAM = bpparam())
 	loadings <- object$loadings[,1:k,drop=FALSE]
 	# predict new values
 	if ( object$transpose ) {
-		xt <- rowscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
+		xt <- rowscale(newdata, center=object$center, scale=object$scale,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		for ( i in seq_len(k) ) {
 			to <- t(t(weights[,i]) %*% xt) / sum(weights[,i]^2)
 			xt <- xt - tcrossprod(loadings[,i], to)
 		}
 		xt
 	} else {
-		x <- colscale(newdata, center=object$center, scale=object$scale, BPPARAM=BPPARAM)
+		x <- colscale(newdata, center=object$center, scale=object$scale,
+			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
 		for ( i in seq_len(k) ) {
 			to <- (x %*% weights[,i]) / sum(weights[,i]^2)
 			x <- x - tcrossprod(to, loadings[,i])

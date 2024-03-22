@@ -19,7 +19,7 @@
 
 prcomp_lanczos(x, k = 3L, retx = TRUE,
     center = TRUE, scale. = FALSE, transpose = FALSE,
-    verbose = NA, \dots, BPPARAM = bpparam())
+    verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 }
 
 \arguments{
@@ -36,6 +36,8 @@ prcomp_lanczos(x, k = 3L, retx = TRUE,
     \item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and storing the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
     \item{verbose}{Should progress messages be printed?}
+
+    \item{nchunks}{The number of chunks to use (for centering and scaling only).}
 
     \item{\dots}{Additional options passed to \code{\link[irlba]{irlba}} or \code{prcomp_lanczos}.}
 
