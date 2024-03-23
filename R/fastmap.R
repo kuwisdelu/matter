@@ -23,7 +23,7 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		dimnames=list(snames, paste0("C", j)))
 	pivots <- matrix(nrow=k, ncol=3L,
 		dimnames=list(paste0("C", j), c("p1", "p2", "dist")))
-	fx <- distfun(x, x, ...)
+	fx <- distfun(x, x, verbose=verbose, ...)
 	for ( i in j )
 	{
 		if ( verbose )
@@ -151,19 +151,21 @@ predict.fastmap <- function(object, newdata, ...)
 }
 
 rowDistFun <- function(x, y, metric = "euclidean", p = 2,
-	BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
-		rowDists(y, x[i,,drop=FALSE],
-			metric=metric, p=p, BPPARAM=BPPARAM)
+		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p,
+			verbose=verbose, nchunks=nchunks,
+			BPPARAM=BPPARAM)
 	}
 }
 
 colDistFun <- function(x, y, metric = "euclidean", p = 2,
-	BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
-		colDists(y, x[,i,drop=FALSE],
-			metric=metric, p=p, BPPARAM=BPPARAM)
+		colDists(y, x[,i,drop=FALSE], metric=metric, p=p,
+			verbose=verbose, nchunks=nchunks,
+			BPPARAM=BPPARAM)
 	}
 }
