@@ -23,7 +23,7 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		dimnames=list(snames, paste0("C", j)))
 	pivots <- matrix(nrow=k, ncol=3L,
 		dimnames=list(paste0("C", j), c("p1", "p2", "dist")))
-	fx <- distfun(x, x, verbose=verbose, ...)
+	fx <- distfun(x, x, ...)
 	for ( i in j )
 	{
 		if ( verbose )
@@ -154,6 +154,8 @@ rowDistFun <- function(x, y, metric = "euclidean", p = 2,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
+		if ( isTRUE(verbose) )
+			message("calculating distances from index: ", i)
 		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p,
 			verbose=verbose, nchunks=nchunks,
 			BPPARAM=BPPARAM)
@@ -164,6 +166,8 @@ colDistFun <- function(x, y, metric = "euclidean", p = 2,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
+		if ( isTRUE(verbose) )
+			message("calculating distances from index: ", i)
 		colDists(y, x[,i,drop=FALSE], metric=metric, p=p,
 			verbose=verbose, nchunks=nchunks,
 			BPPARAM=BPPARAM)

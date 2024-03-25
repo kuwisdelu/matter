@@ -135,8 +135,8 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 		ans <- chunk_colapply(x, coldist, y=y, metric=metric, p=p,
 			weights=weights, simplify=rbind, BPPARAM=BPPARAM, ...)
 	}
-	if ( !is.null(rownames(x)) || !is.null(rownames(y)) )
-		dimnames(ans) <- list(rownames(x), rownames(y))
+	if ( !is.null(colnames(x)) || !is.null(colnames(y)) )
+		dimnames(ans) <- list(colnames(x), colnames(y))
 	ans
 }
 

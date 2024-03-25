@@ -789,6 +789,9 @@ n_unique <- function(x, na.rm = TRUE) {
 	}
 }
 
+# soft thresholding
+soft <- function(x, t) sign(x) * pmax(abs(x) - t, 0)
+
 # get predicted classes from scores
 predict_class <- function(scores) {
 	i <- seq_len(ncol(scores))

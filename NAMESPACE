@@ -429,6 +429,7 @@ export(
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",
+	"nscentroids",
 	"prcomp_lanczos",
 	"pls_nipals",
 	"pls_simpls",
@@ -438,6 +439,11 @@ export(
 
 S3method("predict", "fastmap")
 S3method("print", "fastmap")
+
+S3method("fitted", "nscentroids")
+S3method("predict", "nscentroids")
+S3method("print", "nscentroids")
+S3method("logLik", "nscentroids")
 
 S3method("predict", "nnmf")
 S3method("print", "nnmf")

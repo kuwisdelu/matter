@@ -518,7 +518,7 @@ print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 		cat(sprintf("\nCovariances (1, .., k=%d):\n", length(x$cvar)))
 	    print(x$cvar, ...)
 	}
-	if (length(coef(x))) {
+	if ( length(coef(x)) ) {
 		cat("\nCoefficients:\n")
 		print.default(format(t(coef(x)), digits = digits), print.gap = 2L, 
 			quote = FALSE)
