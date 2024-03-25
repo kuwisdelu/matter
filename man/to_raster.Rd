@@ -22,7 +22,7 @@ is_gridded(x, tol = 0.5)
 }
 
 \arguments{
-	\item{x, y, z}{The coordinates of the data to be rasterized. For \code{is_gridded()}, a numeric matrix or data frame where each column gives the pixel coordinates for a different dimension..}
+	\item{x, y, z}{The coordinates of the data to be rasterized. For \code{is_gridded()}, a numeric matrix or data frame where each column gives the pixel coordinates for a different dimension.}
 
     \item{vals}{The data values to be rasterized.}
 

@@ -17,8 +17,8 @@ Collate: matterGenerics.R utils.R drle.R
 	matter_fct.R matter_list.R matter_str.R 
 	search.R sparse_arr.R stream_stat.R apply.R
 	rowStats.R stats.R scale.R dist.R
-	biglm.R nscentroids.R nnmf.R prcomp.R
-	fastmap.R pls.R signal.R signal2.R
+	biglm.R fastmap.R nscentroids.R sgmix.R
+	nnmf.R prcomp.R pls.R signal.R signal2.R
 	altrep.R plot.R vizi.R
 biocViews: Infrastructure, DataRepresentation, DataImport,
 	DimensionReduction, Preprocessing

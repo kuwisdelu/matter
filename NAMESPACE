@@ -59,6 +59,8 @@ importFrom("stats",
 	"rlnorm",
 	"rnorm",
 	"runmed",
+	"kmeans",
+	"optimize",
 	"setNames",
 	"smooth.spline",
 	"spline",
@@ -425,6 +427,8 @@ export(
 S3method("print", "kdtree")
 
 export(
+	"sgmix",
+	"sgmixn",
 	"fastmap",
 	"nndsvd",
 	"nnmf_als",
@@ -437,16 +441,20 @@ export(
 	"opls_nipals",
 	"vip")
 
+S3method("fitted", "sgmix")
+S3method("print", "sgmix")
+S3method("logLik", "sgmix")
+
 S3method("predict", "fastmap")
 S3method("print", "fastmap")
+
+S3method("predict", "nnmf")
+S3method("print", "nnmf")
 
 S3method("fitted", "nscentroids")
 S3method("predict", "nscentroids")
 S3method("print", "nscentroids")
 S3method("logLik", "nscentroids")
-
-S3method("predict", "nnmf")
-S3method("print", "nnmf")
 
 S3method("predict", "pls")
 S3method("print", "pls")
