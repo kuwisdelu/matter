@@ -6,6 +6,7 @@ NEW FEATURES
 
     o Add nearest shrunken centroids ('nscentroids()')
     o Add spatial Gaussian mixture model ('sgmix()')
+    o Add colocalization coefficients ('mscore()')
     o Add function 'peakheights()'
 
 SIGNIFICANT USER-VISIBLE CHANGES
