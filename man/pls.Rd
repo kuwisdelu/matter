@@ -4,6 +4,7 @@
 \alias{pls_nipals}
 \alias{pls_simpls}
 \alias{pls_kernel}
+\alias{fitted.pls}
 \alias{predict.pls}
 
 \alias{opls}
@@ -33,6 +34,8 @@ pls_simpls(x, y, k = 3L, center = TRUE, scale. = FALSE,
 pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, method = 1L, retscores = TRUE,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
+
+\S3method{fitted}{pls}(object, type = c("response", "class"), \dots)
 
 \S3method{predict}{pls}(object, newdata, k,
 	type = c("response", "class"), simplify = TRUE, \dots)

@@ -459,6 +459,7 @@ S3method("predict", "nscentroids")
 S3method("print", "nscentroids")
 S3method("logLik", "nscentroids")
 
+S3method("fitted", "pls")
 S3method("predict", "pls")
 S3method("print", "pls")
 

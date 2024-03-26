@@ -42,7 +42,9 @@ mi_learn <- function(fn, x, y, group,
 			message("multiple instance iteration ", iter)
 		model <- fn(x, y, ...)
 		yi <- fitted(model, "class")
-		py <- fitted(model, "probability")[,1L]
+		py <- fitted(model)
+		if ( is.matrix(py) )
+			py <- py[,1L,drop=TRUE]
 		for ( j in seq_along(yg) )
 		{
 			g <- levels(group)[j]

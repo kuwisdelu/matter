@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.5.11 [2024-3-26]
+-----------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Change 'fitted()' argument 'type' to use "response"
+        (instead of "probability") for 'nscentroids'
+
 CHANGES IN VERSION 2.5.10 [2024-3-24]
 ------------------------------------
 

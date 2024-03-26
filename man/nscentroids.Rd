@@ -17,10 +17,10 @@ nscentroids(x, y, s = 0, distfun = NULL,
 	priors = table(y), center = NULL, transpose = FALSE,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
-\S3method{fitted}{nscentroids}(object, type = c("probability", "class"), \dots)
+\S3method{fitted}{nscentroids}(object, type = c("response", "class"), \dots)
 
 \S3method{predict}{nscentroids}(object, newdata,
-	type = c("probability", "class"), \dots)
+	type = c("response", "class"), \dots)
 
 \S3method{logLik}{nscentroids}(object, \dots)
 }
@@ -52,7 +52,7 @@ nscentroids(x, y, s = 0, distfun = NULL,
 
 	\item{newdata}{An optional data matrix to use for the prediction.}
 
-	\item{type}{The type of prediction, where \code{"probability"} means the posterior probability matrix and \code{"class"} will be the vector of class predictions.}
+	\item{type}{The type of prediction, where \code{"response"} means the posterior probability matrix and \code{"class"} will be the vector of class predictions.}
 }
 
 \details{

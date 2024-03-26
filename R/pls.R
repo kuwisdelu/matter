@@ -432,6 +432,16 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans
 }
 
+fitted.pls <- function(object, type = c("response", "class"), ...)
+{
+	type <- match.arg(type)
+	if ( type == "class" ) {
+		predict_class(object$fitted.values)
+	} else {
+		object$fitted.values
+	}
+}
+
 predict.pls <- function(object, newdata, k,
 	type = c("response", "class"), simplify = TRUE, ...)
 {

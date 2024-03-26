@@ -30,11 +30,15 @@ mi_learn(fn, x, y, group,
 }
 
 \details{
-    This is a generic wrapper for applying a multiple instance learning strategy for any classifier that satisfies certain criteria. The labels must be binary (positive and negative). The \emph{first} level of the response is taken to be the \emph{positive} class label.
+    This is a generic wrapper for applying a multiple instance learning strategy for any classifier that satisfies certain criteria. The labels must be binary (positive and negative).
 
-    The multiple instance learning algorithm here assumes that if a single data point is positive, then the entire group (or "bag") to which it belongs is labeled as positive. For example, if a single pixel in an image indicates the presence of disease, then the entire image is labeled as disease.
+    The multiple instance learning algorithm here assumes that if a single data point is positive, then the entire group (or "bag") to which it belongs is labeled as positive. For example, if a single pixel in an image indicates the presence of disease, then the entire image is labeled as disease. Note that the \emph{first} level of the response is assumed to be the \emph{positive} class.
 
-    The model returned by \code{fn} must support a \code{fitted} method with a second argument for extracting the predictions as either \code{"probability"} or \code{"class"} values. See the \code{nscentroids} function as an example of such a model.
+    The model returned by \code{fn} must support a \code{fitted} method with a second argument for extracting the predictions as either \code{"response"} or \code{"class"} values. See the \code{nscentroids} function as an example of such a model.
+}
+
+\note{
+	The \emph{first} level of the response is taken to be the \emph{positive} class label. See "Details".
 }
 
 \value{

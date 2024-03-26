@@ -116,7 +116,7 @@ print.nscentroids <- function(x, digits = max(3L, getOption("digits") - 3L), ...
 	invisible(x)
 }
 
-fitted.nscentroids <- function(object, type = c("probability", "class"), ...)
+fitted.nscentroids <- function(object, type = c("response", "class"), ...)
 {
 	type <- match.arg(type)
 	if ( type == "class" ) {
@@ -127,7 +127,7 @@ fitted.nscentroids <- function(object, type = c("probability", "class"), ...)
 }
 
 predict.nscentroids <- function(object, newdata,
-	type = c("probability", "class"), ...)
+	type = c("response", "class"), ...)
 {
 	type <- match.arg(type)
 	if ( missing(newdata) )
