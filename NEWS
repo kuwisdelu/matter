@@ -4,10 +4,11 @@ CHANGES IN VERSION 2.5.10 [2024-3-24]
 
 NEW FEATURES
 
+    o Add function 'peakheights()'
     o Add nearest shrunken centroids ('nscentroids()')
     o Add spatial Gaussian mixture model ('sgmix()')
     o Add colocalization coefficients ('mscore()')
-    o Add function 'peakheights()'
+    o Add multiple instance learning ('mi_learn()')
 
 SIGNIFICANT USER-VISIBLE CHANGES
 

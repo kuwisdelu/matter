@@ -432,6 +432,7 @@ export(
 	"sgmix",
 	"sgmixn",
 	"fastmap",
+	"mi_learn",
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",
