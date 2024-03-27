@@ -155,7 +155,7 @@ rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 {
 	function(i) {
 		if ( isTRUE(verbose) )
-			message("calculating distances from index: ", i)
+			message("calculating distances from index: ", paste0(i, collapse=" "))
 		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, nchunks=nchunks,
 			BPPARAM=BPPARAM)
@@ -167,7 +167,7 @@ colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 {
 	function(i) {
 		if ( isTRUE(verbose) )
-			message("calculating distances from index: ", i)
+			message("calculating distances from index: ", paste0(i, collapse=" "))
 		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, nchunks=nchunks,
 			BPPARAM=BPPARAM)
