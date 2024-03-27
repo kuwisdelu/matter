@@ -100,7 +100,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 
 print.nscentroids <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
-	cat(sprintf("Nearest shrunken centroids (s=%f) with %d classes\n",
+	cat(sprintf("Nearest shrunken centroids (s=%.2f) with %d classes\n",
 		x$s, nlevels(x$class)))
 	if ( !is.null(x$priors) ) {
 		cat(sprintf("\nPriors (1, .., k=%d):\n", length(x$priors)))
@@ -108,8 +108,8 @@ print.nscentroids <- function(x, digits = max(3L, getOption("digits") - 3L), ...
 	}
 	if ( !is.null(x$statistic) ) {
 		cat("\nStatistics:\n")
-		print.default(format(x$statistic, digits = digits), print.gap = 2L, 
-			quote = FALSE)
+		print.default(format(x$statistic, digits = digits, zero.print="."),
+			print.gap = 2L,  quote = FALSE)
 	} else {
 		cat("No statistics\n")
 	}
