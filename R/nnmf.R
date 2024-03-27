@@ -161,12 +161,13 @@ predict.nnmf <- function(object, newdata, ...)
 
 print.nnmf <- function(x, print.x = FALSE, ...)
 {
+	cat(sprintf("Non-negative matrix factorization (k=%d)\n", ncol(x$x)))
 	d <- dim(x$activation)
-	cat(sprintf("Activation (n x k) = (%d x %d):\n", d[1L], d[2L]))
-	print(x$activation, ...)
-	if ( print.x ) {
+	cat(sprintf("\nActivation (n x k) = (%d x %d):\n", d[1L], d[2L]))
+	preview_matrix(x$activation, ...)
+	if ( print.x && !is.null(x$x) ) {
 		cat("\nBasis variables:\n")
-		print(x$x, ...)
+		preview_matrix(x$x, ...)
 	}
 	invisible(x)
 }

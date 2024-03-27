@@ -13,8 +13,8 @@ test_that("prcomp - irlba", {
 	lz.x <- prcomp_lanczos(x, k=3L)
 	lz.xt <- prcomp_lanczos(xt, k=3L, transpose=TRUE)
 
-	expect_equal(pc.x$sdev[1:3], lz.x$sdev)
-	expect_equal(pc.x$sdev[1:3], lz.xt$sdev)
+	expect_equivalent(pc.x$sdev[1:3], lz.x$sdev)
+	expect_equivalent(pc.x$sdev[1:3], lz.xt$sdev)
 
 	expect_equal(
 		abs(pc.x$rotation),

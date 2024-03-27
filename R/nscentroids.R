@@ -108,12 +108,11 @@ print.nscentroids <- function(x, digits = max(3L, getOption("digits") - 3L), ...
 		x$s, nlevels(x$class)))
 	if ( !is.null(x$priors) ) {
 		cat(sprintf("\nPriors (1, .., k=%d):\n", length(x$priors)))
-	    print(x$priors, ...)
+	    preview_vector(x$priors, ...)
 	}
 	if ( !is.null(x$statistic) ) {
 		cat("\nStatistics:\n")
-		print.default(format(x$statistic, digits = digits, zero.print="."),
-			print.gap = 2L,  quote = FALSE)
+		preview_matrix(x$statistic, ..., zero.print=".")
 	} else {
 		cat("No statistics\n")
 	}

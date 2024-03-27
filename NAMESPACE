@@ -454,6 +454,8 @@ S3method("print", "fastmap")
 S3method("predict", "nnmf")
 S3method("print", "nnmf")
 
+S3method("print", "prcomp_lanczos")
+
 S3method("fitted", "nscentroids")
 S3method("predict", "nscentroids")
 S3method("print", "nscentroids")

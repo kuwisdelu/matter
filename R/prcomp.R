@@ -55,10 +55,12 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	s <- irlba(x, nu=k, nv=k, fastpath=is.matrix(x), verbose=verbose, ...)
 	if ( transpose ) {
 		ans <- list(sdev = s$d / sqrt(max(1, ncol(x) - 1)))
+		names(ans$sdev) <- paste0("PC", j)
 		ans$rotation <- s$u
 		dimnames(ans$rotation) <- list(rownames(x), paste0("PC", j))
 	} else {
 		ans <- list(sdev = s$d / sqrt(max(1, nrow(x) - 1)))
+		names(ans$sdev) <- paste0("PC", j)
 		ans$rotation <- s$v
 		dimnames(ans$rotation) <- list(colnames(x), paste0("PC", j))
 	}
@@ -81,6 +83,23 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 			dimnames(ans$x) <- list(rownames(x), paste0("PC", j))
 		}
 	}
-	class(ans) <- "prcomp"
+	class(ans) <- c("prcomp_lanczos", "prcomp")
 	ans
+}
+
+print.prcomp_lanczos <- function(x, print.x = FALSE, ...)
+{
+	cat(sprintf("Principal components (k=%d)\n", ncol(x$x)))
+	if ( !is.null(x$sdev) ) {
+		cat(sprintf("\nStandard deviations (1, .., k=%d):\n", length(x$sdev)))
+	    preview_vector(x$sdev, ...)
+	}
+	d <- dim(x$rotation)
+	cat(sprintf("\nRotation (n x k) = (%d x %d):\n", d[1L], d[2L]))
+	preview_matrix(x$rotation, ...)
+	if ( print.x && !is.null(x$x) ) {
+		cat("\nRotated variables:\n")
+		preview_matrix(x$x, ...)
+	}
+	invisible(x)
 }

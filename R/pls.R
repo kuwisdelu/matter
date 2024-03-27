@@ -521,19 +521,18 @@ predict.pls <- function(object, newdata, k,
 	}
 }
 
-print.pls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
+print.pls <- function(x, ...)
 {
 	cat(sprintf("Partial least squares (k=%d)\n", ncol(x$loadings)))
 	if ( !is.null(x$cvar) ) {
 		cat(sprintf("\nCovariances (1, .., k=%d):\n", length(x$cvar)))
-	    print(x$cvar, ...)
+	    preview_vector(x$cvar, ...)
 	}
-	if ( length(coef(x)) ) {
+	if ( !is.null(coef(x)) ) {
 		cat("\nCoefficients:\n")
-		print.default(format(t(coef(x)), digits = digits), print.gap = 2L, 
-			quote = FALSE)
+		preview_matrix(t(coef(x)), ...)
 	} else {
-		cat("No coefficients\n")
+		cat("\nNo coefficients\n")
 	}
 	cat("\n")
 	invisible(x)
@@ -744,10 +743,14 @@ predict.opls <- function(object, newdata, k, ...)
 	}
 }
 
-print.opls <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
+print.opls <- function(x, print.x = FALSE, ...)
 {
 	cat(sprintf("Orthogonal partial least squares (k=%d)\n", ncol(x$loadings)))
 	cat(sprintf("\nComponent ratios (1, .., k=%d):\n", length(x$ratio)))
-    print(x$ratio, ...)
+    preview_vector(x$ratio, ...)
+    if ( print.x && !is.null(x$x) ) {
+		cat("\nProcessed variables:\n")
+		preview_matrix(x$x, ...)
+	}
 	invisible(x)
 }

@@ -319,17 +319,13 @@ print.sgmix <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
 {
 	cat(sprintf("Spatial Gaussian mixture model (k=%d)\n",
 		length(x$mu)))
-	if ( !is.null(x$mu) && !is.null(x$sigma) ) {
-		cat("\nParameters:\n")
-		if ( is.null(x$group) ) {
-			print(rbind(mu=x$mu, sigma=x$sigma), ...)
-		} else {
-			ans <- format(rbind(mu=x$mu, sigma=x$sigma), digits=digits, ...)
-			ans <- rbind(ans, group=as.character(x$group))
-			print(ans, quote=FALSE, right=TRUE)
-		}
+	cat("\nParameter estimates:\n")
+	if ( is.null(x$group) ) {
+		print(rbind(mu=x$mu, sigma=x$sigma), ...)
 	} else {
-		cat("No parameters\n")
+		ans <- format(rbind(mu=x$mu, sigma=x$sigma), digits=digits, ...)
+		ans <- rbind(ans, group=as.character(x$group))
+		print(ans, quote=FALSE, right=TRUE)
 	}
 	invisible(x)
 }

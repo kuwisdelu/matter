@@ -6,6 +6,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
 
     o Change 'fitted()' argument 'type' to use "response"
         (instead of "probability") for 'nscentroids'
+    o Print methods for models (e.g., 'pls', etc.) now
+        truncate output to 'getOption("matter.show.head.n")'
 
 BUG FIXES
 

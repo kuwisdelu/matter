@@ -93,11 +93,11 @@ print.fastmap <- function(x, print.x = FALSE, ...)
 	cat(sprintf("FastMap (k=%d)\n", ncol(x$x)))
 	if ( !is.null(x$sdev) ) {
 		cat(sprintf("\nStandard deviations (1, .., k=%d):\n", length(x$sdev)))
-	    print(x$sdev, ...)
+	    preview_vector(x$sdev, ...)
 	}
-	if ( print.x ) {
+	if ( print.x && !is.null(x$x) ) {
 		cat("\nProjected variables:\n")
-		print(x$x, ...)
+		preview_matrix(x$x, ...)
 	}
 	invisible(x)
 }
