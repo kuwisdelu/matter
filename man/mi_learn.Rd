@@ -84,7 +84,7 @@ x[jneg,] <- x[jneg,] - rnorm(p * length(jneg), mean=1)
 
 # fit ordinary NSC and mi-NSC
 fit0 <- nscentroids(x=x, y=y)
-fit1 <- mi_learn(nscentroids, x=x, y=y, group=group)
+fit1 <- mi_learn(nscentroids, x=x, y=y, group=group, priors=1)
 
 # improved performance on "true" labels
 mean(fitted(fit0, "class") == z)

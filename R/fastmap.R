@@ -150,25 +150,25 @@ predict.fastmap <- function(object, newdata, ...)
 	pred
 }
 
-rowDistFun <- function(x, y, metric = "euclidean", p = 2,
+rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
 		if ( isTRUE(verbose) )
 			message("calculating distances from index: ", i)
-		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p,
+		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, nchunks=nchunks,
 			BPPARAM=BPPARAM)
 	}
 }
 
-colDistFun <- function(x, y, metric = "euclidean", p = 2,
+colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
 		if ( isTRUE(verbose) )
 			message("calculating distances from index: ", i)
-		colDists(y, x[,i,drop=FALSE], metric=metric, p=p,
+		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, nchunks=nchunks,
 			BPPARAM=BPPARAM)
 	}

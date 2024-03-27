@@ -36,8 +36,8 @@ test_that("mi_learn", {
 	yj <- factor(yj, levels=c("pos", "neg"))
 
 	fit0 <- nscentroids(x=x, y=y)
-	fit1 <- mi_learn(nscentroids, x=x, y=y, group=group)
-	fit2 <- mi_learn(nscentroids, x=x, y=yj, group=group)
+	fit1 <- mi_learn(nscentroids, x=x, y=y, group=group, priors=1)
+	fit2 <- mi_learn(nscentroids, x=x, y=yj, group=group, priors=1)
 
 	y0 <- fitted(fit0, "class")
 	y1 <- fitted(fit1, "class")

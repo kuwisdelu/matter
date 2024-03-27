@@ -14,6 +14,8 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		distfun <- if (transpose) colDistFun else rowDistFun
 	y <- as.factor(y)
 	k <- nlevels(y)
+	if ( k == 1L )
+		stop("need at least 2 classes")
 	priors <- rep_len(as.vector(priors), k)
 	priors <- priors / sum(priors)
 	names(priors) <- levels(y)

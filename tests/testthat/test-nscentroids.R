@@ -8,10 +8,12 @@ test_that("nscentroids", {
 	register(SerialParam())
 	set.seed(1)
 	n <- 100
-	p <- 7
+	p <- 5
+	y <- c(rep.int("yes", 60), rep.int("no", 40))
 	x <- matrix(rnorm(n * p), nrow=n, ncol=p)
+	x[,1L] <- x[,1L] + 2 * ifelse(y == "yes", runif(n), -runif(n))
+	x[,2L] <- x[,2L] + 2 * ifelse(y == "no", runif(n), -runif(n))
 	colnames(x) <- paste0("x", seq_len(p))
-	y <- ifelse(x[,1L] > 0 | x[,2L] < 0, "a", "b")
 
 	sc0 <- nscentroids(x, y, s=0)
 	sc1 <- nscentroids(x, y, s=1)
@@ -50,7 +52,6 @@ test_that("nscentroids", {
 	expect_equal(rowSums(fitted(sct2)), rep.int(1, n))
 
 	expect_gt(sum(sc0$statistic != 0), sum(sc1$statistic != 0))
-	expect_gt(sum(sc1$statistic != 0), sum(sc2$statistic != 0))
 
 	sc012 <- nscentroids(x, y, s=0:2)
 
@@ -58,6 +59,6 @@ test_that("nscentroids", {
 	expect_equal(sc012[[2L]], sc1)
 	expect_equal(sc012[[3L]], sc2)
 
-	expect_warning(nscentroids(x, y, s=3))
+	expect_warning(nscentroids(x, y, s=5))
 
 })

@@ -10,6 +10,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
 BUG FIXES
 
     o Fix bug in 'nscentroids()' predictions
+    o Pass 'weights' parameter to 'distfun()'
+        in 'fastmap()' and 'nscentroids()'
 
 CHANGES IN VERSION 2.5.10 [2024-3-24]
 ------------------------------------

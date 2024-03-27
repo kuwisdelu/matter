@@ -19,9 +19,9 @@ fastmap(x, k = 3L, distfun = NULL,
 \S3method{predict}{fastmap}(object, newdata, \dots)
 
 # Distance functionals
-rowDistFun(x, y, metric = "euclidean", p = 2,
+rowDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
-colDistFun(x, y, metric = "euclidean", p = 2,
+colDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 }
 
@@ -51,6 +51,8 @@ colDistFun(x, y, metric = "euclidean", p = 2,
 	\item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 
 	\item{p}{The power for the Minkowski distance.}
+
+	\item{weights}{A numeric vector of weights for the distance components if calculating weighted distances. For example, the weighted Euclidean distance is \code{sqrt(sum(w * (x - y)^2))}.}
 }
 
 \details{
