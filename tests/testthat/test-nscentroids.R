@@ -8,7 +8,7 @@ test_that("nscentroids", {
 	register(SerialParam())
 	set.seed(1)
 	n <- 100
-	p <- 5
+	p <- 7
 	x <- matrix(rnorm(n * p), nrow=n, ncol=p)
 	colnames(x) <- paste0("x", seq_len(p))
 	y <- ifelse(x[,1L] > 0 | x[,2L] < 0, "a", "b")

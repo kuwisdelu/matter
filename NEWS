@@ -7,6 +7,10 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Change 'fitted()' argument 'type' to use "response"
         (instead of "probability") for 'nscentroids'
 
+BUG FIXES
+
+    o Fix bug in 'nscentroids()' predictions
+
 CHANGES IN VERSION 2.5.10 [2024-3-24]
 ------------------------------------
 

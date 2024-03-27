@@ -32,7 +32,7 @@ nscentroids(x, y, s = 0, distfun = NULL,
 
 	\item{s}{The sparsity (soft thresholding) parameter used to shrink the test statistics. May be a vector.}
 
-	\item{distfun}{The function of the form \code{function(x, y, \dots)} used to generate a distance function of the form \code{function(i)} giving the distances between the \code{i}th object(s) in \code{x} and \emph{all} objects in \code{y}.}
+	\item{distfun}{The function of the form \code{function(x, y, \dots)} used to generate a distance function of the form \code{function(i)} giving the distances between the \code{i}th object(s) in \code{x} and \emph{all} objects in \code{y}. If provided, it \emph{must} support an argument called \code{weights} that takes a vector of feature weights used to scale the features during the distance calculation.}
 
 	\item{priors}{The prior probabilities or sample sizes for each class. (Will be normalized.)}
 
@@ -60,7 +60,7 @@ nscentroids(x, y, s = 0, distfun = NULL,
 
     Unlike the original algorithm, this implementation allows specifying a custom dissimilarity function. If not provided, then this defaults to \code{rowDistFun()} if \code{transpose=FALSE} or \code{colDistFun()} if \code{transpose=TRUE}.
 
-    If a custom function is passed, it should take the form \code{function(x, y, \dots)}, and it must \emph{return} a function of the form \code{function(i)}. The returned function should return the distances between the \code{i}th object(s) in \code{x} and \emph{all} objects in \code{y}. \code{rowDistFun()} and \code{colDistFun()} are examples of functions that satisfy these properties.
+    If a custom function is passed, it should take the form \code{function(x, y, \dots)}, and it must \emph{return} a function of the form \code{function(i)}. The returned function should return the distances between the \code{i}th object(s) in \code{x} and \emph{all} objects in \code{y}. In addition, it \emph{must} support an argument called \code{weights} that takes a vector of feature weights used to scale the features during the distance calculation. \code{rowDistFun()} and \code{colDistFun()} are examples of functions that satisfy these properties.
 }
 
 \value{

@@ -75,12 +75,14 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		if ( !any(abs(s_statistic) > 0) )
 			warning("model is fully sparse; 's' is too large")
 		if ( transpose ) {
-			fx <- distfun(s_centers, x, nchunks=nchunks, BPPARAM=BPPARAM, ...)
+			fx <- distfun(s_centers, x, weights=1 / (sd + s0)^2,
+				nchunks=nchunks, BPPARAM=BPPARAM, ...)
 		} else {
-			fx <- distfun(t(s_centers), x, nchunks=nchunks, BPPARAM=BPPARAM, ...)
+			fx <- distfun(t(s_centers), x, weights=1 / (sd + s0)^2,
+				nchunks=nchunks, BPPARAM=BPPARAM, ...)
 		}
 		ds <- fx(seq_len(k))
-		scores <- (ds^2 / (sd + s0)^2) - rep(priors, each=length(y))
+		scores <- ds^2 - 2 * log(rep(priors, each=nrow(ds)))
 		colnames(scores) <- levels(y)
 		prob <- exp(-scores / 2)
 		prob <- pmax(prob / rowSums(prob, na.rm=TRUE), 0)
@@ -139,12 +141,14 @@ predict.nscentroids <- function(object, newdata,
 	sd <- object$sd
 	s0 <- median(sd, na.rm=TRUE)
 	if ( object$transpose ) {
-		fx <- object$distfun(object$centers, newdata, ...)
+		fx <- object$distfun(object$centers, newdata,
+			weights=1 / (sd + s0)^2, ...)
 	} else {
-		fx <- object$distfun(t(object$centers), newdata, ...)
+		fx <- object$distfun(t(object$centers), newdata,
+			weights=1 / (sd + s0)^2, ...)
 	}
 	ds <- fx(seq_len(k))
-	scores <- (ds^2 / (sd + s0)^2) - rep(priors, each=nrow(ds))
+	scores <- ds^2 - 2 * log(rep(priors, each=nrow(ds)))
 	colnames(scores) <- names(priors)
 	prob <- exp(-scores / 2)
 	prob <- pmax(prob / rowSums(prob, na.rm=TRUE), 0)
