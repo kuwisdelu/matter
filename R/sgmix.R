@@ -60,9 +60,12 @@ sgmix <- function(x, y, vals, r = 1, k = 2,
 	}
 	wts <- lapply(wts, function(w) w / sum(w, na.rm=TRUE))
 	# initialize parameters (mu, sigma, alpha, beta)
+	if ( verbose )
+		message("initializing model using k-means")
 	init <- kmeans(x, centers=k, ...)
 	mu <- as.vector(init$centers)
 	sigma <- as.vector(tapply(x, init$cluster, sd))
+	sigma <- ifelse(is.finite(sigma), sigma, 0.15 * mu)
 	alpha <- rep.int(1, k)
 	beta <- 1
 	# initialize p(x|mu,sigma)
@@ -127,6 +130,8 @@ sgmix <- function(x, y, vals, r = 1, k = 2,
 	}
 	# iterate
 	tt <- 1
+	if ( verbose )
+		message("estimating parameters with gradient descent")
 	for ( iter in seq_len(niter) )
 	{
 		# update probability from expectation step

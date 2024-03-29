@@ -20,6 +20,7 @@ BUG FIXES
 
     o Fix bug in 'nscentroids()' predictions
     o Fix error in 'nscentroids()' for one-class models
+    o Fix error in 'sgmix()' caused by singleton classes
     o Pass 'weights' argument to 'distfun()'
         in 'fastmap()' and 'nscentroids()'
     o Fix error in 'plot_image()' for NA-only images
