@@ -49,17 +49,17 @@ RNGStreams <- function(n, parallel = FALSE) {
 	seeds
 }
 
-getRNGStream <- function(e = globalenv()) {
-	if ( exists(".Random.seed", envir=e) ) {
-		get(".Random.seed", envir=e)
+getRNGStream <- function(env = globalenv()) {
+	if ( exists(".Random.seed", envir=env) ) {
+		get(".Random.seed", envir=env)
 	} else {
 		NULL
 	}
 }
 
-setRNGStream <- function(seed = NULL, e = globalenv()) {
+setRNGStream <- function(seed = NULL, env = globalenv()) {
 	if ( !is.null(seed) && is.integer(seed) )
-		assign(".Random.seed", seed, envir=e)
+		assign(".Random.seed", seed, envir=env)
 }
 
 #### Normalize subscripts ####

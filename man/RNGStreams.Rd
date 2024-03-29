@@ -13,17 +13,17 @@
 \usage{
 RNGStreams(n, parallel = FALSE)
 
-getRNGStream(e = globalenv())
+getRNGStream(env = globalenv())
 
-setRNGStream(seed = NULL, e = globalenv())
+setRNGStream(seed = NULL, env = globalenv())
 }
 
 \arguments{
 	\item{n}{The number of RNG streams to create.}
 
-	\item{parallel}{Should the \code{RNGkind} be set to the parallel-safe "L'Ecuyer-CMRG" generator if it isn't already? Note that if the RNG is set to a different generator, this will reset the seed.}
+	\item{parallel}{Should the \code{RNGkind} be set to the parallel-safe "L'Ecuyer-CMRG" generator if it isn't already? Note that if the RNG is set to a different generator, this will reset the random seed.}
 
-	\item{e}{The environment in which to get or set the random number generator. Defaults to the global environment.}
+	\item{env}{The environment in which to get or set the random number generator. Defaults to the global environment.}
 
 	\item{seed}{A valid RNG stream to assign to \code{.Random.seed}. For safety, should be a value returned by either \code{getRNGStream()} or \code{RNGStreams()}.}
 }
