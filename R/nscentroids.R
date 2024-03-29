@@ -14,8 +14,6 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		distfun <- if (transpose) colDistFun else rowDistFun
 	y <- as.factor(y)
 	k <- nlevels(y)
-	if ( k == 1L )
-		stop("need at least 2 classes")
 	priors <- rep_len(as.vector(priors), k)
 	priors <- priors / sum(priors)
 	names(priors) <- levels(y)
@@ -45,6 +43,10 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 			nchunks=nchunks, verbose=FALSE,
 			BPPARAM=BPPARAM)
 	}
+	if ( !is.matrix(centers) ) {
+		centers <- as.matrix(centers)
+		colnames(centers) <- levels(y)
+	}
 	# calculate t-statistics
 	if ( verbose )
 		message("calculating class statistics")
@@ -59,12 +61,18 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 			nchunks=nchunks, verbose=FALSE,
 			BPPARAM=BPPARAM)
 	}
+	if ( !is.matrix(wcss) ) {
+		wcss <- as.matrix(wcss)
+		colnames(wcss) <- levels(y)
+	}
 	sd <- sqrt(rowSums(wcss, na.rm=TRUE) / (length(y) - nlevels(y)))
 	s0 <- median(sd, na.rm=TRUE)
 	mk <- sqrt((1 / table(y)) - (1 / length(y)))
 	se <- (sd + s0) * rep(mk, each=length(sd))
 	dim(se) <- c(length(sd), nlevels(y))
 	statistic <- (centers - center) / se
+	if ( anyNA(statistic) )
+		statistic <- replace(statistic, is.na(statistic), 0)
 	# calculate fitted values
 	s <- sort(s)
 	ans <- vector("list", length=length(s))
@@ -74,7 +82,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 			message("fitting values for s = ", s[i])
 		s_statistic <- soft(statistic, s[i])
 		s_centers <- center + se * s_statistic
-		if ( !any(abs(s_statistic) > 0) )
+		if ( k > 1L && !any(abs(s_statistic) > 0) )
 			warning("model is fully sparse; 's' is too large")
 		if ( transpose ) {
 			fx <- distfun(s_centers, x, weights=1 / (sd + s0)^2,
@@ -88,7 +96,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		colnames(scores) <- levels(y)
 		prob <- exp(-scores / 2)
 		prob <- pmax(prob / rowSums(prob, na.rm=TRUE), 0)
-		class <- predict_class(prob)
+		class <- predict_class(-scores)
 		ans[[i]] <- list(class=class, probability=prob,
 			centers=s_centers, statistic=s_statistic,
 			sd=sd, priors=priors, s=s[i], distfun=distfun,
@@ -154,7 +162,7 @@ predict.nscentroids <- function(object, newdata,
 	prob <- exp(-scores / 2)
 	prob <- pmax(prob / rowSums(prob, na.rm=TRUE), 0)
 	if ( type == "class" ) {
-		predict_class(prob)
+		predict_class(-scores)
 	} else {
 		prob
 	}

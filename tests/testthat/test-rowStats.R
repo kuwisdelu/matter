@@ -44,6 +44,11 @@ test_that("rowStats", {
 	expect_equivalent(a1[,,1L], a21)
 	expect_equivalent(a1[,,2L], a22)
 
+	cgroup1 <- rep.int("a", ncol(x))
+	rgroup1 <- rep.int("a", nrow(x))
+
+	a1 <- rowStats(x, "mean", group=cgroup1)
+
 })
 
 test_that("rowStats (iter by col)", {

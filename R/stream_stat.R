@@ -262,6 +262,11 @@ c.stream_stat <- function(x, ...) {
 
 cbind.stream_stat <- function(..., deparse.level = 1) {
 	x <- ...elt(1L)
+	if ( ...length() == 1L ) {
+		if ( is.null(dim(x)) )
+			dim(x) <- c(length(x), 1L)
+		return(x)
+	}
 	more <- list(...)[-1L]
 	if ( length(more) > 1L ) {
 		y <- do.call(cbind, more)
@@ -289,6 +294,11 @@ cbind.stream_stat <- function(..., deparse.level = 1) {
 
 rbind.stream_stat <- function(..., deparse.level = 1) {
 	x <- ...elt(1L)
+	if ( ...length() == 1L ) {
+		if ( is.null(dim(x)) )
+			dim(x) <- c(1L, length(x))
+		return(x)
+	}
 	more <- list(...)[-1L]
 	if ( length(more) > 1L ) {
 		y <- do.call(rbind, more)

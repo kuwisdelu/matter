@@ -59,6 +59,30 @@ test_that("nscentroids", {
 	expect_equal(sc012[[2L]], sc1)
 	expect_equal(sc012[[3L]], sc2)
 
-	expect_warning(nscentroids(x, y, s=5))
+})
+
+test_that("nscentroids (degenerate)", {
+
+	register(SerialParam())
+	set.seed(1)
+	n <- 100
+	p <- 5
+	y <- c(rep.int("yes", 60), rep.int("no", 40))
+	x <- matrix(rnorm(n * p), nrow=n, ncol=p)
+	colnames(x) <- paste0("x", seq_len(p))
+
+	sc0 <- nscentroids(x, y, s=0)
+
+	expect_false(any(is.na(sc0$class)))
+	expect_false(any(is.na(sc0$statistic)))
+	expect_false(any(is.na(sc0$probability)))
+	expect_warning(nscentroids(x, y, s=1))
+
+	y <- rep.int("yes", n)
+	sc1 <- nscentroids(x, y, s=1)
+
+	expect_equal(sc1$class, as.factor(y))
+	expect_true(all(sc1$statistic == 0))
+	expect_equivalent(sc1$centers, colMeans(x))
 
 })

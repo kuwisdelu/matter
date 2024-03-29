@@ -12,6 +12,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
 BUG FIXES
 
     o Fix bug in 'nscentroids()' predictions
+    o Single class no longer errors in 'nscentroids()'
     o Pass 'weights' parameter to 'distfun()'
         in 'fastmap()' and 'nscentroids()'
 

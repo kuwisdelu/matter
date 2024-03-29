@@ -276,6 +276,17 @@ test_that("streaming matrix statistics (grouped)", {
 	ans2 <- t(aggregate(t(xy), list(c(groupx, groupy)), "sd")[-1L])
 	expect_equivalent(unclass(ans1), ans2)
 
+	cgroup1 <- rep.int("a", ncol(x))
+	rgroup1 <- rep.int("a", nrow(x))
+	
+	ans <- s_rowstats(x, "mean", cgroup1)
+	expect_equivalent(unclass(ans), rowMeans(x))
+	expect_equal(dim(ans), c(nrow(x), 1L))
+
+	ans <- s_colstats(x, "mean", rgroup1)
+	expect_equivalent(unclass(ans), colMeans(x))
+	expect_equal(dim(ans), c(ncol(x), 1L))
+
 })
 
 
