@@ -66,7 +66,8 @@ mi_learn <- function(fn, x, y, group,
 		utot <- sum(y != yi)
 		uprop <- utot / length(y)
 		if ( verbose )
-			message(utot, " labels updated (", 100 * uprop, "%)")
+			message(utot, " labels updated (",
+				round(100 * uprop, digits=2L), "%)")
 		y <- yi
 	}
 	fn(x, y, ...)
