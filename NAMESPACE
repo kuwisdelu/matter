@@ -87,6 +87,10 @@ importFrom("irlba",
 
 import("biglm")
 
+importFrom("parallel",
+	"nextRNGStream",
+	"nextRNGSubStream")
+
 import("BiocParallel")
 
 import("BiocGenerics")
@@ -402,6 +406,11 @@ export(
 	"roll",
 	"seq_rel",
 	"shingles")
+
+export(
+	"RNGStreams",
+	"getRNGStream",
+	"setRNGStream")
 
 export(
 	"dpal",

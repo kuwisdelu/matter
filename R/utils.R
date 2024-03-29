@@ -21,6 +21,47 @@
 		matter.vizi.cpal = "Viridis")
 }
 
+#### Parallel RNG ####
+## --------------------
+
+RNGStreams <- function(n, parallel = FALSE) {
+	if ( isTRUE(parallel) )
+	{
+		if ( !"L'Ecuyer-CMRG" %in% RNGkind() )
+			RNGkind("L'Ecuyer-CMRG")
+		if ( missing(n) )
+			return(invisible())
+	}
+	seeds <- vector("list", n)
+	s <- getRNGStream()
+	if ( !is.null(s) )
+	{
+		if ( "L'Ecuyer-CMRG" %in% RNGkind() ) {
+			for ( i in seq_len(n) ) {
+				s <- nextRNGStream(s)
+				seeds[[i]] <- s
+			}
+		} else {
+			for ( i in seq_len(n) )
+				seeds[[i]] <- s
+		}
+	}
+	seeds
+}
+
+getRNGStream <- function(e = globalenv()) {
+	if ( exists(".Random.seed", envir=e) ) {
+		get(".Random.seed", envir=e)
+	} else {
+		NULL
+	}
+}
+
+setRNGStream <- function(seed = NULL, e = globalenv()) {
+	if ( !is.null(seed) && is.integer(seed) )
+		assign(".Random.seed", seed, envir=e)
+}
+
 #### Normalize subscripts ####
 ## ----------------------------
 

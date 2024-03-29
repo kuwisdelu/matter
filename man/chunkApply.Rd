@@ -35,19 +35,19 @@ chunkMapply(FUN, \dots,
 ## Operate on complete chunks
 chunk_rowapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    seeds = NULL, verbose = NA, BPPARAM = bpparam())
 
 chunk_colapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    seeds = NULL, verbose = NA, BPPARAM = bpparam())
 
 chunk_lapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    seeds = NULL, verbose = NA, BPPARAM = bpparam())
 
 chunk_mapply(FUN, \dots, MoreArgs = NULL,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    seeds = NULL, verbose = NA, BPPARAM = bpparam())
 }
 
 \arguments{
@@ -66,6 +66,8 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
     \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
     \item{depends}{A list with length equal to the extent of \code{X}. Each element of \code{depends} should give a vector of indices which correspond to other elements of \code{X} on which each computation depends. These elements are passed to \code{FUN}. For time  efficiency, no attempt is made to verify these indices are valid.}
+
+    \item{seeds}{A list of RNG seeds such such as those returned by \code{RNGStreams}. If specified, must provide as many seeds as the number of chunks. Seeds are set per-chunk. Must have \code{RNGkind} set to "L'Ecuyer-CMRG" to ensure parallel-safe RNG, otherwise results may not be as expected.}
 
     \item{outpath}{If non-NULL, a file path where the results should be written as they are processed. If specified, \code{FUN} must return a 'raw', 'logical', 'integer', or 'numeric' vector. The result will be returned as a \code{matter} object.}
 
@@ -118,6 +120,8 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
     \code{\link[base]{apply}},
     \code{\link[base]{lapply}},
     \code{\link[base]{mapply}},
+    \code{\link[base]{RNGkind}},
+    \code{\link{RNGStreams}}
 }
 
 \examples{

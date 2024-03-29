@@ -83,8 +83,12 @@ test_that("sgmixn", {
 	expect_setequal(fitted(gmn02, type="mean"), gmn02$mu)
 	
 	expect_equal(rowSums(gmn02$probability), rep.int(1, length(x)))
-	expect_equal(rowSums(gmn02$probability[,1:2]), as.numeric(group == 1L))
-	expect_equal(rowSums(gmn02$probability[,3:4]), as.numeric(group == 2L))
+	expect_equal(
+		rowSums(gmn02$probability[,gmn02$group %in% "A"]),
+		as.numeric(group %in% "A"))
+	expect_equal(
+		rowSums(gmn02$probability[,gmn02$group %in% "B"]),
+		as.numeric(group %in% "B"))
 
 })
 

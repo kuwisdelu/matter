@@ -81,7 +81,7 @@ chunk_apply <- function(X, MARGIN, FUN, ...)
 
 chunk_rowapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	seeds = NULL, verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
@@ -91,8 +91,18 @@ chunk_rowapply <- function(X, FUN, ...,
 		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( !is.null(seeds) ) {
+		if ( !is.list(seeds) )
+			stop("seeds must be a list")
+		seeds <- rep_len(seeds, nchunks)
+	}
 	INDEX <-  chunkify(seq_len(nrow(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
+		if ( !is.null(seeds) ) {
+			oseed <- getRNGStream()
+			on.exit(setRNGStream(oseed))
+			setRNGStream(seeds[[attr(i, "chunkid")]])
+		}
 		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xi <- as.matrix(X[i,,drop=FALSE])
@@ -105,7 +115,7 @@ chunk_rowapply <- function(X, FUN, ...,
 
 chunk_colapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	seeds = NULL, verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
@@ -115,8 +125,18 @@ chunk_colapply <- function(X, FUN, ...,
 		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( !is.null(seeds) ) {
+		if ( !is.list(seeds) )
+			stop("seeds must be a list")
+		seeds <- rep_len(seeds, nchunks)
+	}
 	INDEX <-  chunkify(seq_len(ncol(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
+		if ( !is.null(seeds) ) {
+			oseed <- getRNGStream()
+			on.exit(setRNGStream(oseed))
+			setRNGStream(seeds[[attr(i, "chunkid")]])
+		}
 		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xi <- as.matrix(X[,i,drop=FALSE])
@@ -183,7 +203,7 @@ chunkLapply <- function(X, FUN, ...,
 
 chunk_lapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	seeds = NULL, verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
@@ -191,8 +211,18 @@ chunk_lapply <- function(X, FUN, ...,
 		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( !is.null(seeds) ) {
+		if ( !is.list(seeds) )
+			stop("seeds must be a list")
+		seeds <- rep_len(seeds, nchunks)
+	}
 	INDEX <-  chunkify(seq_len(length(X)), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
+		if ( !is.null(seeds) ) {
+			oseed <- getRNGStream()
+			on.exit(setRNGStream(oseed))
+			setRNGStream(seeds[[attr(i, "chunkid")]])
+		}
 		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xi <- as.vector(X[i])
@@ -260,7 +290,7 @@ chunkMapply <- function(FUN, ...,
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	seeds = NULL, verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	BIND <- match.fun(simplify)
@@ -280,8 +310,18 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( !is.null(seeds) ) {
+		if ( !is.list(seeds) )
+			stop("seeds must be a list")
+		seeds <- rep_len(seeds, nchunks)
+	}
 	INDEX <-  chunkify(seq_len(length(XS[[1L]])), nchunks, depends)
 	CHUNKFUN <- function(i, ...) {
+		if ( !is.null(seeds) ) {
+			oseed <- getRNGStream()
+			on.exit(setRNGStream(oseed))
+			setRNGStream(seeds[[attr(i, "chunkid")]])
+		}
 		if ( verbose && (is.null(BPPARAM) || !bpprogressbar(BPPARAM)) )
 			print_chunk_progress(i, length(INDEX))
 		xsi <- lapply(XS, `[`, i)

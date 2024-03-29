@@ -1,6 +1,13 @@
 
-CHANGES IN VERSION 2.5.11 [2024-3-26]
+CHANGES IN VERSION 2.5.11 [2024-3-29]
 -----------------------------------
+
+NEW FEATURES
+
+    o Add RNG utility functions 'RNGStreams()',
+        'getRNGStream()', and 'setRNGStream()'
+    o Add 'seeds' argument for parallel-safe RNG
+        for 'chunk_lapply()', etc.
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
