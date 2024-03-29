@@ -70,7 +70,7 @@ test_that("sgmixn", {
 	i <- (5 * nr %/% 8):(7 * nr %/% 8)
 	j <- (5 * nc %/% 8):(7 * nc %/% 8)
 	x[i,j] <- rnorm(length(i) * length(j), mean=4)
-	group <- rep(c(1L, 2L), each=length(x) %/% 2, length.out=length(x))
+	group <- rep(c("A", "B"), each=length(x) %/% 2, length.out=length(x))
 
 	set.seed(2)
 	gmn02 <- sgmixn(x, r=2, k=2, group=group)
