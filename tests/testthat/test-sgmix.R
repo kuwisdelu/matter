@@ -23,8 +23,6 @@ test_that("sgmix", {
 	gm02 <- sgmix(x, r=2, k=2, weights="gaussian")
 	gm03 <- sgmix(x, r=2, k=3, weights="gaussian")
 	gm04 <- sgmix(x, r=2, k=4, weights="gaussian")
-	gm12 <- sgmix(x, r=2, k=2, weights="bilateral")
-	gm22 <- sgmix(x, r=2, k=2, weights="adaptive")
 
 	expect_length(gm02$mu, 2)
 	expect_length(gm03$mu, 3)
@@ -37,6 +35,9 @@ test_that("sgmix", {
 	expect_true(all(gm02$sigma > 0))
 	expect_true(all(gm03$sigma > 0))
 	expect_true(all(gm04$sigma > 0))
+
+	gm12 <- sgmix(x, r=2, k=2, weights="bilateral")
+	gm22 <- sgmix(x, r=2, k=2, weights="adaptive")
 
 	expect_equal(fitted(gm02), gm02$probability)
 	expect_equal(fitted(gm12), gm12$probability)
@@ -83,5 +84,20 @@ test_that("sgmixn", {
 	expect_equal(rowSums(gmn02$probability), rep.int(1, length(x)))
 	expect_equal(rowSums(gmn02$probability[,1:2]), as.numeric(group == 1L))
 	expect_equal(rowSums(gmn02$probability[,3:4]), as.numeric(group == 2L))
+
+})
+
+test_that("sgmix (degenerate)", {
+
+	set.seed(1)
+	nr <- 128
+	nc <- 128
+	x <- matrix(rnorm(nr * nc), nrow=nr, ncol=nc)
+
+	set.seed(2)
+	gm01 <- sgmix(x, r=2, k=1)
+
+	expect_setequal(gm01$class, 1L)
+	expect_setequal(as.numeric(gm01$probability), 1)
 
 })

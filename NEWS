@@ -12,9 +12,10 @@ SIGNIFICANT USER-VISIBLE CHANGES
 BUG FIXES
 
     o Fix bug in 'nscentroids()' predictions
-    o Single class no longer errors in 'nscentroids()'
-    o Pass 'weights' parameter to 'distfun()'
+    o Fix error in 'nscentroids()' for one-class models
+    o Pass 'weights' argument to 'distfun()'
         in 'fastmap()' and 'nscentroids()'
+    o Fix error in 'plot_image()' for NA-only images
 
 CHANGES IN VERSION 2.5.10 [2024-3-24]
 ------------------------------------

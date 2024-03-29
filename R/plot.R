@@ -521,6 +521,8 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	rs <- compute_raster(mark, plot,
 		enhance=enhance, smooth=smooth, scale=scale, ...)
 	rc <- rs$raster
+	if ( is.null(rc) )
+		return()
 	# flip x axis?
 	if ( par("usr")[1L] > par("usr")[2L] )
 		rc <- rc[nrow(rc):1L,,drop=FALSE]
