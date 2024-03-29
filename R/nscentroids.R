@@ -92,6 +92,10 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 				nchunks=nchunks, BPPARAM=BPPARAM, ...)
 		}
 		ds <- fx(seq_len(k))
+		if ( !is.matrix(ds) ) {
+			ds <- as.matrix(ds)
+			colnames(ds) <- levels(y)
+		}
 		scores <- ds^2 - 2 * log(rep(priors, each=nrow(ds)))
 		colnames(scores) <- levels(y)
 		prob <- exp(-scores / 2)

@@ -36,6 +36,15 @@ test_that("sgmix", {
 	expect_true(all(gm03$sigma > 0))
 	expect_true(all(gm04$sigma > 0))
 
+	expect_setequal(fitted(gm02, type="mean"), gm02$mu)
+	expect_setequal(fitted(gm03, type="mean"), gm03$mu)
+	expect_setequal(fitted(gm04, type="mean"), gm04$mu)
+
+	expect_equal(rowSums(gm02$probability), rep.int(1, length(x)))
+	expect_equal(rowSums(gm03$probability), rep.int(1, length(x)))
+	expect_equal(rowSums(gm04$probability), rep.int(1, length(x)))
+
+	set.seed(3)
 	gm12 <- sgmix(x, r=2, k=2, weights="bilateral")
 	gm22 <- sgmix(x, r=2, k=2, weights="adaptive")
 
@@ -46,14 +55,6 @@ test_that("sgmix", {
 	expect_equal(fitted(gm02, type="class"), gm02$class)
 	expect_equal(fitted(gm12, type="class"), gm12$class)
 	expect_equal(fitted(gm22, type="class"), gm22$class)
-
-	expect_setequal(fitted(gm02, type="mean"), gm02$mu)
-	expect_setequal(fitted(gm03, type="mean"), gm03$mu)
-	expect_setequal(fitted(gm04, type="mean"), gm04$mu)
-
-	expect_equal(rowSums(gm02$probability), rep.int(1, length(x)))
-	expect_equal(rowSums(gm03$probability), rep.int(1, length(x)))
-	expect_equal(rowSums(gm04$probability), rep.int(1, length(x)))
 
 })
 
