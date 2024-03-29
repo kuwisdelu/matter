@@ -8,6 +8,8 @@ NEW FEATURES
         'getRNGStream()', and 'setRNGStream()'
     o Add 'seeds' argument for parallel-safe RNG
         for 'chunk_lapply()', etc.
+    o Add 'type' argument to 'drle' constructor
+        to allow pure-RLE or sequential encoding
 
 SIGNIFICANT USER-VISIBLE CHANGES
 

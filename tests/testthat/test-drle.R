@@ -117,3 +117,4 @@ test_that("drle factor", {
 	expect_equal(c(x, x2, x), c(y, y2, y)[])
 
 })
+

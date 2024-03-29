@@ -432,7 +432,7 @@ class Atoms {
 			index_t n, i = 0, num_read = 0, num_toread = size;
 			while ( num_toread > 0 )
 			{
-				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
+				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, RUN_SEQ);
 				size = run.length;
 				if ( isNA(run.value) )
 					n = fill<Tval>(ptr, size, NA<Tval>(), stride);
@@ -459,7 +459,7 @@ class Atoms {
 			index_t n, i = 0, num_read = 0, num_toread = size;
 			while ( num_toread > 0 )
 			{
-				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, true);
+				RunInfo<Tind> run = compute_run<Tind>(pindx, 0, num_toread, RUN_SEQ);
 				size = run.length;
 				if ( isNA(run.value) ) {
 					self_destruct();
@@ -564,7 +564,7 @@ class Atoms {
 				size_t i = 0;
 				while ( i < size )
 				{
-					run = compute_run<T>(pindx, i, size, true);
+					run = compute_run<T>(pindx, i, size, RUN_SEQ);
 					n = run.length;
 					if ( run.delta == 1 )
 						num_atoms += compute_span(pindx[i] - ind1, n, grp);
@@ -584,7 +584,7 @@ class Atoms {
 				size_t i = 0;
 				while ( i < size )
 				{
-					run = compute_run<T>(pindx, i, size, true);
+					run = compute_run<T>(pindx, i, size, RUN_SEQ);
 					n = run.length;
 					if ( run.delta == 1 )
 					{

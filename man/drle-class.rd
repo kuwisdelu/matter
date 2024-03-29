@@ -41,7 +41,7 @@
 
 \usage{
 ## Instance creation
-drle(x, cr_threshold = 0)
+drle(x, type = "drle", cr_threshold = 0)
 
 is.drle(x)
 ## Additional methods documented below
@@ -49,6 +49,8 @@ is.drle(x)
 
 \arguments{
     \item{x}{An integer or numeric vector to convert to delta run length encoding for \code{drle()}; an object to test if it is of class \code{drle} for \code{is.drle()}.}
+
+    \item{type}{The type of compression to use. Must be "drle", "rle", or "seq". The default ("drle") allows arbitrary deltas. Using type "rle" means that runs must consist of a single value (i.e., deltas must be 0). Using type "seq" means that deltas must be 1, -1, or 0.}
 
     \item{cr_threshold}{The compression ratio threshold to use when converting a vector to delta run length encoding. The default (0) always converts the object to \code{drle}. Values of \code{cr_threshold} < 1 correspond to compressing even when the output will be larger than the input (by a certain ratio). For values > 1, compression will only take place when the output is (approximately) at least \code{cr_threshold} times smaller.}
 }

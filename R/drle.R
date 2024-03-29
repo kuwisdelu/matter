@@ -11,7 +11,11 @@ setClass("drle",
 		lengths = "numeric"),
 	validity = function(object) {
 		errors <- NULL
-		lens <- c(length(object@values), length(object@lengths), length(object@deltas))
+		if ( length(object@deltas) > 0L ) {
+			lens <- c(length(object@values), length(object@lengths), length(object@deltas))
+		} else {
+			lens <- c(length(object@values), length(object@lengths))
+		}
 		if ( n_unique(lens) != 1L )
 			errors <- c(errors, "'values', 'deltas', and 'lengths' must have the same length")
 		if ( any(object@lengths < 1) )
@@ -23,15 +27,22 @@ setClass("drle_fct",
 	slots = c(levels = "character"),
 	contains = "drle")
 
-drle <- function(x, cr_threshold = 0)
+drle <- function(x, type = "drle", cr_threshold = 0)
 {
 	if ( is.drle(x) )
 		return(x)
 	if ( !is.numeric(x) && !is.logical(x) )
 		x <- as.factor(x)
-	y <- .Call(C_encodeDRLE, x, cr_threshold, PACKAGE="matter")
-	if ( is.factor(x) && is.drle(y) )
+	if ( !is.numeric(x) ) {
+		type <- as_run_type("rle")
+	} else {
+		type <- as_run_type(type)
+	}
+	y <- .Call(C_encodeDRLE, x, type, cr_threshold, PACKAGE="matter")
+	if ( is.drle(y) && is.factor(x) )
 		y <- new("drle_fct", y, levels=levels(x))
+	if ( is.drle(y) && type == "rle" )
+		y@deltas <- vector(typeof(y@deltas), length=0L)
 	if ( validObject(y) )
 		y
 }
@@ -137,6 +148,10 @@ setReplaceMethod("levels", "drle_fct",
 
 setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 	n <- length(x@values)
+	if ( length(x@deltas) == 0L )
+		x@deltas <- vector(typeof(x@deltas), length=length(x@values))
+	if ( length(y@deltas) == 0L )
+		y@deltas <- vector(typeof(y@deltas), length=length(y@values))
 	nextval <- x@values[n] + x@deltas[n] * x@lengths[n]
 	if ( nextval == y@values[1] )
 	{
@@ -154,10 +169,14 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 			y@deltas[1] <- 0L
 		}
 	}
-	new(class(x),
+	ans <- new(class(x),
 		values=c(x@values, y@values),
 		lengths=c(x@lengths, y@lengths),
 		deltas=c(x@deltas, y@deltas))
+	if ( all(ans@deltas == 0) )
+		ans@deltas <- vector(typeof(ans@deltas), length=0L)
+	if ( validObject(ans) )
+		ans
 })
 
 setMethod("combine", c("drle_fct", "drle_fct"), function(x, y, ...) {

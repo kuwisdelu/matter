@@ -402,9 +402,9 @@ SEXP inPoly(SEXP points, SEXP vertices)
 // Compression (delta run length encoding)
 //-----------------------------------------
 
-SEXP encodeDRLE(SEXP x, SEXP cr)
+SEXP encodeDRLE(SEXP x, SEXP type, SEXP cr)
 {
-	return encode_drle(x, Rf_asReal(cr));
+	return encode_drle(x, Rf_asInteger(type), Rf_asReal(cr));
 }
 
 SEXP recodeDRLE(SEXP x, SEXP i)

@@ -3,6 +3,12 @@
 
 #include "matterDefines.h"
 
+// run types
+// (must match factor levels)
+#define RUN_DELTA	1 // arbitary delta
+#define RUN_ONLY	2 // same value runs only
+#define RUN_SEQ		3 // sequential (delta=+/-1)
+
 //// Struct for run length encoding info
 //---------------------------------------
 
@@ -18,16 +24,20 @@ struct RunInfo {
 
 // calculate run length and delta
 template<typename T>
-RunInfo<T> compute_run(T * x, size_t i, size_t len, bool seq = false)
+RunInfo<T> compute_run(T * x, size_t i, size_t len, int type = RUN_DELTA)
 {
 	R_xlen_t n = 1;
 	T value = x[i], delta = 0;
 	if ( i + 1 < len && !isNA(x[i]) && !isNA(x[i + 1]) )
 		delta = x[i + 1] - x[i];
-	if ( seq && !equal<T>(std::fabs(delta), 1) && !equal<T>(delta, 0) )
+	if ( !equal<T>(delta, 0) )
 	{
-		RunInfo<T> run = {value, 0, 1};
-		return run;
+		if ( type == RUN_ONLY || 
+			(type == RUN_SEQ && !equal<T>(std::fabs(delta), 1)) )
+		{
+			RunInfo<T> run = {value, 0, 1};
+			return run;
+		}
 	}
 	while( i + 1 < len )
 	{
@@ -70,12 +80,12 @@ RunInfo<T> compute_run(T * x, size_t i, size_t len, bool seq = false)
 
 // count runs in an array x
 template<typename T>
-R_xlen_t num_runs(T * x, R_xlen_t len, bool seq = false)
+R_xlen_t num_runs(T * x, R_xlen_t len, int type = RUN_DELTA)
 {
 	R_xlen_t i = 0, n = 0;
 	while ( i < len )
 	{
-		RunInfo<T> run = compute_run<T>(x, i, len, seq);
+		RunInfo<T> run = compute_run<T>(x, i, len, type);
 		i += run.length;
 		n++;
 	}
@@ -83,15 +93,15 @@ R_xlen_t num_runs(T * x, R_xlen_t len, bool seq = false)
 }
 
 // count runs in a SEXP x
-inline R_xlen_t num_runs(SEXP x, bool seq = false)
+inline R_xlen_t num_runs(SEXP x, int type = RUN_DELTA)
 {
 	R_xlen_t len = XLENGTH(x);
 	switch(TYPEOF(x)) {
 		case LGLSXP:
 		case INTSXP:
-			return num_runs<int>(INTEGER(x), len, seq);
+			return num_runs<int>(INTEGER(x), len, type);
 		case REALSXP:
-			return num_runs<double>(REAL(x), len, seq);
+			return num_runs<double>(REAL(x), len, type);
 		default:
 			Rf_error("unsupported data type");
 	}
@@ -116,12 +126,12 @@ inline SEXP make_drle(SEXP values, SEXP deltas, SEXP lengths)
 // use DRLE to encode an array of x
 template<typename Tval, typename Tlen>
 size_t encode_drle(Tval * x, size_t len, Tval * values,
-	Tval * deltas, Tlen * lengths, size_t nruns)
+	Tval * deltas, Tlen * lengths, size_t nruns, int type = RUN_DELTA)
 {
 	size_t i = 0, j = 0;
 	while ( i < len && j < nruns )
 	{
-		RunInfo<Tval> run = compute_run<Tval>(x, i, len);
+		RunInfo<Tval> run = compute_run<Tval>(x, i, len, type);
 		values[j] = static_cast<Tval>(run.value);
 		deltas[j] = static_cast<Tval>(run.delta);
 		lengths[j] = static_cast<Tlen>(run.length);
@@ -132,10 +142,10 @@ size_t encode_drle(Tval * x, size_t len, Tval * values,
 }
 
 // use DRLE to encode a SEXP
-inline SEXP encode_drle(SEXP x, double cr = 0)
+inline SEXP encode_drle(SEXP x, int type = RUN_DELTA, double cr = 0)
 {
 	SEXP values, deltas, lengths, obj;
-	size_t nruns = num_runs(x);
+	size_t nruns = num_runs(x, type);
 	size_t sizeof_x = Rf_isReal(x) ? sizeof(double) : sizeof(int);
 	size_t sizeof_lens = IS_LONG_VEC(x) ? sizeof(double) : sizeof(int);
 	double uncomp_size = 48 + (XLENGTH(x) * sizeof_x);
@@ -155,11 +165,11 @@ inline SEXP encode_drle(SEXP x, double cr = 0)
 			switch(lenstype) {
 				case INTSXP:
 					encode_drle<int,int>(INTEGER(x), XLENGTH(x), INTEGER(values),
-						INTEGER(deltas), INTEGER(lengths), nruns);
+						INTEGER(deltas), INTEGER(lengths), nruns, type);
 					break;
 				case REALSXP:
 					encode_drle<int,double>(INTEGER(x), XLENGTH(x), INTEGER(values),
-						INTEGER(deltas), REAL(lengths), nruns);
+						INTEGER(deltas), REAL(lengths), nruns, type);
 					break;
 			}
 			break;
@@ -168,11 +178,11 @@ inline SEXP encode_drle(SEXP x, double cr = 0)
 			switch(lenstype) {
 				case INTSXP:
 					encode_drle<double,int>(REAL(x), XLENGTH(x), REAL(values),
-						REAL(deltas), INTEGER(lengths), nruns);
+						REAL(deltas), INTEGER(lengths), nruns, type);
 					break;
 				case REALSXP:
 					encode_drle<double,double>(REAL(x), XLENGTH(x), REAL(values),
-						REAL(deltas), REAL(lengths), nruns);
+						REAL(deltas), REAL(lengths), nruns, type);
 					break;
 			}
 			break;
@@ -200,8 +210,11 @@ class CompressedVector {
 			{
 				_type = TYPEOF(R_do_slot(x, Rf_install("values")));
 				_pvalues = DataPtr<T>(R_do_slot(x, Rf_install("values")));
-				_pdeltas = DataPtr<T>(R_do_slot(x, Rf_install("deltas")));
 				_lengths = R_do_slot(x, Rf_install("lengths"));
+				if ( XLENGTH(R_do_slot(x, Rf_install("deltas"))) > 0 )
+					_pdeltas = DataPtr<T>(R_do_slot(x, Rf_install("deltas")));
+				else
+					_pdeltas = NULL;
 				_truelength = XLENGTH(R_do_slot(x, Rf_install("values")));
 				_length = 0;
 				switch(TYPEOF(_lengths)) {
@@ -259,6 +272,8 @@ class CompressedVector {
 		T deltas(index_t i) {
 			if ( !is_compressed() )
 				return NA<T>();
+			if ( _pdeltas == NULL )
+				return 0;
 			if ( i < 0 || i >= truelength() )
 				Rf_error("subscript out of bounds");
 			return _pdeltas[i];

@@ -26,7 +26,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(colDistAt, 7),
 	CALLDEF(inPoly, 2),
 	// compression
-	CALLDEF(encodeDRLE, 2),
+	CALLDEF(encodeDRLE, 3),
 	CALLDEF(decodeDRLE, 2),
 	CALLDEF(recodeDRLE, 2),
 	// matter i/o
