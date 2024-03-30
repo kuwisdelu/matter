@@ -8,6 +8,7 @@ setGeneric("as.factor")
 
 setGeneric("levels")
 setGeneric("levels<-")
+setGeneric("droplevels")
 
 setGeneric("Encoding")
 setGeneric("Encoding<-")

@@ -7,8 +7,8 @@ setClassUnion("numeric_OR_logical", c("numeric", "logical"))
 setClass("drle",
 	slots = c(
 		values = "numeric_OR_logical",
-		deltas = "numeric",
-		lengths = "numeric"),
+		lengths = "numeric",
+		deltas = "numeric"),
 	validity = function(object) {
 		errors <- NULL
 		if ( length(object@deltas) > 0L ) {
@@ -49,8 +49,8 @@ drle <- function(x, type = "drle", cr_threshold = 0)
 
 setAs("drle", "list", function(from)
 	list(values=from@values,
-		deltas=from@deltas,
-		lengths=from@lengths))
+		lengths=from@lengths,
+		deltas=from@deltas))
 
 setAs("drle", "vector", function(from) from[])
 
@@ -91,7 +91,11 @@ setMethod("show", "drle", function(object) {
 	n <- getOption("matter.show.head.n")
 	if ( getOption("matter.show.head") )
 		try(preview_for_display(object), silent=TRUE)
-	cat("with", length(object@values), "delta-encoded runs\n")
+	if ( length(object@deltas) > 0L ) {
+		cat("with", length(object@values), "delta-encoded runs\n")
+	} else {
+		cat("with", length(object@values), "runs\n")
+	}
 })
 
 setMethod("show", "drle_fct", function(object) {
@@ -114,7 +118,7 @@ subset_drle <- function(x, i = NULL) {
 
 setMethod("[",
 	c(x = "drle", i = "ANY", j = "ANY", drop = "ANY"),
-	function(x, i, ..., drop)
+	function(x, i, ..., drop = TRUE)
 	{
 		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
@@ -128,11 +132,21 @@ setMethod("[",
 
 setMethod("[",
 	c(x = "drle_fct", i = "ANY", j = "ANY", drop = "ANY"),
-	function(x, i, ..., drop)
+	function(x, i, ..., drop = TRUE)
 	{
-		y <- callNextMethod()
-		if ( is.numeric(y) )
+		if ( ...length() > 0 )
+			stop("incorrect number of dimensions")
+		i <- as_subscripts(i, x)
+		if ( is_nil(drop) ) {
+			y <- subset_drle(x, i)
+		} else {
+			y <- get_drle_elts(x, i)
+		}
+		if ( is.drle(y) ) {
+			y <- new(class(x), y, levels=levels(x))
+		} else {
 			y <- factor(levels(x)[y], levels=levels(x))
+		}
 		y
 	})
 
@@ -142,9 +156,17 @@ setMethod("levels", "drle_fct", function(x) x@levels)
 
 setReplaceMethod("levels", "drle_fct",
 	function(x, value) {
-		x@levels <- value
+		x@levels <- as.character(value)
 		x
 	})
+
+setMethod("droplevels", "drle_fct", function(x) {
+	i <- which(seq_along(x@levels) %in% x@values)
+	x@values <- bsearch(x@values, i)
+	x@levels <- x@levels[i]
+	if ( validObject(x) )
+		x
+})
 
 setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 	n <- length(x@values)

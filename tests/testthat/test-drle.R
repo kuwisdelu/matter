@@ -116,5 +116,15 @@ test_that("drle factor", {
 	expect_equal(c(x, x2), c(y, y2)[])
 	expect_equal(c(x, x2, x), c(y, y2, y)[])
 
+	y3 <- y[1:6,drop=NULL]
+	y4 <- droplevels(y3)
+
+	expect_is(y3, "drle")
+	expect_equal(y3[], x[1:6])
+	expect_equal(as.character(y4[]), as.character(x[1:6]))
+
+	expect_equal(levels(y3), levels(x))
+	expect_equal(levels(y4), levels(droplevels(x[1:6])))
+
 })
 

@@ -2,11 +2,11 @@
 #### Spatial Gaussian mixture model ####
 ## --------------------------------------
 
-sgmix <- function(x, y, vals, r = 1, k = 2,
+sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	weights = c("gaussian", "bilateral", "adaptive"),
 	metric = "maximum", p = 2, neighbors = NULL,
-	annealing = TRUE, epsilon = 1e-3, niter = 10L,
-	verbose = NA, ...)
+	annealing = TRUE, niter = 10L, tol = 1e-3,
+	compress = FALSE, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -33,8 +33,17 @@ sgmix <- function(x, y, vals, r = 1, k = 2,
 	# find neighboring pixels
 	if ( is.null(neighbors) ) {
 		nb <- kdsearch(co, co, tol=r)
-		d1 <- rowdist_at(co, ix=seq_len(nrow(co)), iy=nb, metric=metric, p=p)
-		nb <- Map(function(i, d) i[d <= r], nb, d1)
+		ds <- rowdist_at(co, ix=seq_len(nrow(co)), iy=nb, metric=metric, p=p)
+		nb <- lapply(seq_along(x),
+			function(i) {
+				d_ok <- ds[[i]] <= r
+				if ( is.null(group) ) {
+					g_ok <- rep.int(TRUE, length(d_ok))
+				} else {
+					g_ok <- group[nb[[i]]] %in% group[i]
+				}
+				nb[[i]][d_ok & g_ok]
+			})
 	} else {
 		nb <- rep_len(neighbors, length(x))
 	}
@@ -59,6 +68,80 @@ sgmix <- function(x, y, vals, r = 1, k = 2,
 		wts <- rep_len(weights, length(x))
 	}
 	wts <- lapply(wts, function(w) w / sum(w, na.rm=TRUE))
+	# grouped segmentation
+	if ( !is.null(group) )
+	{
+		# fit model for each group
+		group <- as.factor(group)
+		gs <- levels(group)
+		ans <- lapply(gs, function(g)
+			{
+				if ( verbose )
+					message("fitting model for group ", g)
+				i <- which(group %in% g)
+				nbi <- lapply(nb[i], bsearch, table=i)
+				if ( is.character(weights) ) {
+					sgmix(co[i,1L], co[i,2L], x[i], r=r, k=k,
+						group=NULL, weights=weights, neighbors=nbi,
+						annealing=annealing, niter=niter, tol=tol,
+						compress=FALSE, verbose=verbose, ...)
+				} else {
+					sgmix(x[i], r=r, k=k,
+						group=NULL, weights=weights[i], neighbors=nbi,
+						annealing=annealing, niter=niter, tol=tol,
+						compress=FALSE, verbose=verbose, ...)
+				}
+			})
+		# combine and return models
+		mu <- do.call(rbind, lapply(ans, `[[`, "mu"))
+		sigma <- do.call(rbind, lapply(ans, `[[`, "sigma"))
+		alpha <- do.call(rbind, lapply(ans, `[[`, "alpha"))
+		beta <- unlist(lapply(ans, `[[`, "beta"))
+		dimnames(mu) <- list(gs, seq_len(k))
+		dimnames(sigma) <- dimnames(mu)
+		dimnames(alpha) <- dimnames(mu)
+		names(beta) <- gs
+		y <- matrix(0, nrow=length(x), ncol=length(mu))
+		for ( i in seq_along(gs) ) {
+			ir <- which(group %in% gs[i])
+			ic <- seq_len(k) + (i - 1L) * k
+			y[ir,ic] <- ans[[i]]$probability
+		}
+		colnames(y) <- rep.int(seq_len(k), length(gs))
+		attr(y, "group") <- rep(gs, each=k)
+		class <- predict_class(y)
+		if ( compress ) {
+			class <- drle(class)
+			y <- NULL
+		}
+		if ( !is.null(dim) && !is.drle(class) ) {
+			class <- as.integer(class)
+			dim(class) <- dim
+		}
+		loglik <- sum(unlist(lapply(ans, `[[`, "logLik")))
+		ans <- list(class=class, probability=y,
+			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
+		ans$group <- group
+		ans$logLik <- loglik
+		class(ans) <- "sgmix"
+		return(ans)
+	}
+	# check for degeneracy
+	xu <- sort(unique(x), decreasing=TRUE)
+	if ( length(xu) <= k )
+	{
+		if ( length(xu) < k )
+			warning("k > number of distinct data points")
+		class <- factor(x, levels=xu, labels=seq_along(xu))
+		y <- encode_dummy(class)
+		mu <- setNames(c(xu, rep.int(NA_real_, k - length(xu))), seq_len(k))
+		sigma <- setNames(rep.int(0, k), seq_len(k))
+		alpha <- setNames(rep.int(1, k), seq_len(k))
+		ans <- list(class=class, probability=y, mu=t(mu), sigma=t(sigma),
+			alpha=t(alpha), beta=1, logLik=NA_real_)
+		class(ans) <- "sgmix"
+		return(ans)
+	}
 	# initialize parameters (mu, sigma, alpha, beta)
 	if ( verbose )
 		message("initializing model using k-means")
@@ -201,155 +284,56 @@ sgmix <- function(x, y, vals, r = 1, k = 2,
 		sigma <- M$sigma
 		alpha <- M$alpha
 		beta <- M$beta
-		if ( abs(-loglik - G$objective) < epsilon )
+		if ( abs(-loglik - G$objective) < tol )
 			break
 	}
 	# re-order based on segment means
-	ord <- order(mu)
+	ord <- order(mu, decreasing=TRUE)
 	y <- y[,ord,drop=FALSE]
-	mu <- mu[ord]
-	sigma <- sigma[ord]
-	alpha <- alpha[ord]
+	mu <- setNames(mu[ord], seq_len(k))
+	sigma <- setNames(sigma[ord], seq_len(k))
+	alpha <- setNames(alpha[ord], seq_len(k))
 	# estimate final parameters and probabilities
 	E <- stepE(y, mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 	y <- E$y
 	colnames(y) <- seq_len(k)
-	names(mu) <- seq_len(k)
-	names(sigma) <- seq_len(k)
-	names(alpha) <- seq_len(k)
 	class <- predict_class(y)
-	if ( !is.null(dim) ) {
+	if ( compress ) {
+		class <- drle(class)
+		y <- NULL
+	}
+	if ( !is.null(dim) && !is.drle(class) ) {
 		class <- as.integer(class)
 		dim(class) <- dim
 	}
 	ans <- list(class=class, probability=y,
-		mu=mu, sigma=sigma, alpha=alpha, beta=beta)
+		mu=t(mu), sigma=t(sigma), alpha=t(alpha), beta=beta)
 	ans$logLik <- loglik
 	class(ans) <- "sgmix"
 	ans
 }
 
-sgmixn <- function(x, y, vals, r = 1, k = 2, group = NULL,
-	weights = c("gaussian", "bilateral", "adaptive"),
-	metric = "maximum", p = 2, neighbors = NULL,
-	verbose = NA, ...)
-{
-	if ( is.na(verbose) )
-		verbose <- getOption("matter.default.verbose")
-	if ( is.matrix(x) && missing(y) && missing(vals) ) {
-		dim <- dim(x)
-		co <- as.matrix(expand.grid(
-			x=seq_len(nrow(x)),
-			y=seq_len(ncol(x))))
-		x <- as.vector(x)
-	} else {
-		dim <- NULL
-		if ( missing(y) && missing(vals) ) {
-			co <- NULL
-			if ( !is.list(weights) && !is.list(neighbors) )
-				stop("both 'weights' and 'neighbors' must be ",
-					"specified when x/y coordinates are not")
-		} else {
-			co <- cbind(x, y)
-			x <- as.vector(vals)
-		}
-	}
-	if ( is.null(group) )
-		group <- rep_len(1, length(x))
-	# find neighboring pixels
-	if ( is.null(neighbors) ) {
-		nb <- kdsearch(co, co, tol=r)
-		ds <- rowdist_at(co, ix=seq_len(nrow(co)), iy=nb, metric=metric, p=p)
-		nb <- lapply(seq_along(x),
-			function(i) {
-				d_ok <- ds[[i]] <= r
-				g_ok <- group[nb[[i]]] %in% group[i]
-				nb[[i]][d_ok & g_ok]
-			})
-	} else {
-		nb <- rep_len(neighbors, length(x))
-	}
-	# fit model for each group
-	if ( is.factor(group) ) {
-		gs <- levels(group)
-	} else {
-		gs <- sort(unique(group))
-	}
-	ans <- lapply(gs, function(g)
-		{
-			if ( verbose )
-				message("fitting model for group ", g)
-			i <- which(group %in% g)
-			nbi <- lapply(nb[i], bsearch, table=i)
-			if ( is.character(weights) ) {
-				sgmix(co[i,1L], co[i,2L], x[i], r=r, k=k,
-					weights=weights, neighbors=nbi, verbose=verbose, ...)
-			} else {
-				sgmix(x[i], r=r, k=k,
-					weights=weights[i], neighbors=nbi, verbose=verbose, ...)
-			}
-		})
-	# combine and return models
-	mu <- unlist(lapply(ans, `[[`, "mu"))
-	sigma <- unlist(lapply(ans, `[[`, "sigma"))
-	alpha <- unlist(lapply(ans, `[[`, "alpha"))
-	beta <- unlist(lapply(ans, `[[`, "beta"))
-	names(mu) <- seq_along(mu)
-	names(sigma) <- names(mu)
-	names(alpha) <- names(mu)
-	names(beta) <- gs
-	y <- matrix(0, nrow=length(x), ncol=length(mu))
-	for ( i in seq_along(gs) ) {
-		ir <- which(group %in% gs[i])
-		ic <- seq_len(k) + (i - 1L) * k
-		y[ir,ic] <- ans[[i]]$probability
-	}
-	colnames(y) <- names(mu)
-	class <- predict_class(y)
-	if ( !is.null(dim) ) {
-		class <- as.integer(class)
-		dim(class) <- dim
-	}
-	loglik <- sum(unlist(lapply(ans, `[[`, "logLik")))
-	ans <- list(class=class, probability=y,
-		mu=mu, sigma=sigma, alpha=alpha, beta=beta)
-	ans$group <- rep(gs, each=k)
-	ans$loglik <- loglik
-	class(ans) <- "sgmix"
-	ans
-}
-
-
-print.sgmix <- function(x, digits = max(3L, getOption("digits") - 3L), ...)
+print.sgmix <- function(x, ...)
 {
 	cat(sprintf("Spatial Gaussian mixture model (k=%d)\n",
-		length(x$mu)))
+		ncol(x$mu)))
 	cat("\nParameter estimates:\n")
-	if ( is.null(x$group) ) {
-		print(rbind(mu=x$mu, sigma=x$sigma), ...)
-	} else {
-		ans <- format(rbind(mu=x$mu, sigma=x$sigma), digits=digits, ...)
-		ans <- rbind(ans, group=as.character(x$group))
-		print(ans, quote=FALSE, right=TRUE)
-	}
+	cat("$mu\n")
+	preview_matrix(x$mu, ...)
+	cat("\n$sigma\n")
+	preview_matrix(x$sigma, ...)
 	invisible(x)
 }
 
-fitted.sgmix <- function(object,
-	type = c("probability", "class", "mean"), ...)
+fitted.sgmix <- function(object, type = c("mu", "sigma", "class"), ...)
 {
 	type <- match.arg(type)
-	if ( type == "probability" ) {
-		object$probability
-	} else if ( type == "class" ) {
-		object$class
+	if ( type == "mu" ) {
+		object$mu
+	} else if ( type == "sigma" ) {
+		object$sigma
 	} else {
-		x <- object$mu[as.integer(object$class)]
-		if ( !is.null(dim(object$class)) ) {
-			matrix(x, nrow=nrow(object$class), ncol=ncol(object$class))
-		} else {
-			x
-		}
+		object$class
 	}
 }
 
@@ -360,3 +344,78 @@ logLik.sgmix <- function(object, ...)
 	structure(object$logLik, df=nobs - p, nobs=nobs,
 		class="logLik")
 }
+
+sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
+	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+{
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
+	if ( is.na(nchunks) )
+		nchunks <- getOption("matter.default.nchunks")
+	if ( is.matrix(vals) ) {
+		n <- if (byrow) nrow(vals) else ncol(vals)
+	} else if ( is.list(vals) ) {
+		n <- length(vals)
+	} else {
+		stop("'vals' must be a list or matrix")
+	}
+	if ( verbose )
+		message("fitting spatial segmentations for ", n, " images")
+	fn <- function(vi, ...)
+	{
+		fit <- sgmix(x, y, vi, r=r, k=k, , ...)
+		fit$weights <- weights
+		fit$r <- r
+		fit$k <- k
+		fit
+	}
+	margin <- if (byrow) 1L else 2L
+	seeds <- RNGStreams(nchunks)
+	if ( is.matrix(vals) ) {
+		ans <- chunkApply(vals, margin, fn, ..., seeds=seeds,
+			nchunks=nchunks, verbose=verbose,
+			BPPARAM=BPPARAM)
+	} else {
+		ans <- chunkLapply(vals, fn, ..., seeds=seeds,
+			nchunks=nchunks, verbose=verbose,
+			BPPARAM=BPPARAM)
+	}
+	group <- ans[[1L]]$group
+	loglik <- simplify2array(lapply(ans, `[[`, "logLik"))
+	kout <- vapply(ans, function(a) nlevels(droplevels(a$class)), integer(1L))
+	if ( any(kout < k) )
+		warning("fewer than k classes for images ",
+			paste0(which(kout != k), collapse=", "))
+	ans <- list(
+		class=lapply(ans, `[[`, "class"),
+		mu=simplify2array(lapply(ans, `[[`, "mu")),
+		sigma=simplify2array(lapply(ans, `[[`, "sigma")),
+		alpha=simplify2array(lapply(ans, `[[`, "alpha")),
+		beta=simplify2array(lapply(ans, `[[`, "beta")))
+	ans$group <- group
+	ans$logLik <- loglik
+	class(ans) <- c("sgmixn", "sgmix")
+	ans
+}
+
+print.sgmixn <- function(x, ...)
+{
+	cat(sprintf("Spatial Gaussian mixture models (k=%d, n=%d)\n",
+		ncol(x$mu), length(x$class)))
+	cat("\nParameter estimates:\n")
+	cat("$mu\n")
+	preview_Nd_array(x$mu, ...)
+	cat("\n$sigma\n")
+	preview_Nd_array(x$sigma, ...)
+	invisible(x)
+}
+
+logLik.sgmixn <- function(object, ...)
+{
+	nobs <- lengths(object$class)
+	p <- 3L * prod(dim(object$mu)[1:2]) + 1L
+	structure(object$logLik, df=nobs - p, nobs=nobs,
+		class="logLik")
+}
+
+

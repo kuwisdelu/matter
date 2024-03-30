@@ -10,6 +10,8 @@ NEW FEATURES
         for 'chunk_lapply()', etc.
     o Add 'type' argument to 'drle' constructor
         to allow pure-RLE or sequential encoding
+    o Add function 'sgmixn()' for fitting multiple
+        spatial Gaussian mixture models in parallel
 
 SIGNIFICANT USER-VISIBLE CHANGES
 

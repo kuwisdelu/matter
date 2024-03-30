@@ -4,7 +4,7 @@
 ## -----------------------------
 
 plot_signal <- function(x, y, by = names(y), group = NULL,
-	xlim = NULL, ylim = NULL, col = NULL,
+	xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
 	xlab = NULL, ylab = NULL, layout = NULL,
 	n = Inf, downsampler = "lttb", key = TRUE,
 	grid = TRUE, isPeaks = FALSE, annPeaks = 0, ...)
@@ -12,7 +12,11 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 	if ( is.array(x) ) {
 		if ( length(dim(x)) > 2L )
 			stop("'x' must have at most 2 dimensions")
-		y <- apply(x, 2L, identity, simplify=FALSE)
+		if ( byrow ) {
+			y <- apply(x, 1L, identity, simplify=FALSE)
+		} else {
+			y <- apply(x, 2L, identity, simplify=FALSE)
+		}
 		x <- seq_along(y[[1L]])
 	} else if ( missing(y) ) {
 		y <- x
@@ -24,7 +28,11 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 	} else if ( is.array(y) ) {
 		if ( length(dim(y)) > 2L )
 			stop("'y' must have at most 2 dimensions")
-		y <- apply(y, 2L, identity, simplify=FALSE)
+		if ( byrow ) {
+			y <- apply(y, 1L, identity, simplify=FALSE)
+		} else {
+			y <- apply(y, 2L, identity, simplify=FALSE)
+		}
 	}
 	if ( !is.list(y) )
 		y <- list(y)
@@ -117,7 +125,7 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 ## -----------------------------
 
 plot_image <- function(x, y, vals, by = names(vals), group = NULL,
-	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL,
+	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
 	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL,
 	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
 	grid = TRUE, asp = 1, useRaster = TRUE, ...)
@@ -136,6 +144,12 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 		pos <- lapply(vals, function(v) expand.grid(x=1:dim(v)[1L], y=1:dim(v)[2L]))
 		x <- lapply(pos, function(p) p$x)
 		y <- lapply(pos, function(p) p$y)
+	} else if ( is.matrix(vals) ) {
+		if ( byrow ) {
+			vals <- apply(vals, 1L, identity, simplify=FALSE)
+		} else {
+			vals <- apply(vals, 2L, identity, simplify=FALSE)
+		}
 	}
 	if ( !is.list(vals) )
 		vals <- list(vals)

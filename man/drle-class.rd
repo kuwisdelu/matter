@@ -21,6 +21,7 @@
 
 \alias{levels,drle_fct-method}
 \alias{levels<-,drle_fct-method}
+\alias{droplevels,drle_fct-method}
 
 \alias{type,drle-method}
 

@@ -11,13 +11,13 @@
 
 \usage{
 plot_signal(x, y, by = names(y), group = NULL,
-    xlim = NULL, ylim = NULL, col = NULL,
+    xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
     xlab = NULL, ylab = NULL, layout = NULL,
     n = Inf, downsampler = "lttb", key = TRUE,
     grid = TRUE, isPeaks = FALSE, annPeaks = 0, \dots)
 
 plot_image(x, y, vals, by = names(vals), group = NULL,
-    zlim = NULL, xlim = NULL, ylim = NULL, col = NULL,
+    zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
     zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL,
     enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
     grid = TRUE, asp = 1, useRaster = TRUE, \dots)
@@ -35,6 +35,8 @@ plot_image(x, y, vals, by = names(vals), group = NULL,
     \item{xlab, ylab, zlab}{Plotting labels.}
 
     \item{col}{A vector giving the color map for encoding the image, or a function that returns a vector of \code{n} colors.}
+
+    \item{byrow}{If \code{vals} is a matrix, should its rows or columns be plotted?}
 
     \item{layout}{A vector of the form \code{c(nrow, ncol)} specifying the number of rows and columns in the facet grid.}
 
