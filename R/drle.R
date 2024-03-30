@@ -41,7 +41,7 @@ drle <- function(x, type = "drle", cr_threshold = 0)
 	y <- .Call(C_encodeDRLE, x, type, cr_threshold, PACKAGE="matter")
 	if ( is.drle(y) && is.factor(x) )
 		y <- new("drle_fct", y, levels=levels(x))
-	if ( is.drle(y) && type == "rle" )
+	if ( is.drle(y) && all(y@deltas == 0) )
 		y@deltas <- vector(typeof(y@deltas), length=0L)
 	if ( validObject(y) )
 		y
@@ -173,7 +173,7 @@ setMethod("combine", c("drle", "drle"), function(x, y, ...) {
 		values=c(x@values, y@values),
 		lengths=c(x@lengths, y@lengths),
 		deltas=c(x@deltas, y@deltas))
-	if ( all(ans@deltas == 0) )
+	if ( is.drle(ans) && all(ans@deltas == 0) )
 		ans@deltas <- vector(typeof(ans@deltas), length=0L)
 	if ( validObject(ans) )
 		ans
