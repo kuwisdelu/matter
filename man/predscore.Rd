@@ -19,9 +19,9 @@ predscore(x, ref)
 }
 
 \value{
-    For classification, a numeric matrix with a row for each class and columns called "recall" and "precision".
+    For classification, a numeric matrix with a row for each class and columns called "Recall" and "Precision".
 
-    For regression, a numeric vector with elements named "rmse", "mae", and "mape".
+    For regression, a numeric vector with elements named "RMSE", "MAE", and "MAPE".
 }
 
 \author{Kylie A. Bemis}

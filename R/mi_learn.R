@@ -85,13 +85,13 @@ predscore <- function(x, ref)
 		t(vapply(levels(y),
 			function(lvl) {
 				correct <- x == y
-				c(recall=mean(correct[y == lvl]),
-					precision=mean(correct[x == lvl]))
+				c(Recall=mean(correct[y == lvl]),
+					Precision=mean(correct[x == lvl]))
 			}, numeric(2L)))
 	} else if ( is.numeric(x) && is.numeric(x) ) {
-		c(rmse=sqrt(mean((ref - x)^2)),
-			mae=mean(abs(ref - x)),
-			mape=mean(abs(ref - x) / ref))
+		c(RMSE=sqrt(mean((ref - x)^2)),
+			MAE=mean(abs(ref - x)),
+			MAPE=mean(abs(ref - x) / ref))
 	} else {
 		stop("'x' and 'ref' must be both discrete or both numeric")
 	}

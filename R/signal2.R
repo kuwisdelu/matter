@@ -254,17 +254,17 @@ enhance_fun <- function(method)
 #### Colocalization coefficients ####
 ## ----------------------------------
 
-mscore <- function(x, y, type = 3L, threshold = NA)
+coscore <- function(x, y, threshold = NA)
 {
-	x <- replace(x, is.na(x), 0)
-	y <- replace(y, is.na(y), 0)
+	x <- replace(x, is.na(x), FALSE)
+	y <- replace(y, is.na(y), FALSE)
 	if ( any(x < 0) )
 		x <- x + min(x)
 	if ( any(y < 0) )
 		y <- y + min(y)
 	if ( is.function(threshold) )
 		threshold <- c(threshold(x), threshold(y))
-	if ( any(is.na(threshold)) )
+	if ( anyNA(threshold) && (!is.logical(x) || !is.logical(y)) )
 	{
 		fit <- lr(as.vector(x), as.vector(y))
 		Tx <- seq.default(max(x), min(x), length.out=128L)
@@ -285,15 +285,22 @@ mscore <- function(x, y, type = 3L, threshold = NA)
 		}
 	}
 	threshold <- rep_len(threshold, 2L)
-	xm <- ifelse(x >= threshold[1L], x, 0)
-	ym <- ifelse(y >= threshold[2L], y, 0)
-	ans <- switch(type,
-		sum(ifelse(ym > 0, xm, 0)) / sum(xm),
-		sum(ifelse(xm > 0, ym, 0)) / sum(ym),
-		sum(xm * ym) / sqrt(sum(xm^2) * sum(ym^2)),
-		2 * sum(xm > 0 & ym > 0) / (sum(xm > 0) + sum(ym > 0)),
-		stop("type must be 1, 2, 3, or 4"))
-	structure(ans, threshold=threshold, type=type)
+	if ( is.logical(x) ) {
+		xm <- x
+	} else {
+		xm <- ifelse(x >= threshold[1L], x, 0)
+	}
+	if ( is.logical(y) ) {
+		ym <- y
+	} else {
+		ym <- ifelse(y >= threshold[2L], y, 0)
+	}
+	ans <- c(
+		MOC=sum(xm * ym) / sqrt(sum(xm^2) * sum(ym^2)),
+		M1=sum(ifelse(ym > 0, xm, 0)) / sum(xm),
+		M2=sum(ifelse(xm > 0, ym, 0)) / sum(ym),
+		Dice=2 * sum(xm > 0 & ym > 0) / (sum(xm > 0) + sum(ym > 0)))
+	structure(ans, threshold=threshold)
 }
 
 #### Rasterize a scattered image ####

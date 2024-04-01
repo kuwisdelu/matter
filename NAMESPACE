@@ -380,7 +380,7 @@ export(
 	"mi",
 	"enhance_hist",
 	"enhance_adapt",
-	"mscore",
+	"coscore",
 	"is_gridded",
 	"to_raster",
 	"to_raster3",

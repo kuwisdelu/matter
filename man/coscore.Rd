@@ -1,21 +1,19 @@
-\name{mscore}
+\name{coscore}
 
-\alias{mscore}
+\alias{coscore}
 
 \title{Colocalization Coefficients}
 
 \description{
-    Compute Dice scores, Manders overlap coefficient (MOC), and Manders colocalization coefficients (M1 and M2).
+    Compute Manders overlap coefficient (MOC), and Manders colocalization coefficients (M1 and M2), and Dice similarity coefficient.
 }
 
 \usage{
-mscore(x, y, type = 3L, threshold = NA)
+coscore(x, y, threshold = NA)
 }
 
 \arguments{
 	\item{x, y}{Images to be compared. These can be numeric or logical. If numeric, then the "overlap" is defined where both images are nonzero.}
-
-    \item{type}{The type of match coefficient to compute, where \code{1} and \code{2} are Manders' colocalization coefficeints (M1 and M2), \code{3} is Manders' overlap coefficient, and \code{4} is the Dice similarity coefficient.}
 
     \item{threshold}{The intensity threshold to use when comparing the images. If \code{NA}, this will be determined automatically from the technique described in Costes et al. (2004). Alternatively, this can be a function such as \code{median} that can be applied to return a suitable threshold.}
 }
@@ -25,7 +23,7 @@ mscore(x, y, type = 3L, threshold = NA)
 }
 
 \value{
-    A number between 0 and 1 giving the strength of colocalization.
+    A numeric vector with elements named "MOC", "M1", "M2", and "Dice", and an attribute named "threshold" giving the numeric thresholds (if applicable) for converting each image to a logical mask.
 }
 
 \author{Kylie A. Bemis}
@@ -47,11 +45,13 @@ x <- x + runif(length(x))
 y[4:15,4:15] <- 1
 y[18:29,18:29] <- 1
 y <- y + runif(length(y))
+xl <- x > median(x)
+yl <- y > median(y)
 
-mscore(x, x)
-mscore(x, y)
-mscore(x, y, threshold=median)
-mscore(x, y, type=4)
+coscore(x, x)
+coscore(x, y)
+coscore(x, y, threshold=median)
+coscore(xl, yl)
 }
 
-\keyword{spatial}
+\keyword{utilities}
