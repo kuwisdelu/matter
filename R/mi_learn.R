@@ -73,3 +73,26 @@ mi_learn <- function(fn, x, y, group,
 	fn(x, y, ...)
 }
 
+# score predictions from classification or regression
+predscore <- function(x, ref)
+{
+	if ( length(x) != length(ref) )
+		stop("'x' and 'ref' must have the same length")
+	if ( is_discrete(x) && is_discrete(ref) ) {
+		y <- as.factor(ref)
+		if ( !is.factor(x) || !setequal(levels(x), levels(y)) )
+			x <- factor(x, levels=levels(y))
+		t(vapply(levels(y),
+			function(lvl) {
+				correct <- x == y
+				c(recall=mean(correct[y == lvl]),
+					precision=mean(correct[x == lvl]))
+			}, numeric(2L)))
+	} else if ( is.numeric(x) && is.numeric(x) ) {
+		c(rmse=sqrt(mean((ref - x)^2)),
+			mae=mean(abs(ref - x)),
+			mape=mean(abs(ref - x) / ref))
+	} else {
+		stop("'x' and 'ref' must be both discrete or both numeric")
+	}
+}

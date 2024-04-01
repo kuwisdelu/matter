@@ -445,6 +445,7 @@ export(
 	"sgmixn",
 	"fastmap",
 	"mi_learn",
+	"predscore",
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",
