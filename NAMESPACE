@@ -404,11 +404,14 @@ export(
 
 export(
 	"array_ind",
-	"linear_ind",
-	"pinv",
+	"linear_ind")
+
+export(
 	"roll",
 	"seq_rel",
-	"shingles")
+	"shingles",
+	"avg",
+	"pinv")
 
 export(
 	"RNGStreams",

@@ -813,6 +813,19 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 	y
 }
 
+# calculate mean/median/mode
+avg <- function(x, center = mean)
+{
+	x <- x[!is.na(x)]
+	if ( is.numeric(x) ) {
+		y <- center(x)
+	} else {
+		ux <- unique(x)
+		y <- ux[which.max(tabulate(match(x, ux)))]
+	}
+	unname(y)
+}
+
 # encode a dummy (one-hot) variable
 encode_dummy <- function(x, drop = TRUE) {
 	x <- as.factor(x)

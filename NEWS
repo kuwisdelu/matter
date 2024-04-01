@@ -22,6 +22,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Print methods for models (e.g., 'pls', etc.) now
         truncate output to 'getOption("matter.show.head.n")'
     o Add 'jitter' transformation for vizi mark 'points', etc.
+    o Export 'avg()' utility function
 
 BUG FIXES
 

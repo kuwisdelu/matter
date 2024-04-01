@@ -52,10 +52,12 @@
 
 \alias{array_ind}
 \alias{linear_ind}
-\alias{pinv}
+
 \alias{roll}
 \alias{seq_rel}
 \alias{shingles}
+\alias{avg}
+\alias{pinv}
 
 \alias{panel_grid}
 \alias{panel_dim}
