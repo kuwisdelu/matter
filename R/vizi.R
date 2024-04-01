@@ -4,6 +4,8 @@
 
 vizi <- function(data, ..., encoding = NULL, params = NULL)
 {
+	if ( missing(data) )
+		data <- NULL
 	encoding <- merge_encoding(encoding, as_encoding(...))
 	props <- compute_properties(encoding, data=data)
 	encoding <- props$encoding
@@ -276,6 +278,10 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 		args$xlim <- plot$channels$x$limits
 	if ( is.null(args$ylim) )
 		args$ylim <- plot$channels$y$limits
+	if ( is_discrete(args$xlim) )
+		args$xlim <- c(0.5, length(args$xlim) + 0.5)
+	if ( is_discrete(args$ylim) )
+		args$ylim <- c(0.5, length(args$ylim) + 0.5)
 	if ( is2d(plot) ) {
 		# get x/y aspect ratio and scale
 		if ( is.null(args$log) )
@@ -286,10 +292,22 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 		plot.new()
 		do.call(plot.window, args)
 		# add annotations
-		if ( has_free_x(plot) || is_bottom_panel(n) )
-			Axis(args$xlim, side=1L)
-		if ( has_free_y(plot) || is_left_panel() )
-			Axis(args$ylim, side=2L)
+		if ( has_free_x(plot) || is_bottom_panel(n) ) {
+			xl <- plot$channels$x$limits
+			if ( is_discrete(xl) ) {
+				Axis(args$xlim, side=1L, at=seq_along(xl), labels=xl)
+			} else {
+				Axis(args$xlim, side=1L)
+			}
+		}
+		if ( has_free_y(plot) || is_left_panel() ) {
+			yl <- plot$channels$y$limits
+			if ( is_discrete(yl) ) {
+				Axis(args$ylim, side=2L, at=seq_along(yl), labels=yl)
+			} else {
+				Axis(args$ylim, side=2L)
+			}
+		}
 		if ( isTRUE(plot$coord$grid) )
 			grid()
 	} else {
@@ -694,20 +712,36 @@ compute_variables <- function(encoding, data = NULL)
 compute_properties <- function(encoding, data = NULL)
 {
 	e <- compute_variables(encoding, data=data)
-	channels <- lapply(names(e), function(nm)
+	xnames <- c("x", "xmin", "xmax")
+	ynames <- c("y", "ymin", "ymax")
+	nms <- names(e)
+	channels <- lapply(nms, function(nm)
 	{
-		xx <- encoding[[nm]]
-		if ( is(xx, "formula") ) {
-			lab <- deparse1(xx[[2L]])
-		} else if ( is.character(xx) && !is.null(data) ) {
-			lab <- xx[1L]
+		z <- encoding[[nm]]
+		if ( is(z, "formula") ) {
+			lab <- deparse1(z[[2L]])
+		} else if ( is.character(z) && !is.null(data) ) {
+			lab <- z[1L]
 		} else {
-			lab <- nm
+			if ( nm %in% xnames ) {
+				lab <- "x"
+			} else if ( nm %in% ynames ) {
+				lab <- "y"
+			} else {
+				lab <- nm
+			}
 		}
 		lim <- get_limits(e[[nm]])
 		list(label=lab, limits=lim)
 	})
-	names(channels) <- names(e)
+	nms <- replace(nms, nms %in% xnames, "x")
+	nms <- replace(nms, nms %in% ynames, "y")
+	names(channels) <- nms
+	if ( anyDuplicated(nms) )
+	{
+		chs <- lapply(seq_along(nms), function(i) channels[i])
+		channels <- do.call(merge_channels, chs)
+	}
 	list(encoding=e, channels=channels)
 }
 
@@ -805,10 +839,6 @@ get_var <- function(x, data)
 		if ( length(x) != 2L )
 			stop("formula encodings can only have rhs")
 		eval(x[[2L]], envir=data, enclos=environment(x))
-	} else if ( is(x, "character") && !is.null(data) ) {
-		if ( length(x) != 1L )
-			stop("string encodings must be length-1")
-		get(x, envir=as.environment(data))
 	} else {
 		force(x)
 	}
@@ -825,12 +855,13 @@ encode_var <- function(name, encoding = NULL,
 		if ( is.null(e) )
 			e <- switch(name, alpha=1, NULL)
 		# search base graphics parameters
-		if ( is.null(e) )
-			e <- vizi_par(to_par_name(name))
-		if ( is.null(e) )
-			e <- par(to_par_name(name))
-		if ( is.null(e) )
-			stop("couldn't find encoding for ", sQuote(name))
+		if ( to_par_name(name) %in% names(par(no.readonly=TRUE)) )
+		{
+			if ( is.null(e) )
+				e <- vizi_par(to_par_name(name))
+			if ( is.null(e) )
+				e <- par(to_par_name(name))
+		}
 	} else {
 		# encode limits
 		lim <- channels[[name]]$limits
@@ -904,7 +935,10 @@ get_discrete_scheme <- function(channel)
 {
 	msg <- paste0("can't make discrete scheme for ", sQuote(channel))
 	switch(channel,
-		x =, y =, z =, text = NULL,
+		x = , xmin = , xmax = ,
+		y = , ymin = , ymax = ,
+		z = ,
+		text = NULL,
 		shape = seq_fun(14),
 		color = discrete_pal,
 		fill = discrete_pal,
@@ -919,7 +953,10 @@ get_continuous_scheme <- function(channel)
 {
 	msg <- paste0("can't make continuous scheme for ", sQuote(channel))
 	switch(channel,
-		x =, y =, z =, text = NULL,
+		x = , xmin = , xmax = ,
+		y = , ymin = , ymax = ,
+		z = ,
+		text = NULL,
 		shape = stop(msg),
 		color = continuous_pal,
 		fill = continuous_pal,
@@ -945,7 +982,7 @@ range_fun <- function(from, to) {
 }
 
 seq_fun <- function(max_n) {
-	function(n) seq_len(max(n, max_n))
+	function(n) seq_len(min(n, max_n))
 }
 
 shape_pal <- function(n = 20L) {
@@ -1094,8 +1131,10 @@ encode_legends <- function(channels, params, type = NULL)
 			}
 		} else if ( is(key, "vizi_key") ) {
 			if ( !"pch" %in% names(key) ) {
-				if ( !"fill" %in% names(key) )
+				if ( !"bg" %in% names(key) )
 					key$fill <- key$col
+				if ( "bg" %in% names(key) )
+					key$fill <- key$bg
 				key$border <- NA
 			}
 		}
@@ -1130,6 +1169,8 @@ merge_legends <- function(keys, ...)
 					ks[[nm]][[p]] <- k[[p]]
 			}
 		}
+		if ( "fill" %in% names(ks[[nm]]) )
+			ks[[nm]][c("pch", "lty", "lwd")] <- NULL
 	}
 	ks
 }

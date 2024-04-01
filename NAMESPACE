@@ -21,7 +21,9 @@ importFrom("grDevices",
 
 importFrom("graphics",
 	"Axis",
+	"arrows",
 	"box",
+	"boxplot.default",
 	"co.intervals",
 	"grid",
 	"legend",
@@ -518,6 +520,9 @@ S3method("plot", "vizi_colorkey")
 S3method("plot", "vizi_points")
 S3method("plot", "vizi_lines")
 S3method("plot", "vizi_peaks")
+S3method("plot", "vizi_text")
+S3method("plot", "vizi_intervals")
+S3method("plot", "vizi_boxplot")
 S3method("plot", "vizi_pixels")
 S3method("plot", "vizi_voxels")
 

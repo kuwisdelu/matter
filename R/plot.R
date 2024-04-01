@@ -260,7 +260,8 @@ add_alpha <- function(colors, alpha = 1, exp = 2) {
 ## ----------------------------------------
 
 plot_mark_xy <- function(mark, plot = NULL, ...,
-	n = Inf, downsampler = "lttb", type = "p", add = FALSE)
+	n = Inf, downsampler = "lttb", jitter = "",
+	type = "p", add = FALSE)
 {
 	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -270,6 +271,11 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 		z <- encode_var("z", encoding, plot$channels)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
+	# decode positions if discrete
+	if ( is_discrete(x) )
+		x <- match(x, plot$channels$x$limits)
+	if ( is_discrete(y) )
+		y <- match(y, plot$channels$y$limits)
 	# perform transformations
 	if ( is2d(plot) ) {
 		# downsample
@@ -278,6 +284,8 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 			n <- t$n
 		if ( !is.null(t$downsampler) )
 			downsampler <- t$downsampler
+		if ( !is.null(t$jitter) )
+			jitter <- t$jitter
 		if ( n < length(y) ) {
 			y <- downsample(y, n=n, domain=x, method=downsampler)
 			i <- attr(y, "sample")
@@ -293,6 +301,10 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 		x <- t$x[i]
 		y <- t$y[i]
 	}
+	if ( jitter %in% c("x", "xy", "yx") )
+		x <- jitter(x)
+	if ( jitter %in% c("y", "xy", "yx") )
+		y <- jitter(y)
 	# encode non-required channels
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
@@ -311,24 +323,24 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 }
 
 plot.vizi_points <- function(x, plot = NULL, add = FALSE, ...,
-	n = Inf, downsampler = "lttb")
+	n = Inf, downsampler = "lttb", jitter = "")
 {
 	invisible(plot_mark_xy(mark=x, plot=plot, type="p", add=add, ...,
-		n=n, downsampler=downsampler))
+		n=n, downsampler=downsampler, jitter=jitter))
 }
 
 plot.vizi_lines <- function(x, plot = NULL, add = FALSE, ...,
-	n = Inf, downsampler = "lttb")
+	n = Inf, downsampler = "lttb", jitter = "")
 {
 	invisible(plot_mark_xy(mark=x, plot=plot, type="l", add=add, ...,
-		n=n, downsampler=downsampler))
+		n=n, downsampler=downsampler, jitter=jitter))
 }
 
 plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
-	n = Inf, downsampler = "lttb")
+	n = Inf, downsampler = "lttb", jitter = "")
 {
 	invisible(plot_mark_xy(mark=x, plot=plot, type="h", add=add, ...,
-		n=n, downsampler=downsampler))
+		n=n, downsampler=downsampler, jitter=jitter))
 }
 
 plot_mark_text <- function(mark, plot = NULL, ...,
@@ -343,6 +355,11 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 		z <- encode_var("z", encoding, plot$channels)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
+	# decode positions if discrete
+	if ( is_discrete(x) )
+		x <- match(x, plot$channels$x$limits)
+	if ( is_discrete(y) )
+		y <- match(y, plot$channels$y$limits)
 	# get parameters
 	if ( !is.null(mark$params$adj) )
 		adj <- mark$params$adj
@@ -382,6 +399,119 @@ plot.vizi_text <- function(x, plot = NULL, add = FALSE, ...,
 {
 	invisible(plot_mark_text(mark=x, plot=plot, add=add, ...,
 		adj=adj, pos=pos, offset=offset))
+}
+
+plot_mark_intervals <- function(mark, plot = NULL, ...,
+	length = 0.25, angle = 90, add = FALSE)
+{
+	# encode position channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	xmin <- encode_var("xmin", encoding, plot$channels)
+	xmax <- encode_var("xmax", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	ymin <- encode_var("ymin", encoding, plot$channels)
+	ymax <- encode_var("ymax", encoding, plot$channels)
+	if ( length(x) == 0L && length(y) == 0L )
+		return()
+	if ( is.null(c(xmin, xmax, ymin, ymax)) )
+		return()
+	# decode positions if discrete
+	if ( is_discrete(x) )
+		x <- match(x, plot$channels$x$limits)
+	if ( is_discrete(y) )
+		y <- match(y, plot$channels$y$limits)
+	# get parameters
+	if ( !is.null(mark$params$length) )
+		length <- mark$params$length
+	if ( !is.null(mark$params$angle) )
+		angle <- mark$params$angle
+	# encode non-required channels
+	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
+	params <- normalize_encoding(params)
+	p <- c("color", "alpha", "linewidth", "linetype")
+	p <- setNames(p, p)
+	p <- lapply(p, encode_var, encoding=encoding,
+		channels=plot$channels, params=params)
+	p$color <- add_alpha(p$color, p$alpha)
+	if ( !add )
+		plot_init(plot)
+	if ( !is.null(xmin) && !is.null(xmax) )
+		arrows(xmin, y, xmax, y, length=length, angle=angle,
+			code=3L, col=p$color, lty=p$linetype, lwd=p$linewidth)
+	if ( !is.null(ymin) && !is.null(ymax) )
+		arrows(x, ymin, x, ymax, length=length, angle=angle,
+			code=3L, col=p$color, lty=p$linetype, lwd=p$linewidth)
+	# encode legends
+	params <- p[!names(p) %in% names(encoding)]
+	invisible(encode_legends(plot$channels, params, "l"))
+}
+
+plot.vizi_intervals <- function(x, plot = NULL, add = FALSE, ...,
+	length = 0.25, angle = 90)
+{
+	invisible(plot_mark_intervals(mark=x, plot=plot, add=add, ...,
+		length=length, angle=angle))
+}
+
+plot_mark_boxplot <- function(mark, plot = NULL, ...,
+	range = 1.5, notch = FALSE, pars = NULL, add = FALSE)
+{
+	# encode position channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	if ( length(x) == 0L || length(y) == 0L )
+		return()
+	# get parameters
+	if ( !is.null(mark$params$range) )
+		range <- mark$params$range
+	if ( !is.null(mark$params$notch) )
+		notch <- mark$params$notch
+	if ( !is.null(mark$params$points) )
+		points <- mark$params$points
+	if ( !is.null(mark$params$pars) )
+		pars <- mark$params$pars
+	# encode non-required channels
+	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
+	params <- normalize_encoding(params)
+	p <- c("color", "fill", "alpha")
+	p <- setNames(p, p)
+	p <- lapply(p, encode_var, encoding=encoding,
+		channels=plot$channels, params=params)
+	p$color <- add_alpha(p$color, p$alpha)
+	p$fill <- add_alpha(p$fill, p$alpha)
+	f <- function(pj, i) {
+		if ( length(pj) == length(i) ) {
+			tapply(pj, i, unique)
+		} else {
+			pj
+		}
+	}
+	if ( !add )
+		plot_init(plot)
+	if ( is_discrete(x) && is_discrete(y) ) {
+		stop("one of 'x' or 'y' must be numeric")
+	} else if ( is_discrete(x) ) {
+		vals <- tapply(y, x, identity, simplify=FALSE)
+		p <- lapply(p, f, x)
+	} else if ( is_discrete(y) ) {
+		vals <- tapply(x, y, identity, simplify=FALSE)
+		p <- lapply(p, f, y)
+	} else {
+		stop("one of 'x' or 'y' must be discrete")
+	}
+	boxplot.default(vals, range=range, notch=notch,
+		border=p$color, col=p$fill, pars=pars, add=TRUE)
+	# encode legends
+	invisible(encode_legends(plot$channels, list()))
+}
+
+plot.vizi_boxplot <- function(x, plot = NULL, add = FALSE, ...,
+	range = 1.5, notch = FALSE, pars = NULL)
+{
+	invisible(plot_mark_boxplot(mark=x, plot=plot, add=add, ...,
+		range=range, notch=notch, pars=pars))
 }
 
 compute_raster <- function(mark, plot = NULL, ...,
@@ -698,6 +828,8 @@ setOldClass("vizi_points")
 setOldClass("vizi_lines")
 setOldClass("vizi_peaks")
 setOldClass("vizi_text")
+setOldClass("vizi_intervals")
+setOldClass("vizi_boxplot")
 setOldClass("vizi_pixels")
 setOldClass("vizi_voxels")
 
@@ -705,6 +837,8 @@ setMethod("plot", "vizi_points", plot.vizi_points)
 setMethod("plot", "vizi_lines", plot.vizi_lines)
 setMethod("plot", "vizi_peaks", plot.vizi_peaks)
 setMethod("plot", "vizi_text", plot.vizi_text)
+setMethod("plot", "vizi_intervals", plot.vizi_intervals)
+setMethod("plot", "vizi_boxplot", plot.vizi_boxplot)
 setMethod("plot", "vizi_pixels", plot.vizi_pixels)
 setMethod("plot", "vizi_voxels", plot.vizi_voxels)
 

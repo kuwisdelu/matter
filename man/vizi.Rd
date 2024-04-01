@@ -106,6 +106,34 @@ as_facets(plotlist, nrow = NA, ncol = NA,
     \item{free}{A string specifying the free spatial dimensions during faceting. E.g., \code{""}, \code{"x"}, \code{"y"}, \code{"xy"}, \code{"yx"}.}
 }
 
+\details{
+    Currently supported marks include:
+
+    \itemize{
+        \item{\code{points}: Points (i.e., scatterplots).}
+        \item{\code{lines}: Lines (i.e., line charts).}
+        \item{\code{peaks}: Vertical (histogram) lines.}
+        \item{\code{text}: Text labels.}
+        \item{\code{intervals}: Line intervals for representing error bars or confidence intervals.}
+        \item{\code{boxplot}: Box-and-whisker plots.}
+        \item{\code{pixels}: 2D image from pixels.}
+        \item{\code{voxels}: 3D image from voxels.}
+    }
+
+    Currently supported encodings include:
+
+    \itemize{
+        \item{\code{x, y, z}: Position channels.}
+        \item{\code{xmin, xmax, ymin, ymax}: For \code{intervals}.}
+        \item{\code{shape}: Shape of points (pch).}
+        \item{\code{size}: Size of points (cex).}
+        \item{\code{color, colour}: Color (col, fg).}
+        \item{\code{fill}: Fill color (bg).}
+        \item{\code{alpha}: Opacity.}
+        \item{\code{linetype, linewidth, lineend, linejoin, linemetre}: Line properties (lty, lwd, lend, ljoin, lmitre).}
+    }
+}
+
 \value{
 	An object of class \code{vizi_plot}.
 }
@@ -114,6 +142,9 @@ as_facets(plotlist, nrow = NA, ncol = NA,
     \code{\link{vizi_points}},
     \code{\link{vizi_lines}},
     \code{\link{vizi_peaks}},
+    \code{\link{vizi_text}},
+    \code{\link{vizi_intervals}},
+    \code{\link{vizi_boxplot}},
     \code{\link{vizi_pixels}},
     \code{\link{vizi_voxels}}
 }
