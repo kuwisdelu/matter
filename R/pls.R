@@ -12,7 +12,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
 	x <- as_real_memory_matrix(x)
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	# center and scale x and y
 	if ( verbose )
 		message("preparing x and y matrices")
@@ -149,7 +149,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		verbose <- getOption("matter.default.verbose")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
 	if ( verbose )
 		message("preparing x and y matrices")
@@ -281,7 +281,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		verbose <- getOption("matter.default.verbose")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
 	if ( verbose )
 		message("preparing x and y matrices")
@@ -571,7 +571,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
 	x <- as_real_memory_matrix(x)
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	# center and scale x and y
 	if ( verbose )
 		message("preparing x and y matrices")

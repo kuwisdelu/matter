@@ -444,6 +444,7 @@ export(
 S3method("print", "kdtree")
 
 export(
+	"cv_do",
 	"sgmix",
 	"sgmixn",
 	"fastmap",
@@ -459,6 +460,8 @@ export(
 	"pls_kernel",
 	"opls_nipals",
 	"vip")
+
+S3method("print", "cv")
 
 S3method("fitted", "sgmix")
 S3method("print", "sgmix")

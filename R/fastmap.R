@@ -9,7 +9,7 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		verbose <- getOption("matter.default.verbose")
 	if ( is.null(distfun) )
 		distfun <- if (transpose) colDistFun else rowDistFun
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	# prepare matrices
 	j <- seq_len(k)
 	if ( transpose ) {

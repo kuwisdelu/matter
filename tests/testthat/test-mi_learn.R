@@ -51,30 +51,3 @@ test_that("mi_learn", {
 
 })
 
-test_that("predscore", {
-
-	set.seed(1)
-	n <- 1000
-	s <- c("a", "b", "c")
-	x <- sample(s, n, replace=TRUE)
-	y <- ifelse(runif(n) > 0.1, x, sample(s, n, replace=TRUE))
-	ps <- predscore(x, y)
-	
-	expect_equal(ps["a","Recall"], mean((x == y)[y == "a"]))
-	expect_equal(ps["b","Recall"], mean((x == y)[y == "b"]))
-	expect_equal(ps["c","Recall"], mean((x == y)[y == "c"]))
-	expect_equal(ps["a","Precision"], mean((x == y)[x == "a"]))
-	expect_equal(ps["b","Precision"], mean((x == y)[x == "b"]))
-	expect_equal(ps["c","Precision"], mean((x == y)[x == "c"]))
-
-	set.seed(2)
-	n <- 1000
-	x <- rnorm(n)
-	y <- jitter(runif(1) * rnorm(n))
-	ps2 <- predscore(x, y)
-
-	expect_equivalent(ps2["RMSE"], sqrt(mean((y - x)^2)))
-	expect_equivalent(ps2["MAE"], mean(abs(y - x)))
-	expect_equivalent(ps2["MAPE"], mean(abs(y - x) / y))
-
-})

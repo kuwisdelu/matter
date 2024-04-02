@@ -26,7 +26,7 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 		verbose <- getOption("matter.default.verbose")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	# center and scale x
 	if ( verbose && (!isFALSE(center) || !isFALSE(scale.)) ) {
 		msg <- character()

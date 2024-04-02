@@ -1,5 +1,5 @@
 
-CHANGES IN VERSION 2.5.11 [2024-3-29]
+CHANGES IN VERSION 2.5.11 [2024-4-2]
 -----------------------------------
 
 NEW FEATURES
@@ -14,6 +14,7 @@ NEW FEATURES
         spatial Gaussian mixture models in parallel
     o Add vizi marks 'intervals' and 'boxplot'
     o Add 'predscore()' for scoring predictions
+    o Add 'cv_do()' for performing cross-validation
 
 SIGNIFICANT USER-VISIBLE CHANGES
 

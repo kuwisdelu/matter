@@ -8,7 +8,7 @@ nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	if ( verbose )
 		message("initializing with nonnegative double SVD")
 	init <- nndsvd(x, k=k, verbose=verbose, ...)
@@ -64,7 +64,7 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 		x <- as_real_memory_matrix(x)
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	k <- min(k, dim(x))
+	k <- min(max(k), dim(x))
 	if ( verbose )
 		message("initializing with nonnegative double SVD")
 	init <- nndsvd(x, k=k, verbose=verbose, ...)
