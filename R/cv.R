@@ -25,7 +25,7 @@ cv_do <- function(fit., x, y, folds, ...,
 	{
 		fold <- levels(folds)[i]
 		if ( verbose )
-			message("processing fold ", i, "/", nlevels(folds), " ",
+			message("## processing fold ", i, "/", nlevels(folds), " ",
 				"(", sQuote(fold), ")")
 		# create train / test sets
 		test <- folds %in% fold
@@ -44,14 +44,14 @@ cv_do <- function(fit., x, y, folds, ...,
 		# preprocess training data
 		if ( is.function(trainProcess) ) {
 			if ( verbose )
-				message("pre-processing training data")
+				message("# pre-processing training data")
 			args <- c(trainArgs, list(nchunks=nchunks, BPPARAM=BPPARAM))
 			args <- c(list(x_train), args)
 			x_train <- do.call(trainProcess, args)
 		}
 		# train model
 		if ( verbose )
-			message("fitting model on pooled training sets (n=", n_train, ")")
+			message("# fitting model on pooled training sets (n=", n_train, ")")
 		fit <- fit.(x_train, y_train,
 			nchunks=nchunks, BPPARAM=BPPARAM, ...)
 		if ( keep.models )
@@ -59,14 +59,14 @@ cv_do <- function(fit., x, y, folds, ...,
 		# preprocess test data
 		if ( is.function(testProcess) ) {
 			if ( verbose )
-				message("pre-processing test data")
+				message("# pre-processing test data")
 			args <- c(testArgs, list(nchunks=nchunks, BPPARAM=BPPARAM))
 			args <- c(list(x_test, x_train), args)
 			x_train <- do.call(testProcess, args)
 		}
 		# predict
 		if ( verbose )
-			message("evaluating model on test set (n=", n_test, ")")
+			message("# evaluating model on test set (n=", n_test, ")")
 		y_pred <- predict.(fit, x_test,
 			nchunks=nchunks, BPPARAM=BPPARAM, ...)
 		# predict classes if classification
@@ -92,6 +92,8 @@ cv_do <- function(fit., x, y, folds, ...,
 		}
 		scores[[i]] <- sc
 	}
+	if ( verbose )
+		message("## summarizing ", nlevels(folds), " folds")
 	average <- Reduce(`+`, scores) / length(scores)
 	ans <- list(average=average, scores=scores)
 	if ( keep.models )
