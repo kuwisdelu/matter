@@ -484,7 +484,7 @@ predict.pls <- function(object, newdata, k,
 	if ( any(k > ncol(object$loadings)) )
 		stop("'k' is larger than the number of components")
 	# predict for each k
-	ans <- lapply(setNames(k, paste0("C", k)),
+	ans <- lapply(setNames(k, paste0("k=", k)),
 		function(ki)
 		{
 			# extract relevant components
@@ -509,7 +509,7 @@ predict.pls <- function(object, newdata, k,
 	if ( simplify ) {
 		if ( length(ans) > 1L ) {
 			if ( type == "class" ) {
-				as.data.frame(ans)
+				as.data.frame(ans, check.names=FALSE)
 			} else {
 				simplify2array(ans)
 			}

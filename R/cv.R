@@ -75,7 +75,7 @@ cv_do <- function(fit., x, y, folds, ...,
 			if ( is.array(y_pred) ) {
 				margin <- length(dim(y_pred))
 				y_pred <- apply(y_pred, margin, predict_class, simplify=FALSE)
-				y_pred <- as.data.frame(y_pred)
+				y_pred <- as.data.frame(y_pred, check.names=FALSE)
 			} else {
 				y_pred <- predict_class(y_pred)
 			}
