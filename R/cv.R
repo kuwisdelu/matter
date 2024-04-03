@@ -3,7 +3,7 @@
 ## -------------------------------
 
 cv_do <- function(fit., x, y, folds, ...,
-	predict. = predict, transpose = FALSE, keep.models = FALSE,
+	predict. = predict, transpose = FALSE, keep.models = TRUE,
 	trainProcess = NULL, trainArgs = list(),
 	testProcess = NULL, testArgs = list(),
 	verbose = NA, nchunks = NA, BPPARAM = bpparam())
