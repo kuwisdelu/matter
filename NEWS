@@ -11,6 +11,7 @@ BUG FIXES
 
     o Improve error messages for invalid plotting options
     o Rescale 'alpha' channel for images when 'enhance=TRUE'
+    o Return 'probability' component for 'sgmixn()'
 
 CHANGES IN VERSION 2.5.11 [2024-4-2]
 -----------------------------------

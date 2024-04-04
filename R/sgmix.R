@@ -386,12 +386,16 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	if ( any(kout < k) )
 		warning("fewer than k classes for images ",
 			paste0(which(kout != k), collapse=", "))
+	pv <- simplify2array(lapply(ans, `[[`, "probability"))
 	ans <- list(
 		class=lapply(ans, `[[`, "class"),
+		probability=pv,
 		mu=simplify2array(lapply(ans, `[[`, "mu")),
 		sigma=simplify2array(lapply(ans, `[[`, "sigma")),
 		alpha=simplify2array(lapply(ans, `[[`, "alpha")),
 		beta=simplify2array(lapply(ans, `[[`, "beta")))
+	if ( is.list(pv) && is.null(pv[[1L]]) )
+		ans$probability <- NULL
 	ans$group <- group
 	ans$logLik <- loglik
 	class(ans) <- c("sgmixn", "sgmix")
