@@ -57,7 +57,7 @@ set_channel(plot, channel, label = NULL,
 set_coord(plot, xlim = NULL, ylim = NULL, zlim = NULL,
     log = "", asp = NA, grid = TRUE)
 
-set_par(plot, \dots)
+set_par(plot, \dots, style = NULL)
 
 ## Combine plots
 as_facets(plotlist, nrow = NA, ncol = NA,
@@ -92,6 +92,8 @@ as_facets(plotlist, nrow = NA, ncol = NA,
     \item{log, asp}{See \code{\link[graphics]{plot.window}}.}
 
     \item{grid}{Should a rectangular grid be included in the plot?}
+
+    \item{style}{The visual style to use for plotting. Currently supported styles are "light", "dark", and "classic".}
 
     \item{mark}{The name of a supported mark, such as "points", "lines", etc.}
 

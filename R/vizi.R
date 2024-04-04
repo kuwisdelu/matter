@@ -223,13 +223,12 @@ set_coord <- function(plot,
 	plot
 }
 
-set_par <- function(plot, ...)
+set_par <- function(plot, ..., style = NULL)
 {
-	if ( ...length() > 0L ) {
-		params <- list(...)
-		for ( nm in names(params) )
-			plot$params[[nm]] <- params[[nm]]
-	}
+	if ( ...length() > 0L )
+		plot$params <- par_update(plot$params, ...)
+	if ( !is.null(style) )
+		plot$params <- par_update(plot$params, more=par_style(style))
 	plot
 }
 
@@ -269,6 +268,7 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 {
 	args <- list(...)
 	args <- c(args, more)
+	names(args) <- lapply(names(args), to_par_name)
 	# get x/y limits
 	if ( is.null(args$xlim) )
 		args$xlim <- plot$coord$xlim
@@ -343,6 +343,7 @@ is2d <- function(plot) {
 preplot.vizi_plot <- function(object, ...)
 {
 	p <- vizi_par()
+	p <- c(p, object$params[names(object$params) %in% names(p)])
 	w <- needs_legends(object)
 	if ( w > 0L )
 		p <- par_pad(p, "right", w + 1L, outer=TRUE)
@@ -353,6 +354,7 @@ preplot.vizi_plot <- function(object, ...)
 preplot.vizi_facets <- function(object, ...)
 {
 	p <- vizi_par()
+	p <- c(p, object$params[names(object$params) %in% names(p)])
 	w <- needs_legends(object)
 	if ( w > 0L )
 		p <- par_pad(p, "right", w + 1L, outer=TRUE)
@@ -552,8 +554,8 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 		args < names(params)
 	}
 	if ( !is.null(style) ) {
-		p <- get(paste0("par_style_", tolower(style)))
-		params <- par_update(p(), more=params)
+		p <- par_style(tolower(style))
+		params <- par_update(p, more=params)
 	}
 	if ( length(args) > 0L )
 		params <- params[args]
@@ -565,14 +567,20 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 vizi_style <- function(style = getOption("matter.vizi.style"),
 	dpal = "Tableau 10", cpal = "Viridis", ...)
 {
-	if ( !missing(style) )
+	if ( !missing(style) ) {
+		style <- match.arg(style, c("light", "dark", "transparent"))
 		options(matter.vizi.style=style)
+	}
 	if ( !missing(dpal) ) {
+		tryCatch(dpal(dpal)(1L), error=function(e)
+			stop("palette must be one of ", paste0(palette.pals(), collapse=", ")))
 		options(matter.vizi.dpal=dpal)
 	} else {
 		dpal <- getOption("matter.vizi.dpal")
 	}
 	if ( !missing(cpal) ) {
+		tryCatch(cpal(cpal)(1L), error=function(e)
+			stop("palette must be one of ", paste0(hcl.pals(), collapse=", ")))
 		options(matter.vizi.cpal=cpal)
 	} else {
 		cpal <- getOption("matter.vizi.cpal")
@@ -1138,7 +1146,7 @@ encode_legends <- function(channels, params, type = NULL)
 				key$border <- NA
 			}
 		}
-		if ( lab %in% names(keys) ) {
+		if ( length(keys) > 0L && lab %in% names(keys) ) {
 			keys[[lab]] <- merge_legends(keys[[lab]], key)[[1L]]
 		} else {
 			keys[[lab]] <- key

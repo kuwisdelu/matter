@@ -5,7 +5,7 @@
 
 plot_signal <- function(x, y, by = names(y), group = NULL,
 	xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
-	xlab = NULL, ylab = NULL, layout = NULL,
+	xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	n = Inf, downsampler = "lttb", key = TRUE,
 	grid = TRUE, isPeaks = FALSE, annPeaks = 0, ...)
 {
@@ -63,12 +63,14 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 				trans=list(n=n, downsampler=downsampler))
 			if ( isPeaks[[i]] ) {
 				if ( is.character(annPeaks) ) {
-					pch <- shape_pal()[annPeaks]
+					pch <- shape_pal()
+					pch <- pch[[match.arg(annPeaks, names(pch))]]
 					plot <- add_mark(plot, "points",
 						x=x[[i]], y=y[[i]], color=group[[i]],
+						trans=list(n=n, downsampler=downsampler),
 						params=list(shape=pch))
 				} else if ( annPeaks > 0 ) {
-					j <- tail(order(y[[i]]), n=annPeaks)
+					j <- tail(order(abs(y[[i]])), n=annPeaks)
 					labs <- as.character(round(x[[i]][j], digits=4L))
 					plot <- add_mark(plot, "text",
 						x=x[[i]][j], y=y[[i]][j], text=labs,
@@ -86,12 +88,14 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 					trans=list(n=n, downsampler=downsampler))
 				if ( isPeaks[[i]] ) {
 					if ( is.character(annPeaks) ) {
-						pch <- shape_pal()[annPeaks]
+						pch <- shape_pal()
+						pch <- pch[[match.arg(annPeaks, names(pch))]]
 						p <- add_mark(p, "points",
 							x=x[[i]], y=y[[i]], color=group[[i]],
+							trans=list(n=n, downsampler=downsampler),
 							params=list(shape=pch))
 					} else if ( annPeaks > 0 ) {
-						j <- tail(order(y[[i]]), n=annPeaks)
+						j <- tail(order(abs(y[[i]])), n=annPeaks)
 						labs <- as.character(round(x[[i]][j], digits=4L))
 						p <- add_mark(p, "text",
 							x=x[[i]][j], y=y[[i]][j], text=labs,
@@ -102,10 +106,10 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 			p
 		})
 		if ( is.null(layout) ) {
-			plot <- as_facets(plot, labels=levels(by))
+			plot <- as_facets(plot, labels=levels(by), free=free)
 		} else {
 			plot <- as_facets(plot, labels=levels(by),
-				nrow=layout[1L], ncol=layout[2L])
+				nrow=layout[1L], ncol=layout[2L], free=free)
 		}
 	}
 	plot <- set_coord(plot, xlim=xlim, ylim=ylim, grid=grid)
@@ -116,7 +120,8 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 	} else {
 		plot <- set_par(plot, col=col)
 	}
-	plot <- set_par(plot, ...)
+	if ( ...length() > 0L )
+		plot <- set_par(plot, ...)
 	plot
 }
 
@@ -126,7 +131,7 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 
 plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
-	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL,
+	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
 	grid = TRUE, asp = 1, useRaster = TRUE, ...)
 {
@@ -161,7 +166,7 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 		by <- rep_len(factor(by, levels=unique(by)), length(vals))
 	if ( !is.null(group) )
 		group <- rep_len(factor(group, levels=unique(group)), length(vals))
-	vals <- lapply(vals, as.vector)
+	vals <- lapply(vals, function(v) if (is.factor(v)) v else as.vector(v))
 	if ( is.null(by) ) {
 		plot <- vizi()
 		for ( i in seq_along(vals) ) {
@@ -197,10 +202,10 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 			p
 		})
 		if ( is.null(layout) ) {
-			plot <- as_facets(plot, labels=levels(by))
+			plot <- as_facets(plot, labels=levels(by), free=free)
 		} else {
 			plot <- as_facets(plot, labels=levels(by),
-				nrow=layout[1L], ncol=layout[2L])
+				nrow=layout[1L], ncol=layout[2L], free=free)
 		}
 	}
 	if ( is.null(xlim) )
@@ -217,7 +222,8 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
 		plot <- set_channel(plot, "alpha", limits=zlim, key=FALSE)
 	}
-	plot <- set_par(plot, ...)
+	if ( ...length() > 0L )
+		plot <- set_par(plot, ...)
 	plot
 }
 
@@ -495,14 +501,17 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 	} else if ( is_discrete(x) ) {
 		vals <- tapply(y, x, identity, simplify=FALSE)
 		p <- lapply(p, f, x)
+		horiz <- FALSE
 	} else if ( is_discrete(y) ) {
 		vals <- tapply(x, y, identity, simplify=FALSE)
 		p <- lapply(p, f, y)
+		horiz <- TRUE
 	} else {
 		stop("one of 'x' or 'y' must be discrete")
 	}
 	boxplot.default(vals, range=range, notch=notch,
-		border=p$color, col=p$fill, pars=pars, add=TRUE)
+		border=p$color, col=p$fill, pars=pars,
+		horizontal=horiz, add=TRUE)
 	# encode legends
 	invisible(encode_legends(plot$channels, list()))
 }
@@ -629,10 +638,16 @@ compute_raster <- function(mark, plot = NULL, ...,
 			ra <- rescale_range(ra, c(0, 1))
 		}
 	}
-	if ( is.numeric(rc) && isTRUE(scale) ) {
+	if ( (is.numeric(rc) || is.numeric(ra)) && isTRUE(scale) ) {
 		# scaling
-		clim <- c(0, 100)
-		rc <- rescale_range(rc, clim)
+		if ( is.numeric(rc) ) {
+			clim <- c(0, 100)
+			rc <- rescale_range(rc, clim)
+		}
+		if ( is.numeric(ra) ) {
+			alim <- c(0, 1)
+			ra <- rescale_range(ra, alim)
+		}
 	}
 	# encode color scheme
 	csch <- plot$channels[[cname]]$scheme
@@ -853,6 +868,14 @@ par_update <- function(params, ..., more = list())
 	params
 }
 
+par_style <- function(style = c("light", "dark", "classic"), ...)
+{
+	switch(match.arg(style),
+		light = par_style_light(...),
+		dark = par_style_dark(...),
+		classic = par_style_classic(...))
+}
+
 par_style_new <- function(params = list(), ...)
 {
 	p <- list(
@@ -863,7 +886,7 @@ par_style_new <- function(params = list(), ...)
 	par_update(p, ..., more=params)
 }
 
-par_style_classic <- function(params = list(), ..., new = TRUE)
+par_style_classic <- function(params = list(), ..., new = FALSE)
 {
 	if ( new )
 		params <- par_update(par_style_new(), more=params)
@@ -878,7 +901,7 @@ par_style_classic <- function(params = list(), ..., new = TRUE)
 	par_update(p, ..., more=params)
 }
 
-par_style_light <- function(params = list(), ..., new = TRUE)
+par_style_light <- function(params = list(), ..., new = FALSE)
 {
 	if ( new )
 		params <- par_update(par_style_new(), more=params)
@@ -893,7 +916,7 @@ par_style_light <- function(params = list(), ..., new = TRUE)
 	par_update(p, ..., more=params)
 }
 
-par_style_dark <- function(params = list(), ..., new = TRUE)
+par_style_dark <- function(params = list(), ..., new = FALSE)
 {
 	if ( new )
 		params <- par_update(par_style_new(), more=params)

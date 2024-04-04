@@ -147,10 +147,7 @@ filt1_fun <- function(method)
 		"pag" = 		filt1_pag,
 		"sg" = 			filt1_sg,
 		"sgolay" = 		filt1_sg)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 convolve_at <- function(x, index, weights, ...)
@@ -366,10 +363,7 @@ warp1_fun <- function(method)
 		"local" = 	warp1_loc,
 		"dtw" = 	warp1_dtw,
 		"cow" = 	warp1_cow)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 #### Scaling and Normalization ####
@@ -443,10 +437,7 @@ rescale_fun <- function(method)
 		"range" = 		rescale_range,
 		"iqr" = 		rescale_iqr,
 		"quantile" = 	rescale_iqr)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 #### Binning and downsampling ####
@@ -657,10 +648,7 @@ estbase_fun <- function(method)
 		"snip" = 	estbase_snip,
 		"med" = 	estbase_med,
 		"median" = 	estbase_med)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 #### Noise estimation ####
@@ -792,10 +780,7 @@ estnoise_fun <- function(method)
 		"filter" = 		estnoise_filt,
 		"sd" = 			estnoise_sd,
 		"mad" = 		estnoise_mad)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 #### Peak detection ####

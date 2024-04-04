@@ -100,10 +100,7 @@ filt2_fun <- function(method)
 		"diffusion" = 	filt2_diff,
 		"guide" = 		filt2_guide,
 		"guided" = 		filt2_guide)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 #### 2D Alignment and warping ####
@@ -212,10 +209,7 @@ warp2_fun <- function(method)
 		method <- tolower(method)
 	options <- list(
 		"trans" = 	warp2_trans)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 #### Contrast enhancement ####
@@ -245,10 +239,7 @@ enhance_fun <- function(method)
 		"adapt" = 		enhance_adapt,
 		"adaptive" = 	enhance_adapt,
 		"clahe" =	 	enhance_adapt)
-	fn <- options[[method, exact=FALSE]]
-	if ( is.null(fn) )
-		stop("couldn't find method ", sQuote(method))
-	fn
+	options[[match.arg(method, names(options))]]
 }
 
 #### Colocalization coefficients ####

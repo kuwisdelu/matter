@@ -1,4 +1,17 @@
 
+CHANGES IN VERSION 2.5.12 [2024-4-4]
+------------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Add 'free' argument to 'plot_signal()' and 'plot_image()'
+    o Add 'style' argument to 'set_par()'
+
+BUG FIXES
+
+    o Improve error messages for invalid plotting options
+    o Rescale 'alpha' channel for images when 'enhance=TRUE'
+
 CHANGES IN VERSION 2.5.11 [2024-4-2]
 -----------------------------------
 

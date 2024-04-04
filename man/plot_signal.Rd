@@ -12,13 +12,13 @@
 \usage{
 plot_signal(x, y, by = names(y), group = NULL,
     xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
-    xlab = NULL, ylab = NULL, layout = NULL,
+    xlab = NULL, ylab = NULL, layout = NULL, free = "",
     n = Inf, downsampler = "lttb", key = TRUE,
     grid = TRUE, isPeaks = FALSE, annPeaks = 0, \dots)
 
 plot_image(x, y, vals, by = names(vals), group = NULL,
     zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
-    zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL,
+    zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
     enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
     grid = TRUE, asp = 1, useRaster = TRUE, \dots)
 }
@@ -39,6 +39,8 @@ plot_image(x, y, vals, by = names(vals), group = NULL,
     \item{byrow}{If \code{vals} is a matrix, should its rows or columns be plotted?}
 
     \item{layout}{A vector of the form \code{c(nrow, ncol)} specifying the number of rows and columns in the facet grid.}
+
+    \item{free}{A string specifying the free spatial dimensions during faceting. E.g., \code{""}, \code{"x"}, \code{"y"}, \code{"xy"}, \code{"yx"}.}
 
     \item{n, downsampler}{See \code{\link{downsample}} for details.}
 

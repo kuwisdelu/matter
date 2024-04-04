@@ -16,7 +16,9 @@ importFrom("grDevices",
 	"trans3d",
 	"as.raster",
 	"hcl.colors",
+	"hcl.pals",
 	"palette.colors",
+	"palette.pals",
 	"xy.coords")
 
 importFrom("graphics",
