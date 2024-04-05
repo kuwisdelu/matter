@@ -111,9 +111,8 @@ cv_do <- function(fit., x, y, folds, ...,
 			stop("fitted values with more than 3 dimensions not supported")
 		}
 	}
-	if ( is.array(fitted.values) )
-		fitted.values <- apply(fitted.values,
-			length(y_dim), identity, simplify=FALSE)
+	fitted.values <- apply(fitted.values,
+		length(y_dim), identity, simplify=FALSE)
 	# average and return results
 	if ( verbose )
 		message("## summarizing ", nlevels(folds), " folds")
