@@ -120,8 +120,7 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 	} else {
 		plot <- set_par(plot, col=col)
 	}
-	if ( ...length() > 0L )
-		plot <- set_par(plot, ...)
+	plot <- set_par(plot, ...)
 	plot
 }
 
@@ -222,8 +221,7 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
 		plot <- set_channel(plot, "alpha", limits=zlim, key=FALSE)
 	}
-	if ( ...length() > 0L )
-		plot <- set_par(plot, ...)
+	plot <- set_par(plot, ...)
 	plot
 }
 
