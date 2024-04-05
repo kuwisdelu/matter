@@ -1,6 +1,7 @@
 \name{cv_do}
 
 \alias{cv_do}
+\alias{fitted.cv}
 
 \title{Perform Cross Validation}
 
@@ -14,6 +15,8 @@ cv_do(fit., x, y, folds, \dots,
 	trainProcess = NULL, trainArgs = list(),
 	testProcess = NULL, testArgs = list(),
 	verbose = NA, nchunks = NA, BPPARAM = bpparam())
+
+\S3method{fitted}{cv}(object, type = c("response", "class"), \dots)
 }
 
 \arguments{
@@ -40,6 +43,10 @@ cv_do(fit., x, y, folds, \dots,
 	\item{nchunks}{The number of chunks to use. \emph{Passed} to \code{fit.}, \code{predict.}, \code{trainProcess} and \code{testProcess}.}
 
 	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}. \emph{Passed} to \code{fit.}, \code{predict.}, \code{trainProcess} and \code{testProcess}.}
+
+	\item{object}{An object inheriting from \code{cv}.}
+
+	\item{type}{The type of prediction, where \code{"response"} means the fitted response matrix and \code{"class"} will be the vector of class predictions (only for classification).}
 }
 
 \details{

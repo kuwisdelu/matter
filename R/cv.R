@@ -12,15 +12,17 @@ cv_do <- function(fit., x, y, folds, ...,
 		verbose <- getOption("matter.default.verbose")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
-	if ( !is.null(dim(y)) )
-		stop("response 'y' must be a vector")
+	if ( NCOL(y) > 1L )
+		stop("matrix response 'y' not supported")
 	folds <- as.factor(folds)
 	if ( nlevels(folds) < 2L )
 		stop("need at least 2 folds")
 	scores <- vector("list", length=nlevels(folds))
 	models <- vector("list", length=nlevels(folds))
+	y_out <- vector("list", length=nlevels(folds))
 	names(scores) <- levels(folds)
 	names(models) <- levels(folds)
+	names(y_out) <- levels(folds)
 	for ( i in seq_along(levels(folds)) )
 	{
 		fold <- levels(folds)[i]
@@ -69,10 +71,11 @@ cv_do <- function(fit., x, y, folds, ...,
 			message("# evaluating model on test set (n=", n_test, ")")
 		y_pred <- predict.(fit, x_test,
 			nchunks=nchunks, BPPARAM=BPPARAM, ...)
+		y_out[[i]] <- y_pred
 		# predict classes if classification
 		if ( is_discrete(y) && !is_discrete(y_pred) )
 		{
-			if ( is.array(y_pred) ) {
+			if ( !is.matrix(y_pred) ) {
 				margin <- length(dim(y_pred))
 				y_pred <- apply(y_pred, margin, predict_class, simplify=FALSE)
 				y_pred <- as.data.frame(y_pred, check.names=FALSE)
@@ -92,13 +95,51 @@ cv_do <- function(fit., x, y, folds, ...,
 		}
 		scores[[i]] <- sc
 	}
+	# compile cv predictions
+	y_dim <- c(length(y), dim(y_out[[1L]])[-1L])
+	y_dimn <- c(list(names(y)), dimnames(y_out[[1L]])[-1L])
+	fitted.values <- array(NA_real_, dim=y_dim, dimnames=y_dimn)
+	for ( i in seq_along(levels(folds)) )
+	{
+		fold <- levels(folds)[i]
+		if ( length(y_dim) == 1L ) {
+			fitted.values[folds %in% fold] <- y_out[[i]]
+		} else if ( length(y_dim) == 2L ) {
+			fitted.values[folds %in% fold,] <- y_out[[i]]
+		} else if ( length(y_dim) == 3L ) {
+			fitted.values[folds %in% fold,,] <- y_out[[i]]
+		} else if ( length(y_dim) == 4L ) {
+			fitted.values[folds %in% fold,,,] <- y_out[[i]]
+		} else {
+			stop("fitted values with more than 4 dimensions not supported")
+		}
+	}
+	# average and return results
 	if ( verbose )
 		message("## summarizing ", nlevels(folds), " folds")
 	average <- Reduce(`+`, scores) / length(scores)
 	ans <- list(average=average, scores=scores)
 	if ( keep.models )
 		ans$models <- models
+	ans$fitted.values <- fitted.values
 	structure(ans, class="cv")
+}
+
+fitted.cv <- function(object, type = c("response", "class"), ...)
+{
+	type <- match.arg(type)
+	y <- object$fitted.values
+	if ( type == "class" )
+	{
+		if ( !is.matrix(y) ) {
+			margin <- length(dim(y))
+			y <- apply(y, margin, predict_class, simplify=FALSE)
+			y <- as.data.frame(y, check.names=FALSE)
+		} else {
+			y <- predict_class(y)
+		}
+	}
+	y
 }
 
 print.cv <- function(x, ...)

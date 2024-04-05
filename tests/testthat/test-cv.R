@@ -46,10 +46,13 @@ test_that("cv_do classification", {
 	colnames(x) <- paste0("x", seq_len(p))
 
 	k <- 1:5
-	cv <- cv_do(pls_nipals, x, y, k=k, folds=folds, verbose=TRUE)
+	cv <- cv_do(pls_nipals, x, y, k=k, folds=folds)
 
 	expect_length(cv$scores, nfolds)
 	expect_equal(nrow(cv$average), length(k))
+	expect_equal(dim(fitted(cv)), c(nfolds * n, 2L, length(k)))
+	expect_length(fitted(cv, type="class"), length(k))
+	expect_is(fitted(cv, type="class"), "data.frame")
 
 })
 
@@ -68,9 +71,14 @@ test_that("cv_do regression", {
 	y <- y + rnorm(nrow(x))
 
 	k <- 1:5
-	cv <- cv_do(pls_nipals, x, y, k=1:5, folds=folds, verbose=TRUE)
+	cv <- cv_do(pls_nipals, x, y, k=1:5, folds=folds)
 
 	expect_length(cv$scores, nfolds)
 	expect_equal(nrow(cv$average), length(k))
+	expect_equal(dim(fitted(cv)), c(nfolds * n, 1L, length(k)))
+
+	cv2 <- cv_do(pls_nipals, x, as.matrix(y), k=2, folds=folds)
+
+	expect_equal(dim(fitted(cv2)), c(nfolds * n, 1L))
 
 })

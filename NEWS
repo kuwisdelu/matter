@@ -6,6 +6,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
 
     o Add 'free' argument to 'plot_signal()' and 'plot_image()'
     o Add 'style' argument to 'set_par()'
+    o Return 'fitted.values' from each fold in 'cv_do()'
 
 BUG FIXES
 
