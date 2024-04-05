@@ -2,7 +2,7 @@
 #### Multiple instance learning ####
 ## ---------------------------------
 
-mi_learn <- function(fn, x, y, group,
+mi_learn <- function(fn, x, y, group, pos = 1L,
 	threshold = 0.01, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
@@ -10,8 +10,9 @@ mi_learn <- function(fn, x, y, group,
 	y <- as.factor(y)
 	if ( nlevels(y) != 2L )
 		stop("y must have exactly 2 levels")
-	pos <- levels(y)[1L]
-	neg <- levels(y)[2L]
+	if ( is.integer(pos) )
+		pos <- levels(y)[pos]
+	neg <- setdiff(levels(y), pos)
 	if ( verbose )
 		message("using ", sQuote(pos), " as positive class")
 	group <- as.factor(group)

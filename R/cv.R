@@ -86,14 +86,13 @@ cv_do <- function(fit., x, y, folds, ...,
 		# evaluate
 		if ( is.array(y_pred) ) {
 			margin <- length(dim(y_pred))
-			sc <- apply(y_pred, margin, predscore_macro, y_test)
-			sc <- t(sc)
+			sc <- apply(y_pred, margin, predscore, y_test)
 		} else if ( is.data.frame(y_pred) || is.list(y_pred) ) {
-			sc <- do.call(rbind, lapply(y_pred, predscore_macro, y_test))
+			sc <- lapply(y_pred, predscore, y_test)
 		} else {
-			sc <- predscore_macro(y_pred, y_test)
+			sc <- predscore(y_pred, y_test)
 		}
-		scores[[i]] <- sc
+		scores[[i]] <- simplify2array(sc)
 	}
 	# compile cv predictions
 	y_dim <- c(length(y), dim(y_out[[1L]])[-1L])
@@ -117,7 +116,13 @@ cv_do <- function(fit., x, y, folds, ...,
 	# average and return results
 	if ( verbose )
 		message("## summarizing ", nlevels(folds), " folds")
-	average <- Reduce(`+`, scores) / length(scores)
+	FUN <- function(sc) {
+		if ( !is.matrix(sc) )
+			sc <- colMeans(sc)
+		t(sc)
+	}
+	macros <- lapply(scores, FUN)
+	average <- Reduce(`+`, macros) / length(macros)
 	ans <- list(average=average, scores=scores)
 	if ( keep.models )
 		ans$models <- models
@@ -175,18 +180,5 @@ predscore <- function(x, ref)
 	} else {
 		stop("'x' and 'ref' must be both discrete or both numeric")
 	}
-}
-
-# score average performance over classes
-predscore_macro <- function(x, y)
-{
-	scores <- predscore(x, y)
-	if ( is.matrix(scores) )
-	{
-		scores <- colMeans(scores)
-		metrics <- paste0("Macro", names(scores))
-		names(scores) <- metrics
-	}
-	scores
 }
 
