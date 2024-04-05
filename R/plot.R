@@ -509,7 +509,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 	}
 	boxplot.default(vals, range=range, notch=notch,
 		border=p$color, col=p$fill, pars=pars,
-		horizontal=horiz, add=TRUE)
+		horizontal=horiz, axes=FALSE, add=TRUE)
 	# encode legends
 	invisible(encode_legends(plot$channels, list()))
 }

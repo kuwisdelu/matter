@@ -1,5 +1,5 @@
 
-CHANGES IN VERSION 2.5.12 [2024-4-4]
+CHANGES IN VERSION 2.5.12 [2024-4-5]
 ------------------------------------
 
 SIGNIFICANT USER-VISIBLE CHANGES
@@ -14,6 +14,7 @@ BUG FIXES
     o Improve error messages for invalid plotting options
     o Rescale 'alpha' channel for images when 'enhance=TRUE'
     o Return 'probability' component for 'sgmixn()'
+    o Prevent mark 'boxplot' from plotting extra axes
 
 CHANGES IN VERSION 2.5.11 [2024-4-2]
 -----------------------------------
