@@ -107,12 +107,13 @@ cv_do <- function(fit., x, y, folds, ...,
 			fitted.values[folds %in% fold,] <- y_out[[i]]
 		} else if ( length(y_dim) == 3L ) {
 			fitted.values[folds %in% fold,,] <- y_out[[i]]
-		} else if ( length(y_dim) == 4L ) {
-			fitted.values[folds %in% fold,,,] <- y_out[[i]]
 		} else {
-			stop("fitted values with more than 4 dimensions not supported")
+			stop("fitted values with more than 3 dimensions not supported")
 		}
 	}
+	if ( is.array(fitted.values) )
+		fitted.values <- apply(fitted.values,
+			length(y_dim), identity, simplify=FALSE)
 	# average and return results
 	if ( verbose )
 		message("## summarizing ", nlevels(folds), " folds")
@@ -130,19 +131,17 @@ cv_do <- function(fit., x, y, folds, ...,
 	structure(ans, class="cv")
 }
 
-fitted.cv <- function(object, type = c("response", "class"), ...)
+fitted.cv <- function(object, type = c("response", "class"),
+	simplify = TRUE, ...)
 {
 	type <- match.arg(type)
 	y <- object$fitted.values
-	if ( type == "class" )
-	{
-		if ( !is.matrix(y) ) {
-			margin <- length(dim(y))
-			y <- apply(y, margin, predict_class, simplify=FALSE)
+	if ( type == "class" ) {
+		y <- lapply(y, predict_class)
+		if ( simplify )
 			y <- as.data.frame(y, check.names=FALSE)
-		} else {
-			y <- predict_class(y)
-		}
+	} else if ( simplify ) {
+		y <- simplify2array(y)
 	}
 	y
 }

@@ -16,7 +16,8 @@ cv_do(fit., x, y, folds, \dots,
 	testProcess = NULL, testArgs = list(),
 	verbose = NA, nchunks = NA, BPPARAM = bpparam())
 
-\S3method{fitted}{cv}(object, type = c("response", "class"), \dots)
+\S3method{fitted}{cv}(object, type = c("response", "class"),
+	simplify = TRUE, \dots)
 }
 
 \arguments{
@@ -47,6 +48,8 @@ cv_do(fit., x, y, folds, \dots,
 	\item{object}{An object inheriting from \code{cv}.}
 
 	\item{type}{The type of prediction, where \code{"response"} means the fitted response matrix and \code{"class"} will be the vector of class predictions (only for classification).}
+
+	\item{simplify}{Should the predictions be simplified (from a list) to an array (\code{type="response"}) or data frame (\code{type="class"})?}
 }
 
 \details{
