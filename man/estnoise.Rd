@@ -57,7 +57,7 @@ estnoise_mad(x, n = 25L, wavelet = ricker)
 \details{
     \code{estnoise_quant()} estimates the local noise by first smoothing the signal with a nonlinear diffusion filter, and then subtracting the raw signal from the smoothed signal to isolate the noise component. A rolling quantile of this noise component is used to estimate the local noise in the signal.
 
-    \code{estnoise_diff()} estimates the local noise from the mean absolute deviation of the derivative of the signal in each bin. For noisy signals, the derivative is dominated by the noise, making it a useful estimator of the noise.
+    \code{estnoise_diff()} estimates the local noise from the mean absolute deviation of the signal from the mean of its derivative in each bin. For noisy signals, the derivative is dominated by the noise, making it a useful estimator of the noise.
 
     \code{estnoise_filt()} uses the dynamic noise level filtering algorithm of Xu and Freitas (2010) based on the local signal in an approach similar to Gallia et al. (2013). The peaks in the signal are sorted, and the smallest peak is assumed to be noise and is used to estimate the noise level. Each peak is then compared to the previous peak. A peak is labeled a signal peak only if it exceeds a minimum signal-to-noise ratio. Otherwise, the peak is labeled noise, and the noise level is re-estimated. This process continues until a signal peak is found, and the noise level is estimated from the noise peaks.
 
