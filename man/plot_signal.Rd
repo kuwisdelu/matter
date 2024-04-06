@@ -50,7 +50,7 @@ plot_image(x, y, vals, by = names(vals), group = NULL,
 
     \item{isPeaks}{Whether the signal should be plotted as peaks or as a continuous signal.}
 
-    \item{annPeaks}{If \code{isPeaks} is \code{TRUE}, either an integer giving the number of peaks to annotate (i.e., label with their \code{x}-value), or a plotting symbol (e.g., "circle", "triangle", etc.) to indicate the peak locations.}
+    \item{annPeaks}{If \code{isPeaks} is \code{TRUE}, either an integer giving the number of peaks to annotate (i.e., label with their \code{x}-value), or a plotting symbol (e.g., "circle", "cross", etc.) to indicate the peak locations.}
 
     \item{\dots}{Additional graphical parameters (as in \code{\link[graphics]{par}}) or arguments to the \code{\link{vizi}} plotting method.}
 
