@@ -27,7 +27,8 @@ mi_learn <- function(fn, x, y, group, pos = 1L,
 		}
 	} else {
 		y <- rep_len(y, length(group))
-		yg <- lapply(levels(group), function(g) unique(y[group %in% g]))
+		yg <- lapply(levels(group),
+			function(g) unique(y[!is.na(y) & group %in% g]))
 		if ( any(lengths(yg) != 1L) ) {
 			stop("labels must be homogenous within each group")
 		} else {
@@ -64,8 +65,8 @@ mi_learn <- function(fn, x, y, group, pos = 1L,
 			yi[group %in% g] <- yj
 		}
 		iter <- iter + 1
-		utot <- sum(y != yi)
-		uprop <- utot / length(y)
+		utot <- sum(y != yi, na.rm=TRUE)
+		uprop <- utot / sum(!is.na(y))
 		if ( verbose )
 			message(utot, " labels updated (",
 				round(100 * uprop, digits=2L), "%)")

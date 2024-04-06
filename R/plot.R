@@ -638,14 +638,12 @@ compute_raster <- function(mark, plot = NULL, ...,
 	}
 	if ( (is.numeric(rc) || is.numeric(ra)) && isTRUE(scale) ) {
 		# scaling
-		if ( is.numeric(rc) ) {
+		if ( !const_color && is.numeric(rc) ) {
 			clim <- c(0, 100)
 			rc <- rescale_range(rc, clim)
 		}
-		if ( is.numeric(ra) ) {
-			alim <- c(0, 1)
-			ra <- rescale_range(ra, alim)
-		}
+		if ( !const_alpha && is.numeric(ra) )
+			ra <- rescale_range(ra, c(0, 1))
 	}
 	# encode color scheme
 	csch <- plot$channels[[cname]]$scheme

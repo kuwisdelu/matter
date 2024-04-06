@@ -49,5 +49,13 @@ test_that("mi_learn", {
 	expect_gt(mean(y1 == z), mean(y0 == z))
 	expect_gt(mean(y2 == z), mean(y0 == z))
 
+	fit3 <- pls_nipals(x=x, y=y, k=1:3)
+	fit4 <- mi_learn(pls_nipals, x=x, y=y, group=group, k=1:3)
+
+	y3 <- fitted(fit3, "class")
+	y4 <- fitted(fit4, "class")
+
+	expect_gt(mean(y4 == z), mean(y3 == z))
+
 })
 
