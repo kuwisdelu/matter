@@ -10,6 +10,8 @@
 \alias{chunk_colapply}
 \alias{chunk_lapply}
 \alias{chunk_mapply}
+\alias{chunk_writer}
+\alias{chunkify}
 
 \title{Apply Functions Over Chunks of a List, Vector, or Matrix}
 

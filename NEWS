@@ -8,6 +8,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Add 'style' argument to 'set_par()'
     o Return 'fitted.values' from each fold in 'cv_do()'
     o Add 'pos' argument to 'mi_learn()' to specify positive class
+    o Export 'chunkify()' and 'chunk_writer()' utilities
+    o Export 'size_bytes()' constructor
 
 BUG FIXES
 

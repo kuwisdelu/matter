@@ -40,11 +40,6 @@
 
 \alias{combine,ANY,ANY-method}
 
-\alias{chunksize}
-\alias{chunksize<-}
-\alias{chunksize,ANY-method}
-\alias{chunksize<-,ANY-method}
-
 \alias{keys}
 \alias{keys<-}
 \alias{keys,ANY-method}
@@ -52,6 +47,8 @@
 
 \alias{array_ind}
 \alias{linear_ind}
+
+\alias{size_bytes}
 
 \alias{roll}
 \alias{seq_rel}
@@ -92,7 +89,7 @@
 \title{Internal Utilities for ``matter'' Package}
 
 \description{
-  Low-level utility functions, classes, and data defined in the \pkg{matter} package. They are not intended to be used directly.
+  Low-level utility functions, classes, and data defined in the \pkg{matter} package that are exported for developer use only. They are not intended to be used directly.
 }
 
 \keyword{utilities}

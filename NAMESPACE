@@ -299,7 +299,9 @@ export(
 	"chunk_rowapply",
 	"chunk_colapply",
 	"chunk_lapply",
-	"chunk_mapply")
+	"chunk_mapply",
+	"chunk_writer",
+	"chunkify")
 
 export(
 	"chunkApply",
@@ -316,6 +318,7 @@ S3method("print", "size_bytes")
 S3method("format", "size_bytes")
 
 export(
+	"size_bytes",
 	"sizeof",
 	"vm_used")
 
