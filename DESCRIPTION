@@ -1,7 +1,7 @@
 Package: matter
 Type: Package
 Title: Out-of-memory dense and sparse signal arrays
-Version: 2.5.12
+Version: 2.5.13
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
