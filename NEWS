@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.5.13 [2024-4-8]
+------------------------------------
+
+BUG FIXES
+
+    o Fix error in 'estnoise_filt()' when all peaks are noise
+
 CHANGES IN VERSION 2.5.12 [2024-4-5]
 ------------------------------------
 

@@ -704,7 +704,7 @@ estnoise_filt <- function(x, nbins = 1L, msnr = 2,
 		snr_i <- y[2L] / noise
 		# fit linear model
 		fit <- lr(1L:i, y[1L:i])
-		while ( snr_i < msnr )
+		while ( snr_i < msnr && i < length(y) )
 		{
 			i <- i + 1L
 			# predict noise level
