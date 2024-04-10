@@ -455,6 +455,7 @@ export(
 	"fastmap",
 	"mi_learn",
 	"predscore",
+	"rocscore",
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",

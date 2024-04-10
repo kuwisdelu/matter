@@ -36,3 +36,4 @@ predscore(pred, x)
 }
 
 \keyword{utilities}
+\keyword{classif}

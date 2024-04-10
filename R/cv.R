@@ -180,3 +180,29 @@ predscore <- function(x, ref)
 	}
 }
 
+# calculate AUC from ROC curve
+rocscore <- function(x, ref, n = 32L)
+{
+	if ( length(x) != length(ref) )
+		stop("'x' and 'ref' must have the same length")
+	if ( !is.numeric(x) )
+		stop("'x' must be numeric")
+	if ( !is.logical(ref) )
+		stop("'ref' must be logical")
+	nas <- is.na(x) | is.na(ref)
+	x <- x[!nas]
+	ref <- ref[!nas]
+	threshold <- seq(min(x), max(x), length.out=n)
+	roc <- vapply(threshold,
+		function(t) {
+			pos <- x > t
+			TPR <- mean(pos[ref])
+			FPR <- mean(pos[!ref])
+			c(TPR=TPR, FPR=FPR)
+		}, numeric(2L))
+	roc <- data.frame(threshold=threshold,
+		TPR=roc["TPR",], FPR=roc["FPR",])
+	auc <- abs(sum(roc$TPR[-1] * diff(roc$FPR)))
+	structure(auc, ROC=roc)
+}
+
