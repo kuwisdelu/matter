@@ -202,7 +202,7 @@ set_channel <- function(plot, channel, label = NULL,
 
 set_coord <- function(plot,
 	xlim = NULL, ylim = NULL, zlim = NULL,
-	log = "", asp = NA, grid = TRUE)
+	rev = "", log = "", asp = NA, grid = TRUE)
 {
 	co <- plot$coord
 	if ( is.null(co) )
@@ -215,6 +215,8 @@ set_coord <- function(plot,
 		co$zlim <- zlim
 	if ( !missing(log) )
 		co$log <- log
+	if ( !missing(rev) )
+		co$rev <- rev
 	if ( !missing(asp) )
 		co$asp <- asp
 	if ( !missing(grid) )
@@ -288,6 +290,14 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 			args$log <- plot$coord$log
 		if ( is.null(args$asp) )
 			args$asp <- plot$coord$asp
+		# check for reversed axes
+		if ( !is.null(plot$coord$rev) )
+		{
+			if ( plot$coord$rev %in% c("x", "xy", "yx") )
+				args$xlim <- rev(args$xlim)
+			if ( plot$coord$rev %in% c("y", "xy", "yx") )
+				args$ylim <- rev(args$ylim)
+		}
 		# initialize the 2d plot
 		plot.new()
 		do.call(plot.window, args)

@@ -207,11 +207,7 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 				nrow=layout[1L], ncol=layout[2L], free=free)
 		}
 	}
-	if ( is.null(xlim) )
-		xlim <- get_var_range(plot, "x")
-	if ( is.null(ylim) )
-		ylim <- get_var_range(plot, "y")
-	plot <- set_coord(plot, xlim=xlim, ylim=rev(ylim), grid=grid, asp=asp)
+	plot <- set_coord(plot, xlim=xlim, ylim=ylim, grid=grid, asp=asp, rev="y")
 	plot <- set_channel(plot, "x", label=xlab)
 	plot <- set_channel(plot, "y", label=ylab)
 	if ( is.null(group) ) {

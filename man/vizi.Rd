@@ -55,7 +55,7 @@ set_channel(plot, channel, label = NULL,
     limits = NULL, scheme = NULL, key = TRUE)
 
 set_coord(plot, xlim = NULL, ylim = NULL, zlim = NULL,
-    log = "", asp = NA, grid = TRUE)
+    rev = "", log = "", asp = NA, grid = TRUE)
 
 set_par(plot, \dots, style = NULL)
 
@@ -88,6 +88,8 @@ as_facets(plotlist, nrow = NA, ncol = NA,
     \item{key}{Should a key be generated for the channel?}
 
     \item{xlim, ylim, zlim}{The plot limits. These only affect the plotting window, not the data. See \code{\link[graphics]{plot.window}}}
+
+    \item{rev}{A string specifying spatial dimensions that should be reversed. E.g., \code{""}, \code{"x"}, \code{"y"}, \code{"xy"}, \code{"yx"}.}
 
     \item{log, asp}{See \code{\link[graphics]{plot.window}}.}
 
