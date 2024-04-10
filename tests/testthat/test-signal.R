@@ -301,6 +301,15 @@ test_that("binpeaks + mergepeaks", {
 	expect_equivalent(unclass(pb), p1, tolerance=0.5)
 	expect_equivalent(unclass(pm), p1, tolerance=0.5)
 
+	p <- c(1, 1.11, 1.2, 1.3, 1.4, 2, 2.1, 2.22, 2.3, 2.4)
+	n <- c(1, 1, 4, 3, 1, 1, 2, 5, 6, 4)
+	pm2 <- mergepeaks(p, n, tol=0.5)
+	
+	pwm1 <- sum((n * p)[1:5]) / sum(n[1:5])
+	pwm2 <- sum((n * p)[6:10]) / sum(n[6:10])
+
+	expect_equal(as.numeric(pm2), c(pwm1, pwm2))
+
 })
 
 test_that("peakwidths", {

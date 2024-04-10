@@ -1194,21 +1194,34 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
 		tol <- 0.01 * mean(reldiff(peaks, ref=ref), na.rm=TRUE)
 	}
-	# find smallest gap between peaks
+	# find first peak
 	k <- min(which(!is.na(peaks)))
 	while ( k <= length(peaks) )
 	{
 		# find overlapping peaks
 		i <- k
 		j <- k
+		# search left & right while:
+		# 1) peak distance is less than tolerance
+		# 2) count is not increasing (i.e., a new peak)
+		left_of_mode <- FALSE
 		while ( i - 1L > 0L && !is.na(peaks[i - 1L]) && 
 			reldiff(peaks[(i - 1L):i], ref=tol.ref) <= tol )
 		{
+			if ( n[i - 1L] < n[i] )
+				left_of_mode <- TRUE
+			if ( n[i - 1L] > n[i] && left_of_mode )
+				break
 			i <- i - 1L
 		}
+		right_of_mode <- FALSE
 		while ( j + 1L <= length(peaks) && !is.na(peaks[j + 1L]) && 
 			reldiff(peaks[j:(j + 1L)], ref=tol.ref) <= tol )
 		{
+			if ( n[j + 1L] < n[j] )
+				right_of_mode <- TRUE
+			if ( n[j + 1L] > n[j] && right_of_mode )
+				break
 			j <- j + 1L
 		}
 		# average overlapping peaks
