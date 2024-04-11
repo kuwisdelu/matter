@@ -100,10 +100,16 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		colnames(scores) <- levels(y)
 		prob <- exp(-scores / 2)
 		prob <- pmax(prob / rowSums(prob, na.rm=TRUE), 0)
-		class <- predict_class(-scores)
-		ans[[i]] <- list(class=class, probability=prob,
-			centers=s_centers, statistic=s_statistic,
-			sd=sd, priors=priors, s=s[i], distfun=distfun,
+		for ( j in seq_len(nrow(prob)) ) {
+			if ( anyNA(prob[j,]) ) {
+				prob[j,] <- 1
+				prob[j,which.min(scores[j,])] <- 1
+			}
+		}
+		class <- predict_class(prob)
+		ans[[i]] <- list(class=class, probability=prob, scores=scores,
+			centers=s_centers, statistic=s_statistic, sd=sd,
+			priors=priors, s=s[i], distfun=distfun,
 			transpose=transpose)
 		class(ans[[i]]) <- "nscentroids"
 	}
@@ -165,8 +171,14 @@ predict.nscentroids <- function(object, newdata,
 	colnames(scores) <- names(priors)
 	prob <- exp(-scores / 2)
 	prob <- pmax(prob / rowSums(prob, na.rm=TRUE), 0)
+	for ( j in seq_len(nrow(prob)) ) {
+		if ( anyNA(prob[j,]) ) {
+			prob[j,] <- 0
+			prob[j,which.min(scores[j,])] <- 1
+		}
+	}
 	if ( type == "class" ) {
-		predict_class(-scores)
+		predict_class(prob)
 	} else {
 		prob
 	}
@@ -174,10 +186,12 @@ predict.nscentroids <- function(object, newdata,
 
 logLik.nscentroids <- function(object, ...)
 {
-	phat <- apply(object$probability, 1L, max, na.rm=TRUE)
-	logp <- sum(log(phat), na.rm=TRUE)
-	df <- sum(abs(object$statistic) > 0) + nrow(object$statistic)
-	structure(logp, df=df, nobs=nrow(object$probability),
+	prob <- object$probability
+	prob <- replace(prob, is.na(prob), 0)
+	loglik <- sum(log(apply(prob, 1L, max)))
+	stat <- object$statistic
+	df <- sum(abs(stat) > 0) + nrow(stat)
+	structure(loglik, df=df, nobs=nrow(prob),
 		class="logLik")
 }
 
