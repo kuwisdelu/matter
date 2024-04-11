@@ -953,7 +953,7 @@ format.size_bytes <- function(x, units = "auto", ...)
 {
 	units <- match.arg(units, c("auto",
 		"B", "KB", "MB", "GB", "TB", "PB"))
-	mx <- min(x, na.rm=TRUE)
+	mx <- max(x, na.rm=TRUE)
 	if ( units == "auto" )
 		units <- if ( is.na(mx) )
 			" "
