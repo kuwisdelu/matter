@@ -64,7 +64,7 @@ cv_do <- function(fit., x, y, folds, ...,
 				message("# pre-processing test data")
 			args <- c(testArgs, list(nchunks=nchunks, BPPARAM=BPPARAM))
 			args <- c(list(x_test, x_train), args)
-			x_train <- do.call(testProcess, args)
+			x_test <- do.call(testProcess, args)
 		}
 		# predict
 		if ( verbose )
