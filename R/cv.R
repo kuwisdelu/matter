@@ -117,8 +117,11 @@ cv_do <- function(fit., x, y, folds, ...,
 	if ( verbose )
 		message("## summarizing ", nlevels(folds), " folds")
 	FUN <- function(sc) {
-		if ( !is.matrix(sc) )
+		if ( isTRUE(length(dim(sc)) > 2L) ) {
 			sc <- colMeans(sc)
+			if ( is_discrete(y) )
+				rownames(sc) <- paste0("Macro", rownames(sc))
+		}
 		t(sc)
 	}
 	macros <- lapply(scores, FUN)
