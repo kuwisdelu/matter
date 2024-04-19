@@ -9,8 +9,8 @@
 }
 
 \usage{
-mi_learn(fn, x, y, bags, pos = 1L,
-	score = fitted, threshold = 0.01, verbose = NA, \dots)
+mi_learn(fn, x, y, bags, pos = 1L, \dots,
+	score = fitted, threshold = 0.01, verbose = NA)
 }
 
 \arguments{
@@ -24,13 +24,13 @@ mi_learn(fn, x, y, bags, pos = 1L,
 
 	\item{pos}{The positive class label, as a string matching one of the levels of \code{y}, or the index of the level.}
 
+	\item{\dots}{Additional options passed to \code{fn}.}
+
 	\item{score}{The function used to extract the scores for prediction.}
 
 	\item{threshold}{The stopping criterion. The learning stops when the proportion of updated labels between iterations is less than this value.}
 
 	\item{verbose}{Should progress be printed for each iteration? \emph{Not} passed to \code{fn}.}
-
-	\item{\dots}{Additional options passed to \code{fn}.}
 }
 
 \details{

@@ -2,8 +2,8 @@
 #### Multiple instance learning ####
 ## ---------------------------------
 
-mi_learn <- function(fn, x, y, bags, pos = 1L,
-	score = fitted, threshold = 0.01, verbose = NA, ...)
+mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
+	score = fitted, threshold = 0.01, verbose = NA)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
