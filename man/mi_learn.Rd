@@ -38,7 +38,7 @@ mi_learn(fn, x, y, bags, pos = 1L,
 
     The multiple instance learning algorithm here assumes that if a single data point is positive, then the entire bag to which it belongs is labeled as positive. For example, if a single pixel in an image indicates the presence of disease, then the entire image is labeled as disease.
 
-    The model returned by \code{fn} must support a \code{fitted} method with a second argument for extracting the predictions as either \code{"response"} or \code{"class"} values. See the \code{nscentroids} function as an example of such a model.
+    The model returned by \code{fn} must return either a vector of probabilities or a 2-column score matrix when passed to \code{scores}.
 }
 
 \value{
