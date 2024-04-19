@@ -30,7 +30,7 @@ cv_do(fit., x, y, folds, \dots,
 
 	\item{mi}{Should \code{\link{mi_learn}} be called with \code{fit.} for multiple instance learning?}
 
-	\item{bags}{If provided, subsetted and passed to \code{fit.}) or \code{\link{mi_learn}} if \code{mi=TRUE}.}
+	\item{bags}{If provided, subsetted and passed to \code{fit.} or \code{\link{mi_learn}} if \code{mi=TRUE}.}
 
 	\item{pos}{The positive class for multiple instance learning. Only used if \code{mi=TRUE}.}
 
@@ -60,7 +60,9 @@ cv_do(fit., x, y, folds, \dots,
 }
 
 \details{
-    The cross-validation is not performed in parallel, because it is assumed the pre-processing functions, modeling function, and prediction function may make use of parallelization. Therefore, these functions need to be able to handle (or ignore) the arguments \code{nchunks} and \code{BPPARAM}.
+    The cross-validation is not performed in parallel, because it is assumed the pre-processing functions, modeling function, and prediction function may make use of parallelization. Therefore, these functions need to be able to handle (or ignore) the arguments \code{nchunks} and \code{BPPARAM}, which will be passed to them.
+
+    If \code{bags} is specified, then multiple instance learning is assumed, where observations from the same bag are all assumed to have the same label. The labels for bags are automatically pooled (from \code{y}) so that if any observation in a bag is \code{pos}, then the entire bag is labeled \code{pos}. If \code{mi=TRUE} then \code{\link{mi_learn}} will be called by \code{cv_do}; otherwise it is assumed \code{fn} will handle the multiple instance learning.  The accuracy metrics are calculated with the original \code{y} labels.
 }
 
 \value{
@@ -69,6 +71,8 @@ cv_do(fit., x, y, folds, \dots,
     \itemize{
         \item{\code{average}: The average accuracy metrics.}
         \item{\code{scores}: The fold-specific accuracy metrics.}
+        \item{\code{folds}: The fold memberships.}
+        \item{\code{fitted.values}: The fold-specific predictions.}
         \item{\code{models}: (Optional) The fitted models.}
     }
 }
