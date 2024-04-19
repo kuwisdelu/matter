@@ -28,19 +28,19 @@ mergepeaks(peaks, n = nobs(peaks), x = peaks,
 
 	\item{domain}{The domain variable of the signal.}
 
-    \item{tol, tol.ref}{A tolerance specifying the maximum allowed distance between binned or merged peaks. See \code{\link{bsearch}} for details. If missing, \code{binpeaks} estimates it as one half the minimum gap between same-signal peaks, and \code{mergepeaks} estimates it as one hundredth of the average gap beteen peaks.}
+    \item{tol, tol.ref}{A tolerance specifying the maximum allowed distance between binned or merged peaks. See \code{\link{bsearch}} for details. For \code{binpeaks}, this is used to determine whether a peak should be binned to a \code{domain} value. For \code{mergepeaks}, peaks closer than this are merged \emph{unless} a local minimum in their counts (\code{n}) indicates that they should be separate peaks. If missing, \code{binpeaks} estimates it as one half the minimum gap between same-signal peaks, and \code{mergepeaks} estimates it as one hundredth of the average gap beteen peaks.}
 
     \item{merge}{Should the binned peaks be merged?}
 
     \item{na.drop}{Should missing values be dropped from the result?}
 
-    \item{n}{The number of times each peak was observed. This is used to weight the averaging.}
+    \item{n}{The count of times each peak was observed. This is used to weight the averaging. Local minima in counts are also used to separate distinct peaks that are closer together than \code{tol}.}
 }
 
 \details{
-    \code{binpeaks()} is used to bin a list of peaks from multiple signals to a set of common peaks. This is done by creating a dummy reference based on the given tolerance and the range of the domain. The peaks (or corresponding values) are then binned to the dummy reference and averaged within each bin.
+    \code{binpeaks()} is used to bin a list of peaks from multiple signals to a set of common peaks. The peaks (or their corresponding values) are binned to the given \code{domain} values and are averaged within each bin. If \code{domain} is not given, then the bins are created from the range of the peak locations and the specified \code{tol}.
 
-    \code{mergepeaks()} is used to merge any peaks with gaps smaller than the given tolerance. The merged peaks are averaged together.
+    \code{mergepeaks()} is used to merge any peaks with gaps smaller than the given tolerance and whose counts (\code{n}) do not indicate that they should be considered separate peaks. The merged peaks are averaged together.
 }
 
 \value{
