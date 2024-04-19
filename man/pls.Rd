@@ -9,6 +9,9 @@
 
 \alias{opls}
 \alias{opls_nipals}
+\alias{coef.opls}
+\alias{residuals.opls}
+\alias{fitted.opls}
 \alias{predict.opls}
 
 \alias{vip}
@@ -42,10 +45,17 @@ pls_kernel(x, y, k = 3L, center = TRUE, scale. = FALSE,
 
 # O-PLS algorithm
 opls_nipals(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, niter = 100L, tol = 1e-9,
+	transpose = FALSE, niter = 100L, tol = 1e-9, regression = TRUE,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
 
-\S3method{predict}{opls}(object, newdata, k, \dots)
+\S3method{coef}{opls}(object, \dots)
+
+\S3method{residuals}{opls}(object, \dots)
+
+\S3method{fitted}{opls}(object, type = c("response", "class", "x"), \dots)
+
+\S3method{predict}{opls}(object, newdata, k,
+	type = c("response", "class", "x"), simplify = TRUE, \dots)
 
 # Variable importance in projection
 vip(object, type = c("projection", "weights"))
@@ -75,6 +85,8 @@ vip(object, type = c("projection", "weights"))
 	\item{method}{The kernel algorithm to use, where \code{1} and \code{2} correspond to the two kernel algorithms described by Dayal and MacGregor (1997). For \code{1}, only of the covariance matrix \code{t(X) \%*\% Y} is computed. For \code{2}, the variance matrix \code{t(X) \%*\% X} is also computed. Typically \code{1} will be faster if the number of predictors is large. For a smaller number of predictors, \code{2} will be more efficient.}
 
 	\item{retscores}{Should the scores be computed and returned? This also computes the amount of explained covariance for each component. This is done automatically for NIPALS, but requires additional computation for the kernel algorithms.}
+
+	\item{regression}{For O-PLS, should a 1-component PLS regression be fit to the processed data (for each orthogonal component removed).}
 
 	\item{\dots}{Not currently used.}
 
@@ -127,6 +139,7 @@ vip(object, type = c("projection", "weights"))
         \item{\code{scores}: The orthogonal x-scores.}
         \item{\code{ratio}: The ratio of the orthogonal weights to the PLS loadings for each component. This provides a measure of how much orthogonal variation is being removed by each component and can be interpreted as a scree plot similar to PCA.}
         \item{\code{x}: The processed data matrix with orthogonal variation removed.}
+        \item{\code{regressions}: (Optional.) The PLS 1-component regressions on the processed data.}
     }
 }
 

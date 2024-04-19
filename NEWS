@@ -1,4 +1,19 @@
 
+CHANGES IN VERSION 2.5.16 [2024-4-17]
+------------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Add PLS 1-component regressions to 'opls' output
+    o Add 'fitted()' method for 'opls'
+    o Update 'predict()' method for 'opls'
+    o Add multiple instance learning support to 'cv_do()'
+
+BUG FIXES
+
+    o Fix 'opls_nipals()' usage with 'mi_learn()'
+    o Fix error setting bags to negative class in 'mi_learn()'
+
 CHANGES IN VERSION 2.5.15 [2024-4-17]
 ------------------------------------
 

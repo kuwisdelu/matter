@@ -2,8 +2,8 @@
 #### Multiple instance learning ####
 ## ---------------------------------
 
-mi_learn <- function(fn, x, y, group, pos = 1L,
-	threshold = 0.01, verbose = NA, ...)
+mi_learn <- function(fn, x, y, bags, pos = 1L,
+	score = fitted, threshold = 0.01, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -13,26 +13,26 @@ mi_learn <- function(fn, x, y, group, pos = 1L,
 	if ( is.integer(pos) )
 		pos <- levels(y)[pos]
 	neg <- setdiff(levels(y), pos)
+	ipos <- which(levels(y) %in% pos)
 	if ( verbose )
-		message("using ", sQuote(pos), " as positive class")
-	group <- as.factor(group)
-	if ( length(y) != length(group) ) {
-		if ( length(y) != nlevels(group) ) {
+		message("# using ", sQuote(pos), " as positive class")
+	bags <- droplevels(as.factor(bags))
+	if ( length(y) != length(bags) ) {
+		if ( length(y) != nlevels(bags) ) {
 			stop("length of y [", length(y), "] does not match ",
-				"length of group [", length(group), "] ",
-				"or its levels [", nlevels(group), "]")
+				"length of bags [", length(bags), "] ",
+				"or its levels [", nlevels(bags), "]")
 		} else {
-			yg <- y
-			y <- y[as.integer(group)]
+			y_bags <- y
+			y <- y[as.integer(bags)]
 		}
 	} else {
-		y <- rep_len(y, length(group))
-		yg <- lapply(levels(group),
-			function(g) unique(y[!is.na(y) & group %in% g]))
-		if ( any(lengths(yg) != 1L) ) {
-			stop("labels must be homogenous within each group")
+		y_bags <- lapply(levels(bags),
+			function(bag) unique(y[!is.na(y) & bags %in% bag]))
+		if ( any(lengths(y_bags) > 1L) ) {
+			stop("labels must be homogenous within each bag")
 		} else {
-			yg <- unlist(yg)
+			y_bags <- unlist(y_bags)
 		}
 	}
 	iter <- 1
@@ -41,37 +41,45 @@ mi_learn <- function(fn, x, y, group, pos = 1L,
 	while ( uprop > threshold )
 	{
 		if ( verbose )
-			message("multiple instance iteration ", iter)
+			message("# multiple instance iteration ", iter)
 		model <- fn(x, y, ...)
-		yi <- fitted(model, "class")
-		py <- fitted(model)
+		py <- score(model)
+		if ( is.matrix(py) ) {
+			yi <- predict_class(py)
+		} else {
+			yi <- factor(ifelse(py > 0.5, pos, neg))
+		}
 		if ( is.matrix(py) )
-			py <- py[,1L,drop=TRUE]
-		for ( j in seq_along(yg) )
+			py <- py[,ipos,drop=TRUE]
+		for ( j in seq_along(y_bags) )
 		{
-			g <- levels(group)[j]
+			bag <- which(bags %in% levels(bags)[j])
 			# set all negative bag labels to neg
-			if ( all(yg %in% neg) )
+			if ( y_bags[j] == neg )
 			{
-				yi[group %in% g] <- neg
+				yi[bag] <- neg
 				next
 			}
 			# update positive bag labels
-			yj <- yi[group %in% g]
-			if ( all(yj %in% neg) ) {
-				imax <- which.max(py[group %in% g])
+			yj <- yi[bag]
+			if ( all(yj %in% neg) )
+			{
+				# find instance with highest pos score
+				imax <- which.max(py[bag])
 				yj[imax] <- pos
 			}
-			yi[group %in% g] <- yj
+			yi[bag] <- yj
 		}
 		iter <- iter + 1
 		utot <- sum(y != yi, na.rm=TRUE)
 		uprop <- utot / sum(!is.na(y))
 		if ( verbose )
-			message(utot, " labels updated (",
+			message("# ", utot, " labels updated (",
 				round(100 * uprop, digits=2L), "%)")
 		y <- yi
 	}
+	if ( verbose )
+		message("# finalizing model")
 	fn(x, y, ...)
 }
 

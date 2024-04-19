@@ -11,6 +11,7 @@
 
 \usage{
 cv_do(fit., x, y, folds, \dots,
+	mi = !is.null(bags), bags = NULL, pos = 1L,
 	predict. = predict, transpose = FALSE, keep.models = TRUE,
 	trainProcess = NULL, trainArgs = list(),
 	testProcess = NULL, testArgs = list(),
@@ -26,6 +27,12 @@ cv_do(fit., x, y, folds, \dots,
 	\item{x, y}{The data and response variable.}
 
 	\item{folds}{A vector coercible to a factor giving the fold for each row or column of \code{x}.}
+
+	\item{mi}{Should \code{\link{mi_learn}} be called with \code{fit.} for multiple instance learning?}
+
+	\item{bags}{If provided, subsetted and passed to \code{fit.}) or \code{\link{mi_learn}} if \code{mi=TRUE}.}
+
+	\item{pos}{The positive class for multiple instance learning. Only used if \code{mi=TRUE}.}
 
 	\item{\dots}{Additional arguments passed to \code{fit.} and \code{predict.}.}
 

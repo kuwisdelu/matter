@@ -494,6 +494,9 @@ S3method("fitted", "pls")
 S3method("predict", "pls")
 S3method("print", "pls")
 
+S3method("coef", "opls")
+S3method("residuals", "opls")
+S3method("fitted", "opls")
 S3method("predict", "opls")
 S3method("print", "opls")
 

@@ -321,6 +321,7 @@ test_that("opls - nipals", {
 	no1 <- opls_nipals(x1, y, k=1, center=FALSE)
 	not1 <- opls_nipals(t(x1), y, k=1, center=FALSE, transpose=TRUE)
 	nop1 <- pls_nipals(no1$x, y, k=1, center=FALSE)
+	nor1 <- no1$regressions[[1L]]
 
 	wo1 <- c(-0.89, 0.45)
 	po1 <- c(-1.16, -0.09)
@@ -342,11 +343,15 @@ test_that("opls - nipals", {
 	expect_equivalent(nop1$loadings, p10, tolerance=1e-2)
 	expect_equivalent(nop1$coefficients, bo1, tolerance=1e-2)
 
-	no1f <- predict(no1)
-	no1p <- predict(no1, x1, k=1)
+	expect_equivalent(nor1$weights, w10, tolerance=1e-2)
+	expect_equivalent(nor1$loadings, p10, tolerance=1e-2)
+	expect_equivalent(nor1$coefficients, bo1, tolerance=1e-2)
 
-	not1f <- predict(not1)
-	not1p <- predict(not1, t(x1), k=1)
+	no1f <- predict(no1, type="x")
+	no1p <- predict(no1, x1, k=1, type="x")
+
+	not1f <- predict(not1, type="x")
+	not1p <- predict(not1, t(x1), k=1, type="x")
 
 	expect_equal(no1f, no1$x)
 	expect_equal(no1p, no1$x)
@@ -355,14 +360,24 @@ test_that("opls - nipals", {
 
 	no2 <- opls_nipals(x1, y, k=2, center=FALSE)
 	nop2 <- pls_nipals(no2$x, y, k=1, center=FALSE)
+	nor2 <- no2$regressions[[2L]]
+	x2 <- fitted(no2, type="x")
 
-	no2f <- predict(no2)
-	no2p1 <- predict(no2, x1, k=1)
-	no2p2 <- predict(no2, x1, k=2)
+	no2f <- predict(no2, type="x")
+	no2p1 <- predict(no2, x1, k=1, type="x")
+	no2p2 <- predict(no2, x1, k=2, type="x")
+	no2pr12 <- predict(no2, x1, k=1:2)
 
 	expect_equal(no2f, no2$x)
 	expect_equal(no2p1, no1$x)
 	expect_equal(no2p2, no2$x)
+
+	expect_equal(nor2, nop2)
+	expect_equal(coef(no2), coef(nop2))
+	expect_equal(resid(no2), resid(nop2))
+	expect_equal(fitted(no2), fitted(nop2))
+	expect_equal(predict(no2, x1), predict(nop2, x2))
+	expect_equal(no2pr12[,,2L], drop(predict(nop2, x2)))
 
 })
 
@@ -378,12 +393,17 @@ test_that("opls - da", {
 	np1 <- pls_nipals(no1$x, y, k=1, center=FALSE, scale.=FALSE)
 	ynf1 <- apply(fitted(np1), 1L, which.max)
 	ynp1 <- predict(np1, no1$x, type="class")
-
-	expect_equal(no1$x, predict(no1))
+	xe <- predict(no1, type="x")
 
 	expect_equal(y, predict(np1, type="class"))
 	expect_equal(fitted(np1), predict(np1, no1$x))
 	expect_equal(as.integer(y), ynf1)
 	expect_equal(y, ynp1)
+
+	expect_equal(fitted(no1), fitted(np1))
+	expect_equal(predict(no1, x), predict(np1, xe))
+
+	expect_equal(fitted(no1, type="class"), fitted(np1, type="class"))
+	expect_equal(predict(no1, x, type="class"), predict(np1, xe, type="class"))
 
 })

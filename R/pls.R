@@ -14,7 +14,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	x <- as_real_memory_matrix(x)
 	k <- min(max(k), dim(x))
 	# center and scale x and y
-	if ( verbose )
+	if ( verbose && (center || scale.) )
 		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
@@ -151,7 +151,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		nchunks <- getOption("matter.default.nchunks")
 	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
-	if ( verbose )
+	if ( verbose && (center || scale.) )
 		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
@@ -283,7 +283,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		nchunks <- getOption("matter.default.nchunks")
 	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
-	if ( verbose )
+	if ( verbose && (center || scale.) )
 		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
@@ -446,13 +446,8 @@ predict.pls <- function(object, newdata, k,
 	type = c("response", "class"), simplify = TRUE, ...)
 {
 	type <- match.arg(type)
-	if ( missing(newdata) && missing(k) ) {
-		if ( type == "class" ) {
-			return(predict_class(fitted(object)))
-		} else {
-			return(fitted(object))
-		}
-	}
+	if ( missing(newdata) && missing(k) )
+		return(fitted(object, type=type))
 	if ( missing(newdata) )
 		stop("'newdata' must be specified if 'k' is specified")
 	if ( missing(k) )
@@ -534,7 +529,6 @@ print.pls <- function(x, ...)
 	} else {
 		cat("\nNo coefficients\n")
 	}
-	cat("\n")
 	invisible(x)
 }
 
@@ -563,17 +557,18 @@ vip <- function(object, type = c("projection", "weights"))
 
 # NIPALS
 opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
-	transpose = FALSE, niter = 100L, tol = 1e-9,
+	transpose = FALSE, niter = 100L, tol = 1e-9, regression = TRUE,
 	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
+	y_in <- y
 	x <- as_real_memory_matrix(x)
 	k <- min(max(k), dim(x))
 	# center and scale x and y
-	if ( verbose )
+	if ( verbose && (center || scale.) )
 		message("preparing x and y matrices")
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
@@ -605,6 +600,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	}
 	# prepare matrices
 	j <- seq_len(k)
+	regressions <- vector("list", max(j))
+	names(regressions) <- paste0("k=", j)
 	weights <- matrix(nrow=P, ncol=k,
 		dimnames=list(pnames, paste0("C", j)))
 	loadings <- matrix(nrow=P, ncol=k,
@@ -662,6 +659,13 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			to <- t(crossprod(wo, xt)) / sum(wo^2)
 			po <- (xt %*% to) / sum(to^2)
 			xt <- xt - tcrossprod(po, to)
+			if ( regression ) {
+				regressions[[i]] <- pls_nipals(xt, y=y_in, k=1L,
+					center=FALSE, scale.=FALSE,
+					transpose=TRUE, niter=niter, tol=tol,
+					nchunks=nchunks, verbose=verbose,
+					BPPARAM=BPPARAM, ...)
+			}
 		} else {
 			p <- crossprod(x, t) / tt
 			pnorm <- sqrt(sum(p^2))
@@ -673,6 +677,13 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			to <- (x %*% wo) / sum(wo^2)
 			po <- crossprod(x, to) / sum(to^2)
 			x <- x - tcrossprod(to, po)
+			if ( regression ) {
+				regressions[[i]] <- pls_nipals(x, y=y_in, k=1L,
+					center=FALSE, scale.=FALSE,
+					transpose=FALSE, niter=niter, tol=tol,
+					nchunks=nchunks, verbose=verbose,
+					BPPARAM=BPPARAM, ...)
+			}
 		}
 		weights[,i] <- wo
 		loadings[,i] <- po
@@ -688,15 +699,49 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	ans$scale <- if(is.null(scale)) FALSE else scale
 	ans$y.center <- if(is.null(y.center)) FALSE else y.center
 	ans$y.scale <- if(is.null(y.scale)) FALSE else y.scale
+	ans$regressions <- regressions
 	ans$algorithm <- "nipals"
 	class(ans) <- "opls"
 	ans
 }
 
-predict.opls <- function(object, newdata, k, ...)
+coef.opls <- function(object, ...)
 {
+	if ( is.null(object$regressions) )
+		stop("missing component: 'regressions'")
+	k <- length(object$regressions)
+	coef(object$regressions[[k]], ...)
+}
+
+residuals.opls <- function(object, ...)
+{
+	if ( is.null(object$regressions) )
+		stop("missing component: 'regressions'")
+	k <- length(object$regressions)
+	residuals(object$regressions[[k]], ...)
+}
+
+fitted.opls <- function(object, type = c("response", "class", "x"), ...)
+{
+	type <- match.arg(type)
+	if ( type != "x" ) {
+		if ( is.null(object$regressions) )
+			stop("missing component: 'regressions'")
+		k <- length(object$regressions)
+		fitted(object$regressions[[k]], type=type, ...)
+	} else {
+		object$x
+	}
+}
+
+predict.opls <- function(object, newdata, k,
+	type = c("response", "class", "x"), simplify = TRUE, ...)
+{
+	type <- match.arg(type)
 	if ( missing(newdata) && missing(k) )
-		return(object$x)
+		return(fitted(object, type=type))
+	if ( type != "x" && is.null(object$regressions) )
+		stop("missing component: 'regressions'")
 	if ( missing(newdata) )
 		stop("'newdata' must be specified if 'k' is specified")
 	if ( missing(k) )
@@ -720,26 +765,48 @@ predict.opls <- function(object, newdata, k, ...)
 			stop("'newdata' does not have the correct number of features")
 	}
 	# extract relevant components
-	k <- max(k)
-	if ( k > ncol(object$loadings) )
+	if ( any(k > ncol(object$loadings)) )
 		stop("'k' is larger than the number of components")
-	weights <- object$weights[,1:k,drop=FALSE]
-	loadings <- object$loadings[,1:k,drop=FALSE]
-	# predict new values
-	if ( object$transpose ) {
-		xt <- rowscale(newdata, center=object$center, scale=object$scale)
-		for ( i in seq_len(k) ) {
-			to <- t(t(weights[,i]) %*% xt) / sum(weights[,i]^2)
-			xt <- xt - tcrossprod(loadings[,i], to)
+	ans <- lapply(setNames(k, paste0("k=", k)),
+		function(ki)
+		{
+			weights <- object$weights[,1:ki,drop=FALSE]
+			loadings <- object$loadings[,1:ki,drop=FALSE]
+			# predict new values
+			if ( object$transpose ) {
+				xt <- rowscale(newdata, center=object$center, scale=object$scale)
+				for ( i in seq_len(ki) ) {
+					to <- t(t(weights[,i]) %*% xt) / sum(weights[,i]^2)
+					xt <- xt - tcrossprod(loadings[,i], to)
+				}
+				if ( type != "x" ) {
+					predict(object$regressions[[ki]], newdata=xt,
+						type=type, simplify=TRUE, ...)
+				} else {
+					xt
+				}
+			} else {
+				x <- colscale(newdata, center=object$center, scale=object$scale)
+				for ( i in seq_len(ki) ) {
+					to <- (x %*% weights[,i]) / sum(weights[,i]^2)
+					x <- x - tcrossprod(to, loadings[,i])
+				}
+				if ( type != "x" ) {
+					predict(object$regressions[[ki]], newdata=x,
+						type=type, simplify=TRUE, ...)
+				} else {
+					x
+				}
+			}
+		})
+	if ( simplify ) {
+		if ( length(ans) > 1L ) {
+			simplify2array(ans)
+		} else {
+			ans[[1L]]
 		}
-		xt
 	} else {
-		x <- colscale(newdata, center=object$center, scale=object$scale)
-		for ( i in seq_len(k) ) {
-			to <- (x %*% weights[,i]) / sum(weights[,i]^2)
-			x <- x - tcrossprod(to, loadings[,i])
-		}
-		x
+		ans
 	}
 }
 
@@ -751,6 +818,12 @@ print.opls <- function(x, print.x = FALSE, ...)
     if ( print.x && !is.null(x$x) ) {
 		cat("\nProcessed variables:\n")
 		preview_matrix(x$x, ...)
+	}
+	if ( !is.null(coef(x)) ) {
+		cat("\nCoefficients:\n")
+		preview_matrix(t(coef(x)), ...)
+	} else {
+		cat("\nNo coefficients\n")
 	}
 	invisible(x)
 }

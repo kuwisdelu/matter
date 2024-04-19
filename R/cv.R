@@ -3,6 +3,7 @@
 ## -------------------------------
 
 cv_do <- function(fit., x, y, folds, ...,
+	mi = !is.null(bags), bags = NULL, pos = 1L,
 	predict. = predict, transpose = FALSE, keep.models = TRUE,
 	trainProcess = NULL, trainArgs = list(),
 	testProcess = NULL, testArgs = list(),
@@ -17,6 +18,31 @@ cv_do <- function(fit., x, y, folds, ...,
 	folds <- as.factor(folds)
 	if ( nlevels(folds) < 2L )
 		stop("need at least 2 folds")
+	if ( mi && is.null(bags) )
+		stop("missing 'bags' for multiple instance learning")
+	if ( !is.null(bags) )
+	{
+		y <- as.factor(y)
+		if ( nlevels(y) != 2L )
+			stop("y must have exactly 2 levels")
+		if ( is.integer(pos) )
+			pos <- levels(y)[pos]
+		neg <- setdiff(levels(y), pos)
+		if ( verbose )
+			message("## using multiple instance learning ",
+				"with ", nlevels(bags), " bags")
+		y_bags <- vapply(levels(bags),
+			function(lvl) {
+				yi <- y[!is.na(y) & bags %in% lvl]
+				if ( any(yi %in% pos) ) {
+					pos
+				} else {
+					neg
+				}
+			}, character(1L))
+		y_inst <- y_bags[as.integer(bags)]
+		y_inst <- factor(y_inst, levels=levels(y))
+	}
 	scores <- vector("list", length=nlevels(folds))
 	models <- vector("list", length=nlevels(folds))
 	y_out <- vector("list", length=nlevels(folds))
@@ -54,8 +80,20 @@ cv_do <- function(fit., x, y, folds, ...,
 		# train model
 		if ( verbose )
 			message("# fitting model on pooled training sets (n=", n_train, ")")
-		fit <- fit.(x_train, y_train,
-			nchunks=nchunks, BPPARAM=BPPARAM, ...)
+		if ( is.null(bags) ) {
+			fit <- fit.(x_train, y_train,
+				nchunks=nchunks, BPPARAM=BPPARAM, ...)
+		} else {
+			if ( mi ) {
+				fit <- mi_learn(fit., x_train, y_inst[train],
+					bags=bags[train], pos=pos, verbose=verbose,
+					nchunks=nchunks, BPPARAM=BPPARAM, ...)
+			} else {
+				fit <- fit.(x_train, y_inst[train],
+					bags=bags[train], pos=pos, verbose=verbose,
+					nchunks=nchunks, BPPARAM=BPPARAM, ...)
+			}
+		}
 		if ( keep.models )
 			models[[i]] <- fit
 		# preprocess test data
@@ -126,7 +164,7 @@ cv_do <- function(fit., x, y, folds, ...,
 	}
 	macros <- lapply(scores, FUN)
 	average <- Reduce(`+`, macros) / length(macros)
-	ans <- list(average=average, scores=scores)
+	ans <- list(average=average, scores=scores, folds=folds)
 	if ( keep.models )
 		ans$models <- models
 	ans$fitted.values <- fitted.values
@@ -139,9 +177,15 @@ fitted.cv <- function(object, type = c("response", "class"),
 	type <- match.arg(type)
 	y <- object$fitted.values
 	if ( type == "class" ) {
-		y <- lapply(y, predict_class)
-		if ( simplify )
-			y <- as.data.frame(y, check.names=FALSE)
+		y <- simplify2array(y)
+		if ( !is.matrix(y) ) {
+			margin <- length(dim(y))
+			y <- apply(y, margin, predict_class, simplify=FALSE)
+			if ( simplify )
+				y <- as.data.frame(y, check.names=FALSE)
+		} else {
+			y <- predict_class(y)
+		}
 	} else if ( simplify ) {
 		y <- simplify2array(y)
 	}
