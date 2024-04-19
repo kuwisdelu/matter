@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.5.17 [2024-4-19]
+------------------------------------
+
+BUG FIXES
+
+    o Fix 'rowsweep()'/'colsweep()' behavior with NA groups
+    o Fix 'cv_do()' and 'mi_learn()' behavior with NA labels
+
 CHANGES IN VERSION 2.5.16 [2024-4-17]
 ------------------------------------
 

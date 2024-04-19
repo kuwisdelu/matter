@@ -31,6 +31,12 @@ test_that("sweep - matter matrix", {
 		colsweep(x, b, group=rgroup),
 		colsweep(y, b, group=rgroup)[])
 
+	cgroupNA <- replace(cgroup, 4L, NA)
+
+	expect_equal(
+		rowsweep(x, a, group=cgroupNA),
+		rowsweep(y, a, group=cgroupNA)[])
+
 })
 
 test_that("sweep - sparse matrix", {
@@ -61,6 +67,12 @@ test_that("sweep - sparse matrix", {
 	expect_equal(
 		colsweep(x, b, group=rgroup),
 		colsweep(y, b, group=rgroup)[])
+
+	cgroupNA <- replace(cgroup, 4L, NA)
+
+	expect_equal(
+		rowsweep(x, a, group=cgroupNA),
+		rowsweep(y, a, group=cgroupNA)[])
 
 })
 

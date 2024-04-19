@@ -32,8 +32,8 @@ cv_do <- function(fit., x, y, folds, ...,
 			message("## using multiple instance learning ",
 				"with ", nlevels(bags), " bags")
 		y_bags <- vapply(levels(bags),
-			function(lvl) {
-				yi <- y[!is.na(y) & bags %in% lvl]
+			function(bag) {
+				yi <- y[!is.na(y) & bags %in% bag]
 				if ( any(yi %in% pos) ) {
 					pos
 				} else {
@@ -41,6 +41,7 @@ cv_do <- function(fit., x, y, folds, ...,
 				}
 			}, character(1L))
 		y_inst <- y_bags[as.integer(bags)]
+		y_inst <- replace(y_inst, is.na(y), NA)
 		y_inst <- factor(y_inst, levels=levels(y))
 	}
 	scores <- vector("list", length=nlevels(folds))

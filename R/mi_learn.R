@@ -49,11 +49,13 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 		} else {
 			yi <- factor(ifelse(py > 0.5, pos, neg))
 		}
+		yi <- replace(yi, is.na(y), NA)
 		if ( is.matrix(py) )
 			py <- py[,ipos,drop=TRUE]
 		for ( j in seq_along(y_bags) )
 		{
-			bag <- which(bags %in% levels(bags)[j])
+			bag <- bags %in% levels(bags)[j]
+			bag <- which(bag & !is.na(yi))
 			# set all negative bag labels to neg
 			if ( y_bags[j] == neg )
 			{
@@ -70,9 +72,10 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 			}
 			yi[bag] <- yj
 		}
+		# iterate
 		iter <- iter + 1
 		utot <- sum(y != yi, na.rm=TRUE)
-		uprop <- utot / sum(!is.na(y))
+		uprop <- utot / sum(!is.na(yi))
 		if ( verbose )
 			message("# ", utot, " labels updated (",
 				round(100 * uprop, digits=2L), "%)")

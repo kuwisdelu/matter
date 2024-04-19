@@ -38,9 +38,10 @@ setClass("deferred_ops",
 			}
 			if ( !is.null(object@group[[i]]) ) {
 				ugroup <- unique(object@group[[i]])
+				ugroup <- ugroup[!is.na(ugroup)]
 				if ( length(ugroup) != ncol(object@arg[[i]]) )
 					errors <- c(errors,
-						paste0("number of groups [", ngroups, "] ",
+						paste0("number of groups [", length(ugroup), "] ",
 						"does not match ncol of 'arg'",
 						" [", ncol(object@arg[[i]]), "]"))
 				if ( any(ugroup < 0 | ugroup >= ncol(object@arg[[i]])) )
@@ -62,7 +63,7 @@ append_op <- function(object, op, arg = NULL, rhs = FALSE,
 		margins <- matrix(margins, ncol=2)
 	if ( !is.null(group) ) {
 		group <- as.integer(group)
-		group <- group - min(group)
+		group <- group - min(group, na.rm=TRUE)
 	}
 	if ( is.null(object) ) {
 		new("deferred_ops", ops=op, arg=list(arg), rhs=rhs,
