@@ -87,9 +87,15 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	structure(facets, class="vizi_facets")
 }
 
-as_facets <- function(plotlist, nrow = NA, ncol = NA,
+as_facets <- function(plotlist, ..., nrow = NA, ncol = NA,
 	labels = NULL, drop = TRUE, free = "")
 {
+	# create plot list
+	if ( missing(plotlist) || is.null(plotlist) )
+		plotlist <- list()
+	if ( inherits(plotlist, c("vizi_plot", "vizi_facets")) )
+		plotlist <- list(plotlist)
+	plotlist <- c(plotlist, list(...))
 	# check all plots
 	all_plots <- all(vapply(plotlist, is, logical(1L), "vizi_plot"))
 	all_facets <- all(vapply(plotlist, is, logical(1L), "vizi_facets"))

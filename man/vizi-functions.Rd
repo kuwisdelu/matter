@@ -60,14 +60,14 @@ set_coord(plot, xlim = NULL, ylim = NULL, zlim = NULL,
 set_par(plot, \dots, style = NULL)
 
 ## Combine plots
-as_facets(plotlist, nrow = NA, ncol = NA,
+as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
 }
 
 \arguments{
     \item{data}{A \code{data.frame}.}
 
-    \item{\dots}{For \code{vizi} and \code{add_mark}, these should be named arguments specifying the encoding for the plot. The argument names should specify channels, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size). One-sided formula arguments will be evaluated in the environment of \code{data}. Non-formula arguments will be used as-is. For \code{set_par}, these specify additional graphical parameters (as in \code{\link[graphics]{par}}) or arguments to \code{\link[graphics]{persp}} for 3D plots.}
+    \item{\dots}{For \code{vizi} and \code{add_mark}, these should be named arguments specifying the encoding for the plot. The argument names should specify channels, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size). One-sided formula arguments will be evaluated in the environment of \code{data}. Non-formula arguments will be used as-is. For \code{set_par}, these specify additional graphical parameters (as in \code{\link[graphics]{par}}) or arguments to \code{\link[graphics]{persp}} for 3D plots. For \code{as_facets}, these should be additional subplots.}
 
     \item{encoding}{Encodings specified as a list rather than using \dots.}
 

@@ -2,6 +2,10 @@
 CHANGES IN VERSION 2.5.17 [2024-4-19]
 ------------------------------------
 
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Allow passing subplots to 'as_facets()' via '...'
+
 BUG FIXES
 
     o Fix 'rowsweep()'/'colsweep()' behavior with NA groups
