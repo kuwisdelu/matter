@@ -40,7 +40,7 @@ plot_image(x, y, vals, by = names(vals), group = NULL,
 
     \item{layout}{A vector of the form \code{c(nrow, ncol)} specifying the number of rows and columns in the facet grid.}
 
-    \item{free}{A string specifying the free spatial dimensions during faceting. E.g., \code{""}, \code{"x"}, \code{"y"}, \code{"xy"}, \code{"yx"}.}
+    \item{free}{A string specifying the free spatial dimensions during faceting. E.g., \code{""}, \code{"x"}, \code{"y"}, or \code{"xy"}.}
 
     \item{n, downsampler}{See \code{\link{downsample}} for details.}
 

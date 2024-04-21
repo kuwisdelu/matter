@@ -401,9 +401,24 @@ setMethod("preplot", "vizi_facets", preplot.vizi_facets)
 
 # plot methods
 
-plot.vizi_plot <- function(x, add = FALSE, ...)
+plot.vizi_plot <- function(x, add = FALSE, ...,
+	engine = getOption("matter.vizi.engine"))
 {
-	if ( !add ) {
+	if ( is.null(x$engine) )
+	{
+		x$engine <- new.env()
+		x$engine$name <- engine
+	}
+	if ( engine == "plotly" ) {
+		if ( !requireNamespace("plotly") )
+			stop("failed to load required package 'plotly'")
+		if ( is.null(x$engine$plotly) )
+			x$engine$plotly <- plotly::plot_ly()
+		newpage <- FALSE
+	} else {
+		newpage <- !add
+	}
+	if ( newpage ) {
 		dev.hold()
 		on.exit(dev.flush())
 		preplot(x)
@@ -414,10 +429,10 @@ plot.vizi_plot <- function(x, add = FALSE, ...)
 	for ( i in seq_along(x$marks) )
 	{
 		mark <- x$marks[[i]]
-		keys[[i]] <- plot(mark, plot=x, add=TRUE, ...)
+		keys[[i]] <- plot(mark, plot=x, ...)
 	}
 	keys <- merge_legends(keys)
-	if ( !add ) {
+	if ( newpage ) {
 		# add figure titles
 		if ( is2d(x) ) {
 			title(xlab=x$channels$x$label, outer=TRUE)
@@ -435,27 +450,45 @@ plot.vizi_plot <- function(x, add = FALSE, ...)
 		panel_set(new=FALSE)
 	}
 	x$keys <- keys
+	if ( engine == "plotly" && !add )
+		print(x$engine$plotly)
 	invisible(x)
 }
 
-plot.vizi_facets <- function(x, add = FALSE, ...)
+plot.vizi_facets <- function(x, add = FALSE, ...,
+	engine = getOption("matter.vizi.engine"))
 {
-	if ( !add ) {
+	if ( is.null(x$engine) )
+	{
+		x$engine <- new.env()
+		x$engine$name <- engine
+	}
+	n <- length(x$plots)
+	if ( engine == "plotly" ) {
+		if ( !requireNamespace("plotly") )
+			stop("failed to load required package 'plotly'")
+		if ( is.null(x$engine$facets) )
+			x$engine$facets <- vector("list", length=n)
+		newpage <- FALSE
+	} else {
+		newpage <- !add
+	}
+	if ( newpage ) {
 		dev.hold()
 		on.exit(dev.flush())
 		preplot(x)
-	} else {
-		panel_set(1)
 	}
+	if ( engine == "base" && add )
+		panel_set(1)
 	keys <- list()
-	n <- length(x$plots)
 	# loop through facets
 	for ( i in seq_len(n) )
 	{
 		plot <- x$plots[[i]]
 		plot$channels <- x$channels
 		plot$params <- x$params
-		if ( !add )
+		plot$engine <- x$engine
+		if ( newpage )
 		{
 			# initialize plot
 			xlim <- x$coord$xlim
@@ -479,11 +512,15 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 		}
 		# plot facets
 		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
-		if ( add )
+		if ( engine == "plotly" ) {
+			x$engine$facets[[i]] <- plot$engine$plotly
+			x$engine$plotly <- NULL
+		}
+		if ( engine == "base" && add )
 			panel_next()
 	}
 	keys <- merge_legends(keys)
-	if ( !add ) {
+	if ( newpage ) {
 		# add figure titles
 		if ( is2d(plot) ) {
 			xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
@@ -505,6 +542,9 @@ plot.vizi_facets <- function(x, add = FALSE, ...)
 		panel_set(new=FALSE)
 	}
 	x$keys <- keys
+	if ( engine == "plotly" && !add )
+		print(plotly::subplot(x$engine$facets, nrows=x$dim[1L],
+			shareX=!has_free_x(x), shareY=!has_free_y(x)))
 	invisible(x)
 }
 
@@ -830,6 +870,11 @@ compute_facets <- function(plot, by, nshingles = 6L)
 		dim=dim)
 }
 
+has_alpha <- function(plot)
+{
+	isTRUE("alpha" %in% names(plot$channels))
+}
+
 has_free_x <- function(plot)
 {
 	isTRUE(plot$free %in% c("x", "xy", "yx"))
@@ -873,18 +918,23 @@ encode_var <- function(name, encoding = NULL,
 {
 	e <- encoding[[name]]
 	if ( is.null(e) ) {
-		# search non-data graphical parameters
+		# search plot parameters
 		e <- params[[name]]
-		# search vizi graphics parameters
+		# check for alpha channel
 		if ( is.null(e) )
 			e <- switch(name, alpha=1, NULL)
-		# search base graphics parameters
-		if ( to_par_name(name) %in% names(par(no.readonly=TRUE)) )
+		# search graphical parameters
+		pname <- to_par_name(name)
+		# search vizi par
+		if ( is.null(e) && pname %in% names(vizi_par()) )
 		{
-			if ( is.null(e) )
-				e <- vizi_par(to_par_name(name))
-			if ( is.null(e) )
-				e <- par(to_par_name(name))
+			e <- vizi_par(to_par_name(name))
+		}
+		# search base par
+		if ( is.null(e) && dev.cur() != 1L &&
+			pname %in% names(par(no.readonly=TRUE)) )
+		{
+			e <- par(to_par_name(name))
 		}
 	} else {
 		# encode limits
@@ -899,8 +949,13 @@ encode_var <- function(name, encoding = NULL,
 		e <- encode_scheme(e, sch, lim)
 		# subscripts
 		if ( !is.null(subscripts) )
+		{
+			e <- rep_len(e, length(subscripts))
 			e <- e[subscripts]
+		}
 	}
+	if ( !is.null(e) )
+		e <- I(e)
 	e
 }
 

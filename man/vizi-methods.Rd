@@ -73,7 +73,7 @@
 
     \item{downsampler}{\emph{Transformation}. If \code{n} is less than the number of points, then this is the downsampling method to use. See \code{\link{downsample}} for details.}
 
-    \item{jitter}{\emph{Transformation}. Should jitter be applied to one or more position channels? One of \code{""}, \code{"x"}, \code{"y"}, \code{"xy"}, or \code{"yx"}.}
+    \item{jitter}{\emph{Transformation}. Should jitter be applied to one or more position channels? One of \code{""}, \code{"x"}, \code{"y"}, or \code{"xy"}.}
 
     \item{adj, pos, offset}{See \code{\link[graphics]{text}}.}
 

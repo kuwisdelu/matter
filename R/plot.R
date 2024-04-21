@@ -1,5 +1,4 @@
 
-
 #### Plot a list of signals ####
 ## -----------------------------
 
@@ -260,15 +259,13 @@ add_alpha <- function(colors, alpha = 1, exp = 2) {
 ## ----------------------------------------
 
 plot_mark_xy <- function(mark, plot = NULL, ...,
-	n = Inf, downsampler = "lttb", jitter = "",
-	type = "p", add = FALSE)
+	n = Inf, downsampler = "lttb", jitter = "", type = "p")
 {
 	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
 	y <- encode_var("y", encoding, plot$channels)
-	if ( !is2d(plot) )
-		z <- encode_var("z", encoding, plot$channels)
+	z <- encode_var("z", encoding, plot$channels)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
 	# decode positions if discrete
@@ -286,20 +283,25 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 			downsampler <- t$downsampler
 		if ( !is.null(t$jitter) )
 			jitter <- t$jitter
+		i <- order(x)
+		x <- x[i]
+		y <- y[i]
 		if ( n < length(y) ) {
 			y <- downsample(y, n=n, domain=x, method=downsampler)
-			i <- attr(y, "sample")
-			x <- x[i]
+			x <- x[attr(y, "sample")]
+			i <- i[attr(y, "sample")]
+		}
+	} else {
+		if ( plot$engine$name == "base" ) {
+			# project 3d points
+			pmat <- trans3d_get()
+			t <- trans3d(x, y, z, pmat)
+			i <- trans3d_sort(x, y, z, pmat)
+			x <- t$x[i]
+			y <- t$y[i]
 		} else {
 			i <- NULL
 		}
-	} else {
-		# project 3d points
-		pmat <- trans3d_get()
-		t <- trans3d(x, y, z, pmat)
-		i <- trans3d_sort(x, y, z, pmat)
-		x <- t$x[i]
-		y <- t$y[i]
 	}
 	if ( jitter %in% c("x", "xy", "yx") )
 		x <- jitter(x)
@@ -312,47 +314,61 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params, subscripts=i)
-	p$color <- add_alpha(p$color, p$alpha)
-	if ( !add )
-		plot_init(plot)
-	plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
-		cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
+	p$color <- I(add_alpha(p$color, p$alpha))
+	# make the plot
+	e <- plot$engine
+	if ( e$name == "base" ) {
+		plot.xy(xy.coords(x, y), pch=p$shape, col=p$color, bg=p$fill,
+			cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
+	} else if ( e$name == "plotly" ) {
+		if ( !is.null(p$size) )
+			p$size <- 15 * p$size
+		e$plotly <- switch(type,
+			p=plotly::add_markers(e$plotly, x=x, y=y, z=z,
+				color=p$color, size=p$size, symbol=p$shape),
+			l=plotly::add_lines(e$plotly, x=x, y=y, z=z,
+				color=p$color, linetype=p$linetype),
+			h=plotly::add_segments(e$plotly, x=x, y=y,
+				xend=x, yend=0, color=p$color))
+	} else {
+		stop("unsupported plot engine: ", sQuote(e$name))
+	}
 	# encode legends
 	params <- p[!names(p) %in% names(encoding)]
 	invisible(encode_legends(plot$channels, params, type))
 }
 
-plot.vizi_points <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_points <- function(x, plot = NULL, ...,
 	n = Inf, downsampler = "lttb", jitter = "")
 {
-	invisible(plot_mark_xy(mark=x, plot=plot, type="p", add=add, ...,
+	invisible(plot_mark_xy(x, plot=plot, type="p", ...,
 		n=n, downsampler=downsampler, jitter=jitter))
 }
 
-plot.vizi_lines <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_lines <- function(x, plot = NULL, ...,
 	n = Inf, downsampler = "lttb", jitter = "")
 {
-	invisible(plot_mark_xy(mark=x, plot=plot, type="l", add=add, ...,
+	invisible(plot_mark_xy(x, plot=plot, type="l", ...,
 		n=n, downsampler=downsampler, jitter=jitter))
 }
 
-plot.vizi_peaks <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_peaks <- function(x, plot = NULL, ...,
 	n = Inf, downsampler = "lttb", jitter = "")
 {
-	invisible(plot_mark_xy(mark=x, plot=plot, type="h", add=add, ...,
+	invisible(plot_mark_xy(x, plot=plot, type="h", ...,
 		n=n, downsampler=downsampler, jitter=jitter))
 }
 
 plot_mark_text <- function(mark, plot = NULL, ...,
-	adj = NULL, pos = NULL, offset = 0.5, add = FALSE)
+	adj = NULL, pos = NULL, offset = 0.5)
 {
 	# encode position + label channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
 	y <- encode_var("y", encoding, plot$channels)
+	z <- encode_var("z", encoding, plot$channels)
 	text <- encode_var("text", encoding, plot$channels)
-	if ( !is2d(plot) )
-		z <- encode_var("z", encoding, plot$channels)
+	text <- as.character(text)
 	if ( length(x) == 0L || length(y) == 0L )
 		return()
 	# decode positions if discrete
@@ -368,7 +384,8 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 	if ( !is.null(mark$params$offset) )
 		offset <- mark$params$offset
 	# perform transformations
-	if ( !is2d(plot) ) {
+	if ( !is2d(plot) && plot$engine$name == "base" )
+	{
 		# project 3d points
 		pmat <- trans3d_get()
 		t <- trans3d(x, y, z, pmat)
@@ -385,24 +402,33 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params, subscripts=i)
-	p$color <- add_alpha(p$color, p$alpha)
-	if ( !add )
-		plot_init(plot)
-	text.default(x, y, labels=text, adj=adj, pos=pos,
-		offset=offset, cex=p$size, col=p$color)
+	p$color <- I(add_alpha(p$color, p$alpha))
+	# make the plot
+	e <- plot$engine
+	if ( e$name == "base" ) {
+		text.default(x, y, labels=text, adj=adj, pos=pos,
+			offset=offset, cex=p$size, col=p$color)
+	} else if ( e$name == "plotly" ) {
+		if ( !is.null(p$size) )
+			p$size <- 15 * p$size
+		e$plotly <- plotly::add_text(e$plotly, x=x, y=y, z=z,
+			text=text, color=p$color, size=p$size)
+	} else {
+		stop("unsupported plot engine: ", sQuote(e$name))
+	}
 	# encode legends
 	invisible(encode_legends(plot$channels, list()))
 }
 
-plot.vizi_text <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_text <- function(x, plot = NULL, ...,
 	adj = NULL, pos = NULL, offset = 0.5)
 {
-	invisible(plot_mark_text(mark=x, plot=plot, add=add, ...,
+	invisible(plot_mark_text(x, plot=plot, ...,
 		adj=adj, pos=pos, offset=offset))
 }
 
 plot_mark_intervals <- function(mark, plot = NULL, ...,
-	length = 0.25, angle = 90, add = FALSE)
+	length = 0.25, angle = 90)
 {
 	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -433,29 +459,40 @@ plot_mark_intervals <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
-	p$color <- add_alpha(p$color, p$alpha)
-	if ( !add )
-		plot_init(plot)
-	if ( !is.null(xmin) && !is.null(xmax) )
-		arrows(xmin, y, xmax, y, length=length, angle=angle,
-			code=3L, col=p$color, lty=p$linetype, lwd=p$linewidth)
-	if ( !is.null(ymin) && !is.null(ymax) )
-		arrows(x, ymin, x, ymax, length=length, angle=angle,
-			code=3L, col=p$color, lty=p$linetype, lwd=p$linewidth)
+	p$color <- I(add_alpha(p$color, p$alpha))
+	# make the plot
+	e <- plot$engine
+	if ( e$name == "base" ) {
+		if ( !is.null(xmin) && !is.null(xmax) )
+			arrows(xmin, y, xmax, y, length=length, angle=angle,
+				code=3L, col=p$color, lty=p$linetype, lwd=p$linewidth)
+		if ( !is.null(ymin) && !is.null(ymax) )
+			arrows(x, ymin, x, ymax, length=length, angle=angle,
+				code=3L, col=p$color, lty=p$linetype, lwd=p$linewidth)
+	} else if ( e$name == "plotly" ) {
+		if ( !is.null(xmin) && !is.null(xmax) )
+			e$plotly <- plotly::add_segments(e$plotly,
+				x=xmin, xend=xmax, y=y, yend=y, color=p$color)
+		if ( !is.null(ymin) && !is.null(ymax) )
+			e$plotly <- plotly::add_segments(e$plotly,
+				x=x, xend=x, y=ymin, yend=ymax, color=p$color)
+	} else {
+		stop("unsupported plot engine: ", sQuote(e$name))
+	}
 	# encode legends
 	params <- p[!names(p) %in% names(encoding)]
 	invisible(encode_legends(plot$channels, params, "l"))
 }
 
-plot.vizi_intervals <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_intervals <- function(x, plot = NULL, ...,
 	length = 0.25, angle = 90)
 {
-	invisible(plot_mark_intervals(mark=x, plot=plot, add=add, ...,
+	invisible(plot_mark_intervals(x, plot=plot, ...,
 		length=length, angle=angle))
 }
 
 plot_mark_boxplot <- function(mark, plot = NULL, ...,
-	range = 1.5, notch = FALSE, pars = NULL, add = FALSE)
+	range = 1.5, notch = FALSE, pars = NULL)
 {
 	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -479,54 +516,60 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
-	p$color <- add_alpha(p$color, p$alpha)
-	p$fill <- add_alpha(p$fill, p$alpha)
-	f <- function(pj, i) {
-		if ( length(pj) == length(i) ) {
-			tapply(pj, i, unique)
-		} else {
-			pj
+	p$color <- I(add_alpha(p$color, p$alpha))
+	p$fill <- I(add_alpha(p$fill, p$alpha))
+	# make the plot
+	e <- plot$engine
+	if ( e$name == "base" ) {
+		recode_fun <- function(pk, group) {
+			if ( length(pk) == length(group) ) {
+				tapply(pk, group, unique)
+			} else {
+				pk
+			}
 		}
-	}
-	if ( !add )
-		plot_init(plot)
-	if ( is_discrete(x) && is_discrete(y) ) {
-		stop("one of 'x' or 'y' must be numeric")
-	} else if ( is_discrete(x) ) {
-		vals <- tapply(y, x, identity, simplify=FALSE)
-		p <- lapply(p, f, x)
-		horiz <- FALSE
-	} else if ( is_discrete(y) ) {
-		vals <- tapply(x, y, identity, simplify=FALSE)
-		p <- lapply(p, f, y)
-		horiz <- TRUE
+		if ( is_discrete(x) && is_discrete(y) ) {
+			stop("one of 'x' or 'y' must be numeric")
+		} else if ( is_discrete(x) ) {
+			vals <- tapply(y, x, identity, simplify=FALSE)
+			p <- lapply(p, recode_fun, group=x)
+			horiz <- FALSE
+		} else if ( is_discrete(y) ) {
+			vals <- tapply(x, y, identity, simplify=FALSE)
+			p <- lapply(p, recode_fun, group=y)
+			horiz <- TRUE
+		} else {
+			stop("one of 'x' or 'y' must be discrete")
+		}
+		boxplot.default(vals, range=range, notch=notch,
+			border=p$color, col=p$fill, pars=pars,
+			horizontal=horiz, axes=FALSE, add=TRUE)
+	} else if ( e$name == "plotly" ) {
+		e$plotly <- plotly::add_boxplot(e$plotly, x=x, y=y,
+			color=p$color, notched=notch)
 	} else {
-		stop("one of 'x' or 'y' must be discrete")
+		stop("unsupported plot engine: ", sQuote(e$name))
 	}
-	boxplot.default(vals, range=range, notch=notch,
-		border=p$color, col=p$fill, pars=pars,
-		horizontal=horiz, axes=FALSE, add=TRUE)
 	# encode legends
 	invisible(encode_legends(plot$channels, list()))
 }
 
-plot.vizi_boxplot <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_boxplot <- function(x, plot = NULL, ...,
 	range = 1.5, notch = FALSE, pars = NULL)
 {
-	invisible(plot_mark_boxplot(mark=x, plot=plot, add=add, ...,
+	invisible(plot_mark_boxplot(mark=x, plot=plot, ...,
 		range=range, notch=notch, pars=pars))
 }
 
 compute_raster <- function(mark, plot = NULL, ...,
 	enhance = FALSE, smooth = FALSE, scale = FALSE,
-	slice = NULL, tol = 1e-6)
+	slice = NULL, tol = 1e-6, asis = FALSE)
 {
 	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
 	x <- encode_var("x", encoding, plot$channels)
 	y <- encode_var("y", encoding, plot$channels)
-	if ( !is2d(plot) )
-		z <- encode_var("z", encoding, plot$channels)
+	z <- encode_var("z", encoding, plot$channels)
 	# encode alpha (allow setting via ...)
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
@@ -645,74 +688,118 @@ compute_raster <- function(mark, plot = NULL, ...,
 	csch <- plot$channels[[cname]]$scheme
 	if ( is.null(csch) )
 		csch <- get_scheme(cname, rc)
-	rc <- encode_scheme(rc, csch, clim)
-	rc <- add_alpha(rc, ra)
-	dim(rc) <- dm
-	# return raster
-	if ( is2d(plot) ) {
-		list(raster=rc, channel=cname,
-			limits=clim, ortho=ortho,
-			i=range(i, na.rm=TRUE),
-			j=range(j, na.rm=TRUE),
-			x=x, y=y)
+	if ( asis ) {
+		if ( is.function(csch) ) {
+			fx <- csch
+			if ( is_discrete(rc) ) {
+				n <- length(clim)
+			} else {
+				n <- 256L
+			}
+			csch <- fx(n)
+		}
+		if ( is_discrete(rc) )
+		{
+			csch <- csch[clim %in% rc]
+			clim <- clim[clim %in% rc]
+			if ( const_color ) {
+				rc <- ra
+			} else {
+				rc <- array(match(rc, clim), dim=dim(rc))
+			}
+		}
+		if ( const_alpha ) {
+			asch <- 1L
+		} else {
+			asch <- seq(0, 1, length.out=256L)
+		}
+		csch <- add_alpha(csch, asch)
 	} else {
-		list(raster=rc, channel=cname,
-			limits=clim, ortho=ortho,
-			i=range(i, na.rm=TRUE),
-			j=range(j, na.rm=TRUE),
-			x=x, y=y, z=z)
+		rc <- encode_scheme(rc, csch, clim)
+		rc <- add_alpha(rc, ra)
+		dim(rc) <- dm
 	}
+	# return raster
+	list(raster=rc, channel=cname,
+		limits=clim, scheme=csch, ortho=ortho,
+		i=range(i, na.rm=TRUE),
+		j=range(j, na.rm=TRUE),
+		x=x, y=y, z=z)
 }
 
 plot_mark_pixels <- function(mark, plot = NULL, ...,
 	enhance = FALSE, smooth = FALSE, scale = FALSE,
-	useRaster = TRUE, add = FALSE)
+	useRaster = TRUE)
 {
 	# compute the image
-	rs <- compute_raster(mark, plot,
+	e <- plot$engine
+	asis <- e$name != "base"
+	asis <- asis && !has_alpha(plot)
+	rs <- compute_raster(mark, plot, asis=asis,
 		enhance=enhance, smooth=smooth, scale=scale, ...)
 	rc <- rs$raster
 	if ( is.null(rc) )
 		return()
-	# flip x axis?
-	if ( par("usr")[1L] > par("usr")[2L] )
-		rc <- rc[nrow(rc):1L,,drop=FALSE]
-	# flip y axis?
-	if ( par("usr")[3L] < par("usr")[4L] )
-		rc <- rc[,ncol(rc):1L,drop=FALSE]
 	# plot the image
-	if ( !add )
-		plot_init(plot)
-	hasRaster <- dev.capabilities("rasterImage")$rasterImage
-	if ( !is2d(plot) || hasRaster != "yes" )
-		useRaster <- FALSE
-	if ( !is.null(mark$params$useRaster) )
-		useRaster <- useRaster && isTRUE(mark$params$useRaster)
-	if ( useRaster ) {
-		# plot raster
-		rc <- t(rc)
-		di <- 0.5 * diff(rs$i) / (dim(rc)[1L] - 1)
-		dj <- 0.5 * diff(rs$j) / (dim(rc)[2L] - 1)
-		rasterImage(as.raster(rc),
-			xleft=rs$i[1L] - di, ybottom=rs$j[1L] - dj,
-			xright=rs$i[2L] + di, ytop=rs$j[2L] + dj,
-			interpolate=FALSE)
-	} else {
-		# plot polygons
-		p <- pix2poly(rs$i, rs$j, dim(rc))
-		if ( !is2d(plot) ) {
-			pmat <- trans3d_get()
-			i <- as.vector(p$x)
-			j <- as.vector(p$y)
-			if ( rs$ortho == "z" ) {
-				p <- trans3d(i, j, rs$z, pmat)
-			} else if ( rs$ortho == "y" ) {
-				p <- trans3d(i, rs$y, j, pmat)
-			} else if ( rs$ortho == "x" ) {
-				p <- trans3d(rs$x, i, j, pmat)
+	if ( e$name == "base" ) {
+		# flip x axis?
+		if ( par("usr")[1L] > par("usr")[2L] )
+			rc <- rc[nrow(rc):1L,,drop=FALSE]
+		# flip y axis?
+		if ( par("usr")[3L] < par("usr")[4L] )
+			rc <- rc[,ncol(rc):1L,drop=FALSE]
+		hasRaster <- dev.capabilities("rasterImage")$rasterImage
+		if ( !is2d(plot) || hasRaster != "yes" )
+			useRaster <- FALSE
+		if ( !is.null(mark$params$useRaster) )
+			useRaster <- useRaster && isTRUE(mark$params$useRaster)
+		if ( useRaster ) {
+			# plot raster
+			rc <- t(rc)
+			di <- 0.5 * diff(rs$i) / (dim(rc)[1L] - 1)
+			dj <- 0.5 * diff(rs$j) / (dim(rc)[2L] - 1)
+			rasterImage(as.raster(rc),
+				xleft=rs$i[1L] - di, ybottom=rs$j[1L] - dj,
+				xright=rs$i[2L] + di, ytop=rs$j[2L] + dj,
+				interpolate=FALSE)
+		} else {
+			# plot polygons
+			p <- pix2poly(rs$i, rs$j, dim(rc))
+			if ( !is2d(plot) ) {
+				pmat <- trans3d_get()
+				i <- as.vector(p$x)
+				j <- as.vector(p$y)
+				if ( rs$ortho == "z" ) {
+					p <- trans3d(i, j, rs$z, pmat)
+				} else if ( rs$ortho == "y" ) {
+					p <- trans3d(i, rs$y, j, pmat)
+				} else if ( rs$ortho == "x" ) {
+					p <- trans3d(rs$x, i, j, pmat)
+				}
 			}
+			polygon(p$x, p$y, col=rc, border=rc)
 		}
-		polygon(p$x, p$y, col=rc, border=rc)
+	} else if ( e$name == "plotly" ) {
+		# plot heatmap
+		if ( !is2d(plot) )
+			stop("'pixels' must be 2d for engine 'plotly'; use 'voxels'")
+		if ( asis ) {
+			x <- seq(rs$i[1L], rs$i[2L], length.out=nrow(rc))
+			y <- seq(rs$j[1L], rs$j[2L], length.out=ncol(rc))
+			e$plotly <- plotly::add_heatmap(e$plotly,
+				x=x, y=y, z=t(rc), colors=rs$scheme)
+		} else {
+			rc <- t(rc[,ncol(rc):1L,drop=FALSE])
+			di <- diff(rs$i) / (ncol(rc) - 1)
+			dj <- diff(rs$j) / (nrow(rc) - 1)
+			rca <- t(col2rgb(rc, alpha=TRUE))
+			rc <- array(rca, dim=c(dim(rc), 4L))
+			e$plotly <- plotly::add_trace(e$plotly,
+				x0=min(rs$i), y0=min(rs$j), dx=di, dy=dj,
+				z=rc, colormodel="rgba256", type="image")
+		}
+	} else {
+		stop("unsupported plot engine: ", sQuote(e$name))
 	}
 	# encode legends
 	plot$channels[[rs$channel]]$limits <- rs$limits
@@ -721,7 +808,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 
 plot_mark_voxels <- function(mark, plot = NULL, ...,
 	enhance = FALSE, smooth = FALSE, scale = FALSE,
-	xslice = NULL, yslice = NULL, zslice = NULL, add = FALSE)
+	xslice = NULL, yslice = NULL, zslice = NULL)
 {
 	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -743,59 +830,86 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 	n <- length(slices)
 	slices <- lapply(seq_len(n), function(k) slices[k])
 	# compute rasters
-	px <- list()
-	py <- list()
-	colors <- list()
-	depths <- list()
-	for ( slice in slices ) {
-		# compute raster slice
-		rs <- compute_raster(mark, plot,
-			enhance=enhance, smooth=smooth, scale=scale,
-			slice=slice, ...)
-		rc <- rs$raster
-		# project raster to 3d polygons
-		p <- pix2poly(rs$i, rs$j, dim(rc))
-		pmat <- trans3d_get()
-		i <- as.vector(p$x)
-		j <- as.vector(p$y)
-		if ( rs$ortho == "z" ) {
-			p <- trans3d(i, j, rs$z, pmat)
-			d <- trans3d_depth(i, j, rs$z, pmat)
-		} else if ( rs$ortho == "y" ) {
-			p <- trans3d(i, rs$y, j, pmat)
-			d <- trans3d_depth(i, rs$y, j, pmat)
-		} else if ( rs$ortho == "x" ) {
-			p <- trans3d(rs$x, i, j, pmat)
-			d <- trans3d_depth(rs$x, i, j, pmat)
+	e <- plot$engine
+	asis <- e$name != "base"
+	rss <- lapply(slices, function(slice) {
+			compute_raster(mark, plot, asis=asis,
+				enhance=enhance, smooth=smooth, scale=scale,
+				slice=slice, ...)
+		})
+	# plot the volumes
+	if ( e$name == "base" ) {
+		px <- list()
+		py <- list()
+		colors <- list()
+		depths <- list()
+		for ( i in seq_along(rss) ) {
+			# get raster slice
+			rs <- rss[[i]]
+			rc <- rs$raster
+			# project raster to 3d polygons
+			p <- pix2poly(rs$i, rs$j, dim(rc))
+			pmat <- trans3d_get()
+			i <- as.vector(p$x)
+			j <- as.vector(p$y)
+			if ( rs$ortho == "z" ) {
+				p <- trans3d(i, j, rs$z, pmat)
+				d <- trans3d_depth(i, j, rs$z, pmat)
+			} else if ( rs$ortho == "y" ) {
+				p <- trans3d(i, rs$y, j, pmat)
+				d <- trans3d_depth(i, rs$y, j, pmat)
+			} else if ( rs$ortho == "x" ) {
+				p <- trans3d(rs$x, i, j, pmat)
+				d <- trans3d_depth(rs$x, i, j, pmat)
+			}
+			# compute polygon depth
+			dim(d) <- c(5L, length(rc))
+			d <- colMeans(d, na.rm=TRUE)
+			# re-structure
+			dim(rc) <- NULL
+			dim(p$x) <- c(5L, length(rc))
+			dim(p$y) <- c(5L, length(rc))
+			# assign polygons to list
+			px <- c(px, list(p$x))
+			py <- c(py, list(p$y))
+			colors <- c(colors, list(rc))
+			depths <- c(depths, list(d))
 		}
-		# compute polygon depth
-		dim(d) <- c(5L, length(rc))
-		d <- colMeans(d, na.rm=TRUE)
-		# re-structure
-		dim(rc) <- NULL
-		dim(p$x) <- c(5L, length(rc))
-		dim(p$y) <- c(5L, length(rc))
-		# assign polygons to list
-		px <- c(px, list(p$x))
-		py <- c(py, list(p$y))
-		colors <- c(colors, list(rc))
-		depths <- c(depths, list(d))
+		# sort polygons by depth
+		px <- do.call(cbind, px)
+		py <- do.call(cbind, py)
+		colors <- do.call(c, colors)
+		depths <- do.call(c, depths)
+		i <- sort.list(depths)
+		px <- px[,i,drop=FALSE]
+		py <- py[,i,drop=FALSE]
+		colors <- colors[i]
+		# plot the polygons
+		polygon(px, py, col=colors, border=colors)
+	} else if ( e$name == "plotly" ) {
+		px <- unlist(lapply(rss, `[[`, "x"))
+		py <- unlist(lapply(rss, `[[`, "y"))
+		pz <- unlist(lapply(rss, `[[`, "z"))
+		pvals <- unlist(lapply(rss, `[[`, "raster"))
+		csch <- rss[[1L]]$scheme
+		n <- length(csch)
+		if ( n > 1L )
+			csch <- Map(list, seq(0, 1, length.out=n), csch)
+		if ( has_alpha(plot) ) {
+			asch <- "max"
+		} else {
+			asch <- "uniform"
+		}
+		e$plotly <- plotly::add_trace(e$plotly,
+			x=px, y=py, z=pz, value=pvals,
+			colorscale=csch[c(1,128,256)], opacityscale=asch,
+			surface=list(count=2 * length(slices)),
+			type="volume")
+	} else {
+		stop("unsupported plot engine: ", sQuote(e$name))
 	}
-	# sort polygons by depth
-	px <- do.call(cbind, px)
-	py <- do.call(cbind, py)
-	colors <- do.call(c, colors)
-	depths <- do.call(c, depths)
-	i <- sort.list(depths)
-	px <- px[,i,drop=FALSE]
-	py <- py[,i,drop=FALSE]
-	colors <- colors[i]
-	# plot the polygons
-	if ( !add )
-		plot_init(plot)
-	polygon(px, py, col=colors, border=colors)
 	# encode legends
-	plot$channels[[rs$channel]]$limits <- rs$limits
+	plot$channels[[rss[[1L]]$channel]]$limits <- rss[[1L]]$limits
 	invisible(encode_legends(plot$channels, list()))
 }
 
@@ -815,19 +929,19 @@ pix2poly <- function(xlim, ylim, dim)
 	list(x=x, y=y)
 }
 
-plot.vizi_pixels <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_pixels <- function(x, plot = NULL, ...,
 	enhance = FALSE, smooth = FALSE, scale = FALSE,
 	useRaster = TRUE)
 {
-	invisible(plot_mark_pixels(mark=x, plot=plot, add=add, ...,
+	invisible(plot_mark_pixels(mark=x, plot=plot, ...,
 		enhance=enhance, smooth=smooth, scale=scale,
 		useRaster=useRaster))
 }
 
-plot.vizi_voxels <- function(x, plot = NULL, add = FALSE, ...,
+plot.vizi_voxels <- function(x, plot = NULL, ...,
 	xslice = NULL, yslice = NULL, zslice = NULL)
 {
-	invisible(plot_mark_voxels(mark=x, plot=plot, add=add, ...,
+	invisible(plot_mark_voxels(mark=x, plot=plot, ...,
 		xslice=xslice, yslice=yslice, zslice=zslice))
 }
 
@@ -1031,9 +1145,9 @@ panel_get <- function(pgrid = NULL, arr.ind = FALSE)
 	}
 }
 
-panel_set <- function(which = -1, pgrid = NULL, new = NULL)
+panel_set <- function(which = -1L, pgrid = NULL, new = NULL)
 {
-	if ( dev.cur() == 1 )
+	if ( dev.cur() == 1L )
 		stop("no graphics device open")
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")

@@ -16,6 +16,7 @@
 		matter.vizi.par = par_style_new(),
 		matter.vizi.panelgrid = NULL,
 		matter.vizi.trans3d = NULL,
+		matter.vizi.engine = "base",
 		matter.vizi.style = "light",
 		matter.vizi.dpal = "Tableau 10",
 		matter.vizi.cpal = "Viridis")

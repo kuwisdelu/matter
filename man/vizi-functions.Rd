@@ -89,7 +89,7 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
 
     \item{xlim, ylim, zlim}{The plot limits. These only affect the plotting window, not the data. See \code{\link[graphics]{plot.window}}}
 
-    \item{rev}{A string specifying spatial dimensions that should be reversed. E.g., \code{""}, \code{"x"}, \code{"y"}, \code{"xy"}, \code{"yx"}.}
+    \item{rev}{A string specifying spatial dimensions that should be reversed. E.g., \code{""}, \code{"x"}, \code{"y"}, or \code{"xy"}.}
 
     \item{log, asp}{See \code{\link[graphics]{plot.window}}.}
 
@@ -107,7 +107,7 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
 
     \item{drop}{Should empty facets be dropped?}
 
-    \item{free}{A string specifying the free spatial dimensions during faceting. E.g., \code{""}, \code{"x"}, \code{"y"}, \code{"xy"}, \code{"yx"}.}
+    \item{free}{A string specifying the free spatial dimensions during faceting. E.g., \code{""}, \code{"x"}, \code{"y"}, or \code{"xy"}.}
 }
 
 \details{
