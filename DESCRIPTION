@@ -1,11 +1,11 @@
 Package: matter
 Type: Package
-Title: Out-of-memory dense and sparse signal arrays
+Title: Scientific computing for out-of-memory signals and images
 Version: 2.5.17
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
-Description: Memory-efficient file-based data structures for dense and sparse vectors, matrices, arrays, and lists with applications to nonuniformly sampled signals and spectra.
+Description: Toolbox for out-of-memory scientific computing and data visualization, providing memory-efficient file-based data structures for dense and sparse vectors, matrices, and arrays with applications to nonuniformly sampled signals and images.
 License: Artistic-2.0
 Depends: R (>= 4.0), BiocParallel, Matrix, methods
 Imports: BiocGenerics, ProtGenerics, digest, irlba,

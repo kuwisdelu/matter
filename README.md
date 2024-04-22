@@ -1,14 +1,14 @@
 # matter
 
-Out-of-memory dense and sparse signal arrays
+Scientific computing for out-of-memory signals and images
 
-Memory-efficient file-based data structures for dense and sparse vectors, matrices, arrays, and lists with applications to nonuniformly sampled signals and spectra.
+Toolbox for out-of-memory scientific computing and data visualization, providing memory-efficient file-based data structures for dense and sparse vectors, matrices, and arrays with applications to nonuniformly sampled signals and images.
 
 ## Description
 
-The *Matter* package provides flexible data structures for out-of-memory computing on dense and sparse arrays, with several features designed specifically for computing on nonuniform signals such as mass spectra and other spectral data.
+The *Matter* package provides flexible data structures for out-of-memory computing on dense and sparse arrays, with specialized features designed specifically for computing on nonuniform signals such as mass spectra and other spectral data, as well as hyperspectral images.
 
-*Matter 2* has been updated to provide a more robust C++ backend to out-of-memory `matter` objects, along with a completely new implementation of sparse arrays and new signal processing functions for nonuniform sparse signal data.
+*Matter 2* has been updated to provide a more robust C++ backend to out-of-memory `matter` objects, along with a completely new implementation of sparse arrays. Tools for signal processing, dimension reduction, and data visualization are also provided.
 
 ## Installation
 

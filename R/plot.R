@@ -314,7 +314,7 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params, subscripts=i)
-	p$color <- I(add_alpha(p$color, p$alpha))
+	p$color <- add_alpha(p$color, p$alpha)
 	# make the plot
 	e <- plot$engine
 	if ( e$name == "base" ) {
@@ -325,11 +325,11 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 			p$size <- 15 * p$size
 		e$plotly <- switch(type,
 			p=plotly::add_markers(e$plotly, x=x, y=y, z=z,
-				color=p$color, size=p$size, symbol=p$shape),
+				color=I(p$color), size=I(p$size), symbol=I(p$shape)),
 			l=plotly::add_lines(e$plotly, x=x, y=y, z=z,
-				color=p$color, linetype=p$linetype),
+				color=I(p$color), linetype=I(p$linetype)),
 			h=plotly::add_segments(e$plotly, x=x, y=y,
-				xend=x, yend=0, color=p$color))
+				xend=x, yend=0, color=I(p$color)))
 	} else {
 		stop("unsupported plot engine: ", sQuote(e$name))
 	}
@@ -402,7 +402,7 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params, subscripts=i)
-	p$color <- I(add_alpha(p$color, p$alpha))
+	p$color <- add_alpha(p$color, p$alpha)
 	# make the plot
 	e <- plot$engine
 	if ( e$name == "base" ) {
@@ -412,7 +412,7 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 		if ( !is.null(p$size) )
 			p$size <- 15 * p$size
 		e$plotly <- plotly::add_text(e$plotly, x=x, y=y, z=z,
-			text=text, color=p$color, size=p$size)
+			text=text, color=I(p$color), size=I(p$size))
 	} else {
 		stop("unsupported plot engine: ", sQuote(e$name))
 	}
@@ -425,6 +425,90 @@ plot.vizi_text <- function(x, plot = NULL, ...,
 {
 	invisible(plot_mark_text(x, plot=plot, ...,
 		adj=adj, pos=pos, offset=offset))
+}
+
+plot_mark_bars <- function(mark, plot = NULL, ...,
+	width = 1, dodge = TRUE)
+{
+	# encode position channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	if ( length(x) == 0L || length(y) == 0L )
+		return()
+	# get parameters
+	if ( !is.null(mark$params$width) )
+		width <- mark$params$width
+	if ( !is.null(mark$params$dodge) )
+		dodge <- mark$params$dodge
+	# encode non-required channels
+	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
+	params <- normalize_encoding(params)
+	p <- c("color", "fill", "alpha", "linewidth")
+	p <- setNames(p, p)
+	p <- lapply(p, encode_var, encoding=encoding,
+		channels=plot$channels, params=params)
+	p$color <- add_alpha(p$color, p$alpha)
+	p$fill <- add_alpha(p$fill, p$alpha)
+	# make the plot
+	e <- plot$engine
+	if ( e$name == "base" ) {
+		if ( is_discrete(x) && is_discrete(y) ) {
+			stop("one of 'x' or 'y' must be numeric")
+		} else if ( is_discrete(x) ) {
+			centers <- match(x, plot$channels$x$limits)
+			heights <- y
+			bars <- function(sides, heights, ...)
+			{
+				rect(sides[,1L], heights[,1L], sides[,2L], heights[,2L], ...)
+			}
+		} else if ( is_discrete(y) ) {
+			centers <- match(y, plot$channels$y$limits)
+			heights <- x
+			bars <- function(sides, heights, ...)
+			{
+				rect(heights[,1L], sides[,1L], heights[,2L], sides[,2L], ...)
+			}
+		} else {
+			stop("one of 'x' or 'y' must be discrete")
+		}
+		left <- centers - 0.5 * width
+		right <- centers + 0.5 * width
+		floors <- rep.int(0, length(centers))
+		if ( anyDuplicated(centers) ) {
+			if ( dodge ) {
+				for ( uc in unique(centers) ) {
+					i <- which(centers %in% uc)
+					n <- length(i) + 1L
+					udodge <- seq(left[i][1L], right[i][1L], length.out=n)
+					left[i] <- udodge[-length(udodge)]
+					right[i] <- udodge[-1L]
+				}
+			} else {
+				for ( uc in unique(centers) ) {
+					i <- which(centers %in% uc)
+					ustack <- cumsum(c(0, heights[i]))
+					floors[i] <- ustack[seq_along(i)]
+				}
+			}
+		}
+		bars(cbind(left, right), cbind(floors, heights), col=p$fill, bg=p$color)
+	} else if ( e$name == "plotly" ) {
+		e$plotly <- plotly::add_bars(e$plotly, x=x, y=y,
+			marker=list(line=list(color=I(p$color), width=p$linewidth)),
+			color=I(p$fill), width=width)
+	} else {
+		stop("unsupported plot engine: ", sQuote(e$name))
+	}
+	# encode legends
+	invisible(encode_legends(plot$channels, list()))
+}
+
+plot.vizi_bars <- function(x, plot = NULL, ...,
+	width = 1, space = NULL, beside = FALSE)
+{
+	invisible(plot_mark_bars(mark=x, plot=plot, ...,
+		width=width, space=space, beside=beside))
 }
 
 plot_mark_intervals <- function(mark, plot = NULL, ...,
@@ -459,7 +543,7 @@ plot_mark_intervals <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
-	p$color <- I(add_alpha(p$color, p$alpha))
+	p$color <- add_alpha(p$color, p$alpha)
 	# make the plot
 	e <- plot$engine
 	if ( e$name == "base" ) {
@@ -472,10 +556,10 @@ plot_mark_intervals <- function(mark, plot = NULL, ...,
 	} else if ( e$name == "plotly" ) {
 		if ( !is.null(xmin) && !is.null(xmax) )
 			e$plotly <- plotly::add_segments(e$plotly,
-				x=xmin, xend=xmax, y=y, yend=y, color=p$color)
+				x=xmin, xend=xmax, y=y, yend=y, color=I(p$color))
 		if ( !is.null(ymin) && !is.null(ymax) )
 			e$plotly <- plotly::add_segments(e$plotly,
-				x=x, xend=x, y=ymin, yend=ymax, color=p$color)
+				x=x, xend=x, y=ymin, yend=ymax, color=I(p$color))
 	} else {
 		stop("unsupported plot engine: ", sQuote(e$name))
 	}
@@ -516,8 +600,8 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 	p <- setNames(p, p)
 	p <- lapply(p, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
-	p$color <- I(add_alpha(p$color, p$alpha))
-	p$fill <- I(add_alpha(p$fill, p$alpha))
+	p$color <- add_alpha(p$color, p$alpha)
+	p$fill <- add_alpha(p$fill, p$alpha)
 	# make the plot
 	e <- plot$engine
 	if ( e$name == "base" ) {
@@ -546,7 +630,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 			horizontal=horiz, axes=FALSE, add=TRUE)
 	} else if ( e$name == "plotly" ) {
 		e$plotly <- plotly::add_boxplot(e$plotly, x=x, y=y,
-			color=p$color, notched=notch)
+			color=I(p$color), notched=notch)
 	} else {
 		stop("unsupported plot engine: ", sQuote(e$name))
 	}
@@ -902,9 +986,8 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 		}
 		e$plotly <- plotly::add_trace(e$plotly,
 			x=px, y=py, z=pz, value=pvals,
-			colorscale=csch[c(1,128,256)], opacityscale=asch,
-			surface=list(count=2 * length(slices)),
-			type="volume")
+			surface=list(count=2L * length(slices)),
+			colorscale=csch, opacityscale=asch, type="volume")
 	} else {
 		stop("unsupported plot engine: ", sQuote(e$name))
 	}
@@ -949,6 +1032,7 @@ setOldClass("vizi_points")
 setOldClass("vizi_lines")
 setOldClass("vizi_peaks")
 setOldClass("vizi_text")
+setOldClass("vizi_bars")
 setOldClass("vizi_intervals")
 setOldClass("vizi_boxplot")
 setOldClass("vizi_pixels")
@@ -958,6 +1042,7 @@ setMethod("plot", "vizi_points", plot.vizi_points)
 setMethod("plot", "vizi_lines", plot.vizi_lines)
 setMethod("plot", "vizi_peaks", plot.vizi_peaks)
 setMethod("plot", "vizi_text", plot.vizi_text)
+setMethod("plot", "vizi_bars", plot.vizi_bars)
 setMethod("plot", "vizi_intervals", plot.vizi_intervals)
 setMethod("plot", "vizi_boxplot", plot.vizi_boxplot)
 setMethod("plot", "vizi_pixels", plot.vizi_pixels)

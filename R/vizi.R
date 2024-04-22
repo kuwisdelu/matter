@@ -286,6 +286,10 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 		args$xlim <- plot$channels$x$limits
 	if ( is.null(args$ylim) )
 		args$ylim <- plot$channels$y$limits
+	if ( has_floored_x(plot, args$xlim) )
+		args$xlim <- floor_limits(args$xlim, 0)
+	if ( has_floored_y(plot, args$ylim) )
+		args$ylim <- floor_limits(args$ylim, 0)
 	if ( is_discrete(args$xlim) )
 		args$xlim <- c(0.5, length(args$xlim) + 0.5)
 	if ( is_discrete(args$ylim) )
@@ -885,6 +889,16 @@ has_free_y <- function(plot)
 	isTRUE(plot$free %in% c("y", "xy", "yx"))
 }
 
+has_floored_x <- function(plot, x)
+{
+	!is_discrete(x) && any(c("peaks", "bars") %in% names(plot$marks))
+}
+
+has_floored_y <- function(plot, y)
+{
+	!is_discrete(y) && any(c("peaks", "bars") %in% names(plot$marks))
+}
+
 get_dim <- function(n, dim, nrow = NA, ncol = NA)
 {
 	if ( missing(dim) )
@@ -954,8 +968,6 @@ encode_var <- function(name, encoding = NULL,
 			e <- e[subscripts]
 		}
 	}
-	if ( !is.null(e) )
-		e <- I(e)
 	e
 }
 
@@ -988,6 +1000,15 @@ get_limits <- function(x)
 	} else {
 		range(x, na.rm=TRUE)
 	}
+}
+
+floor_limits <- function(limits, include = 0)
+{
+	if ( max(limits) < include )
+		limits[which.max(limits)] <- include
+	if ( min(limits) > include )
+		limits[which.min(limits)] <- include
+	limits
 }
 
 encode_limits <- function(x, limits)
