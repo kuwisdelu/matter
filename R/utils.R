@@ -166,6 +166,17 @@ array_ind <- function(i, dim, rowMaj = FALSE) {
 	index + 1L
 }
 
+subset_list <- function(x, i) {
+	f <- function(y) {
+		if ( length(y) > 1L ) {
+			y[i]
+		} else {
+			y
+		}
+	}
+	lapply(x, f)
+}
+
 #### Data type codes and type conversions ####
 ## ---------------------------------------------
 
@@ -385,6 +396,14 @@ as_real_memory_matrix <- function(x) {
 	} else {
 		warning("coercing input to a local matrix")
 		as.matrix(x)
+	}
+}
+
+I <- function(x) {
+	if ( is.null(x) ) {
+		NULL
+	} else {
+		base::I(x)
 	}
 }
 

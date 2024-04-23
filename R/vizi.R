@@ -290,6 +290,28 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 		args$xlim <- floor_limits(args$xlim, 0)
 	if ( has_floored_y(plot, args$ylim) )
 		args$ylim <- floor_limits(args$ylim, 0)
+	# check plotting engine
+	e <- plot$engine
+	if ( e$name == "plotly" )
+	{
+		xlab <- plot$channels$x$label
+		ylab <- plot$channels$y$label
+		if ( is_discrete(args$xlim) ) {
+			xlim <- NULL
+		} else {
+			xlim <- args$xlim + 0.01 * c(-1, 1) * diff(range(args$xlim))
+		}
+		if ( is_discrete(args$ylim) ) {
+			ylim <- NULL
+		} else {
+			ylim <- args$ylim + 0.01 * c(-1, 1) * diff(range(args$ylim))
+		}
+		e$plotly <- plotly::layout(e$plotly,
+			xaxis=list(range=xlim, title=list(text=xlab)),
+			yaxis=list(range=ylim, title=list(text=ylab)))
+		return()
+	}
+	# convert discrete axes
 	if ( is_discrete(args$xlim) )
 		args$xlim <- c(0.5, length(args$xlim) + 0.5)
 	if ( is_discrete(args$ylim) )
@@ -408,16 +430,19 @@ setMethod("preplot", "vizi_facets", preplot.vizi_facets)
 plot.vizi_plot <- function(x, add = FALSE, ...,
 	engine = getOption("matter.vizi.engine"))
 {
-	if ( is.null(x$engine) )
+	if ( is.null(x$engine) || !add )
 	{
 		x$engine <- new.env()
 		x$engine$name <- engine
 	}
-	if ( engine == "plotly" ) {
+	if ( x$engine$name == "plotly" ) {
 		if ( !requireNamespace("plotly") )
 			stop("failed to load required package 'plotly'")
 		if ( is.null(x$engine$plotly) )
+		{
 			x$engine$plotly <- plotly::plot_ly()
+			plot_init(x, more=x$params)
+		}
 		newpage <- FALSE
 	} else {
 		newpage <- !add
@@ -462,7 +487,7 @@ plot.vizi_plot <- function(x, add = FALSE, ...,
 plot.vizi_facets <- function(x, add = FALSE, ...,
 	engine = getOption("matter.vizi.engine"))
 {
-	if ( is.null(x$engine) )
+	if ( is.null(x$engine) || !add )
 	{
 		x$engine <- new.env()
 		x$engine$name <- engine
@@ -872,6 +897,22 @@ compute_facets <- function(plot, by, nshingles = 6L)
 	list(plots=plots, channels=plot$channels, coord=plot$coord,
 		params=plot$params, subscripts=subscripts, labels=labels,
 		dim=dim)
+}
+
+compute_groups <- function(plot, encoding, required)
+{
+	groups <- encoding[setdiff(names(encoding), required)]
+	names <- names(groups)[!duplicated(groups)]
+	names <- setNames(names, names)
+	groups <- lapply(plot$channels[names],
+		function(ch) {
+			if ( is_discrete(ch$limits) ) {
+				ch$limits
+			} else {
+				NULL
+			}
+		})
+	expand.grid(groups[non_null(groups)])
 }
 
 has_alpha <- function(plot)
