@@ -567,8 +567,15 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 			mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
 		}
 		# plot facets
+		if ( x$engine$name == "plotly" )
+		{
+			x$engine$plotly <- plotly::plot_ly()
+			plot_init(x, more=x$params)
+		}
 		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
-		if ( x$engine$name == "plotly" ) {
+		# add annotations
+		if ( x$engine$name == "plotly" )
+		{
 			x$engine$plotly <- plotly::add_annotations(x$engine$plotly,
 				x=0.5, y=1, xanchor="center", yanchor="top",
 				xref="paper", yref="paper", showarrow=FALSE,
