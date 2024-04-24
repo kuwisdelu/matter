@@ -300,6 +300,10 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 	e <- plot$engine
 	if ( e$name == "plotly" )
 	{
+		# initialize plotly
+		if ( is.null(e$plotly) )
+			plot$engine$plotly <- plotly::plot_ly()
+		# setup axes
 		xlab <- plot$channels$x$label
 		ylab <- plot$channels$y$label
 		if ( is_discrete(args$xlim) ) {
@@ -461,23 +465,20 @@ plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 		x$engine <- new.env()
 		x$engine$name <- name
 	}
-	if ( x$engine$name == "plotly" ) {
-		if ( !requireNamespace("plotly") )
-			stop("failed to load required package 'plotly'")
-		if ( is.null(x$engine$plotly) )
-		{
-			x$engine$plotly <- plotly::plot_ly()
-			plot_init(x, more=x$params)
-		}
-		newpage <- FALSE
-	} else {
-		newpage <- !add
-	}
-	if ( newpage ) {
+	# setup plot
+	if ( x$engine$name == "base" && !add )
+	{
 		dev.hold()
 		on.exit(dev.flush())
 		preplot(x)
 		box()
+	}
+	if ( x$engine$name == "plotly" )
+	{
+		if ( !requireNamespace("plotly") )
+			stop("failed to load required package 'plotly'")
+		if ( !add )
+			plot_init(x, more=x$params)
 	}
 	# plot marks
 	keys <- list()
@@ -486,32 +487,37 @@ plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 		mark <- x$marks[[i]]
 		keys[[i]] <- plot(mark, plot=x, ...)
 	}
+	# add annotations
 	keys <- merge_legends(keys)
-	if ( newpage ) {
-		# add figure titles
-		if ( is2d(x) ) {
-			title(xlab=x$channels$x$label, outer=TRUE)
-			title(ylab=x$channels$y$label, outer=TRUE)
+	if ( !add )
+	{
+		if ( x$engine$name == "base" )
+		{
+			# add figure titles
+			if ( is2d(x) ) {
+				title(xlab=x$channels$x$label, outer=TRUE)
+				title(ylab=x$channels$y$label, outer=TRUE)
+			}
+			if ( !is.null(x$title) )
+				title(main=x$title, outer=TRUE)
+			# add legends
+			if ( length(keys) > 0L ) {
+				p <- panel_side("right", split=length(keys), p=c(1, 1))
+				for (key in keys)
+					plot(key, cex=p$cex)
+				panel_restore(p)
+			}
+			panel_set(new=FALSE)
 		}
-		if ( !is.null(x$title) )
-			title(main=x$title, outer=TRUE)
-		# add legends
-		if ( length(keys) > 0L ) {
-			p <- panel_side("right", split=length(keys), p=c(1, 1))
-			for (key in keys)
-				plot(key, cex=p$cex)
-			panel_restore(p)
+		if ( x$engine$name == "plotly" )
+		{
+			if ( !is.null(x$title) )
+				x$engine$plotly <- plotly::layout(x$engine$plotly,
+					title=list(text=x$title))
+			print(x$engine$plotly)
 		}
-		panel_set(new=FALSE)
 	}
 	x$keys <- keys
-	if ( x$engine$name == "plotly" && !add )
-	{
-		if ( !is.null(x$title) )
-			x$engine$plotly <- plotly::layout(x$engine$plotly,
-				title=list(text=x$title))
-		print(x$engine$plotly)
-	}
 	invisible(x)
 }
 
@@ -527,23 +533,25 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 		x$engine <- new.env()
 		x$engine$name <- name
 	}
+	# setup facets
 	n <- length(x$plots)
-	if ( x$engine$name == "plotly" ) {
+	if ( x$engine$name == "base" )
+	{
+		if ( !add ) {
+			dev.hold()
+			on.exit(dev.flush())
+			preplot(x)
+		} else {
+			panel_set(1)
+		}
+	}
+	if ( x$engine$name == "plotly" )
+	{
 		if ( !requireNamespace("plotly") )
 			stop("failed to load required package 'plotly'")
 		if ( is.null(x$engine$facets) )
 			x$engine$facets <- vector("list", length=n)
-		newpage <- FALSE
-	} else {
-		newpage <- !add
 	}
-	if ( newpage ) {
-		dev.hold()
-		on.exit(dev.flush())
-		preplot(x)
-	}
-	if ( x$engine$name == "base" && add )
-		panel_set(1)
 	keys <- list()
 	# loop through facets
 	for ( i in seq_len(n) )
@@ -552,7 +560,7 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 		plot$channels <- x$channels
 		plot$params <- x$params
 		plot$engine <- x$engine
-		if ( newpage )
+		if ( !add )
 		{
 			# initialize plot
 			xlim <- x$coord$xlim
@@ -572,59 +580,62 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 				}
 			}
 			plot_init(x, xlim=xlim, ylim=ylim, more=x$params, n=n)
-			mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
-		}
-		# plot facets
-		if ( x$engine$name == "plotly" )
-		{
-			x$engine$plotly <- plotly::plot_ly()
-			plot_init(x, more=x$params)
 		}
 		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
-		# add annotations
-		if ( x$engine$name == "plotly" )
+		# add facet annotations
+		if ( !add )
 		{
-			x$engine$plotly <- plotly::add_annotations(x$engine$plotly,
-				x=0.5, y=1, xanchor="center", yanchor="top",
-				xref="paper", yref="paper", showarrow=FALSE,
-				text=x$labels[i])
-			x$engine$facets[[i]] <- plot$engine$plotly
-			x$engine$plotly <- NULL
+			if ( x$engine$name == "base" )
+				mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
+			if ( x$engine$name == "plotly" )
+			{
+				x$engine$plotly <- plotly::add_annotations(x$engine$plotly,
+					x=0.5, y=1, xanchor="center", yanchor="top",
+					xref="paper", yref="paper", showarrow=FALSE,
+					text=x$labels[i])
+				x$engine$facets[[i]] <- plot$engine$plotly
+				x$engine$plotly <- NULL
+			}
 		}
 		if ( x$engine$name == "base" && add )
 			panel_next()
 	}
+	# add figure annotations
 	keys <- merge_legends(keys)
-	if ( newpage ) {
-		# add figure titles
-		if ( is2d(plot) ) {
-			xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
-			ylab_offset <- ifelse(has_free_y(x), 0.5, 1.5)
-			title(xlab=x$channels$x$label,
-				line=xlab_offset, outer=TRUE)
-			title(ylab=x$channels$y$label,
-				line=ylab_offset, outer=TRUE)
+	if ( !add )
+	{
+		if ( x$engine$name == "base" )
+		{
+			# add figure titles
+			if ( is2d(plot) ) {
+				xlab_offset <- ifelse(has_free_x(x), 0.5, 1.5)
+				ylab_offset <- ifelse(has_free_y(x), 0.5, 1.5)
+				title(xlab=x$channels$x$label,
+					line=xlab_offset, outer=TRUE)
+				title(ylab=x$channels$y$label,
+					line=ylab_offset, outer=TRUE)
+			}
+			if ( !is.null(x$title) )
+				title(main=x$title, outer=TRUE)
+			# add legends
+			if ( length(keys) > 0L ) {
+				p <- panel_side("right", split=length(keys), p=c(1, 1))
+				for (key in keys)
+					plot(key, cex=p$cex)
+				panel_restore(p)
+			}
+			panel_set(new=FALSE)
 		}
-		if ( !is.null(x$title) )
-			title(main=x$title, outer=TRUE)
-		# add legends
-		if ( length(keys) > 0L ) {
-			p <- panel_side("right", split=length(keys), p=c(1, 1))
-			for (key in keys)
-				plot(key, cex=p$cex)
-			panel_restore(p)
+		if ( x$engine$name == "plotly" )
+		{
+			if ( !is.null(x$title) )
+				x$engine$plotly <- plotly::layout(x$engine$plotly,
+					title=list(text=x$title))
+			print(plotly::subplot(x$engine$facets, nrows=x$dim[1L],
+				shareX=!has_free_x(x), shareY=!has_free_y(x)))
 		}
-		panel_set(new=FALSE)
 	}
 	x$keys <- keys
-	if ( x$engine$name == "plotly" && !add )
-	{
-		if ( !is.null(x$title) )
-			x$engine$plotly <- plotly::layout(x$engine$plotly,
-				title=list(text=x$title))
-		print(plotly::subplot(x$engine$facets, nrows=x$dim[1L],
-			shareX=!has_free_x(x), shareY=!has_free_y(x)))
-	}
 	invisible(x)
 }
 
