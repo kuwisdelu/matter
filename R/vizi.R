@@ -320,6 +320,14 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 			if ( plot$coord$rev %in% c("y", "xy", "yx") )
 				ylim <- rev(ylim)
 		}
+		# check aspect ratio
+		if ( !is.na(plot$coord$asp) )
+		{
+			ratio <- plot$coord$asp
+			e$plotly <- plotly::layout(e$plotly,
+				yaxis=list(scaleanchor="x", scaleratio=ratio))
+		}
+		# initialize axes
 		e$plotly <- plotly::layout(e$plotly,
 			xaxis=list(range=xlim, title=list(text=xlab)),
 			yaxis=list(range=ylim, title=list(text=ylab)))
