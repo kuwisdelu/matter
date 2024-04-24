@@ -10,9 +10,6 @@
 \alias{set_engine}
 \alias{as_facets}
 
-\alias{vizi_par}
-\alias{vizi_style}
-
 \alias{preplot,vizi_plot-method}
 \alias{preplot,vizi_facets-method}
 

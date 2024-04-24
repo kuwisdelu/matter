@@ -1,10 +1,11 @@
 
-CHANGES IN VERSION 2.5.18 [2024-4-23]
+CHANGES IN VERSION 2.5.18 [2024-4-24]
 ------------------------------------
 
 NEW FEATURES
 
     o Add support for optional 'plotly' graphics output
+    o Add 'vizi_engine()' for setting the plotting engine
 
 CHANGES IN VERSION 2.5.17 [2024-4-19]
 ------------------------------------

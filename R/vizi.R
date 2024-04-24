@@ -710,12 +710,13 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 	params
 }
 
-vizi_style <- function(style = getOption("matter.vizi.style"),
-	dpal = "Tableau 10", cpal = "Viridis", ...)
+vizi_style <- function(style = "light", dpal = "Tableau 10", cpal = "Viridis")
 {
 	if ( !missing(style) ) {
 		style <- match.arg(style, c("light", "dark", "transparent"))
 		options(matter.vizi.style=style)
+	} else {
+		style <- getOption("matter.vizi.style")
 	}
 	if ( !missing(dpal) ) {
 		tryCatch(dpal(dpal)(1L), error=function(e)
@@ -736,6 +737,21 @@ vizi_style <- function(style = getOption("matter.vizi.style"),
 		invisible(style)
 	} else {
 		style
+	}
+}
+
+vizi_engine <- function(engine = c("base", "plotly"))
+{
+	if ( !missing(engine) ) {
+		engine <- match.arg(engine)
+		options(matter.vizi.engine=engine)
+	} else {
+		engine <- getOption("matter.vizi.engine")
+	}
+	if ( nargs() > 0L ) {
+		invisible(engine)
+	} else {
+		engine
 	}
 }
 
