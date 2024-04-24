@@ -960,12 +960,12 @@ has_free_y <- function(plot)
 
 has_floored_x <- function(plot, x)
 {
-	!is_discrete(x) && any(c("peaks", "bars") %in% names(plot$marks))
+	!is_discrete(x) && any(c("bars") %in% names(plot$marks))
 }
 
 has_floored_y <- function(plot, y)
 {
-	!is_discrete(y) && any(c("peaks", "bars") %in% names(plot$marks))
+	!is_discrete(y) && any(c("bars", "peaks") %in% names(plot$marks))
 }
 
 get_dim <- function(n, dim, nrow = NA, ncol = NA)
