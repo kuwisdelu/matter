@@ -13,14 +13,14 @@
 plot_signal(x, y, by = names(y), group = NULL,
     xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
     xlab = NULL, ylab = NULL, layout = NULL, free = "",
-    n = Inf, downsampler = "lttb", key = TRUE,
-    grid = TRUE, isPeaks = FALSE, annPeaks = 0, \dots)
+    n = Inf, downsampler = "lttb", key = TRUE, grid = TRUE,
+    isPeaks = FALSE, annPeaks = 0, engine = NULL, \dots)
 
 plot_image(x, y, vals, by = names(vals), group = NULL,
     zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
     zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
     enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
-    grid = TRUE, asp = 1, useRaster = TRUE, \dots)
+    grid = TRUE, asp = 1, useRaster = TRUE, engine = NULL, \dots)
 }
 
 \arguments{
@@ -51,6 +51,8 @@ plot_image(x, y, vals, by = names(vals), group = NULL,
     \item{isPeaks}{Whether the signal should be plotted as peaks or as a continuous signal.}
 
     \item{annPeaks}{If \code{isPeaks} is \code{TRUE}, either an integer giving the number of peaks to annotate (i.e., label with their \code{x}-value), or a plotting symbol (e.g., "circle", "cross", etc.) to indicate the peak locations.}
+
+    \item{engine}{The plotting engine. Default is to use base graphics. Using "plotly" requires the \code{plotly} package to be installed.}
 
     \item{\dots}{Additional graphical parameters (as in \code{\link[graphics]{par}}) or arguments to the \code{\link{vizi}} plotting method.}
 

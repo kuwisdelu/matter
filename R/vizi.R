@@ -240,6 +240,12 @@ set_par <- function(plot, ..., style = NULL)
 	plot
 }
 
+set_engine <- function(plot, engine = c("base", "plotly"))
+{
+	plot$engine <- match.arg(engine)
+	plot
+}
+
 # register for S4 methods
 
 setOldClass("vizi_plot")
@@ -427,13 +433,17 @@ setMethod("preplot", "vizi_facets", preplot.vizi_facets)
 
 # plot methods
 
-plot.vizi_plot <- function(x, add = FALSE, ...,
-	engine = getOption("matter.vizi.engine"))
+plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 {
-	if ( is.null(x$engine) || !add )
+	if ( !is.null(engine) )
+		x$engine <- engine
+	if ( is.null(x$engine) )
+		x$engine <- getOption("matter.vizi.engine")
+	if ( is.character(x$engine) || !add )
 	{
+		name <- x$engine
 		x$engine <- new.env()
-		x$engine$name <- engine
+		x$engine$name <- name
 	}
 	if ( x$engine$name == "plotly" ) {
 		if ( !requireNamespace("plotly") )
@@ -479,21 +489,30 @@ plot.vizi_plot <- function(x, add = FALSE, ...,
 		panel_set(new=FALSE)
 	}
 	x$keys <- keys
-	if ( engine == "plotly" && !add )
+	if ( x$engine$name == "plotly" && !add )
+	{
+		if ( !is.null(x$title) )
+			x$engine$plotly <- plotly::layout(x$engine$plotly,
+				title=list(text=x$title))
 		print(x$engine$plotly)
+	}
 	invisible(x)
 }
 
-plot.vizi_facets <- function(x, add = FALSE, ...,
-	engine = getOption("matter.vizi.engine"))
+plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 {
-	if ( is.null(x$engine) || !add )
+	if ( !is.null(engine) )
+		x$engine <- engine
+	if ( is.null(x$engine) )
+		x$engine <- getOption("matter.vizi.engine")
+	if ( is.character(x$engine) || !add )
 	{
+		name <- x$engine
 		x$engine <- new.env()
-		x$engine$name <- engine
+		x$engine$name <- name
 	}
 	n <- length(x$plots)
-	if ( engine == "plotly" ) {
+	if ( x$engine$name == "plotly" ) {
 		if ( !requireNamespace("plotly") )
 			stop("failed to load required package 'plotly'")
 		if ( is.null(x$engine$facets) )
@@ -507,7 +526,7 @@ plot.vizi_facets <- function(x, add = FALSE, ...,
 		on.exit(dev.flush())
 		preplot(x)
 	}
-	if ( engine == "base" && add )
+	if ( x$engine$name == "base" && add )
 		panel_set(1)
 	keys <- list()
 	# loop through facets
@@ -541,11 +560,15 @@ plot.vizi_facets <- function(x, add = FALSE, ...,
 		}
 		# plot facets
 		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
-		if ( engine == "plotly" ) {
+		if ( x$engine$name == "plotly" ) {
+			x$engine$plotly <- plotly::add_annotations(x$engine$plotly,
+				x=0.5, y=1, xanchor="center", yanchor="top",
+				xref="paper", yref="paper", showarrow=FALSE,
+				text=x$labels[i])
 			x$engine$facets[[i]] <- plot$engine$plotly
 			x$engine$plotly <- NULL
 		}
-		if ( engine == "base" && add )
+		if ( x$engine$name == "base" && add )
 			panel_next()
 	}
 	keys <- merge_legends(keys)
@@ -571,9 +594,14 @@ plot.vizi_facets <- function(x, add = FALSE, ...,
 		panel_set(new=FALSE)
 	}
 	x$keys <- keys
-	if ( engine == "plotly" && !add )
+	if ( x$engine$name == "plotly" && !add )
+	{
+		if ( !is.null(x$title) )
+			x$engine$plotly <- plotly::layout(x$engine$plotly,
+				title=list(text=x$title))
 		print(plotly::subplot(x$engine$facets, nrows=x$dim[1L],
 			shareX=!has_free_x(x), shareY=!has_free_y(x)))
+	}
 	invisible(x)
 }
 

@@ -5,8 +5,8 @@
 plot_signal <- function(x, y, by = names(y), group = NULL,
 	xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
 	xlab = NULL, ylab = NULL, layout = NULL, free = "",
-	n = Inf, downsampler = "lttb", key = TRUE,
-	grid = TRUE, isPeaks = FALSE, annPeaks = 0, ...)
+	n = Inf, downsampler = "lttb", key = TRUE, grid = TRUE,
+	isPeaks = FALSE, annPeaks = 0, engine = NULL, ...)
 {
 	if ( is.array(x) ) {
 		if ( length(dim(x)) > 2L )
@@ -119,6 +119,8 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 	} else {
 		plot <- set_par(plot, col=col)
 	}
+	if ( !is.null(engine) )
+		plot <- set_engine(plot, engine)
 	plot <- set_par(plot, ...)
 	plot
 }
@@ -131,7 +133,7 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
 	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
-	grid = TRUE, asp = 1, useRaster = TRUE, ...)
+	grid = TRUE, asp = 1, useRaster = TRUE, engine = NULL, ...)
 {
 	if ( is.array(x) || (missing(vals) && is.list(x) && is.matrix(x[[1L]])) )
 	{
@@ -216,6 +218,8 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
 		plot <- set_channel(plot, "alpha", limits=zlim, key=FALSE)
 	}
+	if ( !is.null(engine) )
+		plot <- set_engine(plot, engine)
 	plot <- set_par(plot, ...)
 	plot
 }
@@ -609,10 +613,10 @@ plot_mark_bars <- function(mark, plot = NULL, ...,
 }
 
 plot.vizi_bars <- function(x, plot = NULL, ...,
-	width = 1, space = NULL, beside = FALSE)
+	width = 1, stack = FALSE)
 {
 	invisible(plot_mark_bars(mark=x, plot=plot, ...,
-		width=width, space=space, beside=beside))
+		width=width, stack=stack))
 }
 
 plot_mark_intervals <- function(mark, plot = NULL, ...,
@@ -842,10 +846,10 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 }
 
 plot.vizi_boxplot <- function(x, plot = NULL, ...,
-	range = 1.5, notch = FALSE, pars = NULL)
+	range = 1.5, notch = FALSE, width = 0.8)
 {
 	invisible(plot_mark_boxplot(mark=x, plot=plot, ...,
-		range=range, notch=notch, pars=pars))
+		range=range, notch=notch, width=width))
 }
 
 compute_raster <- function(mark, plot = NULL, ...,

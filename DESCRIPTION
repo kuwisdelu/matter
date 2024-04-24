@@ -10,7 +10,7 @@ License: Artistic-2.0
 Depends: R (>= 4.0), BiocParallel, Matrix, methods
 Imports: BiocGenerics, ProtGenerics, digest, irlba,
 	biglm, stats, stats4, graphics, grDevices, utils
-Suggests: BiocStyle, knitr, testthat
+Suggests: BiocStyle, knitr, testthat, plotly
 VignetteBuilder: knitr
 Collate: matterGenerics.R utils.R drle.R
 	atoms.R ops.R matter.R matter_arr.R 

@@ -35,8 +35,10 @@ importFrom("graphics",
 	"plot.window",
 	"plot.xy",
 	"persp",
+	"points"
 	"polygon",
 	"rasterImage",
+	"rect",
 	"strheight",
 	"strwidth",
 	"text.default",
@@ -516,6 +518,7 @@ export(
 	"set_channel",
 	"set_coord",
 	"set_par",
+	"set_engine",
 	"as_facets")
 
 export(

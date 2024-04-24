@@ -7,6 +7,7 @@
 \alias{set_channel}
 \alias{set_coord}
 \alias{set_par}
+\alias{set_engine}
 \alias{as_facets}
 
 \alias{vizi_par}
@@ -57,6 +58,8 @@ set_channel(plot, channel, label = NULL,
 set_coord(plot, xlim = NULL, ylim = NULL, zlim = NULL,
     rev = "", log = "", asp = NA, grid = TRUE)
 
+set_engine(plot, engine = c("base", "plotly"))
+
 set_par(plot, \dots, style = NULL)
 
 ## Combine plots
@@ -94,6 +97,8 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     \item{log, asp}{See \code{\link[graphics]{plot.window}}.}
 
     \item{grid}{Should a rectangular grid be included in the plot?}
+
+    \item{engine}{The plotting engine. Default is to use base graphics. Using "plotly" requires the \code{plotly} package to be installed.}
 
     \item{style}{The visual style to use for plotting. Currently supported styles are "light", "dark", and "classic".}
 
