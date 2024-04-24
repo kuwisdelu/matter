@@ -561,4 +561,6 @@ export(
 	"memtime",
 	"profmem")
 
+export("parse_formula")
+
 useDynLib("matter", .registration=TRUE, .fixes="C_")

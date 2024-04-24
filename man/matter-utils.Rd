@@ -56,6 +56,8 @@
 \alias{avg}
 \alias{pinv}
 
+\alias{parse_formula}
+
 \alias{panel_grid}
 \alias{panel_dim}
 \alias{panel_get}
