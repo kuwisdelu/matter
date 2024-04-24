@@ -1053,7 +1053,7 @@ profmem <- function(expr)
 #### Formula parsing ####
 ## ----------------------
 
-parse_formula <- function(formula, envir = NULL, eval = TRUE)
+parse_formula <- function(formula, envir = NULL, eval = !missing(envir))
 {
 	e <- environment(formula)
 	if ( length(formula) == 2L ) {

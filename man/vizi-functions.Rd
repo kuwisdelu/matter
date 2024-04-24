@@ -174,7 +174,6 @@ vizi(mtcars, x=~disp, y=~mpg, color=~am) |>
         params=list(shape=20, size=2, alpha=0.8)) |>
     add_facets(~mtcars$am)
 
-
 coords <- expand.grid(x=1:nrow(volcano), y=1:ncol(volcano))
 
 # volcano image
