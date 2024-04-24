@@ -1029,17 +1029,18 @@ compute_raster <- function(mark, plot = NULL, ...,
 		rc <- add_alpha(rc, ra)
 		dim(rc) <- dm
 	}
-	# get raster names/limits
+	# get raster label/limits
 	if ( const_color ) {
-		cname <- "alpha"
-		clim <- alim
 		label <- color[1L]
-	} else {
-		if ( const_alpha ) {
-			label <- alpha[1L]
-		} else {
-			label <- NULL
+		if ( !const_alpha )
+		{
+			cname <- "alpha"
+			clim <- alim
 		}
+	} else if ( const_alpha ) {
+		label <- alpha[1L]
+	} else {
+		label <- NULL
 	}
 	# return raster
 	list(raster=rc, channel=cname, label=label,
@@ -1121,7 +1122,8 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		stop("unsupported plot engine: ", sQuote(e$name))
 	}
 	# encode legends
-	plot$channels[[rs$channel]]$limits <- rs$limits
+	if ( rs$channel %in% names(plot$channels) )
+		plot$channels[[rs$channel]]$limits <- rs$limits
 	invisible(encode_legends(plot$channels, list()))
 }
 
@@ -1229,7 +1231,8 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 	# encode legends
 	cname <- rss[[1L]]$channel
 	clim <- do.call(merge_limits, lapply(rss, `[[`, "limits"))
-	plot$channels[[cname]]$limits <- clim
+	if ( cname %in% names(plot$channels) )
+		plot$channels[[cname]]$limits <- clim
 	invisible(encode_legends(plot$channels, list()))
 }
 
