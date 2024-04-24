@@ -312,6 +312,14 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 		} else {
 			ylim <- args$ylim + 0.01 * c(-1, 1) * diff(range(args$ylim))
 		}
+		# check for reversed axes
+		if ( !is.null(plot$coord$rev) )
+		{
+			if ( plot$coord$rev %in% c("x", "xy", "yx") )
+				xlim <- rev(xlim)
+			if ( plot$coord$rev %in% c("y", "xy", "yx") )
+				ylim <- rev(ylim)
+		}
 		e$plotly <- plotly::layout(e$plotly,
 			xaxis=list(range=xlim, title=list(text=xlab)),
 			yaxis=list(range=ylim, title=list(text=ylab)))
