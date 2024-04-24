@@ -324,17 +324,16 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 			if ( plot$coord$rev %in% c("y", "xy", "yx") )
 				ylim <- rev(ylim)
 		}
+		xaxis <- list(range=xlim, title=list(text=xlab))
+		yaxis <- list(range=ylim, title=list(text=ylab))
 		# check aspect ratio
 		if ( !is.na(plot$coord$asp) )
 		{
-			ratio <- plot$coord$asp
-			e$plotly <- plotly::layout(e$plotly,
-				yaxis=list(scaleanchor="x", scaleratio=ratio))
+			yscale <- list(scaleanchor="x", scaleratio=plot$coord$asp)
+			yaxis <- c(yaxis, yscale)
 		}
 		# initialize axes
-		e$plotly <- plotly::layout(e$plotly,
-			xaxis=list(range=xlim, title=list(text=xlab)),
-			yaxis=list(range=ylim, title=list(text=ylab)))
+		e$plotly <- plotly::layout(e$plotly, xaxis=xaxis, yaxis=yaxis)
 		return()
 	}
 	# convert discrete axes
