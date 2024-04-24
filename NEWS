@@ -7,6 +7,10 @@ NEW FEATURES
     o Add support for optional 'plotly' graphics output
     o Add 'vizi_engine()' for setting the plotting engine
 
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Export 'parse_formula()' for developer use
+
 CHANGES IN VERSION 2.5.17 [2024-4-19]
 ------------------------------------
 
