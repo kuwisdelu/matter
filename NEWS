@@ -12,6 +12,10 @@ SIGNIFICANT USER-VISIBLE CHANGES
 
     o Export 'parse_formula()' for developer use
 
+BUG FIXES
+
+    o Fix 'plotly' error from non-gridded voxels
+
 CHANGES IN VERSION 2.5.17 [2024-4-19]
 ------------------------------------
 

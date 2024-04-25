@@ -1221,14 +1221,14 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 			i <- as.vector(p$x)
 			j <- as.vector(p$y)
 			if ( rs$ortho == "z" ) {
-				p <- trans3d(i, j, rs$z, pmat)
-				d <- trans3d_depth(i, j, rs$z, pmat)
+				p <- trans3d(i, j, rs$z[1L], pmat)
+				d <- trans3d_depth(i, j, rs$z[1L], pmat)
 			} else if ( rs$ortho == "y" ) {
-				p <- trans3d(i, rs$y, j, pmat)
-				d <- trans3d_depth(i, rs$y, j, pmat)
+				p <- trans3d(i, rs$y[1L], j, pmat)
+				d <- trans3d_depth(i, rs$y[1L], j, pmat)
 			} else if ( rs$ortho == "x" ) {
-				p <- trans3d(rs$x, i, j, pmat)
-				d <- trans3d_depth(rs$x, i, j, pmat)
+				p <- trans3d(rs$x[1L], i, j, pmat)
+				d <- trans3d_depth(rs$x[1L], i, j, pmat)
 			}
 			# compute polygon depth
 			dim(d) <- c(5L, length(rc))
@@ -1255,10 +1255,24 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 		# plot the polygons
 		polygon(px, py, col=colors, border=colors)
 	} else if ( e$name == "plotly" ) {
-		px <- unlist(lapply(rss, `[[`, "x"))
-		py <- unlist(lapply(rss, `[[`, "y"))
-		pz <- unlist(lapply(rss, `[[`, "z"))
-		pvals <- unlist(lapply(rss, `[[`, "raster"))
+		FUN <- function(rs, d) {
+			rc <- rs$raster
+			co <- expand.grid(
+				i=seq(rs$i[1L], rs$i[2L], length.out=nrow(rc)),
+				j=seq(rs$j[1L], rs$j[2L], length.out=ncol(rc)))
+			ns <- length(rc)
+			if ( rs$ortho == "z" ) {
+				switch(d, x=co$i, y=co$j, z=rep_len(rs$z, ns))
+			} else if ( rs$ortho == "y" ) {
+				switch(d, x=co$i, y=rep_len(rs$y, ns), z=rs$z[1L])
+			} else if ( rs$ortho == "x" ) {
+				switch(d, x=rep_len(rs$x, ns), y=co$i, z=co$j)
+			}
+		}
+		vx <- unlist(lapply(rss, FUN, "x"))
+		vy <- unlist(lapply(rss, FUN, "y"))
+		vz <- unlist(lapply(rss, FUN, "z"))
+		vals <- unlist(lapply(rss, `[[`, "raster"))
 		csch <- rss[[1L]]$scheme
 		n <- length(csch)
 		if ( n > 1L )
@@ -1269,7 +1283,7 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 			asch <- "uniform"
 		}
 		e$plotly <- plotly::add_trace(e$plotly,
-			x=px, y=py, z=pz, value=pvals,
+			x=vx, y=vy, z=vz, value=vals,
 			surface=list(count=2L * length(slices)),
 			colorscale=csch, opacityscale=asch, type="volume")
 	} else {
