@@ -6,6 +6,7 @@ NEW FEATURES
 
     o Add support for optional 'plotly' graphics output
     o Add 'vizi_engine()' for setting the plotting engine
+    o Add support for 3D images to 'plot_image()'
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
