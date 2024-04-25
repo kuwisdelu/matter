@@ -109,7 +109,7 @@ static Rboolean matter_altarray_Inspect(SEXP x, int pre, int deep, int pvec,
 {
 	MatterArray xm(R_altrep_data1(x));
 	int mem = !Rf_isNull(R_altrep_data2(x));
-	Rprintf("matter array (mode=%d, len=%d, mem=%d)\n", xm.type(), xm.length(), mem);
+	Rprintf("matter array (mode=%d, len=%td, mem=%d)\n", xm.type(), xm.length(), mem);
 	return TRUE;
 }
 
@@ -239,7 +239,7 @@ static Rboolean matter_altstring_Inspect(SEXP x, int pre, int deep, int pvec,
 {
 	MatterStringList xm(R_altrep_data1(x));
 	int mem = !Rf_isNull(R_altrep_data2(x));
-	Rprintf("matter strings (mode=%d, len=%d, mem=%d)\n", xm.type(), xm.length(), mem);
+	Rprintf("matter strings (mode=%d, len=%td, mem=%d)\n", xm.type(), xm.length(), mem);
 	return TRUE;
 }
 
