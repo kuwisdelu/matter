@@ -36,7 +36,8 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 	if ( !is.list(y) )
 		y <- list(y)
 	if ( !is.list(x) )
-		x <- rep_len(list(x), length(y))
+		x <- list(x)
+	x <- rep_len(x, length(y))
 	if ( !is.null(by) )
 		by <- rep_len(factor(by, levels=unique(by)), length(y))
 	if ( !is.null(group) )
@@ -129,55 +130,92 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 #### Plot a list of images ####
 ## -----------------------------
 
-plot_image <- function(x, y, vals, by = names(vals), group = NULL,
+plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
 	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
 	grid = TRUE, asp = 1, useRaster = TRUE, engine = NULL, ...)
 {
-	if ( is.array(x) || (missing(vals) && is.list(x) && is.matrix(x[[1L]])) )
+	if ( missing(vals) && !missing(z) )
 	{
-		if ( is.array(x) && length(dim(x)) > 3L )
-			stop("'x' must have at most 2 dimensions")
-		if ( is.array(x) && length(dim(x)) > 2L ) {
-			vals <- apply(x, 3L, identity, simplify=FALSE)
-		} else if ( !is.list(x) ) {
-			vals <- list(x)
-		} else {
+		vals <- z
+		z <- list()
+	}
+	if ( is.array(x) || (missing(vals) && is.list(x) && is.array(x[[1L]])) )
+	{
+		if ( is.list(x) ) {
 			vals <- x
-		}
-		pos <- lapply(vals, function(v) expand.grid(x=1:dim(v)[1L], y=1:dim(v)[2L]))
-		x <- lapply(pos, function(p) p$x)
-		y <- lapply(pos, function(p) p$y)
-	} else if ( is.matrix(vals) ) {
-		if ( byrow ) {
-			vals <- apply(vals, 1L, identity, simplify=FALSE)
 		} else {
-			vals <- apply(vals, 2L, identity, simplify=FALSE)
+			vals <- list(x)
+		}
+		lens <- lengths(lapply(vals, dim))
+		if ( any(lens < 2L) )
+			stop("images must have at least 2 dimensions")
+		if ( any(lens > 3L) )
+			stop("images must have at most 3 dimensions")
+		if ( n_unique(lens) > 1L )
+			stop("can't mix 2D and 3D images")
+		if ( lens[1L] > 2L ) {
+			pos <- lapply(vals,
+				function(v) expand.grid(
+					x=1:dim(v)[1L], y=1:dim(v)[2L], z=1:dim(v)[3L]))
+			x <- lapply(pos, function(p) p$x)
+			y <- lapply(pos, function(p) p$y)
+			z <- lapply(pos, function(p) p$z)
+		} else {
+			pos <- lapply(vals,
+				function(v) expand.grid(x=1:dim(v)[1L], y=1:dim(v)[2L]))
+			x <- lapply(pos, function(p) p$x)
+			y <- lapply(pos, function(p) p$y)
+			z <- list()
+		}
+	} else if ( is.matrix(vals) ) {
+		if ( length(vals) != length(x) || length(vals) != length(y) )
+		{
+			if ( byrow ) {
+				vals <- apply(vals, 1L, identity, simplify=FALSE)
+			} else {
+				vals <- apply(vals, 2L, identity, simplify=FALSE)
+			}
 		}
 	}
+	if ( missing(z) )
+		z <- list()
 	if ( !is.list(vals) )
 		vals <- list(vals)
 	if ( !is.list(x) )
-		x <- rep_len(list(x), length(vals))
+		x <- list(x)
 	if ( !is.list(y) )
-		y <- rep_len(list(y), length(vals))
+		y <- list(y)
+	if ( !is.list(z) )
+		z <- list(z)
+	x <- rep_len(x, length(vals))
+	y <- rep_len(y, length(vals))
+	z <- rep_len(z, length(vals))
 	if ( !is.null(by) )
 		by <- rep_len(factor(by, levels=unique(by)), length(vals))
 	if ( !is.null(group) )
 		group <- rep_len(factor(group, levels=unique(group)), length(vals))
 	vals <- lapply(vals, function(v) if (is.factor(v)) v else as.vector(v))
+	is3d <- any(lengths(z) > 0L)
+	if ( is3d ) {
+		mark <- "voxels"
+		alpha <- vals
+	} else {
+		mark <- "pixels"
+		alpha <- NULL
+	}
 	if ( is.null(by) ) {
 		plot <- vizi()
 		for ( i in seq_along(vals) ) {
 			if ( is.null(group) ) {
-				plot <- add_mark(plot, "pixels",
-					x=x[[i]], y=y[[i]], color=vals[[i]],
+				plot <- add_mark(plot, mark,
+					x=x[[i]], y=y[[i]], z=z[[i]], alpha=alpha[[i]], color=vals[[i]],
 					trans=list(enhance=enhance, smooth=smooth, scale=scale),
 					params=list(useRaster=useRaster))
 			} else {
-				plot <- add_mark(plot, "pixels",
-					x=x[[i]], y=y[[i]], alpha=vals[[i]], color=group[[i]],
+				plot <- add_mark(plot, mark,
+					x=x[[i]], y=y[[i]], z=z[[i]], alpha=vals[[i]], color=group[[i]],
 					trans=list(enhance=enhance, smooth=smooth, scale=scale),
 					params=list(useRaster=useRaster))
 			}
@@ -188,13 +226,13 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 			p <- vizi()
 			for ( i in which(by == lvl) ) {
 				if ( is.null(group) ) {
-					p <- add_mark(p, "pixels",
-						x=x[[i]], y=y[[i]], color=vals[[i]],
+					p <- add_mark(p, mark,
+						x=x[[i]], y=y[[i]], z=z[[i]], alpha=alpha[[i]], color=vals[[i]],
 						trans=list(enhance=enhance, smooth=smooth, scale=scale),
 						params=list(useRaster=useRaster))
 				} else {
-					p <- add_mark(p, "pixels",
-						x=x[[i]], y=y[[i]], alpha=vals[[i]], color=group[[i]],
+					p <- add_mark(p, mark,
+						x=x[[i]], y=y[[i]], z=z[[i]], alpha=vals[[i]], color=group[[i]],
 						trans=list(enhance=enhance, smooth=smooth, scale=scale),
 						params=list(useRaster=useRaster))
 				}
@@ -211,12 +249,21 @@ plot_image <- function(x, y, vals, by = names(vals), group = NULL,
 	plot <- set_coord(plot, xlim=xlim, ylim=ylim, grid=grid, asp=asp, rev="y")
 	plot <- set_channel(plot, "x", label=xlab)
 	plot <- set_channel(plot, "y", label=ylab)
-	if ( is.null(group) ) {
-		clab <- if(isTRUE(scale)) "%" else "\n"
-		plot <- set_channel(plot, "color", label=clab, limits=zlim, scheme=col, key=key)
-	} else {
+	if ( is3d ) {
+		plot <- set_channel(plot, "z", label=zlab)
 		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
-		plot <- set_channel(plot, "alpha", limits=zlim, key=FALSE)
+		plot <- set_channel(plot, "alpha", key=FALSE)
+		plot <- set_coord(plot, zlim=zlim)
+		plot <- set_par(plot, scale=FALSE)
+	} else {
+		if ( is.null(group) ) {
+			if ( is.null(zlab) )
+				zlab <- if (isTRUE(scale)) "%" else "\n"
+			plot <- set_channel(plot, "color", label=zlab, limits=zlim, scheme=col, key=key)
+		} else {
+			plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
+			plot <- set_channel(plot, "alpha", limits=zlim, key=FALSE)
+		}
 	}
 	if ( !is.null(engine) )
 		plot <- set_engine(plot, engine)

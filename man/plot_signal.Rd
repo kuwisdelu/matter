@@ -16,7 +16,7 @@ plot_signal(x, y, by = names(y), group = NULL,
     n = Inf, downsampler = "lttb", key = TRUE, grid = TRUE,
     isPeaks = FALSE, annPeaks = 0, engine = NULL, \dots)
 
-plot_image(x, y, vals, by = names(vals), group = NULL,
+plot_image(x, y, z, vals, by = names(vals), group = NULL,
     zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
     zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
     enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
@@ -24,7 +24,7 @@ plot_image(x, y, vals, by = names(vals), group = NULL,
 }
 
 \arguments{
-    \item{x, y, vals}{Lists of vectors to plot such that \code{x[[i]]} and \code{y[[i]]} indicate the plotting coordinates for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format.}
+    \item{x, y, z, vals}{Lists of vectors to plot such that \code{x[[i]]} and \code{y[[i]]} indicate the plotting coordinates for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format.}
 
     \item{by}{A vector of labels indicating facets (i.e., which values should be plotted as separate sub-plots).}
 
