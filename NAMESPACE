@@ -547,6 +547,7 @@ S3method("plot", "vizi_rules")
 S3method("plot", "vizi_bars")
 S3method("plot", "vizi_intervals")
 S3method("plot", "vizi_boxplot")
+S3method("plot", "vizi_image")
 S3method("plot", "vizi_pixels")
 S3method("plot", "vizi_voxels")
 

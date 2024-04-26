@@ -290,6 +290,7 @@ add_alpha <- function(colors, alpha = 1, exp = 2) {
 	dm <- dim(colors)
 	if ( is.null(dm) && !is.null(dim(alpha)) )
 		dm <- dim(alpha)
+	raster <- inherits(colors, "raster")
 	alpha <- ifelse(alpha < 0 | alpha > 1, 0, alpha)
 	n <- max(length(colors), length(alpha))
 	if ( length(alpha) != n )
@@ -302,7 +303,11 @@ add_alpha <- function(colors, alpha = 1, exp = 2) {
 	colors <- rgb(colors[1L,], colors[2L,], colors[3L,],
 		alpha=255 * alpha^exp, maxColorValue=255)
 	colors[na] <- NA_character_
-	dim(colors) <- dm
+	if ( raster ) {
+		colors <- matrix(colors, byrow=TRUE, nrow=dm[1L], ncol=dm[2L])
+	} else {
+		dim(colors) <- dm
+	}
 	colors
 }
 
@@ -1022,6 +1027,62 @@ plot.vizi_boxplot <- function(x, plot = NULL, ...,
 		range=range, notch=notch, width=width))
 }
 
+plot_mark_image <- function(mark, plot = NULL, ...,
+	alpha = NA, interpolate = TRUE, maxColorValue = 1)
+{
+	# encode position channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	xmin <- encode_var("xmin", encoding, plot$channels)
+	xmax <- encode_var("xmax", encoding, plot$channels)
+	ymin <- encode_var("ymin", encoding, plot$channels)
+	ymax <- encode_var("ymax", encoding, plot$channels)
+	# encode images
+	image <- encoding[["image"]]
+	# get parameters
+	if ( !is.null(mark$params$alpha) )
+		alpha <- mark$params$alpha
+	if ( !is.null(mark$params$interpolate) )
+		interpolate <- mark$params$interpolate
+	if ( !is.null(mark$params$maxColorValue) )
+		maxColorValue <- mark$params$maxColorValue
+	# plot images
+	e <- plot$engine
+	for ( i in seq_along(image) )
+	{
+		label <- names(image)[i]
+		rc <- as.raster(image[[i]], max=maxColorValue)
+		if ( !is.na(alpha) && alpha >= 0 && alpha <= 1 )
+			rc <- add_alpha(rc, alpha)
+		dxi <- 0.5 * (xmax[i] - xmin[i]) / (ncol(rc) - 1)
+		dyi <- 0.5 * (ymax[i] - ymin[i]) / (nrow(rc) - 1)
+		if ( e$name == "base" ) {
+			hasRaster <- dev.capabilities("rasterImage")$rasterImage
+			if ( hasRaster != "yes" )
+				stop("device does not have raster capabilities")
+			rasterImage(rc,
+				xleft=xmin[i] - dxi, ybottom=ymin[i] - dyi,
+				xright=xmax[i] + dxi, ytop=ymax[i] + dyi,
+				interpolate=interpolate)
+		} else if ( e$name == "plotly" ) {
+			rc <- rc[nrow(rc):1L,,drop=FALSE]
+			pxi <- 2 * dxi
+			pyi <- 2 * dyi
+			e$plotly <- plotly::add_image(e$plotly, z=rc,
+				x0=xmin[i], y0=ymin[i], dx=pxi, dy=pyi, name=label)
+		} else {
+			stop("unsupported plot engine: ", sQuote(e$name))
+		}
+	}
+	list()
+}
+
+plot.vizi_image <- function(x, plot = NULL, ...,
+	alpha = NA, maxColorValue = 1)
+{
+	invisible(plot_mark_image(mark=x, plot=plot, ...,
+		alpha=alpha, maxColorValue=maxColorValue))
+}
+
 compute_raster <- function(mark, plot = NULL, ...,
 	enhance = FALSE, smooth = FALSE, scale = FALSE,
 	slice = NULL, tol = 1e-6, asis = FALSE)
@@ -1460,6 +1521,7 @@ setOldClass("vizi_rules")
 setOldClass("vizi_bars")
 setOldClass("vizi_intervals")
 setOldClass("vizi_boxplot")
+setOldClass("vizi_image")
 setOldClass("vizi_pixels")
 setOldClass("vizi_voxels")
 
@@ -1471,6 +1533,7 @@ setMethod("plot", "vizi_rules", plot.vizi_rules)
 setMethod("plot", "vizi_bars", plot.vizi_bars)
 setMethod("plot", "vizi_intervals", plot.vizi_intervals)
 setMethod("plot", "vizi_boxplot", plot.vizi_boxplot)
+setMethod("plot", "vizi_image", plot.vizi_image)
 setMethod("plot", "vizi_pixels", plot.vizi_pixels)
 setMethod("plot", "vizi_voxels", plot.vizi_voxels)
 

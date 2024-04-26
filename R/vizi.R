@@ -281,7 +281,7 @@ setMethod("c", "vizi_facets", function(x, ...)
 plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 {
 	args <- list(...)
-	args <- c(args, more)
+	args <- par_update(args, more=more)
 	names(args) <- lapply(names(args), to_par_name)
 	# get x/y limits
 	if ( is.null(args$xlim) )
@@ -355,6 +355,11 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 			if ( plot$coord$rev %in% c("y", "xy", "yx") )
 				args$ylim <- rev(args$ylim)
 		}
+		# filter for valid graphical parameters
+		pars <- names(args)
+		pars <- pars[pars %in% names(par(no.readonly=TRUE))]
+		pars <- union(c("xlim", "ylim", "log", "asp"), pars)
+		args <- args[pars]
 		# initialize the 2d plot
 		plot.new()
 		do.call(plot.window, args)
@@ -415,7 +420,7 @@ preplot.vizi_plot <- function(object, ...)
 	if ( w > 0L )
 		p <- par_pad(p, "right", w + 1L, outer=TRUE)
 	panel_grid(dim=c(1L,1L), params=p)
-	plot_init(object, more=object$params, n=1L)
+	plot_init(object, more=par_update(object$params, ...), n=1L)
 }
 
 preplot.vizi_facets <- function(object, ...)
@@ -473,7 +478,7 @@ plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 	{
 		dev.hold()
 		on.exit(dev.flush())
-		preplot(x)
+		preplot(x, ...)
 		box()
 	}
 	if ( x$engine$name == "plotly" )
@@ -481,7 +486,7 @@ plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 		if ( !requireNamespace("plotly") )
 			stop("failed to load required package 'plotly'")
 		if ( !add )
-			plot_init(x, more=x$params)
+			plot_init(x, more=par_update(x$params, ...))
 	}
 	# plot marks
 	keys <- list()
@@ -547,7 +552,7 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 		if ( !add ) {
 			dev.hold()
 			on.exit(dev.flush())
-			preplot(x)
+			preplot(x, ...)
 		} else {
 			panel_set(1)
 		}
@@ -586,7 +591,8 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 					ylim <- x$channels$y$limits
 				}
 			}
-			plot_init(x, xlim=xlim, ylim=ylim, more=x$params, n=n)
+			params <- par_update(x$params, ...)
+			plot_init(x, xlim=xlim, ylim=ylim, more=params, n=n)
 		}
 		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
 		# add facet annotations
@@ -1093,16 +1099,20 @@ encode_var <- function(name, encoding = NULL,
 			e <- par(to_par_name(name))
 		}
 	} else {
-		# encode limits
-		lim <- channels[[name]]$limits
-		if ( is.null(lim) )
-			lim <- get_limits(e)
-		e <- encode_limits(e, lim)
-		# encode scheme
-		sch <- channels[[name]]$scheme
-		if ( is.null(sch) )
-			sch <- get_scheme(name, e)
-		e <- encode_scheme(e, sch, lim)
+		# encode atomic variables
+		if ( is.atomic(e) )
+		{
+			# encode limits
+			lim <- channels[[name]]$limits
+			if ( is.null(lim) )
+				lim <- get_limits(e)
+			e <- encode_limits(e, lim)
+			# encode scheme
+			sch <- channels[[name]]$scheme
+			if ( is.null(sch) )
+				sch <- get_scheme(name, e)
+			e <- encode_scheme(e, sch, lim)
+		}
 		# subscripts
 		if ( !is.null(subscripts) )
 		{
@@ -1424,7 +1434,7 @@ merge_legends <- function(keys, ...)
 needs_legends <- function(plot)
 {
 	chs <- names(plot$channels)
-	chs <- setdiff(chs, c("x", "y", "z", "text"))
+	chs <- setdiff(chs, c("x", "y", "z", "text", "image"))
 	chs <- plot$channels[chs]
 	fn <- function(x) {
 		if ( is.numeric(x) )
