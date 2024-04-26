@@ -76,6 +76,13 @@ test_that("warp + align 2d", {
 	expect_gt(mi(z2, x), mi(y, x))
 	expect_gt(mi(z3, x), mi(y, x))
 
+	x2 <- array(x, dim=c(dim(x), 3)) + rnorm(3 * length(x))
+	y2 <- trans2d(x2, rotate=15, translate=c(-5, 5))
+	
+	z4 <- warp2_trans(y2, x2, metric="cor")
+
+	expect_gt(mi(z4, x2), mi(y2, x2))
+
 })
 
 test_that("contrast enhancement", {

@@ -123,12 +123,15 @@ warp2_trans <- function(x, y, control = list(),
 	# prepare metric function
 	metric <- match.arg(metric)
 	if ( metric == "cor" ) {
-		score <- function(x, y) {			
-			-(icor(x, y)^2)
+		score <- function(x, y) {
+			n <- max(length(x), length(y))
+			x <- rep_len(x, n)
+			y <- rep_len(y, n)
+			-(cor(x, y, use="complete.obs")^2)
 		}
 	} else if ( metric == "mse" ) {
 		score <- function(x, y) {
-			mean((x - y)^2)
+			mean((x - y)^2, na.rm=TRUE)
 		}
 	} else if ( metric == "mi" ) {
 		score <- function(x, y) {
@@ -139,44 +142,51 @@ warp2_trans <- function(x, y, control = list(),
 	trans <- match.arg(trans)
 	if ( trans == "rigid" ) {
 		init <- c(0, 0, 0)
-		tform <- function(par, xi) {
+		tform <- function(par, xi, dout) {
 			rot <- par[1L]
 			tl <- par[2L:3L]
 			trans2d(xi, rotate=rot, translate=tl,
-				dimout=dim(y))
+				dimout=dout)
 		}
 	} else if ( trans == "similarity" ) {
 		init <- c(0, 0, 0, 1, 1)
-		tform <- function(par, xi) {
+		tform <- function(par, xi, dout) {
 			rot <- par[1L]
 			tl <- par[2L:3L]
 			sc <- par[4L:5L]
 			trans2d(xi, rotate=rot, translate=tl, scale=sc,
-				dimout=dim(y))
+				dimout=dout)
 		}
 	} else if ( trans == "affine" ) {
 		init <- rbind(diag(2), c(0, 0))
-		tform <- function(par, xi) {
+		tform <- function(par, xi, dout) {
 			pmat <- matrix(par, nrow=3L, ncol=2L)
 			trans2d(xi, pmat=pmat,
-				dimout=dim(y))
+				dimout=dout)
 		}
 	}
 	# find optimal warp
 	fn <- function(par) {
-		xt <- tform(par, xs)
+		xt <- tform(par, xs, dim(y))
 		xt[is.na(xt)] <- min(xt, na.rm=TRUE)
 		score(xt, ys)
 	}
 	best <- optim(init, fn=fn, control=control)
-	z <- tform(best$par, x)
+	z <- tform(best$par, x, dimout)
 	structure(z, optim=best, trans=trans, metric=metric)
 }
 
 mi <- function(x, y, n = 64L)
 {
-	if ( length(x) != length(y) )
-		stop("x and y must be the same length")
+	if ( length(x) != length(y) ) {
+		lmax <- max(length(x), length(y))
+		lmin <- min(length(x), length(y))
+		if ( lmax %% lmin != 0L )
+			stop("longer object length [", lmax, "] is not ",
+				"a multiple of shorter object length [", lmin, "]")
+		x <- rep_len(x, lmax)
+		y <- rep_len(y, lmax)
+	}
 	# calculate the 2D bin locations
 	n = min(n, length(x) %/% 4L)
 	rx <- range(x, na.rm=TRUE)
@@ -473,7 +483,7 @@ trans2d <- function(x, y, z, pmat,
 	}
 	if ( !identical(dim(pmat), c(3L, 2L)) )
 		stop("pmat must be a 3 x 2 matrix")
-	if ( is.matrix(x) && missing(y) && missing(z) ) {
+	if ( is.array(x) && missing(y) && missing(z) ) {
 		z <- x
 		x <- seq_len(nrow(z))
 		y <- seq_len(ncol(z))
@@ -486,8 +496,19 @@ trans2d <- function(x, y, z, pmat,
 	if ( !missing(z) ) {
 		xi <- seq(from=min(x), to=max(x), length.out=dimout[1L])
 		yi <- seq(from=min(y), to=max(y), length.out=dimout[2L])
-		zi <- approx2(co$x, co$y, z=z, interp=interp,
-			xout=xi, yout=yi, ...)
+		if ( length(dim(z)) > 2L ) {
+			if ( length(dim(z)) > 3L )
+				stop("arrays with more than 3 dimensions not allowed")
+			zi <- lapply(seq_len(dim(z)[3L]), function(i, ...)
+				{
+					approx2(co$x, co$y, z=z[,,i], interp=interp,
+						xout=xi, yout=yi, ...)
+				}, ...)
+			zi <- array(unlist(zi), dim=c(dim(zi[[1L]]), length(zi)))
+		} else {
+			zi <- approx2(co$x, co$y, z=z, interp=interp,
+				xout=xi, yout=yi, ...)
+		}
 		structure(zi, coord=co)
 	} else {
 		co

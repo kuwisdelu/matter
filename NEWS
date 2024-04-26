@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.5.20 [2024-4-26]
+------------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Update 'trans2d()' and 'warp2_trans()' to support arrays
+
 CHANGES IN VERSION 2.5.19 [2024-4-25]
 ------------------------------------
 
