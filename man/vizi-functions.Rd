@@ -118,8 +118,10 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     \itemize{
         \item{\code{points}: Points (i.e., scatterplots).}
         \item{\code{lines}: Lines (i.e., line charts).}
-        \item{\code{peaks}: Vertical (histogram) lines.}
+        \item{\code{peaks}: Height (histogram) lines.}
         \item{\code{text}: Text labels.}
+        \item{\code{rules}: Reference lines.}
+        \item{\code{bars}: Bars for bar charts or histograms.}
         \item{\code{intervals}: Line intervals for representing error bars or confidence intervals.}
         \item{\code{boxplot}: Box-and-whisker plots.}
         \item{\code{pixels}: 2D image from pixels.}
@@ -149,6 +151,8 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     \code{\link{vizi_lines}},
     \code{\link{vizi_peaks}},
     \code{\link{vizi_text}},
+    \code{\link{vizi_rules}},
+    \code{\link{vizi_bars}},
     \code{\link{vizi_intervals}},
     \code{\link{vizi_boxplot}},
     \code{\link{vizi_pixels}},

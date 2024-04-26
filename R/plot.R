@@ -310,7 +310,8 @@ add_alpha <- function(colors, alpha = 1, exp = 2) {
 ## ----------------------------------------
 
 plot_mark_xy <- function(mark, plot = NULL, ...,
-	n = Inf, downsampler = "lttb", jitter = "", type = "p")
+	n = Inf, downsampler = "lttb", jitter = "",
+	sort = is.finite(n), type = "p")
 {
 	# encode position channels
 	encoding <- merge_encoding(plot$encoding, mark$encoding)
@@ -334,13 +335,23 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 			downsampler <- t$downsampler
 		if ( !is.null(t$jitter) )
 			jitter <- t$jitter
-		i <- order(x)
-		x <- x[i]
-		y <- y[i]
+		if ( !is.null(t$sort) )
+			sort <- t$sort
+		if ( sort ) {
+			i <- order(x)
+			x <- x[i]
+			y <- y[i]
+		} else {
+			i <- NULL
+		}
 		if ( n < length(y) ) {
 			y <- downsample(y, n=n, domain=x, method=downsampler)
 			x <- x[attr(y, "sample")]
-			i <- i[attr(y, "sample")]
+			if ( sort ) {
+				i <- i[attr(y, "sample")]
+			} else {
+				i <- attr(y, "sample")
+			}
 		}
 	} else {
 		if ( plot$engine$name == "base" ) {
@@ -367,7 +378,7 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 		channels=plot$channels, params=params, subscripts=i)
 	more$color <- add_alpha(more$color, more$alpha)
 	# find non-required channels that encode groups
-	groups <- compute_groups(plot, encoding, c("x", "y", "z"))
+	groups <- compute_groups(plot, encoding, names(more))
 	if ( is.null(i) ) {
 		group_encoding <- encoding[names(groups)]
 	} else {
@@ -394,19 +405,34 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 			next
 		# plot the group
 		if ( e$name == "base" ) {
-			plot.xy(xy.coords(p$x, p$y), pch=p$shape, col=p$color, bg=p$fill,
-				cex=p$size, lwd=p$linewidth, lty=p$linetype, type=type)
+			plot.xy(xy.coords(p$x, p$y), pch=p$shape,
+				cex=p$size, col=p$color, bg=p$fill,
+				lwd=p$linewidth, lty=p$linetype, type=type)
 		} else if ( e$name == "plotly" ) {
-			if ( !is.null(p$size) )
-				p$size <- 20 * p$size
-			e$plotly <- switch(type,
-				p=plotly::add_markers(e$plotly, x=p$x, y=p$y, z=p$z,
-					color=I(p$color), size=I(p$size), symbol=I(p$shape),
-					name=label),
-				l=plotly::add_lines(e$plotly, x=p$x, y=p$y, z=p$z,
-					color=I(p$color), linetype=I(p$linetype), name=label),
-				h=plotly::add_segments(e$plotly, x=p$x, y=p$y, z=p$z,
-					xend=x, yend=0, color=I(p$color), name=label))
+			if ( type == "p" ) {
+				if ( !is.null(p$size) )
+					p$size <- 20 * p$size
+				e$plotly <- plotly::add_markers(e$plotly,
+					x=p$x, y=p$y, z=p$z, color=I(p$color),
+					size=I(p$size), symbol=I(p$shape), name=label)
+			}
+			if ( type == "l" ) {
+				if ( sort || !is2d(plot) ) {
+					e$plotly <- plotly::add_lines(e$plotly,
+						x=p$x, y=p$y, z=p$z, color=I(p$color),
+						linetype=I(p$linetype), name=label)
+				} else {
+					e$plotly <- plotly::add_segments(e$plotly,
+						x=p$x[-length(p$x)], xend=p$x[-1L],
+						y=p$y[-length(p$x)], yend=p$y[-1L],
+						linetype=I(p$linetype), name=label)
+				}
+			}
+			if ( type == "h" ) {
+				e$plotly <- plotly::add_segments(e$plotly,
+					x=p$x, y=p$y, z=p$z, xend=x, yend=0,
+					color=I(p$color), name=label)
+			}
 		} else {
 			stop("unsupported plot engine: ", sQuote(e$name))
 		}
@@ -417,24 +443,30 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 }
 
 plot.vizi_points <- function(x, plot = NULL, ...,
-	n = Inf, downsampler = "lttb", jitter = "")
+	n = Inf, downsampler = "lttb", jitter = "",
+	sort = is.finite(n))
 {
 	invisible(plot_mark_xy(x, plot=plot, type="p", ...,
-		n=n, downsampler=downsampler, jitter=jitter))
+		n=n, downsampler=downsampler, jitter=jitter,
+		sort=sort))
 }
 
 plot.vizi_lines <- function(x, plot = NULL, ...,
-	n = Inf, downsampler = "lttb", jitter = "")
+	n = Inf, downsampler = "lttb", jitter = "",
+	sort = is.finite(n))
 {
 	invisible(plot_mark_xy(x, plot=plot, type="l", ...,
-		n=n, downsampler=downsampler, jitter=jitter))
+		n=n, downsampler=downsampler, jitter=jitter,
+		sort=sort))
 }
 
 plot.vizi_peaks <- function(x, plot = NULL, ...,
-	n = Inf, downsampler = "lttb", jitter = "")
+	n = Inf, downsampler = "lttb", jitter = "",
+	sort = is.finite(n))
 {
 	invisible(plot_mark_xy(x, plot=plot, type="h", ...,
-		n=n, downsampler=downsampler, jitter=jitter))
+		n=n, downsampler=downsampler, jitter=jitter,
+		sort=sort))
 }
 
 plot_mark_text <- function(mark, plot = NULL, ...,
@@ -483,7 +515,7 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 		channels=plot$channels, params=params, subscripts=i)
 	more$color <- add_alpha(more$color, more$alpha)
 	# find non-required channels that encode groups
-	groups <- compute_groups(plot, encoding, c("x", "y", "z", "text"))
+	groups <- compute_groups(plot, encoding, names(more))
 	if ( is.null(i) ) {
 		group_encoding <- encoding[names(groups)]
 	} else {
@@ -532,6 +564,97 @@ plot.vizi_text <- function(x, plot = NULL, ...,
 		adj=adj, pos=pos, offset=offset))
 }
 
+plot_mark_rules <- function(mark, plot = NULL, ...)
+{
+	# encode position channels
+	encoding <- merge_encoding(plot$encoding, mark$encoding)
+	x <- encode_var("x", encoding, plot$channels)
+	y <- encode_var("y", encoding, plot$channels)
+	if ( (length(x) == 0L && length(y) == 0L) )
+		return()
+	# decode positions if discrete
+	if ( is_discrete(x) )
+		x <- match(x, plot$channels$x$limits)
+	if ( is_discrete(y) )
+		y <- match(y, plot$channels$y$limits)
+	# encode non-required channels
+	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
+	params <- normalize_encoding(params)
+	more <- c("color", "alpha", "linewidth", "linetype")
+	more <- setNames(more, more)
+	more <- lapply(more, encode_var, encoding=encoding,
+		channels=plot$channels, params=params)
+	more$color <- add_alpha(more$color, more$alpha)
+	# find non-required channels that encode groups
+	groups <- compute_groups(plot, encoding, names(more))
+	group_encoding <- encoding[names(groups)]
+	ngroups <- max(1, nrow(groups))
+	rules <- list()
+	# iterate over groups
+	e <- plot$engine
+	for ( j in seq_len(ngroups) )
+	{
+		# get encodings
+		p <- c(list(x=x, y=y), more)
+		# subset the group
+		if ( length(groups) > 0L )
+		{
+			group <- groups[j,,drop=FALSE]
+			label <- paste0(unlist(group), collapse=",")
+			is_group <- Reduce(`&`, Map(`%in%`, group_encoding, group))
+			p <- subset_list(p, is_group)
+		} else {
+			label <- NULL
+		}
+		if ( length(p$x) == 0L && length(p$y) == 0L )
+			next
+		# plot the group
+		if ( e$name == "base" ) {
+			if ( length(p$x) > 0L ) {
+				abline(v=p$x, col=p$color,
+					lwd=p$linewidth, lty=p$linetype)
+			}
+			if ( length(p$y) > 0L ) {
+				abline(h=p$y, col=p$color,
+					lwd=p$linewidth, lty=p$linetype)
+			}
+		} else if ( e$name == "plotly" ) {
+			if ( length(p$x) > 0L ) {
+				vlines <- lapply(p$x, function(xi)
+					{
+						list(x0=xi, x1=xi, y0=0, y1=1,
+							type="line", yref="paper",
+							line=list(color=p$color,
+								width=p$linewidth))
+					})
+				rules <- c(rules, vlines)
+			}
+			if ( length(p$y) > 0L ) {
+				hlines <- lapply(p$y, function(yi)
+					{
+						list(x0=0, x1=1, y0=yi, y1=yi,
+							type="line", xref="paper",
+							line=list(color=p$color,
+								width=p$linewidth))
+					})
+				rules <- c(rules, hlines)
+			}
+		} else {
+			stop("unsupported plot engine: ", sQuote(e$name))
+		}
+	}
+	if ( e$name == "plotly" )
+		e$plotly <- plotly::layout(e$plotly, shapes=rules)
+	# encode legends
+	static_params <- more[setdiff(names(more), names(encoding))]
+	invisible(encode_legends(plot$channels, static_params, "l"))
+}
+
+plot.vizi_rules <- function(x, plot = NULL, ...)
+{
+	invisible(plot_mark_rules(x, plot=plot, ...))
+}
+
 plot_mark_bars <- function(mark, plot = NULL, ...,
 	width = 1, stack = FALSE)
 {
@@ -556,7 +679,7 @@ plot_mark_bars <- function(mark, plot = NULL, ...,
 	more$color <- add_alpha(more$color, more$alpha)
 	more$fill <- add_alpha(more$fill, more$alpha)
 	# find non-required channels that encode groups
-	groups <- compute_groups(plot, encoding, c("x", "y"))
+	groups <- compute_groups(plot, encoding, names(more))
 	group_encoding <- encoding[names(groups)]
 	ngroups <- max(1, nrow(groups))
 	if ( length(groups) > 1L )
@@ -700,7 +823,7 @@ plot_mark_intervals <- function(mark, plot = NULL, ...,
 		channels=plot$channels, params=params)
 	more$color <- add_alpha(more$color, more$alpha)
 	# find non-required channels that encode groups
-	groups <- compute_groups(plot, encoding, c("x", "y", "z", "text"))
+	groups <- compute_groups(plot, encoding, names(more))
 	group_encoding <- encoding[names(groups)]
 	ngroups <- max(1, nrow(groups))
 	# iterate over groups
@@ -804,7 +927,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 	more$color <- add_alpha(more$color, more$alpha)
 	more$fill <- add_alpha(more$fill, more$alpha)
 	# find non-required channels that encode groups
-	groups <- compute_groups(plot, encoding, c("x", "y"))
+	groups <- compute_groups(plot, encoding, names(more))
 	group_encoding <- encoding[names(groups)]
 	ngroups <- max(1, nrow(groups))
 	if ( length(groups) > 1L )
@@ -1333,6 +1456,7 @@ setOldClass("vizi_points")
 setOldClass("vizi_lines")
 setOldClass("vizi_peaks")
 setOldClass("vizi_text")
+setOldClass("vizi_rules")
 setOldClass("vizi_bars")
 setOldClass("vizi_intervals")
 setOldClass("vizi_boxplot")
@@ -1343,6 +1467,7 @@ setMethod("plot", "vizi_points", plot.vizi_points)
 setMethod("plot", "vizi_lines", plot.vizi_lines)
 setMethod("plot", "vizi_peaks", plot.vizi_peaks)
 setMethod("plot", "vizi_text", plot.vizi_text)
+setMethod("plot", "vizi_rules", plot.vizi_rules)
 setMethod("plot", "vizi_bars", plot.vizi_bars)
 setMethod("plot", "vizi_intervals", plot.vizi_intervals)
 setMethod("plot", "vizi_boxplot", plot.vizi_boxplot)

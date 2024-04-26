@@ -4,6 +4,7 @@
 \alias{vizi_lines}
 \alias{vizi_peaks}
 \alias{vizi_text}
+\alias{vizi_rules}
 \alias{vizi_bars}
 \alias{vizi_intervals}
 \alias{vizi_boxplot}
@@ -14,6 +15,7 @@
 \alias{plot.vizi_lines}
 \alias{plot.vizi_peaks}
 \alias{plot.vizi_text}
+\alias{plot.vizi_rules}
 \alias{plot.vizi_bars}
 \alias{plot.vizi_intervals}
 \alias{plot.vizi_boxplot}
@@ -24,6 +26,7 @@
 \alias{plot,vizi_lines,ANY-method}
 \alias{plot,vizi_peaks,ANY-method}
 \alias{plot,vizi_text,ANY-method}
+\alias{plot,vizi_rules,ANY-method}
 \alias{plot,vizi_bars,ANY-method}
 \alias{plot,vizi_intervals,ANY-method}
 \alias{plot,vizi_boxplot,ANY-method}
@@ -38,16 +41,21 @@
 
 \usage{
 \S3method{plot}{vizi_points}(x, plot = NULL, \dots,
-    n = Inf, downsampler = "lttb", jitter = "")
+    n = Inf, downsampler = "lttb", jitter = "",
+    sort = is.finite(n))
 
 \S3method{plot}{vizi_lines}(x, plot = NULL, \dots,
-    n = Inf, downsampler = "lttb", jitter = "")
+    n = Inf, downsampler = "lttb", jitter = "",
+    sort = is.finite(n))
 
 \S3method{plot}{vizi_peaks}(x, plot = NULL, \dots,
-    n = Inf, downsampler = "lttb", jitter = "")
+    n = Inf, downsampler = "lttb", jitter = "",
+    sort = is.finite(n))
 
 \S3method{plot}{vizi_text}(x, plot = NULL, \dots,
     adj = NULL, pos = NULL, offset = 0.5)
+
+\S3method{plot}{vizi_rules}(x, plot = NULL, \dots)
 
 \S3method{plot}{vizi_bars}(x, plot = NULL, \dots,
     width = 1, stack = FALSE)
@@ -79,6 +87,8 @@
 
     \item{jitter}{\emph{Transformation}. Should jitter be applied to one or more position channels? One of \code{""}, \code{"x"}, \code{"y"}, or \code{"xy"}.}
 
+    \item{sort}{\emph{Transformation}. Should the data be sorted (along the x-axis) before plotting? Mostly useful for line charts.}
+
     \item{width}{The width of the bars or boxplots.}
 
     \item{stack}{Should bars be stacked versus grouped side-by-side?}
@@ -98,6 +108,12 @@
     \item{useRaster}{Should a bitmap raster be used for plotting? This is typically faster on supported devices. A fallback to polygon-based plotting is used if raster plotting is not supported.}
 
     \item{xslice, yslice, zslice}{Numeric vectors giving the x, y, and/or z coordinates of the volumetric slices to plot. If none are provided, defaults to plotting all z-slices.}
+}
+
+\details{
+    These methods are not intended to be called directly. They are presented here to document the transformations and parameters they accept. These should be passed a list to the \code{trans} and \code{params} arguments in \code{\link{add_mark}}.
+
+    See \code{\link{add_mark}} for supported encodings.
 }
 
 \seealso{

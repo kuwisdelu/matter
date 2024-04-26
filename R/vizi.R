@@ -460,7 +460,11 @@ plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 		x$engine <- getOption("matter.vizi.engine")
 	if ( is.character(x$engine) || !add )
 	{
-		name <- x$engine
+		if ( is.character(x$engine) ) {
+			name <- x$engine
+		} else {
+			name <- x$engine$name
+		}
 		x$engine <- new.env()
 		x$engine$name <- name
 	}
@@ -528,7 +532,11 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 		x$engine <- getOption("matter.vizi.engine")
 	if ( is.character(x$engine) || !add )
 	{
-		name <- x$engine
+		if ( is.character(x$engine) ) {
+			name <- x$engine
+		} else {
+			name <- x$engine$name
+		}
 		x$engine <- new.env()
 		x$engine$name <- name
 	}
@@ -859,9 +867,15 @@ merge_limits <- function(l1, l2, ...)
 	if ( is_discrete(l1) && is_discrete(l2) ) {
 		union(l1, l2)
 	} else if ( !is_discrete(l1) && !is_discrete(l2) ) {
-		range(l1, l2)
+		range(l1, l2, na.rm=TRUE)
 	} else {
-		stop("can't merge continuous and discrete channels")
+		if ( all(is.na(l1)) ) {
+			l2
+		} else if ( all(is.na(l2)) ) {
+			l1
+		} else {
+			stop("can't merge continuous and discrete channels")
+		}
 	}
 }
 
@@ -882,8 +896,8 @@ compute_variables <- function(encoding, data = NULL)
 compute_properties <- function(encoding, data = NULL)
 {
 	e <- compute_variables(encoding, data=data)
-	xnames <- c("x", "xmin", "xmax")
-	ynames <- c("y", "ymin", "ymax")
+	xnames <- c("x", "xmin", "xmax", "xref")
+	ynames <- c("y", "ymin", "ymax", "yref")
 	nms <- names(e)
 	channels <- lapply(nms, function(nm)
 	{
@@ -943,6 +957,9 @@ merge_subscripts <- function(subscripts, ...)
 
 compute_facets <- function(plot, by, nshingles = 6L)
 {
+	n <- unique(lengths(by))
+	if ( length(n) > 1L )
+		stop("'by' has differing numbers of observations")
 	subscripts <- compute_subscripts(by, nshingles)
 	if ( length(subscripts) == 1L ) {
 		dim <- panel_dim_n(prod(lengths(subscripts)))
@@ -952,7 +969,14 @@ compute_facets <- function(plot, by, nshingles = 6L)
 	levels <- expand.grid(lapply(subscripts, names))
 	labels <- apply(levels, 1L, paste0, collapse="\n")
 	ffac <- function(v, p) {
-		fsub <- function(x) x[v]
+		fsub <- function(x) {
+			if ( length(x) != n ) {
+				stop("faceting expected ", n, " observations ",
+					"but encoding has ", length(x), "observations")
+			} else {
+				x[v]
+			}
+		}
 		e <- lapply(p$encoding, fsub)
 		mks <- lapply(p$marks, function(mk) {
 			mk$encoding <- lapply(mk$encoding, fsub)
@@ -976,10 +1000,10 @@ compute_facets <- function(plot, by, nshingles = 6L)
 		dim=dim)
 }
 
-compute_groups <- function(plot, encoding, required)
+compute_groups <- function(plot, encoding, names)
 {
-	groups <- encoding[setdiff(names(encoding), required)]
-	names <- names(groups)[!duplicated(groups)]
+	names <- names[names %in% names(encoding)]
+	names <- names[!duplicated(encoding[names])]
 	names <- setNames(names, names)
 	groups <- lapply(plot$channels[names],
 		function(ch) {
@@ -1116,7 +1140,11 @@ get_limits <- function(x)
 	if ( is_discrete(x) ) {
 		levels(as.factor(x))
 	} else {
-		range(x, na.rm=TRUE)
+		if ( na_length(x, na.rm=TRUE) > 0L ) {
+			range(x, na.rm=TRUE)
+		} else {
+			c(NA_real_, NA_real_)
+		}
 	}
 }
 
