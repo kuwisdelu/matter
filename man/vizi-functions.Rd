@@ -124,6 +124,7 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
         \item{\code{bars}: Bars for bar charts or histograms.}
         \item{\code{intervals}: Line intervals for representing error bars or confidence intervals.}
         \item{\code{boxplot}: Box-and-whisker plots.}
+        \item{\code{image}: Raster graphics.}
         \item{\code{pixels}: 2D image from pixels.}
         \item{\code{voxels}: 3D image from voxels.}
     }
@@ -131,8 +132,9 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     Currently supported encodings include:
 
     \itemize{
-        \item{\code{x, y, z}: Position channels.}
-        \item{\code{xmin, xmax, ymin, ymax}: For \code{intervals}.}
+        \item{\code{x, y, z}: Positions.}
+        \item{\code{xmin, xmax, ymin, ymax}: Position limits for \code{intervals} and \code{image}.}
+        \item{\code{image}: Rasters for \code{image}.}
         \item{\code{shape}: Shape of points (pch).}
         \item{\code{size}: Size of points (cex).}
         \item{\code{color, colour}: Color (col, fg).}
@@ -155,6 +157,7 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     \code{\link{vizi_bars}},
     \code{\link{vizi_intervals}},
     \code{\link{vizi_boxplot}},
+    \code{\link{vizi_image}},
     \code{\link{vizi_pixels}},
     \code{\link{vizi_voxels}}
 }

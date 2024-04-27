@@ -134,7 +134,8 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
 	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
-	grid = TRUE, asp = 1, useRaster = TRUE, engine = NULL, ...)
+	rasterImages = NULL, rasterParams = NULL, useRaster = TRUE,
+	grid = TRUE, asp = 1, engine = NULL, ...)
 {
 	if ( missing(vals) && !missing(z) )
 	{
@@ -196,6 +197,8 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 		by <- rep_len(factor(by, levels=unique(by)), length(vals))
 	if ( !is.null(group) )
 		group <- rep_len(factor(group, levels=unique(group)), length(vals))
+	if ( !is.null(rasterImages) && !is.list(rasterImages) )
+		rasterImages <- list(rasterImages)
 	vals <- lapply(vals, function(v) if (is.factor(v)) v else as.vector(v))
 	is3d <- any(lengths(z) > 0L)
 	if ( is3d ) {
@@ -207,6 +210,12 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 	}
 	if ( is.null(by) ) {
 		plot <- vizi()
+		if ( length(rasterImages) > 0L )
+		{
+			plot <- add_mark(plot, "image", image=rasterImages,
+				xmin=rasterParams$xmin, xmax=rasterParams$xmax,
+				ymin=rasterParams$ymin, ymax=rasterParams$ymax)
+		}
 		for ( i in seq_along(vals) ) {
 			if ( is.null(group) ) {
 				plot <- add_mark(plot, mark,
@@ -224,6 +233,19 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 		plot <- lapply(levels(by), function(lvl)
 		{
 			p <- vizi()
+			if ( length(rasterImages) > 0L )
+			{
+				if ( is.null(names(rasterImages)) ) {
+					k <- seq_along(rasterImages)
+				} else {
+					k <- which(names(rasterImages) %in% lvl)
+				}
+				rs <- rasterImages[k]
+				rp <- subset_list(rasterParams, k)
+				p <- add_mark(p, "image", image=rs,
+					xmin=rp$xmin, xmax=rp$xmax,
+					ymin=rp$ymin, ymax=rp$ymax)
+			}
 			for ( i in which(by == lvl) ) {
 				if ( is.null(group) ) {
 					p <- add_mark(p, mark,
@@ -1036,6 +1058,14 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 	xmax <- encode_var("xmax", encoding, plot$channels)
 	ymin <- encode_var("ymin", encoding, plot$channels)
 	ymax <- encode_var("ymax", encoding, plot$channels)
+	if ( length(xmin) == 0L )
+		xmin <- plot$channels[["x"]]$limits[1L]
+	if ( length(xmax) == 0L )
+		xmax <- plot$channels[["x"]]$limits[2L]
+	if ( length(ymin) == 0L )
+		ymin <- plot$channels[["y"]]$limits[1L]
+	if ( length(ymax) == 0L )
+		ymax <- plot$channels[["y"]]$limits[2L]
 	# encode images
 	image <- encoding[["image"]]
 	# get parameters
@@ -1064,11 +1094,25 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 				xright=xmax[i] + dxi, ytop=ymax[i] + dyi,
 				interpolate=interpolate)
 		} else if ( e$name == "plotly" ) {
-			rc <- rc[nrow(rc):1L,,drop=FALSE]
-			pxi <- 2 * dxi
-			pyi <- 2 * dyi
+			rev <- if (is.null(plot$coord$rev)) "" else plot$coord$rev
+			# flip x axis?
+			if ( rev %in% c("x", "xy", "yx") ) {
+				x0 <- xmax[i]
+				pxi <- -2 * dxi
+			} else {
+				x0 <- xmin[i]
+				pxi <- 2 * dxi
+			}
+			# flip y axis?
+			if ( rev %in% c("y", "xy", "yx") ) {
+				y0 <- ymin[i]
+				pyi <- 2 * dyi
+			} else {
+				y0 <- ymax[i]
+				pyi <- -2 * dyi
+			}
 			e$plotly <- plotly::add_image(e$plotly, z=rc,
-				x0=xmin[i], y0=ymin[i], dx=pxi, dy=pyi, name=label)
+				x0=x0, y0=y0, dx=pxi, dy=pyi, name=label)
 		} else {
 			stop("unsupported plot engine: ", sQuote(e$name))
 		}
@@ -1077,10 +1121,10 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 }
 
 plot.vizi_image <- function(x, plot = NULL, ...,
-	alpha = NA, maxColorValue = 1)
+	alpha = NA, interpolate = TRUE, maxColorValue = 1)
 {
 	invisible(plot_mark_image(mark=x, plot=plot, ...,
-		alpha=alpha, maxColorValue=maxColorValue))
+		alpha=alpha, interpolate=interpolate, maxColorValue=maxColorValue))
 }
 
 compute_raster <- function(mark, plot = NULL, ...,

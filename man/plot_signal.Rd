@@ -20,7 +20,8 @@ plot_image(x, y, z, vals, by = names(vals), group = NULL,
     zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
     zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
     enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
-    grid = TRUE, asp = 1, useRaster = TRUE, engine = NULL, \dots)
+    rasterImages = NULL, rasterParams = NULL, useRaster = TRUE,
+    grid = TRUE, asp = 1, engine = NULL, \dots)
 }
 
 \arguments{
@@ -63,6 +64,8 @@ plot_image(x, y, z, vals, by = names(vals), group = NULL,
     \item{scale}{If \code{TRUE}, then all image values will be scaled to the range [0, 100]. This is useful for comparing images with differing intensity levels across facets or layers.}
 
     \item{asp}{The aspect ratio. See \code{\link[graphics]{plot.window}}.}
+
+    \item{rasterImages, rasterParams}{A list of rasters and raster parameters (e.g., \code{xmin}, \code{xmax}, etc.) to plot before plotting \code{vals}. These should be numeric arrays of 3 or 4 color channels with values from 0 to 1. If the raster parameters are omitted, then the raster limits are taken from the range of \code{x} and \code{y}. If the raster list has names, then these are matched against the levels of \code{by} and plotted accordingly.}
 
     \item{useRaster}{Should a bitmap raster be used for plotting? This is typically faster on supported devices. A fallback to polygon-based plotting is used if raster plotting is not supported.}
 }

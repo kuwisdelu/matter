@@ -8,6 +8,7 @@
 \alias{vizi_bars}
 \alias{vizi_intervals}
 \alias{vizi_boxplot}
+\alias{vizi_image}
 \alias{vizi_pixels}
 \alias{vizi_voxels}
 
@@ -19,6 +20,7 @@
 \alias{plot.vizi_bars}
 \alias{plot.vizi_intervals}
 \alias{plot.vizi_boxplot}
+\alias{plot.vizi_image}
 \alias{plot.vizi_pixels}
 \alias{plot.vizi_voxels}
 
@@ -30,6 +32,7 @@
 \alias{plot,vizi_bars,ANY-method}
 \alias{plot,vizi_intervals,ANY-method}
 \alias{plot,vizi_boxplot,ANY-method}
+\alias{plot,vizi_image,ANY-method}
 \alias{plot,vizi_pixels,ANY-method}
 \alias{plot,vizi_voxels,ANY-method}
 
@@ -66,6 +69,9 @@
 \S3method{plot}{vizi_boxplot}(x, plot = NULL, \dots,
     range = 1.5, notch = FALSE, width = 0.8)
 
+\S3method{plot}{vizi_image}(x, plot = NULL, \dots,
+    alpha = NA, interpolate = TRUE, maxColorValue = 1)
+
 \S3method{plot}{vizi_pixels}(x, plot = NULL, \dots,
     enhance = FALSE, smooth = FALSE, scale = FALSE,
     useRaster = TRUE)
@@ -98,6 +104,12 @@
     \item{length, angle}{See \code{\link[graphics]{arrows}}.}
 
     \item{range, notch}{See \code{\link[graphics]{boxplot}}.}
+
+    \item{alpha}{Opacity level from 0 to 1.}
+
+    \item{interpolate}{See \code{\link[graphics]{rasterImage}}.}
+
+    \item{maxColorValue}{See \code{\link[grDevices]{col2rgb}}.}
 
     \item{enhance}{\emph{Transformation}. The name of a contrast enhancement method, such as \code{"hist"} or \code{"adapt"} for \code{enhance_hist()} and \code{enhance_adapt()}, etc. See \code{\link{enhance}} for details.}
 

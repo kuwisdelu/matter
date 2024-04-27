@@ -564,14 +564,13 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 		if ( is.null(x$engine$facets) )
 			x$engine$facets <- vector("list", length=n)
 	}
-	keys <- list()
 	# loop through facets
+	attr <- c("channels", "coord", "params", "engine")
+	keys <- list()
 	for ( i in seq_len(n) )
 	{
 		plot <- x$plots[[i]]
-		plot$channels <- x$channels
-		plot$params <- x$params
-		plot$engine <- x$engine
+		plot[attr] <- x[attr]
 		if ( !add )
 		{
 			# initialize plot
@@ -1316,7 +1315,8 @@ encode_scheme <- function(x, scheme, limits)
 encode_legends <- function(channels, params, type = NULL)
 {
 	keys <- list()
-	for ( nm in setdiff(names(channels), c("x", "y", "z", "text")) )
+	ignore <- c("x", "y", "z", "text", "image")
+	for ( nm in setdiff(names(channels), ignore) )
 	{
 		omit <- isFALSE(channels[[nm]]$key)
 		if ( omit )
@@ -1433,8 +1433,9 @@ merge_legends <- function(keys, ...)
 
 needs_legends <- function(plot)
 {
+	ignore <- c("x", "y", "z", "text", "image")
 	chs <- names(plot$channels)
-	chs <- setdiff(chs, c("x", "y", "z", "text", "image"))
+	chs <- setdiff(chs, ignore)
 	chs <- plot$channels[chs]
 	fn <- function(x) {
 		if ( is.numeric(x) )
