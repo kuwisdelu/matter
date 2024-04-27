@@ -1059,13 +1059,13 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 	ymin <- encode_var("ymin", encoding, plot$channels)
 	ymax <- encode_var("ymax", encoding, plot$channels)
 	if ( length(xmin) == 0L )
-		xmin <- plot$channels[["x"]]$limits[1L]
+		xmin <- min(plot$channels[["x"]]$limits)
 	if ( length(xmax) == 0L )
-		xmax <- plot$channels[["x"]]$limits[2L]
+		xmax <- max(plot$channels[["x"]]$limits)
 	if ( length(ymin) == 0L )
-		ymin <- plot$channels[["y"]]$limits[1L]
+		ymin <- min(plot$channels[["y"]]$limits)
 	if ( length(ymax) == 0L )
-		ymax <- plot$channels[["y"]]$limits[2L]
+		ymax <- max(plot$channels[["y"]]$limits)
 	# encode images
 	image <- encoding[["image"]]
 	# get parameters
@@ -1085,16 +1085,32 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 			rc <- add_alpha(rc, alpha)
 		dxi <- 0.5 * (xmax[i] - xmin[i]) / (ncol(rc) - 1)
 		dyi <- 0.5 * (ymax[i] - ymin[i]) / (nrow(rc) - 1)
+		rev <- if (is.null(plot$coord$rev)) "" else plot$coord$rev
 		if ( e$name == "base" ) {
 			hasRaster <- dev.capabilities("rasterImage")$rasterImage
-			if ( hasRaster != "yes" )
+			if ( hasRaster == "no" )
 				stop("device does not have raster capabilities")
+			# flip x axis?
+			if ( rev %in% c("x", "xy", "yx") ) {
+				xleft <- xmax[i] + dxi
+				xright <- xmin[i] - dxi
+			} else {
+				xleft <- xmin[i] - dxi
+				xright <- xmax[i] + dxi
+			}
+			# flip y axis?
+			if ( rev %in% c("y", "xy", "yx") ) {
+				ytop <- ymin[i] - dyi
+				ybottom <- ymax[i] + dyi
+			} else {
+				ytop <- ymax[i] + dyi
+				ybottom <- ymin[i] - dyi
+			}
 			rasterImage(rc,
-				xleft=xmin[i] - dxi, ybottom=ymin[i] - dyi,
-				xright=xmax[i] + dxi, ytop=ymax[i] + dyi,
+				xleft=xleft, ybottom=ybottom,
+				xright=xright, ytop=ytop,
 				interpolate=interpolate)
 		} else if ( e$name == "plotly" ) {
-			rev <- if (is.null(plot$coord$rev)) "" else plot$coord$rev
 			# flip x axis?
 			if ( rev %in% c("x", "xy", "yx") ) {
 				x0 <- xmax[i]
@@ -1339,12 +1355,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		return()
 	# plot the image
 	if ( e$name == "base" ) {
-		# flip x axis?
-		if ( par("usr")[1L] > par("usr")[2L] )
-			rc <- rc[nrow(rc):1L,,drop=FALSE]
-		# flip y axis?
-		if ( par("usr")[3L] < par("usr")[4L] )
-			rc <- rc[,ncol(rc):1L,drop=FALSE]
+		rev <- if (is.null(plot$coord$rev)) "" else plot$coord$rev
 		hasRaster <- dev.capabilities("rasterImage")$rasterImage
 		if ( !is2d(plot) || hasRaster != "yes" )
 			useRaster <- FALSE
@@ -1353,11 +1364,27 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		if ( useRaster ) {
 			# plot raster
 			rc <- t(rc)
-			di <- 0.5 * diff(rs$i) / (dim(rc)[1L] - 1)
-			dj <- 0.5 * diff(rs$j) / (dim(rc)[2L] - 1)
+			di <- 0.5 * diff(rs$i) / (ncol(rc) - 1)
+			dj <- 0.5 * diff(rs$j) / (nrow(rc) - 1)
+			# flip x axis?
+			if ( rev %in% c("x", "xy", "yx") ) {
+				xleft <- rs$i[2L] + di
+				xright <- rs$i[1L] - di
+			} else {
+				xleft <- rs$i[1L] - di
+				xright <- rs$i[2L] + di
+			}
+			# flip y axis?
+			if ( rev %in% c("y", "xy", "yx") ) {
+				ytop <- rs$j[1L] - dj
+				ybottom <- rs$j[2L] + dj
+			} else {
+				ytop <- rs$j[2L] + dj
+				ybottom <- rs$j[1L] - dj
+			}
 			rasterImage(as.raster(rc),
-				xleft=rs$i[1L] - di, ybottom=rs$j[1L] - dj,
-				xright=rs$i[2L] + di, ytop=rs$j[2L] + dj,
+				xleft=xleft, ybottom=ybottom,
+				xright=xright, ytop=ytop,
 				interpolate=FALSE)
 		} else {
 			# plot polygons
