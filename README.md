@@ -49,7 +49,7 @@ The most cutting edge version of *Matter* can be installed from Github via the *
 if (!require("remotes", quietly = TRUE))
     install.packages("remotes")
 
-remotes::github_install("kuwisdelu/matter")
+remotes::install_github("kuwisdelu/matter")
 ```
 
 This version is unstable and only recommended for developers.
