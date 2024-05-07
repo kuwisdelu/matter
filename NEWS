@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.6.1 [2024-5-7]
+------------------------------------
+
+BUG FIXES
+
+    o Fix 'matter_list' error on zero-length elements
+
 CHANGES IN VERSION 2.5.22 [2024-4-26]
 ------------------------------------
 

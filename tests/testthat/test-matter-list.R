@@ -44,6 +44,13 @@ test_that("matter list", {
 	expect_equal(c(x, x2), c(y, y2)[])
 	expect_equal(path(y), path(y2))
 
+	x3 <- list(a=integer(), b=numeric(), c=101:103)
+	y3 <- matter_list(x3)
+
+	expect_equal(y3[[1L]], integer())
+	expect_equal(y3[[2L]], integer())
+	expect_equal(y3[[3L]], 101:103)
+
 })
 
 test_that("matter list coercion", {
