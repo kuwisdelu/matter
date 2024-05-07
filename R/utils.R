@@ -607,7 +607,11 @@ preview_vector_data <- function(x, n = getOption("matter.show.head.n"), ...) {
 		out <- c(out, "...")
 		nms <- c(nms, "...")
 	}
-	matrix(out, nrow=1, dimnames=list("", nms))
+	if ( length(x) > 0L ) {
+		matrix(out, nrow=1, dimnames=list("", nms))
+	} else {
+		matrix("", nrow=1, dimnames=list("", "[0]"))
+	}
 }
 
 preview_vector <- function(x, n = getOption("matter.show.head.n"), ...) {

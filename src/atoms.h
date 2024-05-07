@@ -186,10 +186,16 @@ class Atoms {
 			index_t j = 0;
 			int atom = find_group(grp);
 			AtomInfo ap;
+			if ( i == 0 && extent(atom) == 0)
+			{
+				ap = {atom, 0};
+				return ap;
+			}
 			while ( i >= 0 && group(atom) == grp && atom < natoms() )
 			{
 				index_t len = extent(atom);
-				if ( j <= i && i < j + len ) {
+				if ( j <= i && i < j + len )
+				{
 					ap = {atom, i - j};
 					return ap;
 				}

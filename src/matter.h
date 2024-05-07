@@ -514,6 +514,8 @@ class MatterList : public Matter {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
+			if ( dim(i) == 0 )
+				return;
 			int stride = (LENGTH(value) == 1) ? 0 : 1;
 			switch(TYPEOF(value)) {
 				case RAWSXP:
@@ -594,6 +596,8 @@ class MatterList : public Matter {
 				self_destruct();
 				Rf_error("length of replacement value and items to replace are not equal");
 			}
+			if ( dim(i) == 0 )
+				return;
 			int stride = (LENGTH(value) == 1) ? 0 : 1;
 			switch(TYPEOF(value)) {
 				case RAWSXP:
