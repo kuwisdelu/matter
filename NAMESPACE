@@ -430,9 +430,7 @@ export(
 	"cpal",
 	"add_alpha")
 
-exportMethods(
-	"prcomp",
-	"bigglm")
+exportMethods("prcomp")
 
 export(
 	"qrank",
