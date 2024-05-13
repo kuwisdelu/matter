@@ -714,7 +714,7 @@ rmatmul_sc <- function(x, y, useOuter = FALSE)
 		INDEX <- chunkify(seq_len(ncol(x)), nchunks)
 		for ( i in INDEX ) {
 			if ( verbose )
-				print_chunk_progress(i, length(INDEX))
+				print_chunk_progress(i)
 			xi <- as.matrix(x[,i,drop=FALSE])
 			ans <- ans + xi %*% y[i,,drop=FALSE]
 		}
@@ -722,7 +722,7 @@ rmatmul_sc <- function(x, y, useOuter = FALSE)
 		INDEX <- chunkify(seq_len(nrow(x)), nchunks)
 		for ( i in INDEX ) {
 			if ( verbose )
-				print_chunk_progress(i, length(INDEX))
+				print_chunk_progress(i)
 			xi <- as.matrix(x[i,,drop=FALSE])
 			ans[i,] <- xi %*% y
 		}
@@ -759,7 +759,7 @@ lmatmul_sc <- function(x, y, useOuter = FALSE)
 		INDEX <- chunkify(seq_len(nrow(y)), nchunks)
 		for ( i in INDEX ) {
 			if ( verbose )
-				print_chunk_progress(i, length(INDEX))
+				print_chunk_progress(i)
 			yi <- as.matrix(y[i,,drop=FALSE])
 			ans <- ans + x[,i,drop=FALSE] %*% yi
 		}
@@ -767,7 +767,7 @@ lmatmul_sc <- function(x, y, useOuter = FALSE)
 		INDEX <- chunkify(seq_len(ncol(y)), nchunks)
 		for ( i in INDEX ) {
 			if ( verbose )
-				print_chunk_progress(i, length(INDEX))
+				print_chunk_progress(i)
 			yi <- as.matrix(y[,i,drop=FALSE])
 			ans[,i] <- x %*% yi
 		}

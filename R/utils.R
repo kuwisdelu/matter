@@ -25,42 +25,47 @@
 #### Parallel RNG ####
 ## --------------------
 
-RNGStreams <- function(n, parallel = FALSE) {
-	if ( isTRUE(parallel) )
-	{
-		if ( !"L'Ecuyer-CMRG" %in% RNGkind() )
-			RNGkind("L'Ecuyer-CMRG")
-		if ( missing(n) )
-			return(invisible())
-	}
-	seeds <- vector("list", n)
+RNGStreams <- function(n = length(size), size = 1L) {
+	if ( length(size) != n )
+		size <- rep_len(size, n)
 	s <- getRNGStream()
-	if ( !is.null(s) )
+	seeds <- vector("list", n)
+	for ( i in seq_len(n) )
 	{
-		if ( "L'Ecuyer-CMRG" %in% RNGkind() ) {
-			for ( i in seq_len(n) ) {
-				s <- nextRNGStream(s)
-				seeds[[i]] <- s
+		seeds[[i]] <- s
+		if ( s$kind == "L'Ecuyer-CMRG" )
+		{
+			if ( size[i] > 1L ) {
+				for ( j in seq_len(size[i]) )
+					s$seed <- nextRNGSubStream(s$seed)
+			} else {
+				s$seed <- nextRNGStream(s$seed)
 			}
-		} else {
-			for ( i in seq_len(n) )
-				seeds[[i]] <- s
 		}
 	}
 	seeds
 }
 
-getRNGStream <- function(env = globalenv()) {
-	if ( exists(".Random.seed", envir=env) ) {
-		get(".Random.seed", envir=env)
+getRNGStream <- function() {
+	if ( exists(".Random.seed", envir=globalenv()) ) {
+		seed <- get(".Random.seed", envir=globalenv())
 	} else {
-		NULL
+		seed <- NULL
 	}
+	list(seed=seed, kind=RNGkind()[1L])
 }
 
-setRNGStream <- function(seed = NULL, env = globalenv()) {
-	if ( !is.null(seed) && is.integer(seed) )
-		assign(".Random.seed", seed, envir=env)
+setRNGStream <- function(seed = NULL, kind = NULL) {
+	if ( is.list(seed) ) {
+		kind <- seed$kind
+		seed <- seed$seed
+	}
+	RNGkind(kind)
+	if ( is.null(seed) ) {
+		rm(".Random.seed", seed, envir=globalenv())
+	} else {
+		assign(".Random.seed", seed, envir=globalenv())
+	}
 }
 
 #### Normalize subscripts ####
@@ -706,12 +711,20 @@ preview_Nd_array <- function(x, n = getOption("matter.show.head.n"), ...) {
 preview_list <- function(x, n = getOption("matter.show.head.n"), ...) {
 	n1 <- min(n, length(x))
 	for ( i in 1:n1 ) {
-		fmt <- preview_vector_data(x[[i]], n, ...)
-		if ( !is.null(names(x)) ) {
-			rownames(fmt) <- paste0("$", names(x)[i])
+		xi <- x[[i]]
+		if ( is.null(dim(xi)) ) {
+			fmt <- preview_vector_data(x[[i]], n, ...)
 		} else {
-			rownames(fmt) <- paste0("[[", i, "]]")
+			fmt <- preview_matrix_data(x[[i]], n, ...)
 		}
+		if ( !is.null(names(x)) ) {
+			nm <- paste0("$", names(x)[i])
+		} else {
+			nm <- paste0("[[", i, "]]")
+		}
+		if ( nrow(fmt) > 1L )
+			nm <- c(nm, character(nrow(fmt) - 1L))
+		rownames(fmt) <- nm
 		print(fmt, quote=FALSE, right=TRUE)
 	}
 	if ( length(x) > n1 )
