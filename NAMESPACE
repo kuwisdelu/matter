@@ -92,8 +92,6 @@ importFrom("digest",
 importFrom("irlba",
 	"irlba")
 
-import("biglm")
-
 importFrom("parallel",
 	"nextRNGStream",
 	"nextRNGSubStream")

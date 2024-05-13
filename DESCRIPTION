@@ -9,16 +9,16 @@ Description: Toolbox for out-of-memory scientific computing and data visualizati
 License: Artistic-2.0
 Depends: R (>= 4.0), BiocParallel, Matrix, methods
 Imports: BiocGenerics, ProtGenerics, digest, irlba,
-	biglm, stats, stats4, graphics, grDevices, utils
+	stats, stats4, graphics, grDevices, utils
 Suggests: BiocStyle, knitr, testthat, plotly
 VignetteBuilder: knitr
 Collate: matterGenerics.R utils.R drle.R
 	atoms.R ops.R matter.R matter_arr.R 
 	matter_fct.R matter_list.R matter_str.R 
-	search.R sparse_arr.R stream_stat.R apply.R
-	rowStats.R stats.R scale.R dist.R cv.R
-	biglm.R fastmap.R nscentroids.R sgmix.R
-	nnmf.R prcomp.R pls.R signal.R signal2.R
+	search.R sparse_arr.R stream_stat.R chunked.R
+	apply.R rowStats.R stats.R scale.R dist.R
+	fastmap.R nscentroids.R sgmix.R nnmf.R
+	prcomp.R pls.R signal.R signal2.R cv.R
 	mi_learn.R altrep.R plot.R vizi.R
 biocViews: Infrastructure, DataRepresentation, DataImport,
 	DimensionReduction, Preprocessing
