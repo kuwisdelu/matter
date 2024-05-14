@@ -11,25 +11,25 @@
 }
 
 \usage{
-RNGStreams(n, parallel = FALSE)
+RNGStreams(n = length(size), size = 1L)
 
-getRNGStream(env = globalenv())
+getRNGStream()
 
-setRNGStream(seed = NULL, env = globalenv())
+setRNGStream(seed = NULL, kind = NULL)
 }
 
 \arguments{
 	\item{n}{The number of RNG streams to create.}
 
-	\item{parallel}{Should the \code{RNGkind} be set to the parallel-safe "L'Ecuyer-CMRG" generator if it isn't already? Note that if the RNG is set to a different generator, this will reset the random seed.}
+	\item{size}{If \code{RNGkind} is set to "L'Ecuyer-CMRG", then iterate this number of RNG substreams between each returned stream.}
 
-	\item{env}{The environment in which to get or set the random number generator. Defaults to the global environment.}
+	\item{seed}{A valid RNG stream to assign to \code{.Random.seed}, or a list with elements named \code{seed} and \code{kind}.}
 
-	\item{seed}{A valid RNG stream to assign to \code{.Random.seed}. For safety, should be a value returned by either \code{getRNGStream()} or \code{RNGStreams()}.}
+	\item{kind}{The \code{RNGkind} to use when setting the RNG stream.}
 }
 
 \value{
-    For \code{RNGStreams} a list of length \code{n} with RNG streams for \code{.Random.seed}.
+    For \code{RNGStreams}, a list of length \code{n} with RNG streams (with elements named \code{seed} and \code{kind}) for use with \code{setRNGStream}.
 }
 
 \author{Kylie A. Bemis}
@@ -40,14 +40,12 @@ setRNGStream(seed = NULL, env = globalenv())
 }
 
 \examples{
-# initialize parallel RNG
-RNGStreams(parallel=TRUE)
-
-# create and use RNG streams
+# create parallel RNG streams
 register(SerialParam())
+RNGkind("L'Ecuyer-CMRG")
 set.seed(1)
-seeds <- RNGStreams(5)
-chunkLapply(rep.int(10, 5), rnorm, seeds=seeds)
+seeds <- RNGStreams(4)
+seeds
 }
 
 \keyword{utilities}

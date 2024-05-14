@@ -59,7 +59,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
-	BIND <- match.fun(simplify)
+	simplify <- match.fun(simplify)
 	if ( is.null(dim(X)) || length(dim(X)) != 2L )
 		stop("X must have exactly 2 dimensions")
 	if ( is.na(nchunks) )
@@ -77,7 +77,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	CHUNKFUN <- chunk_fun(FUN, type="array",
 		rngseeds=rngseeds, progress=progress)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
-	do.call(BIND, ans)
+	do.call(simplify, ans)
 }
 
 chunk_colapply <- function(X, FUN, ...,
@@ -85,7 +85,7 @@ chunk_colapply <- function(X, FUN, ...,
 	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
-	BIND <- match.fun(simplify)
+	simplify <- match.fun(simplify)
 	if ( is.null(dim(X)) || length(dim(X)) != 2L )
 		stop("X must have exactly 2 dimensions")
 	if ( is.na(nchunks) )
@@ -103,7 +103,7 @@ chunk_colapply <- function(X, FUN, ...,
 	CHUNKFUN <- chunk_fun(FUN, type="array",
 		rngseeds=rngseeds, progress=progress)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
-	do.call(BIND, ans)
+	do.call(simplify, ans)
 }
 
 #### Chunk-Apply functions over lists ####
@@ -148,7 +148,7 @@ chunk_lapply <- function(X, FUN, ...,
 	verbose = NA, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
-	BIND <- match.fun(simplify)
+	simplify <- match.fun(simplify)
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
@@ -164,7 +164,7 @@ chunk_lapply <- function(X, FUN, ...,
 	CHUNKFUN <- chunk_fun(FUN, type="vector",
 		rngseeds=rngseeds, progress=progress)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
-	do.call(BIND, ans)
+	do.call(simplify, ans)
 }
 
 #### Chunk-Apply functions over multiple lists ####
@@ -237,6 +237,7 @@ chunk_fun <- function(FUN, type,
 {
 	function(X, ...)
 	{
+		return("hello, world!")
 		id <- attr(X, "chunkid")
 		if ( !is.null(rngseeds) ) {
 			oseed <- getRNGStream()
@@ -273,9 +274,11 @@ chunk_loop_fun <- function(FUN, type,
 			dep <- attr(X, "depends")
 			if ( is.null(dep) ) {
 				j <- i
+				drop <- TRUE
 				get_subset <- `[[`
 			} else {
 				j <- dep[[i]]
+				drop <- FALSE
 				get_subset <- `[`
 			}
 			if ( is.null(j) )
@@ -284,20 +287,17 @@ chunk_loop_fun <- function(FUN, type,
 				list=lapply(X, get_subset, j),
 				vector=get_subset(X, j),
 				array=switch(margin,
-					X[j,,drop=FALSE],
-					X[,j,drop=FALSE]))
+					X[j,,drop=drop],
+					X[,j,drop=drop]))
+			iseed <- getRNGStream()
 			if ( type == "list" ) {
-				xi[[1L]] <- set_attr(xi[[1L]], attributes(X))
 				ans[[ii]] <- do.call(FUN, c(xi, MoreArgs))
 			} else {
 				ans[[ii]] <- FUN(xi, ...)
 			}
-			seed <- getRNGStream()
-			if ( seed$kind == "L'Ecuyer-CMRG" )
-			{
-				seed$seed <- nextRNGSubStream(seed$seed)
-				setRNGStream(seed)
-			}
+			if ( iseed$kind == "L'Ecuyer-CMRG" )
+				iseed$seed <- nextRNGSubStream(iseed$seed)
+			setRNGStream(iseed)
 			ii <- ii + 1L
 		}
 		if ( is.null(put) ) {
@@ -305,7 +305,6 @@ chunk_loop_fun <- function(FUN, type,
 		} else {
 			put(ans, id)
 		}
-		ans
 	}
 }
 

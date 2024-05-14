@@ -80,8 +80,8 @@ setMethod("[",
 			if ( is.null(i) )
 				i <- seq_along(x)
 			ans <- vector("list", length(i))
-			for ( j in i )
-				ans[[j]] <- x[[j]]
+			for ( j in seq_along(i) )
+				ans[[j]] <- x[[i[j]]]
 			ans
 		}
 	})

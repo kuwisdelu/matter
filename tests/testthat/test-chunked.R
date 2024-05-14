@@ -5,7 +5,6 @@ context("chunked")
 
 test_that("chunked - memory", {
 
-	register(SerialParam())
 	set.seed(1)
 	x <- runif(100)
 	y <- replicate(100, rnorm(10), simplify=FALSE)
@@ -29,6 +28,11 @@ test_that("chunked - memory", {
 	expect_equivalent(yc[1:3], list(yc[[1L]], yc[[2L]], yc[[3L]]))
 	expect_equivalent(zc1[1:3], list(zc1[[1L]], zc1[[2L]], zc1[[3L]]))
 	expect_equivalent(zc2[1:3], list(zc2[[1L]], zc2[[2L]], zc2[[3L]]))
+
+	expect_equivalent(xc[18:20], list(xc[[18L]], xc[[19L]], xc[[20L]]))
+	expect_equivalent(yc[18:20], list(yc[[18L]], yc[[19L]], yc[[20L]]))
+	expect_equivalent(zc1[18:20], list(zc1[[18L]], zc1[[19L]], zc1[[20L]]))
+	expect_equivalent(zc2[18:20], list(zc2[[18L]], zc2[[19L]], zc2[[20L]]))
 	
 	expect_equivalent(mc[[1L]][[1L]], xc[[1L]])
 	expect_equivalent(mc[[1L]][[2L]], yc[[1L]])
@@ -39,11 +43,9 @@ test_that("chunked - memory", {
 
 	expect_equal(xcm_bp, xcm_l)
 
-	register(SerialParam())
 	set.seed(1)	
 	u <- sort(runif(100))
 	ind <- roll(seq_along(u), width=5, na.drop=TRUE)
-
 	uc <- chunked_vector(u, nchunks=nc, depends=ind)
 
 	expect_equal(attr(uc[[1L]], "chunksize"), length(i1))
@@ -56,7 +58,6 @@ test_that("chunked - memory", {
 
 test_that("chunked - matter", {
 
-	register(SerialParam())
 	set.seed(1)
 	x <- as.matter(runif(100))
 	y <- as.matter(replicate(100, rnorm(10), simplify=FALSE))
@@ -65,11 +66,12 @@ test_that("chunked - matter", {
 	i1 <- i[[1L]]
 
 	nc <- 20L
-	xl <- chunked_vector(x, nchunks=nc, local=TRUE)
-	yl <- chunked_vector(y, nchunks=nc, local=TRUE)
-	zl1 <- chunked_matrix(z, 1L, nchunks=nc, local=TRUE)
-	zl2 <- chunked_matrix(z, 2L, nchunks=nc, local=TRUE)
-	ml <- chunked_list(x, y, nchunks=nc, local=TRUE)
+	loc <- TRUE
+	xl <- chunked_vector(x, nchunks=nc, local=loc)
+	yl <- chunked_vector(y, nchunks=nc, local=loc)
+	zl1 <- chunked_matrix(z, 1L, nchunks=nc, local=loc)
+	zl2 <- chunked_matrix(z, 2L, nchunks=nc, local=loc)
+	ml <- chunked_list(x, y, nchunks=nc, local=loc)
 
 	expect_equivalent(xl[[1L]], x[i1,drop=NULL])
 	expect_equivalent(yl[[1L]], y[i1,drop=NULL])
@@ -77,11 +79,12 @@ test_that("chunked - matter", {
 	expect_equivalent(zl2[[1L]], z[,i1,drop=NULL])
 
 	nc <- 20L
-	xc <- chunked_vector(x, nchunks=nc, local=FALSE)
-	yc <- chunked_vector(y, nchunks=nc, local=FALSE)
-	zc1 <- chunked_matrix(z, 1L, nchunks=nc, local=FALSE)
-	zc2 <- chunked_matrix(z, 2L, nchunks=nc, local=FALSE)
-	mc <- chunked_list(x, y, nchunks=nc, local=FALSE)
+	loc <- FALSE
+	xc <- chunked_vector(x, nchunks=nc, local=loc)
+	yc <- chunked_vector(y, nchunks=nc, local=loc)
+	zc1 <- chunked_matrix(z, 1L, nchunks=nc, local=loc)
+	zc2 <- chunked_matrix(z, 2L, nchunks=nc, local=loc)
+	mc <- chunked_list(x, y, nchunks=nc, local=loc)
 
 	expect_equivalent(xc[[1L]], x[i1])
 	expect_equivalent(yc[[1L]], y[i1])

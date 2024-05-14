@@ -3,6 +3,43 @@ require(matter)
 
 context("apply")
 
+test_that("chunkLapply RNG", {
+
+	n <- 10
+	ns <- rep.int(n, 100)
+
+	register(SerialParam())
+	RNGkind("Mersenne-Twister")
+	set.seed(1)
+	x1 <- runif(n)
+	set.seed(1)
+	ans1 <- chunkLapply(ns, runif)
+
+	expect_equal(ans1[[1L]], x1)
+
+	register(SerialParam())
+	RNGkind("L'Ecuyer-CMRG")
+	set.seed(1)
+	s1 <- getRNGStream()
+	s2 <- parallel::nextRNGSubStream(s$seed)
+	setRNGStream(s1)
+	y1 <- runif(n)
+	setRNGStream(s2)
+	y2 <- runif(n)	
+	set.seed(1)
+	ans2 <- chunkLapply(ns, runif)
+
+	expect_equal(ans2[[1L]], y1)
+	expect_equal(ans2[[2L]], y2)
+
+	register(MulticoreParam())
+	set.seed(1)
+	ans3 <- chunkLapply(ns, identity)
+	ans3 <- chunk_lapply(ns, identity)
+
+})
+
+
 test_that("chunkLapply + chunkMapply", {
 
 	register(SerialParam())
