@@ -235,7 +235,7 @@ setMethod("[", c(x = "matter_list"),
 	function(x, i, j, ..., drop = TRUE) {
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
-		if ( is_nil(drop) ) {
+		if ( is_null_or_na(drop) ) {
 			if ( !is.null(j) )
 				warning("ignoring array subscripts")
 			subset_matter_list_sublist(x, i)

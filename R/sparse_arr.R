@@ -577,7 +577,7 @@ setMethod("[", c(x = "sparse_arr"),
 		narg <- nargs() - 1L - !missing(drop)
 		if ( (narg == 1L && !missing(i)) || is.null(dim(x)) ) {
 			i <- as_subscripts(i, x)
-			if ( is_nil(drop) ) {
+			if ( is_null_or_na(drop) ) {
 				subset_sparse_arr_elts(x, i)
 			} else {
 				get_sparse_arr_elts(x, i)
@@ -587,7 +587,7 @@ setMethod("[", c(x = "sparse_arr"),
 				stop("incorrect number of dimensions")
 			i <- as_row_subscripts(i, x)
 			j <- as_col_subscripts(j, x)
-			if ( is_nil(drop) ) {
+			if ( is_null_or_na(drop) ) {
 				subset_sparse_mat_submatrix(x, i, j)
 			} else {
 				get_sparse_mat_submatrix(x, i, j, drop)

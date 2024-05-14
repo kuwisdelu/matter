@@ -59,7 +59,7 @@ setMethod("[",
 		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
-		if ( is_nil(drop) ) {
+		if ( is_null_or_na(drop) ) {
 			if ( is.null(i) ) {
 				if ( is.null(dim(x@data)) ) {
 					new(class(x),

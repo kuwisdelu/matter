@@ -83,7 +83,7 @@ set_matter_fct_elts <- function(x, i = NULL, value = NULL) {
 setMethod("[", c(x = "matter_fct"),
 	function(x, i, ..., drop = TRUE) {
 		i <- as_subscripts(i, x)
-		if ( is_nil(drop) ) {
+		if ( is_null_or_na(drop) ) {
 			subset_matter_arr_elts(x, i)
 		} else {
 			get_matter_fct_elts(x, i)

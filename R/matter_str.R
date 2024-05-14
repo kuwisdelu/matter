@@ -116,7 +116,7 @@ setMethod("[", c(x = "matter_str"),
 	function(x, i, j, ..., drop = TRUE) {
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
-		if ( is_nil(drop) ) {
+		if ( is_null_or_na(drop) ) {
 			if ( !is.null(j) )
 				warning("ignoring array subscripts")
 			subset_matter_str_elts(x, i)

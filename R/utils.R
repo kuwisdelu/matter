@@ -414,7 +414,7 @@ I <- function(x) {
 
 non_null <- function(x) !vapply(x, is.null, logical(1L))
 
-is_nil <- function(x) is.na(x) || is.null(x)
+is_null_or_na <- function(x) is.null(x) || is.na(x)
 
 is_discrete <- function(x) {
 	is.factor(x) || is.character(x) || is.logical(x)

@@ -123,7 +123,7 @@ setMethod("[",
 		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
-		if ( is_nil(drop) ) {
+		if ( is_null_or_na(drop) ) {
 			subset_drle(x, i)
 		} else {
 			get_drle_elts(x, i)
@@ -137,7 +137,7 @@ setMethod("[",
 		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
-		if ( is_nil(drop) ) {
+		if ( is_null_or_na(drop) ) {
 			y <- subset_drle(x, i)
 		} else {
 			y <- get_drle_elts(x, i)
