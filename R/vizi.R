@@ -44,12 +44,12 @@ add_mark <- function(plot, mark, ..., encoding = NULL,
 				mks[[i]]$encoding <- e
 			}
 			pmks <- plot$plots[[i]]$marks
-			mk <- setNames(list(mks[[i]]), mark)
+			mk <- set_names(list(mks[[i]]), mark)
 			plot$plots[[i]]$marks <- c(pmks, mk)
 		}
 	} else {
 		# assign mark
-		mk <- setNames(list(mk), mark)
+		mk <- set_names(list(mk), mark)
 		plot$marks <- c(plot$marks, mk)
 	}
 	plot
@@ -791,7 +791,7 @@ as_encoding <- function(x, y, ..., env = NULL)
 normalize_encoding <- function(e)
 {
 	if ( length(e) > 0L ) {
-		setNames(e, to_vizi_name(names(e)))
+		set_names(e, to_vizi_name(names(e)))
 	} else {
 		NULL
 	}
@@ -941,7 +941,7 @@ compute_subscripts <- function(by, nshingles = 6L)
 			v <- as.factor(v)
 			nms <- levels(v)
 			v <- lapply(levels(v), function(lvl) which(v == lvl))
-			setNames(v, nms)
+			set_names(v, nms)
 		} else {
 			shingles(v, breaks=nshingles)
 		}
@@ -1009,7 +1009,7 @@ compute_groups <- function(plot, encoding, names)
 {
 	names <- names[names %in% names(encoding)]
 	names <- names[!duplicated(encoding[names])]
-	names <- setNames(names, names)
+	names <- set_names(names, names)
 	groups <- lapply(plot$channels[names],
 		function(ch) {
 			if ( is_discrete(ch$limits) ) {
@@ -1309,7 +1309,7 @@ encode_scheme <- function(x, scheme, limits)
 			x <- cut.default(x, breaks=breaks)
 		}
 	}
-	setNames(scheme[as.integer(x)], x)
+	set_names(scheme[as.integer(x)], x)
 }
 
 encode_legends <- function(channels, params, type = NULL)

@@ -400,7 +400,7 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
 	more <- c("shape", "color", "fill", "alpha", "size", "linewidth", "linetype")
-	more <- setNames(more, more)
+	more <- set_names(more, more)
 	more <- lapply(more, encode_var, encoding=encoding,
 		channels=plot$channels, params=params, subscripts=i)
 	more$color <- add_alpha(more$color, more$alpha)
@@ -537,7 +537,7 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
 	more <- c("color", "alpha", "size")
-	more <- setNames(more, more)
+	more <- set_names(more, more)
 	more <- lapply(more, encode_var, encoding=encoding,
 		channels=plot$channels, params=params, subscripts=i)
 	more$color <- add_alpha(more$color, more$alpha)
@@ -608,7 +608,7 @@ plot_mark_rules <- function(mark, plot = NULL, ...)
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
 	more <- c("color", "alpha", "linewidth", "linetype")
-	more <- setNames(more, more)
+	more <- set_names(more, more)
 	more <- lapply(more, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
 	more$color <- add_alpha(more$color, more$alpha)
@@ -700,7 +700,7 @@ plot_mark_bars <- function(mark, plot = NULL, ...,
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
 	more <- c("color", "fill", "alpha", "linewidth")
-	more <- setNames(more, more)
+	more <- set_names(more, more)
 	more <- lapply(more, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
 	more$color <- add_alpha(more$color, more$alpha)
@@ -845,7 +845,7 @@ plot_mark_intervals <- function(mark, plot = NULL, ...,
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
 	more <- c("shape", "color", "alpha", "size", "linewidth", "linetype")
-	more <- setNames(more, more)
+	more <- set_names(more, more)
 	more <- lapply(more, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
 	more$color <- add_alpha(more$color, more$alpha)
@@ -948,7 +948,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 	params <- merge_encoding(plot$params, mark$params, as_encoding(...))
 	params <- normalize_encoding(params)
 	more <- c("color", "fill", "alpha")
-	more <- setNames(more, more)
+	more <- set_names(more, more)
 	more <- lapply(more, encode_var, encoding=encoding,
 		channels=plot$channels, params=params)
 	more$color <- add_alpha(more$color, more$alpha)
@@ -1443,9 +1443,9 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 	yslice <- if (is.null(yslice)) integer() else yslice
 	zslice <- if (is.null(zslice)) integer() else zslice
 	slices <- c(
-		setNames(xslice, rep.int("x", length(xslice))),
-		setNames(yslice, rep.int("y", length(yslice))),
-		setNames(zslice, rep.int("z", length(zslice))))
+		set_names(xslice, rep.int("x", length(xslice))),
+		set_names(yslice, rep.int("y", length(yslice))),
+		set_names(zslice, rep.int("z", length(zslice))))
 	if ( length(slices) == 0L ) {
 		slices <- sort(unique(z))
 		names(slices) <- rep.int("z", length(slices))

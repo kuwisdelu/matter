@@ -69,7 +69,6 @@ importFrom("stats",
 	"runmed",
 	"kmeans",
 	"optimize",
-	"setNames",
 	"smooth.spline",
 	"spline",
 	"update")

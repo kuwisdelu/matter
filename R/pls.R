@@ -56,7 +56,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(colnames(y), paste0("C", j)))
 	y.scores <- matrix(nrow=nrow(y), ncol=k,
 		dimnames=list(rownames(y), paste0("C", j)))
-	cvar <- setNames(numeric(k), paste0("C", j))
+	cvar <- set_names(numeric(k), paste0("C", j))
 	inner <- numeric(k)
 	y0 <- y
 	for ( i in j )
@@ -195,7 +195,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			dimnames=list(snames, paste0("C", j)))
 		y.scores <- matrix(nrow=nrow(y), ncol=k,
 			dimnames=list(rownames(y), paste0("C", j)))
-		cvar <- setNames(numeric(k), paste0("C", j))
+		cvar <- set_names(numeric(k), paste0("C", j))
 	}
 	for ( i in j )
 	{
@@ -332,7 +332,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			dimnames=list(snames, paste0("C", j)))
 		y.scores <- matrix(nrow=nrow(y), ncol=k,
 			dimnames=list(rownames(y), paste0("C", j)))
-		cvar <- setNames(numeric(k), paste0("C", j))
+		cvar <- set_names(numeric(k), paste0("C", j))
 	}
 	for ( i in j )
 	{
@@ -479,7 +479,7 @@ predict.pls <- function(object, newdata, k,
 	if ( any(k > ncol(object$loadings)) )
 		stop("'k' is larger than the number of components")
 	# predict for each k
-	ans <- lapply(setNames(k, paste0("k=", k)),
+	ans <- lapply(set_names(k, paste0("k=", k)),
 		function(ki)
 		{
 			# extract relevant components
@@ -608,7 +608,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		dimnames=list(pnames, paste0("C", j)))
 	scores <- matrix(nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
-	ratio <- setNames(numeric(k), paste0("C", j))
+	ratio <- set_names(numeric(k), paste0("C", j))
 	y0 <- y
 	if ( transpose ) {
 		w0 <- colsweep_matrix((xt %*% y), colSums(y^2), "/")
@@ -767,7 +767,7 @@ predict.opls <- function(object, newdata, k,
 	# extract relevant components
 	if ( any(k > ncol(object$loadings)) )
 		stop("'k' is larger than the number of components")
-	ans <- lapply(setNames(k, paste0("k=", k)),
+	ans <- lapply(set_names(k, paste0("k=", k)),
 		function(ki)
 		{
 			weights <- object$weights[,1:ki,drop=FALSE]

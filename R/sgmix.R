@@ -134,9 +134,9 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 			warning("k > number of distinct data points")
 		class <- factor(x, levels=xu, labels=seq_along(xu))
 		y <- encode_dummy(class)
-		mu <- setNames(c(xu, rep.int(NA_real_, k - length(xu))), seq_len(k))
-		sigma <- setNames(rep.int(0, k), seq_len(k))
-		alpha <- setNames(rep.int(1, k), seq_len(k))
+		mu <- set_names(c(xu, rep.int(NA_real_, k - length(xu))), seq_len(k))
+		sigma <- set_names(rep.int(0, k), seq_len(k))
+		alpha <- set_names(rep.int(1, k), seq_len(k))
 		ans <- list(class=class, probability=y, mu=t(mu), sigma=t(sigma),
 			alpha=t(alpha), beta=1, logLik=NA_real_)
 		class(ans) <- "sgmix"
@@ -290,9 +290,9 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	# re-order based on segment means
 	ord <- order(mu, decreasing=TRUE)
 	y <- y[,ord,drop=FALSE]
-	mu <- setNames(mu[ord], seq_len(k))
-	sigma <- setNames(sigma[ord], seq_len(k))
-	alpha <- setNames(alpha[ord], seq_len(k))
+	mu <- set_names(mu[ord], seq_len(k))
+	sigma <- set_names(sigma[ord], seq_len(k))
+	alpha <- set_names(alpha[ord], seq_len(k))
 	# estimate final parameters and probabilities
 	E <- stepE(y, mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 	y <- E$y

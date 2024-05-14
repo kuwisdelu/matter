@@ -235,7 +235,7 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	xout <- spline(tshift, x, xout=tout,
 		ties=list("ordered", mean))$y
 	attr(xout, "path") <- path
-	attr(xout, "tol") <- setNames(tol, tol.ref)
+	attr(xout, "tol") <- set_names(tol, tol.ref)
 	xout
 }
 
@@ -278,7 +278,7 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ties=list("ordered", mean), n=n)$y
 	xout <- approx(tx, x, xout=tout)$y
 	attr(xout, "path") <- path
-	attr(xout, "tol") <- setNames(tol, tol.ref)
+	attr(xout, "tol") <- set_names(tol, tol.ref)
 	xout
 }
 
@@ -337,7 +337,7 @@ warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		ties=list("ordered", mean), n=n)$y
 	xout <- approx(tx, x, xout=tout)$y
 	attr(xout, "path") <- path
-	attr(xout, "tol") <- setNames(tol, tol.ref)
+	attr(xout, "tol") <- set_names(tol, tol.ref)
 	xout
 }
 
