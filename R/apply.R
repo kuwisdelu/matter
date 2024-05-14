@@ -237,7 +237,6 @@ chunk_fun <- function(FUN, type,
 {
 	function(X, ...)
 	{
-		return("hello, world!")
 		id <- attr(X, "chunkid")
 		if ( !is.null(rngseeds) ) {
 			oseed <- getRNGStream()
