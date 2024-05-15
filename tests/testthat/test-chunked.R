@@ -68,19 +68,6 @@ test_that("chunked - matter", {
 
 	nch <- 20L
 	loc <- TRUE
-	xl <- chunked_vec(x, nchunks=nch, local=loc)
-	yl <- chunked_vec(y, nchunks=nch, local=loc)
-	zl1 <- chunked_mat(z, 1L, nchunks=nch, local=loc)
-	zl2 <- chunked_mat(z, 2L, nchunks=nch, local=loc)
-	ml <- chunked_list(x, y, nchunks=nch, local=loc)
-
-	expect_equivalent(xl[[1L]], x[i1,drop=NULL])
-	expect_equivalent(yl[[1L]], y[i1,drop=NULL])
-	expect_equivalent(zl1[[1L]], z[i1,,drop=NULL])
-	expect_equivalent(zl2[[1L]], z[,i1,drop=NULL])
-
-	nch <- 20L
-	loc <- FALSE
 	xc <- chunked_vec(x, nchunks=nch, local=loc)
 	yc <- chunked_vec(y, nchunks=nch, local=loc)
 	zc1 <- chunked_mat(z, 1L, nchunks=nch, local=loc)
@@ -91,6 +78,19 @@ test_that("chunked - matter", {
 	expect_equivalent(yc[[1L]], y[i1])
 	expect_equivalent(zc1[[1L]], z[i1,,drop=TRUE])
 	expect_equivalent(zc2[[1L]], z[,i1,drop=TRUE])
+
+	nch <- 20L
+	loc <- FALSE
+	xl <- chunked_vec(x, nchunks=nch, local=loc)
+	yl <- chunked_vec(y, nchunks=nch, local=loc)
+	zl1 <- chunked_mat(z, 1L, nchunks=nch, local=loc)
+	zl2 <- chunked_mat(z, 2L, nchunks=nch, local=loc)
+	ml <- chunked_list(x, y, nchunks=nch, local=loc)
+
+	expect_equivalent(xl[[1L]], x[i1,drop=NULL])
+	expect_equivalent(yl[[1L]], y[i1,drop=NULL])
+	expect_equivalent(zl1[[1L]], z[i1,,drop=NULL])
+	expect_equivalent(zl2[[1L]], z[,i1,drop=NULL])
 
 })
 

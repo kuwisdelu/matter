@@ -89,7 +89,7 @@ setMethod("[",
 	})
 
 chunked_vec <- function(x, nchunks = NA,
-	local = FALSE, depends = NULL)
+	local = TRUE, depends = NULL)
 {
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
@@ -99,7 +99,7 @@ chunked_vec <- function(x, nchunks = NA,
 }
 
 chunked_mat <- function(x, margin, nchunks = NA,
-	local = FALSE, depends = NULL)
+	local = TRUE, depends = NULL)
 {
 	if ( length(dim(x)) != 2L )
 		stop("'x' must have exactly 2 dimensions")
@@ -115,7 +115,7 @@ chunked_mat <- function(x, margin, nchunks = NA,
 }
 
 chunked_list <- function(..., nchunks = NA,
-	local = FALSE, depends = NULL)
+	local = TRUE, depends = NULL)
 {
 	xs <- list(...)
 	if ( length(xs) > 1L ) {
@@ -139,7 +139,7 @@ chunked_list <- function(..., nchunks = NA,
 setMethod("[[", c(x = "chunked_list"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		if ( x@local && all(vapply(x@data, is.matter, logical(1L))) ) {
+		if ( !x@local && all(vapply(x@data, is.matter, logical(1L))) ) {
 			drop <- NULL
 		} else {
 			drop <- FALSE
@@ -152,7 +152,7 @@ setMethod("[[", c(x = "chunked_list"),
 setMethod("[[", c(x = "chunked_vec"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		if ( x@local && is.matter(x@data) ) {
+		if ( !x@local && is.matter(x@data) ) {
 			drop <- NULL
 		} else {
 			drop <- FALSE
@@ -165,7 +165,7 @@ setMethod("[[", c(x = "chunked_vec"),
 setMethod("[[", c(x = "chunked_mat"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		if ( x@local && is.matter(x@data) ) {
+		if ( !x@local && is.matter(x@data) ) {
 			drop <- NULL
 		} else {
 			drop <- FALSE

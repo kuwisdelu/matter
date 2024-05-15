@@ -44,13 +44,13 @@
 \usage{
 ## Instance creation
 chunked_vec(x, nchunks = NA,
-    local = FALSE, depends = NULL)
+    local = TRUE, depends = NULL)
 
 chunked_mat(x, margin, nchunks = NA,
-    local = FALSE, depends = NULL)
+    local = TRUE, depends = NULL)
 
 chunked_list(\dots, nchunks = NA,
-    local = FALSE, depends = NULL)
+    local = TRUE, depends = NULL)
 
 ## Additional methods documented below
 }
@@ -60,7 +60,7 @@ chunked_list(\dots, nchunks = NA,
 
     \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-    \item{local}{For \code{matter} data, whether the data will be processed locally (i.e., on the same machine or a machine with access to the same file system).}
+    \item{local}{For \code{matter} data, whether the data should be loaded locally.}
 
     \item{margin}{Which array margin should be chunked.}
 
@@ -73,7 +73,7 @@ chunked_list(\dots, nchunks = NA,
 
         \item{\code{index}:}{The chunk indices.}
 
-        \item{\code{local}:}{Whether the data will be processed locally (i.e., on the same machine or a machine with access to the same file system).}
+        \item{\code{local}:}{For \code{matter} data, whether the data should be loaded locally.}
 
         \item{\code{margin}:}{The array margin for the chunks.}
     }

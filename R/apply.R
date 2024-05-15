@@ -67,8 +67,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_mat(X, margin=1L, nchunks=nchunks,
-		depends=depends, local=has_localworkers(BPPARAM))
+	CHUNKS <- chunked_mat(X, margin=1L, nchunks=nchunks, depends=depends)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -93,8 +92,7 @@ chunk_colapply <- function(X, FUN, ...,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_mat(X, margin=2L, nchunks=nchunks,
-		depends=depends, local=has_localworkers(BPPARAM))
+	CHUNKS <- chunked_mat(X, margin=2L, nchunks=nchunks, depends=depends)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -154,8 +152,7 @@ chunk_lapply <- function(X, FUN, ...,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_vec(X, nchunks=nchunks,
-		depends=depends, local=has_localworkers(BPPARAM))
+	CHUNKS <- chunked_vec(X, nchunks=nchunks, depends=depends)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -215,8 +212,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_list(..., nchunks=nchunks,
-		depends=depends, local=has_localworkers(BPPARAM))
+	CHUNKS <- chunked_list(..., nchunks=nchunks, depends=depends)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -339,12 +335,6 @@ has_progressbar <- function(BPPARAM) {
 
 has_RNGseed <- function(BPPARAM) {
 	!is.null(BPPARAM) && !is.null(bpRNGseed(BPPARAM))
-}
-
-has_localworkers <- function(BPPARAM) {
-	local_bp <- inherits(BPPARAM, c("NULL", "SerialParam", "MulticoreParam"))
-	local_cl <- is(BPPARAM, "SnowParam") && is.numeric(bpworkers(BPPARAM))
-	local_bp || local_cl
 }
 
 simplify2matter <- function(ans) {
