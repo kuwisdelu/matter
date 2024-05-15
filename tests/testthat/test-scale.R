@@ -24,18 +24,27 @@ test_that("sweep - matter matrix", {
 	expect_equal(
 		rowsweep(x, a, group=cgroup),
 		rowsweep(y, a, group=cgroup)[])
+	expect_equal(
+		rowsweep(x, a, group=cgroup)[1:3,1:3],
+		rowsweep(y, a, group=cgroup)[1:3,1:3,drop=NULL][])
 
 	expect_equal(sweep(x, 2L, b1), colsweep(x, b1))
 	expect_equal(colsweep(x, b1), colsweep(y, b1)[])
 	expect_equal(
 		colsweep(x, b, group=rgroup),
 		colsweep(y, b, group=rgroup)[])
+	expect_equal(
+		colsweep(x, b, group=rgroup)[1:3,1:3],
+		colsweep(y, b, group=rgroup)[1:3,1:3,drop=NULL][])
 
 	cgroupNA <- replace(cgroup, 4L, NA)
 
 	expect_equal(
 		rowsweep(x, a, group=cgroupNA),
 		rowsweep(y, a, group=cgroupNA)[])
+	expect_equal(
+		rowsweep(x, a, group=cgroupNA)[1:3,1:3],
+		rowsweep(y, a, group=cgroupNA)[1:3,1:3,drop=NULL][])
 
 })
 
@@ -61,18 +70,27 @@ test_that("sweep - sparse matrix", {
 	expect_equal(
 		rowsweep(x, a, group=cgroup),
 		rowsweep(y, a, group=cgroup)[])
+	expect_equal(
+		rowsweep(x, a, group=cgroup)[1:3,1:3],
+		rowsweep(y, a, group=cgroup)[1:3,1:3,drop=NULL][])
 
 	expect_equal(sweep(x, 2L, b1), colsweep(x, b1))
 	expect_equal(colsweep(x, b1), colsweep(y, b1)[])
 	expect_equal(
 		colsweep(x, b, group=rgroup),
 		colsweep(y, b, group=rgroup)[])
+	expect_equal(
+		colsweep(x, b, group=rgroup)[1:3,1:3],
+		colsweep(y, b, group=rgroup)[1:3,1:3,drop=NULL][])
 
 	cgroupNA <- replace(cgroup, 4L, NA)
 
 	expect_equal(
 		rowsweep(x, a, group=cgroupNA),
 		rowsweep(y, a, group=cgroupNA)[])
+	expect_equal(
+		rowsweep(x, a, group=cgroupNA)[1:3,1:3],
+		rowsweep(y, a, group=cgroupNA)[1:3,1:3,drop=NULL][])
 
 })
 
@@ -139,25 +157,25 @@ test_that("scale - matter matrix", {
 
 	center <- colStats(x, "mean", group=rgroup)
 	x2 <- t(sapply(1:nrow(x), function(i) x[i,] - center[,rgroup[i]]))
-	x3 <- colscale(y, scale=FALSE, group=rgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- colscale(y, scale=FALSE, group=rgroup)
+	expect_equivalent(x2, x3[])
 
 	center <- rowStats(x, "mean", group=cgroup)
 	x2 <- sapply(1:ncol(x), function(i) x[,i] - center[,cgroup[i]])
-	x3 <- rowscale(y, scale=FALSE, group=cgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- rowscale(y, scale=FALSE, group=cgroup)
+	expect_equivalent(x2, x3[])
 
 	scale <- colStats(x^2, "sum", group=rgroup)
 	scale <- sqrt(scale / pmax(1, (rep(tabulate(rgroup), each=ncol(x)) - 1)))
 	x2 <- t(sapply(1:nrow(x), function(i) x[i,] / scale[,rgroup[i]]))
-	x3 <- colscale(y, center=FALSE, group=rgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- colscale(y, center=FALSE, group=rgroup)
+	expect_equivalent(x2, x3[])
 
 	scale <- rowStats(x^2, "sum", group=cgroup)
 	scale <- sqrt(scale / pmax(1, (rep(tabulate(cgroup), each=nrow(x)) - 1)))
 	x2 <- sapply(1:ncol(x), function(i) x[,i] / scale[,cgroup[i]])
-	x3 <- rowscale(y, center=FALSE, group=cgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- rowscale(y, center=FALSE, group=cgroup)
+	expect_equivalent(x2, x3[])
 
 })
 
@@ -183,25 +201,25 @@ test_that("scale - sparse matrix", {
 
 	center <- colStats(x, "mean", group=rgroup)
 	x2 <- t(sapply(1:nrow(x), function(i) x[i,] - center[,rgroup[i]]))
-	x3 <- colscale(y, scale=FALSE, group=rgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- colscale(y, scale=FALSE, group=rgroup)
+	expect_equivalent(x2, x3[])
 
 	center <- rowStats(x, "mean", group=cgroup)
 	x2 <- sapply(1:ncol(x), function(i) x[,i] - center[,cgroup[i]])
-	x3 <- rowscale(y, scale=FALSE, group=cgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- rowscale(y, scale=FALSE, group=cgroup)
+	expect_equivalent(x2, x3[])
 
 	scale <- colStats(x^2, "sum", group=rgroup)
 	scale <- sqrt(scale / pmax(1, (rep(tabulate(rgroup), each=ncol(x)) - 1)))
 	x2 <- t(sapply(1:nrow(x), function(i) x[i,] / scale[,rgroup[i]]))
-	x3 <- colscale(y, center=FALSE, group=rgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- colscale(y, center=FALSE, group=rgroup)
+	expect_equivalent(x2, x3[])
 
 	scale <- rowStats(x^2, "sum", group=cgroup)
 	scale <- sqrt(scale / pmax(1, (rep(tabulate(cgroup), each=nrow(x)) - 1)))
 	x2 <- sapply(1:ncol(x), function(i) x[,i] / scale[,cgroup[i]])
-	x3 <- rowscale(y, center=FALSE, group=cgroup)[]
-	expect_equivalent(x2, x3)
+	x3 <- rowscale(y, center=FALSE, group=cgroup)
+	expect_equivalent(x2, x3[])
 
 })
 

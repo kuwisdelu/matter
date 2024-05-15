@@ -17,7 +17,7 @@ setClass("sparse_arr",
 		sampler = "factor",
 		ops = "ops_OR_NULL",
 		transpose = "logical"),
-	contains = c("matter", "VIRTUAL"),
+	contains = "matter",
 	validity = function(object) {
 		errors <- NULL
 		if ( is.null(object@dim) )
@@ -219,6 +219,51 @@ sparse_mat <- function(data, index, type = "double",
 as.sparse <- function(x, ...) sparse_mat(x, ...)
 
 is.sparse <- function(x) is(x, "sparse_arr")
+
+setAs("sparse_arr", "sparse_vec",
+	function(from) new("sparse_vec", from, dim=length(from), dimnames=NULL))
+
+setAs("sparse_mat", "sparse_vec",
+	function(from) new("sparse_vec", from, dim=length(from), dimnames=NULL))
+
+setAs("sparse_arr", "sparse_mat",
+	function(from) {
+		x <- new("sparse_mat", from)
+		if ( validObject(x) )
+			x
+	})
+
+setAs("sparse_vec", "sparse_mat",
+	function(from) {
+		dm <- c(length(from), 1L)
+		x <- new("sparse_mat", from, dim=dm, names=NULL)
+		if ( validObject(x) )
+			x
+	})
+
+setMethod("as.vector", "sparse_arr",
+	function(x, mode = "any") {
+		if ( mode != "any" )
+			type(x) <- mode
+		names(x) <- NULL
+		dimnames(x) <- NULL
+		as(x, "sparse_vec")[]
+	})
+
+setMethod("as.raw", "sparse_arr",
+	function(x) as.vector(x, "raw"))
+
+setMethod("as.logical", "sparse_arr",
+	function(x, ...) as.vector(x, "logical"))
+
+setMethod("as.integer", "sparse_arr",
+	function(x, ...) as.vector(x, "integer"))
+
+setMethod("as.double", "sparse_arr",
+	function(x, ...) as.vector(x, "double"))
+
+setMethod("as.numeric", "sparse_arr",
+	function(x, ...) as.vector(x, "double"))
 
 setMethod("as.matrix", "sparse_arr",
 	function(x) get_sparse_mat(x))
@@ -660,11 +705,19 @@ setMethod("rowMaj", "sparse_arr", function(x)
 
 setMethod("t", "sparse_arr", function(x)
 {
+	if ( length(dim(x)) > 2L )
+		stop("argument is not a matrix")
 	x@transpose <- !x@transpose
 	x@dim <- rev(x@dim)
 	x@dimnames <- rev(x@dimnames)
+	x@ops <- t_ops(x@ops)
 	if ( validObject(x) )
 		x
+})
+
+setMethod("t", "sparse_vec", function(x)
+{
+	t(as(x, "sparse_mat"))
 })
 
 setMethod("%*%", c("sparse_mat", "vector"), function(x, y)

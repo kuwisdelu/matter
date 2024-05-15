@@ -344,8 +344,6 @@ subset_matter_arr_subarray <- function(x, index)
 		if (is.null(index[[j]])) dim(x)[j]
 		else length(index[[j]]), numeric(1))
 	dnm <- subset_dimnames(x@dimnames, index)
-	# if ( !is.null(x@ops) )
-	# 	warning("deferred operations will be dropped")
 	ops <- subset_ops(x@ops, index)
 	y <- new(class(x), x, data=data, dim=dm,
 		dimnames=dnm, ops=ops)
@@ -393,8 +391,6 @@ subset_matter_mat_submatrix <- function(x, i = NULL, j = NULL)
 	ncol <- if (is.null(j)) x@dim[2L] else length(j)
 	dm <- c(nrow, ncol)
 	dnm <- subset_dimnames(x@dimnames, list(i, j))
-	# if ( !is.null(x@ops) )
-	# 	warning("deferred operations will be dropped")
 	ops <- subset_ops(x@ops, list(i, j))
 	y <- new(class(x), x, data=data, dim=dm,
 		dimnames=dnm, ops=ops)
@@ -647,9 +643,12 @@ setMethod("rowMaj", "matter_arr", function(x)
 
 setMethod("t", "matter_arr", function(x)
 {
+	if ( length(dim(x)) > 2L )
+		stop("argument is not a matrix")
 	x@transpose <- !x@transpose
 	x@dim <- rev(x@dim)
 	x@dimnames <- rev(x@dimnames)
+	x@ops <- t_ops(x@ops)
 	if ( validObject(x) )
 		x
 })

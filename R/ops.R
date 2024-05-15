@@ -196,4 +196,25 @@ subset_ops <- function(ops, index)
 	ops
 }
 
+t_op <- function(ops, k)
+{
+	if ( length(ops@arg[[k]]) > 1L )
+	{
+		margin <- ops@margins[k,]
+		if ( margin[1L] %in% c(1L, 2L) )
+			ops@margins[k,1L] <- switch(margin[1L], 2L, 1L)
+		if ( margin[2L] %in% c(1L, 2L) )
+			ops@margins[k,2L] <- switch(margin[2L], 2L, 1L)
+	}
+	ops
+}
 
+t_ops <- function(ops)
+{
+	if ( !is.null(ops) )
+	{
+		for ( k in seq_along(ops@ops) )
+			ops <- t_op(ops, k)
+	}
+	ops
+}

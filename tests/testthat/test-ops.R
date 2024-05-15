@@ -24,6 +24,8 @@ test_that("deferred ops - logical", {
 	expect_equal(x3[1:5], y3[1:5,drop=NULL][])
 	expect_equal(x2[6:10], y2[6:10,drop=NULL][])
 	expect_equal(x3[6:10], y3[6:10,drop=NULL][])
+	expect_equal(t(x2), t(y2)[,,drop=FALSE])
+	expect_equal(t(x3), t(y3)[,,drop=FALSE])
 
 })
 
@@ -54,6 +56,8 @@ test_that("deferred ops - integer", {
 	expect_equal(x3[1:5], y3[1:5,drop=NULL][])
 	expect_equal(x2[6:10], y2[6:10,drop=NULL][])
 	expect_equal(x3[6:10], y3[6:10,drop=NULL][])
+	expect_equal(t(x2), t(y2)[,,drop=FALSE])
+	expect_equal(t(x3), t(y3)[,,drop=FALSE])
 
 })
 
@@ -86,6 +90,8 @@ test_that("deferred ops - sparse integer", {
 	expect_equal(x3[1:5], y3[1:5,drop=NULL][])
 	expect_equal(x2[6:10], y2[6:10,drop=NULL][])
 	expect_equal(x3[6:10], y3[6:10,drop=NULL][])
+	expect_equal(t(x2), t(y2)[,,drop=FALSE])
+	expect_equal(t(x3), t(y3)[,,drop=FALSE])
 
 })
 
@@ -116,6 +122,8 @@ test_that("deferred ops - double", {
 	expect_equal(x3[1:5], y3[1:5])
 	expect_equal(x2[6:10], y2[6:10,drop=NULL][])
 	expect_equal(x3[6:10], y3[6:10,drop=NULL][])
+	expect_equal(t(x2), t(y2)[,,drop=FALSE])
+	expect_equal(t(x3), t(y3)[,,drop=FALSE])
 
 })
 
@@ -148,6 +156,8 @@ test_that("deferred ops - sparse double", {
 	expect_equal(x3[1:5], y3[1:5])
 	expect_equal(x2[6:10], y2[6:10,drop=NULL][])
 	expect_equal(x3[6:10], y3[6:10,drop=NULL][])
+	expect_equal(t(x2), t(y2)[,,drop=FALSE])
+	expect_equal(t(x3), t(y3)[,,drop=FALSE])
 
 })
 
@@ -198,6 +208,9 @@ test_that("deferred ops - matrix", {
 	expect_equal(x2[1:3,1:3], y2[1:3,1:3,drop=NULL][])
 	expect_equal(x3[1:3,1:3], y3[1:3,1:3,drop=NULL][])
 	expect_equal(x4[1:3,1:3], y4[1:3,1:3,drop=NULL][])
+	expect_equal(t(x2), t(y2)[])
+	expect_equal(t(x3), t(y3)[])
+	expect_equal(t(x4), t(y4)[])
 
 	x5 <- x3 + matrix(b1, nrow=5, ncol=7, byrow=TRUE)
 	y5 <- y3 + b1
@@ -210,6 +223,8 @@ test_that("deferred ops - matrix", {
 	expect_equal(x6[,1:3], y6[,1:3,drop=NULL][])
 	expect_equal(x5[1:3,1:3], y5[1:3,1:3,drop=NULL][])
 	expect_equal(x6[1:3,1:3], y6[1:3,1:3,drop=NULL][])
+	expect_equal(t(x5), t(y5)[])
+	expect_equal(t(x6), t(y6)[])
 
 })
 
@@ -261,6 +276,9 @@ test_that("deferred ops - sparse matrix", {
 	expect_equal(x2[1:3,1:3], y2[1:3,1:3,drop=NULL][])
 	expect_equal(x3[1:3,1:3], y3[1:3,1:3,drop=NULL][])
 	expect_equal(x4[1:3,1:3], y4[1:3,1:3,drop=NULL][])
+	expect_equal(t(x2), t(y2)[])
+	expect_equal(t(x3), t(y3)[])
+	expect_equal(t(x4), t(y4)[])
 
 	x5 <- x3 + matrix(b1, nrow=5, ncol=7, byrow=TRUE)
 	y5 <- y3 + b1
@@ -273,6 +291,8 @@ test_that("deferred ops - sparse matrix", {
 	expect_equal(x6[,1:3], y6[,1:3,drop=NULL][])
 	expect_equal(x5[1:3,1:3], y5[1:3,1:3,drop=NULL][])
 	expect_equal(x6[1:3,1:3], y6[1:3,1:3,drop=NULL][])
+	expect_equal(t(x5), t(y5)[])
+	expect_equal(t(x6), t(y6)[])
 
 })
 
