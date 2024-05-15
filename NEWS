@@ -10,7 +10,7 @@ NEW FEATURES
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Performance improvements for chunk-apply functions
-    o Support chunk-apply functions on non-local clusters
+    o Support chunk-apply functions on remote cluster workers
     o Reduced memory use for chunk-apply functions on SNOW clusters
     o Remove 'biglm' from imports
 

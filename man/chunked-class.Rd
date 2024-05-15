@@ -44,13 +44,13 @@
 \usage{
 ## Instance creation
 chunked_vec(x, nchunks = NA,
-    local = TRUE, depends = NULL)
+    depends = NULL, drop= FALSE)
 
 chunked_mat(x, margin, nchunks = NA,
-    local = TRUE, depends = NULL)
+    depends = NULL, drop= FALSE)
 
 chunked_list(\dots, nchunks = NA,
-    local = TRUE, depends = NULL)
+    depends = NULL, drop= FALSE)
 
 ## Additional methods documented below
 }
@@ -60,11 +60,11 @@ chunked_list(\dots, nchunks = NA,
 
     \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-    \item{local}{For \code{matter} data, whether the data should be loaded locally.}
-
     \item{margin}{Which array margin should be chunked.}
 
     \item{depends}{A list with length equal to the extent of \code{X}. Each element of \code{depends} should give a vector of indices which correspond to other elements of \code{X} on which each computation depends. These elements are passed to \code{FUN}. For time  efficiency, no attempt is made to verify these indices are valid.}
+
+    \item{drop}{The value passed to \code{drop} when subsetting the chunks.}
 }
 
 \section{Slots}{
@@ -73,7 +73,7 @@ chunked_list(\dots, nchunks = NA,
 
         \item{\code{index}:}{The chunk indices.}
 
-        \item{\code{local}:}{For \code{matter} data, whether the data should be loaded locally.}
+        \item{\code{drop}:}{The value passed to \code{drop} when subsetting the chunks.}
 
         \item{\code{margin}:}{The array margin for the chunks.}
     }
