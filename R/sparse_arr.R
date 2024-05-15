@@ -455,6 +455,7 @@ subset_sparse_arr_elts <- function(x, i = NULL)
 		domain <- domain(x)[i]
 	}
 	domain(x) <- domain
+	x@ops <- subset_ops(x@ops, list(i))
 	if ( validObject(x) )
 		x
 }
@@ -516,6 +517,7 @@ subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL)
 	ncol <- if (is.null(j)) ncol(x) else length(j)
 	x@dim <- c(nrow, ncol)
 	x@dimnames <- subset_dimnames(x@dimnames, list(i, j))
+	x@ops <- subset_ops(x@ops, list(i, j))
 	if ( validObject(x) )
 		x
 }
@@ -644,6 +646,12 @@ setMethod("Arith", c(e1 = "vector", e2 = "sparse_arr"),
 
 setMethod("Arith", c(e1 = "array", e2 = "sparse_arr"),
 	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
+
+setMethod("exp", "sparse_arr", function(x) register_op(x, "exp"))
+setMethod("log", "sparse_arr", function(x) register_op(x, "log"))
+setMethod("log2", "sparse_arr", function(x) register_op(x, "log2"))
+setMethod("log10", "sparse_arr", function(x) register_op(x, "log10"))
+setMethod("log1p", "sparse_arr", function(x) register_op(x, "log1p"))
 
 setMethod("rowMaj", "sparse_arr", function(x)
 {

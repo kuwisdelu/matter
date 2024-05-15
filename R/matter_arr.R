@@ -308,10 +308,14 @@ subset_matter_arr_elts <- function(x, i = NULL)
 	}
 	data <- ungroup_atoms(x@data)
 	data <- subset_atoms2(data, i, NULL)
-	if ( !is.null(x@ops) )
+	if ( !is.null(dim(x)) && !is.null(x@ops) ) {
+		ops <- NULL
 		warning("deferred operations will be dropped")
+	} else {
+		ops <- subset_ops(x@ops, list(i))
+	}
 	y <- new(class(x), x, data=data, dim=length(i),
-		names=x@names[i], dimnames=NULL, ops=NULL)
+		names=x@names[i], dimnames=NULL, ops=ops)
 	if ( validObject(y) )
 		y
 }
@@ -340,10 +344,11 @@ subset_matter_arr_subarray <- function(x, index)
 		if (is.null(index[[j]])) dim(x)[j]
 		else length(index[[j]]), numeric(1))
 	dnm <- subset_dimnames(x@dimnames, index)
-	if ( !is.null(x@ops) )
-		warning("deferred operations will be dropped")
+	# if ( !is.null(x@ops) )
+	# 	warning("deferred operations will be dropped")
+	ops <- subset_ops(x@ops, index)
 	y <- new(class(x), x, data=data, dim=dm,
-		dimnames=dnm, ops=NULL)
+		dimnames=dnm, ops=ops)
 	if ( validObject(y) )
 		y
 }
@@ -388,10 +393,11 @@ subset_matter_mat_submatrix <- function(x, i = NULL, j = NULL)
 	ncol <- if (is.null(j)) x@dim[2L] else length(j)
 	dm <- c(nrow, ncol)
 	dnm <- subset_dimnames(x@dimnames, list(i, j))
-	if ( !is.null(x@ops) )
-		warning("deferred operations will be dropped")
+	# if ( !is.null(x@ops) )
+	# 	warning("deferred operations will be dropped")
+	ops <- subset_ops(x@ops, list(i, j))
 	y <- new(class(x), x, data=data, dim=dm,
-		dimnames=dnm, ops=NULL)
+		dimnames=dnm, ops=ops)
 	if ( validObject(y) )
 		y
 }
@@ -627,6 +633,12 @@ setMethod("Arith", c(e1 = "vector", e2 = "matter_arr"),
 
 setMethod("Arith", c(e1 = "array", e2 = "matter_arr"),
 	function(e1, e2) register_op(e2, .Generic, e1, TRUE))
+
+setMethod("exp", "matter_arr", function(x) register_op(x, "exp"))
+setMethod("log", "matter_arr", function(x) register_op(x, "log"))
+setMethod("log2", "matter_arr", function(x) register_op(x, "log2"))
+setMethod("log10", "matter_arr", function(x) register_op(x, "log10"))
+setMethod("log1p", "matter_arr", function(x) register_op(x, "log1p"))
 
 setMethod("rowMaj", "matter_arr", function(x)
 {

@@ -221,8 +221,11 @@ S3method("rbind", "sparse_arr")
 
 exportMethods(
 	"Arith",
-	"Compare",
-	"Logic")
+	"exp",
+	"log",
+	"log2",
+	"log10",
+	"log1p")
 
 exportMethods(
 	"range",

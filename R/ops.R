@@ -159,4 +159,41 @@ register_group_op <- function(x, op, arg, group,
 	if ( validObject(x) )
 		x
 }
- 
+
+subset_op <- function(ops, k, index)
+{
+	if ( length(ops@arg[[k]]) > 1L )
+	{
+		for ( j in seq_along(index) )
+		{
+			if ( is.null(index[[j]]) ) {
+				next
+			} else {
+				i <- index[[j]]
+			}
+			if ( isTRUE(ops@margins[k,1L] == j) )
+			{
+				if ( is.null(dim(ops@arg)) ) {
+					ops@arg[[k]] <- ops@arg[[k]][i]
+				} else {
+					ops@arg[[k]] <- ops@arg[[k]][i,,drop=FALSE]
+				}
+			}
+			if ( isTRUE(ops@margins[k,2L] == j) )
+				ops@group[[k]] <- ops@group[[k]][i]
+		}
+	}
+	ops
+}
+
+subset_ops <- function(ops, index)
+{
+	if ( !is.null(ops) )
+	{
+		for ( k in seq_along(ops@ops) )
+			ops <- subset_op(ops, k, index)
+	}
+	ops
+}
+
+
