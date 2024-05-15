@@ -633,21 +633,36 @@ stat_c.stream_nnzero <- function(x, y, ...) {
 }
 
 
-# streaming matrix stats
+# streaming statistical summaries (grouped)
 
-stream_stat_fun <- function(name) {
-	f <- list(
-		range=base::range,
-		min=base::min,
-		max=base::max,
-		prod=base::prod,
-		sum=base::sum,
-		mean=base::mean.default,
-		var=stats::var,
-		sd=stats::sd,
-		any=base::any,
-		all=base::all,
-		nnzero=nnzero_na_rm)
+stream_stat_fun <- function(name, base = FALSE) {
+	if ( base ) {
+		f <- list(
+			range=base::range,
+			min=base::min,
+			max=base::max,
+			prod=base::prod,
+			sum=base::sum,
+			mean=base::mean.default,
+			var=stats::var,
+			sd=stats::sd,
+			any=base::any,
+			all=base::all,
+			nnzero=nnzero_na_rm)
+	} else {
+		f <- list(
+			range=s_range,
+			min=s_min,
+			max=s_max,
+			prod=s_prod,
+			sum=s_sum,
+			mean=s_mean,
+			var=s_var,
+			sd=s_sd,
+			any=s_any,
+			all=s_all,
+			nnzero=s_nnzero)
+	}
 	if ( !is.character(name) )
 		stop("stat must be a string")
 	if ( !name %in% names(f) )
@@ -669,6 +684,29 @@ stream_stat_class <- function(name) {
 		all="stream_all",
 		nnzero="stream_nnzero")
 	c(cls[[name, exact=TRUE]], "stream_stat")
+}
+
+s_stat <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
+	if ( !is.character(stat) )
+		stop("stat must be a string")
+	fun <- stream_stat_fun(stat, FALSE)
+	if ( is.null(group) ) {
+		ans <- fun(x, na.rm=na.rm)
+	} else {
+		if ( stat %in% "range" )
+			stop("'range' stat not allowed with non-NULL group")
+		if ( length(group) %% length(x) != 0 )
+			stop("length of groups [", length(group), "] ",
+				"is not a multiple of object extent [", nrow(x), "]")
+		group <- as.factor(rep_len(group, length(x)))
+		ans <- lapply(levels(group), function(g) {
+				xi <- x[which(group == g)]
+				fun(xi, na.rm=na.rm)
+			})
+		ans <- do.call(c, ans)
+		names(ans) <- levels(group)
+	}
+	ans
 }
 
 s_rowstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
@@ -728,7 +766,7 @@ s_colstats <- function(x, stat, group = NULL, na.rm = FALSE, ...) {
 }
 
 s_rowstats_int <- function(x, stat, na.rm) {
-	fun <- stream_stat_fun(stat)
+	fun <- stream_stat_fun(stat, TRUE)
 	template <- switch(stat, range=numeric(2L),
 		any=, all=logical(1L), numeric(1L))
 	val <- apply_int(x, 1L, fun, template, na.rm=na.rm)
@@ -748,7 +786,7 @@ s_rowstats_int <- function(x, stat, na.rm) {
 }
 
 s_colstats_int <- function(x, stat, na.rm) {
-	fun <- stream_stat_fun(stat)
+	fun <- stream_stat_fun(stat, TRUE)
 	template <- switch(stat, range=numeric(2L),
 		any=, all=logical(1L), numeric(1L))
 	val <- apply_int(x, 2L, fun, template, na.rm=na.rm)

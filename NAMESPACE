@@ -255,6 +255,7 @@ export(
 	"s_any",
 	"s_all",
 	"s_nnzero",
+	"s_stat",
 	"s_colstats",
 	"s_rowstats",
 	"stat_c")

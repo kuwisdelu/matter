@@ -20,6 +20,18 @@ test_that("streaming univariate statistics", {
 	expect_equal(any(x > 50), as.logical(s_any(x > 50)))
 	expect_equal(all(x > 50), as.logical(s_all(x > 50)))
 	expect_equal(nnzero(x > 50), as.numeric(s_nnzero(x > 50)))
+
+	expect_equal(range(x), as.numeric(s_stat(x, "range")))
+	expect_equal(min(x), as.numeric(s_stat(x, "min")))
+	expect_equal(max(x), as.numeric(s_stat(x, "max")))
+	expect_equal(prod(x), as.numeric(s_stat(x, "prod")))
+	expect_equal(sum(x), as.numeric(s_stat(x, "sum")))
+	expect_equal(mean(x), as.numeric(s_stat(x, "mean")))
+	expect_equal(var(x), as.numeric(s_stat(x, "var")))
+	expect_equal(sd(x), as.numeric(s_stat(x, "sd")))
+	expect_equal(any(x > 50), as.logical(s_stat(x > 50, "any")))
+	expect_equal(all(x > 50), as.logical(s_stat(x > 50, "all")))
+	expect_equal(nnzero(x > 50), as.numeric(s_stat(x > 50, "nnzero")))
 	
 	xy <- c(x, y)
 	
@@ -101,6 +113,33 @@ test_that("streaming univariate statistics", {
 
 })
 
+test_that("streaming univariate statistics (grouped)", {
+
+	set.seed(1, kind="default")
+	x <- sample(1:100, size=20)
+	y <- sample(1:100, size=20)
+	xy <- c(x, y)
+	
+	gx <- sample(4, length(x), replace=TRUE)
+	gy <- sample(4, length(y), replace=TRUE)
+	gxy <- c(gx, gy)
+
+	sx <- s_stat(x, "mean", gx)
+	sy <- s_stat(y, "mean", gy)
+
+	expect_equal(
+		aggregate(xy, list(gxy), "mean")$x,
+		as.numeric(stat_c(sx, sy)))
+
+	sx <- s_stat(x, "var", gx)
+	sy <- s_stat(y, "var", gy)
+
+	expect_equal(
+		aggregate(xy, list(gxy), "var")$x,
+		as.numeric(stat_c(sx, sy)))
+
+})
+
 test_that("streaming variance + standard deviation", {
 
 	set.seed(1, kind="default")
@@ -139,7 +178,6 @@ test_that("streaming variance + standard deviation", {
 	expect_equal(s2a, as.numeric(s2b))
 
 })
-
 
 test_that("streaming matrix statistics", {
 

@@ -15,6 +15,7 @@
 \alias{s_all}
 \alias{s_nnzero}
 
+\alias{s_stat}
 \alias{s_rowstats}
 \alias{s_colstats}
 
@@ -53,6 +54,8 @@ s_any(x, \dots, na.rm = FALSE)
 s_all(x, \dots, na.rm = FALSE)
 
 s_nnzero(x, \dots, na.rm = FALSE)
+
+s_stat(x, stat, group, na.rm = FALSE, \dots)
 
 # calculate streaming matrix statistics
 s_rowstats(x, stat, group, na.rm = FALSE, \dots)
