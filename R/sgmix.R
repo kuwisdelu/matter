@@ -370,13 +370,12 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 		fit
 	}
 	margin <- if (byrow) 1L else 2L
-	seeds <- RNGStreams(nchunks)
 	if ( is.matrix(vals) ) {
-		ans <- chunkApply(vals, margin, fn, ..., seeds=seeds,
+		ans <- chunkApply(vals, margin, fn, ...,
 			nchunks=nchunks, verbose=verbose,
 			BPPARAM=BPPARAM)
 	} else {
-		ans <- chunkLapply(vals, fn, ..., seeds=seeds,
+		ans <- chunkLapply(vals, fn, ...,
 			nchunks=nchunks, verbose=verbose,
 			BPPARAM=BPPARAM)
 	}

@@ -28,7 +28,7 @@ test_that("relative difference", {
 
 test_that("quick sort + friends", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	u1 <- as.numeric(sample(100L))
 	u2 <- as.numeric(sample(101L))
 	u3 <- c(0,1,0,1,0,0,3,2,2,2,4,4,8,2,0,0)
@@ -275,7 +275,7 @@ test_that("k-dimensional search", {
 
 test_that("nearest neighbor pairs", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- expand.grid(x=-2:2, y=-2:2)
 	y <- jitter(as.matrix(x))
 	z <- expand.grid(x=0:2, y=0:2)

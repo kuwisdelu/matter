@@ -5,7 +5,7 @@ context("cross validation")
 
 test_that("predscore", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 1000
 	s <- c("a", "b", "c")
 	x <- sample(s, n, replace=TRUE)
@@ -19,7 +19,7 @@ test_that("predscore", {
 	expect_equal(ps["b","Precision"], mean((x == y)[x == "b"]))
 	expect_equal(ps["c","Precision"], mean((x == y)[x == "c"]))
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	n <- 1000
 	x <- rnorm(n)
 	y <- jitter(runif(1) * rnorm(n))
@@ -34,7 +34,7 @@ test_that("predscore", {
 test_that("cv_do classification", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 100
 	p <- 5
 	nfolds <- 3
@@ -59,7 +59,7 @@ test_that("cv_do classification", {
 test_that("cv_do regression", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 100
 	p <- 5
 	nfolds <- 3

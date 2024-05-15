@@ -6,7 +6,7 @@ context("mi_learn")
 test_that("mi_learn", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 200
 	p <- 5
 	g <- 8

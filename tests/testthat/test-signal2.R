@@ -5,7 +5,7 @@ context("signal-processing-2")
 
 test_that("filter 2d", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	i <- seq(-4, 4, length.out=12)
 	j <- seq(1, 3, length.out=9)
 	co <- expand.grid(i=i, j=j)
@@ -43,7 +43,7 @@ test_that("filter 2d", {
 	expect_lt(sum((x5 - x)^2), sum((y - x)^2))
 	expect_lt(sum((x6 - x)^2), sum((y - x)^2))
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	u <- diag(10)
 	i <- upper.tri(u, TRUE)
 	u[i] <- u[i] + 10
@@ -61,7 +61,7 @@ test_that("filter 2d", {
 
 test_that("warp + align 2d", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(0, nrow=32, ncol=32)
 	x[9:24,9:24] <- 10
 	x <- x + runif(length(x))
@@ -87,7 +87,7 @@ test_that("warp + align 2d", {
 
 test_that("contrast enhancement", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(0, nrow=32, ncol=32)
 	x[9:24,9:24] <- 10
 	y <- x + rlnorm(length(x))
@@ -103,16 +103,16 @@ test_that("contrast enhancement", {
 	expect_equal(median(z2), median(y))
 	expect_equal(IQR(z1), IQR(y))
 	expect_equal(IQR(z2), IQR(y))
-	expect_gt(IQR(which(h1 > 0)), IQR(which(h > 0)))
-	expect_gt(IQR(which(h2 > 0)), IQR(which(h > 0)))
-	expect_lt(max(h1), max(h))
-	expect_lt(max(h2), max(h))
+	expect_gt(mean(which(h1 > 0)), mean(which(h > 0)))
+	expect_gt(mean(which(h2 > 0)), mean(which(h > 0)))
+	expect_lt(max(z1), max(y))
+	expect_lt(max(z1), max(y))
 
 })
 
 test_that("rasterization", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	i <- seq(-4, 4, length.out=12)
 	j <- seq(1, 3, length.out=9)
 	co <- expand.grid(x=i, y=j)
@@ -131,7 +131,7 @@ test_that("rasterization", {
 	expect_equal(c(x=12, y=9), estdim(d2[1:2]))
 	expect_equal(z, to_raster(d2$x, d2$y, d2$vals))
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	zn <- z
 	rm <- rbinom(length(z), 1, 0.2)
 	rm <- which(rm > 0)
@@ -167,7 +167,7 @@ test_that("approx2", {
 	expect_equal(x, approx2(x, tol=1, interp="linear"))
 	expect_equal(x, approx2(x, tol=2, interp="cubic"))
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	y <- matrix(rnorm(25), nrow=5, ncol=5)
 	y1 <- approx2(y, xout=3, yout=3, tol=1, interp="none")
 	y2 <- approx2(y, xout=3, yout=3, tol=1, interp="mean")

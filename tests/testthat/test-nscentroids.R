@@ -6,7 +6,7 @@ context("nscentroids")
 test_that("nscentroids", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 100
 	p <- 5
 	y <- c(rep.int("yes", 60), rep.int("no", 40))
@@ -64,7 +64,7 @@ test_that("nscentroids", {
 test_that("nscentroids (degenerate)", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 100
 	p <- 5
 	y <- c(rep.int("yes", 60), rep.int("no", 40))

@@ -5,7 +5,7 @@ context("scale")
 
 test_that("sweep - matter matrix", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 	y <- matter_mat(x)
@@ -41,7 +41,7 @@ test_that("sweep - matter matrix", {
 
 test_that("sweep - sparse matrix", {
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	x <- rbinom(35, 1, 0.4)
 	x[x != 0] <- seq_len(sum(x != 0)) + seq_len(sum(x != 0)) * 0.11
 	dim(x) <- c(5, 7)
@@ -79,7 +79,7 @@ test_that("sweep - sparse matrix", {
 test_that("scale - matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 
@@ -121,7 +121,7 @@ test_that("scale - matrix", {
 test_that("scale - matter matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 	y <- matter_mat(x)
@@ -164,7 +164,7 @@ test_that("scale - matter matrix", {
 test_that("scale - sparse matrix", {
 
 	register(SerialParam())
-	set.seed(2)
+	set.seed(1, kind="default")
 	x <- rbinom(35, 1, 0.4)
 	x[x != 0] <- seq_len(sum(x != 0)) + seq_len(sum(x != 0)) * 0.11
 	dim(x) <- c(5, 7)

@@ -5,7 +5,7 @@ context("sgmix")
 
 test_that("sgmix", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 64
 	nc <- 64
 	x <- matrix(rnorm(nr * nc), nrow=nr, ncol=nc)
@@ -19,7 +19,7 @@ test_that("sgmix", {
 	j <- (5 * nc %/% 8):(7 * nc %/% 8)
 	x[i,j] <- rnorm(length(i) * length(j), mean=3)
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	gm02 <- sgmix(x, r=2, k=2, weights="gaussian")
 	gm03 <- sgmix(x, r=2, k=3, weights="gaussian")
 	gm04 <- sgmix(x, r=2, k=4, weights="gaussian")
@@ -44,7 +44,7 @@ test_that("sgmix", {
 	expect_equal(rowSums(gm03$probability), rep.int(1, length(x)))
 	expect_equal(rowSums(gm04$probability), rep.int(1, length(x)))
 
-	set.seed(3)
+	set.seed(1, kind="default")
 	gm12 <- sgmix(x, r=2, k=2, weights="bilateral")
 	gm22 <- sgmix(x, r=2, k=2, weights="adaptive")
 
@@ -52,7 +52,7 @@ test_that("sgmix", {
 	expect_equal(fitted(gm12, type="class"), gm12$class)
 	expect_equal(fitted(gm22, type="class"), gm22$class)
 
-	set.seed(4)
+	set.seed(1, kind="default")
 	gm02c <- sgmix(x, r=2, k=2, weights="gaussian", compress=TRUE)
 
 	expect_is(gm02c$class, "drle_fct")
@@ -62,7 +62,7 @@ test_that("sgmix", {
 
 test_that("sgmix (grouped)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 64
 	nc <- 64
 	x <- matrix(rnorm(nr * nc), nrow=nr, ncol=nc)
@@ -74,7 +74,7 @@ test_that("sgmix (grouped)", {
 	x[i,j] <- rnorm(length(i) * length(j), mean=4)
 	group <- rep(c("A", "B"), each=length(x) %/% 2, length.out=length(x))
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	gm02 <- sgmix(x, r=2, k=2, group=group)
 
 	expect_length(gm02$mu, 4)
@@ -98,25 +98,25 @@ test_that("sgmix (grouped)", {
 
 test_that("sgmix (degenerate)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 64
 	nc <- 64
 	x <- matrix(rnorm(nr * nc), nrow=nr, ncol=nc)
 	y <- matrix(rbinom(nr * nc, 1, 0.5), nrow=nr, ncol=nc)
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	gm01 <- sgmix(x, r=2, k=1)
 
 	expect_setequal(gm01$class, 1L)
 	expect_setequal(as.numeric(gm01$probability), 1)
 
-	set.seed(3)
+	set.seed(1, kind="default")
 	gm02 <- sgmix(y, r=2, k=2)
 
 	expect_setequal(gm02$mu, unique(y))
 	expect_setequal(gm02$sigma, 0)
 
-	set.seed(4)
+	set.seed(1, kind="default")
 	expect_warning(sgmix(y, r=2, k=3))
 
 })
@@ -139,12 +139,12 @@ test_that("sgmixn", {
 		as.vector(x)
 	}
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- replicate(5, f())
 	co <- expand.grid(x=1:64, y=1:64)
 	group <- rep(c("A", "B"), each=nrow(vals) %/% 2, length.out=nrow(vals))
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	gmn02 <- sgmixn(co$x, co$y, vals, r=2, k=2, group=group)
 
 	expect_length(gmn02$class, 5)
@@ -161,7 +161,7 @@ test_that("sgmixn", {
 	
 	expect_true(all(logLik(gmn02) > 0))
 
-	set.seed(3)
+	set.seed(1, kind="default")
 	gmn02c <- sgmixn(co$x, co$y, vals, r=2, k=2, group=group, compress=TRUE)
 
 	expect_is(gmn02c$class[[1L]], "drle_fct")

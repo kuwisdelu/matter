@@ -5,7 +5,7 @@ context("nnmf")
 
 test_that("nnmf - alternating least squares", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 100
 	nc <- 25
 	vals1 <- sort(runif(2500))
@@ -34,7 +34,7 @@ test_that("nnmf - alternating least squares", {
 
 test_that("nnmf - multiplicative updates", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 100
 	nc <- 25
 	vals1 <- sort(runif(2500))
@@ -75,7 +75,7 @@ test_that("nnmf - multiplicative updates", {
 test_that("nnmf - matter matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 100
 	nc <- 25
 	vals1 <- sort(runif(nr * nc))
@@ -107,7 +107,7 @@ test_that("nnmf - matter matrix", {
 test_that("nnmf - sparse matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 100
 	nc <- 25
 	x <- rbinom(nr * nc, 1, 0.2)

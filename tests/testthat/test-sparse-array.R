@@ -5,7 +5,7 @@ context("sparse-array")
 
 test_that("sparse vector subsetting", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(100, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	y <- sparse_vec(x)
@@ -101,7 +101,7 @@ test_that("sparse vector subsetting w/ interpolation", {
 
 test_that("sparse matrix subsetting (csc)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(200, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
@@ -154,7 +154,7 @@ test_that("sparse matrix subsetting (csc)", {
 
 test_that("sparse matrix subsetting (csr)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(200, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
@@ -207,7 +207,7 @@ test_that("sparse matrix subsetting (csr)", {
 
 test_that("sparse matrix subsetting w/ interpolation", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(200, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
@@ -245,7 +245,7 @@ test_that("sparse matrix subsetting w/ interpolation", {
 
 test_that("sparse matrix combining", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(200, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(20, 10)
@@ -261,7 +261,7 @@ test_that("sparse matrix combining", {
 
 test_that("sparse matrix multiplication", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(35, 1, 0.4)
 	y <- rbinom(35, 1, 0.4)
 	x[x != 0] <- seq_len(sum(x != 0))

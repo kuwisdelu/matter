@@ -6,7 +6,7 @@ context("summary-statistics")
 test_that("summary statistics", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- sort(100 * runif(100))
 	y <- matter_vec(x)
 
@@ -44,7 +44,7 @@ test_that("summary statistics", {
 	expect_equal(all(x), all(y))
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- sort(100 * runif(100))
 	x <- matrix(x, nrow=10, ncol=10)
 	y <- matter_mat(x)

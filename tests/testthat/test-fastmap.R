@@ -43,7 +43,7 @@ test_that("fastmap", {
 
 	f <- cbind(f1, f2, f3)
 
-	set.seed(1)
+	set.seed(1, kind="Mersenne-Twister")
 	fm <- fastmap(x)
 
 	expect_equivalent(f[,1:2], fm$x[,1:2], tolerance=1e-5)
@@ -65,7 +65,7 @@ test_that("fastmap", {
 test_that("fastmap - matter matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	nr <- 100
 	nc <- 25
 	vals1 <- sort(runif(2500))
@@ -75,9 +75,9 @@ test_that("fastmap - matter matrix", {
 	x <- cbind(x1, x2)
 	y <- matter_mat(x)
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	fmx <- fastmap(x)
-	set.seed(1)
+	set.seed(1, kind="default")
 	fmy <- fastmap(y)
 
 	expect_equal(fmx$x, fmy$x)
@@ -87,15 +87,15 @@ test_that("fastmap - matter matrix", {
 test_that("fastmap - sparse matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(5000, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(100, 50)
 	y <- sparse_mat(x)
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	fmx <- fastmap(x)
-	set.seed(1)
+	set.seed(1, kind="default")
 	fmy <- fastmap(y)
 
 	expect_equal(fmx$x, fmy$x)

@@ -5,7 +5,7 @@ context("signal-processing")
 
 test_that("filter 1d", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	t <- seq(from=0, to=6 * pi, length.out=5000)
 	y <- sin(t) + 0.6 * sin(2.6 * t)
 	x <- y + runif(length(y))
@@ -97,7 +97,7 @@ test_that("warp + align 1d", {
 	expect_equivalent(py4[i], px, tolerance=1)
 	expect_equivalent(pz4[i], px, tolerance=1)
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- 1:17
 	y <- 1:18 + runif(18)
 	rxy <- cor(approx(seq_along(x), x, n=length(y))$y, y)
@@ -110,7 +110,7 @@ test_that("warp + align 1d", {
 
 test_that("binvec + rollvec", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- runif(50)
 	l <- seq(from=1, to=50, by=10)
 	u <- seq(from=10, to=50, by=10)
@@ -170,7 +170,7 @@ test_that("binvec + rollvec", {
 
 test_that("rescale", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rnorm(1000)
 	i <- 1L
 
@@ -190,7 +190,7 @@ test_that("rescale", {
 
 test_that("downsample", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 200
 	t <- seq(from=0, to=6 * pi, length.out=5000)
 	x <- sin(t) + 0.6 * sin(2.6 * t)

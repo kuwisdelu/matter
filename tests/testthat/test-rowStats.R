@@ -6,7 +6,7 @@ context("matrix-stats")
 test_that("rowStats", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(10 * runif(75 * 50), nrow=75, ncol=50)
 	dnm <- list(paste0("row", 1:nrow(x)), paste0("col", 1:ncol(x)))
 	dimnames(x) <- dnm
@@ -54,7 +54,7 @@ test_that("rowStats", {
 test_that("rowStats (iter by col)", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(10 * runif(75 * 50), nrow=75, ncol=50)
 	dnm <- list(paste0("row", 1:nrow(x)), paste0("col", 1:ncol(x)))
 	dimnames(x) <- dnm
@@ -97,7 +97,7 @@ test_that("rowStats (iter by col)", {
 test_that("colStats", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(10 * runif(75 * 50), nrow=75, ncol=50)
 	dnm <- list(paste0("row", 1:nrow(x)), paste0("col", 1:ncol(x)))
 	dimnames(x) <- dnm
@@ -140,7 +140,7 @@ test_that("colStats", {
 test_that("colStats (iter by row)", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(10 * runif(75 * 50), nrow=75, ncol=50)
 	dnm <- list(paste0("row", 1:nrow(x)), paste0("col", 1:ncol(x)))
 	dimnames(x) <- dnm
@@ -183,7 +183,7 @@ test_that("colStats (iter by row)", {
 test_that("rowStats + colStats - matter matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(runif(600), nrow=30, ncol=20)
 	y <- matter_mat(x)
 
@@ -220,7 +220,7 @@ test_that("rowStats + colStats - matter matrix", {
 test_that("rowStats + colStats - sparse matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(600, 1, 0.2)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(30, 20)

@@ -69,7 +69,7 @@ test_that("rowdist + coldist", {
 		}, i, j)
 	}
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
 	y <- matrix(sort(rnorm(144)), nrow=12, ncol=12)
 	i <- roll(1:12, width=3, na.drop=TRUE)
@@ -101,7 +101,7 @@ test_that("rowdist + coldist", {
 test_that("rowDists + colDists", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
 	y <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
 
@@ -185,7 +185,7 @@ test_that("rowDists + colDists", {
 test_that("weighted rowDists + colDists", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
 	y <- matrix(sort(rnorm(30)), nrow=5, ncol=6)
 
@@ -219,7 +219,7 @@ test_that("weighted rowDists + colDists", {
 test_that("rowDists + colDists - matter matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(rnorm(30), nrow=5, ncol=6)
 	y <- matrix(rnorm(30), nrow=5, ncol=6)
 	xx <- matter_mat(x)
@@ -253,7 +253,7 @@ test_that("rowDists + colDists - matter matrix", {
 test_that("rowDists + colDists - matter matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(rnorm(30), nrow=5, ncol=6)
 	y <- matrix(rnorm(30), nrow=5, ncol=6)
 	xx <- matter_mat(x)
@@ -306,7 +306,7 @@ test_that("rowDists + colDists - matter matrix", {
 test_that("rowDists + colDists - sparse matrix", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rbinom(30, 1, 0.5)
 	x[x != 0] <- seq_len(sum(x != 0))
 	dim(x) <- c(5, 6)

@@ -53,7 +53,7 @@ test_that("matter array double", {
 
 test_that("matter array 1-D indexing", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- sort(round(10 * runif(10), 2))
 	y <- matter_vec(x)
 
@@ -88,7 +88,7 @@ test_that("matter array 1-D indexing", {
 	expect_equal(x[1:10], y[1:10])
 	expect_equal(x[10:1], y[10:1])
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- sort(round(10 * runif(10), 2))
 	y <- matter_arr(x, rowMaj=TRUE)
 
@@ -110,7 +110,7 @@ test_that("matter array 1-D indexing", {
 
 test_that("matter array 2-D indexing (col major)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 	y <- matter_mat(x)
@@ -160,7 +160,7 @@ test_that("matter array 2-D indexing (col major)", {
 
 test_that("matter array 2-D indexing (row major)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 	y <- matter_mat(x, rowMaj=TRUE)
@@ -208,7 +208,7 @@ test_that("matter array 2-D indexing (row major)", {
 
 test_that("matter array N-D indexing (col major)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(24), 2))
 	x <- array(vals, dim=c(4,3,2))
 	y <- matter_arr(x)
@@ -246,7 +246,7 @@ test_that("matter array N-D indexing (col major)", {
 
 test_that("matter array N-D indexing (row major)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(24), 2))
 	x <- array(vals, dim=c(4,3,2))
 	y <- matter_arr(x, rowMaj=TRUE)
@@ -282,7 +282,7 @@ test_that("matter array N-D indexing (row major)", {
 
 test_that("matter matrix combining", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	v1 <- sort(round(10 * runif(10)))
 	v2 <- sort(round(10 * runif(10)))
 	x <- matter_vec(v1)
@@ -290,7 +290,7 @@ test_that("matter matrix combining", {
 	expect_equal(c(v1, v2), c(x, y)[])
 	expect_equal(path(x), path(y))
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 	y <- matter_mat(x)
@@ -338,7 +338,7 @@ test_that("matter array coercion", {
 
 test_that("matter matrix multiplication", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals1 <- sort(round(10 * runif(35), 2))
 	vals2 <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals1, nrow=5, ncol=7)

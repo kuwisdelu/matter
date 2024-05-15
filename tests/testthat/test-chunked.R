@@ -5,7 +5,7 @@ context("chunked")
 
 test_that("chunked - memory", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- runif(100)
 	y <- replicate(100, rnorm(10), simplify=FALSE)
 	z <- matrix(rnorm(100^2), nrow=100, ncol=100)
@@ -43,7 +43,7 @@ test_that("chunked - memory", {
 
 	expect_equal(xcm_bp, xcm_l)
 
-	set.seed(1)	
+	set.seed(1, kind="default")	
 	u <- sort(runif(100))
 	ind <- roll(seq_along(u), width=5, na.drop=TRUE)
 	uc <- chunked_vec(u, nchunks=nc, depends=ind)
@@ -59,7 +59,7 @@ test_that("chunked - memory", {
 
 test_that("chunked - matter", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- as.matter(runif(100))
 	y <- as.matter(replicate(100, rnorm(10), simplify=FALSE))
 	z <- as.matter(matrix(rnorm(100^2), nrow=100, ncol=100))

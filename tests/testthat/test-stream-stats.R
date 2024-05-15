@@ -5,7 +5,7 @@ context("stream-statistics")
 
 test_that("streaming univariate statistics", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- sample(1:100, size=10)
 	y <- sample(1:100, size=10)
 
@@ -83,7 +83,7 @@ test_that("streaming univariate statistics", {
 	sy <- s_var(y, na.rm=TRUE)
 	expect_equal(var(xy, na.rm=TRUE), as.numeric(stat_c(sx, sy)))
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- numeric(0)
 	y <- runif(10)
 	z <- runif(1)
@@ -103,7 +103,7 @@ test_that("streaming univariate statistics", {
 
 test_that("streaming variance + standard deviation", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- sample(1:100, size=10)
 
 	s1a <- sd(x[1:3])
@@ -143,7 +143,7 @@ test_that("streaming variance + standard deviation", {
 
 test_that("streaming matrix statistics", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(rnorm(150), nrow=15, ncol=10)
 	y <- matrix(rnorm(150), nrow=15, ncol=10)
 
@@ -218,7 +218,7 @@ test_that("streaming matrix statistics", {
 
 test_that("streaming matrix statistics (grouped)", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(rnorm(1000), nrow=50, ncol=20)
 	y <- matrix(rnorm(1000), nrow=50, ncol=20)
 	
@@ -255,7 +255,7 @@ test_that("streaming matrix statistics (grouped)", {
 	ans2 <- t(aggregate(rxy, list(c(rgroupx, rgroupy)), "var")[-1L])
 	expect_equivalent(unclass(ans1), ans2)
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- matrix(rnorm(50), nrow=5, ncol=10)
 	y <- matrix(rnorm(50), nrow=5, ncol=10)
 	

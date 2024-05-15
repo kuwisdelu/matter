@@ -5,7 +5,7 @@ context("vizi")
 
 test_that("vizi - plot", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rnorm(100)
 	y <- rnorm(100)
 	g <- factor(rep(c("a", "b", "c", "d"), each=25))
@@ -39,7 +39,7 @@ test_that("vizi - plot", {
 
 test_that("vizi - facets", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	x <- rnorm(100)
 	y <- rnorm(100)
 	g <- factor(rep(c("a", "b", "c", "d"), each=25))

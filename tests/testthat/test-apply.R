@@ -9,40 +9,38 @@ test_that("apply RNG", {
 	ns <- rep.int(n, 100)
 
 	register(SerialParam())
-	RNGkind("Mersenne-Twister")
-	set.seed(1)
+	set.seed(1, kind="Mersenne-Twister")
 	x1 <- runif(n)
-	set.seed(1)
+	set.seed(1, kind="Mersenne-Twister")
 	ans1 <- chunkLapply(ns, runif)
 
 	expect_equal(ans1[[1L]], x1)
 
 	register(SerialParam())
-	RNGkind("L'Ecuyer-CMRG")
-	set.seed(1)
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	s1 <- getRNGStream()
 	s2 <- parallel::nextRNGSubStream(s1$seed)
 	setRNGStream(s1)
 	y1 <- runif(n)
 	setRNGStream(s2)
 	y2 <- runif(n)
-	set.seed(1)
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	ans2 <- chunkLapply(ns, runif)
 
 	expect_equal(ans2[[1L]], y1)
 	expect_equal(ans2[[2L]], y2)
 
 	register(MulticoreParam())
-	set.seed(1)
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	ans3 <- chunkLapply(ns, runif)
 
 	expect_equal(ans3[[1L]], y1)
 	expect_equal(ans3[[2L]], y2)
 
 	register(MulticoreParam())
-	set.seed(1)
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	ans4 <- chunkLapply(ns, runif, nchunks=10)
-	set.seed(1)
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	ans5 <- chunkLapply(ns, runif, nchunks=50)
 
 	expect_equal(ans4, ans5)
@@ -52,7 +50,7 @@ test_that("apply RNG", {
 test_that("chunkLapply + chunkMapply", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	a <- replicate(100, rnorm(10), simplify=FALSE)
 	b <- replicate(100, runif(10), simplify=FALSE)
 
@@ -74,7 +72,7 @@ test_that("chunkLapply + chunkMapply", {
 		mapply(`+`, a, b, SIMPLIFY=FALSE))
 
 	register(SerialParam())
-	set.seed(1)	
+	set.seed(1, kind="default")	
 	u <- sort(runif(100))
 	v <- rev(u)
 	ind <- roll(seq_along(u), width=5, na.drop=TRUE)
@@ -99,7 +97,7 @@ test_that("chunkLapply + chunkMapply", {
 test_that("chunkLapply + chunkMapply i/o", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	y <- replicate(100, rexp(10), simplify=FALSE)
 	path <- tempfile()
 
@@ -112,7 +110,7 @@ test_that("chunkLapply + chunkMapply i/o", {
 	expect_equal(ans3[], sapply(y, mean))
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	u <- replicate(10, runif(10), simplify=FALSE)
 	v <- replicate(10, runif(10), simplify=FALSE)
 	f <- function(x, y) x + y
@@ -126,7 +124,7 @@ test_that("chunkLapply + chunkMapply i/o", {
 test_that("chunkApply", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * rexp(140), 2))
 	x <- matrix(vals, nrow=20, ncol=7)
 
@@ -175,7 +173,7 @@ test_that("chunkApply", {
 test_that("chunkApply i/o", {
 
 	register(SerialParam())
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * rexp(140), 2))
 	x <- matrix(vals, nrow=20, ncol=7)
 	path <- tempfile()

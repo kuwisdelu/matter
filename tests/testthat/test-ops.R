@@ -33,7 +33,7 @@ test_that("deferred ops - integer", {
 
 test_that("deferred ops - sparse integer", {
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	x <- rbinom(10, 1, 0.4)
 	x[x != 0] <- seq_len(sum(x != 0))
 	y <- sparse_vec(x)
@@ -63,7 +63,7 @@ test_that("deferred ops - double", {
 
 test_that("deferred ops - sparse double", {
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	x <- rbinom(10, 1, 0.4)
 	x[x != 0] <- seq_len(sum(x != 0)) + seq_len(sum(x != 0)) * 0.11
 	y <- sparse_vec(x)
@@ -79,7 +79,7 @@ test_that("deferred ops - sparse double", {
 
 test_that("deferred ops - matrix", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(35), 2))
 	x <- matrix(vals, nrow=5, ncol=7)
 	y <- matter_mat(x)
@@ -106,7 +106,7 @@ test_that("deferred ops - matrix", {
 
 test_that("deferred ops - sparse matrix", {
 
-	set.seed(2)
+	set.seed(1, kind="default")
 	x <- rbinom(35, 1, 0.4)
 	x[x != 0] <- seq_len(sum(x != 0)) + seq_len(sum(x != 0)) * 0.11
 	dim(x) <- c(5, 7)
@@ -134,7 +134,7 @@ test_that("deferred ops - sparse matrix", {
 
 test_that("deferred ops - array", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	vals <- sort(round(10 * runif(24), 2))
 	x <- array(vals, dim=c(4,3,2))
 	y <- matter_arr(x)
