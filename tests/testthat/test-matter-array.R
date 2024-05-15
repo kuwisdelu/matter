@@ -123,6 +123,7 @@ test_that("matter array 2-D indexing (col major)", {
 	expect_equal(x[1:3,1:4], y[1:3,1:4])
 	expect_equal(x[3:1,4:1], y[3:1,4:1])
 	expect_equal(x[,c(1,NA,7)], y[,c(1,NA,7)])
+	expect_equal(x[1,,drop=FALSE], as.matrix(y[1,,drop=NULL]))
 	expect_error(y[,-1])
 	expect_error(y[-1,])
 	expect_error(y[,ncol(y) + 1])
@@ -172,6 +173,7 @@ test_that("matter array 2-D indexing (row major)", {
 	expect_equal(x[1:3,1:4], y[1:3,1:4])
 	expect_equal(x[3:1,4:1], y[3:1,4:1])
 	expect_equal(x[,c(1,NA,7)], y[,c(1,NA,7)])
+	expect_equal(x[1,,drop=FALSE], as.matrix(y[1,,drop=NULL]))
 	expect_error(y[,-1])
 	expect_error(y[-1,])
 	expect_error(y[,ncol(y) + 1])
@@ -221,6 +223,7 @@ test_that("matter array N-D indexing (col major)", {
 	expect_equal(x[,,2], y[,,2])
 	expect_equal(x[i,i,], y[i,i,])
 	expect_equal(x[,i,i], y[,i,i])
+	expect_equal(x[1,1,,drop=FALSE], as.array(y[1,1,,drop=NULL]))
 
 	z <- y[1:2,1:2,1,drop=NULL]
 
@@ -258,6 +261,7 @@ test_that("matter array N-D indexing (row major)", {
 	expect_equal(x[,,2], y[,,2])
 	expect_equal(x[i,i,], y[i,i,])
 	expect_equal(x[,i,i], y[,i,i])
+	expect_equal(x[1,1,,drop=FALSE], as.array(y[1,1,,drop=NULL]))
 
 	z <- y[1:2,1:2,1,drop=NULL]
 

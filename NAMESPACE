@@ -293,16 +293,18 @@ export(
 	".colStats")
 
 export(
+	"chunked_vec",
+	"chunked_mat",
+	"chunked_list",
+	"chunkify")
+
+export(
 	"chunk_apply",
 	"chunk_rowapply",
 	"chunk_colapply",
 	"chunk_lapply",
 	"chunk_mapply",
-	"chunked_vector",
-	"chunked_matrix",
-	"chunked_list",
-	"chunk_writer",
-	"chunkify")
+	"chunk_writer")
 
 export(
 	"chunkApply",

@@ -220,9 +220,11 @@ as.sparse <- function(x, ...) sparse_mat(x, ...)
 
 is.sparse <- function(x) is(x, "sparse_arr")
 
-setMethod("as.matrix", "sparse_arr", function(x) x[])
+setMethod("as.matrix", "sparse_arr",
+	function(x) get_sparse_mat(x))
 
-setMethod("as.array", "sparse_arr", function(x) x[])
+setMethod("as.array", "sparse_arr",
+	function(x) get_sparse_arr(x))
 
 setMethod("describe_for_display", "sparse_mat", function(x) {
 	desc1 <- paste0("<", nrow(x), " row x ", ncol(x), " col> ", class(x))
@@ -441,7 +443,8 @@ convert_sparse_arr_LIL <- function(x) {
 		x
 }
 
-subset_sparse_arr_elts <- function(x, i = NULL) {
+subset_sparse_arr_elts <- function(x, i = NULL)
+{
 	if ( !is(x, "sparse_vec") )
 		stop("linear endomorphic subsetting only supported for sparse vectors")
 	if ( is.null(i) )
@@ -456,17 +459,30 @@ subset_sparse_arr_elts <- function(x, i = NULL) {
 		x
 }
 
-get_sparse_arr_elts <- function(x, i = NULL) {
+get_sparse_arr <- function(x)
+{
+	if ( is.null(dim(x)) ) {
+		y <- get_sparse_arr_elts(x, NULL)
+	} else {
+		y <- get_sparse_mat_submatrix(x, NULL, NULL, FALSE)
+	}
+	as.array(y)
+}
+
+get_sparse_arr_elts <- function(x, i = NULL)
+{
 	y <- .Call(C_getSparseArray, x, i, PACKAGE="matter")
 	y <- set_names(y, names(x), i)
 	y
 }
 
-set_sparse_arr_elts <- function(x, i = NULL, value = 0) {
+set_sparse_arr_elts <- function(x, i = NULL, value = 0)
+{
 	stop("sparse array assignment is not supported yet") # TODO
 }
 
-subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL) {
+subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL)
+{
 	if ( x@transpose ) {
 		ii <- j
 		jj <- i
@@ -504,7 +520,13 @@ subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL) {
 		x
 }
 
-get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE) {
+get_sparse_mat <- function(x)
+{
+	get_sparse_mat_submatrix(x, NULL, NULL, FALSE)
+}
+
+get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE)
+{
 	y <- .Call(C_getSparseMatrix, x, i, j)
 	y <- set_dimnames(y, dimnames(x), list(i, j))
 	if ( drop )

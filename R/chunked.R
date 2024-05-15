@@ -20,11 +20,13 @@ setClass("chunked",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-setClass("chunked_vector", contains = "chunked")
+setClass("chunked_vec", contains = "chunked")
 
-setClass("chunked_array",
+setClass("chunked_arr",
 	slots = c(margin = "integer"),
 	contains = "chunked")
+
+setClass("chunked_mat", contains = "chunked_arr")
 
 setClass("chunked_list", contains = "chunked")
 
@@ -86,17 +88,17 @@ setMethod("[",
 		}
 	})
 
-chunked_vector <- function(x, nchunks = NA,
+chunked_vec <- function(x, nchunks = NA,
 	local = FALSE, depends = NULL)
 {
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
 	index <- chunkify(seq_along(x), nchunks=nchunks, depends=depends)
-	new("chunked_vector", data=x,
+	new("chunked_vec", data=x,
 		index=index, local=local)
 }
 
-chunked_matrix <- function(x, margin, nchunks = NA,
+chunked_mat <- function(x, margin, nchunks = NA,
 	local = FALSE, depends = NULL)
 {
 	if ( length(dim(x)) != 2L )
@@ -108,7 +110,7 @@ chunked_matrix <- function(x, margin, nchunks = NA,
 	index <- switch(margin,
 		chunkify(seq_len(nrow(x)), nchunks=nchunks, depends=depends),
 		chunkify(seq_len(ncol(x)), nchunks=nchunks, depends=depends))
-	new("chunked_array", data=x, margin=margin,
+	new("chunked_mat", data=x, margin=as.integer(margin),
 		index=index, local=local)
 }
 
@@ -137,40 +139,26 @@ chunked_list <- function(..., nchunks = NA,
 setMethod("[[", c(x = "chunked_list"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		if ( isTRUE(x@local) && is.matter(x@data) ) {
-			y <- lapply(x@data, `[`, x@index[[i]], drop=NULL)
-		} else {
-			y <- lapply(x@data, `[`, x@index[[i]], drop=FALSE)
-		}
-		y <- set_attr(y, attributes(x@index[[i]]))
+		y <- lapply(x@data, `[`, x@index[[i]], drop=FALSE)
+		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		y
 	})
 
-setMethod("[[", c(x = "chunked_vector"),
+setMethod("[[", c(x = "chunked_vec"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		if ( is.matter(x@data) && isTRUE(x@local) ) {
-			y <- x@data[x@index[[i]],drop=NULL]
-		} else {
-			y <- x@data[x@index[[i]],drop=FALSE]
-		}
-		y <- set_attr(y, attributes(x@index[[i]]))
+		y <- x@data[x@index[[i]],drop=FALSE]
+		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		y
 	})
 
-setMethod("[[", c(x = "chunked_array"),
+setMethod("[[", c(x = "chunked_mat"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		if ( isTRUE(x@local) && is.matter(x@data) ) {
-			y <- switch(x@margin,
-				x@data[x@index[[i]],,drop=NULL],
-				x@data[,x@index[[i]],drop=NULL])
-		} else {
-			y <- switch(x@margin,
-				x@data[x@index[[i]],,drop=FALSE],
-				x@data[,x@index[[i]],drop=FALSE])
-		}
-		y <- set_attr(y, attributes(x@index[[i]]))
+		y <- switch(x@margin,
+			x@data[x@index[[i]],,drop=FALSE],
+			x@data[,x@index[[i]],drop=FALSE])
+		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		attr(y, "margin") <- x@margin
 		y
 	})

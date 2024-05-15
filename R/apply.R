@@ -67,7 +67,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_matrix(X, margin=1L, nchunks=nchunks,
+	CHUNKS <- chunked_mat(X, margin=1L, nchunks=nchunks,
 		depends=depends, local=has_localworkers(BPPARAM))
 	if ( has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
@@ -76,7 +76,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="array",
 		rngseeds=rngseeds, progress=progress)
-	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
+	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
 
@@ -93,7 +93,7 @@ chunk_colapply <- function(X, FUN, ...,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_matrix(X, margin=2L, nchunks=nchunks,
+	CHUNKS <- chunked_mat(X, margin=2L, nchunks=nchunks,
 		depends=depends, local=has_localworkers(BPPARAM))
 	if ( has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
@@ -102,7 +102,7 @@ chunk_colapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="array",
 		rngseeds=rngseeds, progress=progress)
-	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
+	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
 
@@ -154,7 +154,7 @@ chunk_lapply <- function(X, FUN, ...,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_vector(X, nchunks=nchunks,
+	CHUNKS <- chunked_vec(X, nchunks=nchunks,
 		depends=depends, local=has_localworkers(BPPARAM))
 	if ( has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
@@ -163,7 +163,7 @@ chunk_lapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="vector",
 		rngseeds=rngseeds, progress=progress)
-	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
+	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
 
@@ -225,7 +225,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	CHUNKFUN <- chunk_fun(FUN, type="list",
 		rngseeds=rngseeds, progress=progress,
 		MoreArgs=MoreArgs)
-	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
+	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
 
@@ -237,6 +237,12 @@ chunk_fun <- function(FUN, type,
 {
 	function(X, ...)
 	{
+		chunkinfo <- attr(X, "chunkinfo")
+		X <- switch(type,
+			list=lapply(X, as.vector),
+			vector=as.vector(X),
+			array=as.array(X))
+		X <- set_attr(X, chunkinfo)
 		id <- attr(X, "chunkid")
 		if ( !is.null(rngseeds) ) {
 			oseed <- getRNGStream()

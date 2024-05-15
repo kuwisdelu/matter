@@ -257,7 +257,7 @@ setMethod("as.matrix", "matter_arr",
 		if ( getOption("matter.coerce.altrep") ) {
 			as.altrep(y)
 		} else {
-			y[]
+			get_matter_mat(y)
 		}
 	})
 
@@ -267,7 +267,7 @@ setMethod("as.array", "matter_arr",
 		if ( getOption("matter.coerce.altrep") ) {
 			as.altrep(y)
 		} else {
-			y[]
+			get_matter_arr(y)
 		}
 	})
 
@@ -348,6 +348,12 @@ subset_matter_arr_subarray <- function(x, index)
 		y
 }
 
+get_matter_arr <- function(x)
+{
+	index <- rep.int(list(NULL), length(dim(x)))
+	get_matter_arr_subarray(x, index, FALSE)
+}
+
 get_matter_arr_subarray <- function(x, index, drop = FALSE)
 {
 	index <- as_array_subscripts(index, x)
@@ -388,6 +394,11 @@ subset_matter_mat_submatrix <- function(x, i = NULL, j = NULL)
 		dimnames=dnm, ops=NULL)
 	if ( validObject(y) )
 		y
+}
+
+get_matter_mat <- function(x)
+{
+	get_matter_mat_submatrix(x, NULL, NULL, FALSE)
 }
 
 get_matter_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE)

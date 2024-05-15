@@ -100,33 +100,33 @@ as.sparse(x, \dots)
 }
 
 \arguments{
-        \item{data}{Either the non-zero values of the sparse array, or (if \code{index} is missing) a numeric vector or matrix from which to create the sparse array. For a \code{sparse_vec}, these should be a numeric vector. For a \code{sparse_mat} these can be a numeric vector if \code{pointers} is supplied, or a list of numeric vectors if \code{pointers} is \code{NULL}.}
+    \item{data}{Either the non-zero values of the sparse array, or (if \code{index} is missing) a numeric vector or matrix from which to create the sparse array. For a \code{sparse_vec}, these should be a numeric vector. For a \code{sparse_mat} these can be a numeric vector if \code{pointers} is supplied, or a list of numeric vectors if \code{pointers} is \code{NULL}.}
 
-        \item{index}{For \code{sparse_vec}, the indices of the non-zero items. For \code{sparse_mat}, either the row-indices or column-indices of the non-zero items, depending on the value of \code{rowMaj}.}
+    \item{index}{For \code{sparse_vec}, the indices of the non-zero items. For \code{sparse_mat}, either the row-indices or column-indices of the non-zero items, depending on the value of \code{rowMaj}.}
 
-        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
+    \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
 
-        \item{nrow, ncol, length}{The number of rows and columns, or the length of the array.}
+    \item{nrow, ncol, length}{The number of rows and columns, or the length of the array.}
 
-        \item{dimnames}{The names of the sparse matrix dimensions.}
+    \item{dimnames}{The names of the sparse matrix dimensions.}
 
-        \item{names}{The names of the sparse vector elements.}
+    \item{names}{The names of the sparse vector elements.}
 
-        \item{pointers}{The (zero-indexed) pointers to the start of either the rows or columns (depending on the value of \code{rowMaj}) in \code{data} and \code{index} when they are numeric vectors rather than lists.}
+    \item{pointers}{The (zero-indexed) pointers to the start of either the rows or columns (depending on the value of \code{rowMaj}) in \code{data} and \code{index} when they are numeric vectors rather than lists.}
 
-        \item{domain}{Either \code{NULL} or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If \code{NULL}, then \code{index} is assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The \code{index} value of each non-zero element is matched against this domain using binary search. Must be numeric.}
+    \item{domain}{Either \code{NULL} or a vector with length equal to the number of rows (for CSC matrices) or the number of columns (for CSR matrices). If \code{NULL}, then \code{index} is assumed to be row or column indices. If a vector, then they define the how the non-zero elements are matched to rows or columns. The \code{index} value of each non-zero element is matched against this domain using binary search. Must be numeric.}
 
-        \item{offset}{If \code{domain} is \code{NULL} (i.e., \code{index} represents the actual row/column indices), then this is the index of the first row/column. The default of 0 means that \code{index} is indexed from 0.}
+    \item{offset}{If \code{domain} is \code{NULL} (i.e., \code{index} represents the actual row/column indices), then this is the index of the first row/column. The default of 0 means that \code{index} is indexed from 0.}
 
-        \item{rowMaj}{Whether the data should be stored using compressed-sparse-row (CSR) representation (as opposed to compressed-sparse-column (CSC) representation). Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
+    \item{rowMaj}{Whether the data should be stored using compressed-sparse-row (CSR) representation (as opposed to compressed-sparse-column (CSC) representation). Defaults to 'FALSE', for efficient access to columns. Set to 'TRUE' for more efficient access to rows instead.}
 
-        \item{tolerance}{For non-\code{NULL} domain, the tolerance used for floating-point equality when matching \code{index} to the \code{domain}. The vector should be named. Use 'absolute' to use absolute differences, and 'relative' to use relative differences.}
+    \item{tolerance}{For non-\code{NULL} domain, the tolerance used for floating-point equality when matching \code{index} to the \code{domain}. The vector should be named. Use 'absolute' to use absolute differences, and 'relative' to use relative differences.}
 
-        \item{sampler}{For non-zero tolerances, how the \code{data} values should be combined when there are multiple \code{index} values within the tolerance. Must be of 'none', 'sum', 'mean', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'. Note that 'none' means nearest-neighbor interpolation.}
+    \item{sampler}{For non-zero tolerances, how the \code{data} values should be combined when there are multiple \code{index} values within the tolerance. Must be of 'none', 'sum', 'mean', 'max', 'min', 'area', 'linear', 'cubic', 'gaussian', or 'lanczos'. Note that 'none' means nearest-neighbor interpolation.}
 
-        \item{x}{An object to check if it is a sparse matrix or coerce to a sparse matrix.}
+    \item{x}{An object to check if it is a sparse matrix or coerce to a sparse matrix.}
 
-        \item{\dots}{Additional arguments to be passed to constructor.}
+    \item{\dots}{Additional arguments to be passed to constructor.}
 }
 
 \section{Slots}{
