@@ -56,7 +56,7 @@ chunk_apply <- function(X, MARGIN, FUN, ...)
 
 chunk_rowapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
@@ -69,7 +69,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=1L, nchunks=nchunks,
 		depends=depends, local=has_localworkers(BPPARAM))
-	if ( has_RNGseed(BPPARAM) ) {
+	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
@@ -82,7 +82,7 @@ chunk_rowapply <- function(X, FUN, ...,
 
 chunk_colapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
@@ -95,7 +95,7 @@ chunk_colapply <- function(X, FUN, ...,
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=2L, nchunks=nchunks,
 		depends=depends, local=has_localworkers(BPPARAM))
-	if ( has_RNGseed(BPPARAM) ) {
+	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
@@ -145,7 +145,7 @@ chunkLapply <- function(X, FUN, ...,
 
 chunk_lapply <- function(X, FUN, ...,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
@@ -156,7 +156,7 @@ chunk_lapply <- function(X, FUN, ...,
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_vec(X, nchunks=nchunks,
 		depends=depends, local=has_localworkers(BPPARAM))
-	if ( has_RNGseed(BPPARAM) ) {
+	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
@@ -206,7 +206,7 @@ chunkMapply <- function(FUN, ...,
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, BPPARAM = bpparam())
+	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
@@ -217,7 +217,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_list(..., nchunks=nchunks,
 		depends=depends, local=has_localworkers(BPPARAM))
-	if ( has_RNGseed(BPPARAM) ) {
+	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))

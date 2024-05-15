@@ -8,14 +8,24 @@ test_that("apply RNG", {
 	n <- 10
 	ns <- rep.int(n, 100)
 
+	# check that local seed is forwarded
 	register(SerialParam())
 	set.seed(1, kind="Mersenne-Twister")
 	x1 <- runif(n)
 	set.seed(1, kind="Mersenne-Twister")
-	ans1 <- chunkLapply(ns, runif)
+	ans1 <- chunkLapply(ns, runif, RNG=TRUE)
 
 	expect_equal(ans1[[1L]], x1)
 
+	# check that original seed is reset
+	register(SerialParam())
+	set.seed(1, kind="Mersenne-Twister")
+	s <- getRNGStream()
+	ans1 <- chunkLapply(ns, runif, RNG=TRUE)
+
+	expect_equal(getRNGStream(), s)
+
+	# check that parallel seed is iterated
 	register(SerialParam())
 	set.seed(1, kind="L'Ecuyer-CMRG")
 	s1 <- getRNGStream()
@@ -25,25 +35,30 @@ test_that("apply RNG", {
 	setRNGStream(s2)
 	y2 <- runif(n)
 	set.seed(1, kind="L'Ecuyer-CMRG")
-	ans2 <- chunkLapply(ns, runif)
+	ans2 <- chunkLapply(ns, runif, RNG=TRUE)
 
 	expect_equal(ans2[[1L]], y1)
 	expect_equal(ans2[[2L]], y2)
 
+	# check that parallel seed is iterated (MC)
 	register(MulticoreParam())
 	set.seed(1, kind="L'Ecuyer-CMRG")
-	ans3 <- chunkLapply(ns, runif)
+	ans3 <- chunkLapply(ns, runif, RNG=TRUE)
 
 	expect_equal(ans3[[1L]], y1)
 	expect_equal(ans3[[2L]], y2)
 
+	# check that seeds is independent of nchunks
 	register(MulticoreParam())
 	set.seed(1, kind="L'Ecuyer-CMRG")
-	ans4 <- chunkLapply(ns, runif, nchunks=10)
+	ans4 <- chunkLapply(ns, runif, nchunks=10, RNG=TRUE)
 	set.seed(1, kind="L'Ecuyer-CMRG")
-	ans5 <- chunkLapply(ns, runif, nchunks=50)
+	ans5 <- chunkLapply(ns, runif, nchunks=50, RNG=TRUE)
 
 	expect_equal(ans4, ans5)
+
+	# restore defaults for other tests
+	RNGkind("default", "default", "default")
 
 })
 

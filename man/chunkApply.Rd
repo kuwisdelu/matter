@@ -37,19 +37,19 @@ chunkMapply(FUN, \dots,
 ## Operate on complete chunks
 chunk_rowapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 
 chunk_colapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 
 chunk_lapply(X, FUN, \dots,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 
 chunk_mapply(FUN, \dots, MoreArgs = NULL,
     simplify = "c", nchunks = NA, depends = NULL,
-    verbose = NA, BPPARAM = bpparam())
+    verbose = NA, RNG = FALSE, BPPARAM = bpparam())
 }
 
 \arguments{
@@ -72,6 +72,8 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
     \item{outpath}{If non-NULL, a file path where the results should be written as they are processed. If specified, \code{FUN} must return a 'raw', 'logical', 'integer', or 'numeric' vector. The result will be returned as a \code{matter} object.}
 
     \item{verbose}{Should user messages be printed with the current chunk being processed? If \code{NA} (the default), this is taken from \code{getOption("matter.default.verbose")}.}
+
+    \item{RNG}{Should the local random seed (as set by \code{set.seed}) be forwarded to the worker processes? If \code{RNGkind} is set to "L'Ecuyer-CMRG", then the random seed will be set to appropriate substreams for each chunk or for each element/row/column. Note that forwarding the local random seed incurs additional overhead.}
 
     \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 }

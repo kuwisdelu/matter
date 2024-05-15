@@ -373,11 +373,11 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	if ( is.matrix(vals) ) {
 		ans <- chunkApply(vals, margin, fn, ...,
 			nchunks=nchunks, verbose=verbose,
-			BPPARAM=BPPARAM)
+			RNG=TRUE, BPPARAM=BPPARAM)
 	} else {
 		ans <- chunkLapply(vals, fn, ...,
 			nchunks=nchunks, verbose=verbose,
-			BPPARAM=BPPARAM)
+			RNG=TRUE, BPPARAM=BPPARAM)
 	}
 	group <- ans[[1L]]$group
 	loglik <- simplify2array(lapply(ans, `[[`, "logLik"))

@@ -2,9 +2,16 @@
 CHANGES IN VERSION 2.7.1 [2024-5-13]
 ------------------------------------
 
+NEW FEATURES
+
+    o Add 'chunked' classes for chunked objects
+    o Support subsetting of deferred operations
+
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Performance improvements for chunk-apply functions
+    o Support chunk-apply functions on non-local clusters
+    o Reduced memory use for chunk-apply functions on SNOW clusters
     o Remove 'biglm' from imports
 
 CHANGES IN VERSION 2.6.1 [2024-5-7]

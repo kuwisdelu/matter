@@ -235,7 +235,7 @@ test_that("matter array N-D indexing (col major)", {
 
 	expect_equal(x, y[])
 
-	expect_equal(aperm(x), t(y)[])
+	expect_error(t(y))
 
 	z <- matter_arr(0, dim=c(4,3,2))
 	expect_equal(array(0, dim=c(4,3,2)), z[])
@@ -273,7 +273,7 @@ test_that("matter array N-D indexing (row major)", {
 
 	expect_equal(x, y[])
 
-	expect_equal(aperm(x), t(y)[])
+	expect_error(t(y))
 
 	z <- matter_arr(0, dim=c(4,3,2), rowMaj=TRUE)
 	expect_equal(array(0, dim=c(4,3,2)), z[])

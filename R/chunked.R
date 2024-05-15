@@ -139,7 +139,12 @@ chunked_list <- function(..., nchunks = NA,
 setMethod("[[", c(x = "chunked_list"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		y <- lapply(x@data, `[`, x@index[[i]], drop=FALSE)
+		if ( x@local && all(vapply(x@data, is.matter, logical(1L))) ) {
+			drop <- NULL
+		} else {
+			drop <- FALSE
+		}
+		y <- lapply(x@data, `[`, x@index[[i]], drop=drop)
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		y
 	})
@@ -147,7 +152,12 @@ setMethod("[[", c(x = "chunked_list"),
 setMethod("[[", c(x = "chunked_vec"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
-		y <- x@data[x@index[[i]],drop=FALSE]
+		if ( x@local && is.matter(x@data) ) {
+			drop <- NULL
+		} else {
+			drop <- FALSE
+		}
+		y <- x@data[x@index[[i]],drop=drop]
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		y
 	})
@@ -155,9 +165,14 @@ setMethod("[[", c(x = "chunked_vec"),
 setMethod("[[", c(x = "chunked_mat"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
+		if ( x@local && is.matter(x@data) ) {
+			drop <- NULL
+		} else {
+			drop <- FALSE
+		}
 		y <- switch(x@margin,
-			x@data[x@index[[i]],,drop=FALSE],
-			x@data[,x@index[[i]],drop=FALSE])
+			x@data[x@index[[i]],,drop=drop],
+			x@data[,x@index[[i]],drop=drop])
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		attr(y, "margin") <- x@margin
 		y
