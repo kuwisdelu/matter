@@ -49,9 +49,24 @@
 \alias{[<-,sparse_arr-method}
 \alias{[<-,sparse_arr,ANY,ANY,ANY-method}
 
+\alias{as.vector,sparse_arr-method}
+\alias{as.raw,sparse_arr-method}
+\alias{as.logical,sparse_arr-method}
+\alias{as.integer,sparse_arr-method}
+\alias{as.numeric,sparse_arr-method}
+\alias{as.matrix,sparse_arr-method}
+\alias{as.array,sparse_arr-method}
+
+\alias{exp,sparse_arr-method}
+\alias{log,sparse_arr-method}
+\alias{log2,sparse_arr-method}
+\alias{log10,sparse_arr-method}
+\alias{log1p,sparse_arr-method}
+
 \alias{rowMaj,sparse_arr-method}
 
 \alias{t,sparse_arr-method}
+\alias{t,sparse_vec-method}
 
 \alias{cbind2,sparse_mat,sparse_mat-method}
 \alias{rbind2,sparse_mat,sparse_mat-method}
@@ -65,9 +80,6 @@
 \alias{crossprod,ANY,sparse_mat-method}
 \alias{tcrossprod,sparse_mat,ANY-method}
 \alias{tcrossprod,ANY,sparse_mat-method}
-
-\alias{as.matrix,sparse_arr-method}
-\alias{as.array,sparse_arr-method}
 
 \alias{is.sparse}
 \alias{as.sparse}

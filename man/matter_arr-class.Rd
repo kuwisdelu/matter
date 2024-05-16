@@ -36,6 +36,12 @@
 \alias{as.matrix,matter_arr-method}
 \alias{as.array,matter_arr-method}
 
+\alias{exp,matter_arr-method}
+\alias{log,matter_arr-method}
+\alias{log2,matter_arr-method}
+\alias{log10,matter_arr-method}
+\alias{log1p,matter_arr-method}
+
 \alias{rowMaj}
 \alias{rowMaj,matter_arr-method}
 \alias{rowMaj,matrix-method}
