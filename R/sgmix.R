@@ -313,6 +313,11 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	ans
 }
 
+sgmix_int <- function(vals, x, y, ...)
+{
+	sgmix(x, y, vals, ...)
+}
+
 print.sgmix <- function(x, ...)
 {
 	cat(sprintf("Spatial Gaussian mixture model (k=%d)\n",
@@ -361,21 +366,15 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	}
 	if ( verbose )
 		message("fitting spatial segmentations for ", n, " images")
-	fn <- function(vi, ...)
-	{
-		fit <- sgmix(x, y, vi, r=r, k=k, , ...)
-		fit$weights <- weights
-		fit$r <- r
-		fit$k <- k
-		fit
-	}
 	margin <- if (byrow) 1L else 2L
 	if ( is.matrix(vals) ) {
-		ans <- chunkApply(vals, margin, fn, ...,
+		ans <- chunkApply(vals, margin, sgmix_int,
+			x=x, y=y, r=r, k=k, ...,
 			nchunks=nchunks, verbose=verbose,
 			RNG=TRUE, BPPARAM=BPPARAM)
 	} else {
-		ans <- chunkLapply(vals, fn, ...,
+		ans <- chunkLapply(vals, sgmix_int,
+			x=x, y=y, r=r, k=k, ...,
 			nchunks=nchunks, verbose=verbose,
 			RNG=TRUE, BPPARAM=BPPARAM)
 	}
