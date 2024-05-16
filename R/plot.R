@@ -202,11 +202,28 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 	vals <- lapply(vals, function(v) if (is.factor(v)) v else as.vector(v))
 	is3d <- any(lengths(z) > 0L)
 	if ( is3d ) {
-		mark <- "voxels"
-		alpha <- vals
+		if ( useRaster ) {
+			mark <- "voxels"
+			alpha <- vals
+			trans <- list(
+				enhance=enhance,
+				smooth=smooth,
+				scale=scale)
+			params <- list()
+		} else {
+			mark <- "points"
+			alpha <- NULL
+			trans <- list()
+			params <- list(shape=16L)
+		}
 	} else {
 		mark <- "pixels"
 		alpha <- NULL
+		trans <- list(
+			enhance=enhance,
+			smooth=smooth,
+			scale=scale)
+		params <- list(useRaster=useRaster)
 	}
 	if ( is.null(by) ) {
 		plot <- vizi()
@@ -220,13 +237,11 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 			if ( is.null(group) ) {
 				plot <- add_mark(plot, mark,
 					x=x[[i]], y=y[[i]], z=z[[i]], alpha=alpha[[i]], color=vals[[i]],
-					trans=list(enhance=enhance, smooth=smooth, scale=scale),
-					params=list(useRaster=useRaster))
+					trans=trans, params=params)
 			} else {
 				plot <- add_mark(plot, mark,
 					x=x[[i]], y=y[[i]], z=z[[i]], alpha=vals[[i]], color=group[[i]],
-					trans=list(enhance=enhance, smooth=smooth, scale=scale),
-					params=list(useRaster=useRaster))
+					trans=trans, params=params)
 			}
 		}
 	} else {
@@ -250,13 +265,11 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 				if ( is.null(group) ) {
 					p <- add_mark(p, mark,
 						x=x[[i]], y=y[[i]], z=z[[i]], alpha=alpha[[i]], color=vals[[i]],
-						trans=list(enhance=enhance, smooth=smooth, scale=scale),
-						params=list(useRaster=useRaster))
+						trans=trans, params=params)
 				} else {
 					p <- add_mark(p, mark,
 						x=x[[i]], y=y[[i]], z=z[[i]], alpha=vals[[i]], color=group[[i]],
-						trans=list(enhance=enhance, smooth=smooth, scale=scale),
-						params=list(useRaster=useRaster))
+						trans=trans, params=params)
 				}
 			}
 			p

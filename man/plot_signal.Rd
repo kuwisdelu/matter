@@ -6,7 +6,7 @@
 \title{Plot a Signal or Image}
 
 \description{
-    Plot a list of superposed or faceted signals or images.
+    Plot a list of superposed or faceted signals or images (in 2D or 3D).
 }
 
 \usage{
@@ -25,7 +25,7 @@ plot_image(x, y, z, vals, by = names(vals), group = NULL,
 }
 
 \arguments{
-    \item{x, y, z, vals}{Lists of vectors to plot such that \code{x[[i]]} and \code{y[[i]]} indicate the plotting coordinates for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format.}
+    \item{x, y, z, vals}{Lists of vectors to plot such that \code{x[[i]]} and \code{y[[i]]} indicate the plotting coordinates for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format. For 2D images, only one of \code{z} or \code{vals} should be provided.}
 
     \item{by}{A vector of labels indicating facets (i.e., which values should be plotted as separate sub-plots).}
 
@@ -67,7 +67,7 @@ plot_image(x, y, z, vals, by = names(vals), group = NULL,
 
     \item{rasterImages, rasterParams}{A list of rasters and raster parameters (e.g., \code{xmin}, \code{xmax}, etc.) to plot before plotting \code{vals}. These should be numeric arrays of 3 or 4 color channels with values from 0 to 1. If the raster parameters are omitted, then the raster limits are taken from the range of \code{x} and \code{y}. If the raster list has names, then these are matched against the levels of \code{by} and plotted accordingly.}
 
-    \item{useRaster}{Should a bitmap raster be used for plotting? This is typically faster on supported devices. A fallback to polygon-based plotting is used if raster plotting is not supported.}
+    \item{useRaster}{Should a bitmap raster be used for plotting? For 2D images, this is typically faster on supported devices. A fallback to polygon-based plotting is used if raster plotting is not supported. For 3D images, \code{TRUE} means to plot raster surfaces, and \code{FALSE} means to plot individual voxels as points.}
 }
 
 \value{

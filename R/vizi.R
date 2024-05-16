@@ -592,6 +592,17 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 			}
 			params <- par_update(x$params, ...)
 			plot_init(x, xlim=xlim, ylim=ylim, more=params, n=n)
+			# fix subplot aspect ratio
+			if ( x$engine$name == "plotly" && !is.na(x$coord$asp))
+			{
+				if ( i == 1L ) {
+					xanchor <- "x"
+				} else {
+					xanchor <- paste0("x", i)
+				}
+				yaxis <- list(scaleanchor=xanchor, scaleratio=plot$coord$asp)
+				x$engine$plotly <- plotly::layout(x$engine$plotly, yaxis=yaxis)
+			}
 		}
 		keys[[i]] <- plot(plot, add=TRUE, ...)$keys
 		# add facet annotations
@@ -605,6 +616,7 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 					x=0.5, y=1, xanchor="center", yanchor="top",
 					xref="paper", yref="paper", showarrow=FALSE,
 					text=x$labels[i])
+
 				x$engine$facets[[i]] <- plot$engine$plotly
 				x$engine$plotly <- NULL
 			}
