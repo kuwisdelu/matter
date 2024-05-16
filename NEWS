@@ -1,17 +1,18 @@
 
-CHANGES IN VERSION 2.7.1 [2024-5-13]
+CHANGES IN VERSION 2.7.1 [2024-5-15]
 ------------------------------------
 
 NEW FEATURES
 
-    o Add 'chunked' classes for chunked objects
     o Support subsetting of deferred operations
+    o Add 'chunked' classes for chunked objects
+    o Add 's_stat()' for grouped streaming statistics
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Performance improvements for chunk-apply functions
     o Support chunk-apply functions on remote cluster workers
-    o Reduced memory use for chunk-apply functions on SNOW clusters
+    o Reduced memory usage for chunk-apply functions on SNOW clusters
     o Remove 'biglm' from imports
 
 CHANGES IN VERSION 2.6.1 [2024-5-7]
