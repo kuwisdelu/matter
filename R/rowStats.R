@@ -50,6 +50,19 @@ setMethod("colStats", "sparse_mat",
 		}
 	})
 
+rowStats_fun <- function(iter.dim)
+{
+	switch(iter.dim,
+		`1` = s_rowstats,
+		`2` = 
+		function(x, stat, group, na.rm)
+		{
+			g <- group[attr(x, "index")]
+			s_rowstats(x, stat=stat,
+				group=g, na.rm=na.rm)
+		})
+}
+
 rowStats_int <- function(x, stat, group = NULL,
 	na.rm = FALSE, simplify = TRUE, drop = TRUE,
 	iter.dim = 1L, BPPARAM = bpparam(), ...)
@@ -62,19 +75,18 @@ rowStats_int <- function(x, stat, group = NULL,
 				"is not a multiple of column extent [", ncol(x), "]")
 		group <- as.factor(rep_len(group, ncol(x)))
 	}
+	FUN <- rowStats_fun(iter.dim)
 	if ( iter.dim == 1L ) {
 		BIND <- if(is.null(group)) "c" else "rbind"
 		ans <- lapply(stat, function(s)
-			chunk_rowapply(x, s_rowstats, stat=s,
+			chunk_rowapply(x, FUN, stat=s,
 				group=group, na.rm=na.rm, simplify=BIND,
 					BPPARAM=BPPARAM, ...))
 	} else {
 		ans <- lapply(stat, function(s)
-			chunk_colapply(x,
-				function(xi) {
-					g <- group[attr(xi, "index")]
-					s_rowstats(xi, stat=s, group=g, na.rm=na.rm)
-				}, simplify=stat_c, BPPARAM=BPPARAM, ...))
+			chunk_colapply(x, FUN, stat=s,
+				group=group, na.rm=na.rm, simplify=stat_c,
+				BPPARAM=BPPARAM, ...))
 	}
 	ans <- lapply(ans,
 		function(s) {
@@ -94,6 +106,19 @@ rowStats_int <- function(x, stat, group = NULL,
 
 .rowStats <- rowStats_int
 
+colStats_fun <- function(iter.dim)
+{
+	switch(iter.dim,
+		`1` = 
+		function(x, stat, group, na.rm)
+		{
+			g <- group[attr(x, "index")]
+			s_colstats(x, stat=stat,
+				group=g, na.rm=na.rm)
+		},
+		`2` = s_colstats)
+}
+
 colStats_int <- function(x, stat, group = NULL,
 	na.rm = FALSE, simplify = TRUE, drop = TRUE,
 	iter.dim = 2L, BPPARAM = bpparam(), ...)
@@ -106,17 +131,16 @@ colStats_int <- function(x, stat, group = NULL,
 				"is not a multiple of row extent [", nrow(x), "]")
 		group <- as.factor(rep_len(group, nrow(x)))
 	}
+	FUN <- colStats_fun(iter.dim)
 	if ( iter.dim == 1L ) {
 		ans <- lapply(stat, function(s)
-			chunk_rowapply(x,
-				function(xi) {
-					g <- group[attr(xi, "index")]
-					s_colstats(xi, stat=s, group=g, na.rm=na.rm)
-				}, simplify=stat_c, BPPARAM=BPPARAM, ...))
+			chunk_rowapply(x, FUN, stat=s,
+				group=group, na.rm=na.rm, simplify=stat_c,
+				BPPARAM=BPPARAM, ...))
 	} else {
 		BIND <- if(is.null(group)) "c" else "rbind"
 		ans <- lapply(stat, function(s)
-			chunk_colapply(x, s_colstats, stat=s,
+			chunk_colapply(x, FUN, stat=s,
 				group=group, na.rm=na.rm, simplify=BIND,
 					BPPARAM=BPPARAM, ...))
 	}
