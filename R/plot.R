@@ -462,10 +462,15 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 						x=p$x, y=p$y, z=p$z, color=I(p$color),
 						linetype=I(p$linetype), name=label)
 				} else {
+					if ( length(p$color) > 1L )
+						p$color <- p$color[-length(p$color)]
+					if ( length(p$linetype) > 1L )
+						p$linetype <- p$linetype[-length(p$linetype)]
 					e$plotly <- plotly::add_segments(e$plotly,
 						x=p$x[-length(p$x)], xend=p$x[-1L],
 						y=p$y[-length(p$x)], yend=p$y[-1L],
-						linetype=I(p$linetype), name=label)
+						linetype=I(p$linetype), color=I(p$color),
+						name=label)
 				}
 			}
 			if ( type == "h" ) {

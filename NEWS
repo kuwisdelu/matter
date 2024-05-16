@@ -7,6 +7,7 @@ NEW FEATURES
     o Support subsetting of deferred operations
     o Add 'chunked' classes for chunked objects
     o Add 's_stat()' for grouped streaming statistics
+    o For 'plot_image()', set 'useRaster' to plot 3d surface/volume vs voxels
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
@@ -14,6 +15,11 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Support chunk-apply functions on remote cluster workers
     o Reduced memory usage for chunk-apply functions on SNOW clusters
     o Remove 'biglm' from imports
+
+BUG FIXES
+
+    o Fix subplot axis scaling and aspect ratio for 'plotly' graphics
+    o Fix passing colors to line charts for 'plotly' graphics
 
 CHANGES IN VERSION 2.6.1 [2024-5-7]
 ------------------------------------

@@ -593,7 +593,7 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 			params <- par_update(x$params, ...)
 			plot_init(x, xlim=xlim, ylim=ylim, more=params, n=n)
 			# fix subplot aspect ratio
-			if ( x$engine$name == "plotly" && !is.na(x$coord$asp))
+			if ( x$engine$name == "plotly" && !is.na(x$coord$asp) )
 			{
 				if ( i == 1L ) {
 					xanchor <- "x"

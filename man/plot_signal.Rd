@@ -25,7 +25,7 @@ plot_image(x, y, z, vals, by = names(vals), group = NULL,
 }
 
 \arguments{
-    \item{x, y, z, vals}{Lists of vectors to plot such that \code{x[[i]]} and \code{y[[i]]} indicate the plotting coordinates for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format. For 2D images, only one of \code{z} or \code{vals} should be provided.}
+    \item{x, y, z, vals}{Lists of vectors to plot such that \code{x[[i]]} and \code{y[[i]]} indicate the plotting coordinates for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format. If only \code{x} is provided, it is interpreted as the signal or image, and the indices or coordinates are inferred from the length or dimensions, respectively. For 2D images, only one of \code{z} or \code{vals} should be provided.}
 
     \item{by}{A vector of labels indicating facets (i.e., which values should be plotted as separate sub-plots).}
 
