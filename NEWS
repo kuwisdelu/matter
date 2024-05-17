@@ -14,7 +14,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Performance improvements for chunk-apply functions
     o Support chunk-apply functions on remote cluster workers
     o Reduced memory usage for chunk-apply functions on SNOW clusters
-    o Image smoothing 'filt2_xxx()' functions now support multiple channels
+    o Image smoothing 'filt2_*()' functions now support multiple channels
     o Remove 'biglm' from imports
 
 BUG FIXES
@@ -401,7 +401,7 @@ NEW FEATURES
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
-    o In estnoise_xxx() functions, renamed argument 'width' to 'n'
+    o In estnoise_*() functions, renamed argument 'width' to 'n'
 
 CHANGES IN VERSION 2.3.8 [2023-7-29]
 ------------------------------------
