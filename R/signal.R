@@ -373,20 +373,24 @@ rescale_rms <- function(x, scale = 1)
 {
 	b <- sqrt(mean(x^2, na.rm=TRUE))
 	if ( b > 0 ) {
-		scale * x / b
+		y <- scale * x / b
 	} else {
-		rep.int(0, length(x))
+		y <- rep.int(0, length(x))
 	}
+	dim(y) <- dim(x)
+	y
 }
 
 rescale_sum <- function(x, scale = length(x))
 {
 	b <- sum(abs(x), na.rm=TRUE)
 	if ( b > 0 ) {
-		scale * x / b
+		y <- scale * x / b
 	} else {
-		rep.int(0, length(x))
+		y <- rep.int(0, length(x))
 	}
+	dim(y) <- dim(x)
+	y
 }
 
 rescale_ref <- function(x, ref = 1L, scale = 1, domain = NULL)
@@ -399,10 +403,12 @@ rescale_ref <- function(x, ref = 1L, scale = 1, domain = NULL)
 		stop("'ref' is outside of domain limits")
 	i <- bsearch(ref, domain, nearest=TRUE)
 	if ( x[i] != 0 ) {
-		scale * x / x[i]
+		y <- scale * x / x[i]
 	} else {
-		rep.int(0, length(x))
+		y <- rep.int(0, length(x))
 	}
+	dim(y) <- dim(x)
+	y
 }
 
 rescale_range <- function(x, limits = c(0, 1))

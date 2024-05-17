@@ -227,13 +227,28 @@ warp2_fun <- function(method)
 #### Contrast enhancement ####
 ## ---------------------------
 
+enhance_adj <- function(x, high = 0.01, low = 0.01)
+{
+	if ( is.matrix(x) ) {
+		min <- quantile(x, low)
+		max <- quantile(x, 1 - high)
+		y <- replace(x, x < min, min)
+		y <- replace(y, y > max, max)
+		rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
+	} else {
+		y <- apply(x, 3L, enhance_adj, high=high, low=low)
+		dim(y) <- dim(x)
+		y
+	}
+}
+
 enhance_hist <- function(x, nbins = 256L)
 {
 	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
 	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 }
 
-enhance_adapt <- function(x, width = sqrt(length(x)) %/% 5L,
+enhance_adapt <- function(x, width = sqrt(nrow(x) * ncol(x)) %/% 5L,
 	clip = 0.1, nbins = 256L)
 {
 	y <- .Call(C_adaptHistEq, x, width, clip, nbins, PACKAGE="matter")
@@ -245,6 +260,8 @@ enhance_fun <- function(method)
 	if ( is.character(method) )
 		method <- tolower(method)
 	options <- list(
+		"adj" = 		enhance_adj,
+		"adjust" = 		enhance_adj,
 		"hist" = 		enhance_hist,
 		"histeq" = 		enhance_hist,
 		"histogram" = 	enhance_hist,

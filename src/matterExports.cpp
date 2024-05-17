@@ -1315,19 +1315,22 @@ SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
 SEXP histEq(SEXP x, SEXP nbins)
 {
 	SEXP result;
-	if ( Rf_isMatrix(x) )
-		PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
-	else
-		PROTECT(result = Rf_allocVector(REALSXP, XLENGTH(x)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			histeq(INTEGER(x), XLENGTH(x), Rf_asInteger(nbins), REAL(result));
-			break;
-		case REALSXP:
-			histeq(REAL(x), XLENGTH(x), Rf_asInteger(nbins), REAL(result));
-			break;
-		default:
-			Rf_error("unsupported data type");
+	PROTECT(result = Rf_allocArray(REALSXP, Rf_getAttrib(x, R_DimSymbol)));
+	size_t n = Rf_nrows(x) * Rf_ncols(x);
+	int nchannels = XLENGTH(x) / n;
+	for ( int i = 0; i < nchannels; i++ )
+	{
+		size_t j = n * i;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				histeq(INTEGER(x) + j, n, Rf_asInteger(nbins), REAL(result) + j);
+				break;
+			case REALSXP:
+				histeq(REAL(x) + j, n, Rf_asInteger(nbins), REAL(result) + j);
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
 	}
 	UNPROTECT(1);
 	return result;
@@ -1336,18 +1339,24 @@ SEXP histEq(SEXP x, SEXP nbins)
 SEXP adaptHistEq(SEXP x, SEXP width, SEXP clip, SEXP nbins)
 {
 	SEXP result;
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			adapt_histeq(INTEGER(x), Rf_nrows(x), Rf_ncols(x), Rf_asInteger(width),
-				Rf_asReal(clip), Rf_asInteger(nbins), REAL(result));
-			break;
-		case REALSXP:
-			adapt_histeq(REAL(x), Rf_nrows(x), Rf_ncols(x), Rf_asInteger(width),
-				Rf_asReal(clip), Rf_asInteger(nbins), REAL(result));
-			break;
-		default:
-			Rf_error("unsupported data type");
+	PROTECT(result = Rf_allocArray(REALSXP, Rf_getAttrib(x, R_DimSymbol)));
+	size_t n = Rf_nrows(x) * Rf_ncols(x);
+	int nchannels = XLENGTH(x) / n;
+	for ( int i = 0; i < nchannels; i++ )
+	{
+		size_t j = n * i;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				adapt_histeq(INTEGER(x) + j, Rf_nrows(x), Rf_ncols(x), Rf_asInteger(width),
+					Rf_asReal(clip), Rf_asInteger(nbins), REAL(result) + j);
+				break;
+			case REALSXP:
+				adapt_histeq(REAL(x) + j, Rf_nrows(x), Rf_ncols(x), Rf_asInteger(width),
+					Rf_asReal(clip), Rf_asInteger(nbins), REAL(result) + j);
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
 	}
 	UNPROTECT(1);
 	return result;

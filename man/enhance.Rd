@@ -2,6 +2,7 @@
 
 \alias{enhance}
 
+\alias{enhance_adj}
 \alias{enhance_hist}
 \alias{enhance_adapt}
 
@@ -12,16 +13,21 @@
 }
 
 \usage{
+# Adjust by extreme values
+enhance_adj(x, high = 0.01, low = 0.01)
+
 # Histogram equalization
 enhance_hist(x, nbins = 256L)
 
 # Contrast-limited adaptive histogram equalization (CLAHE)
-enhance_adapt(x, width = sqrt(length(x)) \%/\% 5L,
+enhance_adapt(x, width = sqrt(nrow(x) * ncol(x)) \%/\% 5L,
     clip = 0.1, nbins = 256L)
 }
 
 \arguments{
 	\item{x}{A numeric matrix.}
+
+    \item{high, low}{The quantile at which to clip the maximum and minimum of the signal.}
 
     \item{nbins}{The number of gray levels in the output image.}
 

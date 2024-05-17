@@ -8,13 +8,15 @@ NEW FEATURES
     o Add 'chunked' classes for chunked objects
     o Add 's_stat()' for grouped streaming statistics
     o For 'plot_image()', set 'useRaster' to plot 3d surface/volume vs voxels
+    o Add 'enhance_adj()' function for adjusting extreme values
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Performance improvements for chunk-apply functions
     o Support chunk-apply functions on remote cluster workers
     o Reduced memory usage for chunk-apply functions on SNOW clusters
-    o Image smoothing 'filt2_*()' functions now support multiple channels
+    o Image smoothing 'filt2_*()' functions support multiple channels
+    o Contrast enhancement 'enhance_*()' functions support multiple channels
     o Remove 'biglm' from imports
 
 BUG FIXES
