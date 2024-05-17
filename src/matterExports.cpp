@@ -1174,18 +1174,24 @@ SEXP Approx1(SEXP xi, SEXP x, SEXP y,
 SEXP meanFilter2(SEXP x, SEXP width)
 {
 	SEXP result;
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			mean_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), REAL(result));
-			break;
-		case REALSXP:
-			mean_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), REAL(result));
-			break;
-		default:
-			Rf_error("unsupported data type");
+	PROTECT(result = Rf_allocArray(REALSXP, Rf_getAttrib(x, R_DimSymbol)));
+	size_t n = Rf_nrows(x) * Rf_ncols(x);
+	int nchannels = XLENGTH(x) / n;
+	for ( int i = 0; i < nchannels; i++ )
+	{
+		size_t j = n * i;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				mean_filter2(INTEGER(x) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(width), REAL(result) + j);
+				break;
+			case REALSXP:
+				mean_filter2(REAL(x) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(width), REAL(result) + j);
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
 	}
 	UNPROTECT(1);
 	return result;
@@ -1196,18 +1202,24 @@ SEXP linearFilter2(SEXP x, SEXP weights)
 	SEXP result;
 	if ( Rf_nrows(weights) != Rf_ncols(weights) )
 		Rf_error("weights must be a square matrix");
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			linear_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
-				REAL(weights), Rf_nrows(weights), REAL(result));
-			break;
-		case REALSXP:
-			linear_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
-				REAL(weights), Rf_nrows(weights), REAL(result));
-			break;
-		default:
-			Rf_error("unsupported data type");
+	PROTECT(result = Rf_allocArray(REALSXP, Rf_getAttrib(x, R_DimSymbol)));
+	size_t n = Rf_nrows(x) * Rf_ncols(x);
+	int nchannels = XLENGTH(x) / n;
+	for ( int i = 0; i < nchannels; i++ )
+	{
+		size_t j = n * i;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				linear_filter2(INTEGER(x) + j, Rf_nrows(x), Rf_ncols(x),
+					REAL(weights), Rf_nrows(weights), REAL(result) + j);
+				break;
+			case REALSXP:
+				linear_filter2(REAL(x) + j, Rf_nrows(x), Rf_ncols(x),
+					REAL(weights), Rf_nrows(weights), REAL(result) + j);
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
 	}
 	UNPROTECT(1);
 	return result;
@@ -1217,20 +1229,26 @@ SEXP bilateralFilter2(SEXP x, SEXP width,
 	SEXP sddist, SEXP sdrange, SEXP spar)
 {
 	SEXP result;
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			bilateral_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
-				Rf_asReal(spar), REAL(result));
-			break;
-		case REALSXP:
-			bilateral_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
-				Rf_asReal(spar), REAL(result));
-			break;
-		default:
-			Rf_error("unsupported data type");
+	PROTECT(result = Rf_allocArray(REALSXP, Rf_getAttrib(x, R_DimSymbol)));
+	size_t n = Rf_nrows(x) * Rf_ncols(x);
+	int nchannels = XLENGTH(x) / n;
+	for ( int i = 0; i < nchannels; i++ )
+	{
+		size_t j = n * i;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				bilateral_filter2(INTEGER(x) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
+					Rf_asReal(spar), REAL(result) + j);
+				break;
+			case REALSXP:
+				bilateral_filter2(REAL(x) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(width), Rf_asReal(sddist), Rf_asReal(sdrange),
+					Rf_asReal(spar), REAL(result) + j);
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
 	}
 	UNPROTECT(1);
 	return result;
@@ -1240,20 +1258,26 @@ SEXP diffusionFilter2(SEXP x, SEXP niter,
 	SEXP kappa, SEXP rate, SEXP method)
 {
 	SEXP result;
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			diffusion_filter2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(niter), Rf_asReal(kappa), Rf_asReal(rate),
-				Rf_asInteger(method), REAL(result));
-			break;
-		case REALSXP:
-			diffusion_filter2(REAL(x), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(niter), Rf_asReal(kappa), Rf_asReal(rate),
-				Rf_asInteger(method), REAL(result));
-			break;
-		default:
-			Rf_error("unsupported data type");
+	PROTECT(result = Rf_allocArray(REALSXP, Rf_getAttrib(x, R_DimSymbol)));
+	size_t n = Rf_nrows(x) * Rf_ncols(x);
+	int nchannels = XLENGTH(x) / n;
+	for ( int i = 0; i < nchannels; i++ )
+	{
+		size_t j = n * i;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				diffusion_filter2(INTEGER(x) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(niter), Rf_asReal(kappa), Rf_asReal(rate),
+					Rf_asInteger(method), REAL(result) + j);
+				break;
+			case REALSXP:
+				diffusion_filter2(REAL(x) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(niter), Rf_asReal(kappa), Rf_asReal(rate),
+					Rf_asInteger(method), REAL(result) + j);
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
 	}
 	UNPROTECT(1);
 	return result;
@@ -1265,18 +1289,24 @@ SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
 	SEXP result;
 	if ( Rf_nrows(x) != Rf_nrows(g) || Rf_ncols(x) != Rf_ncols(g) )
 		Rf_error("signal and guide must have the same dimensions");
-	PROTECT(result = Rf_allocMatrix(REALSXP, Rf_nrows(x), Rf_ncols(x)));
-	switch(TYPEOF(x)) {
-		case INTSXP:
-			guided_filter2(INTEGER(x), INTEGER(g), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), Rf_asReal(sdreg), REAL(result));
-			break;
-		case REALSXP:
-			guided_filter2(REAL(x), REAL(g), Rf_nrows(x), Rf_ncols(x),
-				Rf_asInteger(width), Rf_asReal(sdreg), REAL(result));
-			break;
-		default:
-			Rf_error("unsupported data type");
+	PROTECT(result = Rf_allocArray(REALSXP, Rf_getAttrib(x, R_DimSymbol)));
+	size_t n = Rf_nrows(x) * Rf_ncols(x);
+	int nchannels = XLENGTH(x) / n;
+	for ( int i = 0; i < nchannels; i++ )
+	{
+		size_t j = n * i;
+		switch(TYPEOF(x)) {
+			case INTSXP:
+				guided_filter2(INTEGER(x) + j, INTEGER(g) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(width), Rf_asReal(sdreg), REAL(result) + j);
+				break;
+			case REALSXP:
+				guided_filter2(REAL(x) + j, REAL(g) + j, Rf_nrows(x), Rf_ncols(x),
+					Rf_asInteger(width), Rf_asReal(sdreg), REAL(result) + j);
+				break;
+			default:
+				Rf_error("unsupported data type");
+		}
 	}
 	UNPROTECT(1);
 	return result;

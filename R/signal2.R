@@ -4,8 +4,8 @@
 
 filt2_ma <- function(x, width = 5L)
 {
-	if ( !is.matrix(x) )
-		stop("x must be a matrix")
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
 	.Call(C_meanFilter2, x, width, PACKAGE="matter")
@@ -13,8 +13,8 @@ filt2_ma <- function(x, width = 5L)
 
 filt2_conv <- function(x, weights)
 {
-	if ( !is.matrix(x) )
-		stop("x must be a matrix")
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	if ( !is.matrix(weights) )
 		stop("weights must be a matrix")
 	.Call(C_linearFilter2, x, weights, PACKAGE="matter")
@@ -22,8 +22,8 @@ filt2_conv <- function(x, weights)
 
 filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
-	if ( !is.matrix(x) )
-		stop("x must be a matrix")
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	radius <- width %/% 2
@@ -35,8 +35,8 @@ filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 	sdrange = mad(x, na.rm = TRUE))
 {
-	if ( !is.matrix(x) )
-		stop("x must be a matrix")
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter2, x, width,
@@ -45,8 +45,8 @@ filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 
 filt2_adapt <- function(x, width = 5L, spar = 1)
 {
-	if ( !is.matrix(x) )
-		stop("x must be a matrix")
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter2, x, width,
@@ -56,8 +56,8 @@ filt2_adapt <- function(x, width = 5L, spar = 1)
 filt2_diff <- function(x, niter = 3L, kappa = 50,
 	rate = 0.25, method = 1L)
 {
-	if ( !is.matrix(x) )
-		stop("x must be a matrix")
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	if ( kappa < 1 )
 		warning("kappa should be > 1")
 	if ( rate <= 0 || rate > 0.25 )
@@ -69,10 +69,12 @@ filt2_diff <- function(x, niter = 3L, kappa = 50,
 filt2_guide <- function(x, width = 5L, guide = x,
 	sdreg = mad(x, na.rm = TRUE))
 {
-	if ( !is.matrix(x) )
-		stop("x must be a matrix")
-	if ( !is.matrix(guide) )
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
+	if ( !is.matrix(guide) && length(dim(guide)) > 3L )
 		stop("guide must be a matrix")
+	if ( length(x) != length(guide) )
+		guide <- array(rep_len(guide, length(x)), dim=dim(x))
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	if ( is.integer(x) && is.double(guide) )

@@ -14,6 +14,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Performance improvements for chunk-apply functions
     o Support chunk-apply functions on remote cluster workers
     o Reduced memory usage for chunk-apply functions on SNOW clusters
+    o Image smoothing 'filt2_xxx()' functions now support multiple channels
     o Remove 'biglm' from imports
 
 BUG FIXES

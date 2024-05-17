@@ -134,7 +134,7 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
 	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
-	rasterImages = NULL, rasterParams = NULL, useRaster = TRUE,
+	rasterImages = NULL, rasterParams = NULL, useRaster = !is3d,
 	grid = TRUE, asp = 1, engine = NULL, ...)
 {
 	if ( missing(vals) && !missing(z) )
