@@ -257,7 +257,7 @@ setMethod("as.matrix", "matter_arr",
 		if ( getOption("matter.coerce.altrep") ) {
 			as.altrep(y)
 		} else {
-			get_matter_mat(y)
+			y[]
 		}
 	})
 
@@ -267,7 +267,7 @@ setMethod("as.array", "matter_arr",
 		if ( getOption("matter.coerce.altrep") ) {
 			as.altrep(y)
 		} else {
-			get_matter_arr(y)
+			y[]
 		}
 	})
 
@@ -351,12 +351,6 @@ subset_matter_arr_subarray <- function(x, index)
 		y
 }
 
-get_matter_arr <- function(x)
-{
-	index <- rep.int(list(NULL), length(dim(x)))
-	get_matter_arr_subarray(x, index, FALSE)
-}
-
 get_matter_arr_subarray <- function(x, index, drop = FALSE)
 {
 	index <- as_array_subscripts(index, x)
@@ -396,11 +390,6 @@ subset_matter_mat_submatrix <- function(x, i = NULL, j = NULL)
 		dimnames=dnm, ops=ops)
 	if ( validObject(y) )
 		y
-}
-
-get_matter_mat <- function(x)
-{
-	get_matter_mat_submatrix(x, NULL, NULL, FALSE)
 }
 
 get_matter_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE)
@@ -444,6 +433,8 @@ setMethod("[", c(x = "matter_arr"),
 			} else {
 				index <- list(i)
 			}
+			if ( !any(non_null(index)) && missing(drop) )
+				drop <- FALSE
 			if ( is_null_or_na(drop) ) {
 				subset_matter_arr_subarray(x, index)
 			} else {
@@ -488,6 +479,8 @@ setMethod("[", c(x = "matter_mat"),
 		} else {
 			if ( narg != 1L && narg != 2L )
 				stop("incorrect number of dimensions")
+			if ( missing(i) && missing(j) && missing(drop) )
+				drop <- FALSE
 			i <- as_row_subscripts(i, x)
 			j <- as_col_subscripts(j, x)
 			if ( isTRUE(x@indexed) ) {

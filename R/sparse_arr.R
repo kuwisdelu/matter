@@ -265,11 +265,9 @@ setMethod("as.double", "sparse_arr",
 setMethod("as.numeric", "sparse_arr",
 	function(x, ...) as.vector(x, "double"))
 
-setMethod("as.matrix", "sparse_arr",
-	function(x) get_sparse_mat(x))
+setMethod("as.matrix", "sparse_arr", function(x) as.matrix(x[]))
 
-setMethod("as.array", "sparse_arr",
-	function(x) get_sparse_arr(x))
+setMethod("as.array", "sparse_arr", function(x) as.array(x[]))
 
 setMethod("describe_for_display", "sparse_mat", function(x) {
 	desc1 <- paste0("<", nrow(x), " row x ", ncol(x), " col> ", class(x))
@@ -505,16 +503,6 @@ subset_sparse_arr_elts <- function(x, i = NULL)
 		x
 }
 
-get_sparse_arr <- function(x)
-{
-	if ( is.null(dim(x)) ) {
-		y <- get_sparse_arr_elts(x, NULL)
-	} else {
-		y <- get_sparse_mat_submatrix(x, NULL, NULL, FALSE)
-	}
-	as.array(y)
-}
-
 get_sparse_arr_elts <- function(x, i = NULL)
 {
 	y <- .Call(C_getSparseArray, x, i, PACKAGE="matter")
@@ -565,11 +553,6 @@ subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL)
 	x@ops <- subset_ops(x@ops, list(i, j))
 	if ( validObject(x) )
 		x
-}
-
-get_sparse_mat <- function(x)
-{
-	get_sparse_mat_submatrix(x, NULL, NULL, FALSE)
 }
 
 get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE)
@@ -654,6 +637,8 @@ setMethod("[", c(x = "sparse_arr"),
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
 				stop("incorrect number of dimensions")
+			if ( missing(i) && missing(j) && missing(drop) )
+				drop <- FALSE
 			i <- as_row_subscripts(i, x)
 			j <- as_col_subscripts(j, x)
 			if ( is_null_or_na(drop) ) {

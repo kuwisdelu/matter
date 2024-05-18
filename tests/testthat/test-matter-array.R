@@ -228,7 +228,7 @@ test_that("matter array N-D indexing (col major)", {
 	z <- y[1:2,1:2,1,drop=NULL]
 
 	expect_is(z, "matter_arr")
-	expect_equal(x[1:2,1:2,1], z[])
+	expect_equal(x[1:2,1:2,1,drop=FALSE], z[])
 
 	x[,,1] <- x[,,1] + 100
 	y[,,1] <- y[,,1] + 100
@@ -266,7 +266,7 @@ test_that("matter array N-D indexing (row major)", {
 	z <- y[1:2,1:2,1,drop=NULL]
 
 	expect_is(z, "matter_arr")
-	expect_equal(x[1:2,1:2,1], z[])
+	expect_equal(x[1:2,1:2,1,drop=FALSE], z[])
 
 	x[,,1] <- x[,,1] + 100
 	y[,,1] <- y[,,1] + 100
