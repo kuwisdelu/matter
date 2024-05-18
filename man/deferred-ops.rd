@@ -27,12 +27,6 @@
 
     `Arith': `+', `-', `*', `/', `^', `%%', `%/%'
 
-    `Compare': `==', `>', `<', `!=', `<=', `>='
-
-    `Logic': `&', `|'
-
-    `Ops': `Arith', `Compare', `Logic'
-
     `Math': `exp', `log', `log2', `log10'
 
     Arithmetic operations are applied in C++ layer immediately after the elements are read from virtual memory. This means that operations that are implemented in C and/or C++ for efficiency (such as summary statistics) will also reflect the execution of the deferred arithmetic operations.
