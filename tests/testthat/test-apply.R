@@ -73,6 +73,9 @@ test_that("chunkLapply + chunkMapply", {
 		chunkLapply(a, mean),
 		lapply(a, mean))
 	expect_equal(
+		chunkLapply(a, mean, BPPARAM=NULL),
+		lapply(a, mean))
+	expect_equal(
 		chunkLapply(a, mean, nchunks=10),
 		lapply(a, mean))
 	expect_equal(
@@ -145,6 +148,9 @@ test_that("chunkApply", {
 
 	expect_equal(
 		chunkApply(x, 1L, mean),
+		apply(x, 1L, mean, simplify=FALSE))
+	expect_equal(
+		chunkApply(x, 1L, mean, BPPARAM=NULL),
 		apply(x, 1L, mean, simplify=FALSE))
 	expect_equal(
 		chunkApply(x, 1L, mean, nchunks=10),

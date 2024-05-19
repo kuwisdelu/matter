@@ -793,10 +793,13 @@ apply_int <- function(X, MARGIN, FUN, FUN.VALUE, ...) {
 }
 
 bplapply_int <- function(X, FUN, ..., BPPARAM = NULL) {
-	if ( !is.null(BPPARAM) ) {
-		bplapply(X, FUN, ..., BPPARAM=BPPARAM)
+	if ( is.null(BPPARAM) ) {
+		ans <- vector("list", length=length(X))
+		for ( i in seq_along(X) )
+			ans[[i]] <- FUN(X[[i]], ...)
+		set_names(ans, names(X))
 	} else {
-		lapply(X, FUN, ...)
+		bplapply(X, FUN, ..., BPPARAM=BPPARAM)
 	}
 }
 
