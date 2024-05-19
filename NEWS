@@ -5,6 +5,7 @@ CHANGES IN VERSION 2.7.2 [2024-5-19]
 BUG FIXES
 
     o Fix chunk-apply functions for BPPARAM=NULL
+    o Fix 'is_gridded()' so infinite 'estres()' result gives FALSE
 
 CHANGES IN VERSION 2.7.1 [2024-5-17]
 ------------------------------------

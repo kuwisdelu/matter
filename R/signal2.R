@@ -330,7 +330,7 @@ is_gridded <- function(x, tol = 0.5)
 {
 	if ( length(dim(x)) != 2L )
 		stop("x must be a matrix or data frame")
-	!anyNA(apply(x, 2L, estres, tol=tol, ref="abs"))
+	all(is.finite(apply(x, 2L, estres, tol=tol)))
 }
 
 to_raster <- function(x, y, vals)

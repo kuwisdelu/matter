@@ -1273,37 +1273,50 @@ estres <- function(x, tol = NA, ref = NA_character_)
 	rx <- ifelse(is.na(rx), Inf, rx)
 	dx <- diff(x)
 	if ( is.finite(tol) ) {
-		if ( (is.na(ref) && diff(range(rx)) > tol) || 
-			(!is.na(ref) && ref == "abs" ) )
-		{
-			dx <- dx[dx > tol]
-			if ( all(dx %% min(dx) <= tol) ) {
-				res <- c(absolute = min(dx))
-			} else {
-				res <- c(absolute = NA_real_)
-			}
-		} else
-		{
-			rx <- rx[rx > tol]
-			if ( all(rx %% min(rx) <= tol) ) {
-				res <- c(relative = min(rx))
-			} else {
-				res <- c(relative = NA_real_)
-			}
-		}
+		dx <- dx[dx > tol]
+		rx <- rx[rx > tol]
 	} else {
-		if ( is.na(ref) ) {
-			if ( mad(dx) < mad(rx) ) {
-				res <- c(absolute = min(dx))
+		dx <- dx[dx > 0]
+		rx <- rx[rx > 0]
+	}
+	if ( is.na(ref) ) {
+		if ( length(dx) && length(rx) ) {
+			if ( mad(dx / diff(range(x))) < mad(rx) ) {
+				ref <- "abs"
 			} else {
-				res <- c(relative = min(rx))
+				ref <- "x"
 			}
 		} else {
-			if ( ref == "abs" ) {
-				res <- c(absolute = min(dx))
+			if ( length(dx) ) {
+				ref <- "abs"
+			} else if ( length(rx) ) {
+				ref <- "x"
 			} else {
-				res <- c(relative = min(rx))
+				return(NA_real_)
 			}
+		}
+	}
+	if ( ref == "abs" ) {
+		if ( length(dx) ) {
+			res <- min(dx)
+		} else {
+			res <- Inf
+		}
+		if ( !is.finite(tol) || all(dx %% res <= tol) ) {
+			res <- c(absolute = res)
+		} else {
+			res <- c(absolute = NA_real_)
+		}
+	} else {
+		if ( length(dx) ) {
+			res <- min(rx)
+		} else {
+			res <- Inf
+		}
+		if ( !is.finite(tol) || all(rx %% res <= tol) ) {
+			res <- c(relative = res)
+		} else {
+			res <- c(relative = NA_real_)
 		}
 	}
 	res
