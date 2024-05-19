@@ -311,12 +311,24 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 ## ----------------------------------------
 
 # discrete palette
-dpal <- function(palette = "Tableau 10") {
+dpal <- function(palette = "Tableau 10") {	
+	test <- try(palette.colors(1, palette), silent=TRUE)
+	if ( inherits(test, "try-error") )
+	{
+		stop("'palette' must be one of: ",
+			paste0(sQuote(palette.pals()), collapse=", "))
+	}
 	function(n) palette.colors(n, palette)
 }
 
 # continuous palette
 cpal <- function(palette = "Viridis") {
+	test <- try(hcl.colors(1, palette), silent=TRUE)
+	if ( inherits(test, "try-error") )
+	{
+		stop("'palette' must be one of: ",
+			paste0(sQuote(hcl.pals()), collapse=", "))
+	}
 	function(n) hcl.colors(n, palette)
 }
 

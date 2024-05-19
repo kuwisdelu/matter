@@ -6,6 +6,7 @@ BUG FIXES
 
     o Fix chunk-apply functions for BPPARAM=NULL
     o Fix 'is_gridded()' so infinite 'estres()' result gives FALSE
+    o Give more useful error messages for 'dpal()' and 'cpal()'
 
 CHANGES IN VERSION 2.7.1 [2024-5-17]
 ------------------------------------
