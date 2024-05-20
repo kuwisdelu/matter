@@ -2,8 +2,8 @@
 #### Plot a list of signals ####
 ## -----------------------------
 
-plot_signal <- function(x, y, by = names(y), group = NULL,
-	xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
+plot_signal <- function(x, y, z, by, group = NULL, byrow = FALSE,
+	xlim = NULL, ylim = NULL, col = NULL, alphapow = 1,
 	xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	n = Inf, downsampler = "lttb", key = TRUE, grid = TRUE,
 	isPeaks = FALSE, annPeaks = 0, engine = NULL, ...)
@@ -33,19 +33,51 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 			y <- apply(y, 2L, identity, simplify=FALSE)
 		}
 	}
+	if ( missing(z) )
+		z <- list()
 	if ( !is.list(y) )
 		y <- list(y)
 	if ( !is.list(x) )
 		x <- list(x)
-	x <- rep_len(x, length(y))
+	if ( !is.list(z) )
+		z <- list(z)
+	len <- max(length(x), length(y), length(z))
+	x <- rep_len(x, len)
+	y <- rep_len(y, len)
+	z <- rep_len(z, len)
+	is2d <- any(lengths(z) > 0L)
+	if ( missing(by) ) {
+		if ( is2d ) {
+			if ( is.null(names(z)) && length(z) > 1L ) {
+				by <- seq_along(z)
+			} else {
+				by <- names(z)
+			}
+		} else {
+			if ( is.null(names(y)) && length(y) > 1L ) {
+				by <- seq_along(y)
+			} else {
+				by <- names(y)
+			}
+		}
+	}
 	if ( !is.null(by) )
 		by <- rep_len(factor(by, levels=unique(by)), length(y))
 	if ( !is.null(group) )
 		group <- rep_len(factor(group, levels=unique(group)), length(y))
 	if ( length(annPeaks) != 1L || (!is.numeric(annPeaks) && !is.character(annPeaks)) )
 		stop("'annPeaks' must be a scalar string or integer")
-	isPeaks <- rep_len(isPeaks, length(y))
-	mark <- ifelse(isPeaks, "peaks", "lines")
+	if ( is2d ) {
+		isPeaks <- rep.int(FALSE, len)
+		mark <- rep.int("points", len)
+		trans <- list()
+		params <- list(shape=16L, size=0.25)
+	} else {
+		isPeaks <- rep_len(isPeaks, len)
+		mark <- ifelse(isPeaks, "peaks", "lines")
+		trans <- list(n=n, downsampler=downsampler)
+		params <- list()
+	}
 	if ( any(isPeaks) ) {
 		for ( i in which(isPeaks) ) {
 			nz <- which(y[[i]] != 0)
@@ -59,15 +91,16 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 		plot <- vizi()
 		for ( i in seq_along(y) ) {
 			plot <- add_mark(plot, mark[[i]],
-				x=x[[i]], y=y[[i]], color=group[[i]],
-				trans=list(n=n, downsampler=downsampler))
-			if ( isPeaks[[i]] ) {
+				x=x[[i]], y=y[[i]],
+				alpha=z[[i]], color=group[[i]],
+				trans=trans, params=params)
+			if ( isPeaks[[i]] )
+			{
 				if ( is.character(annPeaks) ) {
 					pch <- shape_pal()
 					pch <- pch[[match.arg(annPeaks, names(pch))]]
 					plot <- add_mark(plot, "points",
 						x=x[[i]], y=y[[i]], color=group[[i]],
-						trans=list(n=n, downsampler=downsampler),
 						params=list(shape=pch))
 				} else if ( annPeaks > 0 ) {
 					j <- tail(order(abs(y[[i]])), n=annPeaks)
@@ -84,9 +117,11 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 			p <- vizi()
 			for ( i in which(by == lvl) ) {
 				p <- add_mark(p, mark[[i]],
-					x=x[[i]], y=y[[i]], color=group[[i]],
-					trans=list(n=n, downsampler=downsampler))
-				if ( isPeaks[[i]] ) {
+					x=x[[i]], y=y[[i]],
+					alpha=z[[i]], color=group[[i]],
+					trans=trans, params=params)
+				if ( isPeaks[[i]] )
+				{
 					if ( is.character(annPeaks) ) {
 						pch <- shape_pal()
 						pch <- pch[[match.arg(annPeaks, names(pch))]]
@@ -112,9 +147,12 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 				nrow=layout[1L], ncol=layout[2L], free=free)
 		}
 	}
+	asch <- range_fun(0, 1, alphapow)
 	plot <- set_coord(plot, xlim=xlim, ylim=ylim, grid=grid)
 	plot <- set_channel(plot, "x", label=xlab)
 	plot <- set_channel(plot, "y", label=ylab)
+	if ( is2d )
+		plot <- set_channel(plot, "alpha", scheme=asch, key=FALSE)
 	if ( !is.null(group) ) {
 		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
 	} else {
@@ -130,8 +168,8 @@ plot_signal <- function(x, y, by = names(y), group = NULL,
 #### Plot a list of images ####
 ## -----------------------------
 
-plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
-	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
+plot_image <- function(x, y, z, vals, by, group = NULL, byrow = FALSE,
+	zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, alphapow = 1,
 	zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
 	enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
 	rasterImages = NULL, rasterParams = NULL, useRaster = !is3d,
@@ -193,6 +231,14 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 	x <- rep_len(x, length(vals))
 	y <- rep_len(y, length(vals))
 	z <- rep_len(z, length(vals))
+	is3d <- any(lengths(z) > 0L)
+	if ( missing(by) ) {
+		if ( is.null(names(vals)) && length(vals) > 1L ) {
+			by <- seq_along(vals)
+		} else {
+			by <- names(vals)
+		}
+	}
 	if ( !is.null(by) )
 		by <- rep_len(factor(by, levels=unique(by)), length(vals))
 	if ( !is.null(group) )
@@ -200,7 +246,6 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 	if ( !is.null(rasterImages) && !is.list(rasterImages) )
 		rasterImages <- list(rasterImages)
 	vals <- lapply(vals, function(v) if (is.factor(v)) v else as.vector(v))
-	is3d <- any(lengths(z) > 0L)
 	if ( is3d ) {
 		if ( useRaster ) {
 			mark <- "voxels"
@@ -212,18 +257,23 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 			params <- list()
 		} else {
 			mark <- "points"
-			alpha <- NULL
+			alpha <- rep_len(list(), length(vals))
 			trans <- list()
 			params <- list(shape=16L)
 		}
 	} else {
 		mark <- "pixels"
-		alpha <- NULL
+		alpha <- rep_len(list(), length(vals))
 		trans <- list(
 			enhance=enhance,
 			smooth=smooth,
 			scale=scale)
 		params <- list(useRaster=useRaster)
+	}
+	if ( is.null(group) ) {
+		color <- vals
+	} else {
+		color <- group
 	}
 	if ( is.null(by) ) {
 		plot <- vizi()
@@ -234,15 +284,10 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 				ymin=rasterParams$ymin, ymax=rasterParams$ymax)
 		}
 		for ( i in seq_along(vals) ) {
-			if ( is.null(group) ) {
-				plot <- add_mark(plot, mark,
-					x=x[[i]], y=y[[i]], z=z[[i]], alpha=alpha[[i]], color=vals[[i]],
-					trans=trans, params=params)
-			} else {
-				plot <- add_mark(plot, mark,
-					x=x[[i]], y=y[[i]], z=z[[i]], alpha=vals[[i]], color=group[[i]],
-					trans=trans, params=params)
-			}
+			plot <- add_mark(plot, mark,
+				x=x[[i]], y=y[[i]], z=z[[i]],
+				alpha=alpha[[i]], color=color[[i]],
+				trans=trans, params=params)
 		}
 	} else {
 		plot <- lapply(levels(by), function(lvl)
@@ -262,15 +307,10 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 					ymin=rp$ymin, ymax=rp$ymax)
 			}
 			for ( i in which(by == lvl) ) {
-				if ( is.null(group) ) {
-					p <- add_mark(p, mark,
-						x=x[[i]], y=y[[i]], z=z[[i]], alpha=alpha[[i]], color=vals[[i]],
-						trans=trans, params=params)
-				} else {
-					p <- add_mark(p, mark,
-						x=x[[i]], y=y[[i]], z=z[[i]], alpha=vals[[i]], color=group[[i]],
-						trans=trans, params=params)
-				}
+				p <- add_mark(p, mark,
+					x=x[[i]], y=y[[i]], z=z[[i]],
+					alpha=alpha[[i]], color=color[[i]],
+					trans=trans, params=params)
 			}
 			p
 		})
@@ -281,13 +321,14 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 				nrow=layout[1L], ncol=layout[2L], free=free)
 		}
 	}
+	asch <- range_fun(0, 1, alphapow)
 	plot <- set_coord(plot, xlim=xlim, ylim=ylim, grid=grid, asp=asp, rev="y")
 	plot <- set_channel(plot, "x", label=xlab)
 	plot <- set_channel(plot, "y", label=ylab)
 	if ( is3d ) {
 		plot <- set_channel(plot, "z", label=zlab)
 		plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
-		plot <- set_channel(plot, "alpha", key=FALSE)
+		plot <- set_channel(plot, "alpha", scheme=asch, key=FALSE)
 		plot <- set_coord(plot, zlim=zlim)
 		plot <- set_par(plot, scale=FALSE)
 	} else {
@@ -297,7 +338,7 @@ plot_image <- function(x, y, z, vals, by = names(vals), group = NULL,
 			plot <- set_channel(plot, "color", label=zlab, limits=zlim, scheme=col, key=key)
 		} else {
 			plot <- set_channel(plot, "color", label="\n", scheme=col, key=key)
-			plot <- set_channel(plot, "alpha", limits=zlim, key=FALSE)
+			plot <- set_channel(plot, "alpha", limits=zlim, scheme=asch, key=FALSE)
 		}
 	}
 	if ( !is.null(engine) )
@@ -333,7 +374,7 @@ cpal <- function(palette = "Viridis") {
 }
 
 # continuous palette
-add_alpha <- function(colors, alpha = 1, exp = 2) {
+add_alpha <- function(colors, alpha = 1, pow = 1) {
 	dm <- dim(colors)
 	if ( is.null(dm) && !is.null(dim(alpha)) )
 		dm <- dim(alpha)
@@ -348,7 +389,7 @@ add_alpha <- function(colors, alpha = 1, exp = 2) {
 	alpha <- ifelse(is.na(alpha), 0, alpha)
 	colors <- col2rgb(colors, alpha=TRUE)
 	colors <- rgb(colors[1L,], colors[2L,], colors[3L,],
-		alpha=255 * alpha^exp, maxColorValue=255)
+		alpha=255 * alpha^pow, maxColorValue=255)
 	colors[na] <- NA_character_
 	if ( raster ) {
 		colors <- matrix(colors, byrow=TRUE, nrow=dm[1L], ncol=dm[2L])

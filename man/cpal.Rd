@@ -18,7 +18,7 @@ cpal(palette = "Viridis")
 dpal(palette = "Tableau 10")
 
 # Add transparency to colors
-add_alpha(colors, alpha = 1, exp = 2)
+add_alpha(colors, alpha = 1, pow = 1)
 }
 
 \arguments{
@@ -28,7 +28,7 @@ add_alpha(colors, alpha = 1, exp = 2)
 
     \item{alpha}{A numeric vector giving the level of transparency in the range [0, 1] where 0 is fully transparent and 1 is fully opaque.}
 
-    \item{exp}{The power scaling of the alpha channel. A linear alpha scale often results in poor interpretability for superposed images, so raising the alpha channel (already in range [0, 1]) to a power > 1 can improve interpretability in these cases.}
+    \item{pow}{The power scaling of the alpha channel. A linear alpha scale often results in poor interpretability for superposed images, so raising the alpha channel (already in range [0, 1]) to a power > 1 can improve interpretability in these cases. Conversely, for highly skewed data, using a power < 1 can reduce the impact of extreme values.}
 }
 
 \value{

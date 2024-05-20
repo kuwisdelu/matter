@@ -10,14 +10,14 @@
 }
 
 \usage{
-plot_signal(x, y, by = names(y), group = NULL,
-    xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
+plot_signal(x, y, z, by, group = NULL, byrow = FALSE,
+    xlim = NULL, ylim = NULL, col = NULL, alphapow = 1,
     xlab = NULL, ylab = NULL, layout = NULL, free = "",
     n = Inf, downsampler = "lttb", key = TRUE, grid = TRUE,
     isPeaks = FALSE, annPeaks = 0, engine = NULL, \dots)
 
-plot_image(x, y, z, vals, by = names(vals), group = NULL,
-    zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, byrow = FALSE,
+plot_image(x, y, z, vals, by, group = NULL, byrow = FALSE,
+    zlim = NULL, xlim = NULL, ylim = NULL, col = NULL, alphapow = 1,
     zlab = NULL, xlab = NULL, ylab = NULL, layout = NULL, free = "",
     enhance = NULL, smooth = NULL, scale = NULL, key = TRUE,
     rasterImages = NULL, rasterParams = NULL, useRaster = !is3d,
@@ -25,11 +25,13 @@ plot_image(x, y, z, vals, by = names(vals), group = NULL,
 }
 
 \arguments{
-    \item{x, y, z, vals}{Lists of vectors to plot such that \code{x[[i]]} and \code{y[[i]]} indicate the plotting coordinates for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format. If only \code{x} is provided, it is interpreted as the signal or image, and the indices or coordinates are inferred from the length or dimensions, respectively. For 2D images, only one of \code{z} or \code{vals} should be provided.}
+    \item{x, y, z, vals}{Lists of vectors to plot such that \code{x[[i]]}, \code{y[[i]]}, etc. indicate the plot values for the \emph{i}th signal or image. Attempts are made to flexibly coerce these into the expected format. If only \code{x} is provided, it is interpreted as the signal or image, and the indices or coordinates are inferred from the length or dimensions, respectively. Specifying \code{z} will plot a 2D signal. For 2D images, only one of \code{z} or \code{vals} should be provided. For 3D images, both should be provided.}
 
     \item{by}{A vector of labels indicating facets (i.e., which values should be plotted as separate sub-plots).}
 
     \item{group}{A vector of labels indicating groups (i.e., which values should be indicated by color as belonging to the same group).}
+
+    \item{byrow}{If \code{y} (for \code{plot_signal}) or \code{vals} (for \code{plot_image}) is a matrix, should its rows or columns be plotted?}
 
     \item{xlim, ylim, zlim}{The plot limits. See \code{\link[graphics]{plot.window}}}
 
@@ -37,7 +39,7 @@ plot_image(x, y, z, vals, by = names(vals), group = NULL,
 
     \item{col}{A vector giving the color map for encoding the image, or a function that returns a vector of \code{n} colors.}
 
-    \item{byrow}{If \code{vals} is a matrix, should its rows or columns be plotted?}
+    \item{alphapow}{The power scaling of the alpha channel (if used).}
 
     \item{layout}{A vector of the form \code{c(nrow, ncol)} specifying the number of rows and columns in the facet grid.}
 

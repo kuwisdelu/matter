@@ -1244,8 +1244,8 @@ continuous_pal <- function(n)
 	hcl.colors(n, getOption("matter.vizi.cpal"))
 }
 
-range_fun <- function(from, to) {
-	function(n) seq.int(from, to, length.out=n)
+range_fun <- function(from, to, pow = 1) {
+	function(n) seq.int(from, to, length.out=n)^pow
 }
 
 seq_fun <- function(max_n) {

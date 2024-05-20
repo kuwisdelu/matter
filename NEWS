@@ -2,6 +2,11 @@
 CHANGES IN VERSION 2.7.2 [2024-5-19]
 ------------------------------------
 
+NEW FEATURES
+
+    o Support 2D signals in 'plot_signal()' (e.g., for ion mobility)
+    o New argument 'alphapow' in 'plot_signal()' and 'plot_image()'
+
 BUG FIXES
 
     o Fix chunk-apply functions for BPPARAM=NULL
