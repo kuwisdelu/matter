@@ -62,7 +62,8 @@ setRNGStream <- function(seed = NULL, kind = NULL) {
 	}
 	RNGkind(kind)
 	if ( is.null(seed) ) {
-		rm(".Random.seed", seed, envir=globalenv())
+		if ( exists(".Random.seed", envir=globalenv()))
+			rm(".Random.seed", envir=globalenv())
 	} else {
 		assign(".Random.seed", seed, envir=globalenv())
 	}

@@ -248,7 +248,7 @@ chunk_fun <- function(FUN, type,
 		if ( progress )
 			print_chunk_progress(X)
 		if ( type == "list" ) {
-			X[[1L]] <- set_attr(X[[1L]], attributes(X))
+			X[[1L]] <- set_attr(X[[1L]], chunkinfo)
 			do.call(FUN, c(X, list(MoreArgs=MoreArgs)))
 		} else {
 			FUN(X, ...)
@@ -262,17 +262,16 @@ chunk_loop_fun <- function(FUN, type,
 	function(X, ..., MoreArgs)
 	{
 		id <- attr(X, "chunkid")
-		if ( type == "list" )
-			X <- set_attr(list(X, ...), attributes(X))
+		ans <- vector("list", attr(X, "chunksize"))
+		dep <- attr(X, "depends")
 		N <- switch(type,
-			list=length(X[[1L]]),
+			list=length(X),
 			vector=length(X),
 			array=switch(margin, nrow(X), ncol(X)))
-		ans <- vector("list", attr(X, "chunksize"))
+		X <- switch(type, list=list(X, ...), X)
 		ii <- 1L
 		for ( i in seq_len(N) )
 		{
-			dep <- attr(X, "depends")
 			if ( is.null(dep) ) {
 				j <- i
 				drop <- TRUE

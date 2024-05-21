@@ -89,6 +89,13 @@ test_that("chunkLapply + chunkMapply", {
 		chunkMapply(`+`, a, b, nchunks=10),
 		mapply(`+`, a, b, SIMPLIFY=FALSE))
 
+	names(a) <- paste0("a=", seq_along(a))
+	names(b) <- paste0("b=", seq_along(b))
+
+	expect_equal(
+		chunkMapply(`+`, a, b),
+		mapply(`+`, a, b, SIMPLIFY=FALSE))
+
 	register(SerialParam())
 	set.seed(1, kind="default")	
 	u <- sort(runif(100))

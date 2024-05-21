@@ -10,6 +10,7 @@ NEW FEATURES
 BUG FIXES
 
     o Fix chunk-apply functions for BPPARAM=NULL
+    o Fix 'chunkMapply()' named list errors
     o Fix 'is_gridded()' so infinite 'estres()' result gives FALSE
     o Give more useful error messages for 'dpal()' and 'cpal()'
 
