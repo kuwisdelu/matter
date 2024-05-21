@@ -1146,3 +1146,30 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 	side
 }
 
+parse_vars <- function(formula)
+{
+	if ( is(formula, "formula") ) {
+		parse <- parse_formula(formula, eval=FALSE)
+	} else if ( is.list(formula) ) {
+		parse <- formula
+	} else {
+		stop("'formula' must be a formula or list")
+	}
+	if ( !is.null(parse$lhs) ) {
+		lhs <- lapply(parse$lhs, all.vars)
+	} else {
+		lhs <- NULL
+	}
+	if ( !is.null(parse$rhs) ) {
+		rhs <- lapply(parse$rhs, all.vars)
+	} else {
+		rhs <- NULL
+	}
+	if ( !is.null(parse$g) ) {
+		g <- lapply(parse$g, all.vars)
+	} else {
+		g <- NULL
+	}
+	list(lhs=lhs, rhs=rhs, g=g)
+}
+

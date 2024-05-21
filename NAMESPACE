@@ -568,6 +568,8 @@ export(
 	"memtime",
 	"profmem")
 
-export("parse_formula")
+export(
+	"parse_formula",
+	"parse_vars")
 
 useDynLib("matter", .registration=TRUE, .fixes="C_")
