@@ -1156,17 +1156,17 @@ parse_vars <- function(formula)
 		stop("'formula' must be a formula or list")
 	}
 	if ( !is.null(parse$lhs) ) {
-		lhs <- lapply(parse$lhs, all.vars)
+		lhs <- unlist(lapply(parse$lhs, all.vars))
 	} else {
 		lhs <- NULL
 	}
 	if ( !is.null(parse$rhs) ) {
-		rhs <- lapply(parse$rhs, all.vars)
+		rhs <- unlist(lapply(parse$rhs, all.vars))
 	} else {
 		rhs <- NULL
 	}
 	if ( !is.null(parse$g) ) {
-		g <- lapply(parse$g, all.vars)
+		g <- unlist(lapply(parse$g, all.vars))
 	} else {
 		g <- NULL
 	}
