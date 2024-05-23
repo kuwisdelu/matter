@@ -565,11 +565,13 @@ exportMethods(
 
 export(
 	"mem",
+	"mtime",
 	"memtime",
 	"profmem")
 
 export(
 	"parse_formula",
-	"parse_vars")
+	"eval_expr",
+	"eval_exprs")
 
 useDynLib("matter", .registration=TRUE, .fixes="C_")

@@ -57,7 +57,8 @@
 \alias{pinv}
 
 \alias{parse_formula}
-\alias{parse_vars}
+\alias{eval_exprs}
+\alias{eval_expr}
 
 \alias{panel_grid}
 \alias{panel_dim}

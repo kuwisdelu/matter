@@ -1,6 +1,8 @@
-\name{memtime}
+\name{mem}
 
 \alias{mem}
+\alias{mtime}
+
 \alias{memtime}
 \alias{profmem}
 
@@ -13,7 +15,7 @@
 \usage{
 mem(x, reset = FALSE)
 
-memtime(expr)
+mtime(expr)
 }
 
 \arguments{
@@ -25,11 +27,11 @@ memtime(expr)
 }
 
 \details{
-    These are wrappers around the built-in \code{\link{gc}} function. Note that they only count memory managed by R.
+    These are wrappers around the built-in \code{\link{gc}} and \code{link{proc.time}} functions. Note that they only count memory managed by R.
 }
 
 \value{
-    For \code{memtime}, a vector giving [1] the amount of memory used at the start of execution, [2] the amount of memory used at the end of execution, [3] the maximum amount of memory used during execution, [4] the memory overhead as defined by the maximum memory used minus the starting memory use, and [5] the execution time in seconds.
+    For \code{mtime}, a vector giving [1] the amount of memory used at the start of execution, [2] the amount of memory used at the end of execution, [3] the maximum amount of memory used during execution, [4] the memory overhead as defined by the maximum memory used minus the starting memory use, and [5] the execution time in seconds.
 
     For \code{mem}, either a single numeric value giving the memory used by an object, or a vector providing a more readable version of the information returned by \code{\link{gc}} (see its help page for details).
 }
@@ -45,7 +47,7 @@ x <- 1:100
 
 mem(x)
 
-memtime(mean(x + 1))
+mtime(mean(x + 1))
 }
 
 \keyword{utilities}

@@ -1047,7 +1047,7 @@ mem <- function(x, reset = FALSE)
 	size_bytes(mem)
 }
 
-memtime <- function(expr)
+mtime <- function(expr)
 {
 	start <- mem(reset = TRUE)
 	t.start <- proc.time()
@@ -1065,10 +1065,15 @@ memtime <- function(expr)
 	print.default(mem, quote=FALSE, right=TRUE)
 }
 
+memtime <- function(expr)
+{
+	.Deprecated("mtime")
+	mtime(expr)
+}
+
 profmem <- function(expr)
 {
-	.Deprecated("memtime")
-	memtime(expr)
+	.Defunct("mtime")
 }
 
 #### Formula parsing ####
@@ -1146,30 +1151,79 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 	side
 }
 
-parse_vars <- function(formula)
+eval_exprs <- function(exprs, data, i1 = NULL, i2 = NULL,
+	recursive = NA, margin = 0L, reduce = "+")
 {
-	if ( is(formula, "formula") ) {
-		parse <- parse_formula(formula, eval=FALSE)
-	} else if ( is.list(formula) ) {
-		parse <- formula
-	} else {
-		stop("'formula' must be a formula or list")
+	ans <- vector("list", length=length(exprs))
+	for ( i in seq_along(exprs) )
+	{
+		ans[[i]] <- eval_expr(exprs[[i]], data=data, i1=i1, i2=i2,
+			recursive=recursive, margin=margin, reduce=reduce)
 	}
-	if ( !is.null(parse$lhs) ) {
-		lhs <- unlist(lapply(parse$lhs, all.vars))
-	} else {
-		lhs <- NULL
+	names(ans) <- names(exprs)
+	ans
+}
+
+eval_expr <- function(expr, data, i1 = NULL, i2 = NULL,
+	recursive = NA, margin = 0L, reduce = "+")
+{
+	vars <- all.vars(expr)
+	if ( is.na(recursive) ) {
+		if ( !is.null(i1) || !is.null(i2) ) {
+			recursive <- TRUE
+		} else {
+			recursive <- FALSE
+		}
 	}
-	if ( !is.null(parse$rhs) ) {
-		rhs <- unlist(lapply(parse$rhs, all.vars))
+	data <- lapply(vars,
+		function(nm) {
+			v <- data[[nm]]
+			if ( !is.null(i1) ) {
+				v <- switch(margin + 1L,
+					v[i1],
+					v[i1,,drop=FALSE],
+					v[,i1,drop=FALSE])
+			}
+			if ( recursive ) {
+				v <- switch(margin + 1L,
+					as.vector(v),
+					apply(v, 1L, identity, simplify=FALSE),
+					apply(v, 2L, identity, simplify=FALSE))
+			}
+			if ( !is.null(names(i1)) ) {
+				if ( anyDuplicated(names(i1)) ) {
+					FUN <- match.fun(reduce)
+					group <- factor(names(i1), levels=unique(names(i1)))
+					v <- lapply(levels(group),
+						function(g) Reduce(FUN, v[group %in% g]))
+					if ( !recursive )
+						v <- unlist(v)
+					names(v) <- levels(group)
+				} else {
+					names(v) <- names(i1)
+				}
+			}
+			v
+		})
+	names(data) <- vars
+	if ( recursive ) {
+		EVAL <- function(...)
+		{
+			datalist <- list(...)
+			names(datalist) <- vars
+			eval(expr, envir=datalist)
+		}
+		x <- do.call(Map, c(list(EVAL), data))
 	} else {
-		rhs <- NULL
+		x <- eval(expr, envir=data)
 	}
-	if ( !is.null(parse$g) ) {
-		g <- unlist(lapply(parse$g, all.vars))
-	} else {
-		g <- NULL
+	if ( !is.null(i2) ) {
+		if ( recursive ) {
+			x <- subset_list(x, i2)
+		} else {
+			x <- x[i2]
+		}
 	}
-	list(lhs=lhs, rhs=rhs, g=g)
+	x
 }
 
