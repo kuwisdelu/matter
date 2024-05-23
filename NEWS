@@ -1,11 +1,15 @@
 
-CHANGES IN VERSION 2.7.2 [2024-5-19]
+CHANGES IN VERSION 2.7.2 [2024-5-23]
 ------------------------------------
 
 NEW FEATURES
 
     o Support 2D signals in 'plot_signal()' (e.g., for ion mobility)
     o New argument 'alphapow' in 'plot_signal()' and 'plot_image()'
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Rename function 'memtime()' to 'mtime()'
 
 BUG FIXES
 
