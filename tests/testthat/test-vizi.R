@@ -55,6 +55,12 @@ test_that("vizi - eval", {
 	expect_equal(e9[[1L]], xmu[,1L,drop=TRUE] + xmv[,1L,drop=TRUE])
 	expect_equal(e9[[2L]], xmu[,2L,drop=TRUE] + xmv[,2L,drop=TRUE])
 
+	es <- eval_exprs(list(foo=quote(a), bar=quote(a + b)), data=xl, i1=1:2)
+
+	expect_equal(es[[1L]], e1)
+	expect_equal(es[[2L]], e3)
+	expect_true(attr(es, "recursive"))
+
 })
 
 test_that("vizi - plot", {

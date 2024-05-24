@@ -1154,12 +1154,15 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 eval_exprs <- function(exprs, data, i1 = NULL, i2 = NULL,
 	recursive = NA, margin = 0L, reduce = "+")
 {
+	if ( is.na(recursive) )
+		recursive <- !is.null(i1) || !is.null(i2)
 	ans <- vector("list", length=length(exprs))
 	for ( i in seq_along(exprs) )
 	{
 		ans[[i]] <- eval_expr(exprs[[i]], data=data, i1=i1, i2=i2,
 			recursive=recursive, margin=margin, reduce=reduce)
 	}
+	attr(ans, "recursive") <- recursive
 	names(ans) <- names(exprs)
 	ans
 }
@@ -1167,14 +1170,9 @@ eval_exprs <- function(exprs, data, i1 = NULL, i2 = NULL,
 eval_expr <- function(expr, data, i1 = NULL, i2 = NULL,
 	recursive = NA, margin = 0L, reduce = "+")
 {
+	if ( is.na(recursive) )
+		recursive <- !is.null(i1) || !is.null(i2)
 	vars <- all.vars(expr)
-	if ( is.na(recursive) ) {
-		if ( !is.null(i1) || !is.null(i2) ) {
-			recursive <- TRUE
-		} else {
-			recursive <- FALSE
-		}
-	}
 	data <- lapply(vars,
 		function(nm) {
 			v <- data[[nm]]
