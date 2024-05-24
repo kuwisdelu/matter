@@ -3,6 +3,91 @@ require(matter)
 
 context("vizi")
 
+test_that("vizi - parse", {
+
+	set.seed(1, kind="default")
+	x1 <- runif(10)
+	x2 <- runif(10)
+	x3 <- runif(10)
+	y1 <- rnorm(10)
+	y2 <- rnorm(10)
+	g1 <- sample(c("a", "b"), 10, replace=TRUE)
+	g2 <- sample(c("c", "d"), 10, replace=TRUE)
+	data <- data.frame(
+		x1=x1, x2=x2, x3=x3,
+		y1=y1, y2=y2,
+		g1=g1, g2=g2)
+
+	p1 <- parse_formula(y ~ x)
+
+	expect_length(p1$lhs, 1L)
+	expect_length(p1$rhs, 1L)
+	expect_length(p1$g, 0L)
+	
+	expect_equal(p1$lhs[[1L]], quote(y))
+	expect_equal(p1$rhs[[1L]], quote(x))
+
+	p2 <- parse_formula(y ~ x1 * x2)
+
+	expect_length(p2$lhs, 1L)
+	expect_length(p2$rhs, 2L)
+	expect_length(p2$g, 0L)
+
+	expect_equal(p2$lhs[[1L]], quote(y))
+	expect_equal(p2$rhs[[1L]], quote(x1))
+	expect_equal(p2$rhs[[2L]], quote(x2))
+
+	p3 <- parse_formula(y1 + y2 ~ x1 * x2)
+
+	expect_length(p3$lhs, 2L)
+	expect_length(p3$rhs, 2L)
+	expect_length(p3$g, 0L)
+
+	expect_equal(p3$lhs[[1L]], quote(y1))
+	expect_equal(p3$lhs[[2L]], quote(y2))
+	expect_equal(p3$rhs[[1L]], quote(x1))
+	expect_equal(p3$rhs[[2L]], quote(x2))
+
+	p4 <- parse_formula(y ~ x1 * x2 | g)
+
+	expect_length(p4$lhs, 1L)
+	expect_length(p4$rhs, 2L)
+	expect_length(p4$g, 1L)
+
+	expect_equal(p4$lhs[[1L]], quote(y))
+	expect_equal(p4$rhs[[1L]], quote(x1))
+	expect_equal(p4$rhs[[2L]], quote(x2))
+	expect_equal(p4$g[[1L]], quote(g))
+
+	p5 <- parse_formula(y1 + y2 ~ x1 * x2 | g1 * g2)
+
+	expect_length(p5$lhs, 2L)
+	expect_length(p5$rhs, 2L)
+	expect_length(p5$g, 2L)
+
+	expect_equal(p5$lhs[[1L]], quote(y1))
+	expect_equal(p5$lhs[[2L]], quote(y2))
+	expect_equal(p5$rhs[[1L]], quote(x1))
+	expect_equal(p5$rhs[[2L]], quote(x2))
+	expect_equal(p5$g[[1L]], quote(g1))
+	expect_equal(p5$g[[2L]], quote(g2))
+
+	p6 <- parse_formula(y1 + y2 ~ x1 * x2, envir=data)
+
+	expect_equal(p6$lhs[[1L]], y1)
+	expect_equal(p6$lhs[[2L]], y2)
+	expect_equal(p6$rhs[[1L]], x1)
+	expect_equal(p6$rhs[[2L]], x2)
+
+	p7 <- parse_formula(y1 ~ x1 | g1 * g2, envir=data)
+
+	expect_equal(p7$lhs[[1L]], y1)
+	expect_equal(p7$rhs[[1L]], x1)
+	expect_equal(p7$g[[1L]], g1)
+	expect_equal(p7$g[[2L]], g2)
+
+})
+
 test_that("vizi - eval", {
 
 	set.seed(1, kind="default")
