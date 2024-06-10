@@ -352,12 +352,12 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 		verbose <- getOption("matter.default.verbose")
 	if ( is.na(nchunks) )
 		nchunks <- getOption("matter.default.nchunks")
-	if ( is.matrix(vals) ) {
-		n <- if (byrow) nrow(vals) else ncol(vals)
-	} else if ( is.list(vals) ) {
+	if ( is.list(vals) ) {
 		n <- length(vals)
+	} else if ( length(dim(vals)) == 2L ) {
+		n <- if (byrow) nrow(vals) else ncol(vals)
 	} else {
-		stop("'vals' must be a list or matrix")
+		stop("'vals' must be a list or matrix-like")
 	}
 	if ( verbose )
 		message("fitting spatial segmentations for ", n, " images")
@@ -371,12 +371,12 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	}
 	margin <- if (byrow) 1L else 2L
 	seeds <- RNGStreams(nchunks)
-	if ( is.matrix(vals) ) {
-		ans <- chunkApply(vals, margin, fn, ..., seeds=seeds,
+	if ( is.list(vals) ) {
+		ans <- chunkLapply(vals, fn, ..., seeds=seeds,
 			nchunks=nchunks, verbose=verbose,
 			BPPARAM=BPPARAM)
 	} else {
-		ans <- chunkLapply(vals, fn, ..., seeds=seeds,
+		ans <- chunkApply(vals, margin, fn, ..., seeds=seeds,
 			nchunks=nchunks, verbose=verbose,
 			BPPARAM=BPPARAM)
 	}
