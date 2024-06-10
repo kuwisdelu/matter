@@ -43,6 +43,13 @@ BUG FIXES
     o Fix subplot axis scaling and aspect ratio for 'plotly' graphics
     o Fix passing colors to line charts for 'plotly' graphics
 
+CHANGES IN VERSION 2.6.2 [2024-6-10]
+------------------------------------
+
+BUG FIXES
+
+    o Fix 'sgmixn()' on 'matter_mat' and 'sparse_mat' input
+
 CHANGES IN VERSION 2.6.1 [2024-5-7]
 ------------------------------------
 
