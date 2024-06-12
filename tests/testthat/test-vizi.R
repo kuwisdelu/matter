@@ -281,6 +281,7 @@ test_that("vizi - mark - xy", {
 
 	expect_no_error(plot(v4))
 
+	set.seed(1, kind="default")
 	z <- rnorm(n)
 
 	v5 <- vizi(x=x, y=y, z=z, color=g, shape=g)
@@ -306,6 +307,27 @@ test_that("vizi - mark - text", {
 
 	v2 <- vizi(x=x, y=y, text=g, color=g)
 	v2 <- add_mark(v2, "text")
+
+	expect_no_error(plot(v2))
+
+})
+
+test_that("vizi - mark - intervals", {
+
+	set.seed(1, kind="default")
+	n <- 6
+	x <- letters[seq_len(n)]
+	y1 <- runif(n)
+	y2 <- runif(n) + 1
+	g <- rep(c("foo", "bar"), each=n %/% 2)
+
+	v1 <- vizi(x=x, ymin=y1, ymax=y2)
+	v1 <- add_mark(v1, "intervals")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, ymin=y1, ymax=y2, color=g)
+	v2 <- add_mark(v2, "intervals")
 
 	expect_no_error(plot(v2))
 
@@ -370,26 +392,31 @@ test_that("vizi - mark - bars", {
 
 	expect_no_error(plot(v4))
 
-})
+	set.seed(1, kind="default")
+	n2 <- 100
+	x2 <- sample(x, n2, replace=TRUE)
+	g <- rep(c("foo", "bar"), each=n2 %/% 2)
 
-test_that("vizi - mark - intervals", {
+	v5 <- vizi(x=x2, y=1)
+	v5 <- add_mark(v5, "bars", params=list(width=0.8))
+	v5 <- set_coord(v5, ylim=c(0, length(x2)))
+
+	expect_no_error(plot(v5))
+
+	v6 <- vizi(x=x2, y=1, fill=g)
+	v6 <- add_mark(v6, "bars", params=list(width=0.8))
+	v6 <- set_coord(v6, ylim=c(0, length(x2)))
+
+	expect_no_error(plot(v6))
 
 	set.seed(1, kind="default")
-	n <- 6
-	x <- letters[seq_len(n)]
-	y1 <- runif(n)
-	y2 <- runif(n) + 1
-	g <- rep(c("foo", "bar"), each=n %/% 2)
+	x3 <- rnorm(500)
 
-	v1 <- vizi(x=x, ymin=y1, ymax=y2)
-	v1 <- add_mark(v1, "intervals")
+	v7 <- vizi(x=cut(x3, breaks=20), y=1 / length(x3))
+	v7 <- add_mark(v7, "bars")
+	v7 <- set_coord(v7, ylim=c(0, 1))
 
-	expect_no_error(plot(v1))
-
-	v2 <- vizi(x=x, ymin=y1, ymax=y2, color=g)
-	v2 <- add_mark(v2, "intervals")
-
-	expect_no_error(plot(v2))
+	expect_no_error(plot(v7))
 
 })
 

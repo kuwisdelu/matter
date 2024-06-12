@@ -46,6 +46,7 @@ importFrom("graphics",
 	"title")
 
 importFrom("stats",
+	"aggregate",
 	"approx",
 	"coef",
 	"cor",
@@ -547,9 +548,9 @@ S3method("plot", "vizi_points")
 S3method("plot", "vizi_lines")
 S3method("plot", "vizi_peaks")
 S3method("plot", "vizi_text")
+S3method("plot", "vizi_intervals")
 S3method("plot", "vizi_rules")
 S3method("plot", "vizi_bars")
-S3method("plot", "vizi_intervals")
 S3method("plot", "vizi_boxplot")
 S3method("plot", "vizi_image")
 S3method("plot", "vizi_pixels")

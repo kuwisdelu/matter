@@ -4,9 +4,9 @@
 \alias{vizi_lines}
 \alias{vizi_peaks}
 \alias{vizi_text}
+\alias{vizi_intervals}
 \alias{vizi_rules}
 \alias{vizi_bars}
-\alias{vizi_intervals}
 \alias{vizi_boxplot}
 \alias{vizi_image}
 \alias{vizi_pixels}
@@ -16,9 +16,9 @@
 \alias{plot.vizi_lines}
 \alias{plot.vizi_peaks}
 \alias{plot.vizi_text}
+\alias{plot.vizi_intervals}
 \alias{plot.vizi_rules}
 \alias{plot.vizi_bars}
-\alias{plot.vizi_intervals}
 \alias{plot.vizi_boxplot}
 \alias{plot.vizi_image}
 \alias{plot.vizi_pixels}
@@ -28,9 +28,9 @@
 \alias{plot,vizi_lines,ANY-method}
 \alias{plot,vizi_peaks,ANY-method}
 \alias{plot,vizi_text,ANY-method}
+\alias{plot,vizi_intervals,ANY-method}
 \alias{plot,vizi_rules,ANY-method}
 \alias{plot,vizi_bars,ANY-method}
-\alias{plot,vizi_intervals,ANY-method}
 \alias{plot,vizi_boxplot,ANY-method}
 \alias{plot,vizi_image,ANY-method}
 \alias{plot,vizi_pixels,ANY-method}
@@ -58,13 +58,13 @@
 \S3method{plot}{vizi_text}(x, plot = NULL, \dots,
     adj = NULL, pos = NULL, offset = 0.5)
 
+\S3method{plot}{vizi_intervals}(x, plot = NULL, \dots,
+    length = 0.25, angle = 90)
+
 \S3method{plot}{vizi_rules}(x, plot = NULL, \dots)
 
 \S3method{plot}{vizi_bars}(x, plot = NULL, \dots,
     width = 1, stack = FALSE)
-
-\S3method{plot}{vizi_intervals}(x, plot = NULL, \dots,
-    length = 0.25, angle = 90)
 
 \S3method{plot}{vizi_boxplot}(x, plot = NULL, \dots,
     range = 1.5, notch = FALSE, width = 0.8)
