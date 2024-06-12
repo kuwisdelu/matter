@@ -1139,6 +1139,8 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 		ymax <- max(plot$channels[["y"]]$limits)
 	# encode images
 	image <- encoding[["image"]]
+	if ( !is.list(image) )
+		stop("'image' must be a list of images")
 	# get parameters
 	if ( !is.null(mark$params$alpha) )
 		alpha <- mark$params$alpha

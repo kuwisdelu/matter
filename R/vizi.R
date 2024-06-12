@@ -1126,10 +1126,7 @@ encode_var <- function(name, encoding = NULL,
 		}
 		# subscripts
 		if ( !is.null(subscripts) )
-		{
-			e <- rep_len(e, length(subscripts))
 			e <- e[subscripts]
-		}
 	}
 	e
 }

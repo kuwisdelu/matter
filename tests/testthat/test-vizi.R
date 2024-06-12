@@ -251,3 +251,241 @@ test_that("vizi - facets", {
 	expect_equal(v2$channels, v4$channels)
 
 })
+
+test_that("vizi - mark - xy", {
+
+	set.seed(1, kind="default")
+	n <- 500
+	g <- factor(sample(c("a", "b"), n, replace=TRUE))
+	x <- rnorm(n)
+	y <- runif(2)[as.integer(g)] * x + rnorm(n, sd=sqrt(0.1))
+
+	v1 <- vizi(x=x, y=y)
+	v1 <- add_mark(v1, "points")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, y=y, color=g, shape=g)
+	v2 <- add_mark(v2, "points")
+
+	expect_no_error(plot(v2))
+
+	v3 <- vizi(x=x, y=y, color=g, linetype=g)
+	v3 <- add_mark(v3, "lines",
+		trans=list(sort=TRUE, n=100, downsampler="lttb"))
+
+	expect_no_error(plot(v3))
+
+	v4 <- vizi(x=x, y=y, color=g)
+	v4 <- add_mark(v4, "peaks")
+
+	expect_no_error(plot(v4))
+
+	z <- rnorm(n)
+
+	v5 <- vizi(x=x, y=y, z=z, color=g, shape=g)
+	v5 <- add_mark(v5, "points")
+	v5 <- set_par(v5, theta=30, phi=30)
+
+	expect_no_error(plot(v5))
+
+})
+
+test_that("vizi - mark - text", {
+
+	set.seed(1, kind="default")
+	n <- 100
+	g <- factor(sample(c("a", "b"), n, replace=TRUE))
+	x <- rnorm(n)
+	y <- runif(2)[as.integer(g)] * x + rnorm(n, sd=sqrt(0.1))
+
+	v1 <- vizi(x=x, y=y, text=g)
+	v1 <- add_mark(v1, "text")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, y=y, text=g, color=g)
+	v2 <- add_mark(v2, "text")
+
+	expect_no_error(plot(v2))
+
+})
+
+test_that("vizi - mark - rules", {
+
+	set.seed(1, kind="default")
+	n <- 100
+	x <- rnorm(n)
+	y <- runif(1) * x + rnorm(n, sd=sqrt(0.1))
+
+	v1 <- vizi(x=x, y=y)
+	v1 <- add_mark(v1, "points")
+	v1 <- add_mark(v1, "rules", x=numeric(0), y=0)
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, y=y)
+	v2 <- add_mark(v2, "points")
+	v2 <- add_mark(v2, "rules", x=0, y=numeric(0))
+
+	expect_no_error(plot(v2))
+
+	v3 <- vizi(x=x, y=y)
+	v3 <- add_mark(v3, "points")
+	v3 <- add_mark(v3, "rules", x=0, y=0)
+
+	expect_no_error(plot(v3))
+
+})
+
+test_that("vizi - mark - bars", {
+
+	set.seed(1, kind="default")
+	n <- 5
+	x <- letters[seq_len(n)]
+	y <- runif(n)
+
+	v1 <- vizi(x=x, y=y)
+	v1 <- add_mark(v1, "bars")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, y=y, fill=x)
+	v2 <- add_mark(v2, "bars", params=list(width=0.8))
+
+	expect_no_error(plot(v2))
+
+	x2 <- rep.int(x, 2)
+	y2 <- c(y, runif(n))
+	g <- rep(c("foo", "bar"), each=n)
+
+	v3 <- vizi(x=x2, y=y2, fill=g)
+	v3 <- add_mark(v3, "bars", params=list(width=0.8))
+
+	expect_no_error(plot(v3))
+
+	v4 <- vizi(x=x2, y=y2, fill=g)
+	v4 <- add_mark(v4, "bars", params=list(width=0.8, stack=TRUE))
+	v4 <- set_coord(v4, ylim=c(0, 2))
+
+	expect_no_error(plot(v4))
+
+})
+
+test_that("vizi - mark - intervals", {
+
+	set.seed(1, kind="default")
+	n <- 6
+	x <- letters[seq_len(n)]
+	y1 <- runif(n)
+	y2 <- runif(n) + 1
+	g <- rep(c("foo", "bar"), each=n %/% 2)
+
+	v1 <- vizi(x=x, ymin=y1, ymax=y2)
+	v1 <- add_mark(v1, "intervals")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, ymin=y1, ymax=y2, color=g)
+	v2 <- add_mark(v2, "intervals")
+
+	expect_no_error(plot(v2))
+
+})
+
+test_that("vizi - mark - boxplot", {
+
+	set.seed(1, kind="default")
+	n <- 500
+	x <- factor(sample(letters[1:6], n, replace=TRUE))
+	y <- rnorm(n)
+	g <- rep(c("foo", "bar"), each=n %/% 2)
+
+	v1 <- vizi(x=x, y=y)
+	v1 <- add_mark(v1, "boxplot")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, y=y, fill=g)
+	v2 <- add_mark(v2, "boxplot")
+
+	expect_no_error(plot(v2))
+
+})
+
+test_that("vizi - mark - image", {
+
+	set.seed(1, kind="default")
+	nr <- 32
+	nc <- 32
+	img <- matrix(rlnorm(nr * nc), nrow=nr, ncol=nc)
+	i <- (nr %/% 3):(2 * nr %/% 3)
+	j <- (nc %/% 3):(2 * nc %/% 3)
+	img[i,j] <- img[i,j] + max(img)
+	img <- rescale_range(img, c(0, 1))
+
+	v1 <- vizi(xmin=0, xmax=1, ymin=0, ymax=1, image=list(img))
+	v1 <- add_mark(v1, "image")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(xmin=0, xmax=1, ymin=0, ymax=1, image=img)
+	v2 <- add_mark(v2, "image")
+
+	expect_error(plot(v2))
+
+})
+
+test_that("vizi - mark - pixels/voxels", {
+
+	set.seed(1, kind="default")
+	nr <- 32
+	nc <- 32
+	x <- seq(-4, 4, length.out=nr)
+	y <- seq(1, 3, length.out=nc)
+	co <- expand.grid(x=x, y=y)
+	x <- co$x
+	y <- co$y
+	vals <- matrix(atan(x / y), nrow=nr, ncol=nc)
+	vals <- 10 * (vals - min(vals)) / diff(range(vals))
+	vals <- vals + 2.5 * runif(length(vals))
+
+	v1 <- vizi(x=x, y=y, color=vals)
+	v1 <- add_mark(v1, "pixels")
+
+	expect_no_error(plot(v1))
+
+	v2 <- vizi(x=x, y=y, color=vals)
+	v2 <- add_mark(v2, "pixels", trans=list(smooth="gaussian"))
+
+	expect_no_error(plot(v2))
+
+	v3 <- vizi(x=x, y=y, color=vals)
+	v3 <- add_mark(v3, "pixels", trans=list(enhance="histeq"))
+
+	expect_no_error(plot(v3))
+
+	v4 <- vizi(x=x, y=y, color=vals)
+	v4 <- add_mark(v4, "pixels", trans=list(scale=TRUE))
+
+	expect_no_error(plot(v4))
+
+	v5 <- vizi(x=x, y=y, color=vals)
+	v5 <- add_mark(v5, z=0, "pixels")
+	v5 <- add_mark(v5, z=1, "pixels")
+	v5 <- add_mark(v5, z=2, "pixels")
+
+	expect_no_error(plot(v5))
+
+	x2 <- rep.int(x, 5)
+	y2 <- rep.int(y, 5)
+	z2 <- rep(1:5, each=nr * nc)
+	vals2 <- c(vals, 2 * vals, 3 * vals, 4 * vals, 5 * vals)
+
+	v6 <- vizi(x=x2, y=y2, z=z2, color=vals2)
+	v6 <- add_mark(v6, "voxels")
+
+	expect_no_error(plot(v6))
+
+})
+
