@@ -367,9 +367,6 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	if ( verbose )
 		message("fitting spatial segmentations for ", n, " images")
 	margin <- if (byrow) 1L else 2L
-	if ( is.matrix(vals) ) {
-		ans <- chunkApply(vals, margin, sgmix_int,
-			x=x, y=y, r=r, k=k, ...,
 	if ( is.list(vals) ) {
 		ans <- chunkLapply(vals, sgmix_int,
 			x=x, y=y, r=r, k=k, ...,
