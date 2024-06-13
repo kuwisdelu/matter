@@ -1174,8 +1174,6 @@ eval_at <- function(expr, data, i = NULL, j = NULL,
 	vars <- all.vars(expr)
 	data <- lapply(vars,
 		function(nm) {
-			if ( isTRUE(globalenv()$debug) )
-				browser()
 			x <- data[[nm]]
 			if ( !is.null(i) && !is.null(j) ) {
 				if ( is.null(dim(x)) ) {
@@ -1198,7 +1196,7 @@ eval_at <- function(expr, data, i = NULL, j = NULL,
 			}
 			if ( !is.null(split_along) )
 				x <- apply(x, split_along, identity, simplify=FALSE)
-			if ( !is.null(group) && anyDuplicated(group) ) {
+			if ( !is.null(group) ) {
 				FUN <- match.fun(reduce)
 				group <- factor(group, levels=unique(group))
 				x <- lapply(levels(group),

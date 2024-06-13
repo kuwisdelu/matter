@@ -263,7 +263,11 @@ plot_image <- function(x, y, z, vals, by, group = NULL, byrow = FALSE,
 		}
 	} else {
 		mark <- "pixels"
-		alpha <- rep_len(list(), length(vals))
+		if ( is.null(group) ) {
+			alpha <- rep_len(list(), length(vals))
+		} else {
+			alpha <- vals
+		}
 		trans <- list(
 			enhance=enhance,
 			smooth=smooth,
