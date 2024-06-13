@@ -1198,7 +1198,7 @@ eval_at <- function(expr, data, i = NULL, j = NULL,
 			}
 			if ( !is.null(split_along) )
 				x <- apply(x, split_along, identity, simplify=FALSE)
-			if ( !is.null(group) ) {
+			if ( !is.null(group) && anyDuplicated(group) ) {
 				FUN <- match.fun(reduce)
 				group <- factor(group, levels=unique(group))
 				x <- lapply(levels(group),
