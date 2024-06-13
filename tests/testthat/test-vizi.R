@@ -517,3 +517,106 @@ test_that("vizi - mark - pixels/voxels", {
 
 })
 
+test_that("plot_signal", {
+
+	set.seed(1, kind="default")
+	y <- simspec(1)
+	y2 <- simspec(1)
+	y3 <- simspec(1)
+	y4 <- simspec(1)
+	x <- attr(y, "domain")
+	x2 <- attr(y2, "domain")
+	x3 <- attr(y3, "domain")
+	x4 <- attr(y4, "domain")
+
+	p1 <- plot_signal(x, y)
+
+	expect_is(p1, "vizi_plot")
+	expect_is(p1$marks[[1L]], "vizi_lines")
+	expect_setequal(names(p1$channels), c("x", "y"))
+	expect_equal(p1$marks[[1L]]$encoding$x, x)
+	expect_equal(p1$marks[[1L]]$encoding$y, y)
+	expect_no_error(plot(p1))
+
+	p2 <- plot_signal(list(x, x2), list(y, y2))
+
+	expect_is(p2, "vizi_facets")
+	expect_is(p2$plots[[1L]]$marks[[1L]], "vizi_lines")
+	expect_is(p2$plots[[2L]]$marks[[1L]], "vizi_lines")
+	expect_setequal(names(p2$channels), c("x", "y"))
+	expect_equal(p2$plots[[1L]]$marks[[1L]]$encoding$x, x)
+	expect_equal(p2$plots[[1L]]$marks[[1L]]$encoding$y, y)
+	expect_equal(p2$plots[[2L]]$marks[[1L]]$encoding$x, x2)
+	expect_equal(p2$plots[[2L]]$marks[[1L]]$encoding$y, y2)
+	expect_no_error(plot(p2))
+
+	p3 <- plot_signal(list(x, x2, x3, x4), list(y, y2, y3, y4),
+		by=c("a", "a", "b", "b"), group=c("1", "2", "1", "2"))
+
+	expect_is(p3, "vizi_facets")
+	expect_length(p3$plots, 2L)
+	expect_setequal(names(p3$channels), c("x", "y", "color"))
+	expect_equivalent(p3$plots[[1L]]$marks[[1L]]$encoding$y, y)
+	expect_equivalent(p3$plots[[1L]]$marks[[2L]]$encoding$y, y2)
+	expect_equivalent(p3$plots[[2L]]$marks[[1L]]$encoding$y, y3)
+	expect_equivalent(p3$plots[[2L]]$marks[[2L]]$encoding$y, y4)
+	expect_no_error(plot(p3))
+
+})
+
+test_that("plot_image", {
+
+	set.seed(1, kind="default")
+	nr <- 32
+	nc <- 32
+	i <- seq(-4, 4, length.out=nr)
+	j <- seq(1, 3, length.out=nc)
+	co <- expand.grid(i=i, j=j)
+	vals <- matrix(atan(co$i / co$j), nrow=nr, ncol=nc)
+	vals <- 10 * (vals - min(vals)) / diff(range(vals))
+	vals <- as.vector(vals + 2.5 * runif(length(vals)))
+	x <- as.integer(factor(co$i))
+	y <- as.integer(factor(co$j))
+
+	p1 <- plot_image(x, y, vals)
+
+	expect_is(p1, "vizi_plot")
+	expect_is(p1$marks[[1L]], "vizi_pixels")
+	expect_setequal(names(p1$channels), c("x", "y", "color"))
+	expect_equal(p1$marks[[1L]]$encoding$x, x)
+	expect_equal(p1$marks[[1L]]$encoding$y, y)
+	expect_equal(p1$marks[[1L]]$encoding$color, vals)
+	expect_no_error(plot(p1))
+
+	vals2 <- max(vals) - vals
+	vals3 <- log2(vals + 1)
+	vals4 <- log2(vals2 + 1)
+
+	p2 <- plot_image(x, y, list(a=vals, b=vals2))
+
+	expect_is(p2, "vizi_facets")
+	expect_is(p2$plots[[1L]]$marks[[1L]], "vizi_pixels")
+	expect_is(p2$plots[[2L]]$marks[[1L]], "vizi_pixels")
+	expect_setequal(names(p2$channels), c("x", "y", "color"))
+	expect_equal(p2$plots[[1L]]$marks[[1L]]$encoding$x, x)
+	expect_equal(p2$plots[[1L]]$marks[[1L]]$encoding$y, y)
+	expect_equal(p2$plots[[1L]]$marks[[1L]]$encoding$color, vals)
+	expect_equal(p2$plots[[2L]]$marks[[1L]]$encoding$x, x)
+	expect_equal(p2$plots[[2L]]$marks[[1L]]$encoding$y, y)
+	expect_equal(p2$plots[[2L]]$marks[[1L]]$encoding$color, vals2)
+	expect_no_error(plot(p2))
+
+	p3 <- plot_image(x, y, list(vals, vals2, vals3, vals4),
+		by=c("a", "a", "b", "b"), group=c("1", "2", "1", "2"))
+
+	expect_is(p3, "vizi_facets")
+	expect_length(p3$plots, 2L)
+	expect_setequal(names(p3$channels), c("x", "y", "color", "alpha"))
+	expect_equal(p3$plots[[1L]]$marks[[1L]]$encoding$alpha, vals)
+	expect_equal(p3$plots[[1L]]$marks[[2L]]$encoding$alpha, vals2)
+	expect_equal(p3$plots[[2L]]$marks[[1L]]$encoding$alpha, vals3)
+	expect_equal(p3$plots[[2L]]$marks[[2L]]$encoding$alpha, vals4)
+	expect_no_error(plot(p3))
+
+})
+
