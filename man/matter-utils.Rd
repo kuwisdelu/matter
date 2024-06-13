@@ -58,7 +58,7 @@
 
 \alias{parse_formula}
 \alias{eval_exprs}
-\alias{eval_expr}
+\alias{eval_at}
 
 \alias{panel_grid}
 \alias{panel_dim}

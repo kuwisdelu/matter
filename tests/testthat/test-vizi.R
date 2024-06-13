@@ -101,19 +101,19 @@ test_that("vizi - eval", {
 	xmv <- matrix(sort(rnorm(100)), nrow=10, ncol=10)
 	xm <- list(u=xmu, v=xmv)
 
-	expect_equal(eval_expr(quote(a), data=xl), xla)
-	expect_equal(eval_expr(quote(b), data=xl), xlb)
-	expect_equal(eval_expr(quote(u), data=xm), xmu)
-	expect_equal(eval_expr(quote(v), data=xm), xmv)
+	expect_equal(eval_at(quote(a), data=xl), xla)
+	expect_equal(eval_at(quote(b), data=xl), xlb)
+	expect_equal(eval_at(quote(u), data=xm), xmu)
+	expect_equal(eval_at(quote(v), data=xm), xmv)
 
-	e1 <- eval_expr(quote(a), data=xl, i1=1:2)
-	e2 <- eval_expr(quote(a), data=xl, i1=1:2, i2=1:5)
+	e1 <- eval_at(quote(a), data=xl, i=1:2)
+	e2 <- eval_at(quote(a), data=xl, i=1:2, j=1:5)
 
 	expect_equal(e1, xla[1:2])
 	expect_equal(e2, list(a1=xla[[1L]][1:5], a2=xla[[2L]][1:5]))
 
-	e3 <- eval_expr(quote(a + b), data=xl, i1=1:2)
-	e4 <- eval_expr(quote(a + b), data=xl, i1=1:2, i2=1:5)
+	e3 <- eval_at(quote(a + b), data=xl, i=1:2, recursive=TRUE)
+	e4 <- eval_at(quote(a + b), data=xl, i=1:2, j=1:5, recursive=TRUE)
 
 	expect_equal(e3[[1L]], xla[[1L]] + xlb[[1L]])
 	expect_equal(e3[[2L]], xla[[2L]] + xlb[[2L]])
@@ -121,26 +121,27 @@ test_that("vizi - eval", {
 	expect_equal(e4[[2L]], (xla[[2L]] + xlb[[2L]])[1:5])
 
 	ii <- c("1"=1, "1"=2, "2"=3, "2"=4)
-	e5 <- eval_expr(quote(a), data=xl, i1=ii)
+	gg <- names(ii)
+	e5 <- eval_at(quote(a), data=xl, i=ii, group=gg)
 	
 	expect_equal(e5[[1L]], xla[[1L]] + xla[[2L]])
 	expect_equal(e5[[2L]], xla[[3L]] + xla[[4L]])
 
-	gg <- names(ii)
-	e6 <- eval_expr(quote(u), data=xm, i1=1:3, margin=1L)
-	e7 <- eval_expr(quote(u), data=xm, i1=1:3, margin=2L)
-	e8 <- eval_expr(quote(u), data=xm, i1=ii, margin=1L)
+	e6 <- eval_at(quote(u), data=xm, i=1:3, split_along=1L)
+	e7 <- eval_at(quote(u), data=xm, j=1:3, split_along=2L)
+	e8 <- eval_at(quote(u), data=xm, i=ii, split_along=1L, group=gg)
 
 	expect_equal(do.call(rbind, e6), xmu[1:3,,drop=FALSE])
 	expect_equal(do.call(cbind, e7), xmu[,1:3,drop=FALSE])
 	expect_equal(do.call(rbind, e8), rowsum(xmu[1:4,,drop=FALSE], group=gg))
 
-	e9 <- eval_expr(quote(u + v), data=xm, i1=1:2, margin=2L)
+	e9 <- eval_at(quote(u + v), data=xm, j=1:2, split_along=2L)
 
 	expect_equal(e9[[1L]], xmu[,1L,drop=TRUE] + xmv[,1L,drop=TRUE])
 	expect_equal(e9[[2L]], xmu[,2L,drop=TRUE] + xmv[,2L,drop=TRUE])
 
-	es <- eval_exprs(list(foo=quote(a), bar=quote(a + b)), data=xl, i1=1:2)
+	es <- eval_exprs(list(foo=quote(a), bar=quote(a + b)),
+		data=xl, i=1:2, recursive=TRUE)
 
 	expect_equal(es[[1L]], e1)
 	expect_equal(es[[2L]], e3)

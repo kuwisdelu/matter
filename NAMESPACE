@@ -572,7 +572,7 @@ export(
 
 export(
 	"parse_formula",
-	"eval_expr",
+	"eval_at",
 	"eval_exprs")
 
 useDynLib("matter", .registration=TRUE, .fixes="C_")

@@ -1151,59 +1151,62 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 	side
 }
 
-eval_exprs <- function(exprs, data, i1 = NULL, i2 = NULL,
-	recursive = NA, margin = 0L, reduce = "+")
+eval_exprs <- function(exprs, data, i = NULL, j = NULL,
+	split_along = NULL, group = NULL, reduce = "+",
+	recursive = !is.null(split_along))
 {
-	if ( is.na(recursive) )
-		recursive <- !is.null(i1) || !is.null(i2)
 	ans <- vector("list", length=length(exprs))
-	for ( i in seq_along(exprs) )
+	for ( k in seq_along(exprs) )
 	{
-		ans[[i]] <- eval_expr(exprs[[i]], data=data, i1=i1, i2=i2,
-			recursive=recursive, margin=margin, reduce=reduce)
+		ans[[k]] <- eval_at(exprs[[k]], data=data, i=i, j=j,
+			split_along=split_along, group=group, reduce=reduce,
+			recursive=recursive)
 	}
-	attr(ans, "recursive") <- recursive
+	attr(ans, "recursive") <- TRUE
 	names(ans) <- names(exprs)
 	ans
 }
 
-eval_expr <- function(expr, data, i1 = NULL, i2 = NULL,
-	recursive = NA, margin = 0L, reduce = "+")
+eval_at <- function(expr, data, i = NULL, j = NULL,
+	split_along = NULL, group = NULL, reduce = "+",
+	recursive = !is.null(split_along))
 {
-	if ( is.na(recursive) )
-		recursive <- !is.null(i1) || !is.null(i2)
 	vars <- all.vars(expr)
 	data <- lapply(vars,
 		function(nm) {
-			v <- data[[nm]]
-			if ( !is.null(i1) ) {
-				v <- switch(margin + 1L,
-					v[i1],
-					v[i1,,drop=FALSE],
-					v[,i1,drop=FALSE])
-			}
-			if ( recursive ) {
-				v <- switch(margin + 1L,
-					as.vector(v),
-					apply(v, 1L, identity, simplify=FALSE),
-					apply(v, 2L, identity, simplify=FALSE))
-			}
-			if ( !is.null(names(i1)) ) {
-				if ( anyDuplicated(names(i1)) ) {
-					FUN <- match.fun(reduce)
-					group <- factor(names(i1), levels=unique(names(i1)))
-					v <- lapply(levels(group),
-						function(g) Reduce(FUN, v[group %in% g]))
-					if ( !recursive )
-						v <- unlist(v)
-					names(v) <- levels(group)
+			if ( isTRUE(globalenv()$debug) )
+				browser()
+			x <- data[[nm]]
+			if ( !is.null(i) && !is.null(j) ) {
+				if ( is.null(dim(x)) ) {
+					x <- subset_list(x[i], j)
 				} else {
-					names(v) <- names(i1)
+					x <- x[i,j,drop=FALSE]
+				}
+			} else if ( !is.null(i) ) {
+				if ( is.null(dim(x)) ) {
+					x <- x[i]
+				} else {
+					x <- x[i,,drop=FALSE]
+				}
+			} else if ( !is.null(j) ) {
+				if ( is.null(dim(x)) ) {
+					x <- subset_list(x, j)
+				} else {
+					x <- x[,j,drop=FALSE]
 				}
 			}
-			v
+			if ( !is.null(split_along) )
+				x <- apply(x, split_along, identity, simplify=FALSE)
+			if ( !is.null(group) ) {
+				FUN <- match.fun(reduce)
+				group <- factor(group, levels=unique(group))
+				x <- lapply(levels(group),
+					function(g) Reduce(FUN, x[group %in% g]))
+				names(x) <- levels(group)
+			}
+			x
 		})
-	names(data) <- vars
 	if ( recursive ) {
 		EVAL <- function(...)
 		{
@@ -1211,17 +1214,10 @@ eval_expr <- function(expr, data, i1 = NULL, i2 = NULL,
 			names(datalist) <- vars
 			eval(expr, envir=datalist)
 		}
-		x <- do.call(Map, c(list(EVAL), data))
+		do.call(Map, c(list(EVAL), data))
 	} else {
-		x <- eval(expr, envir=data)
+		names(data) <- vars
+		eval(expr, envir=data)
 	}
-	if ( !is.null(i2) ) {
-		if ( recursive ) {
-			x <- subset_list(x, i2)
-		} else {
-			x <- x[i2]
-		}
-	}
-	x
 }
 
