@@ -18,6 +18,7 @@ BUG FIXES
     o Fix 'chunkMapply()' named list errors
     o Fix 'is_gridded()' so infinite 'estres()' result gives FALSE
     o Give more useful error messages for 'dpal()' and 'cpal()'
+    o Fix alpha channel in 'plot_image()'
 
 CHANGES IN VERSION 2.7.1 [2024-5-17]
 ------------------------------------
