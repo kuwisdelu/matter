@@ -1195,14 +1195,14 @@ void smooth_snip(T * x, size_t n, T * buffer, int m, bool decreasing = true)
 template<typename T>
 size_t local_maxima(T * x, size_t n, int * buffer, int width = 5)
 {
-	int nmax = 0, a = 0, b = n, r = abs(width / 2);
+	int nmax = 0, r = abs(width / 2), a, b;
 	for ( index_t i = 0; i < n; i++ )
 	{
 		buffer[i] = false;
 		if ( i < r || i > n - r )
 			continue;
-		a = (i - r) > 0 ? (i - r) : 0;
-		b = (i + r) < n - 1 ? (i + r) : n - 1;
+		a = norm_ind(i - r, n);
+		b = norm_ind(i + r, n);
 		for ( index_t j = a; j <= b; j++ )
 		{
 			buffer[i] = true;

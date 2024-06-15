@@ -706,6 +706,11 @@ void adapt_histeq(T * x, int nr, int nc, int width,
 	Free(v);
 }
 
+//// Peak detection
+//------------------
+
+// TODO
+
 //// Resampling with interpolation
 //---------------------------------
 
