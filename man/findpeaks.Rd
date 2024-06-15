@@ -42,7 +42,7 @@ locmin(x, width = 5)
 }
 
 \details{
-    For \code{locmax()} and \code{locmin()}, a local extremum is defined as an element greater (or less) than all of the elements within \code{width / 2} elements to the left of it, and greater (or less) than or equal to all of the elements within \code{width / 2} elements to the right of it.
+    For \code{locmax()} and \code{locmin()}, a local extremum is defined as an element greater (or less) than all of the elements within \code{width / 2} elements to the left of it, and greater (or less) than or equal to all of the elements within \code{width / 2} elements to the right of it. That is, ties are resolved such that only the leftmost sample is considered the local maxima.
 
     For \code{findpeaks()}, the peaks are simply the local maxima of the signal. The peak boundaries are found by descending a local maximum until a local minimum is found on either side, using the same criteria as above. The peaks are optionally filtered based on their prominences.
 

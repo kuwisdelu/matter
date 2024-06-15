@@ -157,6 +157,35 @@ test_that("contrast enhancement", {
 
 })
 
+test_that("locmax 2d", {
+
+	y <- c(
+		0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+		0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1,
+		0, 0, 0, 2, 0, 0, 1, 4, 2, 0, 1, 1, 0, 0, 1,
+		0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 3, 2, 1, 0, 1,
+		0, 0, 0, 0, 1, 3, 3, 0, 0, 1, 4, 4, 3, 0, 1,
+		0, 0, 0, 0, 0, 3, 2, 0, 1, 0, 3, 2, 3, 0, 1,
+		0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 2, 2, 3, 0, 1)
+	x <- matrix(y, nrow=7, ncol=15, byrow=TRUE)
+	rownames(x) <- seq_len(nrow(x))
+	colnames(x) <- seq_len(ncol(x))
+	m1 <- which(locmax2(x), arr.ind=TRUE)
+
+	expect_equal(nrow(m1), 2)
+	expect_equal(m1[,"row"], c(3, 5))
+	expect_equal(m1[,"col"], c(8, 11))
+
+	m2 <- which(locmax2(x, width=3), arr.ind=TRUE)
+
+	expect_equal(nrow(m2), 4)
+	expect_equal(m2[,"row"], c(3, 5, 3, 5))
+	expect_equal(m2[,"col"], c(4, 6, 8, 11))
+
+	t <- expand.grid(t1=1:nrow(x), t2=1:ncol(x))	
+
+})
+
 test_that("rasterization", {
 
 	set.seed(1, kind="default")

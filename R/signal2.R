@@ -271,6 +271,19 @@ enhance_fun <- function(method)
 	options[[match.arg(method, names(options))]]
 }
 
+#### Peak detection ####
+## ---------------------
+
+locmax2 <- function(x, width = 3L)
+{
+	.Call(C_localMaxima2, x, as.integer(width), PACKAGE="matter")
+}
+
+locmin2 <- function(x, width = 5L)
+{
+	.Call(C_localMaxima2, -x, as.integer(width), PACKAGE="matter")
+}
+
 #### Colocalization coefficients ####
 ## ----------------------------------
 

@@ -1362,6 +1362,26 @@ SEXP adaptHistEq(SEXP x, SEXP width, SEXP clip, SEXP nbins)
 	return result;
 }
 
+SEXP localMaxima2(SEXP x, SEXP width)
+{
+	SEXP ans;
+	PROTECT(ans = Rf_allocMatrix(LGLSXP, Rf_nrows(x), Rf_ncols(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			local_maxima2(INTEGER(x), Rf_nrows(x), Rf_ncols(x),
+				LOGICAL(ans), Rf_asInteger(width));
+			break;
+		case REALSXP:
+			local_maxima2(REAL(x), Rf_nrows(x), Rf_ncols(x),
+				LOGICAL(ans), Rf_asInteger(width));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp)
 {
