@@ -915,8 +915,8 @@ void bin_vector(T * x, int n, int * lower, int * upper,
 			// expand to adjacent bins
 			index_t a = lower[i];
 			index_t b = upper[i];
-			a = a - 1 < 0 ? 0 : a - 1;
-			b = b + 1 > n - 1 ? n - 1 : b + 1;
+			a = norm_ind(a - 1, n);
+			b = norm_ind(b + 1, n);
 			// initialize statistics
 			double ux = do_mean(x, lower[i], upper[i]);
 			double ut = (a + b) / 2;
@@ -1241,7 +1241,7 @@ index_t peak_lbound(T * x, index_t peak, size_t n)
 		else if ( x[i] > x[lbound] && is_left_of_peak )
 		{
 			index_t cand = lbound;
-			index_t lwindow = (cand - 2) > 0 ? (cand - 2) : 0;
+			index_t lwindow = norm_ind(cand - 2, n);
 			i--;
 			// check if candidate is local minimum
 			while ( i >= lwindow )
@@ -1279,7 +1279,7 @@ index_t peak_rbound(T * x, index_t peak, size_t n)
 		else if ( x[i] > x[rbound] && is_right_of_peak )
 		{
 			index_t cand = rbound;
-			index_t rwindow = (cand + 2) < n - 1 ? (cand + 2) : n - 1;
+			index_t rwindow = norm_ind(cand + 2, n);
 			i++;
 			// check if candidate is local minimum
 			while ( i <= rwindow )

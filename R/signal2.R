@@ -274,7 +274,7 @@ enhance_fun <- function(method)
 #### Peak detection ####
 ## ---------------------
 
-locmax2 <- function(x, width = 3L)
+locmax2 <- function(x, width = 5L)
 {
 	.Call(C_localMaxima2, x, as.integer(width), PACKAGE="matter")
 }
