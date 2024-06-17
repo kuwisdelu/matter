@@ -227,23 +227,28 @@ warp2_fun <- function(method)
 #### Contrast enhancement ####
 ## ---------------------------
 
-enhance_adj <- function(x, high = 0.01, low = 0.01)
+enhance_adj <- function(x, frac = 0.01)
 {
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	if ( is.matrix(x) ) {
-		min <- quantile(x, low)
-		max <- quantile(x, 1 - high)
+		frac <- rep_len(frac, 2L)
+		min <- quantile(x, frac[1L])
+		max <- quantile(x, 1 - frac[2L])
 		y <- replace(x, x < min, min)
 		y <- replace(y, y > max, max)
-		rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
+		y <- rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 	} else {
-		y <- apply(x, 3L, enhance_adj, high=high, low=low)
+		y <- apply(x, 3L, enhance_adj, frac=frac)
 		dim(y) <- dim(x)
-		y
 	}
+	y
 }
 
 enhance_hist <- function(x, nbins = 256L)
 {
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
 	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 }
@@ -251,6 +256,8 @@ enhance_hist <- function(x, nbins = 256L)
 enhance_adapt <- function(x, width = sqrt(nrow(x) * ncol(x)) %/% 5L,
 	clip = 0.1, nbins = 256L)
 {
+	if ( !is.matrix(x) && length(dim(x)) > 3L )
+		stop("x must be 2D matrix or 3D array")
 	y <- .Call(C_adaptHistEq, x, width, clip, nbins, PACKAGE="matter")
 	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 }
