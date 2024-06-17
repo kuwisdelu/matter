@@ -351,7 +351,7 @@ icor <- function(x, y)
 		x <- x[!is.na(x)]
 	if ( anyNA(y) )
 		y <- y[!is.na(x)]
-	.Call(C_iCorr, x, y, PACKAGE="matter")
+	.Call(C_iCor, x, y, PACKAGE="matter")
 }
 
 warp1_fun <- function(method)

@@ -748,7 +748,7 @@ SEXP guidedFilter(SEXP x, SEXP g, SEXP width,
 	return result;
 }
 
-SEXP iCorr(SEXP x, SEXP y)
+SEXP iCor(SEXP x, SEXP y)
 {
 	switch(TYPEOF(x)) {
 		case INTSXP:
