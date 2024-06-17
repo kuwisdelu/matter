@@ -395,8 +395,6 @@ export(
 	"enhance_adj",
 	"enhance_hist",
 	"enhance_adapt",
-	"locmax2",
-	"locmin2",
 	"coscore",
 	"is_gridded",
 	"to_raster",

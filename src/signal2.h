@@ -706,55 +706,6 @@ void adapt_histeq(T * x, int nr, int nc, int width,
 	Free(v);
 }
 
-//// Peak detection
-//------------------
-
-template<typename T>
-size_t local_maxima2(T * x, size_t nr, size_t nc,
-	int * buffer, int width = 5)
-{
-	int nmax = 0, r = abs(width / 2), ar, ac, br, bc;
-	for ( index_t i = 0; i < nr; i++ )
-	{
-		if ( i < r || i > nr - r )
-			continue;
-		ar = norm_ind(i - r, nr);
-		br = norm_ind(i + r, nr);
-		for ( index_t j = 0; j < nc; j++ )
-		{
-			buffer[j * nr + i] = false;
-			if ( j < r || j > nc - r )
-				continue;
-			ac = norm_ind(j - r, nc);
-			bc = norm_ind(j + r, nc);
-			for ( index_t ii = ar; ii <= br; ii++ )
-			{
-				buffer[j * nr + i] = true;
-				for ( index_t jj = ac; jj <= bc; jj++ )
-				{
-					if ( (ii < i || jj < j) &&
-						x[jj * nr + ii] >= x[j * nr + i] )
-					{
-						buffer[j * nr + i] = false;
-						break;
-					}
-					if ( (ii > i || jj > j) &&
-						x[jj * nr + ii] > x[j * nr + i] )
-					{
-						buffer[j * nr + i] = false;
-						break;
-					}
-				}
-				if ( !buffer[j * nr + i] )
-					break;
-			}
-			if ( buffer[j * nr + i] )
-				nmax++;
-		}
-	}
-	return nmax;
-}
-
 //// Resampling with interpolation
 //---------------------------------
 
