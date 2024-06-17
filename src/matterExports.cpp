@@ -1362,6 +1362,28 @@ SEXP adaptHistEq(SEXP x, SEXP width, SEXP clip, SEXP nbins)
 	return result;
 }
 
+SEXP localMaximaKNN(SEXP x, SEXP neighbors)
+{
+	SEXP ans;
+	if ( LENGTH(x) != Rf_nrows(neighbors) )
+		Rf_error("x and neighbors must have the same extent");
+	PROTECT(ans = Rf_allocVector(LGLSXP, LENGTH(x)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			local_maxima_knn(INTEGER(x), LENGTH(x), Rf_ncols(neighbors),
+				INTEGER(neighbors), LOGICAL(ans));
+			break;
+		case REALSXP:
+			local_maxima_knn(REAL(x), LENGTH(x), Rf_ncols(neighbors),
+				INTEGER(neighbors), LOGICAL(ans));
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return ans;
+}
+
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp)
 {

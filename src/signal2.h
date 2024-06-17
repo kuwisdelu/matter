@@ -706,6 +706,48 @@ void adapt_histeq(T * x, int nr, int nc, int width,
 	Free(v);
 }
 
+//// Peak detection
+//------------------
+
+template<typename T>
+size_t local_maxima_knn(T * x, size_t n, size_t k,
+	int * neighbors, int * buffer)
+{
+	int nmax = 0;
+	for ( index_t i = 0; i < n; i++ )
+	{
+		buffer[i] = false;
+		for ( index_t j = 0; j < k; j++ )
+		{
+			index_t ki = neighbors[j * n + i];
+			if ( isNA(ki) )
+			{
+				buffer[i] = false;
+				break;
+			}
+			else
+			{
+				ki = ki - 1; // adjust 1-based index
+			}
+			if ( x[i] > x[ki] )
+				buffer[i] = true;
+			if ( ki < i && x[ki] >= x[i] )
+			{
+				buffer[i] = false;
+				break;
+			}
+			if ( ki > i && x[ki] > x[i] )
+			{
+				buffer[i] = false;
+				break;
+			}
+		}
+		if ( buffer[i] )
+			nmax++;
+	}
+	return nmax;
+}
+
 //// Resampling with interpolation
 //---------------------------------
 

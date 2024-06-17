@@ -137,7 +137,7 @@ print.kdtree <- function(x, ...)
 kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 {
 	x <- as.matrix(x)
-	if ( !is(data, "kdtree") )
+	if ( !inherits(data, "kdtree") )
 		data <- kdtree(data)
 	if ( is.integer(x) && is.double(data$data) )
 		storage.mode(x) <- "double"
@@ -154,7 +154,7 @@ kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 knnsearch <- function(x, data, k = 1L, metric = "euclidean", p = 2)
 {
 	x <- as.matrix(x)
-	if ( !is(data, "kdtree") )
+	if ( !inherits(data, "kdtree") )
 		data <- kdtree(data)
 	if ( is.integer(x) && is.double(data$data) )
 		storage.mode(x) <- "double"

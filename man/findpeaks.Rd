@@ -17,10 +17,10 @@ findpeaks(x, width = 5L, prominence = NULL,
     relheight = 0.005, \dots)
 
 # Local maxima
-locmax(x, width = 5)
+locmax(x, \dots, width = 5)
 
 # Local minima
-locmin(x, width = 5)
+locmin(x, \dots, width = 5)
 }
 
 \arguments{
@@ -38,7 +38,7 @@ locmin(x, width = 5)
 
     \item{relheight}{The minimum relative height (proportion of the maximum peak value) used for filtering the peaks.}
 
-    \item{\dots}{Arguments passed to the noise estimation function.}
+    \item{\dots}{For \code{findpeaks}, these arguments are passed to the noise estimation function. For \code{locmax} and \code{locmin}, these may be domain vectors corresponding to \code{x} for detecting local extrema in multiple dimensions.}
 }
 
 \details{

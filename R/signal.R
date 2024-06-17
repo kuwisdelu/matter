@@ -792,21 +792,49 @@ estnoise_fun <- function(method)
 #### Peak detection ####
 ## ---------------------
 
-locmax <- function(x, width = 5L)
+locmax <- function(x, ..., width = 5L)
 {
-	.Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
+	if ( !is.numeric(x) )
+		stop("'x' must be numeric")
+	if ( ...length() > 0L ) {
+		if ( inherits(..1, "kdtree") ) {
+			index <- ..1
+		} else {
+			index <- kdtree(cbind(...))
+		}
+		nb <- knnsearch(index$data, index, k=width)
+		y <- .Call(C_localMaximaKNN, x, nb, PACKAGE="matter")
+		dim(y) <- dim(x)
+	} else {
+		y <- .Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
+	}
+	y
 }
 
-locmin <- function(x, width = 5L)
+locmin <- function(x, ..., width = 5L)
 {
-	.Call(C_localMaxima, -x, as.integer(width), PACKAGE="matter")
+	if ( !is.numeric(x) )
+		stop("'x' must be numeric")
+	if ( ...length() > 0L ) {
+		if ( inherits(..1, "kdtree") ) {
+			index <- ..1
+		} else {
+			index <- kdtree(cbind(...))
+		}
+		nb <- knnsearch(index$data, index, k=width)
+		y <- .Call(C_localMaximaKNN, -x, nb, PACKAGE="matter")
+		dim(y) <- dim(x)
+	} else {
+		y <- .Call(C_localMaxima, -x, as.integer(width), PACKAGE="matter")
+	}
+	y
 }
 
 findpeaks <- function(x, width = 5L, prominence = NULL,
 	snr = NULL, noise = "quant", bounds = TRUE,
 	relheight = 0.005, ...)
 {
-	peaks <- which(locmax(x, width))
+	peaks <- which(locmax(x, width=width))
 	ann <- data.frame(row.names=seq_along(peaks))
 	if ( isTRUE(bounds) )
 	{

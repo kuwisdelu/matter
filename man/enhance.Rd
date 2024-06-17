@@ -14,7 +14,7 @@
 
 \usage{
 # Adjust by extreme values
-enhance_adj(x, high = 0.01, low = 0.01)
+enhance_adj(x, frac = 0.01)
 
 # Histogram equalization
 enhance_hist(x, nbins = 256L)
@@ -27,7 +27,7 @@ enhance_adapt(x, width = sqrt(nrow(x) * ncol(x)) \%/\% 5L,
 \arguments{
 	\item{x}{A numeric matrix.}
 
-    \item{high, low}{The quantile at which to clip the maximum and minimum of the signal.}
+    \item{frac}{The fraction of the highest and lowest pixel values to adjust by clamping the overall intensity range.}
 
     \item{nbins}{The number of gray levels in the output image.}
 
@@ -37,9 +37,11 @@ enhance_adapt(x, width = sqrt(nrow(x) * ncol(x)) \%/\% 5L,
 }
 
 \details{
-    \code{enhance_heq()} performs histogram equalization. Histogram equalization transforms the pixel values so that the histogram of the image is approximately flat. This is done by replacing the original pixel values with their associated probability in the image's empirical cumulative distribution.
+    \code{enhance_adj()} performs a simple adjustment of the overall image intensity range by clamping a fraction of the highest and lowest pixel values. This is useful for suppressing very bright hotspots, but may not be sufficient for images with globally poor contrast.
 
-    \code{enhance_aheq()} performs contrast-limited adaptive histogram equalization (CLAHE) from Zuiderveld (1994). While ordinary histogram equalization performs a global transformation on the image, adaptive histogram equalization calculates a histogram in a local neighborhood around each pixel to perform the transformation, thereby enhancing the local contrast across the image. However, this can amplify local noise, so to avoid this, the histogram is clipped to a maximum allowed bin value before transforming the pixel values. To speed up the computation, it is implemented here using a sliding window technique as described by Wang and Tao (2006).
+    \code{enhance_hist()} performs histogram equalization. Histogram equalization transforms the pixel values so that the histogram of the image is approximately flat. This is done by replacing the original pixel values with their associated probability in the image's empirical cumulative distribution.
+
+    \code{enhance_adapt()} performs contrast-limited adaptive histogram equalization (CLAHE) from Zuiderveld (1994). While ordinary histogram equalization performs a global transformation on the image, adaptive histogram equalization calculates a histogram in a local neighborhood around each pixel to perform the transformation, thereby enhancing the local contrast across the image. However, this can amplify local noise, so to avoid this, the histogram is clipped to a maximum allowed bin value before transforming the pixel values. To speed up the computation, it is implemented here using a sliding window technique as described by Wang and Tao (2006).
 
     These methods rescale the output image so that its median equals the median of the original image and it has equal interquartile range (IQR).
 }

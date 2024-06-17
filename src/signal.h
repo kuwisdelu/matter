@@ -1205,7 +1205,8 @@ size_t local_maxima(T * x, size_t n, int * buffer, int width = 5)
 		b = norm_ind(i + r, n);
 		for ( index_t j = a; j <= b; j++ )
 		{
-			buffer[i] = true;
+			if ( x[i] > x[j] )
+				buffer[i] = true;
 			if ( j < i && x[j] >= x[i] )
 			{
 				buffer[i] = false;
@@ -1216,8 +1217,9 @@ size_t local_maxima(T * x, size_t n, int * buffer, int width = 5)
 				buffer[i] = false;
 				break;
 			}
-			nmax++;
 		}
+		if ( buffer[i] )
+			nmax++;
 	}
 	return nmax;
 }

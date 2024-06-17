@@ -126,6 +126,7 @@ SEXP guidedFilter2(SEXP x, SEXP g, SEXP width,
 	SEXP sdreg);
 SEXP histEq(SEXP x, SEXP nbins);
 SEXP adaptHistEq(SEXP x, SEXP width, SEXP clip, SEXP nbins);
+SEXP localMaximaKNN(SEXP x, SEXP neighbors);
 SEXP Approx2(SEXP xi, SEXP yi, SEXP xy, SEXP z,
 	SEXP tol, SEXP tol_ref, SEXP nomatch, SEXP interp);
 
