@@ -173,16 +173,14 @@ test_that("locmax 2d", {
 	colnames(x) <- seq_len(ncol(x))
 	
 	co <- expand.grid(t1=1:nrow(x), t2=1:ncol(x))
-	t1 <- co$t1
-	t2 <- co$t2
 
-	m1 <- which(locmax(x, t1, t2), arr.ind=TRUE)
+	m1 <- which(locmax_knn(x, co), arr.ind=TRUE)
 
 	expect_equal(nrow(m1), 6)
 	expect_equal(m1[,"row"], c(3, 5, 3, 6, 5, 2))
 	expect_equal(m1[,"col"], c(4, 6, 8, 9, 11, 14))
 
-	m2 <- which(locmax(x, t1, t2, width=25), arr.ind=TRUE)
+	m2 <- which(locmax_knn(x, co, k=25), arr.ind=TRUE)
 
 	expect_equal(nrow(m2), 2)
 	expect_equal(m2[,"row"], c(3, 5))

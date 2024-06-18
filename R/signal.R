@@ -660,14 +660,6 @@ estbase_fun <- function(method)
 #### Noise estimation ####
 ## -----------------------
 
-estnoise_quant <- function(x, n = 25L, prob = 0.95, niter = 3L)
-{
-	y <- filt1_diff(x, method=3L, niter=niter)
-	x <- abs(y - x)
-	width <- min(n, length(x))
-	rollvec(x, width, stat="quantile", prob=prob)
-}
-
 estnoise_diff <- function(x, nbins = 1L, dynamic = FALSE)
 {
 	fn <- function(xi) {
@@ -773,6 +765,14 @@ estnoise_mad <- function(x, n = 25L, wavelet = ricker)
 	rollvec(x, width, stat="sd")
 }
 
+estnoise_quant <- function(x, n = 25L, prob = 0.95, niter = 3L)
+{
+	y <- filt1_diff(x, method=3L, niter=niter)
+	x <- abs(y - x)
+	width <- min(n, length(x))
+	rollvec(x, width, stat="quantile", prob=prob)
+}
+
 estnoise_fun <- function(method)
 {
 	if ( is.character(method) )
@@ -792,42 +792,14 @@ estnoise_fun <- function(method)
 #### Peak detection ####
 ## ---------------------
 
-locmax <- function(x, ..., width = 5L)
+locmax <- function(x, width = 5L)
 {
-	if ( !is.numeric(x) )
-		stop("'x' must be numeric")
-	if ( ...length() > 0L ) {
-		if ( inherits(..1, "kdtree") ) {
-			index <- ..1
-		} else {
-			index <- kdtree(cbind(...))
-		}
-		nb <- knnsearch(index$data, index, k=width)
-		y <- .Call(C_localMaximaKNN, x, nb, PACKAGE="matter")
-		dim(y) <- dim(x)
-	} else {
-		y <- .Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
-	}
-	y
+	y <- .Call(C_localMaxima, x, as.integer(width), PACKAGE="matter")
 }
 
-locmin <- function(x, ..., width = 5L)
+locmin <- function(x, width = 5L)
 {
-	if ( !is.numeric(x) )
-		stop("'x' must be numeric")
-	if ( ...length() > 0L ) {
-		if ( inherits(..1, "kdtree") ) {
-			index <- ..1
-		} else {
-			index <- kdtree(cbind(...))
-		}
-		nb <- knnsearch(index$data, index, k=width)
-		y <- .Call(C_localMaximaKNN, -x, nb, PACKAGE="matter")
-		dim(y) <- dim(x)
-	} else {
-		y <- .Call(C_localMaxima, -x, as.integer(width), PACKAGE="matter")
-	}
-	y
+	.Call(C_localMaxima, -x, as.integer(width), PACKAGE="matter")
 }
 
 findpeaks <- function(x, width = 5L, prominence = NULL,

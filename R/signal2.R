@@ -278,6 +278,35 @@ enhance_fun <- function(method)
 	options[[match.arg(method, names(options))]]
 }
 
+#### Peak detection ####
+## ---------------------
+
+locmax_knn <- function(x, index, k = 5L)
+{
+	if ( is.list(index) )
+		index <- do.call(cbind, index)
+	if ( !inherits(index, "kdtree") )
+		index <- kdtree(index)
+	nb <- knnsearch(index$data, index, k)
+	y <- .Call(C_localMaximaKNN, x, nb, PACKAGE="matter")
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
+locmin_knn <- function(x, index, k = 5L)
+{
+	if ( is.list(index) )
+		index <- do.call(cbind, index)
+	if ( !inherits(index, "kdtree") )
+		index <- kdtree(index)
+	nb <- knnsearch(index$data, index, k)
+	y <- .Call(C_localMaximaKNN, -x, nb, PACKAGE="matter")
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
 #### Colocalization coefficients ####
 ## ----------------------------------
 
