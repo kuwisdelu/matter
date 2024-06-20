@@ -121,6 +121,10 @@ asearch <- function(x, keys, values = seq_along(keys),
 
 kdtree <- function(data)
 {
+	if ( inherits(data, "kdtree") )
+		return(data)
+	if ( is.list(data) )
+		data <- do.call(cbind, data)
 	data <- as.matrix(data)
 	tree <- .Call(C_kdTree, data, PACKAGE="matter")
 	nodes <- data.frame(left_child=tree[[1L]], right_child=tree[[2L]])

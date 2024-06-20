@@ -105,6 +105,27 @@ filt2_fun <- function(method)
 	options[[match.arg(method, names(options))]]
 }
 
+#### KNN Filtering and Smoothing ####
+## --------------------------------
+
+filtk_ma <- function(x, index, k = 5L, metric = "euclidean", p = 2)
+{
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) )
+			return(locmax(x, width=k))
+		index <- lapply(dim(x), seq_len)
+		index <- expand.grid(index)
+	}
+	index <- kdtree(index)
+	nb <- knnsearch(index$data, index, k, metric=metric, p=p)
+	nb <- apply(nb, 1L, identity, simplify=FALSE)
+	wts <- rep.int(1 / k, k)
+	y <- convolve_at(x, nb, wts)
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
 #### 2D Alignment and warping ####
 ## ---------------------------------
 
@@ -283,10 +304,13 @@ enhance_fun <- function(method)
 
 locmax_knn <- function(x, index, k = 5L)
 {
-	if ( is.list(index) )
-		index <- do.call(cbind, index)
-	if ( !inherits(index, "kdtree") )
-		index <- kdtree(index)
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) )
+			return(locmax(x, width=k))
+		index <- lapply(dim(x), seq_len)
+		index <- expand.grid(index)
+	}
+	index <- kdtree(index)
 	nb <- knnsearch(index$data, index, k)
 	y <- .Call(C_localMaximaKNN, x, nb, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
@@ -296,10 +320,13 @@ locmax_knn <- function(x, index, k = 5L)
 
 locmin_knn <- function(x, index, k = 5L)
 {
-	if ( is.list(index) )
-		index <- do.call(cbind, index)
-	if ( !inherits(index, "kdtree") )
-		index <- kdtree(index)
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) )
+			return(locmax(x, width=k))
+		index <- lapply(dim(x), seq_len)
+		index <- expand.grid(index)
+	}
+	index <- kdtree(index)
 	nb <- knnsearch(index$data, index, k)
 	y <- .Call(C_localMaximaKNN, -x, nb, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
