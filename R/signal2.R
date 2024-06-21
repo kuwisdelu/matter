@@ -108,18 +108,45 @@ filt2_fun <- function(method)
 #### KNN Filtering and Smoothing ####
 ## --------------------------------
 
-filtk_ma <- function(x, index, k = 5L, metric = "euclidean", p = 2)
+filtk_ma <- function(x, index, k = 5L,
+	metric = "euclidean", p = 2, neighbors = NULL)
 {
-	if ( missing(index) ) {
-		if ( is.null(dim(x)) )
-			return(locmax(x, width=k))
-		index <- lapply(dim(x), seq_len)
-		index <- expand.grid(index)
+	if ( is.null(neighbors) ) {
+		if ( missing(index) ) {
+			if ( is.null(dim(x)) )
+				return(locmax(x, width=k))
+			index <- lapply(dim(x), seq_len)
+			index <- expand.grid(index)
+		}
+		index <- kdtree(index)
+		neighbors <- knnsearch(index$data, index, k, metric=metric, p=p)
 	}
-	index <- kdtree(index)
-	nb <- knnsearch(index$data, index, k, metric=metric, p=p)
 	wts <- rep.int(1 / k, k)
-	y <- convolve_at(x, nb, wts)
+	y <- convolve_at(x, neighbors, wts)
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
+filtk_gauss <- function(x, index, k = 5L, sd = NA_real_,
+	metric = "euclidean", p = 2, neighbors = NULL)
+{
+	if ( is.null(neighbors) ) {
+		if ( missing(index) ) {
+			if ( is.null(dim(x)) )
+				return(locmax(x, width=k))
+			index <- lapply(dim(x), seq_len)
+			index <- expand.grid(index)
+		}
+		index <- kdtree(index)
+		neighbors <- knnsearch(index$data, index, k, metric=metric, p=p)
+	}
+	weights <- match.arg(weights)
+	d2 <- rowdist_at(co, ix=seq_len(nrow(co)), iy=neighbors)
+	a <- ((2 * median(d2[,k], na.rm=TRUE)) + 1) / 4
+	wts <- lapply(d2, function(d) exp(-d^2 / (2 * a^2)))
+	wts <- lapply(w, function(w) w / sum(w))
+	y <- convolve_at(x, neighbors, wts)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
@@ -310,8 +337,8 @@ locmax_knn <- function(x, index, k = 5L)
 		index <- expand.grid(index)
 	}
 	index <- kdtree(index)
-	nb <- knnsearch(index$data, index, k)
-	y <- .Call(C_localMaximaKNN, x, nb, PACKAGE="matter")
+	neighbors <- knnsearch(index$data, index, k)
+	y <- .Call(C_localMaximaKNN, x, neighbors, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
@@ -326,8 +353,8 @@ locmin_knn <- function(x, index, k = 5L)
 		index <- expand.grid(index)
 	}
 	index <- kdtree(index)
-	nb <- knnsearch(index$data, index, k)
-	y <- .Call(C_localMaximaKNN, -x, nb, PACKAGE="matter")
+	neighbors <- knnsearch(index$data, index, k)
+	y <- .Call(C_localMaximaKNN, -x, neighbors, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
