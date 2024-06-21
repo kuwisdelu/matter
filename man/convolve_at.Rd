@@ -15,7 +15,7 @@ convolve_at(x, index, weights, \dots)
 \arguments{
 	\item{x}{A numeric vector.}
 
-    \item{index}{A list of numeric vectors giving the indices to convolve. Must be as long as \code{x}. Lengths must match \code{weights}.}
+    \item{index}{A list or matrix of numeric vectors giving the indices to convolve. If \code{index} is a list, then it must have the same length as \code{x} and element lengths that match \code{weights}. If \code{x} is a matrix, then its rows must correspond to \code{x} and its columns must correspond to \code{weights}.}
 
     \item{weights}{A list giving the weights of the kernels to convolve for each element of \code{x}. Lengths must match \code{index}.}
 

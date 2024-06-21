@@ -118,7 +118,6 @@ filtk_ma <- function(x, index, k = 5L, metric = "euclidean", p = 2)
 	}
 	index <- kdtree(index)
 	nb <- knnsearch(index$data, index, k, metric=metric, p=p)
-	nb <- apply(nb, 1L, identity, simplify=FALSE)
 	wts <- rep.int(1 / k, k)
 	y <- convolve_at(x, nb, wts)
 	if ( !is.null(dim(x)) )
