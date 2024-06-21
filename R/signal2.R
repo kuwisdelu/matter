@@ -142,10 +142,10 @@ filtk_gauss <- function(x, index, k = 5L, sd = NA_real_,
 		neighbors <- knnsearch(index$data, index, k, metric=metric, p=p)
 	}
 	weights <- match.arg(weights)
-	d2 <- rowdist_at(co, ix=seq_len(nrow(co)), iy=neighbors)
+	d2 <- rowdist_at(index$data, ix=seq_len(nrow(index$data)), iy=neighbors)
 	a <- ((2 * median(d2[,k], na.rm=TRUE)) + 1) / 4
 	wts <- lapply(d2, function(d) exp(-d^2 / (2 * a^2)))
-	wts <- lapply(w, function(w) w / sum(w))
+	wts <- lapply(wts, function(w) w / sum(w))
 	y <- convolve_at(x, neighbors, wts)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)

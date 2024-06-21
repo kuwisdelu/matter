@@ -152,7 +152,7 @@ filt1_fun <- function(method)
 
 convolve_at <- function(x, index, weights, ...)
 {
-	if ( !is.matrix(index) && !is.list(x) )
+	if ( !is.matrix(index) && !is.list(index) )
 		stop("index must be a list or matrix")
 	if ( is.numeric(weights) )
 		weights <- list(weights)
