@@ -224,6 +224,11 @@ test_that("k-dimensional search", {
 	ks1a <- kdsearch(c(2,3,3), d1, tol=c(2,2,4))
 	ks1b <- kdsearch(c(7,2,6), d1, tol=2)
 
+	expect_equal(t1$root + 1L, 6L)
+	expect_equal(t1$root + 1L, which(!i1 %in% sort(ns1)))
+	expect_setequal(ks1a[[1L]], c(11L, 14L, 1L))
+	expect_setequal(ks1b[[1L]], c(6L, 5L))
+
 	q1 <- rbind(c(2.22, 3.33, 3.33), c(8.1, 7.1, 6.1))
 	kn1a <- knnsearch(q1, d1, k=1)
 	kn1b <- knnsearch(q1, d1, k=3)
@@ -240,11 +245,6 @@ test_that("k-dimensional search", {
 	expect_setequal(kn1d[2L,], c(15L, 3L, 9L))
 	expect_setequal(kn1e[1L,], c(1L, 11L, 14L))
 	expect_setequal(kn1e[2L,], c(15L, 3L, 9L))
-
-	expect_equal(t1$root + 1L, 6L)
-	expect_equal(t1$root + 1L, which(!i1 %in% sort(ns1)))
-	expect_setequal(ks1a[[1L]], c(11L, 14L, 1L))
-	expect_setequal(ks1b[[1L]], c(6L, 5L))
 
 	d2 <- expand.grid(x=1:5, y=1:5)
 	i2 <- seq_len(nrow(d2))
