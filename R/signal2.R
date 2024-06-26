@@ -158,6 +158,18 @@ filtn_gauss <- function(x, index, k = 5L, sd = NA_real_,
 	y
 }
 
+filtn_fun <- function(method)
+{
+	if ( is.character(method) )
+		method <- tolower(method)
+	options <- list(
+		"ma" = 			filtn_ma,
+		"mean" = 		filtn_ma,
+		"gauss" = 		filtn_gauss,
+		"gaussian" = 	filtn_gauss)
+	options[[match.arg(method, names(options))]]
+}
+
 #### 2D Alignment and warping ####
 ## ---------------------------------
 
@@ -334,29 +346,29 @@ enhance_fun <- function(method)
 #### Peak detection ####
 ## ---------------------
 
-locmax_knn <- function(x, index, k = 5L)
+knnmax <- function(x, index, k = 5L)
 {
 	if ( missing(index) ) {
 		if ( is.null(dim(x)) )
 			return(locmax(x, width=k))
 		index <- expand.grid(lapply(dim(x), seq_len))
 	}
-	neighbors <- knnsearch(index, k=k)
-	y <- .Call(C_localMaximaKNN, x, neighbors, PACKAGE="matter")
+	nb <- knnsearch(index, k=k)
+	y <- .Call(C_localMaximaKNN, x, nb, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
 }
 
-locmin_knn <- function(x, index, k = 5L)
+knnmin <- function(x, index, k = 5L)
 {
 	if ( missing(index) ) {
 		if ( is.null(dim(x)) )
 			return(locmin(x, width=k))
 		index <- expand.grid(lapply(dim(x), seq_len))
 	}
-	neighbors <- knnsearch(index, k=k)
-	y <- .Call(C_localMaximaKNN, -x, neighbors, PACKAGE="matter")
+	nb <- knnsearch(index, k=k)
+	y <- .Call(C_localMaximaKNN, -x, nb, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
