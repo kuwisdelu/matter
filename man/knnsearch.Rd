@@ -28,7 +28,7 @@ kdtree(data)
 \arguments{
 	\item{x, y}{A numeric matrix of coordinates to be matched. Each column should be dimension. Each row should be a query point.}
 
-	\item{data}{Either a \code{kdtree} object returned by \code{kdtree()}, or a numeric matrix of coordinates to search, where each column is a different dimension.}
+	\item{data}{Either a \code{kdtree} object returned by \code{kdtree()}, or a numeric matrix of coordinates to search, where each column is a different dimension. If this is missing, then the query \code{x} will be used as the data.}
 
 	\item{k}{The number of nearest neighbors to find for each point (row) in \code{x}.}
 

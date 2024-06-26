@@ -140,9 +140,15 @@ print.kdtree <- function(x, ...)
 
 kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 {
-	x <- as.matrix(x)
-	if ( !inherits(data, "kdtree") )
-		data <- kdtree(data)
+	if ( missing(data) || is.null(data) ) {
+		if ( !inherits(x, "kdtree") )
+			data <- kdtree(x)
+		x <- data$data
+	} else {
+		if ( !inherits(data, "kdtree") )
+			data <- kdtree(data)
+		x <- as.matrix(x)
+	}
 	if ( is.integer(x) && is.double(data$data) )
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(data$data) )
