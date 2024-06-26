@@ -11,11 +11,11 @@
 }
 
 \usage{
-# Range search
-kdsearch(x, data, tol = 0, tol.ref = "abs")
-
 # Nearest neighbor search
 knnsearch(x, data, k = 1L, metric = "euclidean", p = 2)
+
+# Range search
+kdsearch(x, data, tol = 0, tol.ref = "abs")
 
 # K-D tree
 kdtree(data)
@@ -46,9 +46,9 @@ kdtree(data)
 }
 
 \value{
-	For \code{kdsearch()}, a list with length equal to the number of rows of \code{x}, where each list element is a vector of indexes of the matches in \code{data}.
-
 	For \code{knnsearch()}, a matrix with rows equal to the number of rows of \code{x} and columns equal to \code{k} giving the indices of the k-nearest neighbors.
+	
+	For \code{kdsearch()}, a list with length equal to the number of rows of \code{x}, where each list element is a vector of indexes of the matches in \code{data}.
 }
 
 \author{Kylie A. Bemis}

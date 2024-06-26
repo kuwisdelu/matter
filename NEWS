@@ -4,7 +4,8 @@ CHANGES IN VERSION 2.7.3 [2024-6-17]
 
 NEW FEATURES
 
-    o 'locmax()' and 'locmin()' support multiple dimensions via '...'
+    o Add new functions 'locmax_knn()' and 'locmin_knn()'
+    o Add new functions 'filtn_ma()', 'filtn_gauss()', etc.
 
 SIGNIFICANT USER-VISIBLE CHANGES
 

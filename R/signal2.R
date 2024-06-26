@@ -108,45 +108,51 @@ filt2_fun <- function(method)
 #### KNN Filtering and Smoothing ####
 ## --------------------------------
 
-filtk_ma <- function(x, index, k = 5L,
-	metric = "euclidean", p = 2, neighbors = NULL)
+filtn_ma <- function(x, index, k = 5L, metric = "euclidean", p = 2)
 {
-	if ( is.null(neighbors) ) {
-		if ( missing(index) ) {
-			if ( is.null(dim(x)) )
-				return(locmax(x, width=k))
-			index <- lapply(dim(x), seq_len)
-			index <- expand.grid(index)
-		}
-		index <- kdtree(index)
-		neighbors <- knnsearch(index$data, index, k, metric=metric, p=p)
+	weights <- rep.int(1 / k, k)
+	filtn_conv(x, index, weights, metric, p)
+}
+
+filtn_conv <- function(x, index, weights, metric = "euclidean", p = 2)
+{
+	if ( !is.numeric(weights) )
+		stop("weights must be numeric")
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) )
+			return(filt1_conv(x, weights=weights))
+		index <- expand.grid(lapply(dim(x), seq_len))
 	}
-	wts <- rep.int(1 / k, k)
-	y <- convolve_at(x, neighbors, wts)
+	k <- length(weights)
+	nb <- knnsearch(index, k=k, metric=metric, p=p)
+	y <- convolve_at(x, nb, weights)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
 }
 
-filtk_gauss <- function(x, index, k = 5L, sd = NA_real_,
-	metric = "euclidean", p = 2, neighbors = NULL)
+filtn_gauss <- function(x, index, k = 5L, sd = NA_real_,
+	metric = "euclidean", p = 2)
 {
-	if ( is.null(neighbors) ) {
-		if ( missing(index) ) {
-			if ( is.null(dim(x)) )
-				return(locmax(x, width=k))
-			index <- lapply(dim(x), seq_len)
-			index <- expand.grid(index)
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) ) {
+			if ( is.na(sd) ) {
+				return(filt1_gauss(x, width=k))
+			} else {
+				return(filt1_gauss(x, width=k, sd=sd))
+			}
 		}
-		index <- kdtree(index)
-		neighbors <- knnsearch(index$data, index, k, metric=metric, p=p)
+		index <- expand.grid(lapply(dim(x), seq_len))
 	}
-	weights <- match.arg(weights)
-	d2 <- rowdist_at(index$data, ix=seq_len(nrow(index$data)), iy=neighbors)
-	a <- ((2 * median(d2[,k], na.rm=TRUE)) + 1) / 4
-	wts <- lapply(d2, function(d) exp(-d^2 / (2 * a^2)))
+	if ( !inherits(index, "kdtree") )
+		index <- kdtree(index)
+	nb <- knnsearch(index, k=k, metric=metric, p=p)
+	ds <- rowdist_at(index$data, ix=seq_along(x), iy=nb)
+	if ( is.na(sd) )
+		sd <- 0.5 * median(vapply(ds, max, numeric(1L), na.rm=TRUE))
+	wts <- lapply(ds, function(d) exp(-d^2 / (2 * sd^2)))
 	wts <- lapply(wts, function(w) w / sum(w))
-	y <- convolve_at(x, neighbors, wts)
+	y <- convolve_at(x, nb, wts)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
@@ -333,11 +339,9 @@ locmax_knn <- function(x, index, k = 5L)
 	if ( missing(index) ) {
 		if ( is.null(dim(x)) )
 			return(locmax(x, width=k))
-		index <- lapply(dim(x), seq_len)
-		index <- expand.grid(index)
+		index <- expand.grid(lapply(dim(x), seq_len))
 	}
-	index <- kdtree(index)
-	neighbors <- knnsearch(index$data, index, k)
+	neighbors <- knnsearch(index, k=k)
 	y <- .Call(C_localMaximaKNN, x, neighbors, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
@@ -348,12 +352,10 @@ locmin_knn <- function(x, index, k = 5L)
 {
 	if ( missing(index) ) {
 		if ( is.null(dim(x)) )
-			return(locmax(x, width=k))
-		index <- lapply(dim(x), seq_len)
-		index <- expand.grid(index)
+			return(locmin(x, width=k))
+		index <- expand.grid(lapply(dim(x), seq_len))
 	}
-	index <- kdtree(index)
-	neighbors <- knnsearch(index$data, index, k)
+	neighbors <- knnsearch(index, k=k)
 	y <- .Call(C_localMaximaKNN, -x, neighbors, PACKAGE="matter")
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
