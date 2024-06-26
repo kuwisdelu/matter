@@ -12,9 +12,9 @@ plot_signal <- function(x, y, z, by, group = NULL, byrow = FALSE,
 		if ( length(dim(x)) > 2L )
 			stop("'x' must have at most 2 dimensions")
 		if ( byrow ) {
-			y <- apply(x, 1L, identity, simplify=FALSE)
+			y <- array2list(x, 1L)
 		} else {
-			y <- apply(x, 2L, identity, simplify=FALSE)
+			y <- array2list(x, 2L)
 		}
 		x <- seq_along(y[[1L]])
 	} else if ( missing(y) ) {
@@ -28,9 +28,9 @@ plot_signal <- function(x, y, z, by, group = NULL, byrow = FALSE,
 		if ( length(dim(y)) > 2L )
 			stop("'y' must have at most 2 dimensions")
 		if ( byrow ) {
-			y <- apply(y, 1L, identity, simplify=FALSE)
+			y <- array2list(y, 1L)
 		} else {
-			y <- apply(y, 2L, identity, simplify=FALSE)
+			y <- array2list(y, 2L)
 		}
 	}
 	if ( missing(z) )
@@ -212,9 +212,9 @@ plot_image <- function(x, y, z, vals, by, group = NULL, byrow = FALSE,
 		if ( length(vals) != length(x) || length(vals) != length(y) )
 		{
 			if ( byrow ) {
-				vals <- apply(vals, 1L, identity, simplify=FALSE)
+				vals <- array2list(vals, 1L)
 			} else {
-				vals <- apply(vals, 2L, identity, simplify=FALSE)
+				vals <- array2list(vals, 2L)
 			}
 		}
 	}

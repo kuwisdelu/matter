@@ -573,6 +573,10 @@ normalize_lengths2 <- function(list1, list2) {
 	list(list1, list2)
 }
 
+array2list <- function(X, MARGIN) {
+	apply(X, MARGIN, identity, simplify=FALSE)
+}
+
 nlines <- function(x) {
 	xsub <- gsub("\n", "", x, fixed=TRUE)
 	nchar(x) - nchar(xsub) + 1L
@@ -1195,7 +1199,7 @@ eval_at <- function(expr, data, i = NULL, j = NULL,
 				}
 			}
 			if ( !is.null(split_along) )
-				x <- apply(x, split_along, identity, simplify=FALSE)
+				x <- array2list(x, split_along)
 			if ( !is.null(group) ) {
 				FUN <- match.fun(reduce)
 				group <- factor(group, levels=unique(group))
