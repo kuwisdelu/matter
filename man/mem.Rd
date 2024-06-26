@@ -3,9 +3,6 @@
 \alias{mem}
 \alias{mtime}
 
-\alias{memtime}
-\alias{profmem}
-
 \title{Check Memory Use}
 
 \description{
