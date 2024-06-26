@@ -19,6 +19,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(kdTree, 1),
 	CALLDEF(kdSearch, 7),
 	CALLDEF(knnSearch, 8),
+	CALLDEF(knnSelfSearch, 6),
 	// distance
 	CALLDEF(rowDist, 5),
 	CALLDEF(colDist, 5),

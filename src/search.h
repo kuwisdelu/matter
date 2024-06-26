@@ -11,6 +11,11 @@
 // (avoid duplicates or division by 0)
 #define EXACT 0
 
+// search direction
+#define NODE_PARENT	0
+#define NODE_LEFT	1
+#define NODE_RIGHT	2
+
 // swap items (use with caution)
 #define swap(x, y, T) do { T swap = x; x = y; y = swap; } while (false)
 
@@ -614,7 +619,7 @@ index_t kd_tree_search(int * ptr, T * x, T * data, size_t k, size_t n,
 //// K-NN search
 //-----------------
 
-// search for knn points nearest x, return via ptr
+// search for points nearest query x, return via ptr
 template<typename T>
 void knn_search(int * ptr, T * x, T * data, size_t k, size_t n,
 	int * left_child, int * right_child, size_t root, int knn,
@@ -674,7 +679,7 @@ void knn_search(int * ptr, T * x, T * data, size_t k, size_t n,
 	}
 }
 
-// search for knn points nearest x, return via ptr
+// search for points nearest query x, return via ptr
 template<typename T>
 void do_knn_search(int * ptr, T * x, T * data, size_t k, size_t nx, size_t ndata,
 	int * left_child, int * right_child, size_t root, int knn,
@@ -691,6 +696,130 @@ void do_knn_search(int * ptr, T * x, T * data, size_t k, size_t nx, size_t ndata
 		for ( int l = 0; l < knn; l++ )
 			ptr[l * nx + i] = nn[l];
 	}
+}
+
+// search for points nearest node x, return via ptr
+template<typename T>
+void knn_self_search(int * ptr, int x, T * data, size_t k, size_t n,
+	int * left_child, int * right_child, int * parent, int knn,
+	int metric = DIST_EUC, double p = 2, bool ind1 = false)
+{
+	if ( n == 0 || k == 0 || knn == 0 )
+		return;
+	index_t node = x, depth = -1, origin = -1;
+	// initialize knn
+	double best [knn];
+	for ( index_t i = 0; i < knn; i++ )
+	{
+		ptr[i] = NA_INTEGER;
+		best[i] = R_PosInf;
+	}
+	// initialize depth
+	while ( !isNA(node) )
+	{
+		node = parent[node];
+		++depth;
+	}
+	// initialize stack
+	int stack_size = 3 * std::ceil(std::log2(n) + 1);
+	int stack [stack_size];
+	int top = -1;
+	stack[++top] = x;		// node
+	stack[++top] = depth;	// depth
+	stack[++top] = origin;	// direction
+	while ( top >= 0 )
+	{
+		// pop node
+		origin = stack[top--];
+		depth = stack[top--];
+		node = stack[top--];
+		index_t j = depth % k;
+		double ds = sdiff(data[n * j + x], data[n * j + node]);
+		double du = std::fabs(ds);
+		double d2 = do_dist(data + x, data + node, k, n, n, metric, p);
+		// check if this is a better neighbor
+		if ( d2 < best[knn - 1] )
+		{
+			index_t i = knn - 1;
+			ptr[i] = node + ind1;
+			best[i] = d2;
+			// sort this neighbor into place
+			while ( i > 0 && lt(best[i], best[i - 1]) )
+			{
+				swap(ptr[i], ptr[i - 1], int);
+				swap(best[i], best[i - 1], double);
+				i--;
+			}
+		}
+		// check if we need to search left subtree
+		if ( origin != NODE_LEFT )
+		{
+			if ( (ds < 0 || du <= best[knn - 1]) && !isNA(left_child[node]) )
+			{
+				stack[++top] = left_child[node];
+				stack[++top] = depth + 1;
+				stack[++top] = NODE_PARENT;
+			}
+		}
+		// check if we need to search right subtree
+		if ( origin != NODE_RIGHT )
+		{
+			if ( (ds > 0 || du <= best[knn - 1]) && !isNA(right_child[node]) )
+			{
+				stack[++top] = right_child[node];
+				stack[++top] = depth + 1;
+				stack[++top] = NODE_PARENT;
+			}
+		}
+		// check if we need to search parent
+		if ( origin != NODE_PARENT )
+		{
+			if ( !isNA(parent[node]) )
+			{
+				// check if this is left child
+				if ( node == left_child[parent[node]] )
+				{
+					stack[++top] = parent[node];
+					stack[++top] = depth - 1;
+					stack[++top] = NODE_LEFT;
+				}
+				// check if this is right child
+				if ( node == right_child[parent[node]] )
+				{
+					stack[++top] = parent[node];
+					stack[++top] = depth - 1;
+					stack[++top] = NODE_RIGHT;
+				}
+			}
+		}
+	}
+}
+
+// search for points nearest each node, return via ptr
+template<typename T>
+void do_knn_self_search(int * ptr, T * data, size_t k, size_t n,
+	int * left_child, int * right_child, int knn,
+	int metric = DIST_EUC, double p = 2, bool ind1 = false)
+{
+	int nn [knn];
+	int * parent = R_Calloc(n, int);
+	for ( size_t i = 0; i < n; i++ )
+		parent[i] = NA_INTEGER;
+	for ( size_t i = 0; i < n; i++ )
+	{
+		if ( !isNA(left_child[i]) )
+			parent[left_child[i]] = i;
+		if ( !isNA(right_child[i]) )
+			parent[right_child[i]] = i;
+	}
+	for ( index_t i = 0; i < n; i++ )
+	{
+		knn_self_search(nn, i, data, k, n,
+			left_child, right_child, parent, knn, metric, p, ind1);
+		for ( int l = 0; l < knn; l++ )
+			ptr[l * n + i] = nn[l];
+	}
+	Free(parent);
 }
 
 #endif // SEARCH

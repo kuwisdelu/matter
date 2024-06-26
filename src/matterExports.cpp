@@ -236,6 +236,31 @@ SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 	return result;
 }
 
+SEXP knnSelfSearch(SEXP x, SEXP left_child, SEXP right_child,
+	SEXP knn, SEXP metric, SEXP p)
+{
+	size_t k = Rf_ncols(x);
+	size_t n = Rf_nrows(x);
+	SEXP result;
+	PROTECT(result = Rf_allocMatrix(INTSXP, n, Rf_asInteger(knn)));
+	switch(TYPEOF(x)) {
+		case INTSXP:
+			do_knn_self_search(INTEGER(result), INTEGER(x), k, n,
+				INTEGER(left_child), INTEGER(right_child),
+				Rf_asInteger(knn), Rf_asInteger(metric), Rf_asReal(p), true);
+			break;
+		case REALSXP:
+			do_knn_self_search(INTEGER(result), REAL(x), k, n,
+				INTEGER(left_child), INTEGER(right_child),
+				Rf_asInteger(knn), Rf_asInteger(metric), Rf_asReal(p), true);
+			break;
+		default:
+			Rf_error("unsupported data type");
+	}
+	UNPROTECT(1);
+	return result;
+}
+
 // Distance
 //----------
 

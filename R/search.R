@@ -157,18 +157,26 @@ kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 
 knnsearch <- function(x, data, k = 1L, metric = "euclidean", p = 2)
 {
-	x <- as.matrix(x)
-	if ( !inherits(data, "kdtree") )
-		data <- kdtree(data)
-	if ( is.integer(x) && is.double(data$data) )
-		storage.mode(x) <- "double"
-	if ( is.double(x) && is.integer(data$data) )
-		storage.mode(data$data) <- "double"
-	if ( is.null(dim(x)) && length(x) != ncol(data$data) )
-		stop("x must have the same number of columns as data")
-	.Call(C_knnSearch, x, data$data,
-		data$nodes$left_child, data$nodes$right_child,
-		data$root, k, as_dist(metric), p, PACKAGE="matter")
+	if ( missing(data) || is.null(data) ) {
+		if ( !inherits(x, "kdtree") )
+			x <- kdtree(x)
+		.Call(C_knnSelfSearch, x$data,
+			x$nodes$left_child, x$nodes$right_child, k,
+			as_dist(metric), p, PACKAGE="matter")
+	} else {
+		x <- as.matrix(x)
+		if ( !inherits(data, "kdtree") )
+			data <- kdtree(data)
+		if ( is.integer(x) && is.double(data$data) )
+			storage.mode(x) <- "double"
+		if ( is.double(x) && is.integer(data$data) )
+			storage.mode(data$data) <- "double"
+		if ( is.null(dim(x)) && length(x) != ncol(data$data) )
+			stop("x must have the same number of columns as data")
+		.Call(C_knnSearch, x, data$data,
+			data$nodes$left_child, data$nodes$right_child,
+			data$root, k, as_dist(metric), p, PACKAGE="matter")
+	}
 }
 
 nnpairs <- function(x, y, metric = "euclidean", p = 2)

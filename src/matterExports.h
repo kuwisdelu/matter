@@ -29,6 +29,8 @@ SEXP kdSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 	SEXP root, SEXP tol, SEXP tol_ref);
 SEXP knnSearch(SEXP x, SEXP data, SEXP left_child, SEXP right_child,
 	SEXP root, SEXP knn, SEXP metric, SEXP p);
+SEXP knnSelfSearch(SEXP x, SEXP left_child, SEXP right_child,
+	SEXP knn, SEXP metric, SEXP p);
 
 // Distance
 //----------

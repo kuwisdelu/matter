@@ -273,6 +273,31 @@ test_that("k-dimensional search", {
 
 })
 
+test_that("k-dimensional self search", {
+
+	d1 <- data.frame(
+		x=c(2,5,9,4,8,7,9,8,9,6,3,1,9,2,8),
+		y=c(3,4,6,7,1,2,4,4,7,3,4,6,5,1,7),
+		z=c(3,2,7,9,5,6,1,2,8,1,5,8,3,3,6))
+	t1 <- kdtree(d1)
+	
+	kn1a <- knnsearch(d1, k=3)
+	kn1b <- knnsearch(d1, t1, k=3)
+
+	expect_equal(kn1a, kn1b)
+
+	set.seed(1)
+	n <- 100
+	d2 <- data.frame(x=runif(n), y=runif(n))
+	t2 <- kdtree(d2)
+
+	kn2a <- knnsearch(d2, k=3)
+	kn2b <- knnsearch(d2, t2, k=3)
+
+	expect_equal(kn2a, kn2b)
+
+})
+
 test_that("nearest neighbor pairs", {
 
 	set.seed(1, kind="default")
