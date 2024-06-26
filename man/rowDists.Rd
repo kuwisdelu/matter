@@ -59,7 +59,7 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 \arguments{
 	\item{x, y}{Numeric matrices for which distances should be calculated according to rows or columns. If a parallel backend is provided, then the calculation is parallelized over \code{x}, and \code{y} is passed to each worker.}
 
-	\item{at}{A list of specific row or column indices for which to calculate the distances. Each row or column of \code{x} will be compared to the rows or columns indicated by the corresponding element of \code{at}.}
+	\item{at}{A list or matrix of specific row or column indices for which to calculate the distances. Each row or column of \code{x} will be compared to the rows or columns indicated by the corresponding element of \code{at}.}
 
 	\item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 

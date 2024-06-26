@@ -152,32 +152,22 @@ filt1_fun <- function(method)
 
 convolve_at <- function(x, index, weights, ...)
 {
-	if ( !is.matrix(index) && !is.list(index) )
-		stop("index must be a list or matrix")
+	if ( is.matrix(index) )
+		index <- array2list(index, 1L)
+	if ( !is.list(index) )
+		stop("index must be a list")
 	if ( is.numeric(weights) )
 		weights <- list(weights)
 	weights <- rep_len(weights, length(x))
-	if ( is.matrix(index) ) {
-		if ( nrow(index) != length(x) )
-			stop("number of rows of index must match length of x")
-		if ( !all(ncol(index) == lengths(weights)) )
-			stop("number of columns of index must match length of weights")
-		vapply(seq_along(x),
-			function(i) {
-				ii <- index[i,,drop=TRUE]
-				sum(weights[[i]] * x[ii], ...)
-			}, numeric(1L))
-	} else {
-		if ( length(index) != length(x) )
-			stop("index and x must have the same length")
-		if ( !all(lengths(index) == lengths(weights)) )
-			stop("lengths of index and weights must match")
-		vapply(seq_along(x),
-			function(i) {
-				ii <- index[[i]]
-				sum(weights[[i]] * x[ii], ...)
-			}, numeric(1L))
-	}
+	if ( length(index) != length(x) )
+		stop("index and x must have the same length")
+	if ( !all(lengths(index) == lengths(weights)) )
+		stop("lengths of index and weights must match")
+	vapply(seq_along(x),
+		function(i) {
+			ii <- index[[i]]
+			sum(weights[[i]] * x[ii], ...)
+		}, numeric(1L))
 }
 
 #### Alignment and warping ####

@@ -162,9 +162,10 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 	weights = NULL, BPPARAM = bpparam(), ...)
 {
-	a <- names(as.list(match.call()))
-	if ( "iter.dim" %in% a )
+	if ( "iter.dim" %in% ...names() )
 		stop("iter.dim will be ignored when 'at' is used")
+	if ( is.matrix(at) )
+		at <- array2list(at, 1L)
 	if ( length(at) != nrow(x) )
 		at <- rep_len(at, nrow(x))
 	ans <- chunk_rowapply(x,
@@ -182,9 +183,10 @@ rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 	weights = NULL, BPPARAM = bpparam(), ...)
 {
-	a <- names(as.list(match.call()))
-	if ( "iter.dim" %in% a )
+	if ( "iter.dim" %in% ...names() )
 		stop("iter.dim will be ignored when 'at' is used")
+	if ( is.matrix(at) )
+		at <- array2list(at, 1L)
 	if ( length(at) != ncol(x) )
 		at <- rep_len(at, ncol(x))
 	ans <- chunk_colapply(x,
@@ -260,6 +262,10 @@ rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
+	if ( is.matrix(ix) )
+		ix <- array2list(ix, 1L)
+	if ( is.matrix(iy) )
+		iy <- array2list(iy, 1L)
 	if ( length(ix) != length(iy) && length(ix) != 1L && length(iy) != 1L )
 		stop("length of ix [", length(ix),
 			"] and iy [", length(iy), "] must be equal or 1")
@@ -290,6 +296,10 @@ coldist_at <- function(x, ix, y = x, iy = list(1L:ncol(y)),
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
+	if ( is.matrix(ix) )
+		ix <- array2list(ix, 1L)
+	if ( is.matrix(iy) )
+		iy <- array2list(iy, 1L)
 	if ( length(ix) != length(iy) && length(ix) != 1L && length(iy) != 1L )
 		stop("length of ix [", length(ix),
 			"] and iy [", length(iy), "] must be equal or 1")
