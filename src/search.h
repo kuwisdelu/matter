@@ -649,19 +649,29 @@ void knn_search(int * ptr, T * x, T * data, size_t k, size_t n,
 		index_t j = depth % k;
 		double ds = sdiff(x[j], data[n * j + node]);
 		double du = std::fabs(ds);
-		double d2 = do_dist(x, data + node, k, 1, n, metric, p);
+		double D = do_dist(x, data + node, k, 1, n, metric, p);
 		// check if this is a better neighbor
-		if ( d2 < best[knn - 1] )
+		if ( D <= best[knn - 1] )
 		{
 			index_t i = knn - 1;
-			ptr[i] = node + ind1;
-			best[i] = d2;
-			// sort this neighbor into place
-			while ( i > 0 && lt(best[i], best[i - 1]) )
+			// process strictly better neighbors _or_ ties
+			if ( D < best[i] || (node + ind1) < ptr[i] )
 			{
-				swap(ptr[i], ptr[i - 1], int);
-				swap(best[i], best[i - 1], double);
-				i--;
+				ptr[i] = node + ind1;
+				best[i] = D;
+				// sort this neighbor into place
+				while ( i > 0 && lteq(best[i], best[i - 1]) )
+				{
+					// ties are broken by index order
+					if ( lt(best[i], best[i - 1]) || ptr[i] < ptr[i - 1] )
+					{
+						swap(ptr[i], ptr[i - 1], int);
+						swap(best[i], best[i - 1], double);
+						i--;
+					}
+					else
+						break;
+				}
 			}
 		}
 		// check if we need to search left subtree
@@ -720,8 +730,8 @@ void knn_self_search(int * ptr, int x, T * data, size_t k, size_t n,
 		node = parent[node];
 		++depth;
 	}
-	// initialize stack
-	int stack_size = 3 * std::ceil(std::log2(n) + 1);
+	// initialize stack (2x size due to traversal up _and_ down)
+	int stack_size = 2 * 3 * std::ceil(std::log2(n) + 1);
 	int stack [stack_size];
 	int top = -1;
 	stack[++top] = x;		// node
@@ -736,19 +746,29 @@ void knn_self_search(int * ptr, int x, T * data, size_t k, size_t n,
 		index_t j = depth % k;
 		double ds = sdiff(data[n * j + x], data[n * j + node]);
 		double du = std::fabs(ds);
-		double d2 = do_dist(data + x, data + node, k, n, n, metric, p);
+		double D = do_dist(data + x, data + node, k, n, n, metric, p);
 		// check if this is a better neighbor
-		if ( d2 < best[knn - 1] )
+		if ( D <= best[knn - 1] )
 		{
 			index_t i = knn - 1;
-			ptr[i] = node + ind1;
-			best[i] = d2;
-			// sort this neighbor into place
-			while ( i > 0 && lt(best[i], best[i - 1]) )
+			// process strictly better neighbors _or_ ties
+			if ( D < best[i] || (node + ind1) < ptr[i] )
 			{
-				swap(ptr[i], ptr[i - 1], int);
-				swap(best[i], best[i - 1], double);
-				i--;
+				ptr[i] = node + ind1;
+				best[i] = D;
+				// sort this neighbor into place
+				while ( i > 0 && lteq(best[i], best[i - 1]) )
+				{
+					// ties are broken by index order
+					if ( lt(best[i], best[i - 1]) || ptr[i] < ptr[i - 1] )
+					{
+						swap(ptr[i], ptr[i - 1], int);
+						swap(best[i], best[i - 1], double);
+						i--;
+					}
+					else
+						break;
+				}
 			}
 		}
 		// check if we need to search left subtree

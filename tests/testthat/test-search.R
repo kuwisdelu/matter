@@ -202,5 +202,17 @@ test_that("k-dimensional self search", {
 
 	expect_equal(kn2a, kn2b)
 
+	d3 <- expand.grid(x=1:9, y=1:9)
+	t3 <- kdtree(d3)
+
+	kn3a <- knnsearch(d3, k=5)
+	kn3b <- knnsearch(d3, t3, k=5)
+
+	ds3a <- rowdist_at(d3, ix=1:nrow(d3), iy=kn3a)
+	ds3b <- rowdist_at(d3, ix=1:nrow(d3), iy=kn3b)
+
+	expect_equal(ds3a, ds3b)
+	expect_equal(kn3a, kn3b)
+
 })
 

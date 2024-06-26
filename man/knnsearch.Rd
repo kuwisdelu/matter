@@ -43,6 +43,8 @@ kdtree(data)
     The algorithms are implemented in C and work by building a kd-tree to perform the search. If multiple calls to \code{kdsearch()} or \code{knnsearch()} are expected on the same data, it can be much faster to build the tree once with \code{kdtree()}.
 
     A kd-tree is essentially a multidimensional generalization of a binary search tree. Building the search tree is O(n * log n) and searching for a single data point is O(log n).
+
+    For \code{knnsearch()}, ties are broken based on the original ordering of the rows in \code{data}.
 }
 
 \value{

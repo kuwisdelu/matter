@@ -10,6 +10,7 @@ NEW FEATURES
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Faster 'knnsearch()' when the data and query are the same
+    o Ties in 'knnsearch()' are now broken based on data order
 
 CHANGES IN VERSION 2.7.2 [2024-5-23]
 ------------------------------------
