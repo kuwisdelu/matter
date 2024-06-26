@@ -3,7 +3,6 @@
 \alias{kdtree}
 \alias{kdsearch}
 \alias{knnsearch}
-\alias{nnpairs}
 
 \title{K-Dimensional Nearest Neighbor Search}
 

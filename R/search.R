@@ -96,6 +96,7 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 asearch <- function(x, keys, values = seq_along(keys),
 	tol = 0, tol.ref = "abs", nomatch = NA_integer_)
 {
+	.Deprecated()
 	if ( is.integer(x) && is.double(keys) )
 		x <- as.double(x)
 	if ( is.double(x) && is.integer(keys) )
@@ -187,6 +188,7 @@ knnsearch <- function(x, data, k = 1L, metric = "euclidean", p = 2)
 
 nnpairs <- function(x, y, metric = "euclidean", p = 2)
 {
+	.Deprecated()
 	x <- as.matrix(x)
 	y <- as.matrix(y)
 	mx <- knnsearch(x, y, 1L, metric, p)
