@@ -87,9 +87,53 @@ test_that("filter 2d", {
 	v2 <- filt2_adapt(v, width=5)
 	v3 <- filt2_guide(v, width=5, sdreg=1)
 
-	expect_lt(sum((v1 - u)^2), sum((v - u)^2))
-	expect_lt(sum((v2 - u)^2), sum((v - u)^2))
-	expect_lt(sum((v3 - u)^2), sum((v - u)^2))
+	expect_lt(median(abs(v1 - u)), median(abs(v - u)))
+	expect_lt(median(abs(v2 - u)), median(abs(v - u)))
+	expect_lt(median(abs(v3 - u)), median(abs(v - u)))
+
+})
+
+test_that("filter nd (2d)", {
+
+	set.seed(1, kind="default")
+	i <- seq(-4, 4, length.out=12)
+	j <- seq(1, 3, length.out=9)
+	co <- expand.grid(i=i, j=j)
+	y <- matrix(atan(co$i / co$j), nrow=12, ncol=9)
+	y <- 10 * (y - min(y)) / diff(range(y))
+	x <- y + 2.5 * runif(length(y))
+
+	x1a <- filtn_ma(x, k=9)
+	x1b <- filt2_ma(x, width=3)
+
+	expect_equal(x1a[3,3], x1b[3,3])
+	expect_equal(x1a[3,7], x1b[3,7])
+	expect_equal(x1a[10,3], x1b[10,3])
+	expect_equal(x1a[10,7], x1b[10,7])
+
+	x2a <- filtn_gauss(x, k=9, sd=1)
+	x2b <- filt2_gauss(x, width=3, sd=1)
+
+	expect_equal(x2a[3,3], x2b[3,3])
+	expect_equal(x2a[3,7], x2b[3,7])
+	expect_equal(x2a[10,3], x2b[10,3])
+	expect_equal(x2a[10,7], x2b[10,7])
+
+	x3a <- filtn_bi(x, k=9, sddist=1, sdrange=1)
+	x3b <- filt2_bi(x, width=3, sddist=1, sdrange=1)
+
+	expect_equal(x3a[3,3], x3b[3,3])
+	expect_equal(x3a[3,7], x3b[3,7])
+	expect_equal(x3a[10,3], x3b[10,3])
+	expect_equal(x3a[10,7], x3b[10,7])
+
+	x4a <- filtn_adapt(x, k=9, spar=1)
+	x4b <- filt2_adapt(x, width=3, spar=1)
+
+	expect_equal(x4a[3,3], x4b[3,3])
+	expect_equal(x4a[3,7], x4b[3,7])
+	expect_equal(x4a[10,3], x4b[10,3])
+	expect_equal(x4a[10,7], x4b[10,7])
 
 })
 

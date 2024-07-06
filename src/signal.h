@@ -367,11 +367,13 @@ void bilateral_filter(T * x, size_t n, int width,
 	int r = width / 2;
 	index_t ij;
 	double sdd = sddist, sdr = sdrange;
-	double mad, xrange;
+	double xmedian, xmad, xrange;
+	double D = r;
 	if ( !isNA(spar) )
 	{
 		// get MAD if using adaptive parameters
-		mad = quick_mad(x, n);
+		xmedian = quick_median(x, n);
+		xmad = quick_mad(x, n);
 		double xmin = do_min(x, 0, n - 1);
 		double xmax = do_max(x, 0, n - 1);
 		xrange = xmax - xmin;
@@ -383,7 +385,7 @@ void bilateral_filter(T * x, size_t n, int width,
 			buffer[i] = NA_REAL;
 			continue;
 		}
-		double dmean = 0, W = 0;
+		double dx = 0, W = 0;
 		buffer[i] = 0;
 		if ( !isNA(spar) )
 		{
@@ -393,12 +395,13 @@ void bilateral_filter(T * x, size_t n, int width,
 				// find mean of local differences
 				ij = norm_ind(i + j, n);
 				if ( !isNA(x[ij]) )
-					dmean += std::fabs(x[ij] - x[i]) / width;
+					dx += std::fabs(x[ij] - xmedian);
 			}
+			dx /= width;
 			// calculate adaptive parameters
-			double z = std::fabs(dmean - mad) / spar;
+			double z = std::fabs(dx - xmad) / spar;
 			if ( isNA(sddist) )
-				sdd = r * std::exp(-z) / std::sqrt(2);
+				sdd = D * std::exp(-z) / std::sqrt(2);
 			if ( isNA(sdrange) )
 				sdr = xrange * std::exp(-z) / std::sqrt(2);
 		}

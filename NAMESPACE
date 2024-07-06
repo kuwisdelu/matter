@@ -393,6 +393,8 @@ export(
 	"filtn_ma",
 	"filtn_conv",
 	"filtn_gauss",
+	"filtn_bi",
+	"filtn_adapt",
 	"warp2_trans",
 	"mi",
 	"enhance_adj",

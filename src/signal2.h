@@ -150,7 +150,7 @@ template<typename T>
 void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 {
 	int r = width / 2;
-	index_t ii, jj, prev, lo, hi;
+	index_t ii, jj, prev, next;
 	double * y = R_Calloc(nr * nc, double);
 	double * z = buffer;
 	// horizontal filter pass
@@ -159,15 +159,14 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 		for ( index_t j = 0; j < nc; j++ )
 		{
 			prev = norm_ind(j - r - 1, nc);
-			lo = norm_ind(j - r, nc);
-			hi = norm_ind(j + r, nc);
+			next = norm_ind(j + r, nc);
 			if ( isNA(x[j * nr + i]) )
 			{
 				// handle missing pixel
 				y[j * nr + i] = NA_REAL;
 			}
 			else if ( j == 0 || isNA(y[(j - 1) * nr + i]) ||
-				isNA(x[prev * nr + i]) || isNA(x[hi * nr + i]) )
+				isNA(x[prev * nr + i]) || isNA(x[next * nr + i]) )
 			{
 				// handle missing neighborhood
 				double xs = 0;
@@ -187,8 +186,8 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			{
 				// fast O(n) sliding sum
 				double xprev = x[prev * nr + i];
-				double xhi = x[hi * nr + i];
-				y[j * nr + i] = y[(j - 1) * nr + i] - xprev + xhi;
+				double xnext = x[next * nr + i];
+				y[j * nr + i] = y[(j - 1) * nr + i] - xprev + xnext;
 			}
 		}
 		// calculate means
@@ -204,15 +203,14 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 		for ( index_t i = 0; i < nr; i++ )
 		{
 			prev = norm_ind(i - r - 1, nr);
-			lo = norm_ind(i - r, nr);
-			hi = norm_ind(i + r, nr);
+			next = norm_ind(i + r, nr);
 			if ( isNA(y[j * nr + i]) )
 			{
 				// handle missing pixel
 				z[j * nr + i] = NA_REAL;
 			}
 			else if ( i == 0 || isNA(z[j * nr + i - 1]) ||
-				isNA(y[j * nr + prev]) || isNA(y[j * nr + hi]) )
+				isNA(y[j * nr + prev]) || isNA(y[j * nr + next]) )
 			{
 				// handle missing neighborhood
 				double ys = 0;
@@ -232,8 +230,8 @@ void mean_filter2(T * x, int nr, int nc, int width, double * buffer)
 			{
 				// fast O(n) sliding sum
 				double yprev = y[j * nr + prev];
-				double yhi = y[j * nr + hi];
-				z[j * nr + i] = z[j * nr + i - 1] - yprev + yhi;
+				double ynext = y[j * nr + next];
+				z[j * nr + i] = z[j * nr + i - 1] - yprev + ynext;
 			}
 		}
 		// calculate means
@@ -290,11 +288,13 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 	size_t n = nr * nc;
 	index_t ii, jj;
 	double sdd = sddist, sdr = sdrange;
-	double mad, xrange;
+	double xmedian, xmad, xrange;
+	double D = std::sqrt(r * r + r * r);
 	if ( !isNA(spar) )
 	{
 		// get MAD if using adaptive parameters
-		mad = quick_mad(x, n);
+		xmedian = quick_median(x, n);
+		xmad = quick_mad(x, n);
 		double xmin = do_min(x, 0, n - 1);
 		double xmax = do_max(x, 0, n - 1);
 		xrange = xmax - xmin;
@@ -308,7 +308,7 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 				buffer[j * nr + i] = NA_REAL;
 				continue;
 			}
-			double xij, dmean = 0, W = 0;
+			double xij, dx = 0, W = 0;
 			buffer[j * nr + i] = 0;
 			if ( !isNA(spar) )
 			{
@@ -322,13 +322,14 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 						jj = norm_ind(j + kj, nc);
 						xij = x[jj * nr + ii];
 						if ( !isNA(xij) )
-							dmean += std::fabs(xij - x[j * nr + i]) / width;
+							dx += std::fabs(xij - xmedian);
 					}
 				}
+				dx /= (width * width);
 				// calculate adaptive parameters
-				double z = std::fabs(dmean - mad) / spar;
+				double z = std::fabs(dx - xmad) / spar;
 				if ( isNA(sddist) )
-					sdd = r * std::exp(-z) / std::sqrt(2);
+					sdd = D * std::exp(-z) / std::sqrt(2);
 				if ( isNA(sdrange) )
 					sdr = xrange * std::exp(-z) / std::sqrt(2);
 			}

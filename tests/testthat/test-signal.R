@@ -63,6 +63,43 @@ test_that("filter 1d", {
 
 })
 
+test_that("filter nd (1d)", {
+
+	set.seed(1, kind="default")
+	t <- seq(from=0, to=6 * pi, length.out=200)
+	y <- sin(t) + 0.6 * sin(2.6 * t)
+	x <- y + runif(length(y))
+
+	x1a <- filtn_ma(x, k=5)
+	x1b <- filt1_ma(x, width=5)
+
+	expect_equal(
+		x1a[3L:(length(x)-3L)],
+		x1b[3L:(length(x)-3L)])
+
+	x2a <- filtn_gauss(x, k=5, sd=1)
+	x2b <- filt1_gauss(x, width=5, sd=1)
+
+	expect_equal(
+		x2a[3L:(length(x)-3L)],
+		x2b[3L:(length(x)-3L)])
+
+	x3a <- filtn_bi(x, k=5, sddist=1, sdrange=1)
+	x3b <- filt1_bi(x, width=5, sddist=1, sdrange=1)
+
+	expect_equal(
+		x3a[3L:(length(x)-3L)],
+		x3b[3L:(length(x)-3L)])
+
+	x4a <- filtn_adapt(x, k=5, spar=1)
+	x4b <- filt1_adapt(x, width=5, spar=1)
+
+	expect_equal(
+		x4a[3L:(length(x)-3L)],
+		x4b[3L:(length(x)-3L)])
+
+})
+
 test_that("warp + align 1d", {
 
 	t <- seq(from=0, to=6 * pi, length.out=1000)

@@ -4,7 +4,7 @@
 
 filt2_ma <- function(x, width = 5L)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
@@ -13,7 +13,7 @@ filt2_ma <- function(x, width = 5L)
 
 filt2_conv <- function(x, weights)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( !is.matrix(weights) )
 		stop("weights must be a matrix")
@@ -22,7 +22,7 @@ filt2_conv <- function(x, weights)
 
 filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -35,7 +35,7 @@ filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 	sdrange = mad(x, na.rm = TRUE))
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -45,7 +45,7 @@ filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 
 filt2_adapt <- function(x, width = 5L, spar = 1)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
@@ -56,7 +56,7 @@ filt2_adapt <- function(x, width = 5L, spar = 1)
 filt2_diff <- function(x, niter = 3L, kappa = 50,
 	rate = 0.25, method = 1L)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( kappa < 1 )
 		warning("kappa should be > 1")
@@ -69,7 +69,7 @@ filt2_diff <- function(x, niter = 3L, kappa = 50,
 filt2_guide <- function(x, width = 5L, guide = x,
 	sdreg = mad(x, na.rm = TRUE))
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( !is.matrix(guide) && length(dim(guide)) > 3L )
 		stop("guide must be a matrix")
@@ -102,71 +102,6 @@ filt2_fun <- function(method)
 		"diffusion" = 	filt2_diff,
 		"guide" = 		filt2_guide,
 		"guided" = 		filt2_guide)
-	options[[match.arg(method, names(options))]]
-}
-
-#### KNN Filtering and Smoothing ####
-## --------------------------------
-
-filtn_ma <- function(x, index, k = 5L, metric = "euclidean", p = 2)
-{
-	weights <- rep.int(1 / k, k)
-	filtn_conv(x, index, weights, metric, p)
-}
-
-filtn_conv <- function(x, index, weights, metric = "euclidean", p = 2)
-{
-	if ( !is.numeric(weights) )
-		stop("weights must be numeric")
-	if ( missing(index) ) {
-		if ( is.null(dim(x)) )
-			return(filt1_conv(x, weights=weights))
-		index <- expand.grid(lapply(dim(x), seq_len))
-	}
-	k <- length(weights)
-	nb <- knnsearch(index, k=k, metric=metric, p=p)
-	y <- convolve_at(x, nb, weights)
-	if ( !is.null(dim(x)) )
-		dim(y) <- dim(x)
-	y
-}
-
-filtn_gauss <- function(x, index, k = 5L, sd = NA_real_,
-	metric = "euclidean", p = 2)
-{
-	if ( missing(index) ) {
-		if ( is.null(dim(x)) ) {
-			if ( is.na(sd) ) {
-				return(filt1_gauss(x, width=k))
-			} else {
-				return(filt1_gauss(x, width=k, sd=sd))
-			}
-		}
-		index <- expand.grid(lapply(dim(x), seq_len))
-	}
-	if ( !inherits(index, "kdtree") )
-		index <- kdtree(index)
-	nb <- knnsearch(index, k=k, metric=metric, p=p)
-	ds <- rowdist_at(index$data, ix=seq_along(x), iy=nb)
-	if ( is.na(sd) )
-		sd <- 0.5 * median(vapply(ds, max, numeric(1L), na.rm=TRUE))
-	wts <- lapply(ds, function(d) exp(-d^2 / (2 * sd^2)))
-	wts <- lapply(wts, function(w) w / sum(w))
-	y <- convolve_at(x, nb, wts)
-	if ( !is.null(dim(x)) )
-		dim(y) <- dim(x)
-	y
-}
-
-filtn_fun <- function(method)
-{
-	if ( is.character(method) )
-		method <- tolower(method)
-	options <- list(
-		"ma" = 			filtn_ma,
-		"mean" = 		filtn_ma,
-		"gauss" = 		filtn_gauss,
-		"gaussian" = 	filtn_gauss)
 	options[[match.arg(method, names(options))]]
 }
 
@@ -294,7 +229,7 @@ warp2_fun <- function(method)
 
 enhance_adj <- function(x, frac = 0.01)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	if ( is.matrix(x) ) {
 		frac <- rep_len(frac, 2L)
@@ -312,7 +247,7 @@ enhance_adj <- function(x, frac = 0.01)
 
 enhance_hist <- function(x, nbins = 256L)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
 	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
@@ -321,7 +256,7 @@ enhance_hist <- function(x, nbins = 256L)
 enhance_adapt <- function(x, width = sqrt(nrow(x) * ncol(x)) %/% 5L,
 	clip = 0.1, nbins = 256L)
 {
-	if ( !is.matrix(x) && length(dim(x)) > 3L )
+	if ( !is.matrix(x) && length(dim(x)) != 3L )
 		stop("x must be 2D matrix or 3D array")
 	y <- .Call(C_adaptHistEq, x, width, clip, nbins, PACKAGE="matter")
 	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))

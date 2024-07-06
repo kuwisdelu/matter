@@ -170,6 +170,134 @@ convolve_at <- function(x, index, weights, ...)
 		}, numeric(1L))
 }
 
+#### KNN Filtering and Smoothing ####
+## --------------------------------
+
+filtn_ma <- function(x, index, k = 5L, metric = "euclidean", p = 2)
+{
+	weights <- rep.int(1, k)
+	filtn_conv(x, index, weights, metric, p)
+}
+
+filtn_conv <- function(x, index, weights, metric = "euclidean", p = 2)
+{
+	if ( !is.numeric(weights) )
+		stop("weights must be numeric")
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) ) {
+			index <- seq_along(x)
+		} else {
+			index <- expand.grid(lapply(dim(x), seq_len))
+		}
+	}
+	k <- length(weights)
+	nb <- knnsearch(index, k=k, metric=metric, p=p)
+	y <- convolve_at(x, nb, weights / sum(weights))
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
+filtn_gauss <- function(x, index, k = 5L, sd = median(r) / 2,
+	metric = "euclidean", p = 2)
+{
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) ) {
+			index <- seq_along(x)
+		} else {
+			index <- expand.grid(lapply(dim(x), seq_len))
+		}
+	}
+	if ( !inherits(index, "kdtree") )
+		index <- kdtree(index)
+	nb <- knnsearch(index, k=k, metric=metric, p=p)
+	ds <- rowdist_at(index$data, ix=seq_along(x), iy=nb)
+	r <- vapply(ds, max, numeric(1L), na.rm=TRUE)
+	wts <- lapply(ds, function(d) exp(-d^2 / (2 * sd^2)))
+	wts <- lapply(wts, function(w) w / sum(w))
+	y <- convolve_at(x, nb, wts)
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
+filtn_bi <- function(x, index, k = 5L, sddist = median(r) / 2,
+	sdrange = mad(x, na.rm=TRUE), metric = "euclidean", p = 2)
+{
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) ) {
+			index <- seq_along(x)
+		} else {
+			index <- expand.grid(lapply(dim(x), seq_len))
+		}
+	}
+	if ( !inherits(index, "kdtree") )
+		index <- kdtree(index)
+	nb <- knnsearch(index, k=k, metric=metric, p=p)
+	ds <- rowdist_at(index$data, ix=seq_along(x), iy=nb)
+	r <- vapply(ds, max, numeric(1L), na.rm=TRUE)
+	gwts <- lapply(ds,
+		function(d) exp(-d^2 / (2 * sddist^2)))
+	awts <- lapply(seq_along(x),
+		function(i) exp(-(x[nb[i,]] - x[i])^2 / (2 * sdrange^2)))
+	wts <- Map(function(g, a) g * a / sum(g * a), gwts, awts)
+	y <- convolve_at(x, nb, wts)
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
+filtn_adapt <- function(x, index, k = 5L, spar = 1,
+	metric = "euclidean", p = 2)
+{
+	if ( missing(index) ) {
+		if ( is.null(dim(x)) ) {
+			index <- seq_along(x)
+		} else {
+			index <- expand.grid(lapply(dim(x), seq_len))
+		}
+	}
+	if ( !inherits(index, "kdtree") )
+		index <- kdtree(index)
+	nb <- knnsearch(index, k=k, metric=metric, p=p)
+	ds <- rowdist_at(index$data, ix=seq_along(x), iy=nb)
+	r <- median(vapply(ds, max, numeric(1L), na.rm=TRUE))
+	xmedian <- median(x, na.rm=TRUE)
+	xmad <- mad(x, na.rm=TRUE)
+	xr <- max(x, na.rm=TRUE) - min(x, na.rm=TRUE)
+	dx <- lapply(seq_along(x),
+		function(i) abs(x[nb[i,,drop=TRUE]] - xmedian))
+	dx <- vapply(dx, mean, numeric(1L), na.rm=TRUE)
+	z <- abs(dx - xmad) / spar
+	sddist <- r * exp(-z) / sqrt(2)
+	sdrange <- xr * exp(-z) / sqrt(2)
+	gwts <- Map(function(d, sdd) exp(-d^2 / (2 * sdd^2)),
+		ds, sddist)
+	awts <- Map(function(i, sdr) exp(-(x[nb[i,]] - x[i])^2 / (2 * sdr^2)),
+		seq_along(x), sdrange)
+	wts <- Map(function(g, a) g * a / sum(g * a), gwts, awts)
+	y <- convolve_at(x, nb, wts)
+	if ( !is.null(dim(x)) )
+		dim(y) <- dim(x)
+	y
+}
+
+filtn_fun <- function(method)
+{
+	if ( is.character(method) )
+		method <- tolower(method)
+	options <- list(
+		"ma" = 			filtn_ma,
+		"mean" = 		filtn_ma,
+		"gauss" = 		filtn_gauss,
+		"gaussian" = 	filtn_gauss,
+		"bi" = 			filtn_bi,
+		"bilateral" = 	filtn_bi,
+		"adapt" = 		filtn_adapt,
+		"adaptive" = 	filtn_adapt)
+	options[[match.arg(method, names(options))]]
+}
+
 #### Alignment and warping ####
 ## ----------------------------
 

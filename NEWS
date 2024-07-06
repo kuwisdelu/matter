@@ -5,12 +5,16 @@ CHANGES IN VERSION 2.7.3 [2024-6-17]
 NEW FEATURES
 
     o Add new functions 'knnmax()' and 'knnmin()'
-    o Add new functions 'filtn_ma()', 'filtn_gauss()', etc.
+    o Add new functions 'filtn_ma()', 'filtn_conv()', etc.
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Faster 'knnsearch()' when the data and query are the same
     o Ties in 'knnsearch()' are now broken based on data order
+
+BUG FIXES
+
+    o Improvements to 'filt1_adapt()' and 'filt2_adapt()'
 
 CHANGES IN VERSION 2.7.2 [2024-5-23]
 ------------------------------------

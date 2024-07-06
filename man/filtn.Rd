@@ -5,6 +5,8 @@
 \alias{filtn_ma}
 \alias{filtn_conv}
 \alias{filtn_gauss}
+\alias{filtn_bi}
+\alias{filtn_adapt}
 
 \title{Smoothing Filters using K-nearest neighbors}
 
@@ -20,7 +22,15 @@ filtn_ma(x, index, k = 5L, metric = "euclidean", p = 2)
 filtn_conv(x, index, weights, metric = "euclidean", p = 2)
 
 # Gaussian filter
-filtn_gauss(x, index, k = 5L, sd = NA_real_,
+filtn_gauss(x, index, k = 5L, sd = median(r) / 2,
+    metric = "euclidean", p = 2)
+
+# Bilateral filter
+filtn_bi(x, index, k = 5L, sddist = median(r) / 2,
+    sdrange = mad(x, na.rm=TRUE), metric = "euclidean", p = 2)
+
+# Bilateral filter with adaptive parameters
+filtn_adapt(x, index, k = 5L, spar = 1,
     metric = "euclidean", p = 2)
 }
 
@@ -33,7 +43,11 @@ filtn_gauss(x, index, k = 5L, sd = NA_real_,
 
     \item{weights}{A vector of weights for the linear convolution kernel, in order from nearest to farthest neighbors. The first weight applies to the sample being smoothed.}
 
-    \item{sd}{The standard deviation for Gaussian smoothing. If \code{NA}, then this is calculated as half the median distance to the Kth nearest neighbors.}
+    \item{sd, sddist}{The spatial parameter for kernel-based filters. This controls the strength of smoothing for samples farther from the center of the smoothing window. The default is calculated as half the median smoothing radius (i.e., the distance to the Kth nearest neighbor).}
+
+    \item{sdrange}{The range parameter for kernel-based filters. This controls the strength of the smoothing for samples with signal values very different from the center of the smoothing window.}
+
+    \item{spar}{The strength of the smoothing when calculating the adaptive bilateral filtering parameters. The larger the number, the stronger the smoothing. Must be positive.}
 
     \item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 
@@ -49,6 +63,10 @@ filtn_gauss(x, index, k = 5L, sd = NA_real_,
 }
 
 \author{Kylie A. Bemis}
+
+\references{
+    J. Joseph and R. Perisamy. ``An image driven bilateral filter with adaptive range and spatial parameters for denoising Magnetic Resonance Images.'' Computers and Electrical Engineering, vol. 69, pp. 782-795, July 2018.
+}
 
 \examples{
 set.seed(1)
