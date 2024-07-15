@@ -62,6 +62,13 @@ BUG FIXES
     o Fix subplot axis scaling and aspect ratio for 'plotly' graphics
     o Fix passing colors to line charts for 'plotly' graphics
 
+CHANGES IN VERSION 2.6.3 [2024-7-15]
+------------------------------------
+
+BUG FIXES
+
+    o Fix 'filt2_gauss()' behavior with NAs
+
 CHANGES IN VERSION 2.6.2 [2024-6-10]
 ------------------------------------
 
