@@ -269,9 +269,9 @@ void linear_filter2(T * x, int nr, int nc,
 				{
 					ii = norm_ind(i + ki, nr);
 					jj = norm_ind(j + kj, nc);
-					xij = x[jj * nr + ii];
-					if ( isNA(xij) )
+					if ( isNA(x[jj * nr + ii]) )
 						continue;
+					xij = x[jj * nr + ii];
 					wij = weights[(kj + r) * width + (ki + r)];
 					buffer[j * nr + i] += wij * xij;
 					W += wij;
@@ -320,9 +320,11 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 						// find mean of local differences
 						ii = norm_ind(i + ki, nr);
 						jj = norm_ind(j + kj, nc);
-						xij = x[jj * nr + ii];
-						if ( !isNA(xij) )
+						if ( !isNA(x[jj * nr + ii]) )
+						{
+							xij = x[jj * nr + ii];
 							dmean += std::fabs(xij - x[j * nr + i]) / width;
+						}
 					}
 				}
 				// calculate adaptive parameters
@@ -345,9 +347,9 @@ void bilateral_filter2(T * x, int nr, int nc, int width,
 					// standard bilateral filter
 					ii = norm_ind(i + ki, nr);
 					jj = norm_ind(j + kj, nc);
-					xij = x[jj * nr + ii];
-					if ( isNA(xij) )
+					if ( isNA(x[jj * nr + ii]) )
 						continue;
+					xij = x[jj * nr + ii];
 					double wtdist = kgaussian(ki, sdd) * kgaussian(kj, sdd);
 					double wtrange = kgaussian(xij - x[j * nr + i], sdr);
 					buffer[j * nr + i] += wtdist * wtrange * xij;
