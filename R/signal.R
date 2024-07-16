@@ -605,23 +605,34 @@ rollvec <- function(x, width, stat = "sum", prob = 0.5)
 		as_binstat(stat), prob, PACKAGE="matter")
 }
 
-findbins <- function(x, nbins, dynamic = TRUE,
-	niter = NA, limits.only = FALSE)
+findbins <- function(x, nbins, dynamic = FALSE, niter = NA,
+	overlap = 0, limits.only = FALSE)
 {
 	n <- floor(nbins)
-	width <- ceiling(length(x) / n)
-	breaks <- floor(seq(from=width, to=length(x) - width, length.out=n - 1L))
-	lower <- c(1L, breaks + 1L)
-	upper <- c(breaks, length(x))
-	if ( is.na(niter) ) {
-		niter <- floor(10 * length(x) / n)
-		check_converge <- TRUE
+	if ( overlap != 0 && !dynamic ) {
+		# overlapping intervals (based on graphics::co.intervals)
+		r <- length(x) / (nbins * (1 - overlap) + overlap)
+		breaks <- (0:(nbins - 1)) * (1 - overlap) * r
+		lower <- pmax(seq_along(x)[round(1 + breaks)], 0)
+		upper <- pmin(seq_along(x)[round(r + breaks)], length(x))
 	} else {
-		check_converge <- FALSE
+		# exclusive intervals
+		width <- ceiling(length(x) / n)
+		breaks <- floor(seq(from=width, to=length(x) - width, length.out=n - 1L))
+		lower <- c(1L, breaks + 1L)
+		upper <- c(breaks, length(x))
 	}
 	if ( dynamic ) {
+		if ( is.na(niter) ) {
+			niter <- floor(10 * length(x) / n)
+			check_converge <- TRUE
+		} else {
+			check_converge <- FALSE
+		}
 		if ( nbins < 3L )
 			stop("need >= 3 bins for dynamic binning")
+		if ( overlap != 0 )
+			warning("ignoring overlap for dynamic binning")
 		# calculate SSE from linear regression in each bin
 		sse <- binvec(x, lower, upper, stat="sse")
 		trace <-  numeric(niter + 1L)
