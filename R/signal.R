@@ -192,7 +192,7 @@ filtn_conv <- function(x, index, weights, metric = "euclidean", p = 2)
 	}
 	k <- length(weights)
 	nb <- knnsearch(index, k=k, metric=metric, p=p)
-	y <- convolve_at(x, nb, weights / sum(weights))
+	y <- convolve_at(x, nb, weights / sum(weights), na.rm=TRUE)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
@@ -215,7 +215,7 @@ filtn_gauss <- function(x, index, k = 5L, sd = median(r) / 2,
 	r <- vapply(ds, max, numeric(1L), na.rm=TRUE)
 	wts <- lapply(ds, function(d) exp(-d^2 / (2 * sd^2)))
 	wts <- lapply(wts, function(w) w / sum(w))
-	y <- convolve_at(x, nb, wts)
+	y <- convolve_at(x, nb, wts, na.rm=TRUE)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
@@ -241,7 +241,7 @@ filtn_bi <- function(x, index, k = 5L, sddist = median(r) / 2,
 	awts <- lapply(seq_along(x),
 		function(i) exp(-(x[nb[i,]] - x[i])^2 / (2 * sdrange^2)))
 	wts <- Map(function(g, a) g * a / sum(g * a), gwts, awts)
-	y <- convolve_at(x, nb, wts)
+	y <- convolve_at(x, nb, wts, na.rm=TRUE)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
@@ -276,7 +276,7 @@ filtn_adapt <- function(x, index, k = 5L, spar = 1,
 	awts <- Map(function(i, sdr) exp(-(x[nb[i,]] - x[i])^2 / (2 * sdr^2)),
 		seq_along(x), sdrange)
 	wts <- Map(function(g, a) g * a / sum(g * a), gwts, awts)
-	y <- convolve_at(x, nb, wts)
+	y <- convolve_at(x, nb, wts, na.rm=TRUE)
 	if ( !is.null(dim(x)) )
 		dim(y) <- dim(x)
 	y
