@@ -801,30 +801,17 @@ estbase_fun <- function(method)
 #### Noise estimation ####
 ## -----------------------
 
-estnoise_diff <- function(x, nbins = 1L, dynamic = FALSE)
+estnoise_filt <- function(x, nbins = 1L, overlap = 0.5,
+	msnr = 2, threshold = 0.5, peaks = FALSE)
 {
-	fn <- function(xi) {
-		# mean absolute deviation of signal derivative
-		dx <- mean(diff(xi), na.rm=TRUE)
-		ns <- mean(abs(xi - dx), na.rm=TRUE)
-		noise <- rep.int(ns, length(xi))
+	if ( !is.null(attr(x, "peaks")) )
+	{
+		x <- attr(x, "peaks")
+		peaks <- TRUE
 	}
-	if ( nbins > 1L ) {
-		xb <- findbins(x, nbins=nbins, dynamic=dynamic)
-		ns <- unlist(lapply(xb, fn))
-		noise <- lowess(ns)$y
-	} else {
-		noise <- fn(x)
-	}
-	noise
-}
-
-estnoise_filt <- function(x, nbins = 1L, msnr = 2,
-	threshold = 0.5, peaks = FALSE)
-{
 	if ( nbins > 1L ) {
 		# Gallia et al (2013) but with lowess
-		xb <- findbins(x, nbins=nbins, dynamic=FALSE)
+		xb <- findbins(x, nbins=nbins, overlap=overlap)
 		noise <- lapply(xb, estnoise_filt, msnr=msnr,
 			threshold=threshold, peaks=peaks)
 		noise <- unlist(noise)
@@ -890,28 +877,101 @@ lr_predict <- function(fit, xi) {
 	sum(fit$coef * c(1, xi))
 }
 
-estnoise_sd <- function(x, n = 25L, wavelet = ricker)
+estnoise_sd <- function(x, nbins = 1, overlap = 0.5,
+	k = 5, index = NULL)
 {
-	if ( is.function(wavelet) )
-		x <- cwt(x, wavelet, scales=1)
-	width <- min(n, length(x))
-	rollvec(x, width, stat="sd")
+	if ( is.null(index) ) {
+		y <- filt1_gauss(x, width=k)
+	} else {
+		y <- filtn_gauss(x, index=index, k=k)
+	}
+	fn <- function(ei) {
+		ns <- sd(ei, na.rm=TRUE)
+		rep.int(ns, length(ei))
+	}
+	e <- abs(y - x)
+	if ( nbins > 1 ) {
+		e <- findbins(e, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
+		noise <- lapply(e, fn)
+		noise <- lowess(unlist(noise))$y
+	} else {
+		noise <- fn(e)
+	}
+	noise
 }
 
-estnoise_mad <- function(x, n = 25L, wavelet = ricker)
+estnoise_mad <- function(x, nbins = 1, overlap = 0.5,
+	k = 5, index = NULL)
 {
-	if ( is.function(wavelet) )
-		x <- cwt(x, wavelet, scales=1)
-	width <- min(n, length(x))
-	rollvec(x, width, stat="sd")
+	if ( is.null(index) ) {
+		y <- filt1_gauss(x, width=k)
+	} else {
+		y <- filtn_gauss(x, index=index, k=k)
+	}
+	fn <- function(ei) {
+		ns <- mad(ei, na.rm=TRUE)
+		rep.int(ns, length(ei))
+	}
+	e <- abs(y - x)
+	if ( nbins > 1 ) {
+		e <- findbins(e, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
+		noise <- unlist(lapply(e, fn))
+		noise <- lowess(noise)$y
+	} else {
+		noise <- fn(e)
+	}
+	noise
 }
 
-estnoise_quant <- function(x, n = 25L, prob = 0.95, niter = 3L)
+estnoise_quant <- function(x, nbins = 1, overlap = 0.5,
+	prob = 0.95, k = 5, index = NULL)
 {
-	y <- filt1_diff(x, method=3L, niter=niter)
-	x <- abs(y - x)
-	width <- min(n, length(x))
-	rollvec(x, width, stat="quantile", prob=prob)
+	if ( is.null(index) ) {
+		y <- filt1_gauss(x, width=k)
+	} else {
+		y <- filtn_gauss(x, index=index, k=k)
+	}
+	fn <- function(ei) {
+		ns <- quantile(ei, prob, na.rm=TRUE)
+		rep.int(ns, length(ei))
+	}
+	e <- abs(y - x)
+	if ( nbins > 1 ) {
+		e <- findbins(e, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
+		noise <- unlist(lapply(e, fn))
+		noise <- lowess(noise)$y
+	} else {
+		noise <- fn(e)
+	}
+	noise
+}
+
+estnoise_diff <- function(x, nbins = 1L, overlap = 0.5,
+	index = NULL)
+{
+	if ( is.null(index) ) {
+		dx <- diff(x)
+	} else {
+		dx <- (x - x[knnsearch(x, index, k=2)[,2L]])[-1L]
+	}
+	fn <- function(xi, dxi) {
+		# deviation between signal and its derivative
+		dxi <- mean(dxi, na.rm=TRUE)
+		ns <- mean(abs(xi - dxi), na.rm=TRUE)
+		rep.int(ns, length(xi))
+	}
+	if ( nbins > 1L ) {
+		xb <- findbins(x, nbins=nbins, overlap=overlap)
+		dxb <- findbins(dx, nbins=nbins, overlap=overlap)
+		noise <- unlist(Map(fn, xb, dxb))
+		noise <- lowess(noise)$y
+	} else {
+		noise <- fn(x)
+	}
+	noise
 }
 
 estnoise_fun <- function(method)
@@ -919,14 +979,14 @@ estnoise_fun <- function(method)
 	if ( is.character(method) )
 		method <- tolower(method)
 	options <- list(
-		"quant" = 		estnoise_quant,
-		"quantile" = 	estnoise_quant,
-		"diff" = 		estnoise_diff,
-		"derivate" = 	estnoise_diff,
 		"filt" = 		estnoise_filt,
 		"filter" = 		estnoise_filt,
 		"sd" = 			estnoise_sd,
-		"mad" = 		estnoise_mad)
+		"mad" = 		estnoise_mad,
+		"quant" = 		estnoise_quant,
+		"quantile" = 	estnoise_quant,
+		"diff" = 		estnoise_diff,
+		"derivative" = 	estnoise_diff)
 	options[[match.arg(method, names(options))]]
 }
 
