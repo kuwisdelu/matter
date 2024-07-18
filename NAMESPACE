@@ -532,7 +532,8 @@ export(
 	"set_coord",
 	"set_par",
 	"set_engine",
-	"as_facets")
+	"as_facets",
+	"as_layers")
 
 export(
 	"vizi_par",

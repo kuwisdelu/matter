@@ -181,6 +181,17 @@ merge_facets <- function(plot1, plot2)
 	}
 }
 
+as_layers <- function(plotlist, ...)
+{
+	# create plot list
+	if ( missing(plotlist) || is.null(plotlist) )
+		plotlist <- list()
+	if ( inherits(plotlist, c("vizi_plot", "vizi_facets")) )
+		plotlist <- list(plotlist)
+	plotlist <- c(plotlist, list(...))
+	do.call(combine, plotlist)
+}
+
 set_title <- function(plot, title)
 {
 	plot$title <- as.character(title)

@@ -6,11 +6,13 @@ NEW FEATURES
 
     o Add new functions 'knnmax()' and 'knnmin()'
     o Add new functions 'filtn_ma()', 'filtn_conv()', etc.
+    o Add support for N-dimensional signals to 'estnoise_*()' functions
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Faster 'knnsearch()' when the data and query are the same
     o Ties in 'knnsearch()' are now broken based on data order
+    o Updated 'estnoise_sd()', 'estnoise_mad()', and 'estnoise_quant()'
 
 BUG FIXES
 

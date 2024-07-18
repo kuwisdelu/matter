@@ -801,27 +801,108 @@ estbase_fun <- function(method)
 #### Noise estimation ####
 ## -----------------------
 
-estnoise_filt <- function(x, nbins = 1L, overlap = 0.5,
-	msnr = 2, threshold = 0.5, peaks = FALSE)
+estnoise_sd <- function(x, nbins = 1, overlap = 0.5,
+	k = 9, index = NULL)
 {
-	if ( !is.null(attr(x, "peaks")) )
-	{
-		x <- attr(x, "peaks")
-		peaks <- TRUE
+	if ( is.null(index) ) {
+		y <- filt1_gauss(x, width=k)
+	} else {
+		y <- filtn_gauss(x, index=index, k=k)
+	}
+	fn <- function(ei) sd(ei, na.rm=TRUE)
+	e <- abs(y - x)
+	if ( nbins > 1 ) {
+		e <- findbins(e, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
+		noise <- unlist(lapply(e, fn))
+		noise <- spline(i, noise, xout=seq_along(x))$y
+	} else {
+		noise <- rep.int(fn(e), length(x))
+	}
+	noise
+}
+
+estnoise_mad <- function(x, nbins = 1, overlap = 0.5,
+	k = 9, index = NULL)
+{
+	if ( is.null(index) ) {
+		y <- filt1_gauss(x, width=k)
+	} else {
+		y <- filtn_gauss(x, index=index, k=k)
+	}
+	fn <- function(ei) mad(ei, na.rm=TRUE)
+	e <- abs(y - x)
+	if ( nbins > 1 ) {
+		e <- findbins(e, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
+		noise <- unlist(lapply(e, fn))
+		noise <- spline(i, noise, xout=seq_along(x))$y
+	} else {
+		noise <- rep.int(fn(e), length(x))
+	}
+	noise
+}
+
+estnoise_quant <- function(x, nbins = 1, overlap = 0.5,
+	k = 9, prob = 0.95, index = NULL)
+{
+	if ( is.null(index) ) {
+		y <- filt1_gauss(x, width=k)
+	} else {
+		y <- filtn_gauss(x, index=index, k=k)
+	}
+	fn <- function(ei) quantile(ei, prob, na.rm=TRUE)
+	e <- abs(y - x)
+	if ( nbins > 1 ) {
+		e <- findbins(e, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
+		noise <- unlist(lapply(e, fn))
+		noise <- spline(i, noise, xout=seq_along(x))$y
+	} else {
+		noise <- rep.int(fn(e), length(x))
+	}
+	noise
+}
+
+estnoise_diff <- function(x, nbins = 1L, overlap = 0.5,
+	index = NULL)
+{
+	if ( is.null(index) ) {
+		dx <- diff(x)
+	} else {
+		dx <- (x - x[knnsearch(x, index, k=2)[,2L]])[-1L]
+	}
+	fn <- function(xi, dxi) {
+		# deviation between signal and its derivative
+		dxi <- mean(dxi, na.rm=TRUE)
+		mean(abs(xi - dxi), na.rm=TRUE)
 	}
 	if ( nbins > 1L ) {
-		# Gallia et al (2013) but with lowess
 		xb <- findbins(x, nbins=nbins, overlap=overlap)
-		noise <- lapply(xb, estnoise_filt, msnr=msnr,
-			threshold=threshold, peaks=peaks)
-		noise <- unlist(noise)
-		noise <- lowess(noise)$y
+		dxb <- findbins(dx, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(xb, "lower") + attr(xb, "upper"))
+		noise <- unlist(Map(fn, xb, dxb))
+		noise <- spline(i, noise, xout=seq_along(x))$y
 	} else {
+		noise <- rep.int(fn(x, dx), length(x))
+	}
+	noise
+}
+
+estnoise_filt <- function(x, nbins = 1L, overlap = 0.5,
+	msnr = 2, threshold = 0.5, isPeaks = FALSE, index = NULL)
+{
+	fn <- function(xi) {
 		# Xu and Freitas (2010) dynamic noise level
-		if ( isFALSE(peaks) || is.null(peaks) ) {
-			y <- sort(x[x > 0 & locmax(x)])
-		} else {
+		if ( isPeaks ) {
 			y <- sort(x[x > 0])
+		} else {
+			if ( is.null(index) ) {
+				peaks <- locmax(x)
+			} else {
+				peaks <- knnmax(x, index)
+			}
+			y <- sort(x[x > 0 & peaks])
 		}
 		if ( length(y) <= 1L )
 			return(rep.int(y, length(x)))
@@ -839,6 +920,16 @@ estnoise_filt <- function(x, nbins = 1L, overlap = 0.5,
 			# update linear model
 			fit <- lr_update(fit, i, y[i])
 		}
+		noise
+	}
+	if ( nbins > 1L ) {
+		# Gallia et al (2013) but with splines
+		xb <- findbins(x, nbins=nbins, overlap=overlap)
+		i <- 0.5 * (attr(xb, "lower") + attr(xb, "upper"))
+		noise <- unlist(lapply(xb, fn))
+		noise <- spline(i, noise, xout=seq_along(x))$y
+	} else {
+		noise <- fn(x)
 		noise <- rep.int(noise, length(x))
 	}
 	noise
@@ -877,116 +968,19 @@ lr_predict <- function(fit, xi) {
 	sum(fit$coef * c(1, xi))
 }
 
-estnoise_sd <- function(x, nbins = 1, overlap = 0.5,
-	k = 5, index = NULL)
-{
-	if ( is.null(index) ) {
-		y <- filt1_gauss(x, width=k)
-	} else {
-		y <- filtn_gauss(x, index=index, k=k)
-	}
-	fn <- function(ei) {
-		ns <- sd(ei, na.rm=TRUE)
-		rep.int(ns, length(ei))
-	}
-	e <- abs(y - x)
-	if ( nbins > 1 ) {
-		e <- findbins(e, nbins=nbins, overlap=overlap)
-		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
-		noise <- lapply(e, fn)
-		noise <- lowess(unlist(noise))$y
-	} else {
-		noise <- fn(e)
-	}
-	noise
-}
-
-estnoise_mad <- function(x, nbins = 1, overlap = 0.5,
-	k = 5, index = NULL)
-{
-	if ( is.null(index) ) {
-		y <- filt1_gauss(x, width=k)
-	} else {
-		y <- filtn_gauss(x, index=index, k=k)
-	}
-	fn <- function(ei) {
-		ns <- mad(ei, na.rm=TRUE)
-		rep.int(ns, length(ei))
-	}
-	e <- abs(y - x)
-	if ( nbins > 1 ) {
-		e <- findbins(e, nbins=nbins, overlap=overlap)
-		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
-		noise <- unlist(lapply(e, fn))
-		noise <- lowess(noise)$y
-	} else {
-		noise <- fn(e)
-	}
-	noise
-}
-
-estnoise_quant <- function(x, nbins = 1, overlap = 0.5,
-	prob = 0.95, k = 5, index = NULL)
-{
-	if ( is.null(index) ) {
-		y <- filt1_gauss(x, width=k)
-	} else {
-		y <- filtn_gauss(x, index=index, k=k)
-	}
-	fn <- function(ei) {
-		ns <- quantile(ei, prob, na.rm=TRUE)
-		rep.int(ns, length(ei))
-	}
-	e <- abs(y - x)
-	if ( nbins > 1 ) {
-		e <- findbins(e, nbins=nbins, overlap=overlap)
-		i <- 0.5 * (attr(e, "lower") + attr(e, "upper"))
-		noise <- unlist(lapply(e, fn))
-		noise <- lowess(noise)$y
-	} else {
-		noise <- fn(e)
-	}
-	noise
-}
-
-estnoise_diff <- function(x, nbins = 1L, overlap = 0.5,
-	index = NULL)
-{
-	if ( is.null(index) ) {
-		dx <- diff(x)
-	} else {
-		dx <- (x - x[knnsearch(x, index, k=2)[,2L]])[-1L]
-	}
-	fn <- function(xi, dxi) {
-		# deviation between signal and its derivative
-		dxi <- mean(dxi, na.rm=TRUE)
-		ns <- mean(abs(xi - dxi), na.rm=TRUE)
-		rep.int(ns, length(xi))
-	}
-	if ( nbins > 1L ) {
-		xb <- findbins(x, nbins=nbins, overlap=overlap)
-		dxb <- findbins(dx, nbins=nbins, overlap=overlap)
-		noise <- unlist(Map(fn, xb, dxb))
-		noise <- lowess(noise)$y
-	} else {
-		noise <- fn(x)
-	}
-	noise
-}
-
 estnoise_fun <- function(method)
 {
 	if ( is.character(method) )
 		method <- tolower(method)
 	options <- list(
-		"filt" = 		estnoise_filt,
-		"filter" = 		estnoise_filt,
 		"sd" = 			estnoise_sd,
 		"mad" = 		estnoise_mad,
 		"quant" = 		estnoise_quant,
 		"quantile" = 	estnoise_quant,
 		"diff" = 		estnoise_diff,
-		"derivative" = 	estnoise_diff)
+		"derivative" = 	estnoise_diff,
+		"filt" = 		estnoise_filt,
+		"filter" = 		estnoise_filt)
 	options[[match.arg(method, names(options))]]
 }
 
@@ -1597,7 +1591,7 @@ simspec <- function(n = 1L, npeaks = 50L,
 			peakwidths=peakwidths, sdnoise=sdnoise)
 		yout <- yout + b
 	}
-	structure(yout, domain=xout, peaks=x)
+	structure(yout, domain=xout, design=list(x=x, y=y))
 }
 
 simspec1 <- function(x, y, xout, peakwidths = NA_real_,

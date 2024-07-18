@@ -46,8 +46,10 @@
 \S4method{var}{matter_arr}(x, na.rm)
 \S4method{any}{matter_arr}(x, \dots, na.rm)
 \S4method{all}{matter_arr}(x, \dots, na.rm)
+
 \S4method{colMeans}{matter_mat}(x, na.rm, dims = 1, \dots)
 \S4method{colSums}{matter_mat}(x, na.rm, dims = 1, \dots)
+
 \S4method{rowMeans}{matter_mat}(x, na.rm, dims = 1, \dots)
 \S4method{rowSums}{matter_mat}(x, na.rm, dims = 1, \dots)
 }
@@ -55,7 +57,7 @@
 \arguments{
     \item{x}{A \code{\linkS4class{matter_arr}} object.}
 
-    \item{\dots}{Arguments passed to \code{chunk_lapply()}.}
+    \item{\dots}{Arguments passed to \code{chunk_lapply()}, \code{chunk_rowapply()}, or \code{chunk_colapply()}.}
 
     \item{na.rm}{If \code{TRUE}, remove \code{NA} values before summarizing.}
 

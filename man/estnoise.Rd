@@ -2,11 +2,11 @@
 
 \alias{estnoise}
 
+\alias{estnoise_sd}
+\alias{estnoise_mad}
 \alias{estnoise_quant}
 \alias{estnoise_diff}
 \alias{estnoise_filt}
-\alias{estnoise_sd}
-\alias{estnoise_mad}
 
 \title{Local Noise Estimation}
 
@@ -15,53 +15,53 @@
 }
 
 \usage{
-# Quantile-based noise estimation
-estnoise_quant(x, n = 25L, prob = 0.95, niter = 3L)
-
-# Derivative-based noise estimation
-estnoise_diff(x, nbins = 1L, dynamic = FALSE)
+# Difference-based noise estimation
+estnoise_diff(x, nbins = 1L, overlap = 0.5,
+    index = NULL)
 
 # Dynamic noise level filtering
-estnoise_filt(x, nbins = 1L, msnr = 2,
-    threshold = 0.5, peaks = FALSE)
+estnoise_filt(x, nbins = 1L, overlap = 0.5,
+    msnr = 2, threshold = 0.5, isPeaks = FALSE, index = NULL)
 
 # SD-based noise estimation
-estnoise_sd(x, n = 25L, wavelet = ricker)
+estnoise_sd(x, nbins = 1, overlap = 0.5,
+    k = 9, index = NULL)
 
 # MAD-based noise estimation
-estnoise_mad(x, n = 25L, wavelet = ricker)
+estnoise_mad(x, nbins = 1, overlap = 0.5,
+    k = 9, index = NULL)
+
+# Quantile-based noise estimation
+estnoise_quant(x, nbins = 1, overlap = 0.5,
+    k = 9, prob = 0.95, index = NULL)
 }
 
 \arguments{
 	\item{x}{A numeric vector.}
 
-    \item{n}{The number of sample points in the rolling estimation of quantile, standard deviation, or median absolute deviation.}
+    \item{nbins}{The number of bins to use if estimating a variable noise level.}
 
-    \item{prob}{The quantile used to estimate the noise.}
-
-    \item{niter}{The number of iterations of nonlinear diffusion smoothing to be applied to the signal.}
-
-    \item{nbins}{The number of bins to divide the signal into before estimating the noise. The noise is estimated locally in each bin.}
-
-    \item{dynamic}{Should the bins be equally spaced (\code{FALSE}) or dynamically spaced (\code{TRUE}) based on the local signal?}
+    \item{overlap}{The fraction of overlap between bins if estimating a variable noise level.}
 
     \item{msnr}{The minimum signal-to-noise ratio for distinguishing signal peaks from noise peaks.}
 
     \item{threshold}{The required signal-to-noise difference for the first non-noise peak.}
 
-    \item{peaks}{Does \code{x} represent a signal profile (\code{FALSE}) or peaks (\code{TRUE})?}
+    \item{isPeaks}{Does \code{x} represent a profile signal (\code{FALSE}) or its peaks (\code{TRUE})?}
 
-    \item{wavelet}{The wavelet to be convolved with the signal to produce the noise estimate. This should be a function that takes as its first argument the width of the wavelet (in number of points). If this is \code{NULL}, then no convolution is performed, and the raw signal is used.}
+    \item{index}{A matrix or list of domain vectors giving the sampling locations of \code{x} if it is a multidimensional signal.}
+
+    \item{k}{The size of the smoothing window when calculating the difference between the raw signal and a smoothed version of the signal.}
+
+    \item{prob}{The quantile used when estimating the noise.}
 }
 
 \details{
-    \code{estnoise_quant()} estimates the local noise by first smoothing the signal with a nonlinear diffusion filter, and then subtracting the raw signal from the smoothed signal to isolate the noise component. A rolling quantile of this noise component is used to estimate the local noise in the signal.
+    \code{estnoise_diff()} estimates the local noise from the mean absolute differences between the signal and the average of its derivative. For noisy signals, the derivative is dominated by the noise, making it a useful estimator of the noise.
 
-    \code{estnoise_diff()} estimates the local noise from the mean absolute deviation of the signal from the mean of its derivative in each bin. For noisy signals, the derivative is dominated by the noise, making it a useful estimator of the noise.
+    \code{estnoise_sd()}, \code{estnoise_mad()}, and \code{estnoise_quant()} all estimate the local noise by first smoothing the signal with a Gaussian filter, and then subtracting the raw signal from the smoothed signal to isolate the noise component. The noise is then summarized with the corresponding statistic.
 
     \code{estnoise_filt()} uses the dynamic noise level filtering algorithm of Xu and Freitas (2010) based on the local signal in an approach similar to Gallia et al. (2013). The peaks in the signal are sorted, and the smallest peak is assumed to be noise and is used to estimate the noise level. Each peak is then compared to the previous peak. A peak is labeled a signal peak only if it exceeds a minimum signal-to-noise ratio. Otherwise, the peak is labeled noise, and the noise level is re-estimated. This process continues until a signal peak is found, and the noise level is estimated from the noise peaks.
-
-    \code{estnoise_sd()} and \code{estnoise_mad()} estimate the local noise from the standard deviation (SD) or median absolute deviation (MAD), respectively, after (optionally) convolving the signal with a wavelet.
 }
 
 \value{
@@ -93,7 +93,7 @@ lines(ns, col="blue")
 set.seed(1)
 x <- simspec(size=5000)
 
-ns <- estnoise_quant(x, n=101)
+ns <- estnoise_quant(x, nbins=20)
 plot(x, type="l")
 lines(ns, col="blue")
 }

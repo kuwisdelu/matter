@@ -54,7 +54,7 @@ simspec1(x, y, xout, peakwidths = NA_real_,
 }
 
 \value{
-    Either a numeric vector of the same length as \code{size}, giving the simulated spectrum, or a \code{size} x \code{x} matrix of simulated spectra.
+    Either a numeric vector of the same length as \code{size}, giving the simulated spectrum, or a \code{size} x \code{n} matrix of simulated spectra.
 }
 
 \author{Kylie A. Bemis}

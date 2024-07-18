@@ -1,7 +1,7 @@
 ---
 title: "_Matter 2_: User guide for flexible out-of-memory data structures"
 author: "Kylie Ariel Bemis"
-date: "Revised: October 23, 2022"
+date: "Revised: July 17, 2024"
 output:
     BiocStyle::html_document:
     toc: true
@@ -260,11 +260,30 @@ Consider mass spectra with intensity peaks collected at various (nonuniform) *m/
 
 ```{r nonuniform-1}
 set.seed(1)
-mz <- replicate(5, 100 * sort(runif(sample(10, 1))), simplify=FALSE)
-intensity <- lapply(mz, function(m) 10 * runif(length(m)))
+s <- replicate(4, simspec(1), simplify=FALSE)
 
-layout(matrix(1:4, nrow=2))
-for (i in 1:4) plot(mz[[i]], intensity[[i]], type='h', xlim=c(1,100), ylim=c(0,10), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
+# spectra with different m/z-values
+head(domain(s[[1]]))
+head(domain(s[[2]]))
+head(domain(s[[3]]))
+head(domain(s[[4]]))
+
+# plot each spectrum
+p1 <- plot_signal(domain(s[[1]]), s[[1]])
+p2 <- plot_signal(domain(s[[2]]), s[[2]])
+p3 <- plot_signal(domain(s[[3]]), s[[3]])
+p4 <- plot_signal(domain(s[[4]]), s[[4]])
+
+# combine the plots
+plt <- as_facets(list(
+    "Spectrum 1"=p1,
+    "Spectrum 2"=p2,
+    "Spectrum 3"=p3,
+    "Spectrum 4"=p4), free="x")
+plt <- set_channel(plt, "x", label="m/z")
+plt <- set_channel(plt, "y", label="Intensity")
+
+plot(plt)
 ```
 
 Representing these spectra as columns of a matrix with a common *m/z* axis would typically require binning or resampling. But this would sacrifice the sparsity of the data.
@@ -272,13 +291,27 @@ Representing these spectra as columns of a matrix with a common *m/z* axis would
 In *Matter*, we can accomplish this by using a sparse matrix that performs on-the-fly resampling.
 
 ```{r nonuniform-2}
-spectra <- sparse_mat(intensity, index=mz, domain=1:100, sampler="max", tolerance=0.5)
+mzr <- range(
+    domain(s[[1]]),
+    domain(s[[2]]),
+    domain(s[[3]]),
+    domain(s[[4]]))
+mz <- seq(from=round(mzr[1]), to=round(mzr[2]), by=0.2)
+
+index <- list(
+    domain(s[[1]]),
+    domain(s[[2]]),
+    domain(s[[3]]),
+    domain(s[[4]]))
+
+spectra <- sparse_mat(s, index=index, domain=mz,
+    sampler="max", tolerance=0.5)
+
 spectra
 ```
 
 ```{r nonuniform-3}
-layout(matrix(1:4, nrow=2))
-for (i in 1:4) plot(1:100, spectra[,i], type='h', xlim=c(1,100), ylim=c(0,10), xlab="m/z", ylab="intensity", main=paste0("Spectrum ", i))
+plot_signal(mz, as.matrix(spectra), byrow=FALSE)
 ```
 
 

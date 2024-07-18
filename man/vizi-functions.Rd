@@ -9,6 +9,7 @@
 \alias{set_par}
 \alias{set_engine}
 \alias{as_facets}
+\alias{as_layers}
 
 \alias{preplot,vizi_plot-method}
 \alias{preplot,vizi_facets-method}
@@ -60,6 +61,8 @@ set_engine(plot, engine = c("base", "plotly"))
 set_par(plot, \dots, style = NULL)
 
 ## Combine plots
+as_layers(plotlist, \dots)
+
 as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
 }

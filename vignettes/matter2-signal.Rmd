@@ -1,0 +1,694 @@
+---
+title: "_Matter 2_: Signal and image processing"
+author: "Kylie Ariel Bemis"
+date: "Revised: July 17, 2024"
+output:
+    BiocStyle::html_document:
+    toc: true
+vignette: >
+    %\VignetteIndexEntry{2. Matter 2: Signal and image processing}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---
+
+```{r style, echo=FALSE, results='asis'}
+BiocStyle::markdown()
+```
+
+```{r setup, echo=FALSE, message=FALSE}
+library(matter)
+register(SerialParam())
+```
+
+# Introduction 
+
+*Matter 2* provides a variety of signal processing tools for both uniformly-sampled and nonuniformly-sampled signals in both 1D and 2D, as well as a limited selection of processing tools for signals of arbitrary dimension.
+
+While the primary motivation for implementing these signal processing tools is for use with mass spectrometry imaging experiments, most of the provided functions are broadly applicable to any signal processing domain.
+
+
+
+# Vocabulary
+
+*Matter* uses a few consistent terms across its available functions when referring to certain aspects of signal processing. These terms will frequently appear as parameters to signal processing functions.
+
+
+## Dimensionality and domain
+
+Signals may have multiple *dimensions*. Each dimension corresponds to a *domain*.
+
+Here is a simple 1-dimensional signal that resembles a mass spectrum:
+
+```{r signal-1d}
+set.seed(1)
+s <- simspec(1)
+
+plot_signal(s, xlab="Index", ylab="Intensity")
+```
+
+A 1-dimensional signal has a single domain.
+
+For a mass spectrum, the domain values are the mass-to-charge ratios, (or *m/z*-values).
+
+```{r signal-1d-mz}
+plot_signal(domain(s), s, xlab="m/z", ylab="Intensity")
+```
+
+A 2-dimensional signal has two domains.
+
+For example, for an image (which is a 2D signal), the domain values are the *x* and *y* locations of the pixels.
+
+```{r signal-2d-xy}
+plot_image(volcano)
+```
+
+The dimensionality of a signal is the number of domains.
+
+For example, a mass spectrum collected in tandem with liquid chromatography and ion mobility spectrometry (i.e., LC-IMS-MS) is a 3-dimensional signal. The domains for LC-IMS-MS spectra would include (1) retension times, (2) drift times, and (3) *m/z*-values.
+
+Note that the values of a signal (e.g., intensities) are not considered as a separate dimension or domain.
+
+
+
+## Index and domain
+
+In some cases, it is necessary for *Matter* to distinguish between the *observed* domain values for a signal and the *effective* domain values for a signal.
+
+This is most obvious when we need to represent multiple nonuniformly-sampled signals (that may have been observed at different domain values) with a single set of domain values.
+
+```{r signal-index}
+set.seed(1)
+s1 <- simspec(1)
+s2 <- simspec(1)
+
+# spectra with different m/z-values
+head(domain(s1))
+head(domain(s2))
+
+# create a shared vector of m/z-values
+mzr <- range(domain(s1), domain(s2))
+mz <- seq(from=mzr[1], to=mzr[2], by=0.2)
+
+# create representations with the same m/z-values
+s1 <- sparse_vec(s1, index=domain(s1), domain=mz)
+s2 <- sparse_vec(s2, index=domain(s2), domain=mz)
+```
+
+In cases like this, *Matter* refers to the observed domain values as the signal `index`, and the effective domain values as the signal `domain`.
+
+
+
+
+
+# Filtering and smoothing
+
+## Smoothing in 1D
+
+*Matter* provides a family of 1D smoothing methods that follow the naming scheme `filt1_*`:
+
+- `filt1_ma` performs moving average filtering
+
+- `filt1_conv` performs convolutional filtering with custom weights
+
+- `filt1_gauss` performs Gaussian filtering
+
+- `filt1_bi` performs bilateral filtering
+
+- `filt1_adapt` performs adaptive bilateral filtering
+
+- `filt1_diff` performs nonlinear diffusion filtering
+
+- `filt1_guide` performs guided filtering
+
+- `filt1_pag` performs peak-aware guided filtering
+
+- `filt1_sg` performs Savitzky-Golay filtering
+
+We demonstrate the smoothing results on a simulate signal below:
+
+```{r smooth-signal-sim}
+set.seed(1)
+s <- simspec(1, sdnoise=0.25, resolution=500)
+```
+
+```{r smooth-signal}
+p1 <- plot_signal(s)
+p2 <- plot_signal(filt1_ma(s))
+p3 <- plot_signal(filt1_gauss(s))
+p4 <- plot_signal(filt1_bi(s))
+p5 <- plot_signal(filt1_diff(s))
+p6 <- plot_signal(filt1_guide(s))
+p7 <- plot_signal(filt1_pag(s))
+p8 <- plot_signal(filt1_sg(s))
+
+plt <- as_facets(list(
+    "Original"=p1,
+    "Moving average"=p2,
+    "Gaussian"=p3,
+    "Bilateral"=p4,
+    "Diffusion"=p5,
+    "Guided"=p6,
+    "Peak-aware"=p7,
+    "Savitsky-Golay"=p8), nrow=4, ncol=2)
+
+plot(plt)
+```
+
+Now we zoom in on the x-axis to better see the differences in the smoothing.
+
+```{r smooth-signal-zoom}
+plot(plt, xlim=c(5800, 6100))
+```
+
+## Smoothing in 2D
+
+*Matter* also provides a family of 2D image smoothing methods that follow the naming scheme `filt2_*`:
+
+- `filt2_ma` performs moving average filtering
+
+- `filt2_conv` performs convolutional filtering with custom weights
+
+- `filt2_gauss` performs Gaussian filtering
+
+- `filt2_bi` performs bilateral filtering
+
+- `filt2_adapt` performs adaptive bilateral filtering
+
+- `filt2_diff` performs nonlinear diffusion filtering
+
+- `filt2_guide` performs guided filtering
+
+If a multichannel image is provided (e.g., a 3D array), then these functions will smooth each channel independently.
+
+We demonstrate the smoothing results on the `volcano` dataset with added noise:
+
+```{r smooth-image-sim}
+set.seed(1)
+img <- volcano + rnorm(length(volcano), sd=2.5)
+```
+
+```{r smooth-image}
+p1 <- plot_image(img)
+p2 <- plot_image(filt2_ma(img))
+p3 <- plot_image(filt2_gauss(img))
+p4 <- plot_image(filt2_bi(img))
+p5 <- plot_image(filt2_diff(img))
+p6 <- plot_image(filt2_guide(img))
+
+plt <- as_facets(list(
+    "Original"=p1,
+    "Moving average"=p2,
+    "Gaussian"=p3,
+    "Bilateral"=p4,
+    "Diffusion"=p5,
+    "Guided"=p6), nrow=3, ncol=2)
+
+plot(plt)
+```
+
+One of the major differences between the various smoothing methods is how well they preserve sharp edges.
+
+We use some simple simulated data to demonstrate this:
+
+```{r smooth-image-2}
+set.seed(1)
+dm <- c(64, 64)
+img <- array(rnorm(prod(dm)), dim=dm)
+i <- (dm[1] %/% 3):(2 * dm[1] %/% 3)
+j <- (dm[2] %/% 3):(2 * dm[2] %/% 3)
+img[i,] <- img[i,] + 2
+img[,j] <- img[,j] + 2
+
+p1 <- plot_image(img)
+p2 <- plot_image(filt2_ma(img))
+p3 <- plot_image(filt2_gauss(img))
+p4 <- plot_image(filt2_bi(img))
+p5 <- plot_image(filt2_diff(img))
+p6 <- plot_image(filt2_guide(img))
+
+plt <- as_facets(list(
+    "Original"=p1,
+    "Moving average"=p2,
+    "Gaussian"=p3,
+    "Bilateral"=p4,
+    "Diffusion"=p5,
+    "Guided"=p6), nrow=3, ncol=2)
+
+plot(plt)
+```
+
+## Smoothing using KNN
+
+A limited set of smoothing filters are also available for N-dimensional signals that have been nonuniformly sampled. For example, this could include spatial signals at arbitrary (non-gridded) locations or mass spectra with an ion mobility dimension.
+
+These follow the naming scheme `filtn_*` and include:
+
+- `filtn_ma` performs moving average filtering
+
+- `filtn_conv` performs convolutional filtering with custom weights
+
+- `filtn_gauss` performs Gaussian filtering
+
+- `filtn_bi` performs bilateral filtering
+
+- `filtn_adapt` performs adaptive bilateral filtering
+
+Because these smoothing functions rely on k-nearest-neighbor search to determine the smoothing windows, they are more computationally intensive than the standard 1D and 2D filters.
+
+
+
+# Contrast enhancement
+
+Contrast enhancement improves the contrast of an image. This can correct for hotspots caused by multiplicative variance.
+
+To demonstrate this, we will add multiplicative noise to the volcano dataset:
+
+```{r enhance-image-sim}
+set.seed(1)
+img <- volcano + rlnorm(length(volcano), sd=1.5)
+```
+
+Contrast enhancement functions follow the naming scheme `enhance_*` and includes:
+
+- `enhance_adj` adjusts contrast by clamping extreme values
+
+- `enhance_hist` performs histogram equalization
+
+- `enhance_adapt` performs contrast-limited adaptive histogram equalization (CLAHE)
+
+```{r enhance-image}
+p1 <- plot_image(img)
+p2 <- plot_image(enhance_adj(img))
+p3 <- plot_image(enhance_hist(img))
+p4 <- plot_image(enhance_adapt(img))
+
+plt <- as_facets(list(
+    "Original"=p1,
+    "Adjust"=p2,
+    "Histogram"=p3,
+    "CLAHE"=p4), nrow=2, ncol=2)
+
+plot(plt, scale=TRUE)
+```
+
+Using contrast enhancement can dramatically improve the visual interpretation of the image.
+
+Note that the contrast-limited adaptive histogram equalization (CLAHE) method is most useful when the required contrast correction is very different across different regions of the image, which is *not* the case here.
+
+
+
+# Rescaling (normalization)
+
+Rescaling the signal is often necessary for various normalization methods.
+
+Rescaling functions follow the naming scheme `rescale_*` and include:
+
+- `rescale_rms` rescales based on the root-mean-square of the signal
+
+- `rescale_sum` rescales based on the sum of (the absolute values of) the signal
+
+- `rescale_ref` rescales according to a specific sample (i.e., a reference value at a specific index)
+
+- `rescale_range` rescales the lower and upper limits of the signal values
+
+- `rescale_iqr` rescales the lower and upper limits of the signal values
+
+As they only rescale the signal we won't visualize these methods here.
+
+
+
+# Continuum estimation
+
+Continuum estimation is most commonly used to estimate a signal's baseline.
+
+```{r baseline-signal-sim}
+set.seed(1)
+s <- simspec(1, baseline=5, resolution=500)
+```
+
+Baseline estimation functions follow the naming scheme `estbase_*` and include:
+
+- `estbase_loc` interpolates the continuum from local extrema
+
+- `estbase_hull` estimates an upper or lower convex hull
+
+- `estbase_snip` performs sensitive nonlinear iterative peak clipping (SNIP)
+
+- `estbase_med` estimates the continuum form running medians
+
+We demonstrate baseline removal below:
+
+```{r baseline-signal}
+p1 <- plot_signal(s)
+p2 <- plot_signal(s - estbase_loc(s))
+p3 <- plot_signal(s - estbase_hull(s))
+p4 <- plot_signal(s - estbase_snip(s))
+
+plt <- as_facets(list(
+    "Original"=p1,
+    "Local minima"=p2,
+    "Convex hull"=p3,
+    "SNIP"=p4), nrow=2, ncol=2)
+
+plot(plt)
+```
+
+
+
+# Warping and alignment
+
+It is often necessary to warp signals to align their features (e.g., peaks) in the presence of variance in their observed domain values.
+
+This is necessary, for example, to recalibrate mass spectra with a large amount of mass error, or to co-register images across different image modalities.
+
+
+## Warping in 1D
+
+*Matter* provides a few signal warping functions that follow the naming scheme `warp1_*`:
+
+- `warp1_loc` performs warping based on local extrema
+
+- `warp1_dtw` performs dynamic time warping
+
+- `warp1_cow` performs correlation optimized warping
+
+These functions can be align two signals as shown below.
+
+First, we need to simulate some signals in need of alignment:
+
+```{r warp-signal-sim}
+set.seed(1)
+s <- simspec(8, sdx=5e-4)
+
+plot_signal(domain(s), s, by=NULL, group=1:8,
+    xlim=c(1250, 1450))
+```
+
+Next, we need to generate a reference signal to use when aligning all of the signals. We do this by calculating the mean signal and using it as the reference:
+
+```{r warp-signal}
+ref <- rowMeans(s)
+s2 <- apply(s, 2L, warp1_loc,
+    y=ref, events="max", tol=2e-3, tol.ref="y")
+
+plot_signal(domain(s), s2, by=NULL, group=1:8,
+    xlim=c(1250, 1450))
+```
+
+Note that signal warping can be quite sensitive to the tolerance (i.e., how much the signal is allowed to shift in either direction).
+
+
+## Warping in 2D
+
+A warping function for 2D images is also available.
+
+First, we need to generate images in need of co-registration:
+
+```{r warp-image-sim}
+img1 <- trans2d(volcano, rotate=15, translate=c(-5, 5))
+
+plot_image(list(volcano, img1))
+```
+
+Now, we can warp the transformed image to align it with the original image:
+
+```{r warp-image}
+img2 <- warp2_trans(img1, volcano)
+
+plot_image(list(volcano, img2))
+```
+
+Note that this is method is currently limited to affine transformations.
+
+
+
+
+# Peak processing
+
+*Matter* provides a family of functions for detecting peaks in a signal and processing peak lists from multiple signals.
+
+To demonstrate peak processing, we begin by simulating a signal.
+
+```{r peaks-sim}
+set.seed(1)
+s <- simspec(1)
+```
+
+
+## Local maxima
+
+A typical first step in peak processing is detection of local maxima to select peak candidates.
+
+### Local maxima in 1D
+
+The `locmax` and `locmin` functions perform detection of local extreme based on a sliding window approach.
+
+A sample is considered a local maximum if it is *greater* than all elements to its left within the window __and__ *greater than or equal to* all elements in the window to its right within the window.
+
+The default window has `width=5`:
+
+```{r locmax}
+i <- locmax(s)
+
+plot_signal(domain(s), s, xlim=c(900, 1100))
+lines(domain(s)[i], s[i], type="h", col="red")
+```
+
+Below we use a wider window with `width=15`.
+
+```{r locmax-wide}
+i <- locmax(s, width=15)
+
+plot_signal(domain(s), s, xlim=c(900, 1100))
+lines(domain(s)[i], s[i], type="h", col="red")
+```
+
+In a noisy signal, there will be many more local maxima than true peaks.
+
+### Local maxima using KNN
+
+For signals with multiple dimensions, the `knnmax` and `knnmin` functions perform detection of local extrema using k-nearest-neighbors.
+
+Below, we detect the local maxima in a simulated dataset:
+
+```{r knnmax-sim}
+set.seed(1)
+dm <- c(64, 64)
+img <- array(rnorm(prod(dm)), dim=dm)
+w <- 100 * dnorm(seq(-3, 3)) %o% dnorm(seq(-3, 3))
+img[1:7,1:7] <- img[1:7,1:7] + w
+img[11:17,11:17] <- img[11:17,11:17] + w
+img[21:27,21:27] <- img[21:27,21:27] + w
+img[21:27,41:47] <- img[21:27,41:47] + w
+img[51:57,31:37] <- img[51:57,31:37] + w
+img[41:47,51:57] <- img[41:47,51:57] + w
+
+plot_image(img)
+```
+
+```{r knnmax}
+coord <- expand.grid(lapply(dim(img), seq_len))
+
+i <- knnmax(img, index=coord, k=49)
+i <- which(i, arr.ind=TRUE)
+
+plot_image(img)
+points(i[,1], i[,2], pch=4, lwd=2, cex=2, col="red")
+```
+
+As in 1-dimension, there are many more local maxima than true peaks, but the true peaks (i.e., the bright spots) are detected.
+
+
+## Noise estimation
+
+To distinguish true peaks from false peaks, we need to estimate the noise level in the signal.
+
+*Matter* provides a variety of noise estimation functions that follow the naming scheme `estnoise_*`:
+
+- `estnoise_diff` estimates noise from the differences between the signal and its derivative
+
+- `estnoise_filt` uses dynamic filtering-based to distinguish between noise peaks and true peaks
+
+- `estnoise_sd` estimates noise from the standard deviation of the difference between a smoothed signal and the original signal
+
+- `estnoise_mad` estimates noise from the mean absolute deviation of the difference between a smoothed signal and the original signal
+
+- `estnoise_quant` estimates noise from a quantile of the difference between a smoothed signal and the original signal
+
+```{r noise-constant}
+p1 <- plot_signal(domain(s), s,
+    xlim=c(900, 1100), ylim=c(0, 15))
+
+p2 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_diff(s),
+    params=list(color="blue", linewidth=2))
+
+p3 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_filt(s),
+    params=list(color="blue", linewidth=2))
+
+p4 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_quant(s),
+    params=list(color="blue", linewidth=2))
+
+p5 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_sd(s),
+    params=list(color="blue", linewidth=2))
+
+p6 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_mad(s),
+    params=list(color="blue", linewidth=2))
+
+as_facets(list(
+    "Original"=p1,
+    "Difference"=p2,
+    "Filtering"=p3,
+    "Quantile"=p4,
+    "SD"=p5,
+    "MAD"=p6), nrow=3, ncol=2)
+```
+
+By default, a constant noise level is estimated for the entire signal domain. A variable noise level can be estimated for different regions of the signal by specifying the `nbins` argument.
+
+```{r noise-variable}
+p1 <- plot_signal(domain(s), s,
+    xlim=c(900, 1100), ylim=c(0, 15))
+
+p2 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_diff(s, nbins=20),
+    params=list(color="blue", linewidth=2))
+
+p3 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_filt(s, nbins=20),
+    params=list(color="blue", linewidth=2))
+
+p4 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_quant(s, nbins=20),
+    params=list(color="blue", linewidth=2))
+
+p5 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_sd(s, nbins=20),
+    params=list(color="blue", linewidth=2))
+
+p6 <- add_mark(p1, "lines",
+    x=domain(s), y=estnoise_mad(s, nbins=20),
+    params=list(color="blue", linewidth=2))
+
+as_facets(list(
+    "Original"=p1,
+    "Difference"=p2,
+    "Filtering"=p3,
+    "Quantile"=p4,
+    "SD"=p5,
+    "MAD"=p6), nrow=3, ncol=2)
+```
+
+
+
+## Peak detection
+
+The `findpeaks` function streamlines the process of peak detection. It detects local maxima using `locmax`, optionally estimates noise using a specified `estnoise_*` function, and optionally filters the peaks based on a signal-to-noise ratio threshold set via `snr`.
+
+```{r findpeaks-diff}
+i1 <- findpeaks(s, snr=3, noise="diff")
+
+p1a <- plot_signal(domain(s), s, group="Signal")
+p1b <- plot_signal(domain(s)[i1], s[i1], group="Peaks",
+    isPeaks=TRUE, annPeaks="circle")
+
+p1 <- as_layers(p1a, p1b)
+```
+
+```{r findpeaks-filt}
+i2 <- findpeaks(s, snr=3, noise="filt")
+
+p2a <- plot_signal(domain(s), s, group="Signal")
+p2b <- plot_signal(domain(s)[i2], s[i2], group="Peaks",
+    isPeaks=TRUE, annPeaks="circle")
+
+p2 <- as_layers(p2a, p2b)
+```
+
+```{r findpeaks-sd}
+i3 <- findpeaks(s, snr=3, noise="sd")
+
+p3a <- plot_signal(domain(s), s, group="Signal")
+p3b <- plot_signal(domain(s)[i3], s[i3], group="Peaks",
+    isPeaks=TRUE, annPeaks="circle")
+
+p3 <- as_layers(p3a, p3b)
+```
+
+```{r findpeaks-mad}
+i4 <- findpeaks(s, snr=3, noise="mad")
+
+p4a <- plot_signal(domain(s), s, group="Signal")
+p4b <- plot_signal(domain(s)[i4], s[i4], group="Peaks",
+    isPeaks=TRUE, annPeaks="circle")
+
+p4 <- as_layers(p4a, p4b)
+```
+
+```{r findpeaks}
+plt <- as_facets(list(
+    "Difference"=p1,
+    "Filtering"=p2,
+    "SD"=p3,
+    "MAD"=p4))
+
+plot(plt, xlim=c(1200, 1600))
+```
+
+Different noise estimation methods may have different sensitivity and specificity when detecting peaks in different kinds of signals.
+
+
+
+
+## Peak binning
+
+After detecting peaks from multiple signals, it is often necessary to determine whether two (or more) peaks correspond to the same feature or not. This is typically done by binning the peaks.
+
+For example, in the context of mass spectrometry, there is typically some small amount of error in the observed *m/z*-values of the peaks. Peak binning is necessary to know which peaks from different spectra refer to the same molecules.
+
+```{r binpeaks}
+set.seed(1)
+s <- simspec(4)
+
+peaklist <- apply(s, 2, findpeaks, snr=3)
+
+peaks <- binpeaks(peaklist)
+as.vector(peaks)
+```
+
+The peaks are binned to a `domain` that is automatically generated based on the range of the detected peaks (if `domain` is not explicitly specified).
+
+The bins of the `domain` are spaced according to a tolerance `tol`. If `tol` is not specified, then it is estimated as half of the median of the minimum gap between same-signal peaks.
+
+The value returned by `binpeaks` above are the binned peaks, as determined by the `domain` bins where at least one peak was observed. The per-signal peak locations are averaged within each bin to determine the final peak locations.
+
+## Peak merging
+
+After peak binning, there may still be some peaks that need to be merged.
+
+Whether this is necessary depends on the resolution of the bins that were used when binning the peaks. Higher resolution bins (preferred for the sake of accuracy) may require merging bins that are likely the same peak.
+
+
+```{r mergepeaks}
+peaks <- mergepeaks(peaks, tol=1)
+as.vector(peaks)
+```
+
+As can be seen above, the peaks that were binned at 1000 and 1001 previously have been merged into a single peak at 1000.75.
+
+Note that the number of observed peaks at each bin are preserved and used to calculate the new peak location, which is why the resulting peak is located at 1000.75 instead of 1000.5.
+
+
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```
+
+
+
