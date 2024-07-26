@@ -309,6 +309,49 @@ knnmin <- function(x, index, k = 5L)
 	y
 }
 
+findpeaks_knn <- function(x, index, k = 5L,
+	snr = NULL, noise = "quant", relheight = 0.005,
+	arr.ind = is.array(x), useNames = TRUE, ...)
+{
+	if ( missing(index) && is.array(x) )
+		index <- expand.grid(lapply(dim(x), seq_len))		
+	peaks <- which(knnmax(x, index=index, k=k))
+	ann <- data.frame(row.names=seq_along(peaks))
+	if ( isTRUE(relheight) || is.numeric(relheight) )
+	{
+		ann$relheight <- x[peaks] / max(x[peaks])
+		if ( is.numeric(relheight) )
+		{
+			# filter based on relative height if requested
+			keep <- ann$relheight >= relheight
+			peaks <- peaks[keep]
+			ann <- ann[keep,,drop=FALSE]
+		}
+	}
+	if ( isTRUE(snr) || is.numeric(snr) )
+	{
+		fn <- estnoise_fun(noise)
+		noise <- fn(x, index=index, ...)
+		ann$snr <- x[peaks] / noise[peaks]
+		if ( is.numeric(snr) )
+		{
+			# filter based on SNR
+			keep <- ann$snr >= snr
+			peaks <- peaks[keep]
+			ann <- ann[keep,,drop=FALSE]
+		}
+	}
+	if ( isTRUE(arr.ind) )
+	{
+		if ( is.null(dim(x)) )
+			stop("x must be an array when arr.ind=TRUE")
+		peaks <- arrayInd(peaks, dim(x), dimnames(x), useNames=useNames)
+	}
+	if ( length(ann) > 0L )
+		peaks <- set_attr(peaks, ann)
+	peaks
+}
+
 #### Colocalization coefficients ####
 ## ----------------------------------
 

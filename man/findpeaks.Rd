@@ -1,8 +1,8 @@
 \name{findpeaks}
 
+\alias{findpeaks}
 \alias{locmax}
 \alias{locmin}
-\alias{findpeaks}
 
 \title{Peak Detection}
 
@@ -17,10 +17,10 @@ findpeaks(x, width = 5L, prominence = NULL,
     relheight = 0.005, \dots)
 
 # Local maxima
-locmax(x, width = 5)
+locmax(x, width = 5L)
 
 # Local minima
-locmin(x, width = 5)
+locmin(x, width = 5L)
 }
 
 \arguments{
@@ -42,7 +42,7 @@ locmin(x, width = 5)
 }
 
 \details{
-    For \code{locmax()} and \code{locmin()}, a local extremum is defined as an element greater (or less) than all of the elements within \code{width / 2} elements to the left of it, and greater (or less) than or equal to all of the elements within \code{width / 2} elements to the right of it. That is, ties are resolved such that only the leftmost sample is considered the local maxima.
+    For \code{locmax()} and \code{locmin()}, a local extremum is defined as an element greater (or less) than all of the elements within \code{width / 2} elements to the left of it, and greater (or less) than or equal to all of the elements within \code{width / 2} elements to the right of it. That is, ties are resolved such that only the leftmost sample is considered the local extremum.
 
     For \code{findpeaks()}, the peaks are simply the local maxima of the signal. The peak boundaries are found by descending a local maximum until a local minimum is found on either side, using the same criteria as above. The peaks are optionally filtered based on their prominences.
 
@@ -50,7 +50,7 @@ locmin(x, width = 5)
 }
 
 \value{
-    For \code{locmax()} and \code{locmin()}, an logical vector indicating whether each element is a local maximum.
+    For \code{locmax()} and \code{locmin()}, an logical vector indicating whether each element is a local extremum.
 
     For \code{findpeaks()}, an integer vector giving the indices of the peaks, with attributes 'left_bounds' and 'right_bounds' giving the left and right boundaries of the peak as determined using the rule above.
 }
@@ -59,11 +59,12 @@ locmin(x, width = 5)
 
 \seealso{
     \code{\link{findpeaks_cwt}},
-    \code{\link{estnoise_diff}},
+    \code{\link{findpeaks_knn}},
     \code{\link{estnoise_quant}},
-    \code{\link{estnoise_filt}},
     \code{\link{estnoise_sd}},
     \code{\link{estnoise_mad}},
+    \code{\link{estnoise_diff}},
+    \code{\link{estnoise_filt}},
     \code{\link{peakwidths}},
     \code{\link{peakareas}},
     \code{\link{peakheights}},

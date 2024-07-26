@@ -402,6 +402,7 @@ export(
 	"enhance_adapt",
 	"knnmax",
 	"knnmin",
+	"findpeaks_knn",
 	"coscore",
 	"is_gridded",
 	"to_raster",

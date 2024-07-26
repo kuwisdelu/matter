@@ -232,6 +232,41 @@ test_that("knnmax", {
 
 })
 
+test_that("findpeaks (knn)", {
+
+	y <- c(
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0,
+		0, 0, 0, 2, 0, 0, 1, 4, 2, 0, 1, 1, 0, 0, 0,
+		0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 3, 2, 1, 0, 0,
+		0, 0, 0, 0, 1, 3, 3, 0, 0, 1, 4, 4, 3, 1, 0,
+		0, 0, 0, 0, 0, 3, 2, 0, 1, 0, 3, 2, 3, 0, 0,
+		0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 2, 2, 3, 0, 0)
+	
+	x <- matrix(y, nrow=7, ncol=15, byrow=TRUE)
+
+	p1 <- findpeaks_knn(x, k=5)
+	
+	expect_equal(nrow(p1), 6)
+	expect_equal(p1[,"row"], c(3, 5, 3, 6, 5, 2))
+	expect_equal(p1[,"col"], c(4, 6, 8, 9, 11, 14))
+
+	expect_equal(attr(p1, "relheight"), x[p1] / max(x))
+
+	ind <- matrix(seq_along(x), nrow=nrow(x), ncol=ncol(x))
+
+	co <- expand.grid(t1=1:nrow(x), t2=1:ncol(x))
+	p2 <- findpeaks_knn(as.vector(x), co, k=5)
+
+	expect_equal(p2[1L], ind[3, 4])
+	expect_equal(p2[2L], ind[5, 6])
+	expect_equal(p2[3L], ind[3, 8])
+	expect_equal(p2[4L], ind[6, 9])
+	expect_equal(p2[5L], ind[5, 11])
+	expect_equal(p2[6L], ind[2, 14])
+
+})
+
 test_that("rasterization", {
 
 	set.seed(1, kind="default")

@@ -1,16 +1,4 @@
 
-#### Wavelets and Kernels ####
-## ---------------------------
-
-ricker <- function(n, a = 1)
-{
-	x <- seq(-n, n, length.out=n) / 2
-	C <- 2 / (sqrt(3 * a) * pi^(0.25))
-	m <- (1 - (x / a)^2)
-	g <- exp(-(x / a)^2 / 2)
-	C * m * g
-}
-
 #### Filtering and Smoothing ####
 ## -----------------------------
 
@@ -1055,7 +1043,7 @@ findpeaks <- function(x, width = 5L, prominence = NULL,
 		}
 	}
 	if ( length(ann) > 0L )
-		attributes(peaks) <- ann
+		peaks <- set_attr(peaks, ann)
 	peaks
 }
 
@@ -1104,7 +1092,7 @@ findpeaks_cwt <- function(x, snr = 2, wavelet = ricker, scales = NULL,
 		ann$left_bounds <- bounds[[1L]] + 1L
 		ann$right_bounds <- bounds[[2L]] + 1L
 	}
-	attributes(peaks) <- ann
+	peaks <- set_attr(peaks, ann)
 	peaks
 }
 
@@ -1185,6 +1173,15 @@ findridges <- function(x, maxdists, ngaps)
 	outridges
 }
 
+ricker <- function(n, a = 1)
+{
+	x <- seq(-n, n, length.out=n) / 2
+	C <- 2 / (sqrt(3 * a) * pi^(0.25))
+	m <- (1 - (x / a)^2)
+	g <- exp(-(x / a)^2 / 2)
+	C * m * g
+}
+
 cwt <- function(x, wavelet = ricker, scales = NULL)
 {
 	if ( is.null(scales) )
@@ -1262,6 +1259,7 @@ peakwidths <- function(x, peaks, domain = NULL,
 	ann$left_ips <- thresholds[[1L]]
 	ann$right_ips <- thresholds[[2L]]
 	widths <- ann$right_ips - ann$left_ips
+	widths <- set_attr(widths, ann)
 	attributes(widths) <- ann
 	widths
 }
