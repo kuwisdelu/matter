@@ -300,6 +300,10 @@ setMethod("preview_for_display", "matter_arr", function(x) {
 	}
 })
 
+setMethod("vm_realized", "matter_arr", function(x) {
+	size_bytes(sum(length(x) * sizeof(type(x)), na.rm=TRUE))
+})
+
 subset_matter_arr_elts <- function(x, i = NULL)
 {
 	if ( x@transpose ) {

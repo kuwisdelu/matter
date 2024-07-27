@@ -6,6 +6,7 @@
 	options(
 		matter.compress.atoms = 3,
 		matter.default.nchunks = 20L,
+		matter.default.chunksize = NA_real_,
 		matter.default.verbose = FALSE,
 		matter.matmul.bpparam = NULL,
 		matter.show.head = TRUE,
@@ -998,7 +999,11 @@ format.size_bytes <- function(x, units = "auto", ...)
 {
 	units <- match.arg(units, c("auto",
 		"B", "KB", "MB", "GB", "TB", "PB"))
-	mx <- max(x, na.rm=TRUE)
+	if ( all(is.na(x)) ) {
+		mx <- NA_real_
+	} else {
+		mx <- max(x, na.rm=TRUE)
+	}
 	if ( units == "auto" )
 		units <- if ( is.na(mx) )
 			" "

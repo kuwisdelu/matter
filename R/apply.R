@@ -55,19 +55,19 @@ chunk_apply <- function(X, MARGIN, FUN, ...)
 }
 
 chunk_rowapply <- function(X, FUN, ...,
-	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
+	simplify = "c", depends = NULL, RNG = FALSE,
+	nchunks = NA, chunksize = NA, verbose = NA,
+	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
 	if ( is.null(dim(X)) || length(dim(X)) != 2L )
 		stop("X must have exactly 2 dimensions")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_mat(X, margin=1L, nchunks=nchunks, depends=depends)
+	CHUNKS <- chunked_mat(X, margin=1L, depends=depends,
+		nchunks=nchunks, chunksize=chunksize)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -80,19 +80,19 @@ chunk_rowapply <- function(X, FUN, ...,
 }
 
 chunk_colapply <- function(X, FUN, ...,
-	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
+	simplify = "c", depends = NULL, RNG = FALSE,
+	nchunks = NA, chunksize = NA, verbose = NA,
+	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
 	if ( is.null(dim(X)) || length(dim(X)) != 2L )
 		stop("X must have exactly 2 dimensions")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_mat(X, margin=2L, nchunks=nchunks, depends=depends)
+	CHUNKS <- chunked_mat(X, margin=2L, depends=depends,
+		nchunks=nchunks, chunksize=chunksize)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -142,17 +142,17 @@ chunkLapply <- function(X, FUN, ...,
 }
 
 chunk_lapply <- function(X, FUN, ...,
-	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
+	simplify = "c", depends = NULL, RNG = FALSE,
+	nchunks = NA, chunksize = NA, verbose = NA,
+	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_vec(X, nchunks=nchunks, depends=depends)
+	CHUNKS <- chunked_vec(X, depends=depends,
+		nchunks=nchunks, chunksize=chunksize)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -202,17 +202,17 @@ chunkMapply <- function(FUN, ...,
 }
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
-	simplify = "c", nchunks = NA, depends = NULL,
-	verbose = NA, RNG = FALSE, BPPARAM = bpparam())
+	simplify = "c", depends = NULL, RNG = FALSE,
+	nchunks = NA, chunksize = NA, verbose = NA,
+	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_list(..., nchunks=nchunks, depends=depends)
+	CHUNKS <- chunked_list(..., depends=depends,
+		nchunks=nchunks, chunksize=chunksize)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -323,9 +323,10 @@ chunk_writer <- function(id, path) {
 }
 
 print_chunk_progress <- function(X) {
+	size <- format(size_bytes(object.size(X)))
 	message("processing chunk ",
 		attr(X, "chunkid"), "/", attr(X, "nchunks"),
-		" (", attr(X, "chunksize"), " items)")
+		" (", attr(X, "chunksize"), " items | ", size, ")")
 }
 
 has_progressbar <- function(BPPARAM) {

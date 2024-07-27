@@ -106,6 +106,10 @@ setMethod("rowMaj", "Matrix", function(x) {
 setGeneric("describe_for_display", function(x) standardGeneric("describe_for_display"))
 setGeneric("preview_for_display", function(x) standardGeneric("preview_for_display"))
 setGeneric("vm_used", function(x) standardGeneric("vm_used"))
+setGeneric("vm_realized", function(x) standardGeneric("vm_realized"))
+setMethod("vm_realized", "ANY", function(x) {
+	size_bytes(sum(mem(x), na.rm=TRUE))
+})
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------

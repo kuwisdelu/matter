@@ -179,6 +179,10 @@ setMethod("describe_for_display", "matter_list", function(x) {
 
 setMethod("preview_for_display", "matter_list", function(x) preview_list(x))
 
+setMethod("vm_realized", "matter_list", function(x) {
+	size_bytes(sum(lengths(x) * sizeof(type(x)), na.rm=TRUE))
+})
+
 subset_matter_list_elt <- function(x, i = NULL)
 {
 	if ( length(i) != 1 )

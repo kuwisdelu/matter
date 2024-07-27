@@ -88,25 +88,39 @@ setMethod("[",
 		}
 	})
 
-chunked_vec <- function(x, nchunks = NA,
-	depends = NULL, drop = FALSE)
+chunked_vec <- function(x, depends = NULL,
+	nchunks = NA, chunksize = NA, drop = FALSE)
 {
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
+	if ( is.na(chunksize) )
+		chunksize <- getOption("matter.default.chunksize")
+	if ( is.na(nchunks) ) {
+		if ( is.finite(chunksize) && chunksize > 0 ) {
+			nchunks <- ceiling(unclass(vm_realized(x)) / chunksize)
+		} else {
+			nchunks <- getOption("matter.default.nchunks")
+		}
+	}
 	index <- chunkify(seq_along(x), nchunks=nchunks, depends=depends)
 	new("chunked_vec", data=x,
 		index=index, drop=drop)
 }
 
-chunked_mat <- function(x, margin, nchunks = NA,
-	depends = NULL, drop = FALSE)
+chunked_mat <- function(x, margin, depends = NULL,
+	nchunks = NA, chunksize = NA, drop = FALSE)
 {
 	if ( length(dim(x)) != 2L )
 		stop("'x' must have exactly 2 dimensions")
 	if ( !margin %in% c(1L, 2L) )
 		stop("'margin' must be 1 or 2")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
+	if ( is.na(chunksize) )
+		chunksize <- getOption("matter.default.chunksize")
+	if ( is.na(nchunks) ) {
+		if ( is.finite(chunksize) && chunksize > 0 ) {
+			nchunks <- ceiling(unclass(vm_realized(x)) / chunksize)
+		} else {
+			nchunks <- getOption("matter.default.nchunks")
+		}
+	}
 	margin <- as.integer(margin)
 	index <- switch(margin,
 		chunkify(seq_len(nrow(x)), nchunks=nchunks, depends=depends),
@@ -115,8 +129,8 @@ chunked_mat <- function(x, margin, nchunks = NA,
 		index=index, drop=drop)
 }
 
-chunked_list <- function(..., nchunks = NA,
-	depends = NULL, drop = FALSE)
+chunked_list <- function(..., depends = NULL,
+	nchunks = NA, chunksize = NA, drop = FALSE)
 {
 	xs <- list(...)
 	if ( length(xs) > 1L ) {
@@ -130,8 +144,15 @@ chunked_list <- function(..., nchunks = NA,
 			xs <- lapply(xs, rep_len, length.out=max.len)
 		}
 	}
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
+	if ( is.na(chunksize) )
+		chunksize <- getOption("matter.default.chunksize")
+	if ( is.na(nchunks) ) {
+		if ( is.finite(chunksize) && chunksize > 0 ) {
+			nchunks <- ceiling(unclass(vm_realized(x)) / chunksize)
+		} else {
+			nchunks <- getOption("matter.default.nchunks")
+		}
+	}
 	index <- chunkify(seq_along(xs[[1L]]), nchunks=nchunks, depends=depends)
 	new("chunked_list", data=xs,
 		index=index, drop=drop)

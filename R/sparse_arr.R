@@ -328,6 +328,12 @@ setMethod("vm_used", "sparse_arr", function(x) {
 	size_bytes(sum(c(vm_index, vm_data), na.rm=TRUE))
 })
 
+setMethod("vm_realized", "sparse_arr", function(x) {
+	vm_index <- vm_realized(atomindex(x))
+	vm_data <- vm_realized(atomdata(x))
+	size_bytes(sum(c(vm_index, vm_data), na.rm=TRUE))
+})
+
 setMethod("atomdata", "sparse_arr",
 	function(object, i = NULL, ...)
 	{
