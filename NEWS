@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.7.4 [2024-7-27]
+------------------------------------
+
+NEW FEATURES
+
+    o Add getOption("matter.default.chunksize") for setting
+        the approximate size of chunks in bytes
+
 CHANGES IN VERSION 2.7.3 [2024-7-26]
 ------------------------------------
 

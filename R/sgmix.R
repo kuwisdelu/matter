@@ -351,12 +351,10 @@ logLik.sgmix <- function(object, ...)
 }
 
 sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( is.list(vals) ) {
 		n <- length(vals)
 	} else if ( length(dim(vals)) == 2L ) {
@@ -369,14 +367,12 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	margin <- if (byrow) 1L else 2L
 	if ( is.list(vals) ) {
 		ans <- chunkLapply(vals, sgmix_int,
-			x=x, y=y, r=r, k=k, ...,
-			nchunks=nchunks, verbose=verbose,
-			RNG=TRUE, BPPARAM=BPPARAM)
+			x=x, y=y, r=r, k=k, verbose=verbose, RNG=TRUE,
+			BPPARAM=BPPARAM, ...)
 	} else {
 		ans <- chunkApply(vals, margin, sgmix_int,
-			x=x, y=y, r=r, k=k, ...,
-			nchunks=nchunks, verbose=verbose,
-			RNG=TRUE, BPPARAM=BPPARAM)
+			x=x, y=y, r=r, k=k, verbose=verbose, RNG=TRUE,
+			BPPARAM=BPPARAM, ...)
 	}
 	group <- ans[[1L]]$group
 	loglik <- simplify2array(lapply(ans, `[[`, "logLik"))

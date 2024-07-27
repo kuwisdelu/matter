@@ -14,15 +14,18 @@
 \usage{
 # FastMap projection
 fastmap(x, k = 3L, distfun = NULL,
-	transpose = FALSE, niter = 3L, verbose = NA, \dots)
+	transpose = FALSE, niter = 3L, verbose = NA,
+	BPPARAM = bpparam(), \dots)
 
 \S3method{predict}{fastmap}(object, newdata, \dots)
 
 # Distance functionals
 rowDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
+	verbose = NA, nchunks = NA, chunksize = NA,
+	BPPARAM = bpparam(), \dots)
 colDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
+	verbose = NA, nchunks = NA, chunksize = NA,
+	BPPARAM = bpparam(), \dots)
 }
 
 \arguments{
@@ -39,6 +42,8 @@ colDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
 	\item{verbose}{Should progress be printed for each iteration?}
 
 	\item{nchunks}{The number of chunks to use.}
+
+	\item{chunksize}{The approximate chunk size in bytes.}
 
 	\item{\dots}{Additional options passed to \code{distfun}.}
 

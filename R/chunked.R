@@ -61,26 +61,22 @@ setMethod("[",
 		if ( ...length() > 0 )
 			stop("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
+		if ( is.null(i) )
+			i <- seq_along(x)
 		if ( is_null_or_na(drop) ) {
-			if ( is.null(i) ) {
-				if ( is.null(dim(x@data)) ) {
-					new(class(x),
-						data=x@data,
-						index=x@index[i],
-						drop=x@drop)
-				} else {
-					new(class(x),
-						data=x@data,
-						index=x@index[i],
-						drop=x@drop,
-						margin=x@margin)
-				}
+			if ( is.null(dim(x@data)) ) {
+				new(class(x),
+					data=x@data,
+					index=x@index[i],
+					drop=x@drop)
 			} else {
-				x
+				new(class(x),
+					data=x@data,
+					index=x@index[i],
+					drop=x@drop,
+					margin=x@margin)
 			}
 		} else {
-			if ( is.null(i) )
-				i <- seq_along(x)
 			ans <- vector("list", length(i))
 			for ( j in seq_along(i) )
 				ans[[j]] <- x[[i[j]]]
@@ -148,7 +144,7 @@ chunked_list <- function(..., depends = NULL,
 		chunksize <- getOption("matter.default.chunksize")
 	if ( is.na(nchunks) ) {
 		if ( is.finite(chunksize) && chunksize > 0 ) {
-			nchunks <- ceiling(unclass(vm_realized(x)) / chunksize)
+			nchunks <- ceiling(unclass(vm_realized(xs)) / chunksize)
 		} else {
 			nchunks <- getOption("matter.default.nchunks")
 		}

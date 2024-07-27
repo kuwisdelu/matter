@@ -22,7 +22,7 @@ sgmix(x, y, vals, r = 1, k = 2, group = NULL,
 
 # Multiple spatial Gaussian mixture models
 sgmixn(x, y, vals, r = 1, k = 2, byrow = FALSE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 
 \S3method{fitted}{sgmix}(object, type = c("mu", "sigma", "class"), \dots)
 
@@ -57,8 +57,6 @@ sgmixn(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	\item{byrow}{If \code{vals} is a matrix, should its rows or columns be plotted?}
 
 	\item{verbose}{Should progress be printed for each iteration?}
-
-	\item{nchunks}{The number of chunks to use.}
 
 	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 

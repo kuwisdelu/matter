@@ -16,7 +16,7 @@ setMethod("prcomp", "sparse_mat",
 
 prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	center = TRUE, scale. = FALSE, transpose = FALSE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( "n" %in% ...names() ) {
 		warning("'n' is deprecated; use 'k' instead")
@@ -24,8 +24,6 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	}
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	k <- min(max(k), dim(x))
 	# center and scale x
 	if ( verbose && (!isFALSE(center) || !isFALSE(scale.)) ) {
@@ -39,12 +37,12 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	}
 	if ( transpose ) {
 		x <- rowscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(x, "row-scaled:center")
 		scale <- attr(x, "row-scaled:scale")
 	} else {
 		x <- colscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 	}
@@ -52,7 +50,7 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 		message("fitting principal components via IRLBA")
 	# calculate PCA via SVD
 	j <- seq_len(k)
-	s <- irlba(x, nu=k, nv=k, fastpath=is.matrix(x), verbose=verbose, ...)
+	s <- irlba(x, nu=k, nv=k, fastpath=is.matrix(x), verbose=verbose)
 	if ( transpose ) {
 		ans <- list(sdev = s$d / sqrt(max(1, ncol(x) - 1)))
 		names(ans$sdev) <- paste0("PC", j)
@@ -92,7 +90,7 @@ print.prcomp_lanczos <- function(x, print.x = FALSE, ...)
 	cat(sprintf("Principal components (k=%d)\n", ncol(x$x)))
 	if ( !is.null(x$sdev) ) {
 		cat(sprintf("\nStandard deviations (1, .., k=%d):\n", length(x$sdev)))
-	    preview_vector(x$sdev, ...)
+		preview_vector(x$sdev, ...)
 	}
 	d <- dim(x$rotation)
 	cat(sprintf("\nRotation (n x k) = (%d x %d):\n", d[1L], d[2L]))

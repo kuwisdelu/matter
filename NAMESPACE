@@ -94,6 +94,8 @@ importFrom("irlba",
 	"irlba")
 
 importFrom("parallel",
+	"makeCluster",
+	"stopCluster",
 	"nextRNGStream",
 	"nextRNGSubStream")
 
@@ -584,5 +586,7 @@ export(
 	"parse_formula",
 	"eval_at",
 	"eval_exprs")
+
+export("SnowfastParam")
 
 useDynLib("matter", .registration=TRUE, .fixes="C_")

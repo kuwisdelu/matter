@@ -3,7 +3,8 @@
 ## -------------------------
 
 fastmap <- function(x, k = 3L, distfun = NULL,
-	transpose = FALSE, niter = 3L, verbose = NA, ...)
+	transpose = FALSE, niter = 3L, verbose = NA,
+	BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -23,7 +24,7 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		dimnames=list(snames, paste0("C", j)))
 	pivots <- matrix(nrow=k, ncol=3L,
 		dimnames=list(paste0("C", j), c("p1", "p2", "dist")))
-	fx <- distfun(x, x, ...)
+	fx <- distfun(x, x, verbose=verbose, ..., BPPARAM=BPPARAM)
 	for ( i in j )
 	{
 		if ( verbose )
@@ -93,7 +94,7 @@ print.fastmap <- function(x, print.x = FALSE, ...)
 	cat(sprintf("FastMap (k=%d)\n", ncol(x$x)))
 	if ( !is.null(x$sdev) ) {
 		cat(sprintf("\nStandard deviations (1, .., k=%d):\n", length(x$sdev)))
-	    preview_vector(x$sdev, ...)
+		preview_vector(x$sdev, ...)
 	}
 	if ( print.x && !is.null(x$x) ) {
 		cat("\nProjected variables:\n")
@@ -151,25 +152,25 @@ predict.fastmap <- function(object, newdata, ...)
 }
 
 rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, nchunks = NA, chunksize=NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
 		if ( isTRUE(verbose) )
 			message("calculating distances from index: ", paste0(i, collapse=" "))
 		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
-			verbose=verbose, nchunks=nchunks,
+			verbose=verbose, nchunks=nchunks, chunksize=chunksize,
 			BPPARAM=BPPARAM)
 	}
 }
 
 colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, nchunks = NA, chunksize=NA, BPPARAM = bpparam(), ...)
 {
 	function(i) {
 		if ( isTRUE(verbose) )
 			message("calculating distances from index: ", paste0(i, collapse=" "))
 		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
-			verbose=verbose, nchunks=nchunks,
+			verbose=verbose, nchunks=nchunks, chunksize=chunksize,
 			BPPARAM=BPPARAM)
 	}
 }

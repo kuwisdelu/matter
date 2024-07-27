@@ -92,6 +92,13 @@
 \alias{vm_used,matter_-method}
 \alias{vm_used,sparse_arr-method}
 
+\alias{vm_realized}
+\alias{vm_realized,ANY-method}
+\alias{vm_realized,matter_arr-method}
+\alias{vm_realized,matter_list-method}
+\alias{vm_realized,matter_str-method}
+\alias{vm_realized,sparse_arr-method}
+
 \title{Internal Utilities for ``matter'' Package}
 
 \description{

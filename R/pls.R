@@ -5,12 +5,10 @@
 # NIPALS
 pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-5,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	x <- as_real_memory_matrix(x)
 	k <- min(max(k), dim(x))
 	# center and scale x and y
@@ -20,7 +18,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
 	y <- colscale(y, center=center, scale=scale.,
-		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		verbose=verbose, BPPARAM=BPPARAM, ...)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -29,7 +27,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- rownames(x)
 		snames <- colnames(x)
 		xt <- rowscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xt0 <- xt
@@ -39,7 +37,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- colnames(x)
 		snames <- rownames(x)
 		x <- colscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
@@ -143,12 +141,10 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 # SIMPLS
 pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, method = 1L, retscores = TRUE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
 	if ( verbose && (center || scale.) )
@@ -157,7 +153,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
 	y <- colscale(y, center=center, scale=scale.,
-		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		verbose=verbose, BPPARAM=BPPARAM, ...)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -166,7 +162,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- rownames(x)
 		snames <- colnames(x)
 		xt <- rowscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xy <- xt %*% y
@@ -176,7 +172,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- colnames(x)
 		snames <- rownames(x)
 		x <- colscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		xy <- crossprod(x, y)
@@ -275,12 +271,10 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 # Kernel (#1 and #2)
 pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, method = 1L, retscores = TRUE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
 	if ( verbose && (center || scale.) )
@@ -289,7 +283,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
 	y <- colscale(y, center=center, scale=scale.,
-		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		verbose=verbose, BPPARAM=BPPARAM, ...)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -298,7 +292,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- rownames(x)
 		snames <- colnames(x)
 		xt <- rowscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xy <- xt %*% y
@@ -310,7 +304,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- colnames(x)
 		snames <- rownames(x)
 		x <- colscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		xy <- crossprod(x, y)
@@ -521,7 +515,7 @@ print.pls <- function(x, ...)
 	cat(sprintf("Partial least squares (k=%d)\n", ncol(x$loadings)))
 	if ( !is.null(x$cvar) ) {
 		cat(sprintf("\nCovariances (1, .., k=%d):\n", length(x$cvar)))
-	    preview_vector(x$cvar, ...)
+		preview_vector(x$cvar, ...)
 	}
 	if ( !is.null(coef(x)) ) {
 		cat("\nCoefficients:\n")
@@ -558,12 +552,10 @@ vip <- function(object, type = c("projection", "weights"))
 # NIPALS
 opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	transpose = FALSE, niter = 100L, tol = 1e-9, regression = TRUE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	y_in <- y
 	x <- as_real_memory_matrix(x)
 	k <- min(max(k), dim(x))
@@ -574,7 +566,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
 	y <- colscale(y, center=center, scale=scale.,
-		verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+		verbose=verbose, BPPARAM=BPPARAM, ...)
 	y.center <- attr(y, "col-scaled:center")
 	y.scale <- attr(y, "col-scaled:scale")
 	if ( transpose ) {
@@ -583,7 +575,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- rownames(x)
 		snames <- colnames(x)
 		xt <- rowscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(xt, "row-scaled:center")
 		scale <- attr(xt, "row-scaled:scale")
 		xt0 <- xt
@@ -593,7 +585,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		pnames <- colnames(x)
 		snames <- rownames(x)
 		x <- colscale(x, center=center, scale=scale.,
-			verbose=verbose, nchunks=nchunks, BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 		x0 <- x
@@ -663,8 +655,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 				regressions[[i]] <- pls_nipals(xt, y=y_in, k=1L,
 					center=FALSE, scale.=FALSE,
 					transpose=TRUE, niter=niter, tol=tol,
-					nchunks=nchunks, verbose=verbose,
-					BPPARAM=BPPARAM, ...)
+					verbose=verbose, BPPARAM=BPPARAM, ...)
 			}
 		} else {
 			p <- crossprod(x, t) / tt
@@ -681,8 +672,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 				regressions[[i]] <- pls_nipals(x, y=y_in, k=1L,
 					center=FALSE, scale.=FALSE,
 					transpose=FALSE, niter=niter, tol=tol,
-					nchunks=nchunks, verbose=verbose,
-					BPPARAM=BPPARAM, ...)
+					verbose=verbose, BPPARAM=BPPARAM, ...)
 			}
 		}
 		weights[,i] <- wo
@@ -814,8 +804,8 @@ print.opls <- function(x, print.x = FALSE, ...)
 {
 	cat(sprintf("Orthogonal partial least squares (k=%d)\n", ncol(x$loadings)))
 	cat(sprintf("\nComponent ratios (1, .., k=%d):\n", length(x$ratio)))
-    preview_vector(x$ratio, ...)
-    if ( print.x && !is.null(x$x) ) {
+	preview_vector(x$ratio, ...)
+	if ( print.x && !is.null(x$x) ) {
 		cat("\nProcessed variables:\n")
 		preview_matrix(x$x, ...)
 	}

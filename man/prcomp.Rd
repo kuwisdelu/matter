@@ -19,7 +19,7 @@
 
 prcomp_lanczos(x, k = 3L, retx = TRUE,
     center = TRUE, scale. = FALSE, transpose = FALSE,
-    verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
+    verbose = NA, BPPARAM = bpparam(), \dots)
 }
 
 \arguments{
@@ -37,9 +37,7 @@ prcomp_lanczos(x, k = 3L, retx = TRUE,
 
     \item{verbose}{Should progress messages be printed?}
 
-    \item{nchunks}{The number of chunks to use (for centering and scaling only).}
-
-    \item{\dots}{Additional options passed to \code{\link[irlba]{irlba}} or \code{prcomp_lanczos}.}
+    \item{\dots}{Additional options passed to \code{\link{rowStats}} or \code{colStats}.}
 
     \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}. Currently only used for centering and scaling. Use \code{options(matter.matmul.bpparam=TRUE)} to enable parallel matrix multiplication for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} matrices.}
 }

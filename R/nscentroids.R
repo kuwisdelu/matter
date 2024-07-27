@@ -4,12 +4,10 @@
 
 nscentroids <- function(x, y, s = 0, distfun = NULL,
 	priors = table(y), center = NULL, transpose = FALSE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( is.null(distfun) )
 		distfun <- if (transpose) colDistFun else rowDistFun
 	y <- as.factor(y)
@@ -23,12 +21,10 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 			message("calculating global centroid")
 		if ( transpose ) {
 			center <- rowStats(x, stat="mean", na.rm=TRUE,
-				nchunks=nchunks, verbose=FALSE,
-				BPPARAM=BPPARAM)
+				verbose=verbose, BPPARAM=BPPARAM, ...)
 		} else {
 			center <- colStats(x, stat="mean", na.rm=TRUE,
-				nchunks=nchunks, verbose=FALSE,
-				BPPARAM=BPPARAM)
+				verbose=verbose, BPPARAM=BPPARAM, ...)
 		}
 	}
 	# calculate class centroids
@@ -36,12 +32,10 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		message("calculating class centroids")
 	if ( transpose ) {
 		centers <- rowStats(x, stat="mean", group=y, na.rm=TRUE,
-			nchunks=nchunks, verbose=FALSE,
-			BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 	} else {
 		centers <- colStats(x, stat="mean", group=y, na.rm=TRUE,
-			nchunks=nchunks, verbose=FALSE,
-			BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.matrix(centers) ) {
 		centers <- as.matrix(centers)
@@ -53,13 +47,11 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 	if ( transpose ) {
 		xc <- rowsweep(x, STATS=centers, group=y)
 		wcss <- rowStats(xc^2, stat="sum", group=y, na.rm=TRUE,
-			nchunks=nchunks, verbose=FALSE,
-			BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 	} else {
 		xc <- colsweep(x, STATS=centers, group=y)
 		wcss <- colStats(xc^2, stat="sum", group=y, na.rm=TRUE,
-			nchunks=nchunks, verbose=FALSE,
-			BPPARAM=BPPARAM)
+			verbose=verbose, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.matrix(wcss) ) {
 		wcss <- as.matrix(wcss)
@@ -86,10 +78,10 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 			warning("model is fully sparse; 's' is too large")
 		if ( transpose ) {
 			fx <- distfun(s_centers, x, weights=1 / (sd + s0)^2,
-				nchunks=nchunks, BPPARAM=BPPARAM, ...)
+				BPPARAM=BPPARAM, ...)
 		} else {
 			fx <- distfun(t(s_centers), x, weights=1 / (sd + s0)^2,
-				nchunks=nchunks, BPPARAM=BPPARAM, ...)
+				BPPARAM=BPPARAM, ...)
 		}
 		ds <- fx(seq_len(k))
 		if ( !is.matrix(ds) ) {

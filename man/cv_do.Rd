@@ -15,7 +15,8 @@ cv_do(fit., x, y, folds, \dots,
 	predict. = predict, transpose = FALSE, keep.models = TRUE,
 	trainProcess = NULL, trainArgs = list(),
 	testProcess = NULL, testArgs = list(),
-	verbose = NA, nchunks = NA, BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, chunksize = NA,
+	BPPARAM = bpparam())
 
 \S3method{fitted}{cv}(object, type = c("response", "class"),
 	simplify = TRUE, \dots)
@@ -49,6 +50,8 @@ cv_do(fit., x, y, folds, \dots,
 	\item{verbose}{Should progress be printed for each iteration?}
 
 	\item{nchunks}{The number of chunks to use. \emph{Passed} to \code{fit.}, \code{predict.}, \code{trainProcess} and \code{testProcess}.}
+
+	\item{chunksize}{The approximate chunk size in bytes. \emph{Passed} to \code{fit.}, \code{predict.}, \code{trainProcess} and \code{testProcess}.}
 
 	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}. \emph{Passed} to \code{fit.}, \code{predict.}, \code{trainProcess} and \code{testProcess}.}
 

@@ -19,7 +19,7 @@ Collate: matterGenerics.R utils.R drle.R
 	apply.R rowDists.R rowStats.R stats.R scale.R
 	nscentroids.R sgmix.R nnmf.R fastmap.R
 	prcomp.R pls.R signal.R signal2.R cv.R
-	mi_learn.R altrep.R plot.R vizi.R
+	mi_learn.R altrep.R snow.R plot.R vizi.R
 biocViews: Infrastructure, DataRepresentation, DataImport,
 	DimensionReduction, Preprocessing
 URL: https://github.com/kuwisdelu/matter

@@ -15,7 +15,7 @@
 # Nearest shrunken centroids
 nscentroids(x, y, s = 0, distfun = NULL,
 	priors = table(y), center = NULL, transpose = FALSE,
-	verbose = NA, nchunks = NA, BPPARAM = bpparam(), \dots)
+	verbose = NA, BPPARAM = bpparam(), \dots)
 
 \S3method{fitted}{nscentroids}(object, type = c("response", "class"), \dots)
 
@@ -38,11 +38,9 @@ nscentroids(x, y, s = 0, distfun = NULL,
 
 	\item{center}{An optional vector giving the pre-calculated global centroid.}
 
-    \item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and storing the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
+	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and storing the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
 	\item{verbose}{Should progress be printed for each iteration? \emph{Not} passed to \code{distfun}.}
-
-	\item{nchunks}{The number of chunks to use (for centering and scaling only). \emph{Passed} to \code{distfun}.}
 
 	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}. \emph{Passed} to \code{distfun}.}
 

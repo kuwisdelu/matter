@@ -7,12 +7,11 @@ cv_do <- function(fit., x, y, folds, ...,
 	predict. = predict, transpose = FALSE, keep.models = TRUE,
 	trainProcess = NULL, trainArgs = list(),
 	testProcess = NULL, testArgs = list(),
-	verbose = NA, nchunks = NA, BPPARAM = bpparam())
+	verbose = NA, nchunks = NA, chunksize = NA,
+	BPPARAM = bpparam())
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.na(nchunks) )
-		nchunks <- getOption("matter.default.nchunks")
 	if ( NCOL(y) > 1L )
 		stop("matrix response 'y' not supported")
 	folds <- as.factor(folds)
@@ -74,7 +73,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		if ( is.function(trainProcess) ) {
 			if ( verbose )
 				message("# pre-processing training data")
-			args <- c(trainArgs, list(nchunks=nchunks, BPPARAM=BPPARAM))
+			args <- c(trainArgs, list(nchunks=nchunks, chunksize=chunksize, BPPARAM=BPPARAM))
 			args <- c(list(x_train), args)
 			x_train <- do.call(trainProcess, args)
 		}
@@ -83,16 +82,19 @@ cv_do <- function(fit., x, y, folds, ...,
 			message("# fitting model on pooled training sets (n=", n_train, ")")
 		if ( is.null(bags) ) {
 			fit <- fit.(x_train, y_train,
-				nchunks=nchunks, BPPARAM=BPPARAM, ...)
+				nchunks=nchunks, chunksize=chunksize,
+				BPPARAM=BPPARAM, ...)
 		} else {
 			if ( mi ) {
 				fit <- mi_learn(fit., x_train, y_inst[train],
 					bags=bags[train], pos=pos, verbose=verbose,
-					nchunks=nchunks, BPPARAM=BPPARAM, ...)
+					nchunks=nchunks, chunksize=chunksize,
+					BPPARAM=BPPARAM, ...)
 			} else {
 				fit <- fit.(x_train, y_inst[train],
 					bags=bags[train], pos=pos, verbose=verbose,
-					nchunks=nchunks, BPPARAM=BPPARAM, ...)
+					nchunks=nchunks, chunksize=chunksize,
+					BPPARAM=BPPARAM, ...)
 			}
 		}
 		if ( keep.models )
@@ -101,7 +103,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		if ( is.function(testProcess) ) {
 			if ( verbose )
 				message("# pre-processing test data")
-			args <- c(testArgs, list(nchunks=nchunks, BPPARAM=BPPARAM))
+			args <- c(testArgs, list(nchunks=nchunks, chunksize=chunksize, BPPARAM=BPPARAM))
 			args <- c(list(x_test, x_train), args)
 			x_test <- do.call(testProcess, args)
 		}
@@ -109,7 +111,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		if ( verbose )
 			message("# evaluating model on test set (n=", n_test, ")")
 		y_pred <- predict.(fit, x_test,
-			nchunks=nchunks, BPPARAM=BPPARAM, ...)
+			nchunks=nchunks, chunksize=chunksize, BPPARAM=BPPARAM, ...)
 		y_out[[i]] <- y_pred
 		# predict classes if classification
 		if ( is_discrete(y) && !is_discrete(y_pred) )
