@@ -86,6 +86,8 @@
 
 \alias{vm_used}
 \alias{vm_used,ANY-method}
+\alias{vm_used,vector-method}
+\alias{vm_used,array-method}
 \alias{vm_used,atoms-method}
 \alias{vm_used,matter_-method}
 \alias{vm_used,sparse_arr-method}

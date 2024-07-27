@@ -1002,6 +1002,8 @@ format.size_bytes <- function(x, units = "auto", ...)
 	if ( units == "auto" )
 		units <- if ( is.na(mx) )
 			" "
+		else if ( mx >= 1000^5 )
+			"PB"
 		else if ( mx >= 1000^4 )
 			"TB"
 		else if ( mx >= 1000^3 )

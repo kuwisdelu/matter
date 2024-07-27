@@ -199,13 +199,23 @@ setMethod("describe_for_display", "ANY", function(x) class(x))
 
 setMethod("preview_for_display", "ANY", function(x) head(x))
 
-setMethod("vm_used", "ANY", function(x) {
-	size_bytes(NA_real_)
+setMethod("vm_used", "ANY", function(x) size_bytes(NA_real_))
+
+setMethod("vm_used", "vector", function(x) {
+	vm <- 0
+	if ( !is.atomic(x) ) {
+		has_vm <- vapply(x, is.matter, logical(1L))
+		if ( any(has_vm) ) {
+			vm <- vapply(x[has_vm], vm_used, numeric(1L))
+			vm <- sum(vm, na.rm=TRUE)
+		}
+	}
+	size_bytes(vm)
 })
 
-setMethod("vm_used", "matter_", function(x) {
-	vm_used(atomdata(x))
-})
+setMethod("vm_used", "array", function(x) size_bytes(0))
+
+setMethod("vm_used", "matter_", function(x) vm_used(atomdata(x)))
 
 setMethod("show", "matter_", function(object) {
 	callNextMethod()
