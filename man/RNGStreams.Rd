@@ -29,14 +29,14 @@ setRNGStream(seed = NULL, kind = NULL)
 }
 
 \value{
-    For \code{RNGStreams}, a list of length \code{n} with RNG streams (with elements named \code{seed} and \code{kind}) for use with \code{setRNGStream}.
+	For \code{RNGStreams}, a list of length \code{n} with RNG streams (with elements named \code{seed} and \code{kind}) for use with \code{setRNGStream}.
 }
 
 \author{Kylie A. Bemis}
 
 \seealso{
 	\code{\link[base]{RNGkind}},
-    \code{\link[parallel]{nextRNGStream}}
+	\code{\link[parallel]{nextRNGStream}}
 }
 
 \examples{

@@ -64,6 +64,7 @@ SnowfastParam <- function(workers = snowWorkers(),
 	cargs <- list(spec = workers, type="PSOCK", useXDR=useXDR)
 	cargs <- c(cargs, list(...))
 	new("SnowfastParam",
+		cluster=NULLcluster(),
 		.clusterargs=cargs,
 		.controlled=FALSE,
 		workers=workers,

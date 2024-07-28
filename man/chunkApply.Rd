@@ -129,7 +129,8 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
     \code{\link[base]{lapply}},
     \code{\link[base]{mapply}},
     \code{\link[base]{RNGkind}},
-    \code{\link{RNGStreams}}
+    \code{\link{RNGStreams}},
+    \code{\link{SnowfastParam}}
 }
 
 \examples{
@@ -142,4 +143,4 @@ out <- chunkApply(x, 1L, mean, nchunks=10)
 head(out)
 }
 
-\keyword{manip}
+\keyword{iteration}

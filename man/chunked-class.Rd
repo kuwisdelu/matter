@@ -120,3 +120,4 @@ print(y)
 }
 
 \keyword{classes}
+\keyword{manip}
