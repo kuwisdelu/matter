@@ -231,35 +231,35 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 chunk_fun <- function(FUN, type,
 	rngseeds, progress, MoreArgs = NULL)
 {
-	function(X, ...)
+	local(function(X, ...)
 	{
 		chunkinfo <- attr(X, "chunkinfo")
 		X <- switch(type,
 			list=lapply(X, as.vector),
 			vector=as.vector(X),
 			array=as.array(X))
-		X <- set_attr(X, chunkinfo)
+		X <- matter:::set_attr(X, chunkinfo)
 		id <- attr(X, "chunkid")
 		if ( !is.null(rngseeds) ) {
-			oseed <- getRNGStream()
-			on.exit(setRNGStream(oseed))
-			setRNGStream(rngseeds[[id]])
+			oseed <- matter::getRNGStream()
+			on.exit(matter::setRNGStream(oseed))
+			matter::setRNGStream(rngseeds[[id]])
 		}
 		if ( progress )
-			print_chunk_progress(X)
+			matter:::print_chunk_progress(X)
 		if ( type == "list" ) {
-			X[[1L]] <- set_attr(X[[1L]], chunkinfo)
+			X[[1L]] <- matter:::set_attr(X[[1L]], chunkinfo)
 			do.call(FUN, c(X, list(MoreArgs=MoreArgs)))
 		} else {
 			FUN(X, ...)
 		}
-	}
+	}, envir=matter:::copy_env(environment(NULL)))
 }
 
 chunk_loop_fun <- function(FUN, type,
 	margin = NULL, put = NULL)
 {
-	function(X, ..., MoreArgs)
+	local(function(X, ..., MoreArgs)
 	{
 		id <- attr(X, "chunkid")
 		ans <- vector("list", attr(X, "chunksize"))
@@ -289,15 +289,15 @@ chunk_loop_fun <- function(FUN, type,
 				array=switch(margin,
 					X[j,,drop=drop],
 					X[,j,drop=drop]))
-			iseed <- getRNGStream()
+			iseed <- matter::getRNGStream()
 			if ( type == "list" ) {
 				ans[[ii]] <- do.call(FUN, c(xi, MoreArgs))
 			} else {
 				ans[[ii]] <- FUN(xi, ...)
 			}
 			if ( iseed$kind == "L'Ecuyer-CMRG" )
-				iseed$seed <- nextRNGSubStream(iseed$seed)
-			setRNGStream(iseed)
+				iseed$seed <- parallel::nextRNGSubStream(iseed$seed)
+			matter::setRNGStream(iseed)
 			ii <- ii + 1L
 		}
 		if ( is.null(put) ) {
@@ -305,21 +305,22 @@ chunk_loop_fun <- function(FUN, type,
 		} else {
 			put(ans, id)
 		}
-	}
+	}, envir=matter:::copy_env(environment(NULL)))
 }
 
-chunk_writer <- function(id, path) {
-	function(x, i = 0L) {
-		while ( i && ipcvalue(id) != i ) {
+chunk_writer <- function(id, path)
+{
+	local(function(x, i = 0L) {
+		while ( i && BiocParallel::ipcvalue(id) != i ) {
 			Sys.sleep(0.1)
 		}
-		ipclock(id)
-		ans <- matter_list(x, path=path, append=TRUE)
-		ipcunlock(id)
+		BiocParallel::ipclock(id)
+		ans <- matter::matter_list(x, path=path, append=TRUE)
+		BiocParallel::ipcunlock(id)
 		if ( i )
-			ipcyield(id)
+			BiocParallel::ipcyield(id)
 		ans
-	}
+	}, envir=matter:::copy_env(environment(NULL)))
 }
 
 print_chunk_progress <- function(X) {

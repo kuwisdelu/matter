@@ -924,6 +924,15 @@ pinv <- function (x, tol = sqrt(.Machine$double.eps))
 	}
 }
 
+# isolate a copy of an environment
+copy_env <- function(env, parent = baseenv())
+{
+	copy <- new.env(parent=baseenv())
+	for ( name in ls(envir=env) )
+		assign(name, get(name, envir=env), envir=copy)
+	copy
+}
+
 #### Utilities for raw bytes and memory ####
 ## -----------------------------------------
 
