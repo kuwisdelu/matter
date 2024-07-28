@@ -13,7 +13,7 @@ TASKS_MAXIMUM <- .Machine$integer.max
 
 NULLcluster <- function() structure(list(), class=c("NULLcluster", "cluster"))
 
-snowstormHost <- function(local = TRUE)
+snowHost <- function(local = TRUE)
 {
 	if ( local ) {
 		host <- "localhost"
@@ -25,7 +25,7 @@ snowstormHost <- function(local = TRUE)
 	host
 }
 
-snowstormPort <- function()
+snowPort <- function()
 {
 	port <- Sys.getenv("R_PARALLEL_PORT")
 	if ( identical(port, "random") ) {
@@ -58,10 +58,11 @@ SnowfastParam <- function(workers = snowWorkers(),
 	if ( progressbar && missing(tasks) )
 		tasks <- TASKS_MAXIMUM
 	if ( is.na(manager.hostname) )
-		manager.hostname <- snowstormHost()
+		manager.hostname <- snowHost()
 	if ( is.na(manager.port) )
-		manager.port <- snowstormPort()
+		manager.port <- snowPort()
 	cargs <- list(spec = workers, type="PSOCK", useXDR=useXDR)
+	cargs <- c(cargs, list(...))
 	new("SnowfastParam",
 		.clusterargs=cargs,
 		.controlled=FALSE,

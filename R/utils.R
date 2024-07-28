@@ -422,7 +422,7 @@ is_discrete <- function(x) {
 	is.factor(x) || is.character(x) || is.logical(x)
 }
 
-set_attr <- function(x, attr) {
+update_attr <- function(x, attr) {
 	for ( nm in names(attr) )
 		attr(x, nm) <- attr[[nm]]
 	x

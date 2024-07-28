@@ -348,7 +348,7 @@ findpeaks_knn <- function(x, index, k = 5L,
 		peaks <- arrayInd(peaks, dim(x), dimnames(x), useNames=useNames)
 	}
 	if ( length(ann) > 0L )
-		peaks <- set_attr(peaks, ann)
+		peaks <- update_attr(peaks, ann)
 	peaks
 }
 

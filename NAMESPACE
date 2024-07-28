@@ -432,6 +432,8 @@ export(
 	"array_ind",
 	"linear_ind")
 
+export("update_attr")
+
 export(
 	"roll",
 	"seq_rel",

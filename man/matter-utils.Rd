@@ -48,6 +48,8 @@
 \alias{array_ind}
 \alias{linear_ind}
 
+\alias{update_attr}
+
 \alias{size_bytes}
 
 \alias{roll}

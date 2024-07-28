@@ -67,14 +67,13 @@ chunk_rowapply <- function(X, FUN, ...,
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=1L, depends=depends,
-		nchunks=nchunks, chunksize=chunksize)
+		nchunks=nchunks, chunksize=chunksize, trace=progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="array",
-		rngseeds=rngseeds, progress=progress)
+	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
@@ -92,14 +91,13 @@ chunk_colapply <- function(X, FUN, ...,
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=2L, depends=depends,
-		nchunks=nchunks, chunksize=chunksize)
+		nchunks=nchunks, chunksize=chunksize, trace=progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="array",
-		rngseeds=rngseeds, progress=progress)
+	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
@@ -152,14 +150,13 @@ chunk_lapply <- function(X, FUN, ...,
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_vec(X, depends=depends,
-		nchunks=nchunks, chunksize=chunksize)
+		nchunks=nchunks, chunksize=chunksize, trace=progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="vector",
-		rngseeds=rngseeds, progress=progress)
+	CHUNKFUN <- chunk_fun(FUN, type="vector", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
@@ -212,15 +209,14 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_list(..., depends=depends,
-		nchunks=nchunks, chunksize=chunksize)
+		nchunks=nchunks, chunksize=chunksize, trace=progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="list",
-		rngseeds=rngseeds, progress=progress,
-		MoreArgs=MoreArgs)
+		rngseeds=rngseeds, MoreArgs=MoreArgs)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
@@ -228,8 +224,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 #### Chunk-Apply utilities ####
 ## -----------------------------
 
-chunk_fun <- function(FUN, type,
-	rngseeds, progress, MoreArgs = NULL)
+chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 {
 	local(function(X, ...)
 	{
@@ -238,26 +233,23 @@ chunk_fun <- function(FUN, type,
 			list=lapply(X, as.vector),
 			vector=as.vector(X),
 			array=as.array(X))
-		X <- matter:::set_attr(X, chunkinfo)
+		X <- matter::update_attr(X, chunkinfo)
 		id <- attr(X, "chunkid")
 		if ( !is.null(rngseeds) ) {
 			oseed <- matter::getRNGStream()
 			on.exit(matter::setRNGStream(oseed))
 			matter::setRNGStream(rngseeds[[id]])
 		}
-		if ( progress )
-			matter:::print_chunk_progress(X)
 		if ( type == "list" ) {
-			X[[1L]] <- matter:::set_attr(X[[1L]], chunkinfo)
+			X[[1L]] <- matter::update_attr(X[[1L]], chunkinfo)
 			do.call(FUN, c(X, list(MoreArgs=MoreArgs)))
 		} else {
 			FUN(X, ...)
 		}
-	}, envir=matter:::copy_env(environment(NULL)))
+	}, envir=copy_env(environment(NULL)))
 }
 
-chunk_loop_fun <- function(FUN, type,
-	margin = NULL, put = NULL)
+chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 {
 	local(function(X, ..., MoreArgs)
 	{
@@ -305,7 +297,7 @@ chunk_loop_fun <- function(FUN, type,
 		} else {
 			put(ans, id)
 		}
-	}, envir=matter:::copy_env(environment(NULL)))
+	}, envir=copy_env(environment(NULL)))
 }
 
 chunk_writer <- function(id, path)
@@ -320,14 +312,7 @@ chunk_writer <- function(id, path)
 		if ( i )
 			BiocParallel::ipcyield(id)
 		ans
-	}, envir=matter:::copy_env(environment(NULL)))
-}
-
-print_chunk_progress <- function(X) {
-	size <- format(size_bytes(object.size(X)))
-	message("processing chunk ",
-		attr(X, "chunkid"), "/", attr(X, "nchunks"),
-		" (", attr(X, "chunksize"), " items | ", size, ")")
+	}, envir=copy_env(environment(NULL)))
 }
 
 has_progressbar <- function(BPPARAM) {

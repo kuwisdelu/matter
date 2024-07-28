@@ -6,6 +6,11 @@ NEW FEATURES
 
     o Add getOption("matter.default.chunksize") for setting
         the approximate size of chunks in bytes
+    o Add 'SnowfastParam' class to support PSOCK clusters
+
+BUG FIXES
+
+    o Fix leaky closures in internal chunk loop functions
 
 CHANGES IN VERSION 2.7.3 [2024-7-26]
 ------------------------------------

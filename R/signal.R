@@ -1043,7 +1043,7 @@ findpeaks <- function(x, width = 5L, prominence = NULL,
 		}
 	}
 	if ( length(ann) > 0L )
-		peaks <- set_attr(peaks, ann)
+		peaks <- update_attr(peaks, ann)
 	peaks
 }
 
@@ -1092,7 +1092,7 @@ findpeaks_cwt <- function(x, snr = 2, wavelet = ricker, scales = NULL,
 		ann$left_bounds <- bounds[[1L]] + 1L
 		ann$right_bounds <- bounds[[2L]] + 1L
 	}
-	peaks <- set_attr(peaks, ann)
+	peaks <- update_attr(peaks, ann)
 	peaks
 }
 
@@ -1259,7 +1259,7 @@ peakwidths <- function(x, peaks, domain = NULL,
 	ann$left_ips <- thresholds[[1L]]
 	ann$right_ips <- thresholds[[2L]]
 	widths <- ann$right_ips - ann$left_ips
-	widths <- set_attr(widths, ann)
+	widths <- update_attr(widths, ann)
 	attributes(widths) <- ann
 	widths
 }
