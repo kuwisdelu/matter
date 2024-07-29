@@ -13,6 +13,8 @@ BUG FIXES
 
     o Fix leaky closures in internal chunk loop functions
         causing slow parallel performance on large datasets
+    o Fix internal bug in 'eval_exprs()' where 'recursive'
+        attribute was always set to 'TRUE'
 
 CHANGES IN VERSION 2.7.3 [2024-7-26]
 ------------------------------------

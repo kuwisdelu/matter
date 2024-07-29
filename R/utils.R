@@ -1171,6 +1171,11 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 	side
 }
 
+btquote <- function(x, q = "`")
+{
+	paste0(q, x, q)
+}
+
 eval_exprs <- function(exprs, data, i = NULL, j = NULL,
 	split_along = NULL, group = NULL, reduce = "+",
 	recursive = !is.null(split_along))
@@ -1182,7 +1187,7 @@ eval_exprs <- function(exprs, data, i = NULL, j = NULL,
 			split_along=split_along, group=group, reduce=reduce,
 			recursive=recursive)
 	}
-	attr(ans, "recursive") <- TRUE
+	attr(ans, "recursive") <- recursive
 	names(ans) <- names(exprs)
 	ans
 }

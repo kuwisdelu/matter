@@ -587,7 +587,8 @@ export(
 export(
 	"parse_formula",
 	"eval_at",
-	"eval_exprs")
+	"eval_exprs",
+	"btquote")
 
 export("SnowfastParam")
 
