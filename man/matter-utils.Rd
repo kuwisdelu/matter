@@ -61,7 +61,7 @@
 \alias{parse_formula}
 \alias{eval_exprs}
 \alias{eval_at}
-\alias{vquote}
+\alias{varquote}
 
 \alias{panel_grid}
 \alias{panel_dim}

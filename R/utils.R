@@ -1171,7 +1171,7 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 	side
 }
 
-vquote <- function(x, q = "`")
+varquote <- function(x, q = "`")
 {
 	paste0(q, x, q)
 }

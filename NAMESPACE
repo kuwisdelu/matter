@@ -588,7 +588,7 @@ export(
 	"parse_formula",
 	"eval_at",
 	"eval_exprs",
-	"vquote")
+	"varquote")
 
 export("SnowfastParam")
 
