@@ -217,7 +217,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="list",
 		rngseeds=rngseeds, MoreArgs=MoreArgs)
-	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
 	do.call(simplify, ans)
 }
 
