@@ -26,6 +26,7 @@
 \alias{c,matter_list-method}
 
 \alias{as.list,matter_list-method}
+\alias{as.vector,matter_list-method}
 
 \title{Out-of-Memory Lists of Vectors}
 

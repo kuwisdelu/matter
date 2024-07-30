@@ -171,6 +171,21 @@ setMethod("as.list", "matter_list",
 		}
 	})
 
+setMethod("as.vector", "matter_list",
+	function(x, mode = "any") {
+		y <- as.list(x)
+		switch(mode,
+			any=, list=y,
+			logical=as.logical(y),
+			integer=as.integer(y),
+			numeric=as.numeric(y),
+			double=as.double(y),
+			complex=as.complex(y),
+			character=as.character(y),
+			raw=as.raw(y),
+			stop("mode ", sQuote(mode), " not supported"))
+	})
+
 setMethod("describe_for_display", "matter_list", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
 	desc2 <- paste0("out-of-memory list")
