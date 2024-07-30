@@ -43,7 +43,11 @@ setMethod("describe_for_display", "chunked", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
-setMethod("preview_for_display", "chunked", function(x) preview_list(x))
+setMethod("preview_for_display", "chunked",
+	function(x) preview_list(x))
+
+setMethod("preview_for_display", "chunked_list",
+	function(x) preview_recursive(x))
 
 setMethod("show", "chunked", function(object) {
 	cat(describe_for_display(object), "\n", sep="")

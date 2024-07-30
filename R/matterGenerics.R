@@ -106,6 +106,15 @@ setMethod("rowMaj", "Matrix", function(x) {
 setGeneric("describe_for_display", function(x) standardGeneric("describe_for_display"))
 setGeneric("preview_for_display", function(x) standardGeneric("preview_for_display"))
 setGeneric("vm_used", function(x) standardGeneric("vm_used"))
+setMethod("vm_used", "ANY", function(x) size_bytes(NA_real_))
+setMethod("vm_used", "array", function(x) size_bytes(0))
+setMethod("vm_used", "vector", function(x) {
+	if ( is.atomic(x) ) {
+		size_bytes(0)
+	} else {
+		size_bytes(NA_real_)
+	}
+})
 setGeneric("vm_realized", function(x) standardGeneric("vm_realized"))
 setMethod("vm_realized", "ANY", function(x) {
 	size_bytes(sum(mem(x), na.rm=TRUE))

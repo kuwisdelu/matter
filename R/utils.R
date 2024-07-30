@@ -719,9 +719,9 @@ preview_list <- function(x, n = getOption("matter.show.head.n"), ...) {
 	for ( i in 1:n1 ) {
 		xi <- x[[i]]
 		if ( is.null(dim(xi)) ) {
-			fmt <- preview_vector_data(x[[i]], n, ...)
+			fmt <- preview_vector_data(xi, n, ...)
 		} else {
-			fmt <- preview_matrix_data(x[[i]], n, ...)
+			fmt <- preview_matrix_data(xi, n, ...)
 		}
 		if ( !is.null(names(x)) ) {
 			nm <- paste0("$", names(x)[i])
@@ -732,6 +732,23 @@ preview_list <- function(x, n = getOption("matter.show.head.n"), ...) {
 			nm <- c(nm, character(nrow(fmt) - 1L))
 		rownames(fmt) <- nm
 		print(fmt, quote=FALSE, right=TRUE)
+	}
+	if ( length(x) > n1 )
+		cat("...\n")
+}
+
+preview_recursive <- function(x, n = getOption("matter.show.head.n"), ...) {
+	n1 <- min(n, length(x))
+	for ( i in 1:n1 ) {
+		xi <- x[[i]]
+		if ( !is.null(names(x)) ) {
+			cat("$", names(x)[i], "\n", sep="")
+		} else {
+			cat("[[", i, "]]\n", sep="")
+		}
+		preview_list(xi)
+		if ( i < n1 )
+			cat("\n")
 	}
 	if ( length(x) > n1 )
 		cat("...\n")
