@@ -20,7 +20,7 @@ matter_defaults(nchunks = 20L, chunksize = NA_real_,
 
 	\item{chunksize}{The approximate chunk size in bytes. This sets \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory.}
 
-	\item{serialize}{Whether \code{matter} chunks should be loaded into memory on the manager (\code{TRUE}) or the workers (\code{FALSE}). This sets \code{getOption("matter.default.serialize")}. If all workers have access to the relevant file paths, it can be significantly faster to avoid serializing the data by only serializing the \code{matter} object.}
+	\item{serialize}{Whether \code{matter} chunks should be realized in memory on the manager and the data serialized to the workers (\code{TRUE}), or the realization should be performed on the workers (\code{FALSE}). This sets \code{getOption("matter.default.serialize")}. If all workers are on the same machine, then it can be significantly faster to avoid serializing the realized data.}
 
 	\item{verbose}{Whether progress messages should be printed. This sets \code{getOption("matter.default.verbose")}.}
 }

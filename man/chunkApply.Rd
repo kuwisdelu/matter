@@ -123,7 +123,7 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
 
         \item{chunksize: The approximate chunk size in bytes. If omitted, this is taken from \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory. If both \code{nchunks} and \code{chunksize} are specified, then \code{nchunks} takes priority.}
 
-        \item{serialize: Whether \code{matter} chunks should be realized on the manager and their data serialized to the workers (\code{TRUE}), or the realization should be performed on the workers (\code{FALSE}). If omitted, this is taken from \code{getOption("matter.default.serialize")}. If all workers are on the same machine, then it can be significantly faster to avoid serializing the realized data.}
+        \item{serialize: Whether \code{matter} chunks should be realized in memory on the manager and the data serialized to the workers (\code{TRUE}), or the realization should be performed on the workers (\code{FALSE}). If omitted, this is taken from \code{getOption("matter.default.serialize")}. If all workers are on the same machine, then it can be significantly faster to avoid serializing the realized data.}
     }
 }
 
