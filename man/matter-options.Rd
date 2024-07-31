@@ -35,7 +35,7 @@ matter_defaults(nchunks = 20L, chunksize = NA_real_,
 
 		\item{\code{options(matter.default.chunksize=NA_real_)}: The default chunk size in bytes to use when iterating over matter objects.}
 
-		\item{\code{options(matter.default.serialize=TRUE)}: Whether \code{matter} chunks should be loaded into memory on the manager (\code{TRUE}) or the workers \code{FALSE}.}
+		\item{\code{options(matter.default.serialize=TRUE)}: Whether \code{matter} chunks should be realized in memory on the manager (\code{TRUE}) or on the workers \code{FALSE}.}
 
 		\item{\code{options(matter.default.verbose=FALSE)}: The default verbosity for printing progress messages.}
 
