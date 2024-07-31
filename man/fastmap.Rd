@@ -21,10 +21,10 @@ fastmap(x, k = 3L, distfun = NULL,
 
 # Distance functionals
 rowDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, chunksize = NA,
+	verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam(), \dots)
 colDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, chunksize = NA,
+	verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam(), \dots)
 }
 
@@ -39,25 +39,23 @@ colDistFun(x, y, metric = "euclidean", p = 2, weights = NULL,
 
 	\item{niter}{The maximum number of iterations for finding the pivots.}
 
-	\item{verbose}{Should progress be printed for each iteration?}
-
-	\item{nchunks}{The number of chunks to use.}
-
-	\item{chunksize}{The approximate chunk size in bytes.}
-
 	\item{\dots}{Additional options passed to \code{distfun}.}
 
 	\item{object}{An object inheriting from \code{fastmap}.}
 
 	\item{newdata}{An optional data matrix to use for the prediction.}
 
-	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
-
 	\item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 
 	\item{p}{The power for the Minkowski distance.}
 
 	\item{weights}{A numeric vector of weights for the distance components if calculating weighted distances. For example, the weighted Euclidean distance is \code{sqrt(sum(w * (x - y)^2))}.}
+
+	\item{verbose}{Should progress be printed for each iteration? \emph{Passed} to the distance function returned by \code{distfun}.}
+
+	\item{chunkopts}{See \code{chunkApply} for details. \emph{Passed} to the distance function returned by \code{distfun}.}
+
+	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}. \emph{Passed} to the distance function returned by \code{distfun}}
 }
 
 \details{

@@ -1,10 +1,31 @@
 \name{matter-options}
 
 \alias{matter-options}
+\alias{matter_defaults}
 
 \title{Options for ``matter'' Objects}
 
 \description{
+	Set global parameters for \code{matter}.
+}
+
+\usage{
+## Set defaults for common arguments
+matter_defaults(nchunks = 20L, chunksize = NA_real_,
+    serialize = TRUE, verbose = FALSE)
+}
+
+\arguments{
+	\item{nchunks}{The number of chunks to use. This sets \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
+
+	\item{chunksize}{The approximate chunk size in bytes. This sets \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory.}
+
+	\item{serialize}{Whether \code{matter} chunks should be loaded into memory on the manager (\code{TRUE}) or the workers (\code{FALSE}). This sets \code{getOption("matter.default.serialize")}. If all workers have access to the relevant file paths, it can be significantly faster to avoid serializing the data by only serializing the \code{matter} object.}
+
+	\item{verbose}{Whether progress messages should be printed. This sets \code{getOption("matter.default.verbose")}.}
+}
+
+\details{
 	The \code{matter} package provides the following options:
 
 	\itemize{
@@ -13,6 +34,8 @@
 		\item{\code{options(matter.default.nchunks=20L)}: The default number of chunks to use when iterating over matter objects.}
 
 		\item{\code{options(matter.default.chunksize=NA_real_)}: The default chunk size in bytes to use when iterating over matter objects.}
+
+		\item{\code{options(matter.default.serialize=TRUE)}: Whether \code{matter} chunks should be loaded into memory on the manager (\code{TRUE}) or the workers \code{FALSE}.}
 
 		\item{\code{options(matter.default.verbose=FALSE)}: The default verbosity for printing progress messages.}
 

@@ -30,6 +30,7 @@
 
 \alias{describe_for_display,chunked-method}
 \alias{preview_for_display,chunked-method}
+\alias{preview_for_display,chunked_list-method}
 
 \alias{as.list,chunked-method}
 

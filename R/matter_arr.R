@@ -735,7 +735,7 @@ rmatmul_sc <- function(x, y, useOuter = FALSE)
 			xi <- as.matrix(x[,i,drop=FALSE])
 			if ( verbose ) {
 				attr(xi, "chunkinfo") <- attributes(i)
-				trace_chunk(xi)
+				print_chunk_info(xi)
 			}
 			ans <- ans + xi %*% y[i,,drop=FALSE]
 		}
@@ -745,7 +745,7 @@ rmatmul_sc <- function(x, y, useOuter = FALSE)
 			xi <- as.matrix(x[i,,drop=FALSE])
 			if ( verbose ) {
 				attr(xi, "chunkinfo") <- attributes(i)
-				trace_chunk(xi)
+				print_chunk_info(xi)
 			}
 			ans[i,] <- xi %*% y
 		}
@@ -784,7 +784,7 @@ lmatmul_sc <- function(x, y, useOuter = FALSE)
 			yi <- as.matrix(y[i,,drop=FALSE])
 			if ( verbose ) {
 				attr(yi, "chunkinfo") <- attributes(i)
-				trace_chunk(yi)
+				print_chunk_info(yi)
 			}
 			ans <- ans + x[,i,drop=FALSE] %*% yi
 		}
@@ -794,7 +794,7 @@ lmatmul_sc <- function(x, y, useOuter = FALSE)
 			yi <- as.matrix(y[,i,drop=FALSE])
 			if ( verbose ) {
 				attr(yi, "chunkinfo") <- attributes(i)
-				trace_chunk(yi)
+				print_chunk_info(yi)
 			}
 			ans[,i] <- x %*% yi
 		}

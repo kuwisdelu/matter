@@ -239,7 +239,8 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+
+	if ( get_serialize(chunkopts) || !is.matter(...elt(1L)) ) {
 		drop <- FALSE
 	} else {
 		drop <- NULL
