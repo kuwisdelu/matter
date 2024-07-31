@@ -51,9 +51,9 @@ test_that("apply RNG", {
 	# check that seeds is independent of nchunks
 	register(MulticoreParam())
 	set.seed(1, kind="L'Ecuyer-CMRG")
-	ans4 <- chunkLapply(ns, runif, nchunks=10, RNG=TRUE)
+	ans4 <- chunkLapply(ns, runif, chunkopts=list(nchunks=10), RNG=TRUE)
 	set.seed(1, kind="L'Ecuyer-CMRG")
-	ans5 <- chunkLapply(ns, runif, nchunks=50, RNG=TRUE)
+	ans5 <- chunkLapply(ns, runif, chunkopts=list(nchunks=50), RNG=TRUE)
 
 	expect_equal(ans4, ans5)
 
@@ -76,7 +76,7 @@ test_that("chunkLapply + chunkMapply", {
 		chunkLapply(a, mean, BPPARAM=NULL),
 		lapply(a, mean))
 	expect_equal(
-		chunkLapply(a, mean, nchunks=10),
+		chunkLapply(a, mean, chunkopts=list(nchunks=10)),
 		lapply(a, mean))
 	expect_equal(
 		chunkLapply(a, mean, simplify=TRUE),
@@ -86,7 +86,7 @@ test_that("chunkLapply + chunkMapply", {
 		chunkMapply(`+`, a, b),
 		mapply(`+`, a, b, SIMPLIFY=FALSE))
 	expect_equal(
-		chunkMapply(`+`, a, b, nchunks=10),
+		chunkMapply(`+`, a, b, chunkopts=list(nchunks=10)),
 		mapply(`+`, a, b, SIMPLIFY=FALSE))
 
 	names(a) <- paste0("a=", seq_along(a))
@@ -107,14 +107,14 @@ test_that("chunkLapply + chunkMapply", {
 		chunkLapply(u, mean, depends=ind, simplify=TRUE),
 		sapply(ind, function(i) mean(u[i])))
 	expect_equal(
-		chunkLapply(u, mean, depends=ind, simplify=TRUE, nchunks=10),
+		chunkLapply(u, mean, depends=ind, simplify=TRUE, chunkopts=list(nchunks=10)),
 		sapply(ind, function(i) mean(u[i])))
 	
 	expect_equal(
 		chunkMapply(f, u, v, depends=ind, simplify=TRUE),
 		sapply(ind, function(i) mean(u[i] + v[i])))
 	expect_equal(
-		chunkMapply(f, u, v, depends=ind, simplify=TRUE, nchunks=10),
+		chunkMapply(f, u, v, depends=ind, simplify=TRUE, chunkopts=list(nchunks=10)),
 		sapply(ind, function(i) mean(u[i] + v[i])))
 
 })
@@ -160,7 +160,7 @@ test_that("chunkApply", {
 		chunkApply(x, 1L, mean, BPPARAM=NULL),
 		apply(x, 1L, mean, simplify=FALSE))
 	expect_equal(
-		chunkApply(x, 1L, mean, nchunks=10),
+		chunkApply(x, 1L, mean, chunkopts=list(nchunks=10)),
 		apply(x, 1L, mean, simplify=FALSE))
 	expect_equal(
 		chunkApply(x, 1L, mean, simplify=TRUE),
@@ -170,7 +170,7 @@ test_that("chunkApply", {
 		chunkApply(x, 2L, mean),
 		apply(x, 2L, mean, simplify=FALSE))
 	expect_equal(
-		chunkApply(x, 2L, mean, nchunks=10),
+		chunkApply(x, 2L, mean, chunkopts=list(nchunks=10)),
 		apply(x, 2L, mean, simplify=FALSE))
 	expect_equal(
 		chunkApply(x, 2L, mean, simplify=TRUE),
@@ -180,7 +180,7 @@ test_that("chunkApply", {
 		chunkApply(x, 1L, log1p),
 		apply(x, 1L, log1p, simplify=FALSE))
 	expect_equal(
-		chunkApply(x, 1L, log1p, nchunks=10),
+		chunkApply(x, 1L, log1p, chunkopts=list(nchunks=10)),
 		apply(x, 1L, log1p, simplify=FALSE))
 	expect_equal(
 		chunkApply(x, 1L, log1p, simplify=TRUE),
@@ -190,7 +190,7 @@ test_that("chunkApply", {
 		chunkApply(x, 2L, log1p),
 		apply(x, 2L, log1p, simplify=FALSE))
 	expect_equal(
-		chunkApply(x, 2L, log1p, nchunks=10),
+		chunkApply(x, 2L, log1p, chunkopts=list(nchunks=10)),
 		apply(x, 2L, log1p, simplify=FALSE))
 	expect_equal(
 		chunkApply(x, 2L, log1p, simplify=TRUE),
