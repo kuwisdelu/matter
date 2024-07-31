@@ -7,7 +7,7 @@ cv_do <- function(fit., x, y, folds, ...,
 	predict. = predict, transpose = FALSE, keep.models = TRUE,
 	trainProcess = NULL, trainArgs = list(),
 	testProcess = NULL, testArgs = list(),
-	verbose = NA, nchunks = NA, chunksize = NA,
+	verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	if ( is.na(verbose) )
@@ -73,7 +73,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		if ( is.function(trainProcess) ) {
 			if ( verbose )
 				message("# pre-processing training data")
-			args <- c(trainArgs, list(nchunks=nchunks, chunksize=chunksize, BPPARAM=BPPARAM))
+			args <- c(trainArgs, list(chunkopts=chunkopts, BPPARAM=BPPARAM))
 			args <- c(list(x_train), args)
 			x_train <- do.call(trainProcess, args)
 		}
@@ -82,19 +82,16 @@ cv_do <- function(fit., x, y, folds, ...,
 			message("# fitting model on pooled training sets (n=", n_train, ")")
 		if ( is.null(bags) ) {
 			fit <- fit.(x_train, y_train,
-				nchunks=nchunks, chunksize=chunksize,
-				BPPARAM=BPPARAM, ...)
+				chunkopts=chunkopts, BPPARAM=BPPARAM, ...)
 		} else {
 			if ( mi ) {
 				fit <- mi_learn(fit., x_train, y_inst[train],
 					bags=bags[train], pos=pos, verbose=verbose,
-					nchunks=nchunks, chunksize=chunksize,
-					BPPARAM=BPPARAM, ...)
+					chunkopts=chunkopts, BPPARAM=BPPARAM, ...)
 			} else {
 				fit <- fit.(x_train, y_inst[train],
 					bags=bags[train], pos=pos, verbose=verbose,
-					nchunks=nchunks, chunksize=chunksize,
-					BPPARAM=BPPARAM, ...)
+					chunkopts=chunkopts, BPPARAM=BPPARAM, ...)
 			}
 		}
 		if ( keep.models )
@@ -103,7 +100,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		if ( is.function(testProcess) ) {
 			if ( verbose )
 				message("# pre-processing test data")
-			args <- c(testArgs, list(nchunks=nchunks, chunksize=chunksize, BPPARAM=BPPARAM))
+			args <- c(testArgs, list(chunkopts=chunkopts, BPPARAM=BPPARAM))
 			args <- c(list(x_test, x_train), args)
 			x_test <- do.call(testProcess, args)
 		}
@@ -111,7 +108,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		if ( verbose )
 			message("# evaluating model on test set (n=", n_test, ")")
 		y_pred <- predict.(fit, x_test,
-			nchunks=nchunks, chunksize=chunksize, BPPARAM=BPPARAM, ...)
+			chunkopts=chunkopts, BPPARAM=BPPARAM, ...)
 		y_out[[i]] <- y_pred
 		# predict classes if classification
 		if ( is_discrete(y) && !is_discrete(y_pred) )

@@ -44,13 +44,13 @@
 \usage{
 ## Instance creation
 chunked_vec(x, nchunks = NA, chunksize = NA,
-    trace = FALSE, depends = NULL, drop= FALSE)
+    verbose = FALSE, depends = NULL, drop = FALSE)
 
 chunked_mat(x, margin, nchunks = NA, chunksize = NA,
-    trace = FALSE, depends = NULL, drop= FALSE)
+    verbose = FALSE, depends = NULL, drop = FALSE)
 
 chunked_list(\dots, nchunks = NA, chunksize = NA,
-    trace = FALSE, depends = NULL, drop= FALSE)
+    verbose = FALSE, depends = NULL, drop = FALSE)
 
 ## Additional methods documented below
 }
@@ -62,7 +62,7 @@ chunked_list(\dots, nchunks = NA, chunksize = NA,
 
     \item{chunksize}{The approximate chunk size in bytes. If \code{NA} (the default), this is taken from \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory. If both \code{nchunks} and \code{chunksize} are specified, then \code{nchunks} takes priority.}
 
-    \item{trace}{Should trace messages be printed whenever a chunk is extracted?}
+    \item{verbose}{Should messages be printed whenever a chunk is extracted?}
 
     \item{depends}{A list with length equal to the extent of \code{X}. Each element of \code{depends} should give a vector of indices which correspond to other elements of \code{X} on which each computation depends. These elements are passed to \code{FUN}. For time  efficiency, no attempt is made to verify these indices are valid.}
 
@@ -77,7 +77,7 @@ chunked_list(\dots, nchunks = NA, chunksize = NA,
 
         \item{\code{index}:}{The chunk indices.}
 
-        \item{\code{trace}:}{Print trace messages?}
+        \item{\code{verbose}:}{Print messages on chunk extraction?}
 
         \item{\code{drop}:}{The value passed to \code{drop} when subsetting the chunks.}
 

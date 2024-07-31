@@ -6,7 +6,7 @@ setClass("chunked",
 	slots = c(
 		data = "ANY",
 		index = "list",
-		trace = "logical",
+		verbose = "logical",
 		drop = "logical_OR_NULL"),
 	contains = "VIRTUAL",
 	validity = function(object) {
@@ -16,10 +16,10 @@ setClass("chunked",
 		index_ok <- vapply(object@index, is.numeric, logical(1L))
 		if ( !all(index_ok) )
 			errors <- c(errors, "'index' must be a list of numeric vectors")
-		if ( length(object@trace) != 1L )
-			errors <- c(errors, "'trace' must be a scalar logical")
-		if ( !is.null(object@drop) && length(object@drop) != 1L )
+		if ( is.logical(object@drop) && length(object@drop) != 1L )
 			errors <- c(errors, "'drop' must be a scalar logical or NULL")
+		if ( length(object@verbose) != 1L )
+			errors <- c(errors, "'verbose' must be a scalar logical")
 		if ( is.null(errors) ) TRUE else errors
 	})
 
@@ -71,28 +71,17 @@ setMethod("[",
 		if ( is.null(i) )
 			i <- seq_along(x)
 		if ( is_null_or_na(drop) ) {
-			if ( is.null(dim(x@data)) ) {
-				new(class(x),
-					data=x@data,
-					index=x@index[i],
-					drop=x@drop)
-			} else {
-				new(class(x),
-					data=x@data,
-					index=x@index[i],
-					drop=x@drop,
-					margin=x@margin)
-			}
+			y <- new(class(x), x, index=x@index[i])
 		} else {
-			ans <- vector("list", length(i))
+			y <- vector("list", length(i))
 			for ( j in seq_along(i) )
-				ans[[j]] <- x[[i[j]]]
-			ans
+				y[[j]] <- x[[i[j]]]
 		}
+		y
 	})
 
 chunked_vec <- function(x, nchunks = NA, chunksize = NA,
-	trace = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, depends = NULL, drop = FALSE)
 {
 	if ( is.na(chunksize) )
 		chunksize <- getOption("matter.default.chunksize")
@@ -104,12 +93,12 @@ chunked_vec <- function(x, nchunks = NA, chunksize = NA,
 		}
 	}
 	index <- chunkify(seq_along(x), nchunks=nchunks, depends=depends)
-	new("chunked_vec", data=x,
-		index=index, trace=trace, drop=drop)
+	new("chunked_vec", data=x, index=index,
+		verbose=verbose, drop=drop)
 }
 
 chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
-	trace = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, depends = NULL, drop = FALSE)
 {
 	if ( length(dim(x)) != 2L )
 		stop("'x' must have exactly 2 dimensions")
@@ -128,12 +117,12 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 	index <- switch(margin,
 		chunkify(seq_len(nrow(x)), nchunks=nchunks, depends=depends),
 		chunkify(seq_len(ncol(x)), nchunks=nchunks, depends=depends))
-	new("chunked_mat", data=x, margin=margin,
-		index=index, trace=trace, drop=drop)
+	new("chunked_mat", data=x, margin=margin, index=index,
+		verbose=verbose, drop=drop)
 }
 
 chunked_list <- function(..., nchunks = NA, chunksize = NA,
-	trace = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, depends = NULL, drop = FALSE)
 {
 	xs <- list(...)
 	if ( length(xs) > 1L ) {
@@ -157,8 +146,8 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 		}
 	}
 	index <- chunkify(seq_along(xs[[1L]]), nchunks=nchunks, depends=depends)
-	new("chunked_list", data=xs,
-		index=index, trace=trace, drop=drop)
+	new("chunked_list", data=xs, index=index,
+		verbose=verbose, drop=drop)
 }
 
 setMethod("[[", c(x = "chunked_list"),
@@ -166,8 +155,8 @@ setMethod("[[", c(x = "chunked_list"),
 		i <- as_subscripts(i, x)
 		y <- lapply(x@data, `[`, x@index[[i]], drop=x@drop)
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
-		if ( x@trace )
-			trace_chunk(y)
+		if ( x@verbose )
+			print_chunk_info(y)
 		y
 	})
 
@@ -176,8 +165,8 @@ setMethod("[[", c(x = "chunked_vec"),
 		i <- as_subscripts(i, x)
 		y <- x@data[x@index[[i]],drop=x@drop]
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
-		if ( x@trace )
-			trace_chunk(y)
+		if ( x@verbose )
+			print_chunk_info(y)
 		y
 	})
 
@@ -189,12 +178,12 @@ setMethod("[[", c(x = "chunked_mat"),
 			x@data[,x@index[[i]],drop=x@drop])
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		attr(y, "margin") <- x@margin
-		if ( x@trace )
-			trace_chunk(y)
+		if ( x@verbose )
+			print_chunk_info(y)
 		y
 	})
 
-trace_chunk <- function(x) {
+print_chunk_info <- function(x) {
 	info <- attr(x, "chunkinfo")
 	size <- format(size_bytes(object.size(x)))
 	message("# processing chunk ",

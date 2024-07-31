@@ -152,25 +152,25 @@ predict.fastmap <- function(object, newdata, ...)
 }
 
 rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, chunksize=NA, BPPARAM = bpparam(), ...)
+	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
 	function(i) {
 		if ( isTRUE(verbose) )
 			message("calculating distances from index: ", paste0(i, collapse=" "))
 		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
-			verbose=verbose, nchunks=nchunks, chunksize=chunksize,
+			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)
 	}
 }
 
 colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, nchunks = NA, chunksize=NA, BPPARAM = bpparam(), ...)
+	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
 	function(i) {
 		if ( isTRUE(verbose) )
 			message("calculating distances from index: ", paste0(i, collapse=" "))
 		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
-			verbose=verbose, nchunks=nchunks, chunksize=chunksize,
+			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)
 	}
 }

@@ -590,6 +590,8 @@ export(
 	"eval_exprs",
 	"varquote")
 
+export("matter_defaults")
+
 export("SnowfastParam")
 
 useDynLib("matter", .registration=TRUE, .fixes="C_")

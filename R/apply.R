@@ -24,15 +24,9 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 		put <- NULL
 	}
 	CHUNKFUN <- chunk_loop_fun(FUN, type="array", margin=MARGIN, put=put)
-	if ( MARGIN == 1L ) {
-		ans.list <- chunk_rowapply(X, CHUNKFUN, ...,
-			verbose=verbose, BPPARAM=BPPARAM)
-		names(ans.list) <- dimnames(X)[[1L]]
-	} else {
-		ans.list <- chunk_colapply(X, CHUNKFUN, ...,
-			verbose=verbose, BPPARAM=BPPARAM)
-		names(ans.list) <- dimnames(X)[[2L]]
-	}
+	ans.list <- chunk_apply(X, MARGIN, CHUNKFUN, ...,
+		verbose=verbose, BPPARAM=BPPARAM)
+	names(ans.list) <- dimnames(X)[[MARGIN]]
 	if ( outfile )
 		ipcremove(pid)
 	if ( outfile && isTRUE(simplify) ) {
@@ -56,7 +50,7 @@ chunk_apply <- function(X, MARGIN, FUN, ...)
 
 chunk_rowapply <- function(X, FUN, ...,
 	simplify = "c", depends = NULL, RNG = FALSE,
-	nchunks = NA, chunksize = NA, verbose = NA,
+	verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
@@ -65,9 +59,20 @@ chunk_rowapply <- function(X, FUN, ...,
 		stop("X must have exactly 2 dimensions")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( "nchunks" %in% ...names() ) {
+		.Deprecated(old="nchunks", new="chunkopts")
+		chunkopts$nchunks <- list(...)$nchunks
+	}
 	progress <- verbose && !has_progressbar(BPPARAM)
+	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+		drop <- FALSE
+	} else {
+		drop <- NULL
+	}
 	CHUNKS <- chunked_mat(X, margin=1L, depends=depends,
-		nchunks=nchunks, chunksize=chunksize, trace=progress)
+		nchunks=get_nchunks(chunkopts),
+		chunksize=get_chunksize(chunkopts),
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -80,7 +85,7 @@ chunk_rowapply <- function(X, FUN, ...,
 
 chunk_colapply <- function(X, FUN, ...,
 	simplify = "c", depends = NULL, RNG = FALSE,
-	nchunks = NA, chunksize = NA, verbose = NA,
+	verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
@@ -89,9 +94,20 @@ chunk_colapply <- function(X, FUN, ...,
 		stop("X must have exactly 2 dimensions")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( "nchunks" %in% ...names() ) {
+		.Deprecated(old="nchunks", new="chunkopts")
+		chunkopts$nchunks <- list(...)$nchunks
+	}
 	progress <- verbose && !has_progressbar(BPPARAM)
+	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+		drop <- FALSE
+	} else {
+		drop <- NULL
+	}
 	CHUNKS <- chunked_mat(X, margin=2L, depends=depends,
-		nchunks=nchunks, chunksize=chunksize, trace=progress)
+		nchunks=get_nchunks(chunkopts),
+		chunksize=get_chunksize(chunkopts),
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -141,16 +157,27 @@ chunkLapply <- function(X, FUN, ...,
 
 chunk_lapply <- function(X, FUN, ...,
 	simplify = "c", depends = NULL, RNG = FALSE,
-	nchunks = NA, chunksize = NA, verbose = NA,
+	verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
+	if ( "nchunks" %in% ...names() ) {
+		.Deprecated(old="nchunks", new="chunkopts")
+		chunkopts$nchunks <- list(...)$nchunks
+	}
 	progress <- verbose && !has_progressbar(BPPARAM)
+	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+		drop <- FALSE
+	} else {
+		drop <- NULL
+	}
 	CHUNKS <- chunked_vec(X, depends=depends,
-		nchunks=nchunks, chunksize=chunksize, trace=progress)
+		nchunks=get_nchunks(chunkopts),
+		chunksize=get_chunksize(chunkopts),
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -200,7 +227,7 @@ chunkMapply <- function(FUN, ...,
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	simplify = "c", depends = NULL, RNG = FALSE,
-	nchunks = NA, chunksize = NA, verbose = NA,
+	verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
@@ -208,8 +235,19 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	progress <- verbose && !has_progressbar(BPPARAM)
+	if ( "nchunks" %in% ...names() ) {
+		.Deprecated(old="nchunks", new="chunkopts")
+		chunkopts$nchunks <- list(...)$nchunks
+	}
+	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+		drop <- FALSE
+	} else {
+		drop <- NULL
+	}
 	CHUNKS <- chunked_list(..., depends=depends,
-		nchunks=nchunks, chunksize=chunksize, trace=progress)
+		nchunks=get_nchunks(chunkopts),
+		chunksize=get_chunksize(chunkopts),
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -313,6 +351,23 @@ chunk_writer <- function(id, path)
 			BiocParallel::ipcyield(id)
 		ans
 	}, envir=copy_env(environment(NULL)))
+}
+
+get_nchunks <- function(options) chunk_option(options, "nchunks")
+
+get_chunksize <- function(options) chunk_option(options, "chunksize")
+
+get_serialize <- function(options) chunk_option(options, "serialize")
+
+chunk_option <- function(options, name) {
+	if ( !is.null(options) && !is.list(options) )
+		stop("chunk options must be a list or NULL")
+	ans <- options[[name]]
+	if ( is.null(ans) ) {
+		defaults <- matter_defaults()
+		ans <- defaults[[name]]
+	}
+	ans
 }
 
 has_progressbar <- function(BPPARAM) {

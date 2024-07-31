@@ -7,6 +7,7 @@
 		matter.compress.atoms = 3,
 		matter.default.nchunks = 20L,
 		matter.default.chunksize = NA_real_,
+		matter.default.serialize = TRUE,
 		matter.default.verbose = FALSE,
 		matter.matmul.bpparam = NULL,
 		matter.show.head = TRUE,
@@ -21,6 +22,42 @@
 		matter.vizi.style = "light",
 		matter.vizi.dpal = "Tableau 10",
 		matter.vizi.cpal = "Viridis")
+}
+
+matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
+	serialize = TRUE, verbose = FALSE)
+{
+	if ( !missing(nchunks) ) {
+		nchunks <- as.integer(nchunks)[1L]
+		options(matter.default.nchunks=nchunks)
+	} else {
+		nchunks <- getOption("matter.default.nchunks")
+	}
+	if ( !missing(chunksize) ) {
+		chunksize <- as.numeric(chunksize)[1L]
+		options(matter.default.chunksize=chunksize)
+	} else {
+		chunksize <- getOption("matter.default.chunksize")
+	}
+	if ( !missing(serialize) ) {
+		serialize <- as.logical(serialize)[1L]
+		options(matter.default.serialize=serialize)
+	} else {
+		serialize <- getOption("matter.default.serialize")
+	}
+	if ( !missing(verbose) ) {
+		verbose <- as.logical(verbose)[1L]
+		options(matter.default.verbose=verbose)
+	} else {
+		verbose <- getOption("matter.default.verbose")
+	}
+	defaults <- list(nchunks=nchunks, chunksize=size_bytes(chunksize),
+		serialize=serialize, verbose=verbose)
+	if ( nargs() > 0L ) {
+		invisible(defaults)
+	} else {
+		defaults
+	}
 }
 
 #### Parallel RNG ####
