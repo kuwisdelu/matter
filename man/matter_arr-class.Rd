@@ -28,6 +28,7 @@
 
 \alias{dim<-,matter_arr-method}
 
+\alias{as.vector}
 \alias{as.vector,matter_arr-method}
 \alias{as.raw,matter_arr-method}
 \alias{as.logical,matter_arr-method}
