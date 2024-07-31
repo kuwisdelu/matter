@@ -80,6 +80,9 @@ chunk_rowapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	if ( verbose )
+		message("# collecting ", sum(lengths(CHUNKS)), " results ",
+			"from ", length(CHUNKS), " chunks")
 	do.call(simplify, ans)
 }
 
@@ -115,6 +118,9 @@ chunk_colapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	if ( verbose )
+		message("# collecting ", sum(lengths(CHUNKS)), " results ",
+			"from ", length(CHUNKS), " chunks")
 	do.call(simplify, ans)
 }
 
@@ -185,6 +191,9 @@ chunk_lapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="vector", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
+	if ( verbose )
+		message("# collecting ", sum(lengths(CHUNKS)), " results ",
+			"from ", length(CHUNKS), " chunks")
 	do.call(simplify, ans)
 }
 
@@ -257,6 +266,9 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	CHUNKFUN <- chunk_fun(FUN, type="list",
 		rngseeds=rngseeds, MoreArgs=MoreArgs)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
+	if ( verbose )
+		message("# collecting ", sum(lengths(CHUNKS)), " results ",
+			"from ", length(CHUNKS), " chunks")
 	do.call(simplify, ans)
 }
 
@@ -269,9 +281,9 @@ chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 	{
 		chunkinfo <- attr(X, "chunkinfo")
 		X <- switch(type,
-			list=lapply(X, as.vector),
-			vector=as.vector(X),
-			array=as.array(X))
+			list=lapply(X, matter::as.vector),
+			vector=matter::as.vector(X),
+			array=matter::as.array(X))
 		X <- matter::update_attr(X, chunkinfo)
 		id <- attr(X, "chunkid")
 		if ( !is.null(rngseeds) ) {

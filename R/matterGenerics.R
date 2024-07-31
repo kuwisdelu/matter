@@ -2,8 +2,9 @@
 #### Define new generics from base ####
 ## -------------------------------------
 
-setGeneric("as.matrix")
+setGeneric("as.vector")
 setGeneric("as.array")
+setGeneric("as.matrix")
 setGeneric("as.factor")
 
 setGeneric("levels")

@@ -185,7 +185,16 @@ setMethod("[[", c(x = "chunked_mat"),
 
 print_chunk_info <- function(x) {
 	info <- attr(x, "chunkinfo")
-	size <- format(size_bytes(object.size(x)))
+	if ( is.list(x) ) {
+		sizes <- vapply(x, vm_realized, numeric(1L))
+		size <- format(size_bytes(sum(sizes, na.rm=TRUE)))
+	} else {
+		if ( is.matter(x) ) {
+			size <- format(size_bytes(vm_realized(x)))
+		} else {
+			size <- format(size_bytes(object.size(x)))
+		}
+	}
 	message("# processing chunk ",
 		info$chunkid, "/", info$nchunks,
 		" (", info$chunksize, " items | ", size, ")")
