@@ -17,8 +17,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 	names(priors) <- levels(y)
 	# calculate global centroid
 	if ( is.null(center) ) {
-		if ( verbose )
-			message("calculating global centroid")
+		matter_log("calculating global centroid", verbose=verbose)
 		if ( transpose ) {
 			center <- rowStats(x, stat="mean", na.rm=TRUE,
 				verbose=verbose, BPPARAM=BPPARAM, ...)
@@ -28,8 +27,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		}
 	}
 	# calculate class centroids
-	if ( verbose )
-		message("calculating class centroids")
+	matter_log("calculating class centroids", verbose=verbose)
 	if ( transpose ) {
 		centers <- rowStats(x, stat="mean", group=y, na.rm=TRUE,
 			verbose=verbose, BPPARAM=BPPARAM, ...)
@@ -42,8 +40,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		colnames(centers) <- levels(y)
 	}
 	# calculate t-statistics
-	if ( verbose )
-		message("calculating class statistics")
+	matter_log("calculating class statistics", verbose=verbose)
 	if ( transpose ) {
 		xc <- rowsweep(x, STATS=centers, group=y)
 		wcss <- rowStats(xc^2, stat="sum", group=y, na.rm=TRUE,
@@ -70,8 +67,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 	ans <- vector("list", length=length(s))
 	for ( i in seq_along(s) )
 	{
-		if ( verbose )
-			message("fitting values for s = ", s[i])
+		matter_log("fitting values for s = ", s[i], verbose=verbose)
 		s_statistic <- soft(statistic, s[i])
 		s_centers <- center + se * s_statistic
 		if ( k > 1L && !any(abs(s_statistic) > 0) )

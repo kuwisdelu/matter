@@ -195,9 +195,9 @@ print_chunk_info <- function(x) {
 			size <- format(size_bytes(object.size(x)))
 		}
 	}
-	message("# processing chunk ",
+	matter_log("# processing chunk ",
 		info$chunkid, "/", info$nchunks,
-		" (", info$chunksize, " items | ", size, ")")
+		" (", info$chunksize, " items | ", size, ")", verbose=TRUE)
 }
 
 chunkify <- function(x, nchunks = 20L, depends = NULL) {

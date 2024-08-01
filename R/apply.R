@@ -17,8 +17,8 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
-		if ( verbose )
-			message("writing output to path = ", sQuote(outpath))
+		matter_log("writing output to path = ", sQuote(outpath),
+			verbose=verbose)
 		put <- chunk_writer(pid, outpath)
 	} else {
 		put <- NULL
@@ -80,9 +80,8 @@ chunk_rowapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
-	if ( verbose )
-		message("# collecting ", sum(lengths(CHUNKS)), " results ",
-			"from ", length(CHUNKS), " chunks")
+	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
+		"from ", length(CHUNKS), " chunks", verbose=verbose)
 	do.call(simplify, ans)
 }
 
@@ -118,9 +117,8 @@ chunk_colapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
-	if ( verbose )
-		message("# collecting ", sum(lengths(CHUNKS)), " results ",
-			"from ", length(CHUNKS), " chunks")
+	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
+		"from ", length(CHUNKS), " chunks", verbose=verbose)
 	do.call(simplify, ans)
 }
 
@@ -140,8 +138,7 @@ chunkLapply <- function(X, FUN, ...,
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
-		if ( verbose )
-			message("writing output to path = ", sQuote(outpath))
+		matter_log("writing output to path = ", sQuote(outpath), verbose=verbose)
 		put <- chunk_writer(pid, outpath)
 	} else {
 		put <- NULL
@@ -191,9 +188,8 @@ chunk_lapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="vector", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
-	if ( verbose )
-		message("# collecting ", sum(lengths(CHUNKS)), " results ",
-			"from ", length(CHUNKS), " chunks")
+	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
+		"from ", length(CHUNKS), " chunks", verbose=verbose)
 	do.call(simplify, ans)
 }
 
@@ -213,8 +209,7 @@ chunkMapply <- function(FUN, ...,
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
-		if ( verbose )
-			message("writing output to path = ", sQuote(outpath))
+		matter_log("writing output to path = ", sQuote(outpath), verbose=verbose)
 		put <- chunk_writer(pid, outpath)
 	} else {
 		put <- NULL
@@ -266,9 +261,8 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	CHUNKFUN <- chunk_fun(FUN, type="list",
 		rngseeds=rngseeds, MoreArgs=MoreArgs)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
-	if ( verbose )
-		message("# collecting ", sum(lengths(CHUNKS)), " results ",
-			"from ", length(CHUNKS), " chunks")
+	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
+		"from ", length(CHUNKS), " chunks", verbose=verbose)
 	do.call(simplify, ans)
 }
 

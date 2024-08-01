@@ -27,14 +27,12 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 	fx <- distfun(x, x, verbose=verbose, ..., BPPARAM=BPPARAM)
 	for ( i in j )
 	{
-		if ( verbose )
-			message("fitting FastMap component ", i)
+		matter_log("fitting FastMap component ", i, verbose=verbose)
 		# find pivots
 		p1 <- sample.int(N, 1L)
 		p2 <- sample.int(N, 1L)
 		plast <- c(p1, p2)
-		if ( verbose )
-			message("finding pivots")
+		matter_log("finding pivots", verbose=verbose)
 		for ( iter in seq_len(niter) )
 		{
 			# get distances to pivot 1
@@ -51,9 +49,8 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 			p1 <- which.max(d2)
 			# get distance between pivots
 			d12 <- d2[p1]
-			if ( verbose )
-				message("pivot distance = ",
-					format.default(d12), " on iteration ", iter)
+			matter_log("pivot distance = ",
+				format.default(d12), " on iteration ", iter, verbose=verbose)
 			if ( setequal(c(p1, p2), plast) ) {
 				break
 			} else {
@@ -64,11 +61,9 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		d1x <- fx(p1)
 		d1proj <- rowdist_at(scores, p1)[[1L]]
 		d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
-		if ( verbose )
-			message("found pivots: ", p1, ", ", p2)
+		matter_log("found pivots: ", p1, ", ", p2, verbose=verbose)
 		# project current component
-		if ( verbose )
-			message("projecting component ", i)
+		matter_log("projecting component ", i, verbose=verbose)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
 		scores[,i] <- xi
 		pivots[i,] <- c(p1, p2, d12)
@@ -155,8 +150,8 @@ rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
 	function(i) {
-		if ( isTRUE(verbose) )
-			message("calculating distances from index: ", paste0(i, collapse=" "))
+		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
+			verbose=isTRUE(verbose))
 		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)
@@ -167,8 +162,8 @@ colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
 	function(i) {
-		if ( isTRUE(verbose) )
-			message("calculating distances from index: ", paste0(i, collapse=" "))
+		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
+			verbose=isTRUE(verbose))
 		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)

@@ -27,9 +27,8 @@ cv_do <- function(fit., x, y, folds, ...,
 		if ( is.integer(pos) )
 			pos <- levels(y)[pos]
 		neg <- setdiff(levels(y), pos)
-		if ( verbose )
-			message("## using multiple instance learning ",
-				"with ", nlevels(bags), " bags")
+		matter_log("## using multiple instance learning ",
+			"with ", nlevels(bags), " bags", verbose=verbose)
 		y_bags <- vapply(levels(bags),
 			function(bag) {
 				yi <- y[!is.na(y) & bags %in% bag]
@@ -52,9 +51,8 @@ cv_do <- function(fit., x, y, folds, ...,
 	for ( i in seq_along(levels(folds)) )
 	{
 		fold <- levels(folds)[i]
-		if ( verbose )
-			message("## processing fold ", i, "/", nlevels(folds), " ",
-				"(", sQuote(fold), ")")
+		matter_log("## processing fold ", i, "/", nlevels(folds), " ",
+			"(", sQuote(fold), ")", verbose=verbose)
 		# create train / test sets
 		test <- folds %in% fold
 		train <- !test
@@ -71,15 +69,14 @@ cv_do <- function(fit., x, y, folds, ...,
 		y_test <- y[test]
 		# preprocess training data
 		if ( is.function(trainProcess) ) {
-			if ( verbose )
-				message("# pre-processing training data")
+			matter_log("# pre-processing training data", verbose=verbose)
 			args <- c(trainArgs, list(chunkopts=chunkopts, BPPARAM=BPPARAM))
 			args <- c(list(x_train), args)
 			x_train <- do.call(trainProcess, args)
 		}
 		# train model
-		if ( verbose )
-			message("# fitting model on pooled training sets (n=", n_train, ")")
+		matter_log("# fitting model on pooled training sets (n=", n_train, ")",
+			, verbose=verbose)
 		if ( is.null(bags) ) {
 			fit <- fit.(x_train, y_train,
 				chunkopts=chunkopts, BPPARAM=BPPARAM, ...)
@@ -98,15 +95,13 @@ cv_do <- function(fit., x, y, folds, ...,
 			models[[i]] <- fit
 		# preprocess test data
 		if ( is.function(testProcess) ) {
-			if ( verbose )
-				message("# pre-processing test data")
+			matter_log("# pre-processing test data", verbose=verbose)
 			args <- c(testArgs, list(chunkopts=chunkopts, BPPARAM=BPPARAM))
 			args <- c(list(x_test, x_train), args)
 			x_test <- do.call(testProcess, args)
 		}
 		# predict
-		if ( verbose )
-			message("# evaluating model on test set (n=", n_test, ")")
+		matter_log("# evaluating model on test set (n=", n_test, ")", verbose=verbose)
 		y_pred <- predict.(fit, x_test,
 			chunkopts=chunkopts, BPPARAM=BPPARAM, ...)
 		y_out[[i]] <- y_pred
@@ -151,8 +146,7 @@ cv_do <- function(fit., x, y, folds, ...,
 	}
 	fitted.values <- array2list(fitted.values, length(y_dim))
 	# average and return results
-	if ( verbose )
-		message("## summarizing ", nlevels(folds), " folds")
+	matter_log("## summarizing ", nlevels(folds), " folds", verbose=verbose)
 	FUN <- function(sc) {
 		if ( isTRUE(length(dim(sc)) > 2L) ) {
 			sc <- colMeans(sc)

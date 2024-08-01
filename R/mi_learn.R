@@ -14,8 +14,7 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 		pos <- levels(y)[pos]
 	neg <- setdiff(levels(y), pos)
 	ipos <- which(levels(y) %in% pos)
-	if ( verbose )
-		message("# using ", sQuote(pos), " as positive class")
+	matter_log("# using ", sQuote(pos), " as positive class", verbose=verbose)
 	bags <- droplevels(as.factor(bags))
 	if ( length(y) != length(bags) ) {
 		if ( length(y) != nlevels(bags) ) {
@@ -40,8 +39,7 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 	# multiple instance learning
 	while ( uprop > threshold )
 	{
-		if ( verbose )
-			message("# multiple instance iteration ", iter)
+		matter_log("# multiple instance iteration ", iter, verbose=verbose)
 		model <- fn(x, y, ...)
 		py <- score(model)
 		if ( is.matrix(py) ) {
@@ -76,13 +74,11 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 		iter <- iter + 1
 		utot <- sum(y != yi, na.rm=TRUE)
 		uprop <- utot / sum(!is.na(yi))
-		if ( verbose )
-			message("# ", utot, " labels updated (",
-				round(100 * uprop, digits=2L), "%)")
+		matter_log("# ", utot, " labels updated (",
+			round(100 * uprop, digits=2L), "%)", verbose=verbose)
 		y <- yi
 	}
-	if ( verbose )
-		message("# finalizing model")
+	matter_log("# finalizing model", verbose=verbose)
 	fn(x, y, ...)
 }
 

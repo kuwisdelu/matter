@@ -12,8 +12,8 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	x <- as_real_memory_matrix(x)
 	k <- min(max(k), dim(x))
 	# center and scale x and y
-	if ( verbose && (center || scale.) )
-		message("preparing x and y matrices")
+	if ( center || scale. )
+		matter_log("preparing x and y matrices", verbose=verbose)
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
@@ -59,8 +59,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	y0 <- y
 	for ( i in j )
 	{
-		if ( verbose )
-			message("fitting PLS component ", i)
+		matter_log("fitting PLS component ", i, verbose=verbose)
 		u <- y[,which.max(colSums(y)),drop=FALSE]
 		du <- Inf
 		iter <- 1
@@ -109,8 +108,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		inner[i] <- c
 	}
 	# calculate regression coefficients
-	if ( verbose )
-		message("fitting regression coefficients")
+	matter_log("fitting regression coefficients", verbose=verbose)
 	projection <- weights %*% solve(crossprod(loadings, weights))
 	projection <- projection %*% (inner * diag(k))
 	dimnames(projection) <- list(pnames, paste0("C", j))
@@ -147,8 +145,8 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		verbose <- getOption("matter.default.verbose")
 	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
-	if ( verbose && (center || scale.) )
-		message("preparing x and y matrices")
+	if ( center || scale. )
+		matter_log("preparing x and y matrices", verbose=verbose)
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
@@ -196,8 +194,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	for ( i in j )
 	{
 		# show progress
-		if ( verbose )
-			message("fitting PLS component ", i)
+		matter_log("fitting PLS component ", i, verbose=verbose)
 		# calculate scores and loadings
 		s <- svd(xy)
 		r <- s$u[,1L,drop=FALSE]
@@ -236,8 +233,7 @@ pls_simpls <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		}
 	}
 	# calculate regression coefficients
-	if ( verbose )
-		message("fitting regression coefficients")
+	matter_log("fitting regression coefficients", verbose=verbose)
 	b <- tcrossprod(projection, y.loadings)
 	if ( transpose ) {
 		yhat <- t(t(b) %*% xt)
@@ -277,8 +273,8 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		verbose <- getOption("matter.default.verbose")
 	k <- min(max(k), dim(x))
 	# center and scale x and y + calculate covariance
-	if ( verbose && (center || scale.) )
-		message("preparing x and y matrices")
+	if ( center || scale. )
+		matter_log("preparing x and y matrices", verbose=verbose)
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
@@ -331,8 +327,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	for ( i in j )
 	{
 		# show progress
-		if ( verbose )
-			message("fitting PLS component ", i)
+		matter_log("fitting PLS component ", i, verbose=verbose)
 		# calculate projection vectors
 		if ( ncol(y) < P ) {
 			yxxy <- crossprod(xy, xy)
@@ -394,8 +389,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 		}
 	}
 	# calculate regression coefficients
-	if ( verbose )
-		message("fitting regression coefficients")
+	matter_log("fitting regression coefficients", verbose=verbose)
 	b <- tcrossprod(projection, y.loadings)
 	if ( transpose ) {
 		yhat <- t(t(b) %*% xt)
@@ -560,8 +554,8 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	x <- as_real_memory_matrix(x)
 	k <- min(max(k), dim(x))
 	# center and scale x and y
-	if ( verbose && (center || scale.) )
-		message("preparing x and y matrices")
+	if ( center || scale. )
+		matter_log("preparing x and y matrices", verbose=verbose)
 	if ( is.factor(y) || is.character(y) )
 		y <- encode_dummy(y)
 	y <- as.matrix(y)
@@ -611,8 +605,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 	for ( i in j )
 	{
 		# show progress
-		if ( verbose )
-			message("fitting OPLS component ", i)
+		matter_log("fitting OPLS component ", i, verbose=verbose)
 		u <- y[,which.max(colSums(y)),drop=FALSE]
 		du <- Inf
 		iter <- 1

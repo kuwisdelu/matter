@@ -26,14 +26,14 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 		verbose <- getOption("matter.default.verbose")
 	k <- min(max(k), dim(x))
 	# center and scale x
-	if ( verbose && (!isFALSE(center) || !isFALSE(scale.)) ) {
+	if ( !isFALSE(center) || !isFALSE(scale.) ) {
 		msg <- character()
 		if ( !isFALSE(center) )
 			msg <- c(msg, "centering")
 		if ( !isFALSE(scale.) )
 			msg <- c(msg, "scaling")
 		msg <- paste0(msg, collapse=" and ")
-		message(msg, " data matrix")
+		matter_log(msg, " data matrix", verbose=verbose)
 	}
 	if ( transpose ) {
 		x <- rowscale(x, center=center, scale=scale.,
@@ -46,8 +46,7 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 		center <- attr(x, "col-scaled:center")
 		scale <- attr(x, "col-scaled:scale")
 	}
-	if ( verbose )
-		message("fitting principal components via IRLBA")
+	matter_log("fitting principal components via IRLBA", verbose=verbose)
 	# calculate PCA via SVD
 	j <- seq_len(k)
 	s <- irlba(x, nu=k, nv=k, fastpath=is.matrix(x), verbose=verbose)

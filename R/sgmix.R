@@ -76,8 +76,7 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		gs <- levels(group)
 		ans <- lapply(gs, function(g)
 			{
-				if ( verbose )
-					message("fitting model for group ", g)
+				matter_log("fitting model for group ", g, verbose=verbose)
 				i <- which(group %in% g)
 				nbi <- lapply(nb[i], bsearch, table=i)
 				if ( is.character(weights) ) {
@@ -143,8 +142,7 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		return(ans)
 	}
 	# initialize parameters (mu, sigma, alpha, beta)
-	if ( verbose )
-		message("initializing model using k-means")
+	matter_log("initializing model using k-means", verbose=verbose)
 	init <- kmeans(x, centers=k, ...)
 	mu <- as.vector(init$centers)
 	sigma <- as.vector(tapply(x, init$cluster, sd))
@@ -213,8 +211,7 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	}
 	# iterate
 	tt <- 1
-	if ( verbose )
-		message("estimating parameters with gradient descent")
+	matter_log("estimating parameters with gradient descent", verbose=verbose)
 	for ( iter in seq_len(niter) )
 	{
 		# update probability from expectation step
@@ -223,8 +220,7 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		y <- E$y
 		loglik <- E$loglik
 		if ( all(class == predict_class(y)) ) {
-			if ( verbose )
-				message("no more class assignment changes")
+			matter_log("no more class assignment changes", verbose=verbose)
 			break
 		}
 		class <- predict_class(y)
@@ -243,10 +239,8 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 		G <- optimize(fn, eta$limits, y=y, ybar=ybar,
 			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
-		if ( verbose )
-			message("log Lik = ",
-				format.default(-G$objective), " on iteration ", iter,
-				" (step size = ", format.default(G$minimum), ")")
+		matter_log("log Lik = ", format.default(-G$objective), " on iteration ", iter,
+			" (step size = ", format.default(G$minimum), ")", verbose=verbose)
 		if ( annealing || loglik > -G$objective )
 		{
 			# simulate annealing
@@ -257,16 +251,15 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 			tt <- tt - (1 / niter)
 			if ( S$loglik > -G$objective && S$loglik > loglik )
 			{
-				if ( verbose )
-					message("log Lik = ",
-						format.default(S$loglik), " on iteration ", iter,
-						" (simulated annealing)")
+				matter_log("log Lik = ",
+					format.default(S$loglik), " on iteration ", iter,
+					" (simulated annealing)", verbose=verbose)
 				mu <- sa_mu
 				next
 			}
 			if ( loglik > -G$objective ) {
-				if ( verbose )
-					message("log Lik decreased; reverting to previous model")
+				matter_log("log Lik decreased; reverting to previous model",
+					verbose=verbose)
 				break
 			}
 		}
@@ -276,8 +269,8 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		if ( any(c(M$sigma, M$alpha, M$beta) <= 0) || 
 			any(M$mu < xmin) || any(M$mu > xmax) )
 		{
-			if ( verbose )
-				message("constraining parameters; reverting to previous model")
+			matter_log("constraining parameters; reverting to previous model",
+				verbose=verbose)
 			break
 		}
 		mu <- M$mu
@@ -362,8 +355,7 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	} else {
 		matter_error("'vals' must be a list or matrix-like")
 	}
-	if ( verbose )
-		message("fitting spatial segmentations for ", n, " images")
+	matter_log("fitting spatial segmentations for ", n, " images", verbose=verbose)
 	margin <- if (byrow) 1L else 2L
 	if ( is.list(vals) ) {
 		ans <- chunkLapply(vals, sgmix_int,

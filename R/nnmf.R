@@ -9,8 +9,7 @@ nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	k <- min(max(k), dim(x))
-	if ( verbose )
-		message("initializing with nonnegative double SVD")
+	matter_log("initializing with nonnegative double SVD", verbose=verbose)
 	init <- nndsvd(x, k=k, verbose=verbose, ...)
 	w <- init$w
 	h <- init$h
@@ -33,11 +32,9 @@ nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
 		dw <- sqrt(sum((wnew - w)^2))
 		w <- wnew
 		# show progress
-		if ( verbose ) {
-			message("iteration ", iter, ": ",
-				"diff(W) = ", format.default(dw), ", ",
-				"diff(H) = ", format.default(dh))
-		}
+		matter_log("iteration ", iter, ": ",
+			"diff(W) = ", format.default(dw), ", ",
+			"diff(H) = ", format.default(dh), verbose=verbose)
 		iter <- iter + 1L
 	}
 	j <- seq_len(k)
@@ -65,8 +62,7 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	k <- min(max(k), dim(x))
-	if ( verbose )
-		message("initializing with nonnegative double SVD")
+	matter_log("initializing with nonnegative double SVD", verbose=verbose)
 	init <- nndsvd(x, k=k, verbose=verbose, ...)
 	w <- init$w
 	h <- init$h
@@ -107,11 +103,9 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 		dw <- sqrt(sum((wnew - w)^2))
 		w <- wnew
 		# show progress
-		if ( verbose ) {
-			message("iteration ", iter, ": ",
-				"diff(W) = ", format.default(dw), ", ",
-				"diff(H) = ", format.default(dh))
-		}
+		matter_log("iteration ", iter, ": ",
+			"diff(W) = ", format.default(dw), ", ",
+			"diff(H) = ", format.default(dh), verbose=verbose)
 		iter <- iter + 1L
 	}
 	j <- seq_len(k)
