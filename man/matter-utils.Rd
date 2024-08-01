@@ -49,14 +49,15 @@
 \alias{linear_ind}
 
 \alias{update_attr}
+\alias{copy_env}
 
 \alias{size_bytes}
 
 \alias{roll}
 \alias{seq_rel}
 \alias{shingles}
-\alias{avg}
 \alias{pinv}
+\alias{avg}
 
 \alias{parse_formula}
 \alias{eval_exprs}
@@ -101,6 +102,10 @@
 \alias{vm_realized,matter_list-method}
 \alias{vm_realized,matter_str-method}
 \alias{vm_realized,sparse_arr-method}
+
+\alias{matter_log}
+\alias{matter_warn}
+\alias{matter_error}
 
 \title{Internal Utilities for ``matter'' Package}
 

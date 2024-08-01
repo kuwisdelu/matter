@@ -436,14 +436,16 @@ export(
 	"array_ind",
 	"linear_ind")
 
-export("update_attr")
+export(
+	"update_attr",
+	"copy_env")
 
 export(
 	"roll",
 	"seq_rel",
 	"shingles",
-	"avg",
-	"pinv")
+	"pinv",
+	"avg")
 
 export(
 	"RNGStreams",
@@ -591,6 +593,11 @@ export(
 export(
 	"simple_logger",
 	"matter_logger")
+
+export(
+	"matter_log",
+	"matter_warn",
+	"matter_error")
 
 export(
 	"mem",

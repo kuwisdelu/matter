@@ -149,23 +149,23 @@ predict.fastmap <- function(object, newdata, ...)
 rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
-	function(i) {
-		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
+	local(function(i) {
+		matter::matter_log("calculating distances from index: ", paste0(i, collapse=" "),
 			verbose=isTRUE(verbose))
-		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
+		matter::rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)
-	}
+	}, envir=copy_env(environment(NULL)))
 }
 
 colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
-	function(i) {
-		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
+	local(function(i) {
+		matter::matter_log("calculating distances from index: ", paste0(i, collapse=" "),
 			verbose=isTRUE(verbose))
-		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
+		matter::colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)
-	}
+	}, envir=copy_env(environment(NULL)))
 }
