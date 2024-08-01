@@ -53,11 +53,11 @@ setRefClass("simple_logger",
 			entry <- paste0(timestamp, " Session info:\n", info)
 			.self$append(entry)
 		},
-		log = function(..., signal = NULL, call = NULL)
+		log = function(..., signal = FALSE, call = NULL)
 		{
 			timestamp <- paste0("[", format(Sys.time()), "] ")
 			msg <- .makeMessage(..., domain=.self$domain)
-			if ( is.null(signal) || signal == "message" ) {
+			if ( is.logical(signal) || signal == "message" ) {
 				entry <- paste0(timestamp, msg)
 			} else {
 				if ( is.null(call) ) {
@@ -69,7 +69,7 @@ setRefClass("simple_logger",
 				}
 			}
 			.self$append(entry)
-			if ( is.character(signal) ) {
+			if ( !isFALSE(signal) ) {
 				switch(signal,
 					message=base::message(msg),
 					warning=base::warning(where, msg, call.=FALSE),

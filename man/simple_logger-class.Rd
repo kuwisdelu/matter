@@ -58,7 +58,7 @@ matter_logger()
 
         \item{\code{$append_session():}}{Append the \code{sessionInfo()} to the log.}
 
-        \item{\code{$log(\dots, signal = NULL, call = NULL):}}{Record a log entry with a timestamp, optionally signaling a \code{"message"}, \code{"warning"}, or \code{"error"} condition. For \code{"warning"} and \code{"error"} conditions (only), the \code{call} may also be passed to be deparsed and recorded in the log entry.}
+        \item{\code{$log(\dots, signal = FALSE, call = NULL):}}{Record a log entry with a timestamp, optionally signaling a \code{"message"}, \code{"warning"}, or \code{"error"} condition. For \code{"warning"} and \code{"error"} conditions (only), the \code{call} may also be passed to be deparsed and recorded in the log entry.}
 
         \item{\code{$message(\dots):}}{Record a log entry with a timestamp and signal a \code{message} condition.}
 
@@ -88,6 +88,7 @@ matter_logger()
 sl <- simple_logger()
 
 sl$log("This is a silent log entry that doesn't signal a condition.")
+sl$log("This log entry signals a message condition.", signal=TRUE)
 sl$log("This log entry signals a message condition.", signal="message")
 sl$message("This log entry also signals a message condition")
 sl$flush()
