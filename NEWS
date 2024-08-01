@@ -10,6 +10,7 @@ NEW FEATURES
         the approximate size of chunks in bytes
     o Add getOption("matter.default.serialize") for managing
         serialization behavior in chunk-apply functions
+    o New 'simple_logger' class for writing log files
 
 SIGNIFICANT USER-VISIBLE CHANGES
 

@@ -48,7 +48,7 @@ setRefClass("simple_logger",
 		append_session = function()
 		{
 			timestamp <- paste0("[", format(Sys.time()), "]")
-			info <- capture.output(print(sessionInfo()))
+			info <- utils::capture.output(print(utils::sessionInfo()))
 			info <- paste0(info, collapse="\n")
 			entry <- paste0(timestamp, " Session info:\n", info)
 			.self$append(entry)
@@ -153,5 +153,7 @@ simple_logger <- function(file = NULL, domain = NULL, bufferlimit = 50L)
 	logger
 }
 
-logger <- function() getOption("matter.logger")
+matter_logger <- function() getOption("matter.logger")
+
+logger <- matter_logger
 

@@ -4,6 +4,8 @@ import("methods")
 importFrom("utils",
 	"head",
 	"tail",
+	"sessionInfo",
+	"capture.output",
 	"object.size")
 
 importFrom("grDevices",
@@ -586,7 +588,9 @@ export(
 	"eval_exprs",
 	"varquote")
 
-export("simple_logger")
+export(
+	"simple_logger",
+	"matter_logger")
 
 export(
 	"mem",
