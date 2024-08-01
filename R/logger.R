@@ -53,38 +53,43 @@ setRefClass("simple_logger",
 			entry <- paste0(timestamp, " Session info:\n", info)
 			.self$append(entry)
 		},
-		log = function(..., echo = FALSE)
+		log = function(..., signal = NULL, call = NULL)
 		{
-			timestamp <- paste0("[", format(Sys.time()), "]")
+			timestamp <- paste0("[", format(Sys.time()), "] ")
 			msg <- .makeMessage(..., domain=.self$domain)
-			if ( echo )
-				base::message(msg)
-			entry <- paste0(timestamp, " ", msg)
+			if ( is.null(signal) || signal == "message" ) {
+				entry <- paste0(timestamp, msg)
+			} else {
+				if ( is.null(call) ) {
+					where <- ""
+					entry <- paste0(timestamp, toupper(signal), ": ", msg)
+				} else {
+					where <- paste0(" in ", deparse1(call), ": ")
+					entry <- paste0(timestamp, toupper(signal), where, msg)
+				}
+			}
 			.self$append(entry)
+			if ( is.character(signal) ) {
+				switch(signal,
+					message=base::message(msg),
+					warning=base::warning(where, msg, call.=FALSE),
+					error=base::stop(where, msg, call.=FALSE))
+			}
+			invisible(.self)
 		},
 		message = function(...)
 		{
-			.self$log(..., echo=TRUE)
+			.self$log(..., signal="message")
 		},
 		warning = function(...)
 		{
-			timestamp <- paste0("[", format(Sys.time()), "]")
-			where <- deparse1(sys.call(-1L))
-			where <- paste0("in ", where, ":")
-			msg <- .makeMessage(..., domain=.self$domain)
-			entry <- paste(timestamp, "WARNING", where, msg)
-			.self$append(entry)
-			base::warning(where, " ", msg, call.=FALSE)
+			call <- sys.call(-1L)
+			.self$log(..., signal="warning", call=call)
 		},
 		stop = function(...)
 		{
-			timestamp <- paste0("[", format(Sys.time()), "]")
-			where <- deparse1(sys.call(-1L))
-			where <- paste0("in ", where, ":")
-			msg <- .makeMessage(..., domain=.self$domain)
-			entry <- paste(timestamp, "ERROR", where, msg)
-			.self$append(entry)
-			base::stop(where, " ", msg, call.=FALSE)
+			call <- sys.call(-1L)
+			.self$log(..., signal="error", call=call)
 		},
 		move = function(file)
 		{

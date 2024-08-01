@@ -35,7 +35,7 @@ simple_logger(file = NULL, domain = NULL, bufferlimit = 50L)
     \describe{
         \item{\code{id}:}{An identifier for file synchronization.}
 
-        \item{\code{buffer}:}{A character vector of log entries that that have not been flushed to the log file.}
+        \item{\code{buffer}:}{A character vector of buffered log entries that have not yet been flushed to the log file.}
 
         \item{\code{bufferlimit}:}{The maximum number of buffered log entries before they are flushed to the log file.}
 
@@ -45,12 +45,9 @@ simple_logger(file = NULL, domain = NULL, bufferlimit = 50L)
     }
 }
 
-\section{Creating Objects}{
-    \code{simple_logger} instances can be created through \code{simple_logger()}, respectively.
-}
-
 \section{Methods}{
-    Standard generic methods:
+    Class-specific methods:
+
     \describe{
         \item{\code{$flush():}}{Flush buffered log entries to the log file.}
 
@@ -58,7 +55,7 @@ simple_logger(file = NULL, domain = NULL, bufferlimit = 50L)
 
         \item{\code{$append_session():}}{Append the \code{sessionInfo()} to the log.}
 
-        \item{\code{$log(\dots, echo = FALSE):}}{Record a log entry with a timestamp, optionally signaling a \code{message} condition if \code{echo=TRUE}.}
+        \item{\code{$log(\dots, signal = NULL, call = NULL):}}{Record a log entry with a timestamp, optionally signaling a \code{"message"}, \code{"warning"}, or \code{"error"} condition. For \code{"warning"} and \code{"error"} conditions (only), the \code{call} may also be passed to be deparsed and recorded in the log entry.}
 
         \item{\code{$message(\dots):}}{Record a log entry with a timestamp and signal a \code{message} condition.}
 
@@ -68,14 +65,18 @@ simple_logger(file = NULL, domain = NULL, bufferlimit = 50L)
 
         \item{\code{$move(file):}}{Move the log file to a new location.}
 
-        \item{\code{$close(file):}}{Flush buffered log entries (including \code{sessionInfo()}) and detach the log file. This is called automatically at the end of an R session. (Note that log files in the temporary directory will be deleted after the R session ends if they are not \code{$move()}ed to a persistent directory before quitting.)}
+        \item{\code{$close(file):}}{Flush buffered log entries (including \code{sessionInfo()}) and detach the log file. This is called automatically at the end of an R session. Note that log files in the temporary directory will be deleted after the R session ends if they are not \code{$move()}ed to a persistent directory before quitting.}
+    }
 
+    Standard generic methods:
+
+    \describe{
         \item{\code{path(x), path(x) <- value:}}{Get or set the path to the log file. The replacement method is the same as \code{$move()}.}
     }
 }
 
 \value{
-    An object derived from class \code{simple_logger}.
+    An object of reference class \code{simple_logger}.
 }
 
 \author{Kylie A. Bemis}
@@ -83,8 +84,9 @@ simple_logger(file = NULL, domain = NULL, bufferlimit = 50L)
 \examples{
 sl <- simple_logger()
 
-sl$log("This is a basic log entry that doesn't signal a condition.")
-sl$message("This log entry will signal a message condition")
+sl$log("This is a silent log entry that doesn't signal a condition.")
+sl$log("This log entry signals a message condition.", signal="message")
+sl$message("This log entry also signals a message condition")
 sl$flush()
 
 readLines(path(sl))
