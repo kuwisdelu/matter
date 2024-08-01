@@ -1,6 +1,6 @@
 # matter
 
-Scientific computing for out-of-memory signals and images
+Scientific computing for out-of-memory signals and arrays
 
 Toolbox for out-of-memory scientific computing and data visualization, providing memory-efficient file-based data structures for dense and sparse vectors, matrices, and arrays with applications to nonuniformly sampled signals and images.
 

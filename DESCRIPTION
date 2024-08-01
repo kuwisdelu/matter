@@ -1,6 +1,6 @@
 Package: matter
 Type: Package
-Title: Scientific computing for out-of-memory signals and images
+Title: Scientific computing for out-of-memory signals and arrays
 Version: 2.7.3
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
