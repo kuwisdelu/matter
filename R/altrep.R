@@ -5,9 +5,9 @@ new_matter_ALTREP <- function(x, attr = list(),
 	wrap = getOption("matter.wrap.altrep"))
 {
 	if ( !is.matter(x) && !is.atomic(x) && !is.list(x) )
-		stop("'x' must be a matter object, atomic vector, or a list")
+		matter_error("'x' must be a matter object, atomic vector, or a list")
 	if ( !is.list(attr) )
-		stop("'attr' must be a list")
+		matter_error("'attr' must be a list")
 	wrap <- isTRUE(wrap)
 	nm <- dm <- dnm <- NULL
 	if ( !is.na(inm <- match("names", names(attr))) ) {
@@ -51,5 +51,5 @@ setMethod("as.altrep", "matter_str",
 setMethod("as.altrep", "matter_list",
 	function(x, ...)
 	{
-		stop("ALTREP for matter list not implemented yet") # TODO
+		matter_error("ALTREP for matter list not implemented yet") # TODO
 	})

@@ -5,7 +5,7 @@
 filt2_ma <- function(x, width = 5L)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
 	.Call(C_meanFilter2, x, width, PACKAGE="matter")
@@ -14,16 +14,16 @@ filt2_ma <- function(x, width = 5L)
 filt2_conv <- function(x, weights)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( !is.matrix(weights) )
-		stop("weights must be a matrix")
+		matter_error("weights must be a matrix")
 	.Call(C_linearFilter2, x, weights, PACKAGE="matter")
 }
 
 filt2_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	radius <- width %/% 2
@@ -36,7 +36,7 @@ filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 	sdrange = mad(x, na.rm = TRUE))
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter2, x, width,
@@ -46,7 +46,7 @@ filt2_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 filt2_adapt <- function(x, width = 5L, spar = 1)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter2, x, width,
@@ -57,11 +57,11 @@ filt2_diff <- function(x, niter = 3L, kappa = 50,
 	rate = 0.25, method = 1L)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( kappa < 1 )
-		warning("kappa should be > 1")
+		matter_warn("kappa should be > 1")
 	if ( rate <= 0 || rate > 0.25 )
-		warning("rate should be positive and < 0.25")
+		matter_warn("rate should be positive and < 0.25")
 	.Call(C_diffusionFilter2, x, niter,
 		kappa, rate, method, PACKAGE="matter")
 }
@@ -70,9 +70,9 @@ filt2_guide <- function(x, width = 5L, guide = x,
 	sdreg = mad(x, na.rm = TRUE))
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( !is.matrix(guide) && length(dim(guide)) > 3L )
-		stop("guide must be a matrix")
+		matter_error("guide must be a matrix")
 	if ( length(x) != length(guide) )
 		guide <- array(rep_len(guide, length(x)), dim=dim(x))
 	if ( width %% 2L != 1L )
@@ -184,7 +184,7 @@ mi <- function(x, y, n = 64L)
 		lmax <- max(length(x), length(y))
 		lmin <- min(length(x), length(y))
 		if ( lmax %% lmin != 0L )
-			stop("longer object length [", lmax, "] is not ",
+			matter_error("longer object length [", lmax, "] is not ",
 				"a multiple of shorter object length [", lmin, "]")
 		x <- rep_len(x, lmax)
 		y <- rep_len(y, lmax)
@@ -230,7 +230,7 @@ warp2_fun <- function(method)
 enhance_adj <- function(x, frac = 0.01)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	if ( is.matrix(x) ) {
 		frac <- rep_len(frac, 2L)
 		min <- quantile(x, frac[1L])
@@ -248,7 +248,7 @@ enhance_adj <- function(x, frac = 0.01)
 enhance_hist <- function(x, nbins = 256L)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	y <- .Call(C_histEq, x, nbins, PACKAGE="matter")
 	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 }
@@ -257,7 +257,7 @@ enhance_adapt <- function(x, width = sqrt(nrow(x) * ncol(x)) %/% 5L,
 	clip = 0.1, nbins = 256L)
 {
 	if ( !is.matrix(x) && length(dim(x)) != 3L )
-		stop("x must be 2D matrix or 3D array")
+		matter_error("x must be 2D matrix or 3D array")
 	y <- .Call(C_adaptHistEq, x, width, clip, nbins, PACKAGE="matter")
 	rescale_iqr(y, IQR(x, na.rm=TRUE), median(x, na.rm=TRUE))
 }
@@ -344,7 +344,7 @@ findpeaks_knn <- function(x, index, k = 5L,
 	if ( isTRUE(arr.ind) )
 	{
 		if ( is.null(dim(x)) )
-			stop("x must be an array when arr.ind=TRUE")
+			matter_error("x must be an array when arr.ind=TRUE")
 		peaks <- arrayInd(peaks, dim(x), dimnames(x), useNames=useNames)
 	}
 	if ( length(ann) > 0L )
@@ -410,7 +410,7 @@ coscore <- function(x, y, threshold = NA)
 is_gridded <- function(x, tol = 0.5)
 {
 	if ( length(dim(x)) != 2L )
-		stop("x must be a matrix or data frame")
+		matter_error("x must be a matrix or data frame")
 	all(is.finite(apply(x, 2L, estres, tol=tol)))
 }
 
@@ -449,7 +449,7 @@ to_raster3 <- function(x, y, z, vals)
 	xyz <- cbind(x, y, z)
 	gridded <- is_gridded(xyz)
 	if ( !gridded )
-		warning("data is not gridded")
+		matter_warn("data is not gridded")
 	dm <- estdim(xyz)
 	xr <- range(x, na.rm=TRUE)
 	yr <- range(y, na.rm=TRUE)
@@ -477,7 +477,7 @@ to_raster3 <- function(x, y, z, vals)
 estdim <- function(x, tol = 1e-6)
 {
 	if ( length(dim(x)) != 2L )
-		stop("x must be a matrix or data frame")
+		matter_error("x must be a matrix or data frame")
 	res <- apply(x, 2L, estres, tol=tol, ref="abs")
 	if ( anyNA(res) ) {
 		if ( ncol(x) == 2L ) {
@@ -499,7 +499,7 @@ estdim <- function(x, tol = 1e-6)
 			nz <- round((ayz * axy) * nx)
 			dm <- c(nx, ny, nz)
 		} else {
-			stop("only 2 or 3 dimensions supported",
+			matter_error("only 2 or 3 dimensions supported",
 				" for irregular coordinates")
 		}
 		names(dm) <- colnames(x)
@@ -539,7 +539,7 @@ approx2 <- function(x, y, z, xout, yout,
 	xi <- out$x
 	yi <- out$y
 	if ( length(x) != length(y) || length(y) != length(z) )
-		stop("x, y, z must all be the same length")
+		matter_error("x, y, z must all be the same length")
 	xy <- as.matrix(cbind(x, y))
 	if ( is.integer(xy) && (is.double(xi) || is.double(yi)) )
 		storage.mode(xy) <- "double"
@@ -582,7 +582,7 @@ trans2d <- function(x, y, z, pmat,
 		pmat <- as.matrix(pmat)
 	}
 	if ( !identical(dim(pmat), c(3L, 2L)) )
-		stop("pmat must be a 3 x 2 matrix")
+		matter_error("pmat must be a 3 x 2 matrix")
 	if ( is.array(x) && missing(y) && missing(z) ) {
 		z <- x
 		x <- seq_len(nrow(z))
@@ -598,7 +598,7 @@ trans2d <- function(x, y, z, pmat,
 		yi <- seq(from=min(y), to=max(y), length.out=dimout[2L])
 		if ( length(dim(z)) > 2L ) {
 			if ( length(dim(z)) > 3L )
-				stop("arrays with more than 3 dimensions not allowed")
+				matter_error("arrays with more than 3 dimensions not allowed")
 			zi <- lapply(seq_len(dim(z)[3L]), function(i, ...)
 				{
 					approx2(co$x, co$y, z=z[,,i], interp=interp,

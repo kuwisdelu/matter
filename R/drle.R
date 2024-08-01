@@ -121,7 +121,7 @@ setMethod("[",
 	function(x, i, ..., drop = TRUE)
 	{
 		if ( ...length() > 0 )
-			stop("incorrect number of dimensions")
+			matter_error("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
 		if ( is_null_or_na(drop) ) {
 			subset_drle(x, i)
@@ -135,7 +135,7 @@ setMethod("[",
 	function(x, i, ..., drop = TRUE)
 	{
 		if ( ...length() > 0 )
-			stop("incorrect number of dimensions")
+			matter_error("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
 		if ( is_null_or_na(drop) ) {
 			y <- subset_drle(x, i)

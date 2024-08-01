@@ -83,7 +83,7 @@ register_op <- function(x, op, arg = NULL, rhs = FALSE)
 {
 	op <- as_Ops(op)
 	if ( !is.null(arg) && !is.numeric(arg) && !is.logical(arg) )
-		stop("arguments must be numeric or logical")
+		matter_error("arguments must be numeric or logical")
 	if ( is.null(arg) ) {
 		margin <- NA_integer_
 	} else if ( is.null(dim(x)) || is.null(dim(arg)) ) {
@@ -102,14 +102,14 @@ register_op <- function(x, op, arg = NULL, rhs = FALSE)
 			ldim <- dim(x)
 		}
 		if ( length(ldim) != length(rdim) )
-			stop("number of dimensions are not equal for ",
+			matter_error("number of dimensions are not equal for ",
 				"lhs [", length(ldim), "] and rhs [", length(rdim), "]")
 		margin <- which(dim(arg) != 1L)
 	}
 	if ( length(margin) == 0L )
 		margin <- 1L
 	if ( length(margin) != 1L )
-		stop("only a single dim of argument may be unequal to 1")
+		matter_error("only a single dim of argument may be unequal to 1")
 	if ( !is.null(arg) )
 		arg <- as.vector(arg)
 	xlen <- if (is.null(dim(x))) length(x) else dim(x)[margin]
@@ -122,7 +122,7 @@ register_op <- function(x, op, arg = NULL, rhs = FALSE)
 			lext <- xlen
 		}
 		if ( lext != rext )
-			stop("extent of array is not equal for ",
+			matter_error("extent of array is not equal for ",
 				"lhs [", lext, "] and rhs [", rext, "]")
 	}
 	margins <- c(margin, NA_integer_)
@@ -137,7 +137,7 @@ register_group_op <- function(x, op, arg, group,
 {
 	op <- as_Ops(op)
 	if ( !is.null(arg) && !is.numeric(arg) && !is.logical(arg) )
-		stop("arguments must be numeric or logical")
+		matter_error("arguments must be numeric or logical")
 	xlen1 <- if (is.null(dim(x))) length(x) else dim(x)[margins[1L]]
 	if ( rhs ) {
 		rext <- xlen1
@@ -147,11 +147,11 @@ register_group_op <- function(x, op, arg, group,
 		lext <- xlen1
 	}
 	if ( lext != rext )
-		stop("extent of array is not equal for ",
+		matter_error("extent of array is not equal for ",
 			"lhs [", lext, "] and rhs [", rext, "]")
 	xlen2 <- if (is.null(dim(x))) length(x) else dim(x)[margins[2L]]
 	if ( xlen2 != length(group) )
-		stop("length of groups [", length(group),
+		matter_error("length of groups [", length(group),
 			" are not equal to array extent [", xlen2, "]")
 	x@ops <- append_op(x@ops, op=op, arg=arg,
 		rhs=rhs, margins=margins, group=group)

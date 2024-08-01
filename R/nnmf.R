@@ -84,7 +84,7 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 			} else if ( cost == "IS" ) {
 				hup <- crossprod(w, x / wh^2) / (s + crossprod(w, 1 / wh))
 			} else {
-				stop("unsupported cost: ", sQuote(cost))
+				matter_error("unsupported cost: ", sQuote(cost))
 			}
 		}
 		hnew <- h * hup
@@ -100,7 +100,7 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 			} else if ( cost == "IS" ) {
 				wup <- tcrossprod(x / wh^2, h) / (s + tcrossprod(1 / wh, h))
 			} else {
-				stop("unsupported cost: ", sQuote(cost))
+				matter_error("unsupported cost: ", sQuote(cost))
 			}
 		}
 		wnew <- w * wup
@@ -134,13 +134,13 @@ predict.nnmf <- function(object, newdata, ...)
 	if ( missing(newdata) )
 		return(object$x)
 	if ( length(dim(newdata)) != 2L )
-		stop("'newdata' must be a matrix or data frame")
+		matter_error("'newdata' must be a matrix or data frame")
 	nm <- rownames(object$activation)
 	v <- if (object$transpose) rownames(newdata) else colnames(newdata)
 	p <- if (object$transpose) nrow(newdata) else ncol(newdata)
 	if ( !is.null(nm) ) {
 		if ( !all(nm %in% v) )
-			stop("'newdata' does not have named features ",
+			matter_error("'newdata' does not have named features ",
 				"matching one of more of the original features")
 		if ( object$transpose ) {
 			newdata <- newdata[nm,,drop=FALSE]
@@ -149,7 +149,7 @@ predict.nnmf <- function(object, newdata, ...)
 		}
 	} else {
 		if ( p != nrow(object$activation) )
-			stop("'newdata' does not have the correct number of features")
+			matter_error("'newdata' does not have the correct number of features")
 	}
 	if ( object$transpose ) {
 		x <- t(pinv(object$activation) %*% newdata)

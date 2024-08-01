@@ -176,7 +176,7 @@ linear_ind <- function(index, dim, rowMaj = FALSE) {
 	for ( j in seq_along(dim) ) {
 		i <- index[,j]
 		if ( any(!is.na(i) & (i <= 0 | i > dim[j])) )
-			stop("subscript out of bounds")
+			matter_error("subscript out of bounds")
 	}
 	if ( rowMaj ) {
 		strides <- c(rev(cumprod(rev(dim[-1L]))), 1L)
@@ -439,7 +439,7 @@ as_real_memory_matrix <- function(x) {
 	if ( is.matrix(x) || is(x, "Matrix") ) {
 		x
 	} else {
-		warning("coercing input to a local matrix")
+		matter_warn("coercing input to a local matrix")
 		as.matrix(x)
 	}
 }
@@ -845,7 +845,7 @@ preview_table <- function(x, n = getOption("matter.show.head.n"), cls = NULL, ..
 apply_int <- function(X, MARGIN, FUN, FUN.VALUE, ...) {
 	FUN <- match.fun(FUN)
 	if ( !MARGIN %in% c(1L, 2L) )
-		stop("MARGIN must be 1 or 2")
+		matter_error("MARGIN must be 1 or 2")
 	switch(MARGIN,
 		vapply(seq_len(nrow(X)), function(i)
 			FUN(X[i,,drop=TRUE], ...), FUN.VALUE),
@@ -905,7 +905,7 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 		labeller <- function(b) paste0("[", b[1L], ",", b[2L], "]")
 		labels <- apply(breaks, 1L, labeller)
 	} else if ( length(labels) != length(y) ) {
-		stop("length of labels not equal to length of breaks")
+		matter_error("length of labels not equal to length of breaks")
 	}
 	attr(y, "breaks") <- breaks
 	attr(y, "counts") <- lengths(y)

@@ -86,9 +86,9 @@ SnowfastParam <- function(workers = snowWorkers(),
 setMethod("bpstart", "SnowfastParam",
 	function(x, lenX = bpnworkers(x)) {
 		if ( bpisup(x) )
-			stop("cluster already started")
+			matter_error("cluster already started")
 		if ( bpnworkers(x) == 0L && lenX <= 0 )
-			stop("cluster not started; no workers specified")
+			matter_error("cluster not started; no workers specified")
 		nnodes <- min(bpnworkers(x), lenX)
 		cargs <- x$.clusterargs
 		cargs$master <- x$hostname
@@ -97,7 +97,7 @@ setMethod("bpstart", "SnowfastParam",
 		if ( inherits(bpbackend(x), "SOCKcluster") ) {
 			BiocParallel::.bpstart_impl(x)
 		} else {
-			stop("failed to start cluster")
+			matter_error("failed to start cluster")
 		}
 	})
 

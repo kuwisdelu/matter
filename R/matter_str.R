@@ -122,7 +122,7 @@ setMethod("[", c(x = "matter_str"),
 		j <- as_subscripts(j, x)
 		if ( is_null_or_na(drop) ) {
 			if ( !is.null(j) )
-				warning("ignoring array subscripts")
+				matter_warn("ignoring array subscripts")
 			subset_matter_str_elts(x, i)
 		} else {
 			get_matter_str_elts(x, i, j)
@@ -143,7 +143,7 @@ setMethod("combine", "matter_str",
 		data <- cbind(x@data, y@data)
 		if ( length(x@encoding) == 1L && length(y@encoding) == 1L ) {
 			if ( x@encoding != y@encoding)
-				warning("scalar encodings do not match; inheriting from first one")
+				matter_warn("scalar encodings do not match; inheriting from first one")
 			encoding <- x@encoding
 		} else {
 			len <- max(length(x@encoding), length(y@encoding))

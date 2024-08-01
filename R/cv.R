@@ -13,17 +13,17 @@ cv_do <- function(fit., x, y, folds, ...,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	if ( NCOL(y) > 1L )
-		stop("matrix response 'y' not supported")
+		matter_error("matrix response 'y' not supported")
 	folds <- as.factor(folds)
 	if ( nlevels(folds) < 2L )
-		stop("need at least 2 folds")
+		matter_error("need at least 2 folds")
 	if ( mi && is.null(bags) )
-		stop("missing 'bags' for multiple instance learning")
+		matter_error("missing 'bags' for multiple instance learning")
 	if ( !is.null(bags) )
 	{
 		y <- as.factor(y)
 		if ( nlevels(y) != 2L )
-			stop("y must have exactly 2 levels")
+			matter_error("y must have exactly 2 levels")
 		if ( is.integer(pos) )
 			pos <- levels(y)[pos]
 		neg <- setdiff(levels(y), pos)
@@ -146,7 +146,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		} else if ( length(y_dim) == 3L ) {
 			fitted.values[folds %in% fold,,] <- y_out[[i]]
 		} else {
-			stop("fitted values with more than 3 dimensions not supported")
+			matter_error("fitted values with more than 3 dimensions not supported")
 		}
 	}
 	fitted.values <- array2list(fitted.values, length(y_dim))
@@ -203,7 +203,7 @@ print.cv <- function(x, ...)
 predscore <- function(x, ref)
 {
 	if ( length(x) != length(ref) )
-		stop("'x' and 'ref' must have the same length")
+		matter_error("'x' and 'ref' must have the same length")
 	nas <- is.na(x) | is.na(ref)
 	x <- x[!nas]
 	ref <- ref[!nas]
@@ -222,7 +222,7 @@ predscore <- function(x, ref)
 			MAE=mean(abs(ref - x)),
 			MAPE=mean(abs((ref - x) / ref)))
 	} else {
-		stop("'x' and 'ref' must be both discrete or both numeric")
+		matter_error("'x' and 'ref' must be both discrete or both numeric")
 	}
 }
 
@@ -230,11 +230,11 @@ predscore <- function(x, ref)
 rocscore <- function(x, ref, n = 32L)
 {
 	if ( length(x) != length(ref) )
-		stop("'x' and 'ref' must have the same length")
+		matter_error("'x' and 'ref' must have the same length")
 	if ( !is.numeric(x) )
-		stop("'x' must be numeric")
+		matter_error("'x' must be numeric")
 	if ( !is.logical(ref) )
-		stop("'ref' must be logical")
+		matter_error("'ref' must be logical")
 	nas <- is.na(x) | is.na(ref)
 	x <- x[!nas]
 	ref <- ref[!nas]

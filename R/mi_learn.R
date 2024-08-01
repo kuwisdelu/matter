@@ -9,7 +9,7 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 		verbose <- getOption("matter.default.verbose")
 	y <- as.factor(y)
 	if ( nlevels(y) != 2L )
-		stop("y must have exactly 2 levels")
+		matter_error("y must have exactly 2 levels")
 	if ( is.integer(pos) )
 		pos <- levels(y)[pos]
 	neg <- setdiff(levels(y), pos)
@@ -19,7 +19,7 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 	bags <- droplevels(as.factor(bags))
 	if ( length(y) != length(bags) ) {
 		if ( length(y) != nlevels(bags) ) {
-			stop("length of y [", length(y), "] does not match ",
+			matter_error("length of y [", length(y), "] does not match ",
 				"length of bags [", length(bags), "] ",
 				"or its levels [", nlevels(bags), "]")
 		} else {
@@ -30,7 +30,7 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 		y_bags <- lapply(levels(bags),
 			function(bag) unique(y[!is.na(y) & bags %in% bag]))
 		if ( any(lengths(y_bags) > 1L) ) {
-			stop("labels must be homogenous within each bag")
+			matter_error("labels must be homogenous within each bag")
 		} else {
 			y_bags <- unlist(y_bags)
 		}

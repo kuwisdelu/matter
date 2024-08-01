@@ -10,7 +10,7 @@ plot_signal <- function(x, y, z, by, group = NULL, byrow = FALSE,
 {
 	if ( is.array(x) ) {
 		if ( length(dim(x)) > 2L )
-			stop("'x' must have at most 2 dimensions")
+			matter_error("'x' must have at most 2 dimensions")
 		if ( byrow ) {
 			y <- array2list(x, 1L)
 		} else {
@@ -26,7 +26,7 @@ plot_signal <- function(x, y, z, by, group = NULL, byrow = FALSE,
 		}
 	} else if ( is.array(y) ) {
 		if ( length(dim(y)) > 2L )
-			stop("'y' must have at most 2 dimensions")
+			matter_error("'y' must have at most 2 dimensions")
 		if ( byrow ) {
 			y <- array2list(y, 1L)
 		} else {
@@ -66,7 +66,7 @@ plot_signal <- function(x, y, z, by, group = NULL, byrow = FALSE,
 	if ( !is.null(group) )
 		group <- rep_len(factor(group, levels=unique(group)), length(y))
 	if ( length(annPeaks) != 1L || (!is.numeric(annPeaks) && !is.character(annPeaks)) )
-		stop("'annPeaks' must be a scalar string or integer")
+		matter_error("'annPeaks' must be a scalar string or integer")
 	if ( is2d ) {
 		isPeaks <- rep.int(FALSE, len)
 		mark <- rep.int("points", len)
@@ -189,11 +189,11 @@ plot_image <- function(x, y, z, vals, by, group = NULL, byrow = FALSE,
 		}
 		lens <- lengths(lapply(vals, dim))
 		if ( any(lens < 2L) )
-			stop("images must have at least 2 dimensions")
+			matter_error("images must have at least 2 dimensions")
 		if ( any(lens > 3L) )
-			stop("images must have at most 3 dimensions")
+			matter_error("images must have at most 3 dimensions")
 		if ( n_unique(lens) > 1L )
-			stop("can't mix 2D and 3D images")
+			matter_error("can't mix 2D and 3D images")
 		if ( lens[1L] > 2L ) {
 			pos <- lapply(vals,
 				function(v) expand.grid(
@@ -360,7 +360,7 @@ dpal <- function(palette = "Tableau 10") {
 	test <- try(palette.colors(1, palette), silent=TRUE)
 	if ( inherits(test, "try-error") )
 	{
-		stop("'palette' must be one of: ",
+		matter_error("'palette' must be one of: ",
 			paste0(sQuote(palette.pals()), collapse=", "))
 	}
 	function(n) palette.colors(n, palette)
@@ -371,7 +371,7 @@ cpal <- function(palette = "Viridis") {
 	test <- try(hcl.colors(1, palette), silent=TRUE)
 	if ( inherits(test, "try-error") )
 	{
-		stop("'palette' must be one of: ",
+		matter_error("'palette' must be one of: ",
 			paste0(sQuote(hcl.pals()), collapse=", "))
 	}
 	function(n) hcl.colors(n, palette)
@@ -536,7 +536,7 @@ plot_mark_xy <- function(mark, plot = NULL, ...,
 					color=I(p$color), name=label)
 			}
 		} else {
-			stop("unsupported plot engine: ", sQuote(e$name))
+			matter_error("unsupported plot engine: ", sQuote(e$name))
 		}
 	}
 	# encode legends
@@ -652,7 +652,7 @@ plot_mark_text <- function(mark, plot = NULL, ...,
 			e$plotly <- plotly::add_text(e$plotly, x=p$x, y=p$y, z=p$z,
 				text=p$text, color=I(p$color), size=I(p$size), name=label)
 		} else {
-			stop("unsupported plot engine: ", sQuote(e$name))
+			matter_error("unsupported plot engine: ", sQuote(e$name))
 		}
 	}
 	# encode legends
@@ -763,7 +763,7 @@ plot_mark_intervals <- function(mark, plot = NULL, ...,
 					error_y=yerr, name=label)
 			}
 		} else {
-			stop("unsupported plot engine: ", sQuote(e$name))
+			matter_error("unsupported plot engine: ", sQuote(e$name))
 		}
 	}
 	# encode legends
@@ -854,7 +854,7 @@ plot_mark_rules <- function(mark, plot = NULL, ...)
 				rules <- c(rules, hlines)
 			}
 		} else {
-			stop("unsupported plot engine: ", sQuote(e$name))
+			matter_error("unsupported plot engine: ", sQuote(e$name))
 		}
 	}
 	if ( e$name == "plotly" )
@@ -897,17 +897,17 @@ plot_mark_bars <- function(mark, plot = NULL, ...,
 	group_encoding <- encoding[names(groups)]
 	ngroups <- max(1, nrow(groups))
 	if ( length(groups) > 1L )
-		stop("multiple group encodings not allowed for mark 'bars': ",
+		matter_error("multiple group encodings not allowed for mark 'bars': ",
 			paste0(names(groups), collapse=", "))
 	# determine orientation
 	if ( is_discrete(x) && is_discrete(y) ) {
-		stop("one of 'x' or 'y' must be numeric")
+		matter_error("one of 'x' or 'y' must be numeric")
 	} else if ( is_discrete(x) ) {
 		horizontal <- FALSE
 	} else if ( is_discrete(y) ) {
 		horizontal <- TRUE
 	} else {
-		stop("one of 'x' or 'y' must be discrete")
+		matter_error("one of 'x' or 'y' must be discrete")
 	}
 	# sum counts for each bar
 	if ( length(groups) > 0L ) {
@@ -1016,7 +1016,7 @@ plot_mark_bars <- function(mark, plot = NULL, ...,
 			e$plotly <- plotly::layout(e$plotly, barmode="group")
 		}
 	} else {
-		stop("unsupported plot engine: ", sQuote(e$name))
+		matter_error("unsupported plot engine: ", sQuote(e$name))
 	}
 	# encode legends
 	invisible(encode_legends(plot$channels, list()))
@@ -1059,7 +1059,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 	group_encoding <- encoding[names(groups)]
 	ngroups <- max(1, nrow(groups))
 	if ( length(groups) > 1L )
-		stop("multiple group encodings not allowed for mark 'boxplot': ",
+		matter_error("multiple group encodings not allowed for mark 'boxplot': ",
 			paste0(names(groups), collapse=", "))
 	# calculate box positions
 	if ( ngroups <= 1L ||
@@ -1101,7 +1101,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 				}
 			}
 			if ( is_discrete(p$x) && is_discrete(p$y) ) {
-				stop("one of 'x' or 'y' must be numeric")
+				matter_error("one of 'x' or 'y' must be numeric")
 			} else if ( is_discrete(p$x) ) {
 				horiz <- FALSE
 				vals <- tapply(p$y, p$x, identity, simplify=FALSE)
@@ -1113,7 +1113,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 				p <- lapply(p[-match("x", names(p))], box_params, index=p$y)
 				at <- as.integer(p$y) + adj[j]
 			} else {
-				stop("one of 'x' or 'y' must be discrete")
+				matter_error("one of 'x' or 'y' must be discrete")
 			}
 			nz <- lengths(vals) > 0L
 			vals <- vals[nz]
@@ -1136,7 +1136,7 @@ plot_mark_boxplot <- function(mark, plot = NULL, ...,
 			if ( grouped )
 				e$plotly <- plotly::layout(e$plotly, boxmode="group")
 		} else {
-			stop("unsupported plot engine: ", sQuote(e$name))
+			matter_error("unsupported plot engine: ", sQuote(e$name))
 		}
 	}
 	# encode legends
@@ -1170,7 +1170,7 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 	# encode images
 	image <- encoding[["image"]]
 	if ( !is.list(image) )
-		stop("'image' must be a list of images")
+		matter_error("'image' must be a list of images")
 	# get parameters
 	if ( !is.null(mark$params$alpha) )
 		alpha <- mark$params$alpha
@@ -1192,7 +1192,7 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 		if ( e$name == "base" ) {
 			hasRaster <- dev.capabilities("rasterImage")$rasterImage
 			if ( hasRaster == "no" )
-				stop("device does not have raster capabilities")
+				matter_error("device does not have raster capabilities")
 			# flip x axis?
 			if ( rev %in% c("x", "xy", "yx") ) {
 				xleft <- xmax[i] + dxi
@@ -1233,7 +1233,7 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 			e$plotly <- plotly::add_image(e$plotly, z=rc,
 				x0=x0, y0=y0, dx=pxi, dy=pyi, name=label)
 		} else {
-			stop("unsupported plot engine: ", sQuote(e$name))
+			matter_error("unsupported plot engine: ", sQuote(e$name))
 		}
 	}
 	list()
@@ -1273,7 +1273,7 @@ compute_raster <- function(mark, plot = NULL, ...,
 	} else if ( "fill" %in% names(plot$channels) ) {
 		cname <- "fill"
 	} else {
-		stop("couldn't find encoding for 'color' or 'fill'")
+		matter_error("couldn't find encoding for 'color' or 'fill'")
 	}
 	# get color variable (w/out encoding)
 	color <- encoding[[cname]]
@@ -1306,9 +1306,9 @@ compute_raster <- function(mark, plot = NULL, ...,
 		# 3d to 2d slice
 		ortho <- names(slice)
 		if ( length(slice) != 1L || is.null(ortho) )
-			stop("slice must be a named scalar")
+			matter_error("slice must be a named scalar")
 		if ( !ortho %in% c("x", "y", "z") )
-			stop("slice must be named x, y, or z")
+			matter_error("slice must be named x, y, or z")
 		subset <- switch(ortho,
 			x=(x >= slice - tol & x <= slice + tol),
 			y=(y >= slice - tol & y <= slice + tol),
@@ -1509,7 +1509,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 	} else if ( e$name == "plotly" ) {
 		# plot heatmap
 		if ( !is2d(plot) )
-			stop("'pixels' must be 2d for engine 'plotly'; use 'voxels'")
+			matter_error("'pixels' must be 2d for engine 'plotly'; use 'voxels'")
 		x <- seq(rs$i[1L], rs$i[2L], length.out=nrow(rc))
 		y <- seq(rs$j[1L], rs$j[2L], length.out=ncol(rc))
 		if ( has_alpha(plot) ) {
@@ -1524,7 +1524,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 				x=x, y=y, z=t(rc), colors=rs$scheme, name=rs$label)
 		}
 	} else {
-		stop("unsupported plot engine: ", sQuote(e$name))
+		matter_error("unsupported plot engine: ", sQuote(e$name))
 	}
 	# encode legends
 	if ( rs$channel %in% names(plot$channels) )
@@ -1645,7 +1645,7 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 			surface=list(count=2L * length(slices)),
 			colorscale=csch, opacityscale=asch, type="volume")
 	} else {
-		stop("unsupported plot engine: ", sQuote(e$name))
+		matter_error("unsupported plot engine: ", sQuote(e$name))
 	}
 	# encode legends
 	cname <- rss[[1L]]$channel
@@ -1813,7 +1813,7 @@ panel_grid <- function(dim = c(1, 1),
 		p <- c(list(...), params)
 	}
 	if ( !is.numeric(dim) || length(dim) != 2L )
-		stop("dim must be a length-2 numeric vector")
+		matter_error("dim must be a length-2 numeric vector")
 	if ( byrow ) {
 		p$mfrow <- dim
 	} else {
@@ -1844,7 +1844,7 @@ panel_save <- function()
 {
 	pgrid <- getOption("matter.vizi.panelgrid")
 	if ( dev.cur() == 1L )
-		stop("no graphics device open")
+		matter_error("no graphics device open")
 	if ( is.null(pgrid) )
 		pgrid <- list()
 	params <- par(no.readonly=TRUE)
@@ -1856,13 +1856,13 @@ panel_save <- function()
 panel_restore <- function(params = NULL, pgrid = NULL, new = FALSE)
 {
 	if ( dev.cur() == 1L )
-		stop("no graphics device open")
+		matter_error("no graphics device open")
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
 	if ( is.null(params) )
 		params <- pgrid$par
 	if ( is.null(params) )
-		stop("nothing to restore; has panel_save() been called?")
+		matter_error("nothing to restore; has panel_save() been called?")
 	p <- par(params)
 	if ( !is.null(pgrid$mat) ) {
 		if ( isTRUE(pgrid$byrow) ) {
@@ -1879,7 +1879,7 @@ panel_restore <- function(params = NULL, pgrid = NULL, new = FALSE)
 panel_get <- function(pgrid = NULL, arr.ind = FALSE)
 {
 	if ( dev.cur() == 1L )
-		stop("no graphics device open")
+		matter_error("no graphics device open")
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
 	if ( is.null(pgrid) )
@@ -1896,11 +1896,11 @@ panel_get <- function(pgrid = NULL, arr.ind = FALSE)
 panel_set <- function(which = -1L, pgrid = NULL, new = NULL)
 {
 	if ( dev.cur() == 1L )
-		stop("no graphics device open")
+		matter_error("no graphics device open")
 	if ( is.null(pgrid) )
 		pgrid <- getOption("matter.vizi.panelgrid")
 	if ( is.null(pgrid) )
-		stop("no panel grid found")
+		matter_error("no panel grid found")
 	mfg <- par("mfg")
 	if ( length(which) == 1L ) {
 		if ( which < 1 )
@@ -1909,7 +1909,7 @@ panel_set <- function(which = -1L, pgrid = NULL, new = NULL)
 	} else if ( length(which) == 2L ) {
 		nxt <- which
 	} else {
-		stop("which must be length 1 or 2")
+		matter_error("which must be length 1 or 2")
 	}
 	mfg[c(1, 2)] <- nxt
 	par(mfg=mfg)
@@ -1939,7 +1939,7 @@ panel_prev <- function(pgrid = NULL)
 panel_side <- function(side = "right", split = 1, p = c(5/6, 5/6))
 {
 	if ( dev.cur() == 1L )
-		stop("no graphics device open")
+		matter_error("no graphics device open")
 	side <- match.arg(side, c("right", "left", "bottom", "top"))
 	saved <- panel_save()
 	paruser <- saved[grep("^col|^cex", names(saved))]

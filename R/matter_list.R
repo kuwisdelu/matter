@@ -24,7 +24,7 @@ matter_list <- function(data, type = "double", path = NULL,
 			names <- names(data)
 		valid <- valid_matter_list_elts(data)
 		if ( !isTRUE(valid) )
-			stop(valid)
+			matter_error(valid)
 	}
 	if ( is.null(path) )
 		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
@@ -40,7 +40,7 @@ matter_list <- function(data, type = "double", path = NULL,
 	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
 		overwrite <- offset < file.size(path)
 		if ( any(overwrite) )
-			warning("data may overwrite existing file(s): ",
+			matter_warn("data may overwrite existing file(s): ",
 				paste0(sQuote(path[overwrite]), collapse=", "))
 	}
 	if ( anyNA(lengths) && anyNA(extent) ) {
@@ -57,12 +57,12 @@ matter_list <- function(data, type = "double", path = NULL,
 	}
 	if ( any(!exists) ) {
 		if ( missing(data) && any(extent > 0) && !is.null(data) )
-			warning("creating uninitialized backing file(s): ",
+			matter_warn("creating uninitialized backing file(s): ",
 				paste0(sQuote(path[!exists]), collapse=", "))
 		newfile <- path[!exists]
 		success <- file.create(newfile)
 		if ( !all(success) )
-			stop("error creating file(s): ",
+			matter_error("error creating file(s): ",
 				paste0(sQuote(newfile[!success]), collapse=", "))
 	}
 	path <- normalizePath(path, mustWork=TRUE)
@@ -97,15 +97,15 @@ struct <- function(..., path = NULL, readonly = FALSE, offset = 0, filename)
 {
 	args <- list(...)
 	if ( any(lengths(args) != 1L) )
-		stop("all arguments must be length 1")
+		matter_error("all arguments must be length 1")
 	if ( any(sapply(args, function(a) is.null(names(a)))) )
-		stop("all arguments must be a named scalar")
+		matter_error("all arguments must be a named scalar")
 	if ( !missing(filename) ) {
 		.Deprecated(msg="'filename' is deprecated, use 'path' instead")
 		path <- filename
 	}
 	if ( !is.null(path) && length(path) != 1L )
-		stop("'path' must be a scalar string")
+		matter_error("'path' must be a scalar string")
 	names <- names(args)
 	types <- sapply(args, names, USE.NAMES=FALSE)
 	lens <- as.integer(unlist(args))
@@ -132,7 +132,7 @@ setAs("matter_list", "matter_mat",
 	function(from) {
 		adims <- dim(from@data)
 		if ( anyNA(adims) )
-			stop("can't coerce matter list with different lengths to a matrix")
+			matter_error("can't coerce matter list with different lengths to a matrix")
 		x <- new("matter_mat",
 			data=from@data,
 			type=topmode_Rtype(from@type),
@@ -149,7 +149,7 @@ setAs("matter_list", "matter_mat",
 setAs("matter_mat", "matter_list",
 	function(from) {
 		if ( !isTRUE(from@indexed) )
-			stop("can't coerce matter list that isn't 'indexed' to a matrix")
+			matter_error("can't coerce matter list that isn't 'indexed' to a matrix")
 		x <- new("matter_list",
 			data=from@data,
 			type=topmode_Rtype(from@type),
@@ -183,7 +183,7 @@ setMethod("as.vector", "matter_list",
 			complex=as.complex(y),
 			character=as.character(y),
 			raw=as.raw(y),
-			stop("mode ", sQuote(mode), " not supported"))
+			matter_error("mode ", sQuote(mode), " not supported"))
 	})
 
 setMethod("describe_for_display", "matter_list", function(x) {
@@ -201,7 +201,7 @@ setMethod("vm_realized", "matter_list", function(x) {
 subset_matter_list_elt <- function(x, i = NULL)
 {
 	if ( length(i) != 1 )
-		stop("attempt to select more than one element")
+		matter_error("attempt to select more than one element")
 	data <- subset_atoms2(x@data, NULL, i)
 	y <- new("matter_vec", x, data=data,
 		type=x@type[i], dim=x@dim[i],
@@ -256,7 +256,7 @@ setMethod("[", c(x = "matter_list"),
 		j <- as_subscripts(j, x)
 		if ( is_null_or_na(drop) ) {
 			if ( !is.null(j) )
-				warning("ignoring array subscripts")
+				matter_warn("ignoring array subscripts")
 			subset_matter_list_sublist(x, i)
 		} else {
 			get_matter_list_sublist(x, i, j)
@@ -288,7 +288,7 @@ setReplaceMethod("$", c(x = "matter_list"),
 		if ( !is.na(i) ) {
 			set_matter_list_elt(x, i, NULL, value)
 		} else {
-			stop("item ", sQuote(name), " to be replaced not found")
+			matter_error("item ", sQuote(name), " to be replaced not found")
 		}
 	})
 

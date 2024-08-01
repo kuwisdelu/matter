@@ -85,7 +85,7 @@ pls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			iter <- iter + 1
 		}
 		if ( iter > niter && du > tol )
-			warning("NIPALS did not converge in ",
+			matter_warn("NIPALS did not converge in ",
 				iter - 1, " iterations for component ", i)
 		# deflate x and y based on projection
 		if ( transpose ) {
@@ -373,7 +373,7 @@ pls_kernel <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			p <- crossprod(xx, r) / tt
 			q <- crossprod(xy, r) / tt
 		} else {
-			stop("unrecognized kernel method: ", method)
+			matter_error("unrecognized kernel method: ", method)
 		}
 		# update covariance
 		xy <- xy - tcrossprod(p, q) * tt
@@ -443,17 +443,17 @@ predict.pls <- function(object, newdata, k,
 	if ( missing(newdata) && missing(k) )
 		return(fitted(object, type=type))
 	if ( missing(newdata) )
-		stop("'newdata' must be specified if 'k' is specified")
+		matter_error("'newdata' must be specified if 'k' is specified")
 	if ( missing(k) )
 		k <- ncol(object$loadings)
 	if ( length(dim(newdata)) != 2L )
-		stop("'newdata' must be a matrix or data frame")
+		matter_error("'newdata' must be a matrix or data frame")
 	nm <- rownames(object$loadings)
 	v <- if (object$transpose) rownames(newdata) else colnames(newdata)
 	p <- if (object$transpose) nrow(newdata) else ncol(newdata)
 	if ( !is.null(nm) ) {
 		if ( !all(nm %in% v) )
-			stop("'newdata' does not have named features ",
+			matter_error("'newdata' does not have named features ",
 				"matching one of more of the original features")
 		if ( object$transpose ) {
 			newdata <- newdata[nm,,drop=FALSE]
@@ -462,7 +462,7 @@ predict.pls <- function(object, newdata, k,
 		}
 	} else {
 		if ( p != nrow(object$loadings) )
-			stop("'newdata' does not have the correct number of features")
+			matter_error("'newdata' does not have the correct number of features")
 	}
 	if ( object$transpose ) {
 		xt <- rowscale(newdata, center=object$center, scale=object$scale)
@@ -471,7 +471,7 @@ predict.pls <- function(object, newdata, k,
 	}
 	
 	if ( any(k > ncol(object$loadings)) )
-		stop("'k' is larger than the number of components")
+		matter_error("'k' is larger than the number of components")
 	# predict for each k
 	ans <- lapply(set_names(k, paste0("k=", k)),
 		function(ki)
@@ -531,14 +531,14 @@ vip <- function(object, type = c("projection", "weights"))
 	type <- match.arg(type)
 	w0 <- object[[type]]
 	if ( is.null(w0) )
-		stop("missing component: ", sQuote(type))
+		matter_error("missing component: ", sQuote(type))
 	P <- nrow(w0)
 	scores <- object$scores
 	y.loadings <- object$y.loadings
 	if ( is.null(scores) )
-		stop("missing component: 'scores'")
+		matter_error("missing component: 'scores'")
 	if ( is.null(y.loadings) )
-		stop("missing component: 'y.loadings'")
+		matter_error("missing component: 'y.loadings'")
 	w0 <- colsweep_matrix(w0, sqrt(colSums(w0^2)), "/")
 	ssy <- colSums(scores^2) * colSums(y.loadings^2)
 	vip <- sqrt(P * rowSums(ssy * w0^2) / sum(ssy))
@@ -637,7 +637,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 			iter <- iter + 1
 		}
 		if ( iter > niter && du > tol )
-			warning("NIPALS did not converge in ",
+			matter_warn("NIPALS did not converge in ",
 				iter - 1, " iterations for component ", i)
 		# orthogonalize projection
 		if ( transpose ) {
@@ -698,7 +698,7 @@ opls_nipals <- function(x, y, k = 3L, center = TRUE, scale. = FALSE,
 coef.opls <- function(object, ...)
 {
 	if ( is.null(object$regressions) )
-		stop("missing component: 'regressions'")
+		matter_error("missing component: 'regressions'")
 	k <- length(object$regressions)
 	coef(object$regressions[[k]], ...)
 }
@@ -706,7 +706,7 @@ coef.opls <- function(object, ...)
 residuals.opls <- function(object, ...)
 {
 	if ( is.null(object$regressions) )
-		stop("missing component: 'regressions'")
+		matter_error("missing component: 'regressions'")
 	k <- length(object$regressions)
 	residuals(object$regressions[[k]], ...)
 }
@@ -716,7 +716,7 @@ fitted.opls <- function(object, type = c("response", "class", "x"), ...)
 	type <- match.arg(type)
 	if ( type != "x" ) {
 		if ( is.null(object$regressions) )
-			stop("missing component: 'regressions'")
+			matter_error("missing component: 'regressions'")
 		k <- length(object$regressions)
 		fitted(object$regressions[[k]], type=type, ...)
 	} else {
@@ -731,19 +731,19 @@ predict.opls <- function(object, newdata, k,
 	if ( missing(newdata) && missing(k) )
 		return(fitted(object, type=type))
 	if ( type != "x" && is.null(object$regressions) )
-		stop("missing component: 'regressions'")
+		matter_error("missing component: 'regressions'")
 	if ( missing(newdata) )
-		stop("'newdata' must be specified if 'k' is specified")
+		matter_error("'newdata' must be specified if 'k' is specified")
 	if ( missing(k) )
 		k <- ncol(object$loadings)
 	if ( length(dim(newdata)) != 2L )
-		stop("'newdata' must be a matrix or data frame")
+		matter_error("'newdata' must be a matrix or data frame")
 	nm <- rownames(object$loadings)
 	v <- if (object$transpose) rownames(newdata) else colnames(newdata)
 	p <- if (object$transpose) nrow(newdata) else ncol(newdata)
 	if ( !is.null(nm) ) {
 		if ( !all(nm %in% v) )
-			stop("'newdata' does not have named features ",
+			matter_error("'newdata' does not have named features ",
 				"matching one of more of the original features")
 		if ( object$transpose ) {
 			newdata <- newdata[nm,,drop=FALSE]
@@ -752,11 +752,11 @@ predict.opls <- function(object, newdata, k,
 		}
 	} else {
 		if ( p != nrow(object$loadings) )
-			stop("'newdata' does not have the correct number of features")
+			matter_error("'newdata' does not have the correct number of features")
 	}
 	# extract relevant components
 	if ( any(k > ncol(object$loadings)) )
-		stop("'k' is larger than the number of components")
+		matter_error("'k' is larger than the number of components")
 	ans <- lapply(set_names(k, paste0("k=", k)),
 		function(ki)
 		{

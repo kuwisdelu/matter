@@ -396,7 +396,7 @@ setMethod("domain", "sparse_arr", function(x) x@domain)
 setReplaceMethod("domain", "sparse_arr", function(x, value) {
 	x@domain <- value
 	if ( length(x@dim) > 2L )
-		stop("more than 2 dimensions are not supported yet")
+		matter_error("more than 2 dimensions are not supported yet")
 	if ( length(x@dim) == 1L ) {
 		x@dim <- length(x@domain)
 		x@dimnames <- NULL
@@ -430,7 +430,7 @@ setReplaceMethod("sampler", "sparse_arr", function(object, ..., value) {
 setMethod("nnzero", "sparse_arr",
 	function(x, na.counted = NA) {
 		if ( !missing(na.counted) )
-			warning("argument 'na.counted' will be ignored")
+			matter_warn("argument 'na.counted' will be ignored")
 		if ( is_sparse_arr_LIL(x) ) {
 			sum(lengths(x@data))
 		} else {
@@ -495,7 +495,7 @@ convert_sparse_arr_LIL <- function(x) {
 subset_sparse_arr_elts <- function(x, i = NULL)
 {
 	if ( !is(x, "sparse_vec") )
-		stop("linear endomorphic subsetting only supported for sparse vectors")
+		matter_error("linear endomorphic subsetting only supported for sparse vectors")
 	if ( is.null(i) )
 		return(x)
 	if ( is.null(domain(x)) ) {
@@ -518,7 +518,7 @@ get_sparse_arr_elts <- function(x, i = NULL)
 
 set_sparse_arr_elts <- function(x, i = NULL, value = 0)
 {
-	stop("sparse array assignment is not supported yet") # TODO
+	matter_error("sparse array assignment is not supported yet") # TODO
 }
 
 subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL)
@@ -571,17 +571,17 @@ get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE)
 }
 
 set_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0) {
-	stop("sparse array assignment is not implemented yet") # TODO
+	matter_error("sparse array assignment is not implemented yet") # TODO
 }
 
 setMethod("cbind2", c("sparse_mat", "sparse_mat"),
 	function(x, y, ...) {
 		if ( nrow(x) != nrow(y) )
-			stop("number of rows of matrices must match")
+			matter_error("number of rows of matrices must match")
 		if ( rowMaj(x) || rowMaj(y) )
-			stop("can't cbind row-major matrices")
+			matter_error("can't cbind row-major matrices")
 		if ( !is.null(x@ops) )
-			warning("deferred operations will be dropped")
+			matter_warn("deferred operations will be dropped")
 		if ( is.null(x@pointers) && is.null(y@pointers) ) {
 			pointers <- NULL
 		} else {
@@ -603,11 +603,11 @@ setMethod("cbind2", c("sparse_mat", "sparse_mat"),
 setMethod("rbind2", c("sparse_mat", "sparse_mat"),
 	function(x, y, ...) {
 		if ( ncol(x) != ncol(y) )
-			stop("number of columns of matrices must match")
+			matter_error("number of columns of matrices must match")
 		if ( !x@transpose || !y@transpose )
-			stop("can't rbind column-major matrices")
+			matter_error("can't rbind column-major matrices")
 		if ( !is.null(x@ops) )
-			warning("deferred operations will be dropped")
+			matter_warn("deferred operations will be dropped")
 		if ( is.null(x@pointers) && is.null(y@pointers) ) {
 			pointers <- NULL
 		} else {
@@ -642,7 +642,7 @@ setMethod("[", c(x = "sparse_arr"),
 			}
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
-				stop("incorrect number of dimensions")
+				matter_error("incorrect number of dimensions")
 			if ( missing(i) && missing(j) && missing(drop) )
 				drop <- FALSE
 			i <- as_row_subscripts(i, x)
@@ -664,7 +664,7 @@ setReplaceMethod("[",
 			set_sparse_arr_elts(x, i, value)
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
-				stop("incorrect number of dimensions")
+				matter_error("incorrect number of dimensions")
 			i <- as_row_subscripts(i, x)
 			j <- as_col_subscripts(j, x)
 			set_sparse_mat_submatrix(x, i, j, value)
@@ -697,7 +697,7 @@ setMethod("rowMaj", "sparse_arr", function(x)
 setMethod("t", "sparse_arr", function(x)
 {
 	if ( length(dim(x)) > 2L )
-		stop("argument is not a matrix")
+		matter_error("argument is not a matrix")
 	x@transpose <- !x@transpose
 	x@dim <- rev(x@dim)
 	x@dimnames <- rev(x@dimnames)

@@ -19,10 +19,10 @@ add_mark <- function(plot, mark, ..., encoding = NULL,
 	data = NULL, trans = NULL, params = NULL)
 {
 	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) )
-		stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
+		matter_error("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
 	cls <- paste0("vizi_", mark)
 	if ( !existsMethod("plot", cls) )
-		stop("no known plot() method for class: ", sQuote(cls))
+		matter_error("no known plot() method for class: ", sQuote(cls))
 	# encode new variables
 	if ( ...length() > 0L || !is.null(encoding) ) {
 		encoding <- merge_encoding(encoding, as_encoding(...))
@@ -59,7 +59,7 @@ add_facets <- function(plot, by = NULL, data = NULL,
 	nrow = NA, ncol = NA, labels = NULL, drop = TRUE, free = "")
 {
 	if ( !inherits(plot, c("vizi_plot", "vizi_facets")) )
-		stop("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
+		matter_error("'plot' must inherit from 'vizi_plot' or 'vizi_facets")
 	# encode faceting variable
 	if ( is(by, "formula") ) {
 		by <- parse_formula(by, data)
@@ -100,7 +100,7 @@ as_facets <- function(plotlist, ..., nrow = NA, ncol = NA,
 	all_plots <- all(vapply(plotlist, is, logical(1L), "vizi_plot"))
 	all_facets <- all(vapply(plotlist, is, logical(1L), "vizi_facets"))
 	if ( !all_plots && !all_facets )
-		stop("all plots must inherit from one of 'vizi_plot' or 'vizi_facets")
+		matter_error("all plots must inherit from one of 'vizi_plot' or 'vizi_facets")
 	if ( is.null(labels) ) {
 		labels <- names(plotlist)
 	} else {
@@ -147,7 +147,7 @@ merge_facets <- function(plot1, plot2)
 	if ( !(is(plot1, "vizi_plot") && is(plot2, "vizi_plot")) &&
 		!(is(plot1, "vizi_facets") && is(plot2, "vizi_facets")) )
 	{
-		stop("all plots must inherit from one of 'vizi_plot' or 'vizi_facets")
+		matter_error("all plots must inherit from one of 'vizi_plot' or 'vizi_facets")
 	}
 	# merge channels
 	channels <- merge_channels(plot1$channels, plot2$channels)
@@ -495,7 +495,7 @@ plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 	if ( x$engine$name == "plotly" )
 	{
 		if ( !requireNamespace("plotly") )
-			stop("failed to load required package 'plotly'")
+			matter_error("failed to load required package 'plotly'")
 		if ( !add )
 			plot_init(x, more=par_update(x$params, ...))
 	}
@@ -571,7 +571,7 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 	if ( x$engine$name == "plotly" )
 	{
 		if ( !requireNamespace("plotly") )
-			stop("failed to load required package 'plotly'")
+			matter_error("failed to load required package 'plotly'")
 		if ( is.null(x$engine$facets) )
 			x$engine$facets <- vector("list", length=n)
 	}
@@ -756,14 +756,14 @@ vizi_style <- function(style = "light", dpal = "Tableau 10", cpal = "Viridis")
 	}
 	if ( !missing(dpal) ) {
 		tryCatch(dpal(dpal)(1L), error=function(e)
-			stop("palette must be one of ", paste0(palette.pals(), collapse=", ")))
+			matter_error("palette must be one of ", paste0(palette.pals(), collapse=", ")))
 		options(matter.vizi.dpal=dpal)
 	} else {
 		dpal <- getOption("matter.vizi.dpal")
 	}
 	if ( !missing(cpal) ) {
 		tryCatch(cpal(cpal)(1L), error=function(e)
-			stop("palette must be one of ", paste0(hcl.pals(), collapse=", ")))
+			matter_error("palette must be one of ", paste0(hcl.pals(), collapse=", ")))
 		options(matter.vizi.cpal=cpal)
 	} else {
 		cpal <- getOption("matter.vizi.cpal")
@@ -902,7 +902,7 @@ merge_limits <- function(l1, l2, ...)
 		} else if ( all(is.na(l2)) ) {
 			l1
 		} else {
-			stop("can't merge continuous and discrete channels")
+			matter_error("can't merge continuous and discrete channels")
 		}
 	}
 }
@@ -987,7 +987,7 @@ compute_facets <- function(plot, by, nshingles = 6L)
 {
 	n <- unique(lengths(by))
 	if ( length(n) > 1L )
-		stop("'by' has differing numbers of observations")
+		matter_error("'by' has differing numbers of observations")
 	subscripts <- compute_subscripts(by, nshingles)
 	if ( length(subscripts) == 1L ) {
 		dim <- panel_dim_n(prod(lengths(subscripts)))
@@ -999,7 +999,7 @@ compute_facets <- function(plot, by, nshingles = 6L)
 	ffac <- function(v, p) {
 		fsub <- function(x) {
 			if ( length(x) != n ) {
-				stop("faceting expected ", n, " observations ",
+				matter_error("faceting expected ", n, " observations ",
 					"but encoding has ", length(x), "observations")
 			} else {
 				x[v]
@@ -1090,7 +1090,7 @@ get_var <- function(x, data)
 {
 	if ( is(x, "formula") ) {
 		if ( length(x) != 2L )
-			stop("formula encodings can only have rhs")
+			matter_error("formula encodings can only have rhs")
 		eval(x[[2L]], envir=data, enclos=environment(x))
 	} else {
 		force(x)
@@ -1217,11 +1217,11 @@ get_discrete_scheme <- function(channel)
 		shape = seq_fun(14),
 		color = discrete_pal,
 		fill = discrete_pal,
-		alpha = stop(msg),
-		size = stop(msg),
-		linewidth = stop(msg),
+		alpha = matter_error(msg),
+		size = matter_error(msg),
+		linewidth = matter_error(msg),
 		linetype = seq_fun(6),
-		stop(msg))
+		matter_error(msg))
 }
 
 get_continuous_scheme <- function(channel)
@@ -1232,14 +1232,14 @@ get_continuous_scheme <- function(channel)
 		y = , ymin = , ymax = ,
 		z = ,
 		text = NULL,
-		shape = stop(msg),
+		shape = matter_error(msg),
 		color = continuous_pal,
 		fill = continuous_pal,
 		alpha = range_fun(0, 1),
 		size = range_fun(1, 6),
 		linewidth = range_fun(1, 6),
-		linetype = stop(msg),
-		stop(msg))
+		linetype = matter_error(msg),
+		matter_error(msg))
 }
 
 discrete_pal <- function(n)
@@ -1283,7 +1283,7 @@ shape_pal <- function(n = 20L) {
 		"solid circle" = 19,
 		"bullet" = 20L)
 	if ( n > length(pal) )
-		stop("n [", n, "] too large for shape palette")
+		matter_error("n [", n, "] too large for shape palette")
 	pal[seq_len(n)]
 }
 
@@ -1296,7 +1296,7 @@ line_pal <- function(n = 6L) {
 		"longdash" = 5L,
 		"twodash" = 6L)
 	if ( n > length(pal) )
-		stop("n [", n, "] too large for line palette")
+		matter_error("n [", n, "] too large for line palette")
 	pal[seq_len(n)]
 }
 

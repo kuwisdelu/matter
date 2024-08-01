@@ -66,7 +66,7 @@ setMethod("[",
 	function(x, i, ..., drop = TRUE)
 	{
 		if ( ...length() > 0 )
-			stop("incorrect number of dimensions")
+			matter_error("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
 		if ( is.null(i) )
 			i <- seq_along(x)
@@ -101,9 +101,9 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 	verbose = FALSE, depends = NULL, drop = FALSE)
 {
 	if ( length(dim(x)) != 2L )
-		stop("'x' must have exactly 2 dimensions")
+		matter_error("'x' must have exactly 2 dimensions")
 	if ( !margin %in% c(1L, 2L) )
-		stop("'margin' must be 1 or 2")
+		matter_error("'margin' must be 1 or 2")
 	if ( is.na(chunksize) )
 		chunksize <- getOption("matter.default.chunksize")
 	if ( is.na(nchunks) ) {
@@ -130,9 +130,9 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 		if ( n_unique(len) != 1L ) {
 			max.len <- max(len)
 			if ( max.len && any(len == 0L) )
-				stop("zero-length and non-zero length inputs cannot be mixed")
+				matter_error("zero-length and non-zero length inputs cannot be mixed")
 			if ( any(max.len %% len) )
-				warning("longer argument not a multiple of length of vector")
+				matter_warn("longer argument not a multiple of length of vector")
 			xs <- lapply(xs, rep_len, length.out=max.len)
 		}
 	}
@@ -202,7 +202,7 @@ print_chunk_info <- function(x) {
 
 chunkify <- function(x, nchunks = 20L, depends = NULL) {
 	if ( !is.null(depends) && length(depends) != length(x) )
-		stop("length of 'depends' must match extent of 'x'")
+		matter_error("length of 'depends' must match extent of 'x'")
 	nchunks <- min(ceiling(length(x) / 2L), nchunks)
 	index <- seq_along(x)
 	if ( nchunks > 1L ) {
@@ -218,7 +218,7 @@ chunkify <- function(x, nchunks = 20L, depends = NULL) {
 			ind <- c(index[[i]], unlist(di))
 			ind <- sort(unique(ind))
 			if ( any(ind < 1L | ind > length(x)) )
-				stop("'depends' subscript out of bounds")
+				matter_error("'depends' subscript out of bounds")
 			dep <- lapply(di, match, ind)
 			dep <- dep[match(ind, index[[i]])]
 		} else {

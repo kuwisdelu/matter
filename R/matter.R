@@ -76,7 +76,7 @@ matter <- function(...) {
 		} else if ( any(arg_str %in% nm) ) {
 			matter_str(...)
 		} else {
-			stop("couldn't guess data structure, use 'matter_' functions")
+			matter_error("couldn't guess data structure, use 'matter_' functions")
 		}
 	} else if ( !is.null(data) ) {
 		if ( is.array(data) ) {
@@ -92,10 +92,10 @@ matter <- function(...) {
 		} else if ( is.character(data) ) {
 			matter_str(...)
 		} else {
-			stop("couldn't guess data structure, use 'matter_' functions")
+			matter_error("couldn't guess data structure, use 'matter_' functions")
 		}
 	} else {
-		stop("couldn't guess data structure, use 'matter_' functions")
+		matter_error("couldn't guess data structure, use 'matter_' functions")
 	}
 }
 
@@ -119,7 +119,7 @@ as.matter <- function(x) {
 	} else if ( is.character(x) ) {
 		matter_str(x)
 	} else {
-		stop("cannot coerce object of class ",
+		matter_error("cannot coerce object of class ",
 			sQuote(class(x)), " to a 'matter' object")
 	}
 }
@@ -150,7 +150,7 @@ setMethod("dim", "matter", function(x) x@dim)
 
 setReplaceMethod("dim", "matter", function(x, value) {
 	if ( prod(x@dim) != prod(value) )
-		stop("dims [product ", prod(value), "] do not match ",
+		matter_error("dims [product ", prod(value), "] do not match ",
 			"the length of object [", prod(x@dim), "]")
 	x@dim <- value
 	x@dimnames <- NULL

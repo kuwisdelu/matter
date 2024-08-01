@@ -75,7 +75,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		s_statistic <- soft(statistic, s[i])
 		s_centers <- center + se * s_statistic
 		if ( k > 1L && !any(abs(s_statistic) > 0) )
-			warning("model is fully sparse; 's' is too large")
+			matter_warn("model is fully sparse; 's' is too large")
 		if ( transpose ) {
 			fx <- distfun(s_centers, x, weights=1 / (sd + s0)^2,
 				BPPARAM=BPPARAM, ...)
@@ -146,7 +146,7 @@ predict.nscentroids <- function(object, newdata,
 	if ( missing(newdata) )
 		return(fitted(object, type=type))
 	if ( length(dim(newdata)) != 2L )
-		stop("'newdata' must be a matrix or data frame")
+		matter_error("'newdata' must be a matrix or data frame")
 	priors <- object$priors
 	k <- length(priors)
 	sd <- object$sd

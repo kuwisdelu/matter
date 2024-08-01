@@ -184,7 +184,7 @@ subset_atoms1 <- function(x, i = NULL) {
 	if ( is.null(i) )
 		return(x)
 	if ( any(i < 1 | i > length(x)) )
-		stop("subscript out of bounds")
+		matter_error("subscript out of bounds")
 	atoms(source=droplevels(x@source[i]),
 		type=x@type[i],
 		offset=x@offset[i],
@@ -197,9 +197,9 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 	dms <- dims(x)
 	if ( !is.null(j) ) {
 		if ( anyNA(j) )
-			stop("NAs not allowed when subsetting atoms")
+			matter_error("NAs not allowed when subsetting atoms")
 		if ( any(j < 1 | j > length(dms)) )
-			stop("subscript out of bounds")
+			matter_error("subscript out of bounds")
 		grp <- as.integer(x@group) + 1L
 		j <- lapply(j, function(g) which(grp %in% g))
 		j <- unlist(j)
@@ -207,9 +207,9 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 	}
 	if ( !is.null(i) ) {
 		if ( anyNA(i) )
-			stop("NAs not allowed when subsetting atoms")
+			matter_error("NAs not allowed when subsetting atoms")
 		if ( any(i < 1 | i > min(dms)) )
-			stop("subscript out of bounds")
+			matter_error("subscript out of bounds")
 		sub <- .Call(C_subsetAtoms, x, i, PACKAGE="matter")
 		x <- atoms(source=droplevels(x@source[sub$index]),
 			type=x@type[sub$index],
@@ -336,7 +336,7 @@ setMethod("[", c(x="atoms"),
 	function(x, i, j, ..., drop = TRUE) {
 		narg <- nargs() - 1L - !missing(drop)
 		if ( ...length() > 0 )
-			stop("incorrect number of dimensions")
+			matter_error("incorrect number of dimensions")
 		i <- as_subscripts(i, x)
 		j <- as_subscripts(j, x)
 		if ( narg == 1L ) {
@@ -349,7 +349,7 @@ setMethod("[", c(x="atoms"),
 setMethod("[[", "atoms",
 	function(x, i, ...) {
 		if ( length(i) > 1 ) {
-			stop("attempt to select more than one element")
+			matter_error("attempt to select more than one element")
 		} else {
 			x[i]
 		}

@@ -21,7 +21,7 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		if ( missing(y) && missing(vals) ) {
 			co <- NULL
 			if ( !is.list(weights) && !is.list(neighbors) )
-				stop("both 'weights' and 'neighbors' must be ",
+				matter_error("both 'weights' and 'neighbors' must be ",
 					"specified when x/y coordinates are not")
 		} else {
 			co <- cbind(x, y)
@@ -131,7 +131,7 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	if ( length(xu) <= k )
 	{
 		if ( length(xu) < k )
-			warning("k > number of distinct data points")
+			matter_warn("k > number of distinct data points")
 		class <- factor(x, levels=xu, labels=seq_along(xu))
 		y <- encode_dummy(class)
 		mu <- set_names(c(xu, rep.int(NA_real_, k - length(xu))), seq_len(k))
@@ -360,7 +360,7 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	} else if ( length(dim(vals)) == 2L ) {
 		n <- if (byrow) nrow(vals) else ncol(vals)
 	} else {
-		stop("'vals' must be a list or matrix-like")
+		matter_error("'vals' must be a list or matrix-like")
 	}
 	if ( verbose )
 		message("fitting spatial segmentations for ", n, " images")
@@ -378,7 +378,7 @@ sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
 	loglik <- simplify2array(lapply(ans, `[[`, "logLik"))
 	kout <- vapply(ans, function(a) nlevels(droplevels(a$class)), integer(1L))
 	if ( any(kout < k) )
-		warning("fewer than k classes for images ",
+		matter_warn("fewer than k classes for images ",
 			paste0(which(kout != k), collapse=", "))
 	pv <- simplify2array(lapply(ans, `[[`, "probability"))
 	ans <- list(

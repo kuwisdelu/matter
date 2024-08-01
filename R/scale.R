@@ -21,7 +21,7 @@ rowscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 		center <- rowStats(x, "mean", group=group, ..., BPPARAM=BPPARAM)
 	if ( !is.logical(center) ) {
 		if ( NROW(center) != nr )
-			stop("length of 'center' must be equal to nrow of x")
+			matter_error("length of 'center' must be equal to nrow of x")
 		x <- rowsweep(x, center, "-", group=group)
 	} else {
 		center <- NULL
@@ -33,7 +33,7 @@ rowscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 	}
 	if ( !is.logical(scale) ) {
 		if ( NROW(scale) != nr )
-			stop("length of 'scale' must be equal to nrow of x")
+			matter_error("length of 'scale' must be equal to nrow of x")
 		x <- rowsweep(x, scale, "/", group=group)
 	} else {
 		scale <- NULL
@@ -51,7 +51,7 @@ colscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 		center <- colStats(x, "mean", group=group, ..., BPPARAM=BPPARAM)
 	if ( !is.logical(center) ) {
 		if ( NROW(center) != nc )
-			stop("length of 'center' must be equal to ncol of x")
+			matter_error("length of 'center' must be equal to ncol of x")
 		x <- colsweep(x, center, "-", group=group)
 	} else {
 		center <- NULL
@@ -63,7 +63,7 @@ colscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 	}
 	if ( !is.logical(scale) ) {
 		if ( NROW(scale) != nc )
-			stop("length of 'scale' must be equal to ncol of x")
+			matter_error("length of 'scale' must be equal to ncol of x")
 		x <- colsweep(x, scale, "/", group=group)
 	} else {
 		scale <- NULL
@@ -104,9 +104,9 @@ rowsweep_matrix <- function(x, STATS, FUN = "-", group = NULL, ...)
 	if ( is.null(group) )
 		group <- 1L
 	if ( nrow(x) %% NROW(STATS) != 0L )
-		stop("STATS does not recycle exactly across rows")
+		matter_error("STATS does not recycle exactly across rows")
 	if ( ncol(x) %% length(group) != 0L )
-		stop("group does not recycle exactly across columns")
+		matter_error("group does not recycle exactly across columns")
 	ugroup <- unique(group[!is.na(group)])
 	group <- rep_len(group, ncol(x))
 	STATS <- matrix(STATS, nrow=nrow(x), ncol=length(ugroup))
@@ -122,9 +122,9 @@ colsweep_matrix <- function(x, STATS, FUN = "-", group = NULL, ...)
 	if ( is.null(group) )
 		group <- 1L
 	if ( ncol(x) %% NROW(STATS) != 0L )
-		stop("STATS does not recycle exactly across columns")
+		matter_error("STATS does not recycle exactly across columns")
 	if ( nrow(x) %% length(group) != 0L )
-		stop("group does not recycle exactly across rows")
+		matter_error("group does not recycle exactly across rows")
 	ugroup <- unique(group[!is.na(group)])
 	group <- rep_len(group, nrow(x))
 	STATS <- matrix(STATS, nrow=ncol(x), ncol=length(ugroup))
@@ -139,9 +139,9 @@ rowsweep_deferred <- function(x, STATS, FUN = "-", group = NULL, ...)
 	if ( is.null(group) )
 		group <- 1L
 	if ( nrow(x) %% NROW(STATS) != 0L )
-		stop("STATS does not recycle exactly across rows")
+		matter_error("STATS does not recycle exactly across rows")
 	if ( ncol(x) %% length(group) != 0L )
-		stop("group does not recycle exactly across columns")
+		matter_error("group does not recycle exactly across columns")
 	ugroup <- unique(group[!is.na(group)])
 	group <- rep_len(group, ncol(x))
 	STATS <- matrix(STATS, nrow=nrow(x), ncol=length(ugroup))
@@ -159,9 +159,9 @@ colsweep_deferred <- function(x, STATS, FUN = "-", group = NULL, ...)
 	if ( is.null(group) )
 		group <- 1L
 	if ( ncol(x) %% NROW(STATS) != 0L )
-		stop("STATS does not recycle exactly across columns")
+		matter_error("STATS does not recycle exactly across columns")
 	if ( nrow(x) %% length(group) != 0L )
-		stop("group does not recycle exactly across rows")
+		matter_error("group does not recycle exactly across rows")
 	ugroup <- unique(group[!is.na(group)])
 	group <- rep_len(group, nrow(x))
 	STATS <- matrix(STATS, nrow=ncol(x), ncol=length(ugroup))

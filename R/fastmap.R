@@ -108,7 +108,7 @@ predict.fastmap <- function(object, newdata, ...)
 	if ( missing(newdata) )
 		return(object$x)
 	if ( length(dim(newdata)) != 2L )
-		stop("'newdata' must be a matrix or data frame")
+		matter_error("'newdata' must be a matrix or data frame")
 	k <- nrow(object$pivots)
 	xp <- object$pivot.array
 	if (object$transpose) {

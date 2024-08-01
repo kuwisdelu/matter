@@ -80,7 +80,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
 		overwrite <- offset < file.size(path)
 		if ( any(overwrite) )
-			warning("data may overwrite existing file(s): ",
+			matter_warn("data may overwrite existing file(s): ",
 				paste0(sQuote(path[overwrite]), collapse=", "))
 	}
 	if ( all(exists) && missing(data) ) {
@@ -103,12 +103,12 @@ matter_arr <- function(data, type = "double", path = NULL,
 	}
 	if ( any(!exists) ) {
 		if ( missing(data) && any(extent > 0) && !is.null(data) )
-			warning("creating uninitialized backing file(s): ",
+			matter_warn("creating uninitialized backing file(s): ",
 				paste0(sQuote(path[!exists]), collapse=", "))
 		newfile <- path[!exists]
 		success <- file.create(newfile)
 		if ( !all(success) )
-			stop("error creating file(s): ",
+			matter_error("error creating file(s): ",
 				paste0(sQuote(newfile[!success]), collapse=", "))
 	}
 	path <- normalizePath(path, mustWork=TRUE)
@@ -314,7 +314,7 @@ subset_matter_arr_elts <- function(x, i = NULL)
 	data <- subset_atoms2(data, i, NULL)
 	if ( !is.null(dim(x)) && !is.null(x@ops) ) {
 		ops <- NULL
-		warning("deferred operations will be dropped")
+		matter_warn("deferred operations will be dropped")
 	} else {
 		ops <- subset_ops(x@ops, list(i))
 	}
@@ -422,7 +422,7 @@ setMethod("[", c(x = "matter_arr"),
 			}
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
-				stop("incorrect number of dimensions")
+				matter_error("incorrect number of dimensions")
 			if ( missing(i) ) i <- NULL
 			if ( missing(j) ) j <- NULL
 			if ( ...length() > 0 ) {
@@ -455,7 +455,7 @@ setReplaceMethod("[", c(x = "matter_arr"),
 			set_matter_arr_elts(x, i, value)
 		} else {
 			if ( narg != 1L && narg != length(dim(x)) )
-				stop("incorrect number of dimensions")
+				matter_error("incorrect number of dimensions")
 			if ( missing(i) ) i <- NULL
 			if ( missing(j) ) j <- NULL
 			if ( ...length() > 0 ) {
@@ -482,7 +482,7 @@ setMethod("[", c(x = "matter_mat"),
 			get_matter_arr_elts(x, i)
 		} else {
 			if ( narg != 1L && narg != 2L )
-				stop("incorrect number of dimensions")
+				matter_error("incorrect number of dimensions")
 			if ( missing(i) && missing(j) && missing(drop) )
 				drop <- FALSE
 			i <- as_row_subscripts(i, x)
@@ -511,7 +511,7 @@ setReplaceMethod("[", c(x = "matter_mat"),
 			set_matter_arr_elts(x, i, value)
 		} else {
 			if ( narg != 1L && narg != 2L )
-				stop("incorrect number of dimensions")
+				matter_error("incorrect number of dimensions")
 			i <- as_row_subscripts(i, x)
 			j <- as_col_subscripts(j, x)
 			if ( isTRUE(x@indexed) ) {
@@ -525,12 +525,12 @@ setReplaceMethod("[", c(x = "matter_mat"),
 setMethod("combine", "matter_arr",
 	function(x, y, ...) {
 		if ( rowMaj(x) || rowMaj(y) )
-			stop("can't combine row-major arrays")
+			matter_error("can't combine row-major arrays")
 		data <- rbind(
 			ungroup_atoms(x@data),
 			ungroup_atoms(y@data))
 		if ( !is.null(x@ops) || !is.null(y@ops) )
-			warning("deferred operations will be dropped")
+			matter_warn("deferred operations will be dropped")
 		new("matter_vec", data=data, type=x@type,
 			dim=length(x) + length(y),
 			names=combine_names(x, y),
@@ -553,11 +553,11 @@ setMethod("cbind2", c("matter_vec", "matter_mat"),
 setMethod("cbind2", c("matter_mat", "matter_mat"),
 	function(x, y, ...) {
 		if ( nrow(x) != nrow(y) )
-			stop("number of rows of matrices must match")
+			matter_error("number of rows of matrices must match")
 		if ( rowMaj(x) || rowMaj(y) )
-			stop("can't cbind row-major matrices")
+			matter_error("can't cbind row-major matrices")
 		if ( !is.null(x@ops) || !is.null(y@ops) )
-			warning("deferred operations will be dropped")
+			matter_warn("deferred operations will be dropped")
 		data <- cbind(x@data, y@data)
 		new(class(x), x, data=data,
 			dim=c(nrow(x), ncol(x) + ncol(y)),
@@ -577,11 +577,11 @@ setMethod("rbind2", c("matter_vec", "matter_mat"),
 setMethod("rbind2", c("matter_mat", "matter_mat"),
 	function(x, y, ...) {
 		if ( ncol(x) != ncol(y) )
-			stop("number of columns of matrices must match")
+			matter_error("number of columns of matrices must match")
 		if ( !x@transpose || !y@transpose )
-			stop("can't rbind column-major matrices")
+			matter_error("can't rbind column-major matrices")
 		if ( !is.null(x@ops) || !is.null(y@ops) )
-			warning("deferred operations will be dropped")
+			matter_warn("deferred operations will be dropped")
 		data <- cbind(x@data, y@data)
 		new(class(x), x, data=data,
 			dim=c(nrow(x) + nrow(y), ncol(x)),
@@ -641,7 +641,7 @@ setMethod("rowMaj", "matter_arr", function(x)
 setMethod("t", "matter_arr", function(x)
 {
 	if ( length(dim(x)) > 2L )
-		stop("argument is not a matrix")
+		matter_error("argument is not a matrix")
 	x@transpose <- !x@transpose
 	x@dim <- rev(x@dim)
 	x@dimnames <- rev(x@dimnames)

@@ -15,7 +15,7 @@ qrank <- function(x, ties.max = FALSE)
 qselect <- function(x, k = (length(x) + 1L) %/% 2L)
 {
 	if ( any(k < 1L | k > length(x)) )
-		stop("k is out of bounds")
+		matter_error("k is out of bounds")
 	.Call(C_quickSelect, x, as.integer(k - 1L), PACKAGE="matter")
 }
 
@@ -88,7 +88,7 @@ bsearch <- function(x, table, tol = 0, tol.ref = "abs",
 	if ( is.double(x) && is.integer(table) )
 		table <- as.double(table)
 	if ( is.unsorted(table) )
-		stop("'table' must be sorted")
+		matter_error("'table' must be sorted")
 	.Call(C_binarySearch, x, table, tol, as_tol_ref(tol.ref),
 		nomatch, nearest, PACKAGE="matter")
 }
@@ -155,7 +155,7 @@ kdsearch <- function(x, data, tol = 0, tol.ref = "abs")
 	if ( is.double(x) && is.integer(data$data) )
 		storage.mode(data$data) <- "double"
 	if ( is.null(dim(x)) && length(x) != ncol(data$data) )
-		stop("x must have the same number of columns as data")
+		matter_error("x must have the same number of columns as data")
 	tol <- rep_len(tol, ncol(data$data))
 	.Call(C_kdSearch, x, data$data,
 		data$nodes$left_child, data$nodes$right_child,
@@ -179,7 +179,7 @@ knnsearch <- function(x, data, k = 1L, metric = "euclidean", p = 2)
 		if ( is.double(x) && is.integer(data$data) )
 			storage.mode(data$data) <- "double"
 		if ( is.null(dim(x)) && length(x) != ncol(data$data) )
-			stop("x must have the same number of columns as data")
+			matter_error("x must have the same number of columns as data")
 		.Call(C_knnSearch, x, data$data,
 			data$nodes$left_child, data$nodes$right_child,
 			data$root, k, as_dist(metric), p, PACKAGE="matter")

@@ -8,14 +8,14 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 {
 	FUN <- match.fun(FUN)
 	if ( !MARGIN %in% c(1L, 2L) )
-		stop("MARGIN must be 1 or 2")
+		matter_error("MARGIN must be 1 or 2")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	outfile <- !is.null(outpath)
 	pid <- ipcid()
 	if ( outfile ) {
 		if ( !is.character(outpath) || length(outpath) != 1L )
-			stop("'outpath' must be a scalar string (or NULL)")
+			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
 		if ( verbose )
 			message("writing output to path = ", sQuote(outpath))
@@ -42,7 +42,7 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 chunk_apply <- function(X, MARGIN, FUN, ...)
 {
 	if ( !MARGIN %in% c(1L, 2L) )
-		stop("MARGIN must be 1 or 2")
+		matter_error("MARGIN must be 1 or 2")
 	switch(MARGIN,
 		chunk_rowapply(X, FUN, ...),
 		chunk_colapply(X, FUN, ...))
@@ -56,7 +56,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
 	if ( is.null(dim(X)) || length(dim(X)) != 2L )
-		stop("X must have exactly 2 dimensions")
+		matter_error("X must have exactly 2 dimensions")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	if ( "nchunks" %in% ...names() ) {
@@ -94,7 +94,7 @@ chunk_colapply <- function(X, FUN, ...,
 	FUN <- match.fun(FUN)
 	simplify <- match.fun(simplify)
 	if ( is.null(dim(X)) || length(dim(X)) != 2L )
-		stop("X must have exactly 2 dimensions")
+		matter_error("X must have exactly 2 dimensions")
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	if ( "nchunks" %in% ...names() ) {
@@ -138,7 +138,7 @@ chunkLapply <- function(X, FUN, ...,
 	pid <- ipcid()
 	if ( outfile ) {
 		if ( !is.character(outpath) || length(outpath) != 1L )
-			stop("'outpath' must be a scalar string (or NULL)")
+			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
 		if ( verbose )
 			message("writing output to path = ", sQuote(outpath))
@@ -211,7 +211,7 @@ chunkMapply <- function(FUN, ...,
 	pid <- ipcid()
 	if ( outfile ) {
 		if ( !is.character(outpath) || length(outpath) != 1L )
-			stop("'outpath' must be a scalar string (or NULL)")
+			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
 		if ( verbose )
 			message("writing output to path = ", sQuote(outpath))
@@ -374,7 +374,7 @@ get_serialize <- function(options) chunk_option(options, "serialize")
 
 chunk_option <- function(options, name) {
 	if ( !is.null(options) && !is.list(options) )
-		stop("chunk options must be a list or NULL")
+		matter_error("chunk options must be a list or NULL")
 	ans <- options[[name]]
 	if ( is.null(ans) ) {
 		defaults <- matter_defaults()

@@ -19,7 +19,7 @@ prcomp_lanczos <- function(x, k = 3L, retx = TRUE,
 	verbose = NA, BPPARAM = bpparam(), ...)
 {
 	if ( "n" %in% ...names() ) {
-		warning("'n' is deprecated; use 'k' instead")
+		matter_warn("'n' is deprecated; use 'k' instead")
 		k <- list(...)$n
 	}
 	if ( is.na(verbose) )

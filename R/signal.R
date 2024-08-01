@@ -5,7 +5,7 @@
 filt1_ma <- function(x, width = 5L)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1 + 2 * (width %/% 2)
 	.Call(C_meanFilter, x, width, PACKAGE="matter")
@@ -14,16 +14,16 @@ filt1_ma <- function(x, width = 5L)
 filt1_conv <- function(x, weights)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( length(weights) %% 2L != 1L )
-		stop("length of weights must be odd")
+		matter_error("length of weights must be odd")
 	.Call(C_linearFilter, x, weights, PACKAGE="matter")
 }
 
 filt1_gauss <- function(x, width = 5L, sd = (width %/% 2) / 2)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	radius <- width %/% 2
@@ -36,7 +36,7 @@ filt1_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 	sdrange = mad(x, na.rm = TRUE))
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter, x, width,
@@ -46,7 +46,7 @@ filt1_bi <- function(x, width = 5L, sddist = (width %/% 2) / 2,
 filt1_adapt <- function(x, width = 5L, spar = 1)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	.Call(C_bilateralFilter, x, width,
@@ -57,11 +57,11 @@ filt1_diff <- function(x, niter = 3L, kappa = 50,
 	rate = 0.25, method = 1L)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( kappa < 1 )
-		warning("kappa should be > 1")
+		matter_warn("kappa should be > 1")
 	if ( rate <= 0 || rate > 0.25 )
-		warning("rate should be positive and <= 0.25")
+		matter_warn("rate should be positive and <= 0.25")
 	.Call(C_diffusionFilter, x, niter,
 		kappa, rate, method, PACKAGE="matter")
 }
@@ -70,7 +70,7 @@ filt1_guide <- function(x, width = 5L, guide = x,
 	sdreg = mad(x, na.rm = TRUE))
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	if ( is.integer(x) && is.double(guide) )
@@ -85,7 +85,7 @@ filt1_pag <- function(x, width = 5L, guide = NULL,
 	sdreg = mad(x, na.rm = TRUE), ftol = 1/10)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	if ( is.null(guide) )
@@ -102,11 +102,11 @@ filt1_sg <- function(x, width = 5L, order = min(3L, width - 2L),
 	deriv = 0, delta = 1)
 {
 	if ( !is.null(dim(x)) && length(dim(x)) != 1L )
-		stop("x must be a vector")
+		matter_error("x must be a vector")
 	if ( width %% 2L != 1L )
 		width <- 1L + 2L * as.integer(width %/% 2)
 	if ( width <= order )
-		stop("width must be larger than order")
+		matter_error("width must be larger than order")
 	b <- (1:width - (width %/% 2 + 1)) %*% t(rep.int(1, order + 1))
 	b <- b^(as.matrix(rep.int(1, width)) %*% (0:order))
 	weights <- pinv(b)[1 + deriv,]
@@ -143,14 +143,14 @@ convolve_at <- function(x, index, weights, ...)
 	if ( is.matrix(index) )
 		index <- array2list(index, 1L)
 	if ( !is.list(index) )
-		stop("index must be a list")
+		matter_error("index must be a list")
 	if ( is.numeric(weights) )
 		weights <- list(weights)
 	weights <- rep_len(weights, length(x))
 	if ( length(index) != length(x) )
-		stop("index and x must have the same length")
+		matter_error("index and x must have the same length")
 	if ( !all(lengths(index) == lengths(weights)) )
-		stop("lengths of index and weights must match")
+		matter_error("lengths of index and weights must match")
 	vapply(seq_along(x),
 		function(i) {
 			ii <- index[[i]]
@@ -170,7 +170,7 @@ filtn_ma <- function(x, index, k = 5L, metric = "euclidean", p = 2)
 filtn_conv <- function(x, index, weights, metric = "euclidean", p = 2)
 {
 	if ( !is.numeric(weights) )
-		stop("weights must be numeric")
+		matter_error("weights must be numeric")
 	if ( missing(index) ) {
 		if ( is.null(dim(x)) ) {
 			index <- seq_along(x)
@@ -298,7 +298,7 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	# find events in each signal
 	if ( missing(y) || is.null(y) ) {
 		if ( missing(ty) )
-			stop("either 'y' or 'ty' must be specified")
+			matter_error("either 'y' or 'ty' must be specified")
 		ly <- ty
 	} else {
 		ly <- NULL
@@ -345,7 +345,7 @@ warp1_loc <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 		}
 		tshift <- tout + shift
 	} else {
-		warning("no landmarks matched")
+		matter_warn("no landmarks matched")
 		tshift <- tout
 		path <- NULL
 	}
@@ -362,7 +362,7 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 {
 	if ( missing(y) || is.null(y) ) {
 		if ( missing(ty) )
-			stop("either 'y' or 'ty' must be specified")
+			matter_error("either 'y' or 'ty' must be specified")
 		y <- rep_len(max(x, na.rm=TRUE), length(ty))
 		y <- simspec1(ty, y, tx, resolution=estres(tx, ref="x")^(-1))
 	}
@@ -384,7 +384,7 @@ warp1_dtw <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	dn <- abs(reldiff(tx[length(tx)], ty[length(ty)], ref=tol.ref))
 	if ( tol < d0 || tol < dn ) {
 		tol <- max(d0, dn)
-		warning("'tol' must be greater than ", tol)
+		matter_warn("'tol' must be greater than ", tol)
 	}
 	path <- .Call(C_warpDTW, x, y, tx, ty,
 		tol, as_tol_ref(tol.ref), PACKAGE="matter")
@@ -406,7 +406,7 @@ warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 {
 	if ( missing(y) || is.null(y) ) {
 		if ( missing(ty) )
-			stop("either 'y' or 'ty' must be specified")
+			matter_error("either 'y' or 'ty' must be specified")
 		y <- rep_len(max(x, na.rm=TRUE), length(ty))
 		y <- simspec1(ty, y, tx, resolution=estres(tx, ref="x")^(-1))
 	}
@@ -430,17 +430,17 @@ warp1_cow <- function(x, y, tx = seq_along(x), ty = seq_along(y),
 	}
 	# initialize nodes
 	if ( nbins < 2L )
-		stop("need at least 2 bins")
+		matter_error("need at least 2 bins")
 	xb <- findbins(x, nbins=nbins, dynamic=FALSE, limits.only=TRUE)
 	ix <- c(1L, xb$upper)
 	yb <- findbins(y, nbins=nbins, dynamic=FALSE, limits.only=TRUE)
 	iy <- c(1L, yb$upper)
 	if ( any(xb$size < 3L) || any(yb$size < 3L) )
-		stop("too many bins (need at least 3 samples per bin)")
+		matter_error("too many bins (need at least 3 samples per bin)")
 	dmax <- max(abs(reldiff(tx[ix], ty[iy], ref=tol.ref)))
 	if ( tol < dmax ) {
 		tol <- dmax
-		warning("'tol' must be greater than ", tol)
+		matter_warn("'tol' must be greater than ", tol)
 	}
 	# correlation optimized warping to align signals
 	path <- .Call(C_warpCOW, x, y, tx, ty,
@@ -516,9 +516,9 @@ rescale_ref <- function(x, ref = 1L, scale = 1, domain = NULL)
 	if ( missing(domain) || is.null(domain) )
 		domain <- seq_along(x)
 	if ( length(x) != length(domain) )
-		stop("length of 'domain' must match length of 'x'")
+		matter_error("length of 'domain' must match length of 'x'")
 	if ( ref < min(domain) || ref > max(domain) )
-		stop("'ref' is outside of domain limits")
+		matter_error("'ref' is outside of domain limits")
 	i <- bsearch(ref, domain, nearest=TRUE)
 	if ( x[i] != 0 ) {
 		y <- scale * x / x[i]
@@ -570,7 +570,7 @@ rescale_fun <- function(method)
 binvec <- function(x, lower, upper, stat = "sum", prob = 0.5)
 {
 	if ( missing(lower) && missing(upper) ) {
-		stop("must specify one of 'lower' or 'upper'")
+		matter_error("must specify one of 'lower' or 'upper'")
 	} else if ( missing(upper) ) {
 		upper <- c(lower[-1] - 1L, length(x))
 	} else if ( missing(lower) ) {
@@ -618,9 +618,9 @@ findbins <- function(x, nbins, dynamic = FALSE, niter = NA,
 			check_converge <- FALSE
 		}
 		if ( nbins < 3L )
-			stop("need >= 3 bins for dynamic binning")
+			matter_error("need >= 3 bins for dynamic binning")
 		if ( overlap != 0 )
-			warning("ignoring overlap for dynamic binning")
+			matter_warn("ignoring overlap for dynamic binning")
 		# calculate SSE from linear regression in each bin
 		sse <- binvec(x, lower, upper, stat="sse")
 		trace <-  numeric(niter + 1L)
@@ -675,7 +675,7 @@ ltob <- function(x, t, lower, upper)
 	if ( is.double(x) && is.integer(t) )
 		t <- as.double(t)
 	if ( is.unsorted(t) )
-		stop("domain 't' must be sorted")
+		matter_error("domain 't' must be sorted")
 	lower <- as.integer(lower - 1L)
 	upper <- as.integer(upper - 1L)
 	.Call(C_downsampleLTOB, x, t, lower, upper, PACKAGE="matter")
@@ -688,7 +688,7 @@ lttb <- function(x, t, lower, upper)
 	if ( is.double(x) && is.integer(t) )
 		t <- as.double(t)
 	if ( is.unsorted(t) )
-		stop("domain 't' must be sorted")
+		matter_error("domain 't' must be sorted")
 	lower <- as.integer(lower - 1L)
 	upper <- as.integer(upper - 1L)
 	.Call(C_downsampleLTTB, x, t, lower, upper, PACKAGE="matter")
@@ -1218,7 +1218,7 @@ peakwidths <- function(x, peaks, domain = NULL,
 	if ( is.null(domain) )
 		domain <- seq_along(x)
 	if ( is.unsorted(domain) )
-		stop("'domain' must be sorted")
+		matter_error("'domain' must be sorted")
 	if ( ref == "height" )
 	{
 		# find peak boundaries if not provided
@@ -1269,7 +1269,7 @@ peakareas <- function(x, peaks, domain = NULL)
 	if ( is.null(domain) )
 		domain <- seq_along(x)
 	if ( is.unsorted(domain) )
-		stop("'domain' must be sorted")
+		matter_error("'domain' must be sorted")
 	left_bounds <- attr(peaks, "left_bounds")
 	right_bounds <- attr(peaks, "right_bounds")
 	if ( is.null(left_bounds) || is.null(right_bounds) )
@@ -1316,7 +1316,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 	tol = NA_real_, tol.ref = "abs", merge = FALSE, na.drop = TRUE)
 {
 	if ( any(lengths(peaklist) != lengths(xlist)) )
-		stop("lengths of 'peaklist' and 'xlist' must match")
+		matter_error("lengths of 'peaklist' and 'xlist' must match")
 	if ( is.na(tol) ) {
 		# guess tol as ~1/2 the min gap between same-signal peaks
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
@@ -1334,7 +1334,7 @@ binpeaks <- function(peaklist, domain = NULL, xlist = peaklist,
 		}
 	}
 	if ( is.unsorted(domain) )
-		stop("'domain' must be sorted")
+		matter_error("'domain' must be sorted")
 	peaks <- numeric(length(domain))
 	x <- numeric(length(domain))
 	n <- numeric(length(domain))
@@ -1385,9 +1385,9 @@ mergepeaks <- function(peaks, n = nobs(peaks), x = peaks,
 	x <- as.vector(x)
 	peaks <- as.vector(peaks)
 	if ( length(peaks) != length(x) )
-		stop("length of 'peaks' and 'x' must match")
+		matter_error("length of 'peaks' and 'x' must match")
 	if ( is.unsorted(peaks, na.rm=TRUE) )
-		stop("'peaks' must be sorted")
+		matter_error("'peaks' must be sorted")
 	if ( is.na(tol) ) {
 		# guess tol as ~1/100 of average gap between peaks
 		ref <- ifelse(tol.ref == "abs", "abs", "y")
@@ -1548,7 +1548,7 @@ simspec <- function(n = 1L, npeaks = 50L,
 	baseline = 0, decay = 10, units = "relative")
 {
 	if ( length(x) != length(y) )
-		stop("length of 'x' and 'y' must match")
+		matter_error("length of 'x' and 'y' must match")
 	if ( length(domain) == 2L ) {
 		xout <- seq(from=domain[1L], to=domain[2L], length.out=size)
 	} else {

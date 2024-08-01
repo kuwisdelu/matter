@@ -68,10 +68,10 @@ rowStats_int <- function(x, stat, group = NULL,
 	iter.dim = 1L, BPPARAM = bpparam(), ...)
 {
 	if ( !iter.dim %in% c(1L, 2L) )
-		stop("iter.dim must be 1 or 2")
+		matter_error("iter.dim must be 1 or 2")
 	if ( !is.null(group) ) {
 		if ( length(group) %% ncol(x) != 0 )
-			stop("length of groups [", length(group), "] ",
+			matter_error("length of groups [", length(group), "] ",
 				"is not a multiple of column extent [", ncol(x), "]")
 		group <- as.factor(rep_len(group, ncol(x)))
 	}
@@ -124,10 +124,10 @@ colStats_int <- function(x, stat, group = NULL,
 	iter.dim = 2L, BPPARAM = bpparam(), ...)
 {
 	if ( !iter.dim %in% c(1L, 2L) )
-		stop("iter.dim must be 1 or 2")
+		matter_error("iter.dim must be 1 or 2")
 	if ( !is.null(group) ) {
 		if ( length(group) %% nrow(x) != 0 )
-			stop("length of groups [", length(group), "] ",
+			matter_error("length of groups [", length(group), "] ",
 				"is not a multiple of row extent [", nrow(x), "]")
 		group <- as.factor(rep_len(group, nrow(x)))
 	}

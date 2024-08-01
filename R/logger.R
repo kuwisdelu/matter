@@ -24,7 +24,7 @@ setRefClass("simple_logger",
 			if ( length(.self$logfile) ) {
 				if ( !file.exists(.self$logfile) ) {
 					if ( !file.create(file) )
-						stop("failed to create log file ", file)
+						base::stop("failed to create log file ", file)
 				}
 				BiocParallel::ipclock(.self$id)
 				con <- file(.self$logfile, open="at")
@@ -102,10 +102,10 @@ setRefClass("simple_logger",
 				return(invisible(.self))
 			}
 			if ( !is.character(file) || length(file) != 1L )
-				stop("file must be a single string")
+				base::stop("file must be a single string")
 			newfile <- normalizePath(file, mustWork=FALSE)
 			if ( file.exists(newfile) )
-				stop("file ", sQuote(newfile), " already exists")
+				base::stop("file ", sQuote(newfile), " already exists")
 			if ( file.create(newfile) ) {
 				BiocParallel::ipclock(.self$id)
 				log <- c(readLines(.self$logfile), .self$buffer)
@@ -118,7 +118,7 @@ setRefClass("simple_logger",
 				.self$logfile <- newfile
 				BiocParallel::ipcunlock(.self$id)
 			} else {
-				stop("failed to create new log file ", sQuote(.self$logfile))
+				base::stop("failed to create new log file ", sQuote(.self$logfile))
 			}
 			invisible(.self)
 		},
@@ -164,11 +164,11 @@ matter_log <- function(..., verbose = FALSE) {
 	matter_logger()$log(..., signal=verbose)
 }
 
-matter_warning <- function(...) {
+matter_warn <- function(...) {
 	matter_logger()$warning(...)
 }
 
-matter_stop <- function(...) {
+matter_error <- function(...) {
 	matter_logger()$stop(...)
 }
 
