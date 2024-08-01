@@ -163,6 +163,10 @@ matter_vec(data, type = "double", path = NULL,
         
         \item{\code{x[...], x[...] <- value}:}{Get or set the elements of the array.}
 
+        \item{\code{as.vector(x)}:}{Coerce to a vector.}
+
+        \item{\code{as.array(x)}:}{Coerce to an array.}
+
         \item{\code{cbind(x, ...), rbind(x, ...)}:}{Combine matrices by row or column.}
 
         \item{\code{t(x)}:}{Transpose a matrix. This is a quick operation which only changes metadata and does not touch the data representation.}

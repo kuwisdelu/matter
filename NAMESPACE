@@ -581,16 +581,18 @@ exportMethods(
 	"plot")
 
 export(
-	"mem",
-	"mtime",
-	"memtime",
-	"profmem")
-
-export(
 	"parse_formula",
 	"eval_at",
 	"eval_exprs",
 	"varquote")
+
+export("simple_logger")
+
+export(
+	"mem",
+	"mtime",
+	"memtime",
+	"profmem")
 
 export("matter_defaults")
 

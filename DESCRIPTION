@@ -12,14 +12,14 @@ Imports: BiocGenerics, ProtGenerics, digest, irlba,
 	stats, stats4, graphics, grDevices, utils
 Suggests: BiocStyle, knitr, testthat, plotly
 VignetteBuilder: knitr
-Collate: matterGenerics.R utils.R drle.R
-	atoms.R ops.R matter.R matter_arr.R 
+Collate: matterGenerics.R utils.R logger.R
+	drle.R atoms.R ops.R matter.R matter_arr.R 
 	matter_fct.R matter_list.R matter_str.R 
 	search.R sparse_arr.R stream_stat.R chunked.R
 	apply.R rowDists.R rowStats.R stats.R scale.R
-	nscentroids.R sgmix.R nnmf.R fastmap.R
-	prcomp.R pls.R signal.R signal2.R cv.R
-	mi_learn.R altrep.R snow.R plot.R vizi.R
+	signal.R signal2.R nnmf.R fastmap.R prcomp.R pls.R
+	nscentroids.R sgmix.R cv.R mi_learn.R
+	altrep.R parallel.R plot.R vizi.R
 biocViews: Infrastructure, DataRepresentation, DataImport,
 	DimensionReduction, Preprocessing
 URL: https://github.com/kuwisdelu/matter

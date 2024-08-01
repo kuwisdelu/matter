@@ -1,4 +1,12 @@
 
+#### Define common class unions ####
+## ----------------------------------
+
+setClassUnion("logical_OR_NULL", c("logical", "NULL"))
+setClassUnion("numeric_OR_NULL", c("numeric", "NULL"))
+setClassUnion("character_OR_NULL", c("character", "NULL"))
+setClassUnion("list_OR_NULL", c("list", "NULL"))
+
 #### Define new generics from base ####
 ## -------------------------------------
 

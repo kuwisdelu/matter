@@ -15,6 +15,7 @@
 		matter.coerce.altrep = FALSE,
 		matter.wrap.altrep = FALSE,
 		matter.dump.dir = tempdir(),
+		matter.logger = simple_logger(),
 		matter.vizi.par = par_style_new(),
 		matter.vizi.panelgrid = NULL,
 		matter.vizi.trans3d = NULL,
