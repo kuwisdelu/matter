@@ -160,5 +160,15 @@ simple_logger <- function(file = NULL, domain = NULL, bufferlimit = 50L)
 
 matter_logger <- function() getOption("matter.logger")
 
-logger <- matter_logger
+matter_log <- function(..., verbose = FALSE) {
+	matter_logger()$log(..., signal=verbose)
+}
+
+matter_warning <- function(...) {
+	matter_logger()$warning(...)
+}
+
+matter_stop <- function(...) {
+	matter_logger()$stop(...)
+}
 
