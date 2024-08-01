@@ -81,7 +81,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=verbose)
+		"from ", length(CHUNKS), " chunks", verbose=progress)
 	do.call(simplify, ans)
 }
 
@@ -118,7 +118,7 @@ chunk_colapply <- function(X, FUN, ...,
 	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=verbose)
+		"from ", length(CHUNKS), " chunks", verbose=progress)
 	do.call(simplify, ans)
 }
 
@@ -189,7 +189,7 @@ chunk_lapply <- function(X, FUN, ...,
 	CHUNKFUN <- chunk_fun(FUN, type="vector", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=verbose)
+		"from ", length(CHUNKS), " chunks", verbose=progress)
 	do.call(simplify, ans)
 }
 
@@ -262,7 +262,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		rngseeds=rngseeds, MoreArgs=MoreArgs)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=verbose)
+		"from ", length(CHUNKS), " chunks", verbose=progress)
 	do.call(simplify, ans)
 }
 

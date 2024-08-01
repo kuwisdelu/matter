@@ -53,6 +53,12 @@ setRefClass("simple_logger",
 			entry <- paste0(timestamp, " Session info:\n", info)
 			.self$append(entry)
 		},
+		history = function()
+		{
+			.self$flush()
+			history <- readLines(.self$logfile)
+			cat(history, sep="\n")
+		},
 		log = function(..., signal = FALSE, call = NULL)
 		{
 			timestamp <- paste0("[", format(Sys.time()), "] ")
@@ -81,14 +87,16 @@ setRefClass("simple_logger",
 		{
 			.self$log(..., signal="message")
 		},
-		warning = function(...)
+		warning = function(..., call = NULL)
 		{
-			call <- sys.call(-1L)
+			if ( is.null(call) )
+				call <- sys.call(-1L)
 			.self$log(..., signal="warning", call=call)
 		},
-		stop = function(...)
+		stop = function(..., call = NULL)
 		{
-			call <- sys.call(-1L)
+			if ( is.null(call) )
+				call <- sys.call(-1L)
 			.self$log(..., signal="error", call=call)
 		},
 		move = function(file)
@@ -165,10 +173,12 @@ matter_log <- function(..., verbose = FALSE) {
 }
 
 matter_warn <- function(...) {
-	matter_logger()$warning(...)
+	call <- sys.call(-1L)
+	matter_logger()$warning(..., call=call)
 }
 
 matter_error <- function(...) {
-	matter_logger()$stop(...)
+	call <- sys.call(-1L)
+	matter_logger()$stop(..., call=call)
 }
 

@@ -76,7 +76,7 @@ cv_do <- function(fit., x, y, folds, ...,
 		}
 		# train model
 		matter_log("# fitting model on pooled training sets (n=", n_train, ")",
-			, verbose=verbose)
+			verbose=verbose)
 		if ( is.null(bags) ) {
 			fit <- fit.(x_train, y_train,
 				chunkopts=chunkopts, BPPARAM=BPPARAM, ...)

@@ -155,8 +155,7 @@ setMethod("[[", c(x = "chunked_list"),
 		i <- as_subscripts(i, x)
 		y <- lapply(x@data, `[`, x@index[[i]], drop=x@drop)
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
-		if ( x@verbose )
-			print_chunk_info(y)
+		matter_log_chunk(y, verbose=x@verbose)
 		y
 	})
 
@@ -165,8 +164,7 @@ setMethod("[[", c(x = "chunked_vec"),
 		i <- as_subscripts(i, x)
 		y <- x@data[x@index[[i]],drop=x@drop]
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
-		if ( x@verbose )
-			print_chunk_info(y)
+		matter_log_chunk(y, verbose=x@verbose)
 		y
 	})
 
@@ -178,12 +176,11 @@ setMethod("[[", c(x = "chunked_mat"),
 			x@data[,x@index[[i]],drop=x@drop])
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		attr(y, "margin") <- x@margin
-		if ( x@verbose )
-			print_chunk_info(y)
+		matter_log_chunk(y, verbose=x@verbose)
 		y
 	})
 
-print_chunk_info <- function(x) {
+matter_log_chunk <- function(x, verbose) {
 	info <- attr(x, "chunkinfo")
 	if ( is.list(x) ) {
 		sizes <- vapply(x, vm_realized, numeric(1L))
@@ -197,7 +194,7 @@ print_chunk_info <- function(x) {
 	}
 	matter_log("# processing chunk ",
 		info$chunkid, "/", info$nchunks,
-		" (", info$chunksize, " items | ", size, ")", verbose=TRUE)
+		" (", info$chunksize, " items | ", size, ")", verbose=verbose)
 }
 
 chunkify <- function(x, nchunks = 20L, depends = NULL) {

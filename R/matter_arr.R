@@ -733,20 +733,16 @@ rmatmul_sc <- function(x, y, useOuter = FALSE)
 		INDEX <- chunkify(seq_len(ncol(x)), nchunks)
 		for ( i in INDEX ) {
 			xi <- as.matrix(x[,i,drop=FALSE])
-			if ( verbose ) {
-				attr(xi, "chunkinfo") <- attributes(i)
-				print_chunk_info(xi)
-			}
+			attr(xi, "chunkinfo") <- attributes(i)
+			matter_log_chunk(xi, verbose=verbose)
 			ans <- ans + xi %*% y[i,,drop=FALSE]
 		}
 	} else {
 		INDEX <- chunkify(seq_len(nrow(x)), nchunks)
 		for ( i in INDEX ) {
 			xi <- as.matrix(x[i,,drop=FALSE])
-			if ( verbose ) {
-				attr(xi, "chunkinfo") <- attributes(i)
-				print_chunk_info(xi)
-			}
+			attr(xi, "chunkinfo") <- attributes(i)
+			matter_log_chunk(xi, verbose=verbose)
 			ans[i,] <- xi %*% y
 		}
 	}
@@ -782,20 +778,16 @@ lmatmul_sc <- function(x, y, useOuter = FALSE)
 		INDEX <- chunkify(seq_len(nrow(y)), nchunks)
 		for ( i in INDEX ) {
 			yi <- as.matrix(y[i,,drop=FALSE])
-			if ( verbose ) {
-				attr(yi, "chunkinfo") <- attributes(i)
-				print_chunk_info(yi)
-			}
+			attr(yi, "chunkinfo") <- attributes(i)
+			matter_log_chunk(yi, verbose=verbose)
 			ans <- ans + x[,i,drop=FALSE] %*% yi
 		}
 	} else {
 		INDEX <- chunkify(seq_len(ncol(y)), nchunks)
 		for ( i in INDEX ) {
 			yi <- as.matrix(y[,i,drop=FALSE])
-			if ( verbose ) {
-				attr(yi, "chunkinfo") <- attributes(i)
-				print_chunk_info(yi)
-			}
+			attr(yi, "chunkinfo") <- attributes(i)
+			matter_log_chunk(yi, verbose=verbose)
 			ans[,i] <- x %*% yi
 		}
 	}

@@ -58,6 +58,8 @@ matter_logger()
 
         \item{\code{$append_session():}}{Append the \code{sessionInfo()} to the log.}
 
+        \item{\code{$history():}}{Print the complete log to the console.}
+
         \item{\code{$log(\dots, signal = FALSE, call = NULL):}}{Record a log entry with a timestamp, optionally signaling a \code{"message"}, \code{"warning"}, or \code{"error"} condition. For \code{"warning"} and \code{"error"} conditions (only), the \code{call} may also be passed to be deparsed and recorded in the log entry.}
 
         \item{\code{$message(\dots):}}{Record a log entry with a timestamp and signal a \code{message} condition.}
@@ -68,7 +70,7 @@ matter_logger()
 
         \item{\code{$move(file):}}{Move the log file to a new location.}
 
-        \item{\code{$close(file):}}{Flush buffered log entries (including \code{sessionInfo()}) and detach the log file. This is called automatically at the end of an R session. Note that log files in the temporary directory will be deleted after the R session ends if they are not \code{$move()}ed to a persistent directory before quitting.}
+        \item{\code{$close():}}{Flush buffered log entries (including \code{sessionInfo()}) and detach the log file. This is called automatically at the end of an R session. Note that log files in the temporary directory will be deleted after the R session ends if they are not \code{$move()}ed to a persistent directory before quitting.}
     }
 
     Standard generic methods:
