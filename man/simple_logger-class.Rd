@@ -20,6 +20,9 @@
 ## Instance creation
 simple_logger(file = NULL, domain = NULL, bufferlimit = 50L)
 
+## Get logger used by matter
+matter_logger()
+
 ## Additional methods documented below
 }
 
