@@ -376,7 +376,6 @@ create_file_resource <- function(name)
 	if ( file.create(path) ) {
 		path <- normalizePath(path, mustWork=TRUE)
 		handle <- new.env(parent=emptyenv())
-		handle[["id"]] <- BiocParallel::ipcid()
 		handle[["type"]] <- type
 		handle[["name"]] <- name
 		handle[["path"]] <- path
@@ -400,11 +399,8 @@ remove_file_resource <- function(handle)
 	{
 		owner <- matter_shared_resource_pool()[[name]]
 		if ( owner == Sys.getpid() ) {
-			BiocParallel::ipclock(handle[["id"]])
 			rm(list=name, envir=matter_shared_resource_pool())
 			status <- file.remove(path)
-			BiocParallel::ipcunlock(handle[["id"]])
-			BiocParallel::ipcremove(handle[["id"]])
 		}
 	}
 	status
