@@ -162,10 +162,12 @@ simple_logger <- function(file = NULL, domain = NULL, bufferlimit = 50L)
 	logger <- new("simple_logger", id=ipcid(),
 		buffer=character(0L), bufferlimit=bufferlimit,
 		logfile=file, domain=domain)
-	f <- local(function(logger) logger$.self$close(), envir=baseenv())
-	reg.finalizer(getDataPart(logger), f, onexit=TRUE)
+	handle <- getDataPart(logger)
+	reg.finalizer(handle, close_logger, onexit=TRUE)
 	logger
 }
+
+close_logger <- function(handle) handle$.self$close()
 
 matter_logger <- function() getOption("matter.logger")
 

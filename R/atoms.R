@@ -355,3 +355,76 @@ setMethod("[[", "atoms",
 		}
 	})
 
+#### Define atoms resources ####
+## -----------------------------
+
+create_file_resource <- function(name)
+{
+	path <- normalizePath(name, mustWork=FALSE)
+	if ( file.exists(path) )
+		matter_error("file ", sQuote(path), " already exists")
+	if ( file.create(path) ) {
+		path <- normalizePath(path, mustWork=TRUE)
+		handle <- new.env(parent=emptyenv())
+		handle[["id"]] <- BiocParallel::ipcid()
+		handle[["name"]] <- name
+		handle[["path"]] <- path
+		lockEnvironment(handle, TRUE)
+		assign(name, Sys.getpid(), envir=matter_shared_resource_pool())
+	} else {
+		matter_error("failed to create file ", sQuote(path))
+	}
+	reg.finalizer(handle, remove_file_resource, onexit=TRUE)
+	structure(name, ref=handle,
+		class=c("shared_file", "shared_resource"))
+}
+
+remove_file_resource <- function(handle)
+{
+	name <- handle[["name"]]
+	path <- handle[["path"]]
+	path <- normalizePath(handle[["path"]], mustWork=FALSE)
+	status <- FALSE
+	known_resources <- matter_shared_resource_list()
+	if ( name %in% known_resources && file.exists(path) )
+	{
+		owner <- matter_shared_resource_pool()[[name]]
+		if ( owner == Sys.getpid() ) {
+			BiocParallel::ipclock(handle[["id"]])
+			rm(list=name, envir=matter_shared_resource_pool())
+			status <- file.remove(path)
+			BiocParallel::ipcunlock(handle[["id"]])
+			BiocParallel::ipcremove(handle[["id"]])
+		}
+	}
+	status
+}
+
+shared_resources <- new.env()
+
+matter_shared_resource_pool <- function() shared_resources
+
+matter_shared_resource_list <- function() ls(shared_resources)
+
+matter_shared_resource <- function(create = NULL, remove = NULL)
+{
+	if ( !is.null(create) && !is.null(remove) ) {
+		matter_error("must specify only one of 'create' or 'remove'")
+	} else if ( !is.null(create) ) {
+		name <- as.character(create)
+		if ( !is.character(name) || length(name) != 1L )
+			stop("resource to be created must be a single string")
+		ans <- create_file_resource(name)
+	} else if ( !is.null(remove) ) {
+		name <- as.character(remove)
+		if ( !is.character(name) || length(name) != 1L )
+			stop("resource to be removed must be a single string")
+		ans <- remove_file_resource(name)
+	} else {
+		matter_error("must specify one of 'create' or 'remove'")
+	}
+	ans
+}
+
+
+

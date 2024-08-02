@@ -605,6 +605,11 @@ export(
 	"memtime",
 	"profmem")
 
+export(
+	"matter_shared_resource",
+	"matter_shared_resource_list",
+	"matter_shared_resource_pool")
+
 export("matter_defaults")
 
 export("SnowfastParam")

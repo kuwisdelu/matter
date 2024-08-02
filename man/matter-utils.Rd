@@ -103,6 +103,10 @@
 \alias{vm_realized,matter_str-method}
 \alias{vm_realized,sparse_arr-method}
 
+\alias{matter_shared_resource}
+\alias{matter_shared_resource_list}
+\alias{matter_shared_resource_pool}
+
 \alias{matter_log}
 \alias{matter_warn}
 \alias{matter_error}
