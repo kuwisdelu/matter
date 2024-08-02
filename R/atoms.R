@@ -8,6 +8,7 @@ setClassUnion("factor_OR_drle", c("factor", "drle_fct"))
 
 setClass("atoms",
 	slots = c(
+		refs = "list_OR_NULL",		# owned resources
 		source = "factor_OR_drle",  # data sources
 		type = "factor_OR_drle",    # data types
 		offset = "numeric_OR_drle", # byte offset in data source
@@ -55,7 +56,8 @@ setClass("atoms",
 	})
 
 atoms <- function(source = tempfile(), type = "int",
-	offset = 0, extent = 0, group = 0L, readonly = TRUE)
+	offset = 0, extent = 0, group = 0L,
+	readonly = TRUE, refs = NULL)
 {
 	n <- max(length(source), length(type),
 		length(offset), length(extent), length(group))
@@ -87,7 +89,7 @@ atoms <- function(source = tempfile(), type = "int",
 	}
 	x <- new("atoms", source=source, type=type,
 		offset=offset, extent=extent, group=group,
-		pointers=pointers, readonly=readonly)
+		pointers=pointers, readonly=readonly, refs=refs)
 	if ( validObject(x) )
 		x
 }
@@ -190,7 +192,8 @@ subset_atoms1 <- function(x, i = NULL) {
 		offset=x@offset[i],
 		extent=x@extent[i],
 		group=x@group[i],
-		readonly=x@readonly)
+		readonly=x@readonly,
+		refs=x@refs)
 }
 
 subset_atoms2 <- function(x, i = NULL, j = NULL) {
@@ -216,7 +219,8 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 			offset=sub$offset,
 			extent=sub$extent,
 			group=x@group[sub$index],
-			readonly=x@readonly)
+			readonly=x@readonly,
+			refs=x@refs)
 	}
 	if ( validObject(x) )
 		x
@@ -232,14 +236,16 @@ regroup_atoms <- function(x, ngroups) {
 			offset=sub$offset,
 			extent=sub$extent,
 			group=sub$group,
-			readonly=x@readonly)
+			readonly=x@readonly,
+			refs=x@refs)
 	} else {
 		atoms(source=x@source,
 			type=x@type,
 			offset=x@offset,
 			extent=x@extent,
 			group=ngroups,
-			readonly=x@readonly)
+			readonly=x@readonly,
+			refs=x@refs)
 	}
 }
 
@@ -252,7 +258,8 @@ ungroup_atoms <- function(x) {
 		offset=sub$offset,
 		extent=sub$extent,
 		group=0L,
-		readonly=x@readonly)
+		readonly=x@readonly,
+		refs=x@refs)
 }
 
 setMethod("as.data.frame", "atoms",
@@ -314,7 +321,8 @@ setMethod("cbind2", "atoms",
 			offset=c(x@offset, y@offset),
 			extent=c(x@extent, y@extent),
 			group=c(x@group, y@group),
-			readonly=x@readonly || y@readonly)
+			readonly=x@readonly || y@readonly,
+			refs=c(x@refs, y@refs))
 	})
 
 setMethod("rbind2", "atoms",
@@ -326,7 +334,8 @@ setMethod("rbind2", "atoms",
 			offset=c(x@offset, y@offset)[ind],
 			extent=c(x@extent, y@extent)[ind],
 			group=groups[ind],
-			readonly=x@readonly || y@readonly)
+			readonly=x@readonly || y@readonly,
+			refs=c(x@refs, y@refs))
 	})
 
 setMethod("combine", "atoms",
@@ -360,6 +369,7 @@ setMethod("[[", "atoms",
 
 create_file_resource <- function(name)
 {
+	type <- "shared_file"
 	path <- normalizePath(name, mustWork=FALSE)
 	if ( file.exists(path) )
 		matter_error("file ", sQuote(path), " already exists")
@@ -367,6 +377,7 @@ create_file_resource <- function(name)
 		path <- normalizePath(path, mustWork=TRUE)
 		handle <- new.env(parent=emptyenv())
 		handle[["id"]] <- BiocParallel::ipcid()
+		handle[["type"]] <- type
 		handle[["name"]] <- name
 		handle[["path"]] <- path
 		lockEnvironment(handle, TRUE)
@@ -374,9 +385,8 @@ create_file_resource <- function(name)
 	} else {
 		matter_error("failed to create file ", sQuote(path))
 	}
-	reg.finalizer(handle, remove_file_resource, onexit=TRUE)
-	structure(name, ref=handle,
-		class=c("shared_file", "shared_resource"))
+	reg.finalizer(handle, finalize_shared_resource, onexit=TRUE)
+	structure(name, ref=handle, class=c(type, "shared_resource"))
 }
 
 remove_file_resource <- function(handle)
@@ -398,6 +408,23 @@ remove_file_resource <- function(handle)
 		}
 	}
 	status
+}
+
+remove_shared_resource <- function(handle)
+{
+	type <- handle[["type"]]
+	switch(type,
+		shared_file=remove_file_resource(handle),
+		matter_error("unrecognized shared resource type: ", type))
+}
+
+finalize_shared_resource <- function(handle)
+{
+	if ( getOption("matter.temp.gc") ) {
+		remove_shared_resource(handle)
+	} else {
+		FALSE
+	}
 }
 
 shared_resources <- new.env()

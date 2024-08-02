@@ -66,8 +66,13 @@ matter_arr <- function(data, type = "double", path = NULL,
 		if ( is.null(dimnames) )
 			dimnames <- dimnames(data)
 	}
-	if ( is.null(path) )
-		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
+	if ( is.null(path) ) {
+		readonly <- FALSE
+		path <- tempfile(tmpdir=getOption("matter.temp.dir"), fileext=".bin")
+		refs <- list(matter_shared_resource(create=path))
+	} else {
+		refs <- NULL
+	}
 	path <- normalizePath(path, mustWork=FALSE)
 	exists <- file.exists(path)
 	if ( append ) {
@@ -119,7 +124,8 @@ matter_arr <- function(data, type = "double", path = NULL,
 			offset=as.double(offset),
 			extent=as.double(extent),
 			group=0L,
-			readonly=readonly),
+			readonly=readonly,
+			refs=refs),
 		type=topmode_Rtype(type),
 		dim=dim,
 		dimnames=dimnames,
@@ -752,16 +758,17 @@ rmatmul_sc <- function(x, y, useOuter = FALSE)
 # parallel right matrix mult
 rmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
 {
+	env <- list2env(list(y=y, parent=baseenv()))
 	if ( useOuter ) {
 		add <- function(...) Reduce("+", list(...))
-		matmul <- function(xi) {
+		matmul <- local(function(xi) {
 			i <- attr(xi, "index")
 			xi %*% y[i,,drop=FALSE]
-		}
+		}, envir=env)
 		ans <- chunk_colapply(x, matmul,
 			simplify=add, BPPARAM=BPPARAM)
 	} else {
-		matmul <- function(xi) xi %*% y
+		matmul <- local(function(xi) xi %*% y, envir=env)
 		ans <- chunk_rowapply(x, matmul,
 			simplify=rbind, BPPARAM=BPPARAM)
 	}
@@ -797,16 +804,17 @@ lmatmul_sc <- function(x, y, useOuter = FALSE)
 # parallel left matrix mult
 lmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
 {
+	env <- list2env(list(x=x, parent=baseenv()))
 	if ( useOuter ) {
 		add <- function(...) Reduce("+", list(...))
-		matmul <- function(yi) {
+		matmul <- local(function(yi) {
 			i <- attr(yi, "index")
 			x[,i,drop=FALSE] %*% yi
-		}
+		}, envir=env)
 		ans <- chunk_rowapply(y, matmul,
 			simplify=add, BPPARAM=BPPARAM)
 	} else {
-		matmul <- function(yi) x %*% yi
+		matmul <- local(function(yi) x %*% yi, envir=env)
 		ans <- chunk_colapply(y, matmul,
 			simplify=cbind, BPPARAM=BPPARAM)
 	}

@@ -26,8 +26,13 @@ matter_list <- function(data, type = "double", path = NULL,
 		if ( !isTRUE(valid) )
 			matter_error(valid)
 	}
-	if ( is.null(path) )
-		path <- tempfile(tmpdir=getOption("matter.dump.dir"), fileext=".bin")
+	if ( is.null(path) ) {
+		readonly <- FALSE
+		path <- tempfile(tmpdir=getOption("matter.temp.dir"), fileext=".bin")
+		refs <- list(matter_shared_resource(create=path))
+	} else {
+		refs <- NULL
+	}
 	path <- normalizePath(path, mustWork=FALSE)
 	exists <- file.exists(path)
 	if ( append ) {
@@ -73,7 +78,8 @@ matter_list <- function(data, type = "double", path = NULL,
 			offset=as.double(offset),
 			extent=as.double(extent),
 			group=seq_along(extent) - 1L,
-			readonly=readonly),
+			readonly=readonly,
+			refs=refs),
 		type=as_Rtype(type),
 		dim=lengths,
 		names=names, ...)

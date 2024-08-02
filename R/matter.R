@@ -76,7 +76,7 @@ matter <- function(...) {
 		} else if ( any(arg_str %in% nm) ) {
 			matter_str(...)
 		} else {
-			matter_error("couldn't guess data structure, use 'matter_' functions")
+			matter_error("couldn't guess data structure, use 'matter_*' functions")
 		}
 	} else if ( !is.null(data) ) {
 		if ( is.array(data) ) {
@@ -92,10 +92,10 @@ matter <- function(...) {
 		} else if ( is.character(data) ) {
 			matter_str(...)
 		} else {
-			matter_error("couldn't guess data structure, use 'matter_' functions")
+			matter_error("couldn't guess data structure, use 'matter_*' functions")
 		}
 	} else {
-		matter_error("couldn't guess data structure, use 'matter_' functions")
+		matter_error("couldn't guess data structure, use 'matter_*' functions")
 	}
 }
 
