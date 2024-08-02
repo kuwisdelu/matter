@@ -48,7 +48,7 @@ matter_list(data, type = "double", path = NULL,
 
         \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. See \code{?"matter-types"} for possible values.}
 
-        \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
+        \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}, which will be managed according the \code{getOption("matter.temp.gc")}.}
 
         \item{lengths}{The lengths of the list elements.}
 

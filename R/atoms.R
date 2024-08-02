@@ -8,7 +8,7 @@ setClassUnion("factor_OR_drle", c("factor", "drle_fct"))
 
 setClass("atoms",
 	slots = c(
-		refs = "list_OR_NULL",		# owned resources
+		refs = "list_OR_NULL",      # owned resources
 		source = "factor_OR_drle",  # data sources
 		type = "factor_OR_drle",    # data types
 		offset = "numeric_OR_drle", # byte offset in data source

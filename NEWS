@@ -1,5 +1,5 @@
 
-CHANGES IN VERSION 2.7.4 [2024-7-28]
+CHANGES IN VERSION 2.7.4 [2024-8-2]
 ------------------------------------
 
 NEW FEATURES
@@ -11,11 +11,17 @@ NEW FEATURES
     o Add getOption("matter.default.serialize") for managing
         serialization behavior in chunk-apply functions
     o New 'simple_logger' class for writing log files
+    o New 'options(matter.temp.dir=tempdir())' replaces
+        the previous 'options(matter.dump.dir=tempdir())'
+    o New 'options(matter.temp.gc=TRUE)' controls whether
+        temporary matter files are automatically removed when
+        all R objects referencing them are garbage collected
+    o Temporary matter files are now garbage collected!
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
-    o New 'chunkopts' argument replaces 'nchunks' to include
-        the new options for 'chunksize' and 'serialize'
+    o New 'chunkopts' argument replaces 'nchunks' and includes
+        the new chunk options ("chunksize" and "serialize")
 
 BUG FIXES
 

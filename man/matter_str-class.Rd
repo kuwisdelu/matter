@@ -43,7 +43,7 @@ matter_str(data, encoding, path = NULL,
 
         \item{encoding}{The character encoding to use (if known).}
 
-        \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
+        \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}, which will be managed according the \code{getOption("matter.temp.gc")}.}
 
         \item{nchar}{A vector giving the length of each element of the character vector.}
 

@@ -37,7 +37,7 @@ matter_fct(data, levels, path = NULL,
 
         \item{levels}{The levels of the factor. These should be of the same type as the data. (Use \code{labels} for the string representation of the levels.)}
 
-        \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If 'NULL', then a temporary file is created using \code{\link{tempfile}}.}
+        \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}, which will be managed according the \code{getOption("matter.temp.gc")}.}
 
         \item{length}{The length of the factor.}
 
