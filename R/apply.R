@@ -17,9 +17,10 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
+		put <- chunk_writer(pid, outpath)
+		outpath <- normalizePath(outpath, mustWork=TRUE)
 		matter_log("writing output to path = ", sQuote(outpath),
 			verbose=verbose)
-		put <- chunk_writer(pid, outpath)
 	} else {
 		put <- NULL
 	}
@@ -138,8 +139,10 @@ chunkLapply <- function(X, FUN, ...,
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
-		matter_log("writing output to path = ", sQuote(outpath), verbose=verbose)
 		put <- chunk_writer(pid, outpath)
+		outpath <- normalizePath(outpath, mustWork=TRUE)
+		matter_log("writing output to path = ", sQuote(outpath),
+			verbose=verbose)
 	} else {
 		put <- NULL
 	}
@@ -209,8 +212,10 @@ chunkMapply <- function(FUN, ...,
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
 		outpath <- normalizePath(outpath, mustWork=FALSE)
-		matter_log("writing output to path = ", sQuote(outpath), verbose=verbose)
 		put <- chunk_writer(pid, outpath)
+		outpath <- normalizePath(outpath, mustWork=TRUE)
+		matter_log("writing output to path = ", sQuote(outpath),
+			verbose=verbose)
 	} else {
 		put <- NULL
 	}
@@ -347,6 +352,11 @@ chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 
 chunk_writer <- function(id, path)
 {
+	if ( !file.exists(path) ) {
+		if ( !file.create(path) )
+			matter::matter_error("failed to create file: ", sQuote(path))
+		path <- normalizePath(path, mustWork=TRUE)
+	}
 	local(function(x, i = 0L) {
 		while ( i && BiocParallel::ipcvalue(id) != i ) {
 			Sys.sleep(0.1)

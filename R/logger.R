@@ -115,6 +115,7 @@ setRefClass("simple_logger",
 			if ( file.exists(newfile) )
 				base::stop("file ", sQuote(newfile), " already exists")
 			if ( file.create(newfile) ) {
+				newfile <- normalizePath(newfile, mustWork=TRUE)
 				BiocParallel::ipclock(.self$id)
 				log <- c(readLines(.self$logfile), .self$buffer)
 				writeLines(log, newfile)
