@@ -1,7 +1,7 @@
 \name{mem}
 
 \alias{mem}
-\alias{mtime}
+\alias{memtime}
 
 \title{Check Memory Use}
 
@@ -12,7 +12,7 @@
 \usage{
 mem(x, reset = FALSE)
 
-mtime(expr)
+memtime(expr)
 }
 
 \arguments{
@@ -28,7 +28,7 @@ mtime(expr)
 }
 
 \value{
-    For \code{mtime}, a vector giving [1] the amount of memory used at the start of execution, [2] the amount of memory used at the end of execution, [3] the maximum amount of memory used during execution, [4] the memory overhead as defined by the maximum memory used minus the starting memory use, and [5] the execution time in seconds.
+    For \code{memtime}, a vector giving [1] the amount of memory used at the start of execution, [2] the amount of memory used at the end of execution, [3] the maximum amount of memory used during execution, [4] the memory overhead as defined by the maximum memory used minus the starting memory use, and [5] the execution time in seconds.
 
     For \code{mem}, either a single numeric value giving the memory used by an object, or a vector providing a more readable version of the information returned by \code{\link{gc}} (see its help page for details).
 }
@@ -44,7 +44,7 @@ x <- 1:100
 
 mem(x)
 
-mtime(mean(x + 1))
+memtime(mean(x + 1))
 }
 
 \keyword{utilities}

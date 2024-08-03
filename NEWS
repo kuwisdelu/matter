@@ -61,7 +61,6 @@ NEW FEATURES
 
 SIGNIFICANT USER-VISIBLE CHANGES
 
-    o Rename function 'memtime()' to 'mtime()'
     o Plot method for 'vizi_bars' now sums duplicate bar counts
 
 BUG FIXES
