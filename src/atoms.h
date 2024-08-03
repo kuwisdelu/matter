@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include "matterDefines.h"
+#include "memory.h"
 #include "coerce.h"
 #include "drle.h"
 
@@ -123,7 +124,14 @@ class DataSources {
 						_sources[src] = new FileSource(name, readonly());
 						if ( !_sources[src]->ok() ) {
 							exit_sources();
-							Rf_error("could not open file '%s'", name);
+							Rf_error("could not open file: '%s'", name);
+						}
+						break;
+					case SH_MEMORY:
+						_sources[src] = new SharedMemorySource(name, readonly());
+						if ( !_sources[src]->ok() ) {
+							exit_sources();
+							Rf_error("could not open shared memory: '%s'", name);
 						}
 						break;
 					default:
@@ -141,6 +149,9 @@ class DataSources {
 				switch(_sources[src]->sourcetype()) {
 					case SH_FILE:
 						static_cast<FileSource*>(_sources[src])->close();
+						break;
+					case SH_MEMORY:
+						static_cast<SharedMemorySource*>(_sources[src])->close();
 						break;
 					default:
 						break;
@@ -161,6 +172,9 @@ class DataSources {
 				case SH_FILE:
 					source<FileSource*>(src)->rseek(off);
 					break;
+				case SH_MEMORY:
+					source<SharedMemorySource*>(src)->rseek(off);
+					break;
 				default:
 					break;
 			}
@@ -172,6 +186,9 @@ class DataSources {
 			switch(open(src)->sourcetype()) {
 				case SH_FILE:
 					source<FileSource*>(src)->wseek(off);
+					break;
+				case SH_MEMORY:
+					source<SharedMemorySource*>(src)->wseek(off);
 					break;
 				default:
 					break;
@@ -185,6 +202,9 @@ class DataSources {
 			switch(open(_current)->sourcetype()) {
 				case SH_FILE:
 					source<FileSource*>(_current)->read<T>(ptr, size);
+					break;
+				case SH_MEMORY:
+					source<SharedMemorySource*>(_current)->read<T>(ptr, size);
 					break;
 				default:
 					break;
@@ -202,6 +222,9 @@ class DataSources {
 			switch(open(_current)->sourcetype()) {
 				case SH_FILE:
 					source<FileSource*>(_current)->write<T>(ptr, size);
+					break;
+				case SH_MEMORY:
+					source<SharedMemorySource*>(_current)->write<T>(ptr, size);
 					break;
 				default:
 					break;

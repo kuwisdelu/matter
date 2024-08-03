@@ -81,8 +81,7 @@ filt2_guide <- function(x, width = 5L, guide = x,
 		storage.mode(x) <- "double"
 	if ( is.double(x) && is.integer(guide) )
 		storage.mode(guide) <- "double"
-	.Call(C_guidedFilter2, x, guide, width,
-		sdreg, PACKAGE="matter")
+	.Call(C_guidedFilter2, x, guide, width, sdreg, PACKAGE="matter")
 }
 
 filt2_fun <- function(method)
