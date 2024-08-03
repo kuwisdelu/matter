@@ -371,6 +371,9 @@ create_file_resource <- function(name)
 {
 	type <- "shared_file"
 	path <- normalizePath(name, mustWork=FALSE)
+	known_resources <- matter_shared_resource_list()
+	if ( name %in% known_resources )
+		matter_error("shared resource named ", sQuote(name), "already exists")
 	if ( file.exists(path) )
 		matter_error("file ", sQuote(path), " already exists")
 	if ( file.create(path) ) {
@@ -406,6 +409,15 @@ remove_file_resource <- function(handle)
 	status
 }
 
+create_shared_resource <- function(name)
+{
+	if ( substr(name, 1L, 1L) == "@" ) {
+		matter_error("shared memory resource not yet implemented")
+	} else {
+		create_file_resource(name)
+	}
+}
+
 remove_shared_resource <- function(handle)
 {
 	type <- handle[["type"]]
@@ -437,12 +449,12 @@ matter_shared_resource <- function(create = NULL, remove = NULL)
 		name <- as.character(create)
 		if ( !is.character(name) || length(name) != 1L )
 			stop("resource to be created must be a single string")
-		ans <- create_file_resource(name)
+		ans <- create_shared_resource(name)
 	} else if ( !is.null(remove) ) {
 		name <- as.character(remove)
 		if ( !is.character(name) || length(name) != 1L )
 			stop("resource to be removed must be a single string")
-		ans <- remove_file_resource(name)
+		ans <- remove_shared_resource(name)
 	} else {
 		matter_error("must specify one of 'create' or 'remove'")
 	}

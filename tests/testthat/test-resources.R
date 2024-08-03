@@ -9,6 +9,8 @@ test_that("shared_file", {
 	x <- matter_shared_resource(create=name)
 	y <- x
 
+	expect_error(matter_shared_resource(create=name))
+
 	expect_true(name %in% matter_shared_resource_list())
 	expect_true(file.exists(name))
 
