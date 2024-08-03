@@ -367,6 +367,15 @@ setMethod("[[", "atoms",
 #### Define atoms resources ####
 ## -----------------------------
 
+typeof_shared_resource <- function(name)
+{
+	if ( substr(name, 1L, 1L) == "@" ) {
+		"shared_memory"
+	} else {
+		"shared_file"
+	}
+}
+
 create_file_resource <- function(name)
 {
 	type <- "shared_file"
@@ -391,6 +400,12 @@ create_file_resource <- function(name)
 	structure(name, ref=handle, class=c(type, "shared_resource"))
 }
 
+sizeof_file_resource <- function(name)
+{
+	path <- normalizePath(name, mustWork=TRUE)
+	size_bytes(file.size(path))
+}
+
 remove_file_resource <- function(handle)
 {
 	name <- handle[["name"]]
@@ -411,19 +426,32 @@ remove_file_resource <- function(handle)
 
 create_shared_resource <- function(name)
 {
-	if ( substr(name, 1L, 1L) == "@" ) {
+	type <- typeof_shared_resource(name)
+	if ( type == "shared_memory" ) {
 		matter_error("shared memory resource not yet implemented")
 	} else {
 		create_file_resource(name)
 	}
 }
 
+sizeof_shared_resource <- function(name)
+{
+	type <- typeof_shared_resource(name)
+	if ( type == "shared_memory" ) {
+		matter_error("shared memory resource not yet implemented")
+	} else {
+		sizeof_file_resource(name)
+	}
+}
+
 remove_shared_resource <- function(handle)
 {
 	type <- handle[["type"]]
-	switch(type,
-		shared_file=remove_file_resource(handle),
-		matter_error("unrecognized shared resource type: ", type))
+	if ( type == "shared_memory" ) {
+		matter_error("shared memory resource not yet implemented")
+	} else {
+		remove_file_resource(handle)
+	}
 }
 
 finalize_shared_resource <- function(handle)
