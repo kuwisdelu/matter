@@ -395,6 +395,44 @@ class ArrayInterface {
 
 };
 
+//// Source interface
+//-------------------
+
+// shared resource types
+#define SH_FILE		1
+#define SH_MEMORY	2
+
+class SourceInterface {
+
+	public:
+
+		SourceInterface() {}
+
+		~SourceInterface() {}
+
+		int sourcetype() {
+			return _sourcetype;
+		}
+
+		bool ok() {
+			return _ok;
+		}
+
+	protected:
+
+		int _sourcetype = SH_FILE;
+		bool _ok = false;
+
+};
+
+inline int parse_sourcetype(const char * name)
+{
+	if ( *name == '@' )
+		return SH_MEMORY;
+	else
+		return SH_FILE;
+}
+
 //// Comparison
 //--------------
 

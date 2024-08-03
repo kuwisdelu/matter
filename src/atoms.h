@@ -9,6 +9,63 @@
 #include "coerce.h"
 #include "drle.h"
 
+//// FileSource class
+//-------------------
+
+class FileSource : public SourceInterface {
+
+	public:
+
+		FileSource(const char * name, bool readonly) : _file()
+		{
+			_sourcetype = SH_FILE;
+			std::ios::openmode mode;
+			if ( readonly )
+				mode = std::ios::in | std::ios::binary;
+			else
+				mode = std::ios::in | std::ios::out | std::ios::binary;
+			_file.open(name, mode);
+			_ok = _file.good();
+		}
+
+		~FileSource() {
+			close();
+		}
+
+		void close()
+		{
+			if ( _file.is_open() )
+				_file.close();
+		}
+
+		void rseek(index_t off) {
+			_file.seekg(off, std::ios::beg);
+		}
+
+		void wseek(index_t off) {
+			_file.seekp(off, std::ios::beg);
+		}
+
+		template<typename T>
+		void read(void * ptr, size_t size)
+		{
+			_file.read(reinterpret_cast<char*>(ptr), sizeof(T) * size);
+			_ok = _file.good();
+		}
+
+		template<typename T>
+		void write(void * ptr, size_t size)
+		{
+			_file.write(reinterpret_cast<char*>(ptr), sizeof(T) * size);
+			_ok = _file.good();
+		}
+
+	protected:
+
+		std::fstream _file;
+
+};
+
 //// DataSources class
 //---------------------
 
@@ -18,117 +75,159 @@ class DataSources {
 
 		DataSources(SEXP x)
 		{
+			_readonly = Rf_asLogical(R_do_slot(x, Rf_install("readonly")));
 			SEXP sources = R_do_slot(x, Rf_install("source"));
 			if ( Rf_isS4(sources) )
-				_paths = R_do_slot(sources, Rf_install("levels"));
+				_names = R_do_slot(sources, Rf_install("levels"));
 			else
-				_paths = Rf_getAttrib(sources, R_LevelsSymbol);
-			_length = LENGTH(_paths);
-			if ( _length < 0 )
+				_names = Rf_getAttrib(sources, R_LevelsSymbol);
+			_nsources = LENGTH(_names);
+			if ( _nsources < 0 )
 				Rf_error("no data sources found");
-			_readonly = Rf_asLogical(R_do_slot(x, Rf_install("readonly")));
-			if ( _readonly )
-				_mode = std::ios::in | std::ios::binary;
-			else
-				_mode = std::ios::in | std::ios::out | std::ios::binary;
-			init_streams();
+			init_sources();
 		}
 
 		~DataSources() {
-			exit_streams();
+			exit_sources();
 		}
 
-		void init_streams()
+		void init_sources()
 		{
-			if ( _streams == NULL ) {
-				_streams = (std::fstream **) R_Calloc(_length, std::fstream*);
-				for ( int i = 0; i < _length; i++ )
-					_streams[i] = NULL;
+			if ( _sources == NULL )
+			{
+				_sources = (SourceInterface **) R_Calloc(_nsources, SourceInterface*);
+				for ( int i = 0; i < _nsources; i++ )
+					_sources[i] = NULL;
 			}
 			_current = 0;
 		}
 
-		void exit_streams()
+		void exit_sources()
 		{
-			if ( _streams != NULL ) {
-				for ( int i = 0; i < _length; i++ )
-					if ( _streams[i] != NULL ) {
-						_streams[i]->close();
-						delete _streams[i];
-						_streams[i] = NULL;
-					}
+			if ( _sources != NULL )
+			{
+				for ( int i = 0; i < _nsources; i++ ) 
+					close(i);
 			}
-			_streams = NULL;
-			Free(_streams);
+			_sources = NULL;
+			Free(_sources);
 		}
 
-		bool readonly() {
-			return _readonly;
-		}
-
-		SEXP path(int src) {
-			return STRING_ELT(_paths, src);
-		}
-
-		int length(int src) {
-			return _length;
-		}
-
-		std::fstream * select(int src)
+		SourceInterface * open(int src)
 		{
-			if ( _streams[src] == NULL ) {
-				const char * filename = CHAR(path(src));
-				_streams[src] = new std::fstream();
-				_streams[src]->open(filename, _mode);
-				if ( !_streams[src]->is_open() ) {
-					exit_streams();
-					Rf_error("could not open file '%s'", filename);
+			if ( _sources[src] == NULL )
+			{
+				const char * name = CHAR(STRING_ELT(_names, src));
+				switch(parse_sourcetype(name)) {
+					case SH_FILE:
+						_sources[src] = new FileSource(name, readonly());
+						if ( !_sources[src]->ok() ) {
+							exit_sources();
+							Rf_error("could not open file '%s'", name);
+						}
+						break;
+					default:
+						break;
 				}
 			}
 			_current = src;
-			return _streams[_current];
+			return _sources[_current];
+		}
+
+		void close(int src)
+		{
+			if ( _sources[src] != NULL )
+			{
+				switch(_sources[src]->sourcetype()) {
+					case SH_FILE:
+						static_cast<FileSource*>(_sources[src])->close();
+						break;
+					default:
+						break;
+				}
+				delete _sources[src];
+				_sources[src] = NULL;
+			}
+		}
+
+		template<typename T>
+		T source(int src) {
+			return static_cast<T>(open(src));
 		}
 
 		DataSources * rseek(int src, index_t off = 0)
 		{
-			select(src)->seekg(off, std::ios::beg);
+			switch(open(src)->sourcetype()) {
+				case SH_FILE:
+					source<FileSource*>(src)->rseek(off);
+					break;
+				default:
+					break;
+			}
 			return this;
 		}
 
 		DataSources * wseek(int src, index_t off = 0)
 		{
-			select(src)->seekp(off, std::ios::beg);
+			switch(open(src)->sourcetype()) {
+				case SH_FILE:
+					source<FileSource*>(src)->wseek(off);
+					break;
+				default:
+					break;
+			}
 			return this;
 		}
 
 		template<typename T>
 		bool read(void * ptr, size_t size)
 		{
-			std::fstream * stream = _streams[_current];
-			stream->read(reinterpret_cast<char*>(ptr), sizeof(T) * size);
-			return !stream->fail();
+			switch(open(_current)->sourcetype()) {
+				case SH_FILE:
+					source<FileSource*>(_current)->read<T>(ptr, size);
+					break;
+				default:
+					break;
+			}
+			return ok();
 		}
 
 		template<typename T>
 		bool write(void * ptr, size_t size)
 		{
 			if ( readonly() ) {
-				exit_streams();
+				exit_sources();
 				Rf_error("storage mode is read-only");
 			}
-			std::fstream * stream = _streams[_current];
-			stream->write(reinterpret_cast<char*>(ptr), sizeof(T) * size);
-			return !stream->fail();
+			switch(open(_current)->sourcetype()) {
+				case SH_FILE:
+					source<FileSource*>(_current)->write<T>(ptr, size);
+					break;
+				default:
+					break;
+			}
+			return ok();
+		}
+
+		bool ok()
+		{
+			if ( _sources[_current] == NULL )
+				return false;
+			else
+				return _sources[_current]->ok();
+		}
+
+		bool readonly() {
+			return _readonly;
 		}
 
 	protected:
 
-		SEXP _paths;
+		SEXP _names;
 		bool _readonly;
-		std::ios::openmode _mode;
-		std::fstream ** _streams = NULL;
+		int _nsources;
+		SourceInterface ** _sources = NULL;
 		int _current;
-		int _length;
 
 };
 
@@ -156,11 +255,11 @@ class Atoms {
 			_pointers(R_do_slot(x, Rf_install("pointers"))) {}
 
 		~Atoms() {
-			_io.exit_streams();
+			_io.exit_sources();
 		}
 
 		void self_destruct() {
-			_io.exit_streams();
+			_io.exit_sources();
 		}
 
 		R_xlen_t natoms() {
