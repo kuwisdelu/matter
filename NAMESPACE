@@ -325,6 +325,7 @@ export(
 
 export(
 	"uuid",
+	"tempmem",
 	"hex2raw",
 	"raw2hex")
 

@@ -1052,6 +1052,12 @@ uuid <- function(uppercase = FALSE) {
 	list(string=string, bytes=bytes)
 }
 
+# create a uuid for shared memory
+
+tempmem <- function(pattern = "@:memory:") {
+	paste0(pattern, uuid(FALSE)$string)
+}
+
 # creates internal S3 class 'size_bytes'
 # (similar to 'object_size' but works w/ vectors)
 size_bytes <- function(x) {

@@ -1,4 +1,3 @@
-
 #ifndef MATTER_ALTREP
 #define MATTER_ALTREP
 

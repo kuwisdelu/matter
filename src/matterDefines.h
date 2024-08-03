@@ -1,4 +1,3 @@
-
 #ifndef MATTER_DEFINES
 #define MATTER_DEFINES
 

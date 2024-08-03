@@ -394,7 +394,7 @@ create_file_resource <- function(name)
 		lockEnvironment(handle, TRUE)
 		assign(name, Sys.getpid(), envir=matter_shared_resource_pool())
 	} else {
-		matter_error("failed to create file ", sQuote(path))
+		matter_error("failed to create file: ", sQuote(path))
 	}
 	reg.finalizer(handle, finalize_shared_resource, onexit=TRUE)
 	structure(name, ref=handle, class=c(type, "shared_resource"))
@@ -417,8 +417,49 @@ remove_file_resource <- function(handle)
 	{
 		owner <- matter_shared_resource_pool()[[name]]
 		if ( owner == Sys.getpid() ) {
-			rm(list=name, envir=matter_shared_resource_pool())
 			status <- file.remove(path)
+			rm(list=name, envir=matter_shared_resource_pool())
+		}
+	}
+	status
+}
+
+create_memory_resource <- function(name)
+{
+	type <- "shared_memory"
+	known_resources <- matter_shared_resource_list()
+	if ( name %in% known_resources )
+		matter_error("shared resource named ", sQuote(name), "already exists")
+	status <- .Call(C_createSharedMemory, as.character(name), PACKAGE="matter")
+	if ( status ) {
+		handle <- new.env(parent=emptyenv())
+		handle[["type"]] <- type
+		handle[["name"]] <- name
+		lockEnvironment(handle, TRUE)
+		assign(name, Sys.getpid(), envir=matter_shared_resource_pool())
+	} else {
+		matter_error("failed to create shared memory object: ", sQuote(name))
+	}
+	reg.finalizer(handle, finalize_shared_resource, onexit=TRUE)
+	structure(name, ref=handle, class=c(type, "shared_resource"))
+}
+
+sizeof_memory_resource <- function(name)
+{
+	size_bytes(.Call(C_sizeofSharedMemory, as.character(name), PACKAGE="matter"))
+}
+
+remove_memory_resource <- function(handle)
+{
+	name <- handle[["name"]]
+	status <- FALSE
+	known_resources <- matter_shared_resource_list()
+	if ( name %in% known_resources )
+	{
+		owner <- matter_shared_resource_pool()[[name]]
+		if ( owner == Sys.getpid() ) {
+			status <- .Call(C_removeSharedMemory, name, PACKAGE="matter")
+			rm(list=name, envir=matter_shared_resource_pool())
 		}
 	}
 	status
@@ -428,7 +469,7 @@ create_shared_resource <- function(name)
 {
 	type <- typeof_shared_resource(name)
 	if ( type == "shared_memory" ) {
-		matter_error("shared memory resource not yet implemented")
+		create_memory_resource(name)
 	} else {
 		create_file_resource(name)
 	}
@@ -438,36 +479,42 @@ sizeof_shared_resource <- function(name)
 {
 	type <- typeof_shared_resource(name)
 	if ( type == "shared_memory" ) {
-		matter_error("shared memory resource not yet implemented")
+		sizeof_memory_resource(name)
 	} else {
 		sizeof_file_resource(name)
 	}
 }
 
-remove_shared_resource <- function(handle)
+remove_shared_resource <- function(handle, gc = FALSE)
 {
 	type <- handle[["type"]]
 	if ( type == "shared_memory" ) {
-		matter_error("shared memory resource not yet implemented")
+		remove_memory_resource(handle)
 	} else {
-		remove_file_resource(handle)
+		if ( !gc || getOption("matter.temp.gc") )
+			remove_file_resource(handle)
 	}
 }
 
 finalize_shared_resource <- function(handle)
 {
-	if ( getOption("matter.temp.gc") ) {
-		remove_shared_resource(handle)
-	} else {
-		FALSE
-	}
+	remove_shared_resource(handle, TRUE)
 }
 
 shared_resources <- new.env()
 
 matter_shared_resource_pool <- function() shared_resources
 
-matter_shared_resource_list <- function() ls(shared_resources)
+matter_shared_resource_list <- function(full = FALSE)
+{
+	resources <- ls(shared_resources)
+	if ( full ) {
+		sizes <- vapply(resources, sizeof_shared_resource, numeric(1L))
+		sizes <- size_bytes(sizes)
+		resources <- data.frame(name=resources, size=sizes, row.names=NULL)
+	}
+	resources
+}
 
 matter_shared_resource <- function(create = NULL, remove = NULL)
 {

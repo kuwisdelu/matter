@@ -1,3 +1,4 @@
+
 #include <R_ext/Rdynload.h>
 
 #include "matterExports.h"
@@ -8,6 +9,10 @@
 extern "C" {
 
 static const R_CallMethodDef callMethods[] = {
+	// shared memory
+	CALLDEF(createSharedMemory, 1),
+	CALLDEF(sizeofSharedMemory, 1),
+	CALLDEF(removeSharedMemory, 1),
 	// search and select
 	CALLDEF(relativeDiff, 3),
 	CALLDEF(quickOrder, 1),

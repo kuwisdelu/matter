@@ -1,6 +1,7 @@
-
 #ifndef MATTER_EXPORTS
 #define MATTER_EXPORTS
+
+#include "memory.h"
 
 #include "drle.h"
 #include "atoms.h"
@@ -13,6 +14,12 @@
 #include "signal2.h"
 
 extern "C" {
+
+// Shared memory
+//--------------
+SEXP createSharedMemory(SEXP name);
+SEXP sizeofSharedMemory(SEXP name);
+SEXP removeSharedMemory(SEXP name);
 
 // Search and selection
 //----------------------

@@ -1,6 +1,7 @@
 \name{uuid}
 
 \alias{uuid}
+\alias{tempmem}
 \alias{raw2hex}
 \alias{hex2raw}
 

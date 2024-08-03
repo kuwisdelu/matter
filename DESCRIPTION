@@ -20,6 +20,7 @@ Collate: matterGenerics.R utils.R logger.R
 	signal.R signal2.R nnmf.R fastmap.R prcomp.R pls.R
 	nscentroids.R sgmix.R cv.R mi_learn.R
 	altrep.R parallel.R plot.R vizi.R
+LinkingTo: BH
 biocViews: Infrastructure, DataRepresentation, DataImport,
 	DimensionReduction, Preprocessing
 URL: https://github.com/kuwisdelu/matter

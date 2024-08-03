@@ -28,6 +28,28 @@ test_that("shared_file", {
 
 })
 
+test_that("shared_memory", {
+
+	name <- tempmem()
+	x <- matter_shared_resource(create=name)
+	y <- x
+
+	expect_error(matter_shared_resource(create=name))
+
+	expect_true(name %in% matter_shared_resource_list())
+
+	rm(x)
+	gc(full=TRUE)
+
+	expect_true(name %in% matter_shared_resource_list())
+
+	rm(y)
+	gc(full=TRUE)
+
+	expect_true(!name %in% matter_shared_resource_list())
+
+})
+
 test_that("shared_file - matter_arr", {
 
 	set.seed(1)

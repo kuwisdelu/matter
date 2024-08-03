@@ -3,6 +3,23 @@
 
 extern "C" {
 
+// Shared memory
+//--------------
+SEXP createSharedMemory(SEXP name)
+{
+	return Rf_ScalarLogical(create_shared_memory_obj(CHAR(Rf_asChar(name))));
+}
+
+SEXP sizeofSharedMemory(SEXP name)
+{
+	return Rf_ScalarReal(sizeof_shared_memory_obj(CHAR(Rf_asChar(name))));
+}
+
+SEXP removeSharedMemory(SEXP name)
+{
+	return Rf_ScalarLogical(remove_shared_memory_obj(CHAR(Rf_asChar(name))));
+}
+
 // Search, sort and select
 //------------------------
 
