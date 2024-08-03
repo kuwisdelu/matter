@@ -1,5 +1,5 @@
-#ifndef SHARED_MEMORY
-#define SHARED_MEMORY
+#ifndef SHARED_RESOURCES
+#define SHARED_RESOURCES
 
 #define BOOST_NO_AUTO_PTR
 
@@ -14,6 +14,63 @@
 #include "matterDefines.h"
 
 namespace ipc = boost::interprocess;
+
+//// FileSource class
+//-------------------
+
+class FileSource : public SourceInterface {
+
+	public:
+
+		FileSource(const char * name, bool readonly) : _file()
+		{
+			_sourcetype = SH_FILE;
+			std::ios::openmode mode;
+			if ( readonly )
+				mode = std::ios::in | std::ios::binary;
+			else
+				mode = std::ios::in | std::ios::out | std::ios::binary;
+			_file.open(name, mode);
+			_ok = _file.good();
+		}
+
+		~FileSource() {
+			close();
+		}
+
+		void close()
+		{
+			if ( _file.is_open() )
+				_file.close();
+		}
+
+		void rseek(index_t off) {
+			_file.seekg(off, std::ios::beg);
+		}
+
+		void wseek(index_t off) {
+			_file.seekp(off, std::ios::beg);
+		}
+
+		template<typename T>
+		void read(void * ptr, size_t size)
+		{
+			_file.read(reinterpret_cast<char*>(ptr), sizeof(T) * size);
+			_ok = _file.good();
+		}
+
+		template<typename T>
+		void write(void * ptr, size_t size)
+		{
+			_file.write(reinterpret_cast<char*>(ptr), sizeof(T) * size);
+			_ok = _file.good();
+		}
+
+	protected:
+
+		std::fstream _file;
+
+};
 
 //// SharedMemorySource class
 //---------------------------
@@ -148,4 +205,4 @@ inline bool remove_shared_memory_obj(const char * name)
 	return ipc::shared_memory_object::remove(name);
 }
 
-#endif // SHARED_MEMORY
+#endif // SHARED_RESOURCES

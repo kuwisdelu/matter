@@ -1,8 +1,6 @@
 #ifndef MATTER_EXPORTS
 #define MATTER_EXPORTS
 
-#include "memory.h"
-
 #include "drle.h"
 #include "atoms.h"
 #include "matter.h"
