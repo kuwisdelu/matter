@@ -32,9 +32,16 @@ matter_list <- function(data, type = "double", path = NULL,
 		refs <- list(matter_shared_resource(create=path))
 	} else {
 		refs <- NULL
+		if ( any(tolower(path) %in% ":memory:") ) {
+			readonly <- FALSE
+			for ( i in which(tolower(path) %in% ":memory:") ) {
+				path[i] <- tempmem()
+				refs <- c(refs, list(matter_shared_resource(create=path[i])))
+			}
+		}
 	}
 	path <- normalizePath(path, mustWork=FALSE)
-	exists <- file.exists(path)
+	exists <- file.exists(path) | is_shared_memory(path)
 	if ( append ) {
 		readonly <- FALSE
 		eof <- file.size(path)
@@ -43,7 +50,7 @@ matter_list <- function(data, type = "double", path = NULL,
 	if ( is.na(readonly) )
 		readonly <- all(exists) && !missing(data) && !is.null(data)
 	if ( any(exists) && !readonly && !missing(data) && !is.null(data) ) {
-		overwrite <- offset < file.size(path)
+		overwrite <- offset < file.size(path) & !is_shared_memory(path)
 		if ( any(overwrite) )
 			matter_warn("data may overwrite existing file(s): ",
 				paste0(sQuote(path[overwrite]), collapse=", "))
@@ -70,7 +77,8 @@ matter_list <- function(data, type = "double", path = NULL,
 			matter_error("error creating file(s): ",
 				paste0(sQuote(newfile[!success]), collapse=", "))
 	}
-	path <- normalizePath(path, mustWork=TRUE)
+	files <- !is_shared_memory(path)
+	path[files] <- normalizePath(path[files], mustWork=TRUE)
 	x <- new("matter_list",
 		data=atoms(
 			source=path,

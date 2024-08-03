@@ -367,18 +367,12 @@ setMethod("[[", "atoms",
 #### Define atoms resources ####
 ## -----------------------------
 
-typeof_shared_resource <- function(name)
-{
-	if ( substr(name, 1L, 1L) == "@" ) {
-		"shared_memory"
-	} else {
-		"shared_file"
-	}
+is_shared_memory <- function(name) {
+	substr(name, 1L, 1L) == "@"
 }
 
 create_file_resource <- function(name)
 {
-	type <- "shared_file"
 	path <- normalizePath(name, mustWork=FALSE)
 	known_resources <- matter_shared_resource_list()
 	if ( name %in% known_resources )
@@ -388,7 +382,6 @@ create_file_resource <- function(name)
 	if ( file.create(path) ) {
 		path <- normalizePath(path, mustWork=TRUE)
 		handle <- new.env(parent=emptyenv())
-		handle[["type"]] <- type
 		handle[["name"]] <- name
 		handle[["path"]] <- path
 		lockEnvironment(handle, TRUE)
@@ -397,7 +390,7 @@ create_file_resource <- function(name)
 		matter_error("failed to create file: ", sQuote(path))
 	}
 	reg.finalizer(handle, finalize_shared_resource, onexit=TRUE)
-	structure(name, ref=handle, class=c(type, "shared_resource"))
+	structure(name, ref=handle, class=c("shared_file", "shared_resource"))
 }
 
 sizeof_file_resource <- function(name)
@@ -426,14 +419,12 @@ remove_file_resource <- function(handle)
 
 create_memory_resource <- function(name)
 {
-	type <- "shared_memory"
 	known_resources <- matter_shared_resource_list()
 	if ( name %in% known_resources )
 		matter_error("shared resource named ", sQuote(name), "already exists")
 	status <- .Call(C_createSharedMemory, as.character(name), PACKAGE="matter")
 	if ( status ) {
 		handle <- new.env(parent=emptyenv())
-		handle[["type"]] <- type
 		handle[["name"]] <- name
 		lockEnvironment(handle, TRUE)
 		assign(name, Sys.getpid(), envir=matter_shared_resource_pool())
@@ -441,7 +432,7 @@ create_memory_resource <- function(name)
 		matter_error("failed to create shared memory object: ", sQuote(name))
 	}
 	reg.finalizer(handle, finalize_shared_resource, onexit=TRUE)
-	structure(name, ref=handle, class=c(type, "shared_resource"))
+	structure(name, ref=handle, class=c("shared_memory", "shared_resource"))
 }
 
 sizeof_memory_resource <- function(name)
@@ -467,8 +458,7 @@ remove_memory_resource <- function(handle)
 
 create_shared_resource <- function(name)
 {
-	type <- typeof_shared_resource(name)
-	if ( type == "shared_memory" ) {
+	if ( is_shared_memory(name) ) {
 		create_memory_resource(name)
 	} else {
 		create_file_resource(name)
@@ -477,8 +467,7 @@ create_shared_resource <- function(name)
 
 sizeof_shared_resource <- function(name)
 {
-	type <- typeof_shared_resource(name)
-	if ( type == "shared_memory" ) {
+	if ( is_shared_memory(name) ) {
 		sizeof_memory_resource(name)
 	} else {
 		sizeof_file_resource(name)
@@ -487,8 +476,7 @@ sizeof_shared_resource <- function(name)
 
 remove_shared_resource <- function(handle, gc = FALSE)
 {
-	type <- handle[["type"]]
-	if ( type == "shared_memory" ) {
+	if ( is_shared_memory(handle[["name"]]) ) {
 		remove_memory_resource(handle)
 	} else {
 		if ( !gc || getOption("matter.temp.gc") )

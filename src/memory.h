@@ -22,7 +22,7 @@ class SharedMemorySource : public SourceInterface {
 
 	public:
 
-		SharedMemorySource(const char * name, bool readonly)
+		SharedMemorySource(const char * name, bool readonly) : _region()
 		{
 			_sourcetype = SH_MEMORY;
 			ipc::mode_t mode;
@@ -30,18 +30,15 @@ class SharedMemorySource : public SourceInterface {
 				mode = ipc::read_only;
 			else
 				mode = ipc::read_write;
-			try
-			{
+			try {
 				_shm = ipc::shared_memory_object(ipc::open_only, name, mode);
-				_region = ipc::mapped_region(_shm, _shm.get_mode());
-				_ptr = reinterpret_cast<char*>(_region.get_address());
 				_ok = true;
+				remap();
 			}
-			catch(...)
-			{
-				_ptr = NULL;
+			catch(...) {
 				_ok = false;
 			}
+			_off = 0;
 		}
 
 		~SharedMemorySource() {}
@@ -49,67 +46,85 @@ class SharedMemorySource : public SourceInterface {
 		void close() {}
 
 		void rseek(index_t off) {
-			_ptr = reinterpret_cast<char*>(_region.get_address()) + off;
+			_off = off;
 		}
 
 		void wseek(index_t off) {
-			_ptr = reinterpret_cast<char*>(_region.get_address()) + off;
+			_off = off;
 		}
 
 		template<typename T>
 		void read(void * ptr, size_t size)
 		{
-			char * start = reinterpret_cast<char*>(_region.get_address());
-			ipc::offset_t req_size = (_ptr + size) - start;
-			if ( req_size > _region.get_size() )
-				resize(req_size);
-			if ( ok() )
-				std::memcpy(ptr, reinterpret_cast<void*>(_ptr), size);
+			index_t extent = sizeof(T) * (_off + size);
+			if ( extent > _region.get_size() )
+				resize(extent);
+			if ( ok() ) {
+				char * src = static_cast<char*>(_region.get_address()) + _off;
+				std::memcpy(ptr, static_cast<void*>(src), sizeof(T) * size);
+			}
 		}
 
 		template<typename T>
 		void write(void * ptr, size_t size)
 		{
-			char * start = reinterpret_cast<char*>(_region.get_address());
-			ipc::offset_t req_size = (_ptr + size) - start;
-			if ( req_size > _region.get_size() )
-				resize(req_size);
-			if ( ok() )
-				std::memcpy(reinterpret_cast<void*>(_ptr), ptr, size);
+			index_t extent = sizeof(T) * (_off + size);
+			if ( extent > _region.get_size() )
+				resize(extent);
+			if ( ok() ) {
+				char * dest = static_cast<char*>(_region.get_address()) + _off;
+				std::memcpy(static_cast<void*>(dest), ptr, sizeof(T) * size);
+			}
+		}
+
+		index_t shared_size()
+		{
+			ipc::offset_t size = 0;
+			try {
+				_shm.get_size(size);
+			}
+			catch(...) {
+				return 0;
+			}
+			return static_cast<index_t>(size);
 		}
 
 		void resize(size_t size)
 		{
-			try
+			if ( shared_size() < size )
 			{
-				_shm.truncate(size);
+				try {
+					_shm.truncate(size);
+					remap();
+				}
+				catch(...) {
+					_ok = false;
+				}
+			}
+		}
+
+		void remap()
+		{
+			if ( shared_size() > 0 )
 				_region = ipc::mapped_region(_shm, _shm.get_mode());
-				_ptr = reinterpret_cast<char*>(_region.get_address());
-				_ok = _region.get_size() >= size;
-			}
-			catch(...)
-			{
-				_ptr = NULL;
-				_ok = false;
-			}
+			else
+				_region = ipc::mapped_region();
 		}
 
 	protected:
 
 		ipc::shared_memory_object _shm;
 		ipc::mapped_region _region;
-		char * _ptr;
+		index_t _off;
 
 };
 
 inline bool create_shared_memory_obj(const char * name)
 {
-	try
-	{
+	try {
 		ipc::shared_memory_object shm(ipc::create_only, name, ipc::read_only);
 	}
-	catch(...)
-	{
+	catch(...) {
 		return false;
 	}
 	return true;
@@ -118,13 +133,11 @@ inline bool create_shared_memory_obj(const char * name)
 inline index_t sizeof_shared_memory_obj(const char * name)
 {
 	ipc::offset_t size = 0;
-	try
-	{
+	try {
 		ipc::shared_memory_object shm(ipc::open_only, name, ipc::read_only);
 		shm.get_size(size);
 	}
-	catch(...)
-	{
+	catch(...) {
 		return 0;
 	}
 	return static_cast<index_t>(size);

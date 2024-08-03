@@ -131,7 +131,7 @@ class DataSources {
 						_sources[src] = new SharedMemorySource(name, readonly());
 						if ( !_sources[src]->ok() ) {
 							exit_sources();
-							Rf_error("could not open shared memory: '%s'", name);
+							Rf_error("could not map shared memory: '%s'", name);
 						}
 						break;
 					default:
