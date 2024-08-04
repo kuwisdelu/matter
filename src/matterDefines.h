@@ -426,7 +426,7 @@ class SourceInterface {
 
 inline int parse_sourcetype(const char * name)
 {
-	if ( *name == '@' )
+	if ( *name == ':' )
 		return SH_MEMORY;
 	else
 		return SH_FILE;

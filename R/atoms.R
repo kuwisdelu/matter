@@ -368,7 +368,7 @@ setMethod("[[", "atoms",
 ## -----------------------------
 
 is_shared_memory <- function(name) {
-	substr(name, 1L, 1L) == "@"
+	substr(name, 1L, 1L) == ":"
 }
 
 create_file_resource <- function(name)

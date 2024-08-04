@@ -1054,7 +1054,7 @@ uuid <- function(uppercase = FALSE) {
 
 # create a uuid for shared memory
 
-tempmem <- function(pattern = "@:memory:") {
+tempmem <- function(pattern = ":memory:") {
 	paste0(pattern, uuid(FALSE)$string)
 }
 
