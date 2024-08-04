@@ -1120,16 +1120,11 @@ roundup <- function(x, digits = 0) {
 	ceiling(10^digits * x) / 10^(digits)
 }
 
-mem <- function(x, reset = FALSE, full = TRUE)
+mem <- function(x, reset = FALSE)
 {
-	if ( !missing(x) ) {
-		rmem <- as.numeric(object.size(x))
-		shmem <- as.numeric(shm_used(x))
-		vmem <- as.numeric(vm_used(x))
-		mem <- c("real"=rmem, "shared"=shmem, "virtual"=vmem)
-	} else {
+	if ( missing(x) ) {
 		cell.size <- c(Ncells=56, Vcells=8)
-		gc.result <- gc(reset=reset, full=full)
+		gc.result <- gc(reset=reset)
 		gc.cols <- c(1L, ncol(gc.result) - 1L)
 		real <- unname(colSums(gc.result[,gc.cols] * cell.size))
 		shm.used <- sum(sizeof_memory_resource(owned=TRUE))
@@ -1148,11 +1143,36 @@ mem <- function(x, reset = FALSE, full = TRUE)
 			"max real"=real[2L],
 			"max shared"=shared[2L],
 			"temp"=temp)
+	} else {
+		if ( inherits(x, c("cluster", "BiocParallelParam")) ) {
+			return(memcl(x, reset=reset))
+		} else {
+			rmem <- as.numeric(object.size(x))
+			shmem <- as.numeric(shm_used(x))
+			vmem <- as.numeric(vm_used(x))
+			mem <- c("real"=rmem, "shared"=shmem, "virtual"=vmem)
+		}
 	}
 	size_bytes(mem)
 }
 
-memtime <- function(expr, verbose = NA)
+memcl <- function(cl, reset = FALSE)
+{
+	if ( is(cl, "BiocParallelParam") )
+		cl <- bpbackend(cl)
+	if ( reset ) {
+		ans <- clusterEvalQ(cl, matter::mem(reset=TRUE))
+	} else {
+		ans <- clusterEvalQ(cl, matter::mem(reset=FALSE))
+	}
+	node <- vapply(cl, function(worker) worker$host, character(1L))
+	ans <- do.call(rbind, ans)
+	ans <- apply(ans, 2L, size_bytes, simplify=FALSE)
+	ans <- c(list(node=node), ans)
+	data.frame(ans, check.names=FALSE)
+}
+
+memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -1161,25 +1181,50 @@ memtime <- function(expr, verbose = NA)
 	mem.cols <- seq_len(4L)
 	start <- mem(reset=TRUE)[mem.cols]
 	matter_log(tstamp(), verbose=verbose)
-	matter_log("Timing started.", verbose=verbose)
+	if ( !is.null(BPPARAM) ) {
+		if ( !bpisup(BPPARAM) ) {
+			matter_log("Starting cluster...", verbose=verbose)
+			bpstart(BPPARAM)
+		}
+		start.cl <- mem(BPPARAM, reset=TRUE)
+	}
+	matter_log("Timing started at ", format(Sys.time(), "%X"),
+		verbose=verbose)
 	matter_log(expr_string, verbose=verbose)
 	t.start <- proc.time()
 	eval(expr, parent.frame())
 	rm(expr)
 	t.end <- proc.time()
-	matter_log("Timing ended.", verbose=verbose)
+	matter_log("Timing ended at ", format(Sys.time(), "%X"),
+		verbose=verbose)
+	if ( !is.null(BPPARAM) ) {
+		end.cl <- mem(BPPARAM, reset=FALSE)
+		if ( bpisup(BPPARAM) ) {
+			matter_log("Stopping cluster...", verbose=verbose)
+			bpstop(BPPARAM)
+		}
+	}
 	matter_log(tstamp(), verbose=verbose)
 	end <- mem(reset=FALSE)[mem.cols]
-	change <- c(
-		real=unname(end["real"] - start["real"]),
-		shared=unname(end["shared"] - start["shared"]))
 	overhead <- c(
 		real=unname(end["max real"] - start["max real"]),
 		shared=unname(end["max shared"] - start["max shared"]))
-	list(start=start, end=end,
-		change=size_bytes(change),
-		overhead=size_bytes(overhead),
-		time=t.end - t.start)
+	change <- c(
+		real=unname(end["real"] - start["real"]),
+		shared=unname(end["shared"] - start["shared"]))
+	if ( is.null(BPPARAM) ) {
+		structure(list("start"=start, "end"=end,
+			"overhead"=size_bytes(overhead),
+			"change"=size_bytes(change),
+			"time"=t.end - t.start), class="memtime")
+	} else {
+		structure(list("start"=start, "end"=end,
+			"start (cluster)"=start.cl,
+			"end (cluster)"=end.cl,
+			"overhead"=size_bytes(overhead),
+			"change"=size_bytes(change),
+			"time"=t.end - t.start), class="memtime")
+	}
 }
 
 tstamp <- function(pre = "##------ ", post = " ------##") {

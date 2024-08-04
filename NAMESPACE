@@ -98,6 +98,7 @@ importFrom("irlba",
 importFrom("parallel",
 	"makeCluster",
 	"stopCluster",
+	"clusterEvalQ",
 	"nextRNGStream",
 	"nextRNGSubStream")
 
