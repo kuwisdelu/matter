@@ -35,6 +35,7 @@ remove_file_resource <- function(handle)
 	{
 		owner <- matter_shared_resource_pool()[[name]]
 		if ( owner == Sys.getpid() ) {
+			add_shared_file_freed(sizeof_file_resource(name))
 			status <- file.remove(path)
 			rm(list=name, envir=matter_shared_resource_pool())
 		}
@@ -44,7 +45,16 @@ remove_file_resource <- function(handle)
 
 sizeof_file_resource <- function(name)
 {
-	size_bytes(file.size(normalizePath(name, mustWork=FALSE)))
+	if ( missing(name) ) {
+		name <- matter_shared_resource_list()
+		name <- name[!is_shared_memory_pattern(name)]
+	}
+	if ( length(name) ) {
+		size <- file.size(normalizePath(name, mustWork=FALSE))
+		size_bytes(set_names(size, name))
+	} else {
+		numeric(0L)
+	}
 }
 
 create_memory_resource <- function(name)
@@ -74,6 +84,7 @@ remove_memory_resource <- function(handle)
 	{
 		owner <- matter_shared_resource_pool()[[name]]
 		if ( owner == Sys.getpid() ) {
+			add_shared_memory_freed(sizeof_memory_resource(name))
 			status <- .Call(C_removeSharedMemory, name, PACKAGE="matter")
 			rm(list=name, envir=matter_shared_resource_pool())
 		}
@@ -83,15 +94,24 @@ remove_memory_resource <- function(handle)
 
 sizeof_memory_resource <- function(name)
 {
-	size_bytes(.Call(C_sizeofSharedMemory, as.character(name), PACKAGE="matter"))
-}
-
-is_shared_memory_object <- function(name) {
-	.Call(C_detectSharedMemory, as.character(name), PACKAGE="matter")
+	if ( missing(name) ) {
+		name <- matter_shared_resource_list()
+		name <- name[is_shared_memory_pattern(name)]
+	}
+	if ( length(name) ) {
+		size <- .Call(C_sizeofSharedMemory, as.character(name), PACKAGE="matter")
+		size_bytes(set_names(size, name))
+	} else {
+		numeric(0L)
+	}
 }
 
 is_shared_memory_pattern <- function(name) {
 	substr(as.character(name), 1L, 1L) == ":"
+}
+
+is_shared_memory_object <- function(name) {
+	.Call(C_detectSharedMemory, as.character(name), PACKAGE="matter")
 }
 
 create_shared_resource <- function(name)
@@ -129,7 +149,35 @@ finalize_shared_resource <- function(handle)
 	remove_shared_resource(handle, TRUE)
 }
 
-shared_resources <- new.env()
+shared_resources <- list2env(list(
+	.shared_file_freed=size_bytes(0)),
+	.shared_memory_freed=size_bytes(0))
+
+get_shared_file_freed <- function() {
+	shared_resources[[".shared_file_freed"]]
+}
+
+set_shared_file_freed <- function(value) {
+	shared_resources[[".shared_file_freed"]] <- size_bytes(unname(value))
+}
+
+add_shared_file_freed <- function(value) {
+	current <- get_shared_file_freed()
+	set_shared_file_freed(current + value)
+}
+
+get_shared_memory_freed <- function() {
+	shared_resources[[".shared_memory_freed"]]
+}
+
+set_shared_memory_freed <- function(value) {
+	shared_resources[[".shared_memory_freed"]] <- size_bytes(unname(value))
+}
+
+add_shared_memory_freed <- function(value) {
+	current <- get_shared_memory_freed()
+	set_shared_memory_freed(current + value)
+}
 
 matter_shared_resource_pool <- function() shared_resources
 
