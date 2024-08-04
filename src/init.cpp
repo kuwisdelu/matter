@@ -11,8 +11,9 @@ extern "C" {
 static const R_CallMethodDef callMethods[] = {
 	// shared memory
 	CALLDEF(createSharedMemory, 1),
-	CALLDEF(sizeofSharedMemory, 1),
 	CALLDEF(removeSharedMemory, 1),
+	CALLDEF(detectSharedMemory, 1),
+	CALLDEF(sizeofSharedMemory, 1),
 	// search and select
 	CALLDEF(relativeDiff, 3),
 	CALLDEF(quickOrder, 1),

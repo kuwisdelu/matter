@@ -187,6 +187,17 @@ inline bool create_shared_memory_obj(const char * name)
 	return true;
 }
 
+inline bool detect_shared_memory_obj(const char * name)
+{
+	try {
+		ipc::shared_memory_object shm(ipc::open_only, name, ipc::read_only);
+	}
+	catch(...) {
+		return false;
+	}
+	return true;
+}
+
 inline index_t sizeof_shared_memory_obj(const char * name)
 {
 	ipc::offset_t size = 0;

@@ -5,19 +5,39 @@ extern "C" {
 
 // Shared memory
 //--------------
+
 SEXP createSharedMemory(SEXP name)
 {
 	return Rf_ScalarLogical(create_shared_memory_obj(CHAR(Rf_asChar(name))));
 }
 
-SEXP sizeofSharedMemory(SEXP name)
-{
-	return Rf_ScalarReal(sizeof_shared_memory_obj(CHAR(Rf_asChar(name))));
-}
-
 SEXP removeSharedMemory(SEXP name)
 {
 	return Rf_ScalarLogical(remove_shared_memory_obj(CHAR(Rf_asChar(name))));
+}
+
+SEXP detectSharedMemory(SEXP names)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(LGLSXP, LENGTH(names)));
+	for ( index_t i = 0; i < LENGTH(names); i++ ) {
+		SEXP name = STRING_ELT(names, i);
+		LOGICAL(result)[i] = detect_shared_memory_obj(CHAR(name));
+	}
+	UNPROTECT(1);
+	return result;
+}
+
+SEXP sizeofSharedMemory(SEXP names)
+{
+	SEXP result;
+	PROTECT(result = Rf_allocVector(REALSXP, LENGTH(names)));
+	for ( index_t i = 0; i < LENGTH(names); i++ ) {
+		SEXP name = STRING_ELT(names, i);
+		REAL(result)[i] = sizeof_shared_memory_obj(CHAR(name));
+	}
+	UNPROTECT(1);
+	return result;
 }
 
 // Search, sort and select

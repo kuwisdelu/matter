@@ -367,10 +367,6 @@ setMethod("[[", "atoms",
 #### Define atoms resources ####
 ## -----------------------------
 
-is_shared_memory <- function(name) {
-	substr(name, 1L, 1L) == ":"
-}
-
 create_file_resource <- function(name)
 {
 	path <- normalizePath(name, mustWork=FALSE)
@@ -395,8 +391,7 @@ create_file_resource <- function(name)
 
 sizeof_file_resource <- function(name)
 {
-	path <- normalizePath(name, mustWork=TRUE)
-	size_bytes(file.size(path))
+	size_bytes(file.size(normalizePath(name, mustWork=FALSE)))
 }
 
 remove_file_resource <- function(handle)
@@ -456,9 +451,17 @@ remove_memory_resource <- function(handle)
 	status
 }
 
+is_shared_memory_object <- function(name) {
+	.Call(C_detectSharedMemory, as.character(name), PACKAGE="matter")
+}
+
+is_shared_memory_pattern <- function(name) {
+	substr(as.character(name), 1L, 1L) == ":"
+}
+
 create_shared_resource <- function(name)
 {
-	if ( is_shared_memory(name) ) {
+	if ( is_shared_memory_pattern(name) ) {
 		create_memory_resource(name)
 	} else {
 		create_file_resource(name)
@@ -467,16 +470,18 @@ create_shared_resource <- function(name)
 
 sizeof_shared_resource <- function(name)
 {
-	if ( is_shared_memory(name) ) {
-		sizeof_memory_resource(name)
-	} else {
-		sizeof_file_resource(name)
-	}
+	size_bytes(vapply(name, function(x) {
+		if ( is_shared_memory_pattern(x) ) {
+			sizeof_memory_resource(x)
+		} else {
+			sizeof_file_resource(x)
+		}
+	}, numeric(1L)))
 }
 
 remove_shared_resource <- function(handle, gc = FALSE)
 {
-	if ( is_shared_memory(handle[["name"]]) ) {
+	if ( is_shared_memory_pattern(handle[["name"]]) ) {
 		remove_memory_resource(handle)
 	} else {
 		if ( !gc || getOption("matter.temp.gc") )
@@ -497,8 +502,7 @@ matter_shared_resource_list <- function(full = FALSE)
 {
 	resources <- ls(shared_resources)
 	if ( full ) {
-		sizes <- vapply(resources, sizeof_shared_resource, numeric(1L))
-		sizes <- size_bytes(sizes)
+		sizes <- size_bytes(sizeof_shared_resource(resources))
 		resources <- data.frame(name=resources, size=sizes, row.names=NULL)
 	}
 	resources

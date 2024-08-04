@@ -16,8 +16,9 @@ extern "C" {
 // Shared memory
 //--------------
 SEXP createSharedMemory(SEXP name);
-SEXP sizeofSharedMemory(SEXP name);
 SEXP removeSharedMemory(SEXP name);
+SEXP detectSharedMemory(SEXP names);
+SEXP sizeofSharedMemory(SEXP names);
 
 // Search and selection
 //----------------------
