@@ -67,17 +67,17 @@ matter_list <- function(data, type = "double", path = NULL,
 		sizes <- sizeof(type) * extent
 		offset <- cumsum(c(offset, sizes[-length(sizes)]))
 	}
-	if ( any(!exists) ) {
+	files <- !is_shared_memory_pattern(path)
+	newfiles <- !exists & files
+	if ( any(newfiles) ) {
 		if ( missing(data) && any(extent > 0) && !is.null(data) )
 			matter_warn("creating uninitialized backing file(s): ",
-				paste0(sQuote(path[!exists]), collapse=", "))
-		newfile <- path[!exists]
-		success <- file.create(newfile)
+				paste0(sQuote(path[newfiles]), collapse=", "))
+		success <- file.create(path[newfiles])
 		if ( !all(success) )
 			matter_error("error creating file(s): ",
-				paste0(sQuote(newfile[!success]), collapse=", "))
+				paste0(sQuote(path[newfiles][!success]), collapse=", "))
 	}
-	files <- !is_shared_memory_pattern(path)
 	path[files] <- normalizePath(path[files], mustWork=TRUE)
 	x <- new("matter_list",
 		data=atoms(
