@@ -13,8 +13,8 @@ Imports: BiocGenerics, ProtGenerics, digest, irlba,
 Suggests: BiocStyle, knitr, testthat, plotly
 VignetteBuilder: knitr
 Collate: matterGenerics.R utils.R logger.R
-	drle.R atoms.R ops.R matter.R matter_arr.R 
-	matter_fct.R matter_list.R matter_str.R 
+	resources.R drle.R atoms.R ops.R matter.R
+	matter_arr.R  matter_fct.R matter_list.R matter_str.R 
 	search.R sparse_arr.R stream_stat.R chunked.R
 	apply.R rowDists.R rowStats.R stats.R scale.R
 	signal.R signal2.R nnmf.R fastmap.R prcomp.R pls.R
