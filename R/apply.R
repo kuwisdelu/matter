@@ -65,7 +65,7 @@ chunk_rowapply <- function(X, FUN, ...,
 		chunkopts$nchunks <- list(...)$nchunks
 	}
 	progress <- verbose && !has_progressbar(BPPARAM)
-	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(X) ) {
 		drop <- FALSE
 	} else {
 		drop <- NULL
@@ -102,7 +102,7 @@ chunk_colapply <- function(X, FUN, ...,
 		chunkopts$nchunks <- list(...)$nchunks
 	}
 	progress <- verbose && !has_progressbar(BPPARAM)
-	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(X) ) {
 		drop <- FALSE
 	} else {
 		drop <- NULL
@@ -175,7 +175,7 @@ chunk_lapply <- function(X, FUN, ...,
 		chunkopts$nchunks <- list(...)$nchunks
 	}
 	progress <- verbose && !has_progressbar(BPPARAM)
-	if ( get_serialize(chunkopts) || !is.matter(X) ) {
+	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(X) ) {
 		drop <- FALSE
 	} else {
 		drop <- NULL
@@ -249,7 +249,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		chunkopts$nchunks <- list(...)$nchunks
 	}
 
-	if ( get_serialize(chunkopts) || !is.matter(...elt(1L)) ) {
+	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(...elt(1L)) ) {
 		drop <- FALSE
 	} else {
 		drop <- NULL
@@ -380,10 +380,8 @@ chunk_option <- function(options, name) {
 	if ( !is.null(options) && !is.list(options) )
 		matter_error("chunk options must be a list or NULL")
 	ans <- options[[name]]
-	if ( is.null(ans) ) {
-		defaults <- matter_defaults()
-		ans <- defaults[[name]]
-	}
+	if ( is.null(ans) )
+		ans <- NA
 	ans
 }
 
