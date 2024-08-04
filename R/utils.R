@@ -1212,19 +1212,17 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 	change <- c(
 		real=unname(end["real"] - start["real"]),
 		shared=unname(end["shared"] - start["shared"]))
-	if ( is.null(BPPARAM) ) {
-		structure(list("start"=start, "end"=end,
-			"overhead"=size_bytes(overhead),
-			"change"=size_bytes(change),
-			"time"=t.end - t.start), class="memtime")
-	} else {
-		structure(list("start"=start, "end"=end,
-			"start (cluster)"=start.cl,
-			"end (cluster)"=end.cl,
-			"overhead"=size_bytes(overhead),
-			"change"=size_bytes(change),
-			"time"=t.end - t.start), class="memtime")
+	result <- list(
+		"start"=start, "end"=end,
+		"overhead"=size_bytes(overhead),
+		"change"=size_bytes(change))
+	if ( !is.null(BPPARAM) ) {
+		result$cluster <- list(
+			"start"=start.cl, "end"=end.cl,
+			"total"=size_bytes(sum(end.cl[["max real"]])))
 	}
+	result$time <- t.end - t.start
+	structure(result, class="memtime")
 }
 
 tstamp <- function(pre = "##------ ", post = " ------##") {
