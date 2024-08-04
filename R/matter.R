@@ -194,6 +194,8 @@ setMethod("describe_for_display", "ANY", function(x) class(x))
 
 setMethod("preview_for_display", "ANY", function(x) head(x))
 
+setMethod("shm_used", "matter_", function(x) shm_used(atomdata(x)))
+
 setMethod("vm_used", "matter_", function(x) vm_used(atomdata(x)))
 
 setMethod("show", "matter_", function(object) {

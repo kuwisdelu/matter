@@ -150,8 +150,8 @@ finalize_shared_resource <- function(handle)
 }
 
 shared_resources <- list2env(list(
-	.shared_file_freed=size_bytes(0)),
-	.shared_memory_freed=size_bytes(0))
+	.shared_file_freed=size_bytes(0),
+	.shared_memory_freed=size_bytes(0)))
 
 get_shared_file_freed <- function() {
 	shared_resources[[".shared_file_freed"]]

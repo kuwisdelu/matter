@@ -322,6 +322,12 @@ setMethod("preview_for_display", "sparse_vec", function(x) {
 		round(nnzero(x) / length(x), 4) * 100, "% density)\n", sep="")
 })
 
+setMethod("shm_used", "sparse_arr", function(x) {
+	shm_index <- shm_used(atomindex(x))
+	shm_data <- shm_used(atomdata(x))
+	size_bytes(sum(c(shm_index, shm_data), na.rm=TRUE))
+})
+
 setMethod("vm_used", "sparse_arr", function(x) {
 	vm_index <- vm_used(atomindex(x))
 	vm_data <- vm_used(atomdata(x))

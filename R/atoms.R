@@ -102,6 +102,13 @@ setMethod("describe_for_display", "atoms", function(x) {
 	paste0(desc1, " :: ", desc2)
 })
 
+setMethod("shm_used", "atoms", function(x) {
+	src <- x@source[]
+	shm <- is_shared_memory_pattern(levels(x@source[]))
+	i <- as.integer(src) %in% which(shm)
+	size_bytes(sum(x@extent[i] * sizeof(x@type[i])))
+})
+
 setMethod("vm_used", "atoms", function(x) {
 	size_bytes(sum(x@extent[] * sizeof(x@type[])))
 })

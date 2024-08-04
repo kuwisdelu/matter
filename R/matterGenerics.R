@@ -124,6 +124,16 @@ setMethod("vm_used", "vector", function(x) {
 		size_bytes(NA_real_)
 	}
 })
+setGeneric("shm_used", function(x) standardGeneric("shm_used"))
+setMethod("shm_used", "ANY", function(x) size_bytes(NA_real_))
+setMethod("shm_used", "array", function(x) size_bytes(0))
+setMethod("shm_used", "vector", function(x) {
+	if ( is.atomic(x) ) {
+		size_bytes(0)
+	} else {
+		size_bytes(NA_real_)
+	}
+})
 setGeneric("vm_realized", function(x) standardGeneric("vm_realized"))
 setMethod("vm_realized", "ANY", function(x) {
 	size_bytes(sum(mem(x), na.rm=TRUE))

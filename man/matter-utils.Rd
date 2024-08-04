@@ -88,6 +88,12 @@
 \alias{type,vector-method}
 \alias{type,array-method}
 
+\alias{shm_used}
+\alias{shm_used,ANY-method}
+\alias{shm_used,vector-method}
+\alias{shm_used,array-method}
+\alias{shm_used,atoms-method}
+
 \alias{vm_used}
 \alias{vm_used,ANY-method}
 \alias{vm_used,vector-method}

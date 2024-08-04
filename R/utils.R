@@ -629,8 +629,12 @@ show_matter_mem <- function(x) {
 	rmem <- size_bytes(object.size(x))
 	rmem <- format(rmem, units="auto")
 	if ( is.matter(x) ) {
+		shmem <- format(shm_used(x), units="auto")
 		vmem <- format(vm_used(x), units="auto")
-		cat("(", rmem, " real", " | ", vmem, " virtual)\n", sep="")
+		cat("(",
+			rmem, " real", " | ",
+			shmem, " shared", " | ",
+			vmem, " virtual)\n", sep="")
 	} else {
 		cat("(", rmem, " real)\n", sep="")
 	}
@@ -1091,11 +1095,11 @@ format.size_bytes <- function(x, units = "auto", ...)
 		else "B"
 	sizes <- switch(units,
 		" " = , "B" = x,
-		"KB" = round(x/1000, 2L),
-		"MB" = round(x/1000^2, 2L),
-		"GB" = round(x/1000^3, 2L),
-		"TB" = round(x/1000^4, 2L),
-		"PB" = round(x/1000^5, 2L))
+		"KB" = roundup(x/1000, 2L),
+		"MB" = roundup(x/1000^2, 2L),
+		"GB" = roundup(x/1000^3, 2L),
+		"TB" = roundup(x/1000^4, 2L),
+		"PB" = roundup(x/1000^5, 2L))
 	label <- switch(units, "B"="bytes", units)
 	set_names(paste(sizes, label), names(x))
 }
@@ -1112,19 +1116,38 @@ print.size_bytes <- function(x, units = "auto",
 	structure(NextMethod(), class="size_bytes")
 }
 
-# based on pryr::mem_used and pryr::mem_change
-mem <- function(x, reset = FALSE)
+roundup <- function(x, digits = 0) {
+	ceiling(10^digits * x) / 10^(digits)
+}
+
+mem <- function(x, reset = FALSE, full = TRUE)
 {
 	if ( !missing(x) ) {
 		rmem <- as.numeric(object.size(x))
+		shmem <- as.numeric(shm_used(x))
 		vmem <- as.numeric(vm_used(x))
-		mem <- c("real"=rmem, "virtual"=vmem)
+		mem <- c("real"=rmem, "shared"=shmem, "virtual"=vmem)
 	} else {
 		cell.size <- c(Ncells=56, Vcells=8)
-		gc.result <- gc(reset=reset)
-		gc.cols <- c(1L, 3L, ncol(gc.result) - 1L)
-		mem <- colSums(gc.result[,gc.cols] * cell.size)
-		names(mem) <- c("used", "gc", "max")
+		gc.result <- gc(reset=reset, full=full)
+		gc.cols <- c(1L, ncol(gc.result) - 1L)
+		real <- unname(colSums(gc.result[,gc.cols] * cell.size))
+		shm.used <- sum(sizeof_memory_resource())
+		if ( reset ) {
+			set_shared_memory_freed(0)
+			set_shared_file_freed(0)
+			shm.max <- shm.used
+		} else {
+			shm.max <- shm.used + get_shared_memory_freed()
+		}
+		shared <- unname(c(shm.used, shm.max))
+		temp <- sum(unname(sizeof_file_resource()))
+		mem <- c(
+			"real"=real[1L],
+			"shared"=shared[1L],
+			"max real"=real[2L],
+			"max shared"=shared[2L],
+			"temp"=temp)
 	}
 	size_bytes(mem)
 }
