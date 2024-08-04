@@ -43,10 +43,10 @@ remove_file_resource <- function(handle)
 	status
 }
 
-sizeof_file_resource <- function(name)
+sizeof_file_resource <- function(name, owned = FALSE)
 {
 	if ( missing(name) ) {
-		name <- matter_shared_resource_list()
+		name <- matter_shared_resource_list(owned=owned)
 		name <- name[!is_shared_memory_pattern(name)]
 	}
 	if ( length(name) ) {
@@ -92,10 +92,10 @@ remove_memory_resource <- function(handle)
 	status
 }
 
-sizeof_memory_resource <- function(name)
+sizeof_memory_resource <- function(name, owned = FALSE)
 {
 	if ( missing(name) ) {
-		name <- matter_shared_resource_list()
+		name <- matter_shared_resource_list(owned=owned)
 		name <- name[is_shared_memory_pattern(name)]
 	}
 	if ( length(name) ) {
@@ -181,12 +181,21 @@ add_shared_memory_freed <- function(value) {
 
 matter_shared_resource_pool <- function() shared_resources
 
-matter_shared_resource_list <- function(full = FALSE)
+matter_shared_resource_list <- function(details = FALSE, owned = FALSE)
 {
-	resources <- ls(shared_resources)
-	if ( full ) {
+	if ( owned ) {
+		owned <- eapply(shared_resources, identical, Sys.getpid())
+		resources <- names(owned)[unlist(owned)]
+	} else {
+		resources <- ls(shared_resources)
+	}
+	if ( details ) {
+		pids <- vapply(resources,
+			function(name) shared_resources[[name]], numeric(1L))
 		sizes <- size_bytes(sizeof_shared_resource(resources))
-		resources <- data.frame(name=resources, size=sizes, row.names=NULL)
+		types <- ifelse(is_shared_memory_pattern(resources), "memory", "file")
+		resources <- data.frame(name=resources, type=types,
+			pid=pids, size=sizes, row.names=NULL)
 	}
 	resources
 }

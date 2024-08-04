@@ -1132,7 +1132,7 @@ mem <- function(x, reset = FALSE, full = TRUE)
 		gc.result <- gc(reset=reset, full=full)
 		gc.cols <- c(1L, ncol(gc.result) - 1L)
 		real <- unname(colSums(gc.result[,gc.cols] * cell.size))
-		shm.used <- sum(sizeof_memory_resource())
+		shm.used <- sum(sizeof_memory_resource(owned=TRUE))
 		if ( reset ) {
 			set_shared_memory_freed(0)
 			set_shared_file_freed(0)
@@ -1141,7 +1141,7 @@ mem <- function(x, reset = FALSE, full = TRUE)
 			shm.max <- shm.used + get_shared_memory_freed()
 		}
 		shared <- unname(c(shm.used, shm.max))
-		temp <- sum(unname(sizeof_file_resource()))
+		temp <- sum(unname(sizeof_file_resource(owned=TRUE)))
 		mem <- c(
 			"real"=real[1L],
 			"shared"=shared[1L],
@@ -1152,22 +1152,38 @@ mem <- function(x, reset = FALSE, full = TRUE)
 	size_bytes(mem)
 }
 
-memtime <- function(expr)
+memtime <- function(expr, verbose = NA)
 {
-	start <- mem(reset = TRUE)
-	t.start <- proc.time()
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
 	expr <- substitute(expr)
+	expr_string <- paste0(deparse(expr), collapse="\n")
+	mem.cols <- seq_len(4L)
+	start <- mem(reset=TRUE)[mem.cols]
+	matter_log(tstamp(), verbose=verbose)
+	matter_log("Timing started.", verbose=verbose)
+	matter_log(expr_string, verbose=verbose)
+	t.start <- proc.time()
 	eval(expr, parent.frame())
 	rm(expr)
 	t.end <- proc.time()
-	end <- mem(reset = FALSE)
-	mem <- c(start[1], end[1], end[3])
-	mem <- c(format(size_bytes(mem)),
-		format(size_bytes(end[3] - end[1])),
-		paste0(round(t.end[3] - t.start[3], 4L), " sec"))
-	names(mem) <- c("start", "finish",
-		"max", "overhead", "time")
-	print.default(mem, quote=FALSE, right=TRUE)
+	matter_log("Timing ended.", verbose=verbose)
+	matter_log(tstamp(), verbose=verbose)
+	end <- mem(reset=FALSE)[mem.cols]
+	change <- c(
+		real=unname(end["real"] - start["real"]),
+		shared=unname(end["shared"] - start["shared"]))
+	overhead <- c(
+		real=unname(end["max real"] - start["max real"]),
+		shared=unname(end["max shared"] - start["max shared"]))
+	list(start=start, end=end,
+		change=size_bytes(change),
+		overhead=size_bytes(overhead),
+		time=t.end - t.start)
+}
+
+tstamp <- function(pre = "##------ ", post = " ------##") {
+	paste0(pre, date(), post)
 }
 
 profmem <- function(expr)
