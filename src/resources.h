@@ -113,7 +113,7 @@ class SharedMemorySource : public SourceInterface {
 		template<typename T>
 		void read(void * ptr, size_t size)
 		{
-			index_t extent = sizeof(T) * (_off + size);
+			index_t extent = _off + (sizeof(T) * size);
 			if ( extent > _region.get_size() )
 				resize(extent);
 			if ( ok() ) {
@@ -125,7 +125,7 @@ class SharedMemorySource : public SourceInterface {
 		template<typename T>
 		void write(void * ptr, size_t size)
 		{
-			index_t extent = sizeof(T) * (_off + size);
+			index_t extent = _off + (sizeof(T) * size);
 			if ( extent > _region.get_size() )
 				resize(extent);
 			if ( ok() ) {
@@ -137,12 +137,7 @@ class SharedMemorySource : public SourceInterface {
 		index_t shared_size()
 		{
 			ipc::offset_t size = 0;
-			try {
-				_shm.get_size(size);
-			}
-			catch(...) {
-				return 0;
-			}
+			_ok = _shm.get_size(size);
 			return static_cast<index_t>(size);
 		}
 
@@ -182,7 +177,7 @@ inline bool create_shared_memory_obj(const char * name)
 		ipc::shared_memory_object shm(ipc::create_only, name, ipc::read_only);
 	}
 	catch(...) {
-		return false;
+		Rf_error("could not map shared memory: %s", name);
 	}
 	return true;
 }
@@ -206,7 +201,7 @@ inline index_t sizeof_shared_memory_obj(const char * name)
 		shm.get_size(size);
 	}
 	catch(...) {
-		return 0;
+		Rf_error("could not map shared memory: %s", name);
 	}
 	return static_cast<index_t>(size);
 }
