@@ -1183,8 +1183,11 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 	matter_log(tstamp(), verbose=verbose)
 	if ( !is.null(BPPARAM) ) {
 		if ( !bpisup(BPPARAM) ) {
+			managed.cl <- TRUE
 			matter_log("Starting cluster...", verbose=verbose)
 			bpstart(BPPARAM)
+		} else {
+			managed.cl <- FALSE
 		}
 		start.cl <- mem(BPPARAM, reset=TRUE)
 	}
@@ -1199,7 +1202,7 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 		verbose=verbose)
 	if ( !is.null(BPPARAM) ) {
 		end.cl <- mem(BPPARAM, reset=FALSE)
-		if ( bpisup(BPPARAM) ) {
+		if ( bpisup(BPPARAM) && managed.cl ) {
 			matter_log("Stopping cluster...", verbose=verbose)
 			bpstop(BPPARAM)
 		}
@@ -1207,15 +1210,17 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 	matter_log(tstamp(), verbose=verbose)
 	end <- mem(reset=FALSE)[mem.cols]
 	overhead <- c(
-		real=unname(end["max real"] - start["max real"]),
-		shared=unname(end["max shared"] - start["max shared"]))
+		"real"=unname(end["max real"] - start["max real"]),
+		"shared"=unname(end["max shared"] - start["max shared"]))
 	change <- c(
-		real=unname(end["real"] - start["real"]),
-		shared=unname(end["shared"] - start["shared"]))
+		"real"=unname(end["real"] - start["real"]),
+		"shared"=unname(end["shared"] - start["shared"]))
+	total <- unname(sum(end[["max real"]]) + sum(end[["max shared"]]))
 	result <- list(
 		"start"=start, "end"=end,
 		"overhead"=size_bytes(overhead),
-		"change"=size_bytes(change))
+		"change"=size_bytes(change),
+		"total"=size_bytes(total))
 	if ( !is.null(BPPARAM) ) {
 		result$cluster <- list(
 			"start"=start.cl, "end"=end.cl,

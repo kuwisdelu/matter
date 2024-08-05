@@ -61,4 +61,11 @@ test_that("matter constructor", {
 	expect_is(x10, "matter_str")
 	expect_equal(as.character(type(x10)), rep.int("character", 3L))
 
+	y <- matter(1:10)
+	z1 <- as.matter(y)
+	z2 <- matter(y)
+
+	expect_true(all(path(y) == path(z1)))
+	expect_true(all(path(y) != path(z2)))
+
 })

@@ -69,12 +69,12 @@
 \title{Vectors, Matrices, and Arrays Stored in Virtual Memory}
 
 \description{
-    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary virtual memory data structures, and working with them as vectors, matrices, arrays, lists, and data frames.
+    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary virtual memory data structures, and working with them as vectors, matrices, arrays, and lists.
 }
 
 \usage{
 ## Instance creation
-matter(\dots)
+matter(data, \dots)
 
 # Check if an object is a matter object
 is.matter(x)
@@ -86,6 +86,8 @@ as.matter(x)
 }
 
 \arguments{
+    \item{data}{Data passed to the subclasse constructor.}
+
     \item{\dots}{Arguments passed to subclasses.}
 
     \item{x}{An object to check if it is a matter object or coerce to a matter object.}
