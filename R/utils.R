@@ -1210,22 +1210,24 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 	matter_log(tstamp(), verbose=verbose)
 	end <- mem(reset=FALSE)[mem.cols]
 	overhead <- c(
-		"real"=unname(end["max real"] - start["max real"]),
-		"shared"=unname(end["max shared"] - start["max shared"]))
+		"real"=unname(end["max real"] - end["real"]),
+		"shared"=unname(end["max shared"] - end["shared"]))
 	change <- c(
 		"real"=unname(end["real"] - start["real"]),
 		"shared"=unname(end["shared"] - start["shared"]))
-	total <- unname(sum(end[["max real"]]) + sum(end[["max shared"]]))
 	result <- list(
 		"start"=start, "end"=end,
 		"overhead"=size_bytes(overhead),
-		"change"=size_bytes(change),
-		"total"=size_bytes(total))
+		"change"=size_bytes(change))
+	total <- unname(sum(end[["max real"]]) + sum(end[["max shared"]]))
 	if ( !is.null(BPPARAM) ) {
+		total.cl <- sum(end.cl[["max real"]])
 		result$cluster <- list(
 			"start"=start.cl, "end"=end.cl,
-			"total"=size_bytes(sum(end.cl[["max real"]])))
+			"total"=size_bytes(total.cl))
+		total <- total + total.cl
 	}
+	result$total <- size_bytes(total)
 	result$time <- t.end - t.start
 	structure(result, class="memtime")
 }

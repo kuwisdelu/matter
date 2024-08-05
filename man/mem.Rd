@@ -60,7 +60,7 @@ memtime(expr, verbose = NA, BPPARAM = NULL)
         \item{\code{"cluser"}: (Optional.) A summary of the memory used by the cluster if \code{BPPARAM} is specified.}
         \item{\code{"overhead"}: The amount of "real" memory used during the execution of \code{expr} that is freed by the end of timing.}
         \item{\code{"change"}: The difference in "real" memory used before and after timing.}
-        \item{\code{"total"}: For the current R session, the sum of "max real" and "max shared" memory used. For a cluster, the sum of "max real" memory used by all workers (not including shared memory or the managing R process).}
+        \item{\code{"total"}: For the current R session, the sum of "max real" and "max shared" memory used and total cluster memory used. For a cluster, the sum of "max real" memory used by all workers (not including shared memory or the managing R process).}
         \item{\code{"time"}: The execution time.}
     }
 }
