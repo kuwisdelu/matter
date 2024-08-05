@@ -2,7 +2,6 @@
 \alias{deprecated}
 
 \alias{profmem}
-\alias{memtime}
 \alias{asearch}
 \alias{nnpairs}
 

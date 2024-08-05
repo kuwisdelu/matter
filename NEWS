@@ -1,4 +1,22 @@
 
+CHANGES IN VERSION 2.7.5 [2024-8-5]
+------------------------------------
+
+NEW FEATURES
+
+    o Shared memory support comes to 'matter' via boost!
+    o Use 'path=":memory:"' for shared memory 'matter' objects
+    o Use 'mem()' to monitor shared memory usage
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Add shared memory support to 'mem()' output
+    o Add cluster memory support to 'memtime()' output
+
+BUG FIXES
+
+    o Improved behavior for the general 'matter()' constructor
+
 CHANGES IN VERSION 2.7.4 [2024-8-2]
 ------------------------------------
 
