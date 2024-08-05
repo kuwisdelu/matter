@@ -43,59 +43,54 @@ setMethod("show", "matter", function(object) {
 		try(preview_for_display(object), silent=TRUE)
 })
 
-matter <- function(...) {
+matter <- function(data, ...) {
+	if ( !missing(data) && is.matter(data) )
+		data <- data[]
 	nm <- ...names()
-	if ( nargs() == 1L ) {
-		data <- ...elt(1)
-	} else if ( "data" %in% nm ) {
-		data <- list(...)$data
-	} else {
-		data <- NULL
-	}
-	if ( nargs() == 1L && !is.null(data) )
-		return(as.matter(data))
-	arg_arr <- c("dim", "dimnames")
-	arg_mat <- c("nrow", "ncol")
 	arg_vec <- c("length", "names")
-	arg_fct <- c("levels", "labels")
+	arg_mat <- c("nrow", "ncol")
+	arg_arr <- c("dim", "dimnames")
 	arg_list <- c("lengths")
+	arg_fct <- c("levels", "labels")
 	arg_str <- c("nchar")
 	known_args <- c(arg_arr, arg_mat, arg_vec,
 		arg_fct, arg_list, arg_str)
 	if ( any(nm %in% known_args) ) {
-		if ( any(arg_arr %in% nm) ) {
-			matter_arr(...)
+		if ( any(arg_vec %in% nm) ) {
+			matter_vec(data, ...)
 		} else if ( any(arg_mat %in% nm) ) {
-			matter_mat(...)
-		} else if ( any(arg_vec %in% nm) ) {
-			matter_vec(...)
-		} else if ( any(arg_fct %in% nm) ) {
-			matter_fct(...)
+			matter_mat(data, ...)
+		} else if ( any(arg_arr %in% nm) ) {
+			matter_arr(data, ...)
 		} else if ( any(arg_list %in% nm) ) {
-			matter_list(...)
+			matter_list(data, ...)
+		} else if ( any(arg_fct %in% nm) ) {
+			matter_fct(data, ...)
 		} else if ( any(arg_str %in% nm) ) {
-			matter_str(...)
-		} else {
-			matter_error("couldn't guess data structure, use 'matter_*' functions")
-		}
-	} else if ( !is.null(data) ) {
-		if ( is.array(data) ) {
-			matter_arr(...)
-		} else if ( is.matrix(data) ) {
-			matter_mat(...)
-		} else if ( is.atomic(data) ) {
-			matter_vec(...)
-		} else if ( is.factor(data) ) {
-			matter_fct(...)
-		} else if ( is.list(data) ) {
-			matter_list(...)
-		} else if ( is.character(data) ) {
-			matter_str(...)
+			matter_str(data, ...)
 		} else {
 			matter_error("couldn't guess data structure, use 'matter_*' functions")
 		}
 	} else {
-		matter_error("couldn't guess data structure, use 'matter_*' functions")
+		if ( is.vector(data) && is.raw(data) ) {
+			matter_vec(data, ...)
+		} else if ( is.vector(data) && is.logical(data) ) {
+			matter_vec(data, ...)
+		} else if ( is.vector(data) && is.numeric(data) ) {
+			matter_vec(data, ...)
+		} else if ( is.matrix(data) ) {
+			matter_mat(data, ...)
+		} else if ( is.array(data) ) {
+			matter_arr(data, ...)
+		} else if ( is.list(data) ) {
+			matter_list(data, ...)
+		} else if ( is.factor(data) ) {
+			matter_fct(data, ...)
+		} else if ( is.vector(data) &&  is.character(data) ) {
+			matter_str(data, ...)
+		} else {
+			matter_error("couldn't guess data structure, use 'matter_*' functions")
+		}
 	}
 }
 
@@ -104,23 +99,10 @@ is.matter <- function(x) {
 }
 
 as.matter <- function(x) {
-	if ( is.matter(x) )
+	if ( is.matter(x) ) {
 		return(x)
-	if ( is.array(x) ) {
-		matter_arr(x)
-	} else if ( is.matrix(x) ) {
-		matter_mat(x)
-	} else if ( is.atomic(x) ) {
-		matter_vec(x)
-	} else if ( is.factor(x) ) {
-		matter_fct(x)
-	} else if ( is.list(x) ) {
-		matter_list(x)
-	} else if ( is.character(x) ) {
-		matter_str(x)
 	} else {
-		matter_error("cannot coerce object of class ",
-			sQuote(class(x)), " to a 'matter' object")
+		matter(x)
 	}
 }
 
