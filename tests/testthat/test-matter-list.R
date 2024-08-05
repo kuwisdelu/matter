@@ -53,6 +53,14 @@ test_that("matter list", {
 
 })
 
+test_that("matter list init", {
+
+	x <- matter_list(rep.int(list(1), 3), lengths=c(1,2,3))
+
+	expect_equal(x[], list(1, c(1, 1), c(1, 1, 1)))
+
+})
+
 test_that("matter list coercion", {
 
 	x <- list(

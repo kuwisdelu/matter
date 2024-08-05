@@ -51,6 +51,14 @@ test_that("matter array double", {
 
 })
 
+test_that("matter array init", {
+
+	x <- matter_arr(1, dim=c(3,3,3))
+
+	expect_equal(x[], array(1, dim=c(3,3,3)))
+
+})
+
 test_that("matter array 1-D indexing", {
 
 	set.seed(1, kind="default")
