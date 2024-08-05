@@ -69,7 +69,7 @@
 \title{Vectors, Matrices, and Arrays Stored in Virtual Memory}
 
 \description{
-    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary virtual memory data structures, and working with them as vectors, matrices, arrays, and lists.
+    The \code{matter} class and its subclasses are designed for easy on-demand read/write access to binary virtual memory data structures stored in files and/or shared memory and working with them as vectors, matrices, arrays, and lists.
 }
 
 \usage{

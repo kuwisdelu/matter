@@ -18,17 +18,17 @@ memtime(expr, verbose = NA, BPPARAM = NULL)
 \arguments{
     \item{x}{An object, to summarize how much memory it is using.}
 
-    \item{reset}{Should the maximum memory used by R be reset?}
+    \item{reset}{Should the maximum memory values be reset?}
 
     \item{expr}{An expression to be evaluated.}
 
-    \item{verbose}{Should progress be printed for each iteration?}
+    \item{verbose}{Should timing messages be printed?}
 
-    \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
+    \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. Used to collect memory usage from a cluster during timing. Must have a \code{bpbackend} of class \code{cluster}.}
 }
 
 \details{
-    These functions summarize the memory used by both traditional R objects and out-of-memory \code{matter} objects. "Real" memory managed by R is summarized using \code{\link{gc}}. "Virtual" memory managed by \code{matter} includes temporary files created by \code{matter} in \code{getOption("matter.temp.dir")} shared memory allocated by \code{matter} in the current R session.
+    These functions summarize the memory used by both traditional R objects and out-of-memory \code{matter} objects. "Real" memory managed by R is summarized using \code{\link{gc}}. "Virtual" memory managed by \code{matter} includes shared memory allocated by \code{matter} and temporary files created by \code{matter} in \code{getOption("matter.temp.dir")}.
 
     For timing parallel code, it is useful to use \code{memtime} in combination with its \code{BPPARAM} argument to monitor the amount of memory used by the cluster.
 }
