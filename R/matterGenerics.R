@@ -136,7 +136,7 @@ setMethod("shm_used", "vector", function(x) {
 })
 setGeneric("vm_realized", function(x) standardGeneric("vm_realized"))
 setMethod("vm_realized", "ANY", function(x) {
-	size_bytes(sum(mem(x), na.rm=TRUE))
+	size_bytes(sum(mem(x)[c("real","virtual")], na.rm=TRUE))
 })
 
 #### Implement basic generics from BiocGenerics ####

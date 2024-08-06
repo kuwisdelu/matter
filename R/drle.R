@@ -104,6 +104,10 @@ setMethod("show", "drle_fct", function(object) {
 	cat(paste_head(object@levels), "\n")
 })
 
+setMethod("shm_used", "drle", function(x) size_bytes(0))
+
+setMethod("vm_used", "drle", function(x) size_bytes(0))
+
 setMethod("type", "drle", function(x) typeof(x@values))
 
 is.drle <- function(x) is(x, "drle")

@@ -57,6 +57,10 @@ setMethod("show", "chunked", function(object) {
 	cat("with", sum(lengths(object@index)), "total items\n")
 })
 
+setMethod("shm_used", "chunked", function(x) shm_used(x@data))
+
+setMethod("vm_used", "chunked", function(x) vm_used(x@data))
+
 setMethod("length", "chunked", function(x) length(x@index))
 
 setMethod("lengths", "chunked", function(x) lengths(x@index))

@@ -92,17 +92,21 @@
 \alias{shm_used,ANY-method}
 \alias{shm_used,vector-method}
 \alias{shm_used,array-method}
+\alias{shm_used,drle-method}
 \alias{shm_used,atoms-method}
 \alias{shm_used,matter_-method}
 \alias{shm_used,sparse_arr-method}
+\alias{shm_used,chunked-method}
 
 \alias{vm_used}
 \alias{vm_used,ANY-method}
 \alias{vm_used,vector-method}
 \alias{vm_used,array-method}
+\alias{vm_used,drle-method}
 \alias{vm_used,atoms-method}
 \alias{vm_used,matter_-method}
 \alias{vm_used,sparse_arr-method}
+\alias{vm_used,chunked-method}
 
 \alias{vm_realized}
 \alias{vm_realized,ANY-method}
