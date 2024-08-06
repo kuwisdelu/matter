@@ -41,3 +41,26 @@ test_that("SnowfastParam", {
 	bpstop(sp2)
 
 })
+
+test_that("SnowfastParam - matter", {
+
+	set.seed(1)
+	n <- 2500
+	len <- 50
+	x <- replicate(len, runif(n), simplify=FALSE)
+	y <- as.matter(x)
+
+	sp0 <- SnowfastParam(workers=4)
+
+	zs0 <- chunkLapply(y, sum,
+		chunkopts=list(nchunks=5), BPPARAM=sp0)
+	zn0 <- chunkLapply(y, sum,
+		chunkopts=list(nchunks=5), BPPARAM=NULL)
+
+	expect_equal(zs0, zn0)
+
+	bpstop(sp0)
+
+})
+
+

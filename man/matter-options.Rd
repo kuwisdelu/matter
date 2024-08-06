@@ -12,15 +12,15 @@
 \usage{
 ## Set defaults for common arguments
 matter_defaults(nchunks = 20L, chunksize = NA_real_,
-    serialize = TRUE, verbose = FALSE)
+    serialize = NA, verbose = FALSE)
 }
 
 \arguments{
 	\item{nchunks}{The number of chunks to use. This sets \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-	\item{chunksize}{The approximate chunk size in bytes. This sets \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory.}
+	\item{chunksize}{The approximate chunk size in bytes. This sets \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory. If set to \code{NA_real_}, then the chunk size is determined by the number of chunks.}
 
-	\item{serialize}{Whether \code{matter} chunks should be realized in memory on the manager and the data serialized to the workers (\code{TRUE}), or the realization should be performed on the workers (\code{FALSE}). This sets \code{getOption("matter.default.serialize")}. If all workers are on the same machine, then it can be significantly faster to avoid serializing the realized data.}
+	\item{serialize}{Whether data in virtual memory should be realized on the manager and serialized to the workers (\code{TRUE}), passed to the workers in virtual memory as-is (\code{FALSE}), or if \code{matter} should decide the behavior based on the cluster configuration (\code{NA}). This sets \code{getOption("matter.default.serialize")}. If all workers have access to the same virtual memory resources (whether file storage or shared memory), then it can be significantly faster to avoid serializing the data.}
 
 	\item{verbose}{Whether progress messages should be printed. This sets \code{getOption("matter.default.verbose")}.}
 }
@@ -31,11 +31,11 @@ matter_defaults(nchunks = 20L, chunksize = NA_real_,
 	\itemize{
 		\item{\code{options(matter.compress.atoms=3)}: The compression ratio threshold to be used to determine when to compress atoms in a matter object. Setting to 0 or \code{FALSE} means that atoms are never compressed.}
 
-		\item{\code{options(matter.default.nchunks=20L)}: The default number of chunks to use when iterating over matter objects.}
+		\item{\code{options(matter.default.nchunks=20L)}: The default number of chunks to use when iterating over matter objects.  For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-		\item{\code{options(matter.default.chunksize=NA_real_)}: The default chunk size in bytes to use when iterating over matter objects.}
+		\item{\code{options(matter.default.chunksize=NA_real_)}: The default chunk size in bytes to use when iterating over matter objects.  For IO-bound operations, using larger chunks will often be faster, but use more memory. If set to \code{NA_real_}, then the chunk size is determined by the number of chunks.}
 
-		\item{\code{options(matter.default.serialize=TRUE)}: Whether \code{matter} chunks should be realized in memory on the manager (\code{TRUE}) or on the workers \code{FALSE}.}
+		\item{\code{options(matter.default.serialize=NA)}: Whether virtual memory chunks should be realized on the manager and serialized to the workers (\code{TRUE}), passed to the workers as-is \code{FALSE}, or if \code{matter} should decide based on the cluster configuration (\code{NA}). If all workers have access to the same virtual memory resources (whether file storage or shared memory), then it can be significantly faster to avoid serializing the data.}
 
 		\item{\code{options(matter.default.verbose=FALSE)}: The default verbosity for printing progress messages.}
 
@@ -51,7 +51,7 @@ matter_defaults(nchunks = 20L, chunksize = NA_real_,
 
 		\item{\code{options(matter.temp.dir=tempdir())}: Temporary directory where anonymous \code{matter} object files (i.e., those created with \code{path=NULL}) should be created.}
 
-		\item{\code{options(matter.temp.gc=TRUE)}: If \code{TRUE}, then anonymous \code{matter} object files (i.e., those created with \code{path=NULL}) are automatically removed when all R objects referencing them have been garbage collected. If \code{FALSE}, then they are only removed at the end of the R session (and only if they are in R's default temporary directory).}
+		\item{\code{options(matter.temp.gc=TRUE)}: If \code{TRUE}, then anonymous \code{matter} object files (i.e., those created with \code{path=NULL}) are automatically cleaned up when all R objects referencing them have been garbage collected. If \code{FALSE}, then they are only removed at the end of the R session (and only if they are in R's default temporary directory).}
 
 		\item{\code{options(matter.logger=simple_logger())}: The logger used by \code{matter}. Must be a \code{simple_logger} instance.}
 	}

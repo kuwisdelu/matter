@@ -115,15 +115,15 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
 
     For example, this can be used to implement a rolling apply function.
 
-    Several options are supported by \code{chunkopts}:
+    Several options are supported by \code{chunkopts} to override the global options:
 
     \itemize{
 
-        \item{nchunks: The number of chunks to use. If omitted, this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory. If both \code{nchunks} and \code{chunksize} are specified, then \code{nchunks} takes priority.}
+        \item{nchunks: The number of chunks to use. If omitted, this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-        \item{chunksize: The approximate chunk size in bytes. If omitted, this is taken from \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory. If both \code{nchunks} and \code{chunksize} are specified, then \code{nchunks} takes priority.}
+        \item{chunksize: The approximate chunk size in bytes. If omitted, this is taken from \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory. If set to \code{NA_real_}, then the chunk size is determined by the number of chunks.}
 
-        \item{serialize: Whether \code{matter} chunks should be realized in memory on the manager and the data serialized to the workers (\code{TRUE}), or the realization should be performed on the workers (\code{FALSE}). If omitted, this is taken from \code{getOption("matter.default.serialize")}. If all workers are on the same machine, then it can be significantly faster to avoid serializing the realized data.}
+        \item{serialize: Whether data in virtual memory should be realized on the manager and serialized to the workers (\code{TRUE}), passed to the workers in virtual memory as-is (\code{FALSE}), or if \code{matter} should decide the behavior based on the cluster configuration (\code{NA}). If omitted, this is taken from \code{getOption("matter.default.serialize")}. If all workers have access to the same virtual memory resources (whether file storage or shared memory), then it can be significantly faster to avoid serializing the data.}
     }
 }
 

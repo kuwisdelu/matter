@@ -64,12 +64,8 @@ chunk_rowapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
+	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(X) ) {
-		drop <- FALSE
-	} else {
-		drop <- NULL
-	}
 	CHUNKS <- chunked_mat(X, margin=1L, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
@@ -101,12 +97,8 @@ chunk_colapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
+	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(X) ) {
-		drop <- FALSE
-	} else {
-		drop <- NULL
-	}
 	CHUNKS <- chunked_mat(X, margin=2L, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
@@ -174,12 +166,8 @@ chunk_lapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
+	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(X) ) {
-		drop <- FALSE
-	} else {
-		drop <- NULL
-	}
 	CHUNKS <- chunked_vec(X, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
@@ -243,17 +231,12 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	simplify <- match.fun(simplify)
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	progress <- verbose && !has_progressbar(BPPARAM)
 	if ( "nchunks" %in% ...names() ) {
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-
-	if ( isTRUE(get_serialize(chunkopts)) || !is.matter(...elt(1L)) ) {
-		drop <- FALSE
-	} else {
-		drop <- NULL
-	}
+	drop <- get_chunked_drop(...elt(1L), chunkopts, BPPARAM)
+	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_list(..., depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
@@ -383,6 +366,29 @@ chunk_option <- function(options, name) {
 	if ( is.null(ans) )
 		ans <- NA
 	ans
+}
+
+get_chunked_drop <- function(X, chunkopts, BPPARAM)
+{
+	serialize <- get_serialize(chunkopts)
+	if ( is.na(serialize) )
+		serialize <- getOption("matter.default.serialize")
+	if ( isTRUE(serialize) || !is.matter(X) ) {
+		drop <- FALSE
+	} else {
+		if ( isFALSE(serialize) || has_local_nodes(BPPARAM) ) {
+			drop <- NULL
+		} else {
+			drop <- FALSE
+		}
+	}
+	drop
+}
+
+has_local_nodes <- function(BPPARAM) {
+	known_cl <- c("SerialParam", "SnowParam", "MulticoreParam")
+	local_cl <- inherits(BPPARAM, known_cl) && is.numeric(bpworkers(BPPARAM))
+	is.null(BPPARAM) || local_cl
 }
 
 has_progressbar <- function(BPPARAM) {

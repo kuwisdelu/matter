@@ -8,10 +8,10 @@
 \alias{bpstart,SnowfastParam-method}
 \alias{bpstop,SnowfastParam-method}
 
-\title{Faster simple network of workstations (SNOW)-style parallel backend}
+\title{Fast Simple Network of Workstations (SNOW)-style Parallel Backend}
 
 \description{
-    This class provides a limited enhancement of the \code{\link{SnowParam}} parallel backend based on the newer PSOCK cluster implementation from the \code{parallel} package.
+    This class provides a enhanced version of the \code{\link{SnowParam}} parallel backend from \code{BiocParallel} based on the newer PSOCK cluster implementation from the \code{parallel} package.
 }
 
 \usage{
@@ -66,11 +66,11 @@ SnowfastParam(workers = snowWorkers(),
 
     The workers are initialized in parallel, so cluster startup can often be significantly faster than \code{SnowParam} if utilizing a large number of workers.
 
-    Because the workers are started using \code{\link{makePSOCKcluster}} from the \code{parallel} package rather than using \code{BiocParallel}, some features of \code{BiocParallel}-managed backends such as logging are unsupported or only partially available.
+    Because the workers are started using \code{\link{makePSOCKcluster}} from the \code{parallel} package rather than using \code{BiocParallel}'s startup script, some features of \code{BiocParallel}-managed backends such as logging are unsupported or only partially available.
 
     The default parameter \code{useXDR=TRUE} assumes that all nodes are little endian so that data can be sent to workers without the overhead of conversion to network byte order. This should result in overall faster performance for large datasets on compatible clusters.
 
-    \code{SnowfastParam} is intended to be used as a drop-in replacement for \code{SnowParam} in most situations and as a more stable alternative to \code{MulticoreParam} for long-running jobs in environments like RStudio where forking the R process should be avoided.
+    \code{SnowfastParam} is intended to be used as a drop-in replacement for \code{SnowParam} in most situations and as a more stable alternative to \code{MulticoreParam} for long-running jobs in graphical environments like RStudio where forking the R process should be avoided.
 }
 
 \section{Methods}{

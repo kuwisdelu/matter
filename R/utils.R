@@ -7,7 +7,7 @@
 		matter.compress.atoms = 3,
 		matter.default.nchunks = 20L,
 		matter.default.chunksize = NA_real_,
-		matter.default.serialize = TRUE,
+		matter.default.serialize = NA,
 		matter.default.verbose = FALSE,
 		matter.matmul.bpparam = NULL,
 		matter.show.head = TRUE,
@@ -27,7 +27,7 @@
 }
 
 matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
-	serialize = TRUE, verbose = FALSE)
+	serialize = NA, verbose = FALSE)
 {
 	if ( !missing(nchunks) ) {
 		nchunks <- as.integer(nchunks)[1L]

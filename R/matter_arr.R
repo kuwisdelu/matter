@@ -745,22 +745,17 @@ lmatmul <- function(x, y, useOuter = FALSE)
 rmatmul_sc <- function(x, y, useOuter = FALSE)
 {
 	nchunks <- getOption("matter.default.nchunks")
-	verbose <- getOption("matter.default.verbose")
 	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
 	if ( useOuter ) {
 		INDEX <- chunkify(seq_len(ncol(x)), nchunks)
 		for ( i in INDEX ) {
 			xi <- as.matrix(x[,i,drop=FALSE])
-			attr(xi, "chunkinfo") <- attributes(i)
-			matter_log_chunk(xi, verbose=verbose)
 			ans <- ans + xi %*% y[i,,drop=FALSE]
 		}
 	} else {
 		INDEX <- chunkify(seq_len(nrow(x)), nchunks)
 		for ( i in INDEX ) {
 			xi <- as.matrix(x[i,,drop=FALSE])
-			attr(xi, "chunkinfo") <- attributes(i)
-			matter_log_chunk(xi, verbose=verbose)
 			ans[i,] <- xi %*% y
 		}
 	}
@@ -791,22 +786,17 @@ rmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
 lmatmul_sc <- function(x, y, useOuter = FALSE)
 {
 	nchunks <- getOption("matter.default.nchunks")
-	verbose <- getOption("matter.default.verbose")
 	ans <- matrix(0, nrow=nrow(x), ncol=ncol(y))
 	if ( useOuter ) {
 		INDEX <- chunkify(seq_len(nrow(y)), nchunks)
 		for ( i in INDEX ) {
 			yi <- as.matrix(y[i,,drop=FALSE])
-			attr(yi, "chunkinfo") <- attributes(i)
-			matter_log_chunk(yi, verbose=verbose)
 			ans <- ans + x[,i,drop=FALSE] %*% yi
 		}
 	} else {
 		INDEX <- chunkify(seq_len(ncol(y)), nchunks)
 		for ( i in INDEX ) {
 			yi <- as.matrix(y[,i,drop=FALSE])
-			attr(yi, "chunkinfo") <- attributes(i)
-			matter_log_chunk(yi, verbose=verbose)
 			ans[,i] <- x %*% yi
 		}
 	}

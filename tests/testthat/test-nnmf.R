@@ -74,7 +74,7 @@ test_that("nnmf - multiplicative updates", {
 
 test_that("nnmf - matter matrix", {
 
-	register(SerialParam())
+	options(matter.matmul.bpparam=NULL)
 	set.seed(1, kind="default")
 	nr <- 100
 	nc <- 25
@@ -106,7 +106,7 @@ test_that("nnmf - matter matrix", {
 
 test_that("nnmf - sparse matrix", {
 
-	register(SerialParam())
+	options(matter.matmul.bpparam=NULL)
 	set.seed(1, kind="default")
 	nr <- 100
 	nc <- 25
