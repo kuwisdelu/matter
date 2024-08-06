@@ -266,8 +266,7 @@ chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 			list=lapply(X, matter::as.vector),
 			vector=matter::as.vector(X),
 			array=matter::as.array(X))
-		X <- matter::update_attr(X, chunkinfo)
-		id <- attr(X, "chunkid")
+		id <- chunkinfo$chunkid
 		if ( !is.null(rngseeds) ) {
 			oseed <- matter::getRNGStream()
 			on.exit(matter::setRNGStream(oseed))
@@ -277,6 +276,7 @@ chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 			X[[1L]] <- matter::update_attr(X[[1L]], chunkinfo)
 			do.call(FUN, c(X, list(MoreArgs=MoreArgs)))
 		} else {
+			X <- matter::update_attr(X, chunkinfo)
 			FUN(X, ...)
 		}
 	}, envir=copy_env(environment(NULL)))
@@ -287,7 +287,7 @@ chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 	local(function(X, ..., MoreArgs)
 	{
 		id <- attr(X, "chunkid")
-		ans <- vector("list", attr(X, "chunksize"))
+		ans <- vector("list", attr(X, "chunklen"))
 		dep <- attr(X, "depends")
 		N <- switch(type,
 			list=length(X),

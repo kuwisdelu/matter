@@ -49,7 +49,7 @@ test_that("chunked - memory", {
 	uc <- chunked_vec(u, nchunks=nchunks, depends=ind)
 	a <- attr(uc[[1L]], "chunkinfo")
 
-	expect_equal(a$chunksize, length(i1))
+	expect_equal(a$chunklen, length(i1))
 	expect_is(a$depends, "list")
 	expect_equal(
 		length(a$depends),

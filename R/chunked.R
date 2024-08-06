@@ -198,7 +198,7 @@ matter_log_chunk <- function(x, verbose) {
 	}
 	matter_log("# processing chunk ",
 		info$chunkid, "/", info$nchunks,
-		" (", info$chunksize, " items | ", size, ")", verbose=verbose)
+		" (", info$chunklen, " items | ", size, ")", verbose=verbose)
 }
 
 chunkify <- function(x, nchunks = 20L, depends = NULL) {
@@ -231,7 +231,7 @@ chunkify <- function(x, nchunks = 20L, depends = NULL) {
 		attr(ans[[i]], "index") <- c(ind)
 		attr(ans[[i]], "depends") <- c(dep)
 		attr(ans[[i]], "chunkid") <- i
-		attr(ans[[i]], "chunksize") <- n
+		attr(ans[[i]], "chunklen") <- n
 		attr(ans[[i]], "nchunks") <- nchunks
 	}
 	names(ans) <- names(x)
