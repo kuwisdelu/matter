@@ -203,6 +203,11 @@ inline bool create_shared_memory_obj(const char * name)
 	return true;
 }
 
+inline bool remove_shared_memory_obj(const char * name)
+{
+	return ipc::shared_memory_object::remove(name);
+}
+
 inline bool detect_shared_memory_obj(const char * name)
 {
 	try {
@@ -227,9 +232,18 @@ inline index_t sizeof_shared_memory_obj(const char * name)
 	return static_cast<index_t>(size);
 }
 
-inline bool remove_shared_memory_obj(const char * name)
+inline index_t resize_shared_memory_obj(const char * name, size_t value)
 {
-	return ipc::shared_memory_object::remove(name);
+	ipc::offset_t size = 0;
+	try {
+		ipc::shared_memory_object shm(ipc::open_only, name, ipc::read_write);
+		shm.truncate(value);
+		shm.get_size(size);
+	}
+	catch(...) {
+		Rf_error("could not resize shared memory: %s", name);
+	}
+	return static_cast<index_t>(size);
 }
 
 #endif // SHARED_RESOURCES

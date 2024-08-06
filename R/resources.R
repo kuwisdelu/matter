@@ -106,6 +106,10 @@ sizeof_memory_resource <- function(name, owned = FALSE)
 	}
 }
 
+resize_memory_resource <- function(name, value) {
+	.Call(C_resizeSharedMemory, as.character(name), as.double(value), PACKAGE="matter")
+}
+
 is_shared_memory_pattern <- function(name) {
 	substr(as.character(name), 1L, 1L) == ":"
 }

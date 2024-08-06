@@ -19,6 +19,7 @@ SEXP createSharedMemory(SEXP name);
 SEXP removeSharedMemory(SEXP name);
 SEXP detectSharedMemory(SEXP names);
 SEXP sizeofSharedMemory(SEXP names);
+SEXP resizeSharedMemory(SEXP name, SEXP value);
 
 // Search and selection
 //----------------------

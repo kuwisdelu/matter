@@ -153,9 +153,14 @@ setReplaceMethod("readonly", "atoms",
 
 setMethod("checksum", "character",
 	function(x, algo = "sha1", ...) {
-		x <- normalizePath(x, mustWork=TRUE)
-		hash <- sapply(x, function(filename)
-			digest(filename, algo=algo, file=TRUE, ...))
+		x <- normalizePath(x, mustWork=FALSE)
+		hash <- vapply(x, function(name) {
+				if ( is_shared_memory_pattern(name) ) {
+					NA_character_
+				} else {
+					digest(name, algo=algo, file=TRUE, ...)
+				}
+			}, character(1L))
 		attr(hash, "algo") <- algo
 		hash
 	})
@@ -267,6 +272,24 @@ ungroup_atoms <- function(x) {
 		group=0L,
 		readonly=x@readonly,
 		refs=x@refs)
+}
+
+requisition_atoms <- function(x) {
+	shms <- path(x)[is_shared_memory_pattern(path(x))]
+	for ( shm in shms )
+	{
+		i <- x@source[] %in% shm
+		max_extent <- max(x@offset[i] + x@extent[i] * sizeof(x@type[i]))
+		if ( max_extent > sizeof_memory_resource(shm) ) {
+			if ( readonly(x) ) {
+				matter_error("cannot resize read-only shared memory")
+			} else {
+				newsize <- resize_memory_resource(shm, max_extent)
+			}
+		}
+		if ( newsize < max_extent )
+			matter_error("failed to resize shared memory: ", sQuote(shm))
+	}
 }
 
 setMethod("as.data.frame", "atoms",

@@ -40,6 +40,12 @@ SEXP sizeofSharedMemory(SEXP names)
 	return result;
 }
 
+SEXP resizeSharedMemory(SEXP name, SEXP value)
+{
+	return Rf_ScalarReal(resize_shared_memory_obj(CHAR(Rf_asChar(name)),
+		static_cast<size_t>(Rf_asReal(value))));
+}
+
 // Search, sort and select
 //------------------------
 

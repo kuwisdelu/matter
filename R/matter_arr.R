@@ -143,8 +143,12 @@ matter_arr <- function(data, type = "double", path = NULL,
 		x <- as(x, "matter_vec")
 	if ( length(dim) == 2L )
 		x <- as(x, "matter_mat")
-	if ( !missing(data) && !is.null(data) )
-		x[] <- data
+	if ( !missing(data) ) {
+		if ( any(is_shared_memory_pattern(path)) )
+			requisition_atoms(atomdata(x))
+		if ( !is.null(data) )
+			x[] <- data
+	}
 	x
 }
 
@@ -192,7 +196,7 @@ matter_mat <- function(data, type = "double", path = NULL,
 		if ( is.na(nrow) && !rowMaj )
 			nrow <- max(extent)
 	}
-	x <- matter_arr(data=NULL, type=type, path=path, dim=c(nrow, ncol),
+	x <- matter_arr(NULL, type=type, path=path, dim=c(nrow, ncol),
 		dimnames=dimnames, offset=offset, extent=extent,
 		readonly=readonly, append=append, rowMaj=rowMaj, ...)
 	x <- as(x, "matter_mat")

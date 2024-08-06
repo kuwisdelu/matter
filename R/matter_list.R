@@ -19,6 +19,9 @@ matter_list <- function(data, type = "double", path = NULL,
 			nch <- vapply(data[chr],
 				function(ch) nchar(ch, "bytes")[1L], numeric(1))
 			lengths[chr] <- nch
+		} else {
+			if ( length(data) == 1L && length(data[[1L]]) == 1L )
+				data <- rep.int(data, length(lengths))
 		}
 		if ( is.null(names) )
 			names <- names(data)
@@ -91,8 +94,12 @@ matter_list <- function(data, type = "double", path = NULL,
 		type=as_Rtype(type),
 		dim=lengths,
 		names=names, ...)
-	if ( !missing(data) && !is.null(data) )
-		x[] <- data
+	if ( !missing(data) ) {
+		if ( any(is_shared_memory_pattern(path)) )
+			requisition_atoms(atomdata(x))
+		if ( !is.null(data) )
+			x[] <- data
+	}
 	x
 }
 

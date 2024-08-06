@@ -14,6 +14,7 @@ static const R_CallMethodDef callMethods[] = {
 	CALLDEF(removeSharedMemory, 1),
 	CALLDEF(detectSharedMemory, 1),
 	CALLDEF(sizeofSharedMemory, 1),
+	CALLDEF(resizeSharedMemory, 2),
 	// search and select
 	CALLDEF(relativeDiff, 3),
 	CALLDEF(quickOrder, 1),
