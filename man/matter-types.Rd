@@ -13,13 +13,15 @@
 	\itemize{
 	    \item{\code{raw}: \code{matter} objects of this mode are typically vectors of raw bytes.}
 
-	    \item{\code{logical}: Any \code{matter} object that represents a logical vector or has had any Compare or Logic delayed operations applied to it will be of this type.}
+	    \item{\code{logical}: \code{matter} object represented logical vector in R.}
 
-	    \item{\code{integer}: \code{matter} objects represented as integers in R.}
+	    \item{\code{integer}: \code{matter} objects represented as integer vectors in R.}
 
-	    \item{\code{numeric}: \code{matter} objects represented as doubles in R.}
+	    \item{\code{numeric}: \code{matter} objects represented as double vectors in R.}
 
 	    \item{\code{character}: \code{matter} objects representated as character vectors in R.}
+
+	    \item{\code{list}: Not used. This type exists for inferring conversions between R types and C types, but \code{matter_list} objects instead report the types of their elements.}
     }
 
     In virtual memory, \code{matter} objects may be composed of atomic units of the following data types:
