@@ -35,7 +35,7 @@ remove_file_resource <- function(handle)
 	{
 		owner <- matter_shared_resource_pool()[[name]]
 		if ( owner == Sys.getpid() ) {
-			add_shared_file_freed(sizeof_file_resource(name))
+			update_shared_file_max()
 			status <- file.remove(path)
 			rm(list=name, envir=matter_shared_resource_pool())
 		}
@@ -84,7 +84,7 @@ remove_memory_resource <- function(handle)
 	{
 		owner <- matter_shared_resource_pool()[[name]]
 		if ( owner == Sys.getpid() ) {
-			add_shared_memory_freed(sizeof_memory_resource(name))
+			update_shared_memory_max()
 			status <- .Call(C_removeSharedMemory, name, PACKAGE="matter")
 			rm(list=name, envir=matter_shared_resource_pool())
 		}
@@ -154,33 +154,39 @@ finalize_shared_resource <- function(handle)
 }
 
 shared_resources <- list2env(list(
-	.shared_file_freed=size_bytes(0),
-	.shared_memory_freed=size_bytes(0)))
+	.shared_file_max_used=size_bytes(0),
+	.shared_memory_max_used=size_bytes(0)))
 
-get_shared_file_freed <- function() {
-	shared_resources[[".shared_file_freed"]]
+get_shared_file_max <- function() {
+	shared_resources[[".shared_file_max_used"]]
 }
 
-set_shared_file_freed <- function(value) {
-	shared_resources[[".shared_file_freed"]] <- size_bytes(unname(value))
+set_shared_file_max <- function(value) {
+	shared_resources[[".shared_file_max_used"]] <- size_bytes(unname(value))
 }
 
-add_shared_file_freed <- function(value) {
-	current <- get_shared_file_freed()
-	set_shared_file_freed(current + value)
+update_shared_file_max <- function()
+{
+	current <- sum(sizeof_file_resource(owned=TRUE))
+	if ( current > get_shared_file_max() )
+		set_shared_file_max(current)
+	invisible(get_shared_file_max())
 }
 
-get_shared_memory_freed <- function() {
-	shared_resources[[".shared_memory_freed"]]
+get_shared_memory_max <- function() {
+	shared_resources[[".shared_memory_max_used"]]
 }
 
-set_shared_memory_freed <- function(value) {
-	shared_resources[[".shared_memory_freed"]] <- size_bytes(unname(value))
+set_shared_memory_max <- function(value) {
+	shared_resources[[".shared_memory_max_used"]] <- size_bytes(unname(value))
 }
 
-add_shared_memory_freed <- function(value) {
-	current <- get_shared_memory_freed()
-	set_shared_memory_freed(current + value)
+update_shared_memory_max <- function()
+{
+	current <- sum(sizeof_memory_resource(owned=TRUE))
+	if ( current > get_shared_memory_max() )
+		set_shared_memory_max(current)
+	invisible(get_shared_memory_max())
 }
 
 matter_shared_resource_pool <- function() shared_resources

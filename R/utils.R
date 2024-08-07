@@ -1127,16 +1127,16 @@ mem <- function(x, reset = FALSE)
 		gc.result <- gc(reset=reset)
 		gc.cols <- c(1L, ncol(gc.result) - 1L)
 		real <- unname(colSums(gc.result[,gc.cols] * cell.size))
-		shm.used <- sum(sizeof_memory_resource(owned=TRUE))
+		temp <- sum(unname(sizeof_file_resource(owned=TRUE)))
+		shm.used <- sum(unname(sizeof_memory_resource(owned=TRUE)))
 		if ( reset ) {
-			set_shared_memory_freed(0)
-			set_shared_file_freed(0)
+			set_shared_memory_max(shm.used)
+			set_shared_file_max(temp)
 			shm.max <- shm.used
 		} else {
-			shm.max <- shm.used + get_shared_memory_freed()
+			shm.max <- update_shared_memory_max()
 		}
 		shared <- unname(c(shm.used, shm.max))
-		temp <- sum(unname(sizeof_file_resource(owned=TRUE)))
 		mem <- c(
 			"real"=real[1L],
 			"shared"=shared[1L],
