@@ -16,6 +16,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
 BUG FIXES
 
     o Improved behavior for the general 'matter()' constructor
+    o Use private RNG for 'uuid()' to avoid collisions
+        from 'set.seed()' and to avoid changing '.Random.seed'
 
 CHANGES IN VERSION 2.7.4 [2024-8-2]
 ------------------------------------

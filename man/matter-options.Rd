@@ -16,9 +16,9 @@ matter_defaults(nchunks = 20L, chunksize = NA_real_,
 }
 
 \arguments{
-	\item{nchunks}{The number of chunks to use. This sets \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
+	\item{nchunks}{The number of chunks to use for chunk processing (e.g., in \code{\link{chunkApply}}. This sets \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory.}
 
-	\item{chunksize}{The approximate chunk size in bytes. This sets \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory. If set to \code{NA_real_}, then the chunk size is determined by the number of chunks.}
+	\item{chunksize}{The approximate chunk size in bytes for chunk processing (e.g., in \code{\link{chunkApply}}. This sets \code{getOption("matter.default.chunksize")}. For IO-bound operations, using larger chunks will often be faster, but use more memory. If set to \code{NA_real_}, then the chunk size is determined by the number of chunks.}
 
 	\item{serialize}{Whether data in virtual memory should be realized on the manager and serialized to the workers (\code{TRUE}), passed to the workers in virtual memory as-is (\code{FALSE}), or if \code{matter} should decide the behavior based on the cluster configuration (\code{NA}). This sets \code{getOption("matter.default.serialize")}. If all workers have access to the same virtual memory resources (whether file storage or shared memory), then it can be significantly faster to avoid serializing the data.}
 

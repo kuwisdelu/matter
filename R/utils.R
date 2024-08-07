@@ -1029,7 +1029,11 @@ raw2hex <- function(x, uppercase = FALSE) {
 
 # create a uuid
 
-uuid <- function(uppercase = FALSE) {
+uuid <- function(uppercase = FALSE)
+{
+	oseed <- getRNGStream()
+	on.exit(setRNGStream(oseed))
+	setRNGStream(get_shared_RNGStream())
 	hex <- as.raw(0:255)
 	version <- hex[65:80] # 0100 xxxx (version 4)
 	variant <- hex[129:192] # 10xx xxxx (variant 1)
@@ -1039,6 +1043,7 @@ uuid <- function(uppercase = FALSE) {
 	clock_seq_hi_and_res <- sample(variant, 1)
 	clock_seq_low <- sample(hex, 1)
 	node <- sample(hex, 6)
+	set_shared_RNGStream(getRNGStream()$seed)
 	bytes <- c(time_low, time_hi, time_hi_and_version,
 		clock_seq_hi_and_res, clock_seq_low, node)
 	string <- c(

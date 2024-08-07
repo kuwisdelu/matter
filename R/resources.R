@@ -155,7 +155,16 @@ finalize_shared_resource <- function(handle)
 
 shared_resources <- list2env(list(
 	.shared_file_max_used=size_bytes(0),
-	.shared_memory_max_used=size_bytes(0)))
+	.shared_memory_max_used=size_bytes(0),
+	.Random.seed=NULL))
+
+get_shared_RNGStream <- function() {
+	shared_resources[[".Random.seed"]]
+}
+
+set_shared_RNGStream <- function(value) {
+	shared_resources[[".Random.seed"]] <- value
+}
 
 get_shared_file_max <- function() {
 	shared_resources[[".shared_file_max_used"]]

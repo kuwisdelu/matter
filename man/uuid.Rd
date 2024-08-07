@@ -8,7 +8,7 @@
 \title{Universally Unique Identifiers}
 
 \description{
-    Generate a UUID.
+    Generate a UUIDv4.
 }
 
 \usage{
@@ -20,13 +20,13 @@ raw2hex(x, uppercase = FALSE)
 }
 
 \arguments{
-	\item{x}{A vector of to convert between \code{raw} bytes and hexadecimal strings.}
+	\item{x}{A vector to convert between \code{raw} bytes and hexadecimal strings.}
 
 	\item{uppercase}{Should the result be in uppercase?}
 }
 
 \details{
-    \code{uuid} generates a random universally unique identifier.
+    \code{uuid} generates a random (version 4) universally unique identifier. A private RNG stream is used to avoid collisions due to \code{set.seed} and to avoid altering the global \code{.Random.seed}.
 
     \code{hex2raw} converts a hexadecimal string to a \code{raw} vector.
 

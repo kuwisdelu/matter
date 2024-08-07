@@ -3,6 +3,27 @@ require(matter)
 
 context("shared-resources")
 
+test_that("uuid", {
+
+	set.seed(1)
+	oseed0 <- getRNGStream()
+	id0 <- uuid()
+	seed0 <- getRNGStream()
+
+	expect_equal(seed0, oseed0)
+
+	set.seed(1)
+	oseed1 <- getRNGStream()
+	id1 <- uuid()
+	seed1 <- getRNGStream()
+
+	expect_equal(seed1, oseed1)
+
+	expect_true(identical(seed0, seed1))
+	expect_false(identical(id0, id1))
+
+})
+
 test_that("shared_file", {
 
 	name <- tempfile()
@@ -23,8 +44,8 @@ test_that("shared_file", {
 	rm(y)
 	gc(full=TRUE)
 
-	expect_true(!name %in% matter_shared_resource_list())
-	expect_true(!file.exists(name))
+	expect_false(name %in% matter_shared_resource_list())
+	expect_false(file.exists(name))
 
 })
 
@@ -51,7 +72,7 @@ test_that("shared_file - matter_arr", {
 	rm(y)
 	gc(full=TRUE)
 
-	expect_true(!file.exists(p))
+	expect_false(file.exists(p))
 
 })
 
@@ -77,7 +98,7 @@ test_that("shared_file - matter_list", {
 	rm(y)
 	gc(full=TRUE)
 
-	expect_true(!file.exists(p))
+	expect_false(file.exists(p))
 
 })
 
@@ -99,7 +120,7 @@ test_that("shared_memory", {
 	rm(y)
 	gc(full=TRUE)
 
-	expect_true(!name %in% matter_shared_resource_list())
+	expect_false(name %in% matter_shared_resource_list())
 
 })
 

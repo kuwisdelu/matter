@@ -17,7 +17,7 @@ test_that("SnowfastParam", {
 	expect_is(bpbackend(sp0), "NULLcluster")
 	expect_true(bpisup(bpstart(sp0)))
 	expect_is(bpbackend(sp0), "SOCKcluster")
-	expect_true(!bpisup(bpstop(sp0)))
+	expect_false(bpisup(bpstop(sp0)))
 
 	zs0 <- chunkLapply(x, sum, BPPARAM=sp0)
 	zn0 <- chunkLapply(x, sum, BPPARAM=NULL)
