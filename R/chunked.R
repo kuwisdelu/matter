@@ -6,6 +6,7 @@ setClass("chunked",
 	slots = c(
 		data = "ANY",
 		index = "list",
+		shared = "logical",
 		verbose = "logical",
 		drop = "logical_OR_NULL"),
 	contains = "VIRTUAL",
@@ -16,6 +17,8 @@ setClass("chunked",
 		index_ok <- vapply(object@index, is.numeric, logical(1L))
 		if ( !all(index_ok) )
 			errors <- c(errors, "'index' must be a list of numeric vectors")
+		if ( length(object@shared) != 1L )
+			errors <- c(errors, "'shared' must be a scalar logical")
 		if ( is.logical(object@drop) && length(object@drop) != 1L )
 			errors <- c(errors, "'drop' must be a scalar logical or NULL")
 		if ( length(object@verbose) != 1L )
@@ -85,7 +88,7 @@ setMethod("[",
 	})
 
 chunked_vec <- function(x, nchunks = NA, chunksize = NA,
-	verbose = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, shared = FALSE, depends = NULL, drop = FALSE)
 {
 	if ( is.na(chunksize) )
 		chunksize <- getOption("matter.default.chunksize")
@@ -98,11 +101,11 @@ chunked_vec <- function(x, nchunks = NA, chunksize = NA,
 	}
 	index <- chunkify(seq_along(x), nchunks=nchunks, depends=depends)
 	new("chunked_vec", data=x, index=index,
-		verbose=verbose, drop=drop)
+		shared=shared, verbose=verbose, drop=drop)
 }
 
 chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
-	verbose = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, shared = FALSE, depends = NULL, drop = FALSE)
 {
 	if ( length(dim(x)) != 2L )
 		matter_error("'x' must have exactly 2 dimensions")
@@ -122,11 +125,11 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 		chunkify(seq_len(nrow(x)), nchunks=nchunks, depends=depends),
 		chunkify(seq_len(ncol(x)), nchunks=nchunks, depends=depends))
 	new("chunked_mat", data=x, margin=margin, index=index,
-		verbose=verbose, drop=drop)
+		shared=shared, verbose=verbose, drop=drop)
 }
 
 chunked_list <- function(..., nchunks = NA, chunksize = NA,
-	verbose = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, shared = FALSE, depends = NULL, drop = FALSE)
 {
 	xs <- list(...)
 	if ( length(xs) > 1L ) {
@@ -151,13 +154,15 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 	}
 	index <- chunkify(seq_along(xs[[1L]]), nchunks=nchunks, depends=depends)
 	new("chunked_list", data=xs, index=index,
-		verbose=verbose, drop=drop)
+		shared=shared, verbose=verbose, drop=drop)
 }
 
 setMethod("[[", c(x = "chunked_list"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
 		y <- lapply(x@data, `[`, x@index[[i]], drop=x@drop)
+		if ( x@shared )
+			y <- lapply(y, as.shared)
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		matter_log_chunk(y, verbose=x@verbose)
 		y
@@ -167,6 +172,8 @@ setMethod("[[", c(x = "chunked_vec"),
 	function(x, i, j, ..., exact = TRUE) {
 		i <- as_subscripts(i, x)
 		y <- x@data[x@index[[i]],drop=x@drop]
+		if ( x@shared )
+			y <- as.shared(y)
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		matter_log_chunk(y, verbose=x@verbose)
 		y
@@ -178,6 +185,8 @@ setMethod("[[", c(x = "chunked_mat"),
 		y <- switch(x@margin,
 			x@data[x@index[[i]],,drop=x@drop],
 			x@data[,x@index[[i]],drop=x@drop])
+		if ( x@shared )
+			y <- as.shared(y)
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		attr(y, "margin") <- x@margin
 		matter_log_chunk(y, verbose=x@verbose)
