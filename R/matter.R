@@ -69,7 +69,7 @@ matter <- function(data, ...) {
 		} else if ( any(arg_str %in% nm) ) {
 			matter_str(data, ...)
 		} else {
-			matter_error("couldn't guess data structure, use 'matter_*' functions")
+			matter_error("cannot guess data structure, use 'matter_*' functions")
 		}
 	} else {
 		if ( is.vector(data) && is.raw(data) ) {
@@ -89,7 +89,8 @@ matter <- function(data, ...) {
 		} else if ( is.vector(data) &&  is.character(data) ) {
 			matter_str(data, ...)
 		} else {
-			matter_error("couldn't guess data structure, use 'matter_*' functions")
+			matter_error("cannot make 'matter' object from class ",
+				sQuote(class(data)))
 		}
 	}
 }
@@ -103,6 +104,18 @@ as.matter <- function(x) {
 		return(x)
 	} else {
 		matter(x)
+	}
+}
+
+is.shared <- function(x) {
+	is(x, "matter_") && all(is_shared_memory_pattern(path(x)))
+}
+
+as.shared <- function(x) {
+	if ( is.shared(x) ) {
+		return(x)
+	} else {
+		matter(x, path=":memory:")
 	}
 }
 

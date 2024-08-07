@@ -5,7 +5,8 @@ CHANGES IN VERSION 2.7.5 [2024-8-5]
 NEW FEATURES
 
     o Shared memory support comes to 'matter' via boost!
-    o Use 'path=":memory:"' for shared memory 'matter' objects
+    o Add 'as.shared()' for coercion to shared memory 'matter' objects
+    o Use 'path=":memory:"' to construct 'matter' object in shared memory
     o Use 'mem()' to monitor shared memory usage
 
 SIGNIFICANT USER-VISIBLE CHANGES

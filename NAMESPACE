@@ -138,6 +138,8 @@ export(
 	"matter",
 	"is.matter",
 	"as.matter",
+	"is.shared",
+	"as.shared",
 	"matter_arr",
 	"matter_mat",
 	"matter_vec",
