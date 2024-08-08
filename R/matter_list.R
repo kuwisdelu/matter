@@ -215,7 +215,7 @@ setMethod("describe_for_display", "matter_list", function(x) {
 
 setMethod("preview_for_display", "matter_list", function(x) preview_list(x))
 
-setMethod("vm_realized", "matter_list", function(x) {
+setMethod("mem_realized", "matter_list", function(x) {
 	size_bytes(sum(lengths(x) * sizeof(type(x)), na.rm=TRUE))
 })
 

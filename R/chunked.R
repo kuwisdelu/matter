@@ -57,9 +57,9 @@ setMethod("show", "chunked", function(object) {
 	cat("with", sum(lengths(object@index)), "total items\n")
 })
 
-setMethod("shm_used", "chunked", function(x) shm_used(x@data))
-
 setMethod("vm_used", "chunked", function(x) vm_used(x@data))
+
+setMethod("shm_used", "chunked", function(x) shm_used(x@data))
 
 setMethod("length", "chunked", function(x) length(x@index))
 
@@ -91,7 +91,7 @@ chunked_vec <- function(x, nchunks = NA, chunksize = NA,
 		chunksize <- getOption("matter.default.chunksize")
 	if ( is.na(nchunks) ) {
 		if ( is.finite(chunksize) && chunksize > 0 ) {
-			nchunks <- ceiling(unclass(vm_realized(x)) / chunksize)
+			nchunks <- ceiling(unclass(mem_realized(x)) / chunksize)
 		} else {
 			nchunks <- getOption("matter.default.nchunks")
 		}
@@ -112,7 +112,7 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 		chunksize <- getOption("matter.default.chunksize")
 	if ( is.na(nchunks) ) {
 		if ( is.finite(chunksize) && chunksize > 0 ) {
-			nchunks <- ceiling(unclass(vm_realized(x)) / chunksize)
+			nchunks <- ceiling(unclass(mem_realized(x)) / chunksize)
 		} else {
 			nchunks <- getOption("matter.default.nchunks")
 		}
@@ -144,7 +144,7 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 		chunksize <- getOption("matter.default.chunksize")
 	if ( is.na(nchunks) ) {
 		if ( is.finite(chunksize) && chunksize > 0 ) {
-			nchunks <- ceiling(unclass(vm_realized(xs)) / chunksize)
+			nchunks <- ceiling(unclass(mem_realized(xs)) / chunksize)
 		} else {
 			nchunks <- getOption("matter.default.nchunks")
 		}
@@ -187,11 +187,11 @@ setMethod("[[", c(x = "chunked_mat"),
 matter_log_chunk <- function(x, verbose) {
 	info <- attr(x, "chunkinfo")
 	if ( is.list(x) ) {
-		sizes <- vapply(x, vm_realized, numeric(1L))
+		sizes <- vapply(x, mem_realized, numeric(1L))
 		size <- format(size_bytes(sum(sizes, na.rm=TRUE)))
 	} else {
 		if ( is.matter(x) ) {
-			size <- format(size_bytes(vm_realized(x)))
+			size <- format(size_bytes(mem_realized(x)))
 		} else {
 			size <- format(size_bytes(object.size(x)))
 		}

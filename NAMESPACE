@@ -339,9 +339,9 @@ S3method("format", "size_bytes")
 export(
 	"size_bytes",
 	"sizeof",
-	"shm_used",
 	"vm_used",
-	"vm_realized")
+	"shm_used",
+	"mem_realized")
 
 export(
 	"approx1",

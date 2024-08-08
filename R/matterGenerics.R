@@ -134,8 +134,8 @@ setMethod("shm_used", "vector", function(x) {
 		size_bytes(NA_real_)
 	}
 })
-setGeneric("vm_realized", function(x) standardGeneric("vm_realized"))
-setMethod("vm_realized", "ANY", function(x) {
+setGeneric("mem_realized", function(x) standardGeneric("mem_realized"))
+setMethod("mem_realized", "ANY", function(x) {
 	size_bytes(sum(mem(x)[c("real","virtual")], na.rm=TRUE))
 })
 

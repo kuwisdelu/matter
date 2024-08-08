@@ -84,7 +84,7 @@ setMethod("describe_for_display", "matter_str", function(x) {
 
 setMethod("preview_for_display", "matter_str", function(x) preview_vector(x))
 
-setMethod("vm_realized", "matter_str", function(x) {
+setMethod("mem_realized", "matter_str", function(x) {
 	size_bytes(sum(lengths(x) * sizeof(type(x)), na.rm=TRUE))
 })
 

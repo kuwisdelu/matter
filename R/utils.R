@@ -626,17 +626,17 @@ nlines <- function(x) {
 ## -----------------------------
 
 show_matter_mem <- function(x) {
-	rmem <- size_bytes(object.size(x))
-	rmem <- format(rmem, units="auto")
+	size <- size_bytes(object.size(x))
+	size <- format(size, units="auto")
 	if ( is.matter(x) ) {
-		shmem <- format(shm_used(x), units="auto")
-		vmem <- format(vm_used(x), units="auto")
+		shm <- format(shm_used(x), units="auto")
+		vm <- format(vm_used(x), units="auto")
 		cat("(",
-			rmem, " real", " | ",
-			shmem, " shared", " | ",
-			vmem, " virtual)\n", sep="")
+			size, " real", " | ",
+			shm, " shared", " | ",
+			vm, " virtual)\n", sep="")
 	} else {
-		cat("(", rmem, " real)\n", sep="")
+		cat("(", size, " real)\n", sep="")
 	}
 }
 
