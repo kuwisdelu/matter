@@ -64,13 +64,12 @@ chunk_rowapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	progress <- verbose && !has_progressbar(BPPARAM)
-	shared <- get_chunked_shared(X, chunkopts, BPPARAM)
 	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
+	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=1L, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
-		verbose=progress, shared=shared, drop=drop)
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -98,13 +97,12 @@ chunk_colapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	progress <- verbose && !has_progressbar(BPPARAM)
-	shared <- get_chunked_shared(X, chunkopts, BPPARAM)
 	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
+	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=2L, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
-		verbose=progress, shared=shared, drop=drop)
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -168,13 +166,12 @@ chunk_lapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	progress <- verbose && !has_progressbar(BPPARAM)
-	shared <- get_chunked_shared(X, chunkopts, BPPARAM)
 	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
+	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_vec(X, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
-		verbose=progress, shared=shared, drop=drop)
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -238,13 +235,12 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	progress <- verbose && !has_progressbar(BPPARAM)
-	shared <- get_chunked_shared(...elt(1L), chunkopts, BPPARAM)
 	drop <- get_chunked_drop(...elt(1L), chunkopts, BPPARAM)
+	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_list(..., depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
-		verbose=progress, shared=shared, drop=drop)
+		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		rngseeds <- NULL
 	} else {
@@ -361,8 +357,6 @@ get_nchunks <- function(options) chunk_option(options, "nchunks")
 
 get_chunksize <- function(options) chunk_option(options, "chunksize")
 
-get_fastchunks <- function(options) chunk_option(options, "fastchunks")
-
 get_serialize <- function(options) chunk_option(options, "serialize")
 
 chunk_option <- function(options, name) {
@@ -374,29 +368,12 @@ chunk_option <- function(options, name) {
 	ans
 }
 
-get_chunked_shared <- function(X, chunkopts, BPPARAM)
-{
-	fastchunks <- get_fastchunks(chunkopts)
-	if ( is.na(fastchunks) )
-		fastchunks <- getOption("matter.default.fastchunks")
-	if ( isFALSE(fastchunks) || has_external_data(X) ) {
-		shared <- FALSE
-	} else {
-		if ( isTRUE(fastchunks) && has_nlocal_nodes(BPPARAM) ) {
-			shared <- TRUE
-		} else {
-			shared <- FALSE
-		}
-	}
-	shared
-}
-
 get_chunked_drop <- function(X, chunkopts, BPPARAM)
 {
 	serialize <- get_serialize(chunkopts)
 	if ( is.na(serialize) )
 		serialize <- getOption("matter.default.serialize")
-	if ( isTRUE(serialize) || !has_external_data(X) ) {
+	if ( isTRUE(serialize) || !is.matter(X) ) {
 		drop <- FALSE
 	} else {
 		if ( isFALSE(serialize) || has_local_nodes(BPPARAM) ) {
@@ -406,15 +383,6 @@ get_chunked_drop <- function(X, chunkopts, BPPARAM)
 		}
 	}
 	drop
-}
-
-has_external_data <- function(X) {
-	is(X, "matter_") || (is(X, "matter") && is.matter(atomdata(X)))
-}
-
-has_nlocal_nodes <- function(BPPARAM, n = 2) {
-	n_ok <- is(BPPARAM, "BiocParallelParam") && bpnworkers(BPPARAM) >= n
-	has_local_nodes(BPPARAM) && n_ok
 }
 
 has_local_nodes <- function(BPPARAM) {
