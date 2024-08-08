@@ -67,7 +67,7 @@ test_that("chunked - matter", {
 	i1 <- i[[1L]]
 
 	nchunks <- 20L
-	drop <- TRUE
+	drop <- FALSE
 	xc <- chunked_vec(x, nchunks=nchunks, drop=drop)
 	yc <- chunked_vec(y, nchunks=nchunks, drop=drop)
 	zc1 <- chunked_mat(z, 1L, nchunks=nchunks, drop=drop)

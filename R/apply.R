@@ -373,7 +373,7 @@ get_chunked_drop <- function(X, chunkopts, BPPARAM)
 	serialize <- get_serialize(chunkopts)
 	if ( is.na(serialize) )
 		serialize <- getOption("matter.default.serialize")
-	if ( isTRUE(serialize) || !is.matter(X) ) {
+	if ( isTRUE(serialize) || !has_external_data(X) ) {
 		drop <- FALSE
 	} else {
 		if ( isFALSE(serialize) || has_local_nodes(BPPARAM) ) {
@@ -383,6 +383,10 @@ get_chunked_drop <- function(X, chunkopts, BPPARAM)
 		}
 	}
 	drop
+}
+
+has_external_data <- function(X) {
+	is(X, "matter_") || (is(X, "matter") && is.matter(atomdata(X)))
 }
 
 has_local_nodes <- function(BPPARAM) {
