@@ -7,6 +7,7 @@
 		matter.compress.atoms = 3,
 		matter.default.nchunks = 20L,
 		matter.default.chunksize = NA_real_,
+		matter.default.fastchunks = TRUE,
 		matter.default.serialize = NA,
 		matter.default.verbose = FALSE,
 		matter.matmul.bpparam = NULL,
@@ -27,7 +28,7 @@
 }
 
 matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
-	serialize = NA, verbose = FALSE)
+	fastchunks = TRUE, serialize = NA, verbose = FALSE)
 {
 	if ( !missing(nchunks) ) {
 		nchunks <- as.integer(nchunks)[1L]
@@ -40,6 +41,12 @@ matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
 		options(matter.default.chunksize=chunksize)
 	} else {
 		chunksize <- getOption("matter.default.chunksize")
+	}
+	if ( !missing(fastchunks) ) {
+		fastchunks <- isTRUE(as.logical(fastchunks)[1L])
+		options(matter.default.chunksize=fastchunks)
+	} else {
+		fastchunks <- getOption("matter.default.fastchunks")
 	}
 	if ( !missing(serialize) ) {
 		serialize <- as.logical(serialize)[1L]
@@ -54,7 +61,7 @@ matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
 		verbose <- getOption("matter.default.verbose")
 	}
 	defaults <- list(nchunks=nchunks, chunksize=size_bytes(chunksize),
-		serialize=serialize, verbose=verbose)
+		fastchunks=fastchunks, serialize=serialize, verbose=verbose)
 	if ( nargs() > 0L ) {
 		invisible(defaults)
 	} else {
@@ -1214,16 +1221,15 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 	}
 	matter_log(tstamp(), verbose=verbose)
 	end <- mem(reset=FALSE)[mem.cols]
-	overhead <- c(
-		"real"=unname(end["max real"] - end["real"]),
-		"shared"=unname(end["max shared"] - end["shared"]))
 	change <- c(
 		"real"=unname(end["real"] - start["real"]),
 		"shared"=unname(end["shared"] - start["shared"]))
 	result <- list(
 		"start"=start, "end"=end,
-		"overhead"=size_bytes(overhead),
 		"change"=size_bytes(change))
+	overhead <- c(
+		"real"=unname(end["max real"] - end["real"]),
+		"shared"=unname(end["max shared"] - end["shared"]))
 	total <- unname(sum(end[["max real"]]) + sum(end[["max shared"]]))
 	if ( !is.null(BPPARAM) ) {
 		total.cl <- sum(end.cl[["max real"]])
@@ -1231,7 +1237,9 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 			"start"=start.cl, "end"=end.cl,
 			"total"=size_bytes(total.cl))
 		total <- total + total.cl
+		overhead["real"] <- overhead["real"] + total.cl
 	}
+	result$overhead <- size_bytes(overhead)
 	result$total <- size_bytes(total)
 	result$time <- t.end - t.start
 	structure(result, class="memtime")

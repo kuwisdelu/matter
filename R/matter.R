@@ -173,8 +173,8 @@ setReplaceMethod("dimnames", "matter", function(x, value) {
 		x
 })
 
-#### VIRTUAL 'matter_' class for file-based data structures ####
-## -----------------------------------------------------------
+#### VIRTUAL 'matter_' class for virtual memory data ####
+## -----------------------------------------------------
 
 setClass("matter_",
 	slots = c(
