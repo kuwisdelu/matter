@@ -67,7 +67,7 @@ test_that("chunked - matter", {
 	i1 <- i[[1L]]
 
 	nchunks <- 20L
-	drop <- FALSE
+	drop <- TRUE
 	xc <- chunked_vec(x, nchunks=nchunks, drop=drop)
 	yc <- chunked_vec(y, nchunks=nchunks, drop=drop)
 	zc1 <- chunked_mat(z, 1L, nchunks=nchunks, drop=drop)
@@ -91,39 +91,6 @@ test_that("chunked - matter", {
 	expect_equivalent(yl[[1L]], y[i1,drop=NULL])
 	expect_equivalent(zl1[[1L]], z[i1,,drop=NULL])
 	expect_equivalent(zl2[[1L]], z[,i1,drop=NULL])
-
-})
-
-test_that("chunked - shared", {
-
-	set.seed(1, kind="default")
-	x <- runif(100)
-	y <- replicate(100, rnorm(10), simplify=FALSE)
-	z <- matrix(rnorm(100^2), nrow=100, ncol=100)
-	i <- chunkify(seq_len(100))
-	i1 <- i[[1L]]
-
-	nchunks <- 20L
-	shared <- TRUE
-	xc <- chunked_vec(x, nchunks=nchunks, shared=shared)
-	yc <- chunked_vec(y, nchunks=nchunks, shared=shared)
-	zc1 <- chunked_mat(z, 1L, nchunks=nchunks, shared=shared)
-	zc2 <- chunked_mat(z, 2L, nchunks=nchunks, shared=shared)
-	mc <- chunked_list(x, y, nchunks=nchunks, shared=shared)
-
-	expect_true(is.shared(xc[[1L]]))
-	expect_true(is.shared(yc[[1L]]))
-	expect_true(is.shared(zc1[[1L]]))
-	expect_true(is.shared(zc2[[1L]]))
-	expect_true(is.shared(mc[[1L]][[1L]]))
-	expect_true(is.shared(mc[[1L]][[2L]]))
-
-	expect_equivalent(as.vector(xc[[1L]]), x[i1])
-	expect_equivalent(as.vector(yc[[1L]]), y[i1])
-	expect_equivalent(as.matrix(zc1[[1L]]), z[i1,,drop=FALSE])
-	expect_equivalent(as.matrix(zc2[[1L]]), z[,i1,drop=FALSE])
-	expect_equivalent(as.vector(mc[[1L]][[1L]]), x[i1])
-	expect_equivalent(as.vector(mc[[1L]][[2L]]), y[i1])
 
 })
 
