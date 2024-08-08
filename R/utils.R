@@ -1152,10 +1152,10 @@ mem <- function(x, reset = FALSE)
 		if ( inherits(x, c("cluster", "BiocParallelParam")) ) {
 			return(memcl(x, reset=reset))
 		} else {
-			rmem <- as.numeric(object.size(x))
-			shmem <- as.numeric(shm_used(x))
-			vmem <- as.numeric(vm_used(x))
-			mem <- c("real"=rmem, "shared"=shmem, "virtual"=vmem)
+			size <- as.numeric(object.size(x))
+			shm <- as.numeric(shm_used(x))
+			vm <- as.numeric(vm_used(x))
+			mem <- c("real"=size, "shared"=shm, "virtual"=vm)
 		}
 	}
 	size_bytes(mem)
