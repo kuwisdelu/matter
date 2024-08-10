@@ -96,6 +96,8 @@ setGeneric("sampler<-", function(object, ..., value) standardGeneric("sampler<-"
 
 setGeneric("as.altrep", function(x, ...) standardGeneric("as.altrep"))
 setGeneric("checksum", function(x, ...) standardGeneric("checksum"))
+setGeneric("fetch", function(object, ...) standardGeneric("fetch"))
+setGeneric("flash", function(object, ...) standardGeneric("flash"))
 
 setGeneric("rowMaj", function(x) standardGeneric("rowMaj"))
 setMethod("rowMaj", "matrix", function(x) TRUE)

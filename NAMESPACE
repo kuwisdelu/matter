@@ -191,7 +191,10 @@ exportMethods(
 	"nnzero",
 	"rowMaj")
 
-exportMethods("checksum")
+exportMethods(
+	"fetch",
+	"flash",
+	"checksum")
 
 exportMethods(
 	"describe_for_display",

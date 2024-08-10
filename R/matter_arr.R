@@ -322,6 +322,79 @@ setMethod("mem_realized", "matter_arr", function(x) {
 	size_bytes(sum(length(x) * sizeof(type(x)), na.rm=TRUE))
 })
 
+copy_to_matter_arr <- function(object, path = NULL,
+	rowMaj = TRUE, ..., BPPARAM)
+{
+	x <- matter_arr(NULL, type=type(object), path=path, rowMaj=rowMaj,
+		dim=dim(object), dimnames=dimnames(object))
+	pid <- ipcid()
+	FUN <- copy_to_matter_fun(pid, x)
+	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
+	readonly(x) <- readonly(object)
+	ipcremove(pid)
+	if ( validObject(x) )
+		x
+}
+
+copy_to_matter_mat <- function(object, path = NULL,
+	rowMaj = TRUE, ..., BPPARAM)
+{
+	x <- matter_mat(NULL, type=type(object), path=path, rowMaj=rowMaj,
+		nrow=nrow(object), ncol=ncol(object), dimnames=dimnames(object))
+	pid <- ipcid()
+	if ( rowMaj ) {
+		FUN <- copy_to_matter_fun(pid, x, 1L)
+		chunk_rowapply(object, FUN, ..., BPPARAM=BPPARAM)
+	} else {
+		FUN <- copy_to_matter_fun(pid, x, 2L)
+		chunk_colapply(object, FUN, ..., BPPARAM=BPPARAM)
+	}
+	readonly(x) <- readonly(object)
+	ipcremove(pid)
+	if ( validObject(x) )
+		x
+}
+
+copy_to_matter_vec <- function(object, path = NULL,
+	rowMaj = TRUE, ..., BPPARAM)
+{
+	x <- matter_vec(NULL, type=type(object), path=path, rowMaj=rowMaj,
+		length=length(object), names=names(object))
+	pid <- ipcid()
+	FUN <- copy_to_matter_fun(pid, x)
+	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
+	readonly(x) <- readonly(object)
+	ipcremove(pid)
+	if ( validObject(x) )
+		x
+}
+
+copy_to_matter_fun <- function(id, dest, margin = NULL)
+{
+	if ( !is.null(margin) && !margin %in% c(1L, 2L) )
+		matter_error("'margin' must be 1 or 2")
+	local(function(src) {
+		BiocParallel::ipclock(id)
+		i <- attr(src, "index")
+		if ( is.null(margin) ) {
+			dest[i] <- src
+		} else {
+			switch(margin,
+				dest[i,] <- src,
+				dest[,i] <- src)
+		}
+		BiocParallel::ipcunlock(id)
+	}, envir=copy_env(environment(NULL)))
+}
+
+setMethod("fetch", "matter_arr",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_arr(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "matter_arr",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_arr(object, ..., BPPARAM=BPPARAM))
+
 subset_matter_arr_elts <- function(x, i = NULL)
 {
 	if ( x@transpose ) {

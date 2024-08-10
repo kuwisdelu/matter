@@ -88,6 +88,29 @@ setMethod("mem_realized", "matter_str", function(x) {
 	size_bytes(sum(lengths(x) * sizeof(type(x)), na.rm=TRUE))
 })
 
+copy_to_matter_str <- function(object, path = NULL, ..., BPPARAM)
+{
+	x <- matter_str(NULL, path=path,
+		nchar=lengths(object), names=names(object),
+		encoding=Encoding(object))
+	pid <- ipcid()
+	FUN <- copy_to_matter_fun(pid, x)
+	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
+	readonly(x) <- readonly(object)
+	ipcremove(pid)
+	if ( validObject(x) )
+		x
+}
+
+setMethod("fetch", "matter_str",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_str(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "matter_str",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_str(object, ..., BPPARAM=BPPARAM))
+
+
 subset_matter_str_elts <- function(x, i = NULL)
 {
 	encoding <- Encoding(x)

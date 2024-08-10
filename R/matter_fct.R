@@ -68,6 +68,28 @@ setMethod("preview_for_display", "matter_fct", function(x) {
 	cat(paste_head(x@labels), "\n")
 })
 
+copy_to_matter_fct <- function(object, path = NULL, ..., BPPARAM)
+{
+	x <- matter_fct(NULL, path=path,
+		length=length(object), names=names(object),
+		levels=object@levels, labels=object@labels)
+	pid <- ipcid()
+	FUN <- copy_to_matter_fun(pid, x)
+	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
+	readonly(x) <- readonly(object)
+	ipcremove(pid)
+	if ( validObject(x) )
+		x
+}
+
+setMethod("fetch", "matter_fct",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_fct(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "matter_fct",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_fct(object, ..., BPPARAM=BPPARAM))
+
 get_matter_fct_elts <- function(x, i = NULL) {
 	y <- get_matter_arr_elts(x, i)
 	factor(y, levels=x@levels, labels=x@labels)

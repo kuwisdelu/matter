@@ -140,7 +140,7 @@ setReplaceMethod("path", "atoms",
 			object
 	})
 
-setMethod("type", "atoms", function(x) x@type)
+setMethod("type", "atoms", function(x) as.factor(x@type))
 
 setMethod("readonly", "atoms", function(x) x@readonly)
 
