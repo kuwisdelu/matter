@@ -2,7 +2,20 @@
 \docType{methods}
 
 \alias{fetch}
+\alias{fetch,matter_arr-method}
+\alias{fetch,matter_mat-method}
+\alias{fetch,matter_vec-method}
+\alias{fetch,matter_fct-method}
+\alias{fetch,matter_list-method}
+\alias{fetch,matter_str-method}
+
 \alias{flash}
+\alias{flash,matter_arr-method}
+\alias{flash,matter_mat-method}
+\alias{flash,matter_vec-method}
+\alias{flash,matter_fct-method}
+\alias{flash,matter_list-method}
+\alias{flash,matter_str-method}
 
 \title{Move Data Between Shared Memory and File Storage}
 
@@ -14,12 +27,28 @@
 fetch(object, \dots)
 
 flash(object, \dots)
+
+\S4method{fetch}{matter_arr}(object, \dots, BPPARAM = bpparam())
+\S4method{fetch}{matter_mat}(object, \dots, BPPARAM = bpparam())
+\S4method{fetch}{matter_vec}(object, \dots, BPPARAM = bpparam())
+\S4method{fetch}{matter_fct}(object, \dots, BPPARAM = bpparam())
+\S4method{fetch}{matter_list}(object, \dots, BPPARAM = bpparam())
+\S4method{fetch}{matter_str}(object, \dots, BPPARAM = bpparam())
+
+\S4method{flash}{matter_arr}(object, \dots, BPPARAM = bpparam())
+\S4method{flash}{matter_mat}(object, \dots, BPPARAM = bpparam())
+\S4method{flash}{matter_vec}(object, \dots, BPPARAM = bpparam())
+\S4method{flash}{matter_fct}(object, \dots, BPPARAM = bpparam())
+\S4method{flash}{matter_list}(object, \dots, BPPARAM = bpparam())
+\S4method{flash}{matter_str}(object, \dots, BPPARAM = bpparam())
 }
 
 \arguments{
     \item{object}{An object with data to move.}
     
-    \item{\dots}{Additional arguments to the \code{\linkS4class{matter}} constructor.}
+    \item{\dots}{Additional arguments to the \code{\linkS4class{matter}} constructor or \code{\link{chunk_lapply}}.}
+
+    \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 }
 
 \details{
