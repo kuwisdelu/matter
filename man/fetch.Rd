@@ -40,10 +40,16 @@ flash(object, \dots)
 
 \examples{
 set.seed(1)
-x <- runif(10)
+x <- as.matter(runif(10))
+path(x)
 
-fetch(x) # copy of x in shared memory
-flash(x) # copy of x in file storage
+# copy x into shared memory
+y <- fetch(x)
+path(y)
+
+# copy y into file storage
+z <- flash(y)
+path(z)
 }
 
 \keyword{utilities}

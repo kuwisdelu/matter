@@ -5,7 +5,7 @@ context("parallel")
 
 test_that("SnowfastParam", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 25000
 	len <- 500
 	x <- replicate(len, runif(n), simplify=FALSE)
@@ -44,7 +44,7 @@ test_that("SnowfastParam", {
 
 test_that("SnowfastParam - matter", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 2500
 	len <- 50
 	x <- replicate(len, runif(n), simplify=FALSE)

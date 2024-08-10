@@ -192,7 +192,7 @@ test_that("k-dimensional self search", {
 
 	expect_equal(kn1a, kn1b)
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	n <- 100
 	d2 <- data.frame(x=runif(n), y=runif(n))
 	t2 <- kdtree(d2)

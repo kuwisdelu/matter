@@ -5,14 +5,14 @@ context("shared-resources")
 
 test_that("uuid", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	oseed0 <- getRNGStream()
 	id0 <- uuid()
 	seed0 <- getRNGStream()
 
 	expect_equal(seed0, oseed0)
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	oseed1 <- getRNGStream()
 	id1 <- uuid()
 	seed1 <- getRNGStream()
@@ -51,7 +51,7 @@ test_that("shared_file", {
 
 test_that("shared_file - matter_arr", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	u <- runif(100)
 	x <- matter_vec(u, path=NULL)
 	p <- path(x)
@@ -126,7 +126,7 @@ test_that("shared_memory", {
 
 test_that("shared_memory - matter_arr", {
 
-	set.seed(1)
+	set.seed(1, kind="default")
 	u <- runif(100)
 	x <- matter_vec(u, path=":memory:")
 

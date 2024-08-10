@@ -323,7 +323,7 @@ setMethod("mem_realized", "matter_arr", function(x) {
 })
 
 copy_to_matter_arr <- function(object, path = NULL,
-	rowMaj = TRUE, ..., BPPARAM)
+	rowMaj = FALSE, ..., BPPARAM)
 {
 	x <- matter_arr(NULL, type=type(object), path=path, rowMaj=rowMaj,
 		dim=dim(object), dimnames=dimnames(object))
@@ -337,7 +337,7 @@ copy_to_matter_arr <- function(object, path = NULL,
 }
 
 copy_to_matter_mat <- function(object, path = NULL,
-	rowMaj = TRUE, ..., BPPARAM)
+	rowMaj = FALSE, ..., BPPARAM)
 {
 	x <- matter_mat(NULL, type=type(object), path=path, rowMaj=rowMaj,
 		nrow=nrow(object), ncol=ncol(object), dimnames=dimnames(object))
@@ -356,7 +356,7 @@ copy_to_matter_mat <- function(object, path = NULL,
 }
 
 copy_to_matter_vec <- function(object, path = NULL,
-	rowMaj = TRUE, ..., BPPARAM)
+	rowMaj = FALSE, ..., BPPARAM)
 {
 	x <- matter_vec(NULL, type=type(object), path=path, rowMaj=rowMaj,
 		length=length(object), names=names(object))
@@ -395,11 +395,27 @@ setMethod("flash", "matter_arr",
 	function(object, ..., BPPARAM = bpparam())
 		copy_to_matter_arr(object, ..., BPPARAM=BPPARAM))
 
+setMethod("fetch", "matter_mat",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_mat(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "matter_mat",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_mat(object, ..., BPPARAM=BPPARAM))
+
+setMethod("fetch", "matter_vec",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "matter_vec",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, ..., BPPARAM=BPPARAM))
+
 subset_matter_arr_elts <- function(x, i = NULL)
 {
 	if ( x@transpose ) {
-		index <- array_ind(i, dim(x))
-		i <- linear_ind(index, dim(x), rowMaj=TRUE)
+		index <- array_ind(i, x@dim)
+		i <- linear_ind(index, x@dim, rowMaj=TRUE)
 	}
 	data <- ungroup_atoms(x@data)
 	data <- subset_atoms2(data, i, NULL)
