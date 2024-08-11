@@ -854,18 +854,17 @@ rmatmul_sc <- function(x, y, useOuter = FALSE)
 # parallel right matrix mult
 rmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
 {
-	env <- list2env(list(y=y, parent=baseenv()))
 	if ( useOuter ) {
 		add <- function(...) Reduce("+", list(...))
-		matmul <- local(function(xi) {
-			i <- attr(xi, "index")
-			xi %*% y[i,,drop=FALSE]
-		}, envir=env)
-		ans <- chunk_colapply(x, matmul,
+		matmul <- local(function(xi, y) {
+				i <- attr(xi, "index")
+				xi %*% y[i,,drop=FALSE]
+			}, envir=baseenv())
+		ans <- chunk_colapply(x, matmul, y=y,
 			simplify=add, BPPARAM=BPPARAM)
 	} else {
-		matmul <- local(function(xi) xi %*% y, envir=env)
-		ans <- chunk_rowapply(x, matmul,
+		matmul <- local(function(xi, y) xi %*% y, envir=baseenv())
+		ans <- chunk_rowapply(x, matmul, y=y,
 			simplify=rbind, BPPARAM=BPPARAM)
 	}
 	ans
@@ -895,18 +894,17 @@ lmatmul_sc <- function(x, y, useOuter = FALSE)
 # parallel left matrix mult
 lmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
 {
-	env <- list2env(list(x=x, parent=baseenv()))
 	if ( useOuter ) {
 		add <- function(...) Reduce("+", list(...))
-		matmul <- local(function(yi) {
-			i <- attr(yi, "index")
-			x[,i,drop=FALSE] %*% yi
-		}, envir=env)
-		ans <- chunk_rowapply(y, matmul,
+		matmul <- local(function(yi, x) {
+				i <- attr(yi, "index")
+				x[,i,drop=FALSE] %*% yi
+			}, envir=baseenv())
+		ans <- chunk_rowapply(y, matmul, x=x,
 			simplify=add, BPPARAM=BPPARAM)
 	} else {
-		matmul <- local(function(yi) x %*% yi, envir=env)
-		ans <- chunk_colapply(y, matmul,
+		matmul <- local(function(yi, x) x %*% yi, envir=baseenv())
+		ans <- chunk_colapply(y, matmul, x=x,
 			simplify=cbind, BPPARAM=BPPARAM)
 	}
 	ans

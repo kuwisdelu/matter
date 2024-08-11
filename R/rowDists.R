@@ -92,16 +92,17 @@ rowDists_fun <- function(iter.dim)
 {
 	switch(iter.dim,
 		`1`=rowdist,
-		`2`=function(x, y, metric, p, weights)
-		{
-			if ( is.null(weights) ){
-				w <- NULL
-			} else {
-				w <- weights[attr(x, "index")]
-			}
-			y <- y[,attr(x, "index"),drop=FALSE]
-			rowdist(x, y, metric=metric, p=p, weights=w)
-		})
+		`2`=local(function(x, y, metric, p, weights)
+			{
+				if ( is.null(weights) ){
+					w <- NULL
+				} else {
+					w <- weights[attr(x, "index")]
+				}
+				y <- y[,attr(x, "index"),drop=FALSE]
+				matter::rowdist(x, y,
+					metric=metric, p=p, weights=w)
+			}, envir=baseenv()))
 }
 
 rowDists_int <- function(x, y, metric = "euclidean", p = 2,
@@ -111,12 +112,14 @@ rowDists_int <- function(x, y, metric = "euclidean", p = 2,
 		matter_error("iter.dim must be 1 or 2")
 	FUN <- rowDists_fun(iter.dim)
 	if ( iter.dim == 1L ) {
-		ans <- chunk_rowapply(x, FUN, y=y, metric=metric, p=p,
-			weights=weights, simplify=rbind, BPPARAM=BPPARAM, ...)
+		ans <- chunk_rowapply(x, FUN, y=y,
+			metric=metric, p=p, weights=weights,
+			simplify=rbind, BPPARAM=BPPARAM, ...)
 	} else {
 		BIND <- function(...) dist_c(..., metric=metric, p=p)
-		ans <- chunk_colapply(x, FUN, y=y, metric=metric, p=p,
-			weights=weights, simplify=BIND, BPPARAM=BPPARAM, ...)
+		ans <- chunk_colapply(x, FUN, y=y,
+			metric=metric, p=p, weights=weights,
+			simplify=BIND, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.null(rownames(x)) || !is.null(rownames(y)) )
 		dimnames(ans) <- list(rownames(x), rownames(y))
@@ -126,17 +129,17 @@ rowDists_int <- function(x, y, metric = "euclidean", p = 2,
 colDists_fun <- function(iter.dim)
 {
 	switch(iter.dim,
-		`1`=
-		function(x, y, metric, p, weights)
-		{
-			if ( is.null(weights) ){
-				w <- NULL
-			} else {
-				w <- weights[attr(x, "index")]
-			}
-			y <- y[attr(x, "index"),,drop=FALSE]
-			coldist(x, y, metric=metric, p=p, weights=w)
-		},
+		`1`=local(function(x, y, metric, p, weights)
+			{
+				if ( is.null(weights) ){
+					w <- NULL
+				} else {
+					w <- weights[attr(x, "index")]
+				}
+				y <- y[attr(x, "index"),,drop=FALSE]
+				matter::coldist(x, y,
+					metric=metric, p=p, weights=w)
+			}, envir=baseenv()),
 		`2`=coldist)
 }
 
@@ -148,11 +151,13 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 	FUN <- colDists_fun(iter.dim)
 	if ( iter.dim == 1L ) {
 		BIND <- function(...) dist_c(..., metric=metric, p=p)
-		ans <- chunk_rowapply(x, FUN, y=y, metric=metric, p=p,
-			weights=weights, simplify=BIND, BPPARAM=BPPARAM, ...)
+		ans <- chunk_rowapply(x, FUN, y=y,
+			metric=metric, p=p, weights=weights,
+			simplify=BIND, BPPARAM=BPPARAM, ...)
 	} else {
-		ans <- chunk_colapply(x, FUN, y=y, metric=metric, p=p,
-			weights=weights, simplify=rbind, BPPARAM=BPPARAM, ...)
+		ans <- chunk_colapply(x, FUN, y=y,
+			metric=metric, p=p, weights=weights,
+			simplify=rbind, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.null(colnames(x)) || !is.null(colnames(y)) )
 		dimnames(ans) <- list(colnames(x), colnames(y))
@@ -168,14 +173,17 @@ rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		at <- array2list(at, 1L)
 	if ( length(at) != nrow(x) )
 		at <- rep_len(at, nrow(x))
-	ans <- chunk_rowapply(x,
-		function(xi) {
+	FUN <- local(function(xi, metric, p, weights)
+		{
 			di <- attr(xi, "depends")
-			i <- which(non_null(di))
-			j <- di[non_null(di)]
-			rowdist_at(xi, ix=i, iy=j,
+			i <- which(!vapply(di, is.null, logical(1L)))
+			j <- di[i]
+			matter::rowdist_at(xi, ix=i, iy=j,
 				metric=metric, p=p, weights=weights)
-		}, depends=at, BPPARAM=BPPARAM, ...)
+		}, envir=baseenv())
+	ans <- chunk_rowapply(x, FUN, depends=at,
+		metric=metric, p=p, weights=weights,
+		BPPARAM=BPPARAM, ...)
 	names(ans) <- rownames(x)
 	ans
 }
@@ -189,14 +197,17 @@ colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		at <- array2list(at, 1L)
 	if ( length(at) != ncol(x) )
 		at <- rep_len(at, ncol(x))
-	ans <- chunk_colapply(x,
-		function(xi) {
+	FUN <- local(function(xi, metric, p, weights)
+		{
 			di <- attr(xi, "depends")
-			i <- which(non_null(di))
-			j <- di[non_null(di)]
-			coldist_at(xi, ix=i, iy=j,
+			i <- which(!vapply(di, is.null, logical(1L)))
+			j <- di[i]
+			matter::coldist_at(xi, ix=i, iy=j,
 				metric=metric, p=p, weights=weights)
-		}, depends=at, BPPARAM=BPPARAM, ...)
+		}, envir=baseenv())
+	ans <- chunk_colapply(x, FUN, depends=at,
+		metric=metric, p=p, weights=weights,
+		BPPARAM=BPPARAM, ...)
 	names(ans) <- colnames(x)
 	ans
 }

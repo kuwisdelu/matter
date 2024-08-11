@@ -62,6 +62,10 @@ matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
 	}
 }
 
+matter_environment <- environment(NULL)
+
+matter_env <- function() matter_environment
+
 #### Parallel RNG ####
 ## --------------------
 
