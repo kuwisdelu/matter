@@ -65,6 +65,10 @@ setAs("matter_str", "matter_list",
 			x
 	})
 
+setMethod("as.vector", "matter_str",
+	function(x, mode = "any")
+		as.vector(as.character(x), mode=mode))
+
 setMethod("as.character", "matter_str",
 	function(x, ...) {
 		names(x) <- NULL
@@ -91,7 +95,7 @@ setMethod("mem_realized", "matter_str", function(x) {
 copy_to_matter_str <- function(object, path = NULL, ..., BPPARAM)
 {
 	x <- matter_str(NULL, path=path,
-		nchar=lengths(object), names=names(object),
+		nchar=object@dim, names=names(object),
 		encoding=Encoding(object))
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)

@@ -45,6 +45,10 @@ matter_fct <- function(data, levels, path = NULL,
 		x
 }
 
+setMethod("as.vector", "matter_fct",
+	function(x, mode = "any")
+		as.vector(as.factor(x), mode=mode))
+
 setMethod("as.factor", "matter_fct",
 	function(x) {
 		names(x) <- NULL

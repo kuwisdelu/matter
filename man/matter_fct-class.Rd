@@ -15,6 +15,7 @@
 \alias{levels,matter_fct-method}
 \alias{levels<-,matter_fct-method}
 
+\alias{as.vector,matter_fct-method}
 \alias{as.factor,matter_fct-method}
 
 \title{Out-of-Memory Factors}
