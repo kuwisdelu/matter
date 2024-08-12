@@ -92,7 +92,7 @@ rowDists_fun <- function(iter.dim)
 {
 	switch(iter.dim,
 		`1`=rowdist,
-		`2`=local(function(x, y, metric, p, weights)
+		`2`=isofun(function(x, y, metric, p, weights)
 			{
 				if ( is.null(weights) ){
 					w <- NULL
@@ -102,7 +102,7 @@ rowDists_fun <- function(iter.dim)
 				y <- y[,attr(x, "index"),drop=FALSE]
 				matter::rowdist(x, y,
 					metric=metric, p=p, weights=w)
-			}, envir=baseenv()))
+			}, matter_env()))
 }
 
 rowDists_int <- function(x, y, metric = "euclidean", p = 2,
@@ -129,7 +129,7 @@ rowDists_int <- function(x, y, metric = "euclidean", p = 2,
 colDists_fun <- function(iter.dim)
 {
 	switch(iter.dim,
-		`1`=local(function(x, y, metric, p, weights)
+		`1`=isofun(function(x, y, metric, p, weights)
 			{
 				if ( is.null(weights) ){
 					w <- NULL
@@ -139,7 +139,7 @@ colDists_fun <- function(iter.dim)
 				y <- y[attr(x, "index"),,drop=FALSE]
 				matter::coldist(x, y,
 					metric=metric, p=p, weights=w)
-			}, envir=baseenv()),
+			}, matter_env()),
 		`2`=coldist)
 }
 
@@ -173,14 +173,14 @@ rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		at <- array2list(at, 1L)
 	if ( length(at) != nrow(x) )
 		at <- rep_len(at, nrow(x))
-	FUN <- local(function(xi, metric, p, weights)
+	FUN <- isofun(function(xi, metric, p, weights)
 		{
 			di <- attr(xi, "depends")
 			i <- which(!vapply(di, is.null, logical(1L)))
 			j <- di[i]
 			matter::rowdist_at(xi, ix=i, iy=j,
 				metric=metric, p=p, weights=weights)
-		}, envir=baseenv())
+		})
 	ans <- chunk_rowapply(x, FUN, depends=at,
 		metric=metric, p=p, weights=weights,
 		BPPARAM=BPPARAM, ...)
@@ -197,14 +197,14 @@ colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		at <- array2list(at, 1L)
 	if ( length(at) != ncol(x) )
 		at <- rep_len(at, ncol(x))
-	FUN <- local(function(xi, metric, p, weights)
+	FUN <- isofun(function(xi, metric, p, weights)
 		{
 			di <- attr(xi, "depends")
 			i <- which(!vapply(di, is.null, logical(1L)))
 			j <- di[i]
 			matter::coldist_at(xi, ix=i, iy=j,
 				metric=metric, p=p, weights=weights)
-		}, envir=baseenv())
+		})
 	ans <- chunk_colapply(x, FUN, depends=at,
 		metric=metric, p=p, weights=weights,
 		BPPARAM=BPPARAM, ...)

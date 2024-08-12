@@ -62,9 +62,30 @@ matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
 	}
 }
 
-matter_environment <- environment(NULL)
+#### Environments and closures ####
+## ---------------------------------
 
-matter_env <- function() matter_environment
+matter_ns <- environment(NULL)
+
+matter_env <- function() matter_ns
+
+copy_env <- function(envir, parent = baseenv()) {
+	copy <- new.env(parent=baseenv())
+	for ( name in ls(envir=envir) )
+		assign(name, get(name, envir=envir), envir=copy)
+	copy
+}
+
+isofun <- function(fun, envir = baseenv()) {
+	environment(fun) <- envir
+	fun
+}
+
+isoclos <- function(fun, envir = baseenv()) {
+	enclos <- copy_env(environment(fun), parent=envir)
+	environment(fun) <- enclos
+	fun
+}
 
 #### Parallel RNG ####
 ## --------------------
@@ -986,15 +1007,6 @@ pinv <- function (x, tol = sqrt(.Machine$double.eps))
 	} else {
 		sv$v[,pos,drop=FALSE] %*% (t(sv$u[,pos,drop=FALSE]) / sv$d[pos])
 	}
-}
-
-# isolate a copy of an environment
-copy_env <- function(env, parent = baseenv())
-{
-	copy <- new.env(parent=baseenv())
-	for ( name in ls(envir=env) )
-		assign(name, get(name, envir=env), envir=copy)
-	copy
 }
 
 #### Utilities for raw bytes and memory ####

@@ -259,7 +259,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 
 chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 {
-	local(function(X, ...)
+	isoclos(function(X, ...)
 	{
 		chunkinfo <- attr(X, "chunkinfo")
 		X <- switch(type,
@@ -279,12 +279,12 @@ chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 			X <- matter::update_attr(X, chunkinfo)
 			FUN(X, ...)
 		}
-	}, envir=copy_env(environment(NULL)))
+	}, matter_env())
 }
 
 chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 {
-	local(function(X, ..., MoreArgs)
+	isoclos(function(X, ..., MoreArgs)
 	{
 		id <- attr(X, "chunkid")
 		ans <- vector("list", attr(X, "chunklen"))
@@ -330,7 +330,7 @@ chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 		} else {
 			put(ans, id)
 		}
-	}, envir=copy_env(environment(NULL)))
+	}, matter_env())
 }
 
 chunk_writer <- function(id, path)
@@ -340,7 +340,7 @@ chunk_writer <- function(id, path)
 			matter::matter_error("failed to create file: ", sQuote(path))
 		path <- normalizePath(path, mustWork=TRUE)
 	}
-	local(function(x, i = 0L) {
+	isoclos(function(x, i = 0L) {
 		while ( i && BiocParallel::ipcvalue(id) != i ) {
 			Sys.sleep(0.1)
 		}
@@ -350,7 +350,7 @@ chunk_writer <- function(id, path)
 		if ( i )
 			BiocParallel::ipcyield(id)
 		ans
-	}, envir=copy_env(environment(NULL)))
+	}, matter_env())
 }
 
 get_nchunks <- function(options) chunk_option(options, "nchunks")

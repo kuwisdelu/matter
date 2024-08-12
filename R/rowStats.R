@@ -54,12 +54,12 @@ rowStats_fun <- function(iter.dim)
 {
 	switch(iter.dim,
 		`1`=s_rowstats,
-		`2`=local(function(x, stat, group, na.rm)
+		`2`=isofun(function(x, stat, group, na.rm)
 			{
 				g <- group[attr(x, "index")]
 				matter::s_rowstats(x, stat=stat,
 					group=g, na.rm=na.rm)
-			}, envir=baseenv()))
+			}, matter_env()))
 }
 
 rowStats_int <- function(x, stat, group = NULL,
@@ -108,12 +108,12 @@ rowStats_int <- function(x, stat, group = NULL,
 colStats_fun <- function(iter.dim)
 {
 	switch(iter.dim,
-		`1`=local(function(x, stat, group, na.rm)
+		`1`=isofun(function(x, stat, group, na.rm)
 			{
 				g <- group[attr(x, "index")]
 				matter::s_colstats(x, stat=stat,
 					group=g, na.rm=na.rm)
-			}, envir=baseenv()),
+			}, matter_env()),
 		`2`=s_colstats)
 }
 

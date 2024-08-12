@@ -446,7 +446,9 @@ export(
 
 export(
 	"update_attr",
-	"copy_env")
+	"copy_env",
+	"isofun",
+	"isoclos")
 
 export(
 	"roll",
@@ -485,16 +487,16 @@ S3method("print", "kdtree")
 
 export(
 	"cv_do",
-	"sgmix",
-	"sgmixn",
-	"fastmap",
 	"mi_learn",
 	"predscore",
 	"rocscore",
+	"fastmap",
 	"nndsvd",
 	"nnmf_als",
 	"nnmf_mult",
 	"nscentroids",
+	"sgmix",
+	"sgmixn",
 	"prcomp_lanczos",
 	"pls_nipals",
 	"pls_simpls",

@@ -373,7 +373,7 @@ copy_to_matter_fun <- function(id, dest, margin = NULL)
 {
 	if ( !is.null(margin) && !margin %in% c(1L, 2L) )
 		matter_error("'margin' must be 1 or 2")
-	local(function(src) {
+	isoclos(function(src) {
 		BiocParallel::ipclock(id)
 		i <- attr(src, "index")
 		if ( is.null(margin) ) {
@@ -384,7 +384,7 @@ copy_to_matter_fun <- function(id, dest, margin = NULL)
 				dest[,i] <- src)
 		}
 		BiocParallel::ipcunlock(id)
-	}, envir=copy_env(environment(NULL)))
+	}, matter_env())
 }
 
 setMethod("fetch", "matter_arr",
@@ -856,14 +856,14 @@ rmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
 {
 	if ( useOuter ) {
 		add <- function(...) Reduce("+", list(...))
-		matmul <- local(function(xi, y) {
+		matmul <- isofun(function(xi, y) {
 				i <- attr(xi, "index")
 				xi %*% y[i,,drop=FALSE]
-			}, envir=baseenv())
+			})
 		ans <- chunk_colapply(x, matmul, y=y,
 			simplify=add, BPPARAM=BPPARAM)
 	} else {
-		matmul <- local(function(xi, y) xi %*% y, envir=baseenv())
+		matmul <- isofun(function(xi, y) xi %*% y)
 		ans <- chunk_rowapply(x, matmul, y=y,
 			simplify=rbind, BPPARAM=BPPARAM)
 	}
@@ -896,14 +896,14 @@ lmatmul_mc <- function(x, y, useOuter = FALSE, BPPARAM = NULL)
 {
 	if ( useOuter ) {
 		add <- function(...) Reduce("+", list(...))
-		matmul <- local(function(yi, x) {
+		matmul <- isofun(function(yi, x) {
 				i <- attr(yi, "index")
 				x[,i,drop=FALSE] %*% yi
-			}, envir=baseenv())
+			})
 		ans <- chunk_rowapply(y, matmul, x=x,
 			simplify=add, BPPARAM=BPPARAM)
 	} else {
-		matmul <- local(function(yi, x) x %*% yi, envir=baseenv())
+		matmul <- isofun(function(yi, x) x %*% yi)
 		ans <- chunk_colapply(y, matmul, x=x,
 			simplify=cbind, BPPARAM=BPPARAM)
 	}

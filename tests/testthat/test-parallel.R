@@ -3,6 +3,23 @@ require(matter)
 
 context("parallel")
 
+test_that("isolated closures", {
+
+	mkfun <- function() isofun(function() NULL)
+	mkclos <- function(x = 0) isoclos(function() NULL)
+
+	f0 <- isofun(function() NULL)
+	f1 <- mkfun()
+	f2 <- mkclos()
+
+	expect_identical(environment(f0), baseenv())
+	expect_identical(environment(f1), baseenv())
+	
+	expect_equal(ls(environment(f2)), "x")
+	expect_identical(parent.env(environment(f2)), baseenv())
+
+})
+
 test_that("SnowfastParam", {
 
 	set.seed(1, kind="default")
@@ -62,5 +79,3 @@ test_that("SnowfastParam - matter", {
 	bpstop(sp0)
 
 })
-
-
