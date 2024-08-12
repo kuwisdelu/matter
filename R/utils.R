@@ -935,7 +935,8 @@ shingles <- function(x, breaks, overlap = 0.5, labels = NULL)
 avg <- function(x, center = mean)
 {
 	x <- x[!is.na(x)]
-	if ( is.numeric(x) ) {
+	if ( is.numeric(x) || is.complex(x) ) {
+		center <- match.fun(mean)
 		y <- center(x)
 	} else {
 		ux <- unique(x)
@@ -1031,7 +1032,6 @@ raw2hex <- function(x, uppercase = FALSE) {
 }
 
 # create a uuid
-
 uuid <- function(uppercase = FALSE)
 {
 	oseed <- getRNGStream()
@@ -1065,7 +1065,6 @@ uuid <- function(uppercase = FALSE)
 }
 
 # create a uuid for shared memory
-
 tempmem <- function(pattern = ":memory:") {
 	paste0(pattern, uuid(FALSE)$string)
 }

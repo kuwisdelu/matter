@@ -450,10 +450,12 @@ export(
 	"isoclos")
 
 export(
-	"seq_rel",
-	"shingles",
 	"pinv",
 	"avg")
+
+export("seq_rel")
+
+export("shingles")
 
 export(
 	"RNGStreams",
