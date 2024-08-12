@@ -1256,7 +1256,7 @@ profmem <- function(expr)
 iQuote <- function(x, q = "`")
 {
 	if ( length(x) > 0 ) {
-		paste0(q, x, q)
+		paste0(q, as.character(x), q)
 	} else {
 		character(0L)
 	}

@@ -1,4 +1,4 @@
-\name{stream-stats}
+\name{stream_stat}
 \docType{methods}
 
 \alias{stream_stat}
@@ -33,6 +33,8 @@
 
 \usage{
 # calculate streaming univariate statistics
+s_stat(x, stat, group, na.rm = FALSE, \dots)
+
 s_range(x, \dots, na.rm = FALSE)
 
 s_min(x, \dots, na.rm = FALSE)
@@ -54,8 +56,6 @@ s_any(x, \dots, na.rm = FALSE)
 s_all(x, \dots, na.rm = FALSE)
 
 s_nnzero(x, \dots, na.rm = FALSE)
-
-s_stat(x, stat, group, na.rm = FALSE, \dots)
 
 # calculate streaming matrix statistics
 s_rowstats(x, stat, group, na.rm = FALSE, \dots)
