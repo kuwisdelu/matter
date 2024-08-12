@@ -894,19 +894,6 @@ bplapply_int <- function(X, FUN, ..., BPPARAM = NULL) {
 	}
 }
 
-roll <- function(x, width, na.drop = FALSE, fill = NA) {
-	r <- floor(width / 2)
-	x <- lapply(seq_along(x),
-		function(i) {
-			j <- (i - r):(i + r)
-			j[j < 1L | j > length(x)] <- NA
-			ifelse(!is.na(j), x[j], fill)
-		})
-	if ( na.drop )
-		x <- lapply(x, function(xi) xi[!is.na(xi)])
-	x
-}
-
 # A sequence with half-bin-widths in relative units
 # x = bin center, y = half-width, d = relative diff
 # y[n] = d * x[n]
@@ -1266,6 +1253,15 @@ profmem <- function(expr)
 #### Formula parsing ####
 ## ----------------------
 
+iQuote <- function(x, q = "`")
+{
+	if ( length(x) > 0 ) {
+		paste0(q, x, q)
+	} else {
+		character(0L)
+	}
+}
+
 parse_formula <- function(formula, envir = NULL, eval = !missing(envir))
 {
 	e <- environment(formula)
@@ -1336,11 +1332,6 @@ parse_side <- function(formula, envir = NULL, eval = FALSE)
 			side[[i]] <- eval(side[[i]], envir=envir, enclos=enclos)
 	}
 	side
-}
-
-varquote <- function(x, q = "`")
-{
-	paste0(q, x, q)
 }
 
 eval_exprs <- function(exprs, data, i = NULL, j = NULL,

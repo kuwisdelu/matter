@@ -9,14 +9,17 @@
 \alias{matter}
 \alias{matter-class}
 
+\alias{type}
+\alias{type<-}
+\alias{type,vector-method}
+\alias{type,array-method}
+
 \alias{adata}
 \alias{adata,matter-method}
 \alias{atomdata}
 \alias{atomdata,matter-method}
 \alias{atomdata<-}
 \alias{atomdata<-,matter-method}
-\alias{type}
-\alias{type<-}
 \alias{type,atoms-method}
 \alias{type<-,atoms-method}
 \alias{type,matter-method}

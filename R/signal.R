@@ -567,17 +567,18 @@ rescale_fun <- function(method)
 #### Binning and downsampling ####
 ## -------------------------------
 
-binvec <- function(x, lower, upper, stat = "sum", prob = 0.5)
+roll <- function(x, width, na.drop = FALSE, fill = NA)
 {
-	if ( missing(lower) && missing(upper) ) {
-		matter_error("must specify one of 'lower' or 'upper'")
-	} else if ( missing(upper) ) {
-		upper <- c(lower[-1] - 1L, length(x))
-	} else if ( missing(lower) ) {
-		lower <- c(1L, upper[-length(upper)] + 1L)
-	}
-	.Call(C_binVector, x, as.integer(lower - 1L), as.integer(upper - 1L),
-		as_binstat(stat), prob, PACKAGE="matter")
+	r <- floor(width / 2)
+	x <- lapply(seq_along(x),
+		function(i) {
+			j <- (i - r):(i + r)
+			j[j < 1L | j > length(x)] <- NA
+			ifelse(!is.na(j), x[j], fill)
+		})
+	if ( na.drop )
+		x <- lapply(x, function(xi) xi[!is.na(xi)])
+	x
 }
 
 rollvec <- function(x, width, stat = "sum", prob = 0.5)
@@ -590,6 +591,19 @@ rollvec <- function(x, width, stat = "sum", prob = 0.5)
 	lower <- pmax(i - r, 0L)
 	upper <- pmin(i + r, end)
 	.Call(C_binVector, x, lower, upper,
+		as_binstat(stat), prob, PACKAGE="matter")
+}
+
+binvec <- function(x, lower, upper, stat = "sum", prob = 0.5)
+{
+	if ( missing(lower) && missing(upper) ) {
+		matter_error("must specify one of 'lower' or 'upper'")
+	} else if ( missing(upper) ) {
+		upper <- c(lower[-1] - 1L, length(x))
+	} else if ( missing(lower) ) {
+		lower <- c(1L, upper[-length(upper)] + 1L)
+	}
+	.Call(C_binVector, x, as.integer(lower - 1L), as.integer(upper - 1L),
 		as_binstat(stat), prob, PACKAGE="matter")
 }
 

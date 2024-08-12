@@ -362,8 +362,9 @@ export(
 	"warp1_dtw",
 	"warp1_cow",
 	"icor",
-	"binvec",
+	"roll",
 	"rollvec",
+	"binvec",
 	"findbins",
 	"downsample",
 	"estbase_loc",
@@ -445,13 +446,10 @@ export(
 	"linear_ind")
 
 export(
-	"update_attr",
-	"copy_env",
 	"isofun",
 	"isoclos")
 
 export(
-	"roll",
 	"seq_rel",
 	"shingles",
 	"pinv",
@@ -595,10 +593,10 @@ exportMethods(
 	"plot")
 
 export(
+	"iQuote",
 	"parse_formula",
 	"eval_at",
-	"eval_exprs",
-	"varquote")
+	"eval_exprs")
 
 export(
 	"simple_logger",

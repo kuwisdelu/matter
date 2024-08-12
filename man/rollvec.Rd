@@ -1,7 +1,7 @@
 \name{rollvec}
 
 \alias{rollvec}
-\alias{rollvec}
+\alias{roll}
 
 \title{Rolling Summaries of a Vector}
 

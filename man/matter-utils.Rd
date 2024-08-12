@@ -40,30 +40,6 @@
 
 \alias{combine,ANY,ANY-method}
 
-\alias{keys}
-\alias{keys<-}
-\alias{keys,ANY-method}
-\alias{keys<-,ANY-method}
-
-\alias{array_ind}
-\alias{linear_ind}
-
-\alias{update_attr}
-\alias{copy_env}
-
-\alias{size_bytes}
-
-\alias{roll}
-\alias{seq_rel}
-\alias{shingles}
-\alias{pinv}
-\alias{avg}
-
-\alias{parse_formula}
-\alias{eval_exprs}
-\alias{eval_at}
-\alias{varquote}
-
 \alias{panel_grid}
 \alias{panel_dim}
 \alias{panel_get}
@@ -78,15 +54,19 @@
 \alias{qmad}
 
 \alias{read_atom}
-\alias{write_atom}
-
 \alias{read_atoms}
+\alias{write_atom}
 \alias{write_atoms}
 
-\alias{sizeof}
+\alias{array_ind}
+\alias{linear_ind}
 
-\alias{type,vector-method}
-\alias{type,array-method}
+\alias{sizeof}
+\alias{size_bytes}
+
+\alias{parse_formula}
+\alias{eval_exprs}
+\alias{eval_at}
 
 \alias{vm_used}
 \alias{vm_used,ANY-method}
