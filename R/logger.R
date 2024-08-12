@@ -26,12 +26,12 @@ setRefClass("simple_logger",
 					if ( !file.create(file) )
 						base::stop("failed to create log file ", file)
 				}
-				BiocParallel::ipclock(.self$id)
+				ipclock(.self$id)
 				con <- file(.self$logfile, open="at")
 				writeLines(.self$buffer, con)
 				base::close(con)
 				.self$buffer <- character(0L)
-				BiocParallel::ipcunlock(.self$id)
+				ipcunlock(.self$id)
 			}
 			invisible(.self)
 		},
@@ -48,7 +48,7 @@ setRefClass("simple_logger",
 		append_session = function()
 		{
 			timestamp <- paste0("[", format(Sys.time()), "]")
-			info <- utils::capture.output(print(utils::sessionInfo()))
+			info <- capture.output(print(sessionInfo()))
 			info <- paste0(info, collapse="\n")
 			entry <- paste0(timestamp, " Session info:\n", info)
 			.self$append(entry)
@@ -116,7 +116,7 @@ setRefClass("simple_logger",
 				base::stop("file ", sQuote(newfile), " already exists")
 			if ( file.create(newfile) ) {
 				newfile <- normalizePath(newfile, mustWork=TRUE)
-				BiocParallel::ipclock(.self$id)
+				ipclock(.self$id)
 				log <- c(readLines(.self$logfile), .self$buffer)
 				writeLines(log, newfile)
 				if ( !file.remove(.self$logfile) ) {
@@ -125,7 +125,7 @@ setRefClass("simple_logger",
 				}
 				.self$buffer <- character(0L)
 				.self$logfile <- newfile
-				BiocParallel::ipcunlock(.self$id)
+				ipcunlock(.self$id)
 			} else {
 				base::stop("failed to create new log file ", sQuote(.self$logfile))
 			}
@@ -136,7 +136,7 @@ setRefClass("simple_logger",
 			.self$append_session()
 			.self$flush()
 			.self$logfile <- character(0L)
-			BiocParallel::ipcremove(.self$id)
+			ipcremove(.self$id)
 			invisible(.self)
 		}))
 

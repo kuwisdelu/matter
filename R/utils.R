@@ -70,7 +70,7 @@ matter_ns <- environment(NULL)
 matter_env <- function() matter_ns
 
 copy_env <- function(envir, parent = baseenv()) {
-	copy <- new.env(parent=baseenv())
+	copy <- new.env(parent=parent)
 	for ( name in ls(envir=envir) )
 		assign(name, get(name, envir=envir), envir=copy)
 	copy

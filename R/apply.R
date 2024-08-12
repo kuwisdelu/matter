@@ -263,20 +263,20 @@ chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 	{
 		chunkinfo <- attr(X, "chunkinfo")
 		X <- switch(type,
-			list=lapply(X, matter::as.vector),
-			vector=matter::as.vector(X),
-			array=matter::as.array(X))
+			list=lapply(X, as.vector),
+			vector=as.vector(X),
+			array=as.array(X))
 		id <- chunkinfo$chunkid
 		if ( !is.null(rngseeds) ) {
-			oseed <- matter::getRNGStream()
-			on.exit(matter::setRNGStream(oseed))
-			matter::setRNGStream(rngseeds[[id]])
+			oseed <- getRNGStream()
+			on.exit(setRNGStream(oseed))
+			setRNGStream(rngseeds[[id]])
 		}
 		if ( type == "list" ) {
-			X[[1L]] <- matter::update_attr(X[[1L]], chunkinfo)
+			X[[1L]] <- update_attr(X[[1L]], chunkinfo)
 			do.call(FUN, c(X, list(MoreArgs=MoreArgs)))
 		} else {
-			X <- matter::update_attr(X, chunkinfo)
+			X <- update_attr(X, chunkinfo)
 			FUN(X, ...)
 		}
 	}, matter_env())
@@ -314,15 +314,15 @@ chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 				array=switch(margin,
 					X[j,,drop=drop],
 					X[,j,drop=drop]))
-			iseed <- matter::getRNGStream()
+			iseed <- getRNGStream()
 			if ( type == "list" ) {
 				ans[[ii]] <- do.call(FUN, c(xi, MoreArgs))
 			} else {
 				ans[[ii]] <- FUN(xi, ...)
 			}
 			if ( iseed$kind == "L'Ecuyer-CMRG" )
-				iseed$seed <- parallel::nextRNGSubStream(iseed$seed)
-			matter::setRNGStream(iseed)
+				iseed$seed <- nextRNGSubStream(iseed$seed)
+			setRNGStream(iseed)
 			ii <- ii + 1L
 		}
 		if ( is.null(put) ) {
@@ -337,18 +337,18 @@ chunk_writer <- function(id, path)
 {
 	if ( !file.exists(path) ) {
 		if ( !file.create(path) )
-			matter::matter_error("failed to create file: ", sQuote(path))
+			matter_error("failed to create file: ", sQuote(path))
 		path <- normalizePath(path, mustWork=TRUE)
 	}
 	isoclos(function(x, i = 0L) {
-		while ( i && BiocParallel::ipcvalue(id) != i ) {
+		while ( i && ipcvalue(id) != i ) {
 			Sys.sleep(0.1)
 		}
-		BiocParallel::ipclock(id)
-		ans <- matter::matter_list(x, path=path, append=TRUE)
-		BiocParallel::ipcunlock(id)
+		ipclock(id)
+		ans <- matter_list(x, path=path, append=TRUE)
+		ipcunlock(id)
 		if ( i )
-			BiocParallel::ipcyield(id)
+			ipcyield(id)
 		ans
 	}, matter_env())
 }

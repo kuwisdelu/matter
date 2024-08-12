@@ -57,7 +57,7 @@ rowStats_fun <- function(iter.dim)
 		`2`=isofun(function(x, stat, group, na.rm)
 			{
 				g <- group[attr(x, "index")]
-				matter::s_rowstats(x, stat=stat,
+				s_rowstats(x, stat=stat,
 					group=g, na.rm=na.rm)
 			}, matter_env()))
 }
@@ -111,7 +111,7 @@ colStats_fun <- function(iter.dim)
 		`1`=isofun(function(x, stat, group, na.rm)
 			{
 				g <- group[attr(x, "index")]
-				matter::s_colstats(x, stat=stat,
+				s_colstats(x, stat=stat,
 					group=g, na.rm=na.rm)
 			}, matter_env()),
 		`2`=s_colstats)

@@ -150,9 +150,9 @@ rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
 	isoclos(function(i) {
-		matter::matter_log("calculating distances from index: ", paste0(i, collapse=" "),
+		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
 			verbose=isTRUE(verbose))
-		matter::rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
+		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)
 	}, matter_env())
@@ -162,9 +162,9 @@ colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
 	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
 {
 	isoclos(function(i) {
-		matter::matter_log("calculating distances from index: ", paste0(i, collapse=" "),
+		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
 			verbose=isTRUE(verbose))
-		matter::colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
+		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
 			verbose=verbose, chunkopts=chunkopts,
 			BPPARAM=BPPARAM)
 	}, matter_env())

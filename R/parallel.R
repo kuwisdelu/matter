@@ -93,7 +93,7 @@ setMethod("bpstart", "SnowfastParam",
 		cargs <- x$.clusterargs
 		cargs$master <- x$hostname
 		cargs$port <- x$port
-		bpbackend(x) <- do.call(parallel::makeCluster, cargs)
+		bpbackend(x) <- do.call(makeCluster, cargs)
 		if ( inherits(bpbackend(x), "SOCKcluster") ) {
 			BiocParallel::.bpstart_impl(x)
 		} else {
@@ -106,7 +106,7 @@ setMethod("bpstop", "SnowfastParam",
 		if ( !bpisup(x) )
 			return(invisible(x))
 		x <- BiocParallel::.bpstop_impl(x)
-		parallel::stopCluster(bpbackend(x))
+		stopCluster(bpbackend(x))
 		bpbackend(x) <- NULLcluster()
 		invisible(x)
 	})

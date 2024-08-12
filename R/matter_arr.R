@@ -374,7 +374,7 @@ copy_to_matter_fun <- function(id, dest, margin = NULL)
 	if ( !is.null(margin) && !margin %in% c(1L, 2L) )
 		matter_error("'margin' must be 1 or 2")
 	isoclos(function(src) {
-		BiocParallel::ipclock(id)
+		ipclock(id)
 		i <- attr(src, "index")
 		if ( is.null(margin) ) {
 			dest[i] <- src
@@ -383,7 +383,7 @@ copy_to_matter_fun <- function(id, dest, margin = NULL)
 				dest[i,] <- src,
 				dest[,i] <- src)
 		}
-		BiocParallel::ipcunlock(id)
+		ipcunlock(id)
 	}, matter_env())
 }
 

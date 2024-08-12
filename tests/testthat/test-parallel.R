@@ -27,7 +27,7 @@ test_that("SnowfastParam", {
 	len <- 500
 	x <- replicate(len, runif(n), simplify=FALSE)
 
-	sp0 <- SnowfastParam(workers=4)
+	sp0 <- SnowfastParam(workers=2)
 
 	expect_is(sp0, "SnowfastParam")
 	expect_is(sp0, "SnowParam")
@@ -41,13 +41,13 @@ test_that("SnowfastParam", {
 
 	expect_equal(zs0, zn0)
 
-	sp1 <- SnowfastParam(workers=4, tasks=100)
+	sp1 <- SnowfastParam(workers=2, tasks=100)
 	zs1 <- chunkLapply(x, sum, BPPARAM=sp1)
 	zn1 <- chunkLapply(x, sum, BPPARAM=NULL)
 
 	expect_equal(zs1, zn1)
 
-	sp2 <- SnowfastParam(workers=4, progressbar=TRUE)
+	sp2 <- SnowfastParam(workers=2, progressbar=TRUE)
 	zs2 <- chunkLapply(x, sum, BPPARAM=sp2)
 	zn2 <- chunkLapply(x, sum, BPPARAM=NULL)
 
@@ -67,7 +67,7 @@ test_that("SnowfastParam - matter", {
 	x <- replicate(len, runif(n), simplify=FALSE)
 	y <- as.matter(x)
 
-	sp0 <- SnowfastParam(workers=4)
+	sp0 <- SnowfastParam(workers=2)
 
 	zs0 <- chunkLapply(y, sum,
 		chunkopts=list(nchunks=5), BPPARAM=sp0)
