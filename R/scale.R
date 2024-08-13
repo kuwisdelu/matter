@@ -38,10 +38,10 @@ rowscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 	} else {
 		scale <- NULL
 	}
-    attr(x, "row-scaled:center") <- center
-    attr(x, "row-scaled:scale") <- scale
+	attr(x, "row-scaled:center") <- center
+	attr(x, "row-scaled:scale") <- scale
 	attr(x, "row-scaled:group") <- group
-    x
+	x
 }
 
 colscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
@@ -68,10 +68,10 @@ colscale_int <- function(x, center, scale, group = NULL, ..., BPPARAM = NULL)
 	} else {
 		scale <- NULL
 	}
-    attr(x, "col-scaled:center") <- center
-    attr(x, "col-scaled:scale") <- scale
+	attr(x, "col-scaled:center") <- center
+	attr(x, "col-scaled:scale") <- scale
 	attr(x, "col-scaled:group") <- group
-    x
+	x
 }
 
 setMethod("rowsweep", "ANY",
