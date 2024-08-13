@@ -27,7 +27,7 @@ matter_logger()
 }
 
 \arguments{
-    \item{file}{The name of the log file. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}.}
+    \item{file}{The name of the log file. If \code{NULL}, then no log file is used, and the log is kept in memory.}
 
     \item{domain}{See \code{\link{gettext}} for details. If \code{NA}, log entries will not be translated.}
 
@@ -87,7 +87,7 @@ matter_logger()
 \author{Kylie A. Bemis}
 
 \examples{
-sl <- simple_logger()
+sl <- simple_logger(tempfile(fileext=".log"))
 
 sl$log("This is a silent log entry that doesn't signal a condition.")
 sl$log("This log entry signals a message condition.", signal=TRUE)

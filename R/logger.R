@@ -23,7 +23,7 @@ setRefClass("simple_logger",
 		{
 			if ( length(.self$logfile) ) {
 				if ( !file.exists(.self$logfile) ) {
-					if ( !file.create(file) )
+					if ( !file.create(.self$logfile) )
 						base::stop("failed to create log file ", file)
 				}
 				ipclock(.self$id)
@@ -47,31 +47,39 @@ setRefClass("simple_logger",
 		},
 		append_session = function()
 		{
-			timestamp <- paste0("[", format(Sys.time()), "]")
+			tstamp <- paste0("[", format(Sys.time()), "]")
 			info <- capture.output(print(sessionInfo()))
 			info <- paste0(info, collapse="\n")
-			entry <- paste0(timestamp, " Session info:\n", info)
+			entry <- paste0(tstamp, " Session info:\n", info)
 			.self$append(entry)
 		},
-		history = function()
+		history = function(print = TRUE)
 		{
 			.self$flush()
-			history <- readLines(.self$logfile)
-			cat(history, sep="\n")
+			if ( length(.self$logfile) ) {
+				history <- readLines(.self$logfile)
+			} else {
+				history <- .self$buffer
+			}
+			if ( print ) {
+				cat(history, sep="\n")
+			} else {
+				history
+			}
 		},
 		log = function(..., signal = FALSE, call = NULL)
 		{
-			timestamp <- paste0("[", format(Sys.time()), "] ")
+			tstamp <- paste0("[", format(Sys.time()), "] ")
 			msg <- .makeMessage(..., domain=.self$domain)
 			if ( is.logical(signal) || signal == "message" ) {
-				entry <- paste0(timestamp, msg)
+				entry <- paste0(tstamp, msg)
 			} else {
 				if ( is.null(call) ) {
 					where <- ""
-					entry <- paste0(timestamp, toupper(signal), ": ", msg)
+					entry <- paste0(tstamp, toupper(signal), ": ", msg)
 				} else {
 					where <- paste0(" in ", deparse1(call), ": ")
-					entry <- paste0(timestamp, toupper(signal), where, msg)
+					entry <- paste0(tstamp, toupper(signal), where, msg)
 				}
 			}
 			.self$append(entry)
@@ -102,32 +110,23 @@ setRefClass("simple_logger",
 		move = function(file)
 		{
 			if ( is.null(file) ) {
-				if ( !file.remove(.self$logfile) ) {
-					warning("failed to remove old log file: ",
-						sQuote(.self$logfile))
-				}
-				.self$logfile <- character(0L)
-				return(invisible(.self))
+				newfile <- character(0L)
+			} else {
+				if ( !is.character(file) || length(file) != 1L )
+					base::stop("file must be a single string")
+				newfile <- normalizePath(file, mustWork=FALSE)
 			}
-			if ( !is.character(file) || length(file) != 1L )
-				base::stop("file must be a single string")
-			newfile <- normalizePath(file, mustWork=FALSE)
+			oldfile <- .self$logfile
 			if ( file.exists(newfile) )
 				base::stop("file ", sQuote(newfile), " already exists")
-			if ( file.create(newfile) ) {
-				newfile <- normalizePath(newfile, mustWork=TRUE)
-				ipclock(.self$id)
-				log <- c(readLines(.self$logfile), .self$buffer)
-				writeLines(log, newfile)
-				if ( !file.remove(.self$logfile) ) {
+			.self$buffer <- .self$history(FALSE)
+			.self$logfile <- newfile
+			.self$flush()
+			if ( length(oldfile) ) {
+				if ( !file.remove(oldfile) ) {
 					warning("failed to remove old log file: ",
-						sQuote(.self$logfile))
+						sQuote(oldfile))
 				}
-				.self$buffer <- character(0L)
-				.self$logfile <- newfile
-				ipcunlock(.self$id)
-			} else {
-				base::stop("failed to create new log file ", sQuote(.self$logfile))
 			}
 			invisible(.self)
 		},
@@ -150,15 +149,17 @@ simple_logger <- function(file = NULL, domain = NULL, bufferlimit = 50L)
 {
 	if ( is.null(domain) )
 		domain <- NA_character_
-	if ( is.null(file) )
-		file <- tempfile("logger", fileext=".log")
-	if ( !is.character(file) || length(file) != 1L )
-		stop("file must be a single string")
-	file <- normalizePath(file, mustWork=FALSE)
-	if ( file.exists(file) )
-		stop("file ", sQuote(file), " already exists")
-	if ( !file.create(file) )
-		warning("failed to create log file ", file)
+	if ( is.null(file) ) {
+		file <- character(0L)
+	} else {
+		if ( !is.character(file) || length(file) != 1L )
+			stop("file must be a single string")
+		file <- normalizePath(file, mustWork=FALSE)
+		if ( file.exists(file) )
+			stop("file ", sQuote(file), " already exists")
+		if ( !file.create(file) )
+			warning("failed to create log file ", file)
+	}
 	logger <- new("simple_logger", id=ipcid(),
 		buffer=character(0L), bufferlimit=bufferlimit,
 		logfile=file, domain=domain)

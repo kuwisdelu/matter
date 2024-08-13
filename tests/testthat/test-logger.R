@@ -24,14 +24,10 @@ test_that("simple_logger", {
 	expect_true(grepl("fun(arg)", last_entry, fixed=TRUE))
 
 	buffer <- sl$buffer
-	sl$flush()
-
-	expect_equal(readLines(sl$logfile), buffer)
-
-	newfile <- tempfile()
+	newfile <- tempfile("logger", fileext=".log")
 	sl$move(newfile)
 
-	expect_equal(readLines(newfile), buffer)
+	expect_equal(readLines(sl$logfile), buffer)
 
 	sl$log("last entry")
 	sl$close()
@@ -44,7 +40,7 @@ test_that("simple_logger", {
 
 test_that("simple_logger - finalizer", {
 
-	sl <- simple_logger()
+	sl <- simple_logger(tempfile("logger", fileext=".log"))
 	sl$log("Hello")
 	sl$log("world!")
 	logfile <- sl$logfile
