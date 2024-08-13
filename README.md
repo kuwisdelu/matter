@@ -1,8 +1,8 @@
 # matter
 
-Scientific computing for out-of-memory signals and arrays
+Out-of-core statistical computing and signal processing
 
-Toolbox for out-of-memory scientific computing and data visualization, providing memory-efficient file-based data structures for dense and sparse vectors, matrices, and arrays with applications to nonuniformly sampled signals and images.
+Toolbox for larger-than-memory scientific computing and visualization, providing efficient out-of-core data structures using files or shared memory, for dense and sparse vectors, matrices, and arrays, with applications to nonuniformly sampled signals and images.
 
 ## Description
 

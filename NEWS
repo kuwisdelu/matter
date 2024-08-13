@@ -16,12 +16,15 @@ SIGNIFICANT USER-VISIBLE CHANGES
     o Add cluster memory monitoring with 'memcl()' function
     o New documentation for several previously-undocumented
         utility functions that may be useful for others
+    o New 'permute' argument in chunk-apply functions
 
 BUG FIXES
 
     o Improved behavior for the general 'matter()' constructor
     o Use private RNG for 'uuid()' to avoid collisions
         from 'set.seed()' and to avoid changing '.Random.seed'
+    o Fix 'is_gridded()' and 'to_raster()' behavior
+        for non-integer coordinates and character rasters
 
 CHANGES IN VERSION 2.7.4 [2024-8-2]
 ------------------------------------

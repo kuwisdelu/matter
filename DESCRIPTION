@@ -1,11 +1,11 @@
 Package: matter
 Type: Package
-Title: Scientific computing for out-of-memory signals and arrays
-Version: 2.7.4
+Title: Out-of-core statistical computing and signal processing
+Version: 2.7.5
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
-Description: Toolbox for out-of-memory scientific computing and data visualization, providing memory-efficient file-based data structures for dense and sparse vectors, matrices, and arrays with applications to nonuniformly sampled signals and images.
+Description: Toolbox for larger-than-memory scientific computing and visualization, providing efficient out-of-core data structures using files or shared memory, for dense and sparse vectors, matrices, and arrays, with applications to nonuniformly sampled signals and images.
 License: Artistic-2.0
 Depends: R (>= 4.0), BiocParallel, Matrix, methods
 Imports: BiocGenerics, ProtGenerics, digest, irlba,
