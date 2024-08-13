@@ -406,11 +406,11 @@ coscore <- function(x, y, threshold = NA)
 #### Rasterize a scattered image ####
 ## ----------------------------------
 
-is_gridded <- function(x, tol = 0.5)
+is_gridded <- function(x, tol = sqrt(.Machine$double.eps))
 {
 	if ( length(dim(x)) != 2L )
 		matter_error("x must be a matrix or data frame")
-	all(is.finite(apply(x, 2L, estres, tol=tol)))
+	all(is.finite(apply(x, 2L, estres, tol=tol, ref="abs")))
 }
 
 to_raster <- function(x, y, vals)
@@ -426,7 +426,7 @@ to_raster <- function(x, y, vals)
 	ry <- (yr[2L] - yr[1L]) / (ny - 1)
 	rx <- ifelse(is.na(rx), 1, rx)
 	ry <- ifelse(is.na(ry), 1, ry)
-	if ( gridded ) {
+	if ( gridded || !is.numeric(vals) ) {
 		rows <- as.integer(round((x - xr[1L]) / rx))
 		cols <- as.integer(round((y - yr[1L]) / ry))
 		init <- as.vector(NA, mode=typeof(vals))

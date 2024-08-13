@@ -18,7 +18,7 @@ to_raster(x, y, vals)
 to_raster3(x, y, z, vals)
 
 # Check if coordinates are gridded
-is_gridded(x, tol = 0.5)
+is_gridded(x, tol = sqrt(.Machine$double.eps))
 }
 
 \arguments{

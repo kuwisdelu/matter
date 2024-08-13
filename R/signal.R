@@ -1479,13 +1479,8 @@ estres <- function(x, tol = NA, ref = NA_character_)
 	rx <- 2 * ((to / from ) - 1) / ((to / from) + 1)
 	rx <- ifelse(is.na(rx), Inf, rx)
 	dx <- diff(x)
-	if ( is.finite(tol) ) {
-		dx <- dx[dx > tol]
-		rx <- rx[rx > tol]
-	} else {
-		dx <- dx[dx > 0]
-		rx <- rx[rx > 0]
-	}
+	dx <- dx[dx > .Machine$double.eps]
+	rx <- rx[rx > .Machine$double.eps]
 	if ( is.na(ref) ) {
 		if ( length(dx) && length(rx) ) {
 			if ( mad(dx / diff(range(x))) < mad(rx) ) {
@@ -1509,7 +1504,7 @@ estres <- function(x, tol = NA, ref = NA_character_)
 		} else {
 			res <- Inf
 		}
-		if ( !is.finite(tol) || all(dx %% res <= tol) ) {
+		if ( is.na(tol) || all(dx %% res <= tol) ) {
 			res <- c(absolute = res)
 		} else {
 			res <- c(absolute = NA_real_)
@@ -1520,7 +1515,7 @@ estres <- function(x, tol = NA, ref = NA_character_)
 		} else {
 			res <- Inf
 		}
-		if ( !is.finite(tol) || all(rx %% res <= tol) ) {
+		if ( is.na(tol) || all(rx %% res <= tol) ) {
 			res <- c(relative = res)
 		} else {
 			res <- c(relative = NA_real_)

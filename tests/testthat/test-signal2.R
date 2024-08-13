@@ -304,6 +304,20 @@ test_that("rasterization", {
 
 	expect_equal(za, to_raster3(d3$x, d3$y, d3$z, d3$vals))
 
+	set.seed(1, kind="default")
+	nr <- 32
+	nc <- 32
+	x <- seq(-4, 4, length.out=nr)
+	y <- seq(1, 3, length.out=nc)
+	co <- expand.grid(x=x, y=y)
+	x <- co$x
+	y <- co$y
+	vals <- matrix(atan(x / y), nrow=nr, ncol=nc)
+	vals <- rescale_range(vals, c(0, 1))
+	vals <- rgb(vals, vals, vals)
+	
+	expect_is(to_raster(x, y, vals), "matrix")
+
 })
 
 test_that("approx2", {

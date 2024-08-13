@@ -15,7 +15,7 @@ estres(x, tol = NA, ref = NA_character_)
 \arguments{
 	\item{x}{A numeric vector giving the domain values of the signal.}
 
-    \item{tol}{The tolerance allowed when determining if the estimated resolution is valid (i.e., actually matches the given domain values). Differences smaller than this amount will be ignored, and noise in the sampling rate will be allowed up to this amount. If \code{NA} (the default), then the resolution is simply calculated as the smallest difference between sorted domain values.}
+    \item{tol}{The tolerance allowed when determining if the estimated resolution is valid (i.e., actually matches the given domain values). Noise in the sampling rate will be allowed up to this amount. If \code{NA} (the default), then the resolution is simply calculated as the smallest difference between sorted domain values.}
 
     \item{ref}{If 'abs', then comparison is done by taking the absolute difference. If 'x', then relative differences are used. If missing, then the funciton will try to determine which gives a better fit to the domain values.}
 }
