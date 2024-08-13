@@ -14,13 +14,12 @@
 
 \usage{
 # Alternating least squares
-nnmf_als(x, k = 3L, s = 1e-9, transpose = FALSE,
-	niter = 100L, tol = 1e-5, verbose = NA, \dots)
+nnmf_als(x, k = 3L, niter = 100L, transpose = FALSE,
+	eps = 1e-9, tol = 1e-5, verbose = NA, \dots)
 
 # Multiplicative updates
-nnmf_mult(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
-	transpose = FALSE, niter = 100L,
-	tol = 1e-5, verbose = NA, \dots)
+nnmf_mult(x, k = 3L, niter = 100L, cost = c("euclidean", "KL", "IS"),
+	transpose = FALSE, eps = 1e-9, tol = 1e-5, verbose = NA, \dots)
 
 \S3method{predict}{nnmf}(object, newdata, \dots)
 
@@ -33,11 +32,11 @@ nndsvd(x, k = 3L, \dots)
 
 	\item{k}{The number of NMF components to extract.}
 
-	\item{s}{A regularization parameter to prevent singularities.}
+	\item{niter}{The maximum number of iterations.}
 
 	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This can be useful if the input matrix is (P x N) instead of (N x P) and storing the transpose is expensive. This is not necessary for \code{\linkS4class{matter_mat}} and \code{\linkS4class{sparse_mat}} objects, but can be useful for large in-memory (P x N)  matrices.}
 
-	\item{niter}{The maximum number of iterations.}
+	\item{eps}{A small regularization parameter to prevent singularities.}
 
 	\item{tol}{The tolerance for convergence, as measured by the Frobenius norm of the differences between the W and H matrices in successive iterations.}
 

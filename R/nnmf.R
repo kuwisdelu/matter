@@ -3,8 +3,8 @@
 ## ---------------------------------------
 
 # Berry at al (2007)
-nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
-	niter = 100L, tol = 1e-5, verbose = NA, ...)
+nnmf_als <- function(x, k = 3L, niter = 100L, transpose = FALSE,
+	eps = 1e-9, tol = 1e-5, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -18,14 +18,14 @@ nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
 	while ( iter <= niter && (dw > tol || dh > tol) )
 	{
 		# update H
-		a <- crossprod(w, w) + s * diag(k)
+		a <- crossprod(w, w) + eps * diag(k)
 		b <- crossprod(w, x)
 		hnew <- solve(a, b)
 		hnew <- hnew * (hnew >= 0)
 		dh <- sqrt(sum((hnew - h)^2))
 		h <- hnew
 		# update W
-		a <- tcrossprod(h, h) + s * diag(k)
+		a <- tcrossprod(h, h) + eps * diag(k)
 		b <- tcrossprod(h, x)
 		wnew <- t(solve(a, b))
 		wnew <- wnew * (wnew >= 0)
@@ -53,8 +53,8 @@ nnmf_als <- function(x, k = 3L, s = 1e-9, transpose = FALSE,
 }
 
 # Lee and Seung (2000)
-nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
-	transpose = FALSE, niter = 100L, tol = 1e-5, verbose = NA, ...)
+nnmf_mult <- function(x, k = 3L, niter = 100L, cost = c("euclidean", "KL", "IS"),
+	transpose = FALSE, eps = 1e-9, tol = 1e-5, verbose = NA, ...)
 {
 	cost <- match.arg(cost)
 	if ( cost != "euclidean" )
@@ -72,13 +72,13 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 	{
 		# update H
 		if ( cost == "euclidean" ) {
-			hup <- crossprod(w, x) / (s + crossprod(w, w) %*% h)
+			hup <- crossprod(w, x) / (eps + crossprod(w, w) %*% h)
 		} else {
 			wh <- w %*% h
 			if ( cost == "KL" ) {
-				hup <- rowsweep_matrix(crossprod(w, x / wh), s + colSums(w), "/")
+				hup <- rowsweep_matrix(crossprod(w, x / wh), eps + colSums(w), "/")
 			} else if ( cost == "IS" ) {
-				hup <- crossprod(w, x / wh^2) / (s + crossprod(w, 1 / wh))
+				hup <- crossprod(w, x / wh^2) / (eps + crossprod(w, 1 / wh))
 			} else {
 				matter_error("unsupported cost: ", sQuote(cost))
 			}
@@ -88,13 +88,13 @@ nnmf_mult <- function(x, k = 3L, s = 1e-9, cost = c("euclidean", "KL", "IS"),
 		h <- hnew
 		# update W
 		if ( cost == "euclidean" ) {
-			wup <- tcrossprod(x, h) / (s + w %*% tcrossprod(h, h))
+			wup <- tcrossprod(x, h) / (eps + w %*% tcrossprod(h, h))
 		} else {
 			wh <- w %*% h
 			if ( cost == "KL" ) {
-				wup <- colsweep_matrix(tcrossprod(x / wh, h), s + rowSums(h), "/")
+				wup <- colsweep_matrix(tcrossprod(x / wh, h), eps + rowSums(h), "/")
 			} else if ( cost == "IS" ) {
-				wup <- tcrossprod(x / wh^2, h) / (s + tcrossprod(1 / wh, h))
+				wup <- tcrossprod(x / wh^2, h) / (eps + tcrossprod(1 / wh, h))
 			} else {
 				matter_error("unsupported cost: ", sQuote(cost))
 			}
