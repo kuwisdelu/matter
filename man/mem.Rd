@@ -1,9 +1,10 @@
 \name{mem}
 
 \alias{mem}
+\alias{memcl}
 \alias{memtime}
 
-\title{Check Memory Use}
+\title{Monitor Memory Use}
 
 \description{
     These are utility functions for checking memory used by R and \code{matter} in the current session and/or during the timed execution of an expression.
@@ -11,6 +12,8 @@
 
 \usage{
 mem(x, reset = FALSE)
+
+memcl(cl = bpparam(), reset = FALSE)
 
 memtime(expr, verbose = NA, BPPARAM = NULL)
 }
@@ -24,7 +27,7 @@ memtime(expr, verbose = NA, BPPARAM = NULL)
 
     \item{verbose}{Should timing messages be printed?}
 
-    \item{BPPARAM}{An optional instance of \code{BiocParallelParam}. Used to collect memory usage from a cluster during timing. Must have a \code{bpbackend} of class \code{cluster}.}
+    \item{cl, BPPARAM}{A \code{cluster} or a \code{SnowParam} object with a \code{cluster} backend. Used to collect memory usage from the cluster during timing.}
 }
 
 \details{
@@ -51,6 +54,8 @@ memtime(expr, verbose = NA, BPPARAM = NULL)
         \item{\code{"max shared"}: The maximum amount of shared memory used since the last reset.}
         \item{\code{"temp"}: The total size of temporary files managed by \code{matter} in \code{getOption("matter.temp.dir")}.}
     }
+
+    For \code{memcl}, a data frame with columns corresponding to the elements described above and rows corresponding to cluster nodes.
 
     For \code{memtime}, a list including:
 

@@ -226,12 +226,12 @@ matter_shared_resource <- function(create = NULL, remove = NULL)
 	} else if ( !is.null(create) ) {
 		name <- as.character(create)
 		if ( !is.character(name) || length(name) != 1L )
-			stop("resource to be created must be a single string")
+			matter_error("resource to be created must be a single string")
 		ans <- create_shared_resource(name)
 	} else if ( !is.null(remove) ) {
 		name <- as.character(remove)
 		if ( !is.character(name) || length(name) != 1L )
-			stop("resource to be removed must be a single string")
+			matter_error("resource to be removed must be a single string")
 		ans <- remove_shared_resource(name)
 	} else {
 		matter_error("must specify one of 'create' or 'remove'")

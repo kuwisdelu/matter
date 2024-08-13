@@ -1151,22 +1151,23 @@ mem <- function(x, reset = FALSE)
 			"max shared"=shared[2L],
 			"temp"=temp)
 	} else {
-		if ( inherits(x, c("cluster", "BiocParallelParam")) ) {
-			return(memcl(x, reset=reset))
-		} else {
-			size <- as.numeric(object.size(x))
-			shm <- as.numeric(shm_used(x))
-			vm <- as.numeric(vm_used(x))
-			mem <- c("real"=size, "shared"=shm, "virtual"=vm)
-		}
+		size <- as.numeric(object.size(x))
+		shm <- as.numeric(shm_used(x))
+		vm <- as.numeric(vm_used(x))
+		mem <- c("real"=size, "shared"=shm, "virtual"=vm)
 	}
 	size_bytes(mem)
 }
 
-memcl <- function(cl, reset = FALSE)
+memcl <- function(cl = bpparam(), reset = FALSE)
 {
-	if ( is(cl, "BiocParallelParam") )
+	if ( is(cl, "SnowParam") && !is(cl, "MulticoreParam") )
 		cl <- bpbackend(cl)
+	if ( !inherits(cl, "cluster") )
+		matter_error("cannot monitor memory for cluster of class: ",
+			sQuote(class(cl)))
+	if ( inherits(cl, "NULLcluster") )
+		matter_error("cluster is NULL; has it been started yet?")
 	if ( reset ) {
 		ans <- clusterEvalQ(cl, matter::mem(reset=TRUE))
 	} else {
@@ -1188,7 +1189,8 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 	mem.cols <- seq_len(4L)
 	start <- mem(reset=TRUE)[mem.cols]
 	matter_log(tstamp(), verbose=verbose)
-	if ( !is.null(BPPARAM) ) {
+	if ( !is.null(BPPARAM) )
+	{
 		if ( !bpisup(BPPARAM) ) {
 			managed.cl <- TRUE
 			matter_log("Starting cluster...", verbose=verbose)
@@ -1196,7 +1198,12 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 		} else {
 			managed.cl <- FALSE
 		}
-		start.cl <- mem(BPPARAM, reset=TRUE)
+		if ( inherits(BPPARAM, "SnowParam") ) {
+			monitored.cl <- TRUE
+			start.cl <- memcl(BPPARAM, reset=TRUE)
+		} else {
+			monitored.cl <- FALSE
+		}
 	}
 	matter_log("Timing started at ", format(Sys.time(), "%X"),
 		verbose=verbose)
@@ -1207,9 +1214,13 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 	t.end <- proc.time()
 	matter_log("Timing ended at ", format(Sys.time(), "%X"),
 		verbose=verbose)
-	if ( !is.null(BPPARAM) ) {
-		end.cl <- mem(BPPARAM, reset=FALSE)
-		if ( bpisup(BPPARAM) && managed.cl ) {
+	if ( !is.null(BPPARAM) )
+	{
+		if ( monitored.cl ) {
+			matter_log("Collecting cluster memory use...", verbose=verbose)
+			end.cl <- memcl(BPPARAM, reset=FALSE)
+		}
+		if ( managed.cl ) {
 			matter_log("Stopping cluster...", verbose=verbose)
 			bpstop(BPPARAM)
 		}
@@ -1226,13 +1237,16 @@ memtime <- function(expr, verbose = NA, BPPARAM = NULL)
 		"real"=unname(end["max real"] - end["real"]),
 		"shared"=unname(end["max shared"] - end["shared"]))
 	total <- unname(sum(end[["max real"]]) + sum(end[["max shared"]]))
-	if ( !is.null(BPPARAM) ) {
-		total.cl <- sum(end.cl[["max real"]])
-		result$cluster <- list(
-			"start"=start.cl, "end"=end.cl,
-			"total"=size_bytes(total.cl))
-		overhead["real"] <- overhead["real"] + total.cl
-		total <- total + total.cl
+	if ( !is.null(BPPARAM) )
+	{
+		if ( monitored.cl ) {
+			total.cl <- sum(end.cl[["max real"]])
+			result$cluster <- list(
+				"start"=start.cl, "end"=end.cl,
+				"total"=size_bytes(total.cl))
+			overhead["real"] <- overhead["real"] + total.cl
+			total <- total + total.cl
+		}
 	}
 	result$overhead <- size_bytes(overhead)
 	result$total <- size_bytes(total)

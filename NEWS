@@ -13,6 +13,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
 
     o Add shared memory support to 'mem()' output
     o Add cluster memory support to 'memtime()' output
+    o Add cluster memory monitoring with 'memcl()' function
     o New documentation for several previously-undocumented
         utility functions that may be useful for others
 
