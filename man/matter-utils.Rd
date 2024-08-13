@@ -61,13 +61,6 @@
 \alias{array_ind}
 \alias{linear_ind}
 
-\alias{sizeof}
-\alias{size_bytes}
-
-\alias{parse_formula}
-\alias{eval_exprs}
-\alias{eval_at}
-
 \alias{vm_used}
 \alias{vm_used,ANY-method}
 \alias{vm_used,vector-method}
@@ -90,10 +83,18 @@
 
 \alias{mem_realized}
 \alias{mem_realized,ANY-method}
+\alias{mem_realized,list-method}
 \alias{mem_realized,matter_arr-method}
 \alias{mem_realized,matter_list-method}
 \alias{mem_realized,matter_str-method}
 \alias{mem_realized,sparse_arr-method}
+
+\alias{sizeof}
+\alias{size_bytes}
+
+\alias{parse_formula}
+\alias{eval_exprs}
+\alias{eval_at}
 
 \alias{matter_shared_resource}
 \alias{matter_shared_resource_list}

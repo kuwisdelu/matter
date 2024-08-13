@@ -50,8 +50,8 @@ chunk_apply <- function(X, MARGIN, FUN, ...)
 }
 
 chunk_rowapply <- function(X, FUN, ...,
-	simplify = "c", depends = NULL, RNG = FALSE,
-	verbose = NA, chunkopts = list(),
+	simplify = "c", depends = NULL, permute = FALSE,
+	RNG = FALSE, verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
@@ -66,7 +66,8 @@ chunk_rowapply <- function(X, FUN, ...,
 	}
 	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_mat(X, margin=1L, depends=depends,
+	CHUNKS <- chunked_mat(X, margin=1L,
+		permute=permute, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
@@ -83,8 +84,8 @@ chunk_rowapply <- function(X, FUN, ...,
 }
 
 chunk_colapply <- function(X, FUN, ...,
-	simplify = "c", depends = NULL, RNG = FALSE,
-	verbose = NA, chunkopts = list(),
+	simplify = "c", depends = NULL, permute = FALSE,
+	RNG = FALSE, verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
@@ -99,7 +100,8 @@ chunk_colapply <- function(X, FUN, ...,
 	}
 	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_mat(X, margin=2L, depends=depends,
+	CHUNKS <- chunked_mat(X, margin=2L,
+		permute=permute, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
@@ -154,8 +156,8 @@ chunkLapply <- function(X, FUN, ...,
 }
 
 chunk_lapply <- function(X, FUN, ...,
-	simplify = "c", depends = NULL, RNG = FALSE,
-	verbose = NA, chunkopts = list(),
+	simplify = "c", depends = NULL, permute = FALSE,
+	RNG = FALSE, verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
@@ -168,7 +170,8 @@ chunk_lapply <- function(X, FUN, ...,
 	}
 	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_vec(X, depends=depends,
+	CHUNKS <- chunked_vec(X,
+		permute=permute, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
@@ -223,8 +226,8 @@ chunkMapply <- function(FUN, ...,
 }
 
 chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
-	simplify = "c", depends = NULL, RNG = FALSE,
-	verbose = NA, chunkopts = list(),
+	simplify = "c", depends = NULL, permute = FALSE,
+	RNG = FALSE, verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
 {
 	FUN <- match.fun(FUN)
@@ -237,7 +240,8 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	}
 	drop <- get_chunked_drop(...elt(1L), chunkopts, BPPARAM)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_list(..., depends=depends,
+	CHUNKS <- chunked_list(...,
+		permute=permute, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)

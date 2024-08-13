@@ -5,6 +5,8 @@ context("chunked")
 
 test_that("chunked - memory", {
 
+	register(SerialParam())
+
 	set.seed(1, kind="default")
 	x <- runif(100)
 	y <- replicate(100, rnorm(10), simplify=FALSE)
@@ -42,6 +44,11 @@ test_that("chunked - memory", {
 	xcm_l <- lapply(as.list(xc), mean)
 
 	expect_equal(xcm_bp, xcm_l)
+
+	xr <- chunked_vec(x, permute=TRUE)
+	xrl <- unlist(as.list(xr))
+
+	expect_setequal(xrl, x)
 
 	set.seed(1, kind="default")	
 	u <- sort(runif(100))

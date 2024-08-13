@@ -85,7 +85,7 @@ setMethod("[",
 	})
 
 chunked_vec <- function(x, nchunks = NA, chunksize = NA,
-	verbose = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
 {
 	if ( is.na(chunksize) )
 		chunksize <- getOption("matter.default.chunksize")
@@ -96,13 +96,14 @@ chunked_vec <- function(x, nchunks = NA, chunksize = NA,
 			nchunks <- getOption("matter.default.nchunks")
 		}
 	}
-	index <- chunkify(seq_along(x), nchunks=nchunks, depends=depends)
+	index <- chunkify(seq_along(x), nchunks=nchunks,
+		permute=permute, depends=depends)
 	new("chunked_vec", data=x, index=index,
 		verbose=verbose, drop=drop)
 }
 
 chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
-	verbose = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
 {
 	if ( length(dim(x)) != 2L )
 		matter_error("'x' must have exactly 2 dimensions")
@@ -119,14 +120,16 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 	}
 	margin <- as.integer(margin)
 	index <- switch(margin,
-		chunkify(seq_len(nrow(x)), nchunks=nchunks, depends=depends),
-		chunkify(seq_len(ncol(x)), nchunks=nchunks, depends=depends))
+		chunkify(seq_len(nrow(x)), nchunks=nchunks,
+			permute=permute, depends=depends),
+		chunkify(seq_len(ncol(x)), nchunks=nchunks,
+			permute=permute, depends=depends))
 	new("chunked_mat", data=x, margin=margin, index=index,
 		verbose=verbose, drop=drop)
 }
 
 chunked_list <- function(..., nchunks = NA, chunksize = NA,
-	verbose = FALSE, depends = NULL, drop = FALSE)
+	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
 {
 	xs <- list(...)
 	if ( length(xs) > 1L ) {
@@ -149,7 +152,8 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 			nchunks <- getOption("matter.default.nchunks")
 		}
 	}
-	index <- chunkify(seq_along(xs[[1L]]), nchunks=nchunks, depends=depends)
+	index <- chunkify(seq_along(xs[[1L]]), nchunks=nchunks,
+		permute=permute, depends=depends)
 	new("chunked_list", data=xs, index=index,
 		verbose=verbose, drop=drop)
 }
@@ -201,9 +205,16 @@ matter_log_chunk <- function(x, verbose) {
 		" (", info$chunklen, " items | ", size, ")", verbose=verbose)
 }
 
-chunkify <- function(x, nchunks = 20L, depends = NULL) {
+chunkify <- function(x, nchunks = 20L, permute = FALSE, depends = NULL)
+{
 	if ( !is.null(depends) && length(depends) != length(x) )
 		matter_error("length of 'depends' must match extent of 'x'")
+	if ( permute ) {
+		permute <- sample.int(length(x))
+		if ( !is.null(depends) )
+			depends <- depends[permute]
+		x <- x[permute]
+	}
 	nchunks <- min(ceiling(length(x) / 2L), nchunks)
 	index <- seq_along(x)
 	if ( nchunks > 1L ) {

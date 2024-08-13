@@ -140,6 +140,9 @@ setGeneric("mem_realized", function(x) standardGeneric("mem_realized"))
 setMethod("mem_realized", "ANY", function(x) {
 	size_bytes(sum(mem(x)[c("real","virtual")], na.rm=TRUE))
 })
+setMethod("mem_realized", "list", function(x) {
+	size_bytes(sum(vapply(x, mem_realized, numeric(1L)), na.rm=TRUE))
+})
 
 #### Implement basic generics from BiocGenerics ####
 ## ---------------------------------------------------

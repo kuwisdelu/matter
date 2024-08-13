@@ -36,23 +36,23 @@ chunkMapply(FUN, \dots,
 
 ## Operate on complete chunks
 chunk_rowapply(X, FUN, \dots,
-    simplify = "c", depends = NULL, RNG = FALSE,
-    verbose = NA, chunkopts = list(),
+    simplify = "c", depends = NULL, permute = FALSE,
+    RNG = FALSE, verbose = NA, chunkopts = list(),
     BPPARAM = bpparam())
 
 chunk_colapply(X, FUN, \dots,
-    simplify = "c", depends = NULL, RNG = FALSE,
-    verbose = NA, chunkopts = list(),
+    simplify = "c", depends = NULL, permute = FALSE,
+    RNG = FALSE, verbose = NA, chunkopts = list(),
     BPPARAM = bpparam())
 
 chunk_lapply(X, FUN, \dots,
-    simplify = "c", depends = NULL, RNG = FALSE,
-    verbose = NA, chunkopts = list(),
+    simplify = "c", depends = NULL, permute = FALSE,
+    RNG = FALSE, verbose = NA, chunkopts = list(),
     BPPARAM = bpparam())
 
 chunk_mapply(FUN, \dots, MoreArgs = NULL,
-    simplify = "c", depends = NULL, RNG = FALSE,
-    verbose = NA, chunkopts = list(),
+    simplify = "c", depends = NULL, permute = FALSE,
+    RNG = FALSE, verbose = NA, chunkopts = list(),
     BPPARAM = bpparam())
 }
 
@@ -76,6 +76,8 @@ chunk_mapply(FUN, \dots, MoreArgs = NULL,
     \item{chunkopts}{An (optional) list of chunk options including \code{nchunks}, \code{chunksize}, and \code{serialize}. See "Details".}
 
     \item{depends}{A list with length equal to the extent of \code{X}. Each element of \code{depends} should give a vector of indices which correspond to other elements of \code{X} on which each computation depends. These elements are passed to \code{FUN}. For time  efficiency, no attempt is made to verify these indices are valid.}
+
+    \item{permute}{Should the order of items be randomized? This may be useful for iterating over random subsets. No attempt is made to re-order the results.}
 
     \item{RNG}{Should the local random seed (as set by \code{set.seed}) be forwarded to the worker processes? If \code{RNGkind} is set to "L'Ecuyer-CMRG", then the random seed will be set to appropriate substreams for each chunk or for each element/row/column. Note that forwarding the local random seed incurs additional overhead.}
 
