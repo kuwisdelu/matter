@@ -1071,7 +1071,16 @@ tempmem <- function(pattern = ":memory:") {
 
 # creates internal S3 class 'size_bytes'
 # (similar to 'object_size' but works w/ vectors)
-size_bytes <- function(x) {
+size_bytes <- function(x, units = "B") {
+	units <- match.arg(units,
+		c("B", "KB", "MB", "GB", "TB", "PB"))
+	x <- switch(units,
+		"B" = x,
+		"KB" = x * 1000,
+		"MB" = x * 1000^2,
+		"GB" = x * 1000^3,
+		"TB" = x * 1000^4,
+		"PB" = x * 1000^5)
 	class(x) <- "size_bytes"
 	x
 }
@@ -1079,8 +1088,8 @@ size_bytes <- function(x) {
 # based on utils:::format.object_size
 format.size_bytes <- function(x, units = "auto", ...)
 {
-	units <- match.arg(units, c("auto",
-		"B", "KB", "MB", "GB", "TB", "PB"))
+	units <- match.arg(units,
+		c("auto", "B", "KB", "MB", "GB", "TB", "PB"))
 	if ( all(is.na(x)) ) {
 		mx <- NA_real_
 	} else {
@@ -1102,11 +1111,11 @@ format.size_bytes <- function(x, units = "auto", ...)
 		else "B"
 	sizes <- switch(units,
 		" " = , "B" = x,
-		"KB" = roundup(x/1000, 2L),
-		"MB" = roundup(x/1000^2, 2L),
-		"GB" = roundup(x/1000^3, 2L),
-		"TB" = roundup(x/1000^4, 2L),
-		"PB" = roundup(x/1000^5, 2L))
+		"KB" = roundup(x / 1000, 2L),
+		"MB" = roundup(x / 1000^2, 2L),
+		"GB" = roundup(x / 1000^3, 2L),
+		"TB" = roundup(x / 1000^4, 2L),
+		"PB" = roundup(x / 1000^5, 2L))
 	label <- switch(units, "B"="bytes", units)
 	set_names(paste(sizes, label), names(x))
 }
