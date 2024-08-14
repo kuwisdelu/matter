@@ -30,25 +30,32 @@ matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
 	serialize = NA, verbose = FALSE)
 {
 	if ( !missing(nchunks) ) {
-		nchunks <- as.integer(nchunks)[1L]
+		nchunks <- as.integer(nchunks)
+		if ( !isTRUE(nchunks > 0L) || length(nchunks) != 1L )
+			matter_error("nchunks must be a single positive number")
 		options(matter.default.nchunks=nchunks)
 	} else {
 		nchunks <- getOption("matter.default.nchunks")
 	}
 	if ( !missing(chunksize) ) {
-		chunksize <- as.numeric(chunksize)[1L]
+		chunksize <- as.numeric(chunksize)
+		if ( isFALSE(chunksize > 0L) || length(chunksize) != 1L )
+			matter_error("chunksize must be a single positive number or NA")
 		options(matter.default.chunksize=chunksize)
 	} else {
 		chunksize <- getOption("matter.default.chunksize")
 	}
 	if ( !missing(serialize) ) {
-		serialize <- as.logical(serialize)[1L]
+		if ( !is.logical(serialize) || length(serialize) != 1L )
+			matter_error("serialize must be a single logical value")
 		options(matter.default.serialize=serialize)
 	} else {
 		serialize <- getOption("matter.default.serialize")
 	}
 	if ( !missing(verbose) ) {
-		verbose <- as.logical(verbose)[1L]
+		verbose <- as.logical(verbose)
+		if ( !isTRUE(verbose) && !isFALSE(verbose) )
+			matter_error("verbose must be TRUE or FALSE")
 		options(matter.default.verbose=verbose)
 	} else {
 		verbose <- getOption("matter.default.verbose")
@@ -1074,6 +1081,7 @@ tempmem <- function(pattern = ":memory:") {
 size_bytes <- function(x, units = "B") {
 	units <- match.arg(units,
 		c("B", "KB", "MB", "GB", "TB", "PB"))
+	x <- set_names(as.numeric(x), names(x))
 	x <- switch(units,
 		"B" = x,
 		"KB" = x * 1000,
