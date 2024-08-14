@@ -1,7 +1,9 @@
 \name{cpal}
 
 \alias{cpal}
+\alias{cpals}
 \alias{dpal}
+\alias{dpals}
 \alias{add_alpha}
 
 \title{Color Palettes}
@@ -16,6 +18,10 @@ cpal(palette = "Viridis")
 
 ## Discrete color palettes
 dpal(palette = "Tableau 10")
+
+## List palettes
+cpals()
+dpals()
 
 # Add transparency to colors
 add_alpha(colors, alpha = 1, pow = 1)

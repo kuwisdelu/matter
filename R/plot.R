@@ -366,6 +366,8 @@ dpal <- function(palette = "Tableau 10") {
 	function(n) palette.colors(n, palette)
 }
 
+dpals <- function() palette.pals()
+
 # continuous palette
 cpal <- function(palette = "Viridis") {
 	test <- try(hcl.colors(1, palette), silent=TRUE)
@@ -376,6 +378,8 @@ cpal <- function(palette = "Viridis") {
 	}
 	function(n) hcl.colors(n, palette)
 }
+
+cpals <- function() hcl.pals()
 
 # continuous palette
 add_alpha <- function(colors, alpha = 1, pow = 1) {

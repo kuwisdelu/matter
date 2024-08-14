@@ -463,8 +463,10 @@ export(
 	"setRNGStream")
 
 export(
-	"dpal",
 	"cpal",
+	"cpals",
+	"dpal",
+	"dpals",
 	"add_alpha")
 
 exportMethods("prcomp")
