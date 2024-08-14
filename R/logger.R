@@ -54,6 +54,14 @@ setRefClass("simple_logger",
 			entry <- paste0(tstamp, " Session info:\n", info)
 			.self$append(entry)
 		},
+		append_trace = function()
+		{
+			tstamp <- paste0("[", format(Sys.time()), "]")
+			trace <- capture.output(traceback())
+			trace <- paste0(trace, collapse="\n")
+			entry <- paste0(tstamp, " Last traceback:\n", trace)
+			.self$append(entry)
+		},
 		history = function(print = TRUE)
 		{
 			.self$flush()
@@ -119,15 +127,15 @@ setRefClass("simple_logger",
 			}
 			oldfile <- .self$logfile
 			if ( file.exists(newfile) )
-				base::stop("file ", sQuote(newfile), " already exists")
+				base::warning("overwriting file ", sQuote(newfile))
 			.self$log("moving logfile to: ", sQuote(newfile))
 			.self$append_session()
 			.self$buffer <- .self$history(FALSE)
 			.self$logfile <- newfile
 			.self$flush()
-			if ( length(oldfile) ) {
+			if ( length(oldfile) && !identical(oldfile, newfile) ) {
 				if ( !file.remove(oldfile) ) {
-					warning("failed to remove old log file: ",
+					base::warning("failed to remove old log file: ",
 						sQuote(oldfile))
 				}
 			}

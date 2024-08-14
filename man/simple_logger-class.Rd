@@ -54,9 +54,11 @@ matter_logger()
     \describe{
         \item{\code{$flush():}}{Flush buffered log entries to the log file.}
 
-        \item{\code{$append(entry):}}{Append a raw entry to the log.}
+        \item{\code{$append(entry):}}{Append a plain text entry to the log.}
 
         \item{\code{$append_session():}}{Append the \code{sessionInfo()} to the log.}
+
+        \item{\code{$append_trace():}}{Append the \code{traceback()} to the log.}
 
         \item{\code{$history():}}{Print the complete log to the console.}
 
