@@ -52,8 +52,6 @@ matter_defaults(nchunks = 20L, chunksize = NA_real_,
 		\item{\code{options(matter.temp.dir=tempdir())}: Temporary directory where anonymous \code{matter} object files (i.e., those created with \code{path=NULL}) should be created.}
 
 		\item{\code{options(matter.temp.gc=TRUE)}: If \code{TRUE}, then anonymous \code{matter} object files (i.e., those created with \code{path=NULL}) are automatically cleaned up when all R objects referencing them have been garbage collected. If \code{FALSE}, then they are only removed at the end of the R session (and only if they are in R's default temporary directory).}
-
-		\item{\code{options(matter.logger=simple_logger())}: The logger used by \code{matter}. Must be a \code{simple_logger} instance.}
 	}
 }
 

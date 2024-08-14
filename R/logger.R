@@ -119,6 +119,8 @@ setRefClass("simple_logger",
 			oldfile <- .self$logfile
 			if ( file.exists(newfile) )
 				base::stop("file ", sQuote(newfile), " already exists")
+			.self$log("moving logfile to: ", sQuote(newfile))
+			.self$append_session()
 			.self$buffer <- .self$history(FALSE)
 			.self$logfile <- newfile
 			.self$flush()
@@ -145,7 +147,7 @@ setMethod("path", "simple_logger",
 setReplaceMethod("path", "simple_logger",
 	function(object, ..., value) object$move(value))
 
-simple_logger <- function(file = NULL, domain = NULL, bufferlimit = 50L)
+simple_logger <- function(file = NULL, bufferlimit = 50L, domain = NULL)
 {
 	if ( is.null(domain) )
 		domain <- NA_character_
@@ -169,20 +171,4 @@ simple_logger <- function(file = NULL, domain = NULL, bufferlimit = 50L)
 }
 
 close_logger <- function(handle) handle$.self$close()
-
-matter_logger <- function() getOption("matter.logger")
-
-matter_log <- function(..., verbose = FALSE) {
-	matter_logger()$log(..., signal=verbose)
-}
-
-matter_warn <- function(...) {
-	call <- sys.call(-1L)
-	matter_logger()$warning(..., call=call)
-}
-
-matter_error <- function(...) {
-	call <- sys.call(-1L)
-	matter_logger()$stop(..., call=call)
-}
 

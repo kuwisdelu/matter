@@ -27,7 +27,7 @@ test_that("simple_logger", {
 	newfile <- tempfile("logger", fileext=".log")
 	sl$move(newfile)
 
-	expect_equal(readLines(sl$logfile), buffer)
+	expect_equal(readLines(sl$logfile)[1:6], buffer)
 
 	sl$log("last entry")
 	sl$close()

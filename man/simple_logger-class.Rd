@@ -18,7 +18,7 @@
 
 \usage{
 ## Instance creation
-simple_logger(file = NULL, domain = NULL, bufferlimit = 50L)
+simple_logger(file = NULL, bufferlimit = 50L, domain = NULL)
 
 ## Get logger used by matter
 matter_logger()
@@ -29,9 +29,9 @@ matter_logger()
 \arguments{
     \item{file}{The name of the log file. If \code{NULL}, then no log file is used, and the log is kept in memory.}
 
-    \item{domain}{See \code{\link{gettext}} for details. If \code{NA}, log entries will not be translated.}
-
     \item{bufferlimit}{The maximum number of buffered log entries before they are flushed to the log file.}
+
+    \item{domain}{See \code{\link{gettext}} for details. If \code{NA}, log entries will not be translated.}
 }
 
 \section{Fields}{

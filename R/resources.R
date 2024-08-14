@@ -1,4 +1,29 @@
 
+#### Initialize matter resources ####
+## ----------------------------------
+
+matter_resources <- list2env(list(
+	.logger=simple_logger(NULL),
+	.shared_file_max_used=size_bytes(0),
+	.shared_memory_max_used=size_bytes(0),
+	.Random.seed=NULL))
+
+matter_logger <- function() matter_resources[[".logger"]]
+
+matter_log <- function(..., verbose = FALSE) {
+	matter_logger()$log(..., signal=verbose)
+}
+
+matter_warn <- function(...) {
+	call <- sys.call(-1L)
+	matter_logger()$warning(..., call=call)
+}
+
+matter_error <- function(...) {
+	call <- sys.call(-1L)
+	matter_logger()$stop(..., call=call)
+}
+
 #### Manage shared resources ####
 ## ------------------------------
 
@@ -153,25 +178,20 @@ finalize_shared_resource <- function(handle)
 	remove_shared_resource(handle, TRUE)
 }
 
-shared_resources <- list2env(list(
-	.shared_file_max_used=size_bytes(0),
-	.shared_memory_max_used=size_bytes(0),
-	.Random.seed=NULL))
-
 get_shared_RNGStream <- function() {
-	shared_resources[[".Random.seed"]]
+	matter_resources[[".Random.seed"]]
 }
 
 set_shared_RNGStream <- function(value) {
-	shared_resources[[".Random.seed"]] <- value
+	matter_resources[[".Random.seed"]] <- value
 }
 
 get_shared_file_max <- function() {
-	shared_resources[[".shared_file_max_used"]]
+	matter_resources[[".shared_file_max_used"]]
 }
 
 set_shared_file_max <- function(value) {
-	shared_resources[[".shared_file_max_used"]] <- size_bytes(unname(value))
+	matter_resources[[".shared_file_max_used"]] <- size_bytes(unname(value))
 }
 
 update_shared_file_max <- function()
@@ -183,11 +203,11 @@ update_shared_file_max <- function()
 }
 
 get_shared_memory_max <- function() {
-	shared_resources[[".shared_memory_max_used"]]
+	matter_resources[[".shared_memory_max_used"]]
 }
 
 set_shared_memory_max <- function(value) {
-	shared_resources[[".shared_memory_max_used"]] <- size_bytes(unname(value))
+	matter_resources[[".shared_memory_max_used"]] <- size_bytes(unname(value))
 }
 
 update_shared_memory_max <- function()
@@ -198,19 +218,19 @@ update_shared_memory_max <- function()
 	invisible(get_shared_memory_max())
 }
 
-matter_shared_resource_pool <- function() shared_resources
+matter_shared_resource_pool <- function() matter_resources
 
 matter_shared_resource_list <- function(details = FALSE, owned = FALSE)
 {
 	if ( owned ) {
-		owned <- eapply(shared_resources, identical, Sys.getpid())
+		owned <- eapply(matter_resources, identical, Sys.getpid())
 		resources <- names(owned)[unlist(owned)]
 	} else {
-		resources <- ls(shared_resources)
+		resources <- ls(matter_resources)
 	}
 	if ( details ) {
 		pids <- vapply(resources,
-			function(name) shared_resources[[name]], numeric(1L))
+			function(name) matter_resources[[name]], numeric(1L))
 		sizes <- size_bytes(sizeof_shared_resource(resources))
 		types <- ifelse(is_shared_memory_pattern(resources), "memory", "file")
 		resources <- data.frame(name=resources, type=types,

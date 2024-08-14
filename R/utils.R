@@ -16,7 +16,6 @@
 		matter.wrap.altrep = FALSE,
 		matter.temp.dir = tempdir(),
 		matter.temp.gc = TRUE,
-		matter.logger = simple_logger(),
 		matter.vizi.par = par_style_new(),
 		matter.vizi.panelgrid = NULL,
 		matter.vizi.trans3d = NULL,
