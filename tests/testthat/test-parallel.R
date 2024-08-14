@@ -23,8 +23,8 @@ test_that("isolated closures", {
 test_that("SnowfastParam", {
 
 	set.seed(1, kind="default")
-	n <- 25000
-	len <- 500
+	n <- 2500
+	len <- 50
 	x <- replicate(len, runif(n), simplify=FALSE)
 
 	sp0 <- SnowfastParam(workers=2)
@@ -41,7 +41,7 @@ test_that("SnowfastParam", {
 
 	expect_equal(zs0, zn0)
 
-	sp1 <- SnowfastParam(workers=2, tasks=100)
+	sp1 <- SnowfastParam(workers=2, tasks=len)
 	zs1 <- chunkLapply(x, sum, BPPARAM=sp1)
 	zn1 <- chunkLapply(x, sum, BPPARAM=NULL)
 

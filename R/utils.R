@@ -1175,8 +1175,10 @@ memcl <- function(cl = bpparam(), reset = FALSE)
 	if ( !inherits(cl, "cluster") )
 		matter_error("cannot monitor memory for cluster of class: ",
 			sQuote(class(cl)))
-	if ( inherits(cl, "NULLcluster") )
-		matter_error("cluster is NULL; has it been started yet?")
+	if ( inherits(cl, "NULLcluster") ) {
+		matter_warn("cluster is NULL; has it been started yet?")
+		return(data.frame())
+	}
 	if ( reset ) {
 		ans <- clusterEvalQ(cl, matter::mem(reset=TRUE))
 	} else {

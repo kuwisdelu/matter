@@ -377,10 +377,10 @@ get_chunked_drop <- function(X, chunkopts, BPPARAM)
 	serialize <- get_serialize(chunkopts)
 	if ( is.na(serialize) )
 		serialize <- getOption("matter.default.serialize")
-	if ( isTRUE(serialize) || !has_external_data(X) ) {
+	if ( isTRUE(serialize) || !has_matter_data(X) ) {
 		drop <- FALSE
 	} else {
-		if ( isFALSE(serialize) || has_local_nodes(BPPARAM) ) {
+		if ( isFALSE(serialize) || has_local_cluster(BPPARAM) ) {
 			drop <- NULL
 		} else {
 			drop <- FALSE
@@ -389,14 +389,13 @@ get_chunked_drop <- function(X, chunkopts, BPPARAM)
 	drop
 }
 
-has_external_data <- function(X) {
+has_matter_data <- function(X) {
 	is(X, "matter_") || (is(X, "matter") && is.matter(atomdata(X)))
 }
 
-has_local_nodes <- function(BPPARAM) {
-	known_cl <- c("SerialParam", "SnowParam", "MulticoreParam")
-	local_cl <- inherits(BPPARAM, known_cl) && is.numeric(bpworkers(BPPARAM))
-	is.null(BPPARAM) || local_cl
+has_local_cluster <- function(BPPARAM) {
+	known_cl <- inherits(BPPARAM, c("SnowParam", "MulticoreParam"))
+	known_cl && is.numeric(bpworkers(BPPARAM))
 }
 
 has_progressbar <- function(BPPARAM) {
