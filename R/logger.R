@@ -25,6 +25,7 @@ setRefClass("simple_logger",
 				if ( !file.exists(.self$logfile) ) {
 					if ( !file.create(.self$logfile) )
 						base::stop("failed to create log file ", file)
+					.self$logfile <- normalizePath(.self$logfile)
 				}
 				ipclock(.self$id)
 				con <- file(.self$logfile, open="at")
