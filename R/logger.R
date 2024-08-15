@@ -83,12 +83,13 @@ setRefClass("simple_logger",
 			if ( is.logical(signal) || signal == "message" ) {
 				entry <- paste0(tstamp, msg)
 			} else {
+				SIG <- paste0(toupper(signal), ": ")
 				if ( is.null(call) ) {
 					where <- ""
-					entry <- paste0(tstamp, toupper(signal), ": ", msg)
+					entry <- paste0(tstamp, SIG, msg)
 				} else {
-					where <- paste0(" in ", deparse1(call), ": ")
-					entry <- paste0(tstamp, toupper(signal), where, msg)
+					where <- paste0("in ", deparse1(call), ": ")
+					entry <- paste0(tstamp, SIG, where, msg)
 				}
 			}
 			.self$append(entry)

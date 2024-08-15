@@ -23,7 +23,6 @@
 		matter.vizi.style = "light",
 		matter.vizi.dpal = "Tableau 10",
 		matter.vizi.cpal = "Viridis")
-	matter_log("matter ", packageVersion("matter"))
 }
 
 matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
