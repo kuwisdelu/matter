@@ -125,7 +125,7 @@ setRefClass("simple_logger",
 			}
 			oldfile <- .self$logfile
 			newfile <- file
-			.self$log("moving logfile to: ", sQuote(newfile))
+			.self$log("moving log file to: ", sQuote(newfile))
 			.self$append_session()
 			.self$buffer <- .self$history(FALSE)
 			if ( length(newfile) && file.exists(newfile) ) {
@@ -148,7 +148,6 @@ setRefClass("simple_logger",
 		},
 		close = function()
 		{
-			.self$append_session()
 			.self$flush()
 			.self$logfile <- character(0L)
 			ipcremove(.self$id)
