@@ -60,7 +60,7 @@ matter_logger()
 
         \item{\code{$append_trace():}}{Append the \code{traceback()} to the log.}
 
-        \item{\code{$history():}}{Print the complete log to the console.}
+        \item{\code{$history(print = TRUE):}}{Print the complete log to the console (\code{TRUE}) or return it as a character vector (\code{FALSE}).}
 
         \item{\code{$log(\dots, signal = FALSE, call = NULL):}}{Record a log entry with a timestamp, optionally signaling a \code{"message"}, \code{"warning"}, or \code{"error"} condition. For \code{"warning"} and \code{"error"} conditions (only), the \code{call} may also be passed to be deparsed and recorded in the log entry.}
 

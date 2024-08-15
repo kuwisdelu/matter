@@ -25,14 +25,14 @@ setRefClass("simple_logger",
 				if ( !file.exists(.self$logfile) ) {
 					if ( !file.create(.self$logfile) )
 						base::stop("failed to create log file ", file)
-					.self$logfile <- normalizePath(.self$logfile)
 				}
+				.self$logfile <- normalizePath(.self$logfile)
 				ipclock(.self$id)
 				con <- file(.self$logfile, open="at")
 				writeLines(.self$buffer, con)
 				base::close(con)
-				.self$buffer <- character(0L)
 				ipcunlock(.self$id)
+				.self$buffer <- character(0L)
 			}
 			invisible(.self)
 		},
@@ -119,21 +119,26 @@ setRefClass("simple_logger",
 		move = function(file)
 		{
 			if ( is.null(file) ) {
-				newfile <- character(0L)
-			} else {
-				if ( !is.character(file) || length(file) != 1L )
-					base::stop("file must be a single string")
-				newfile <- normalizePath(file, mustWork=FALSE)
+				file <- character(0L)
+			} else if ( !is.character(file) || length(file) != 1L ) {
+				base::stop("file must be a single string or NULL")
 			}
 			oldfile <- .self$logfile
-			if ( file.exists(newfile) )
-				base::warning("overwriting file ", sQuote(newfile))
+			newfile <- file
 			.self$log("moving logfile to: ", sQuote(newfile))
 			.self$append_session()
 			.self$buffer <- .self$history(FALSE)
+			if ( length(newfile) && file.exists(newfile) ) {
+				if ( !path_identical(oldfile, newfile) )
+					base::warning("overwriting file ", sQuote(newfile))
+				if ( !file.create(newfile) ) {
+					base::stop("failed to truncate new log file: ",
+						sQuote(newfile))
+				}
+			}
 			.self$logfile <- newfile
 			.self$flush()
-			if ( length(oldfile) && !identical(oldfile, newfile) ) {
+			if ( length(oldfile) && !path_identical(oldfile, newfile) ) {
 				if ( !file.remove(oldfile) ) {
 					base::warning("failed to remove old log file: ",
 						sQuote(oldfile))

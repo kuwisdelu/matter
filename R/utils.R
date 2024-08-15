@@ -989,7 +989,7 @@ predict_class <- function(scores) {
 }
 
 # matrix pseudoinverse based on MASS::ginv
-pinv <- function (x, tol = sqrt(.Machine$double.eps)) 
+pinv <- function(x, tol = sqrt(.Machine$double.eps))
 {
 	x <- as.matrix(x)
 	sv <- svd(x)
@@ -1001,6 +1001,13 @@ pinv <- function (x, tol = sqrt(.Machine$double.eps))
 	} else {
 		sv$v[,pos,drop=FALSE] %*% (t(sv$u[,pos,drop=FALSE]) / sv$d[pos])
 	}
+}
+
+# check file paths
+path_identical <- function(path1, path2) {
+	path1 <- normalizePath(path1, mustWork=FALSE)
+	path2 <- normalizePath(path2, mustWork=FALSE)
+	identical(path1, path2)
 }
 
 #### Utilities for raw bytes and memory ####
