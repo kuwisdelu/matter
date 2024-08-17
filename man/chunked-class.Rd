@@ -65,7 +65,7 @@ chunked_list(\dots, nchunks = NA, chunksize = NA,
 
     \item{verbose}{Should messages be printed whenever a chunk is extracted?}
 
-    \item{permute}{Should the order of items be randomized?}
+    \item{permute}{Should the order of items be randomized? Alternatively, an integer vector or a list of integer vectors can be specified. If an integer vector is provided, then \code{x} is chunked in the exact order of the provided indices. If a list of indices is provided, then these are taken as strata (i.e., subpopulations). Each stratum will be chunked separately and then merged (without randomization), so that each chunk will contain examples from every stratum.}
 
     \item{depends}{A list with length equal to the extent of \code{X}. Each element of \code{depends} should give a vector of indices which correspond to other elements of \code{X} on which each computation depends. These elements are passed to \code{FUN}. For time  efficiency, no attempt is made to verify these indices are valid.}
 

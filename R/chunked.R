@@ -209,19 +209,30 @@ chunkify <- function(x, nchunks = 20L, permute = FALSE, depends = NULL)
 {
 	if ( !is.null(depends) && length(depends) != length(x) )
 		matter_error("length of 'depends' must match extent of 'x'")
-	if ( permute ) {
-		permute <- sample.int(length(x))
-		if ( !is.null(depends) )
-			depends <- depends[permute]
-		x <- x[permute]
-	}
-	nchunks <- min(ceiling(length(x) / 2L), nchunks)
-	index <- seq_along(x)
-	if ( nchunks > 1L ) {
-		index <- split(index, cut(index, nchunks))
+	if ( isTRUE(permute) ) {
+		index <- sample.int(length(x))
+	} else if ( isFALSE(permute) ) {
+		index <- seq_along(x)
 	} else {
-		index <- list(index)
+		index <- permute
 	}
+	if ( is.list(index) ) {
+		if ( nchunks > 1L ) {
+			nchunks <- min(ceiling(lengths(index) / 2L), nchunks)
+			index <- lapply(index, function(i) split(i, cut(i, nchunks)))
+			index <- do.call(Map, c(list(base::c), index))
+		} else {
+			index <- list(unlist(index))
+		}
+	} else {
+		nchunks <- min(ceiling(length(index) / 2L), nchunks)
+		if ( nchunks > 1L ) {
+			index <- split(index, cut(seq_along(index), nchunks))
+		} else {
+			index <- list(index)
+		}
+	}
+	index <- unname(index)
 	ans <- vector("list", length(index))
 	for ( i in seq_along(index) )
 	{
