@@ -3,20 +3,22 @@
 ## ------------------------------------
 
 setMethod("rowDists", c("ANY", "missing"),
-	function(x, at, ..., BPPARAM = bpparam()) {
+	function(x, at, ..., simplify = TRUE, BPPARAM = bpparam()) {
 		if ( missing(at) ) {
 			rowDists(x, x, ..., BPPARAM = BPPARAM)
 		} else {
-			rowDistsAt_int(x, at, ..., BPPARAM = BPPARAM)
+			rowDistsAt_int(x, at, ...,
+				simplify=simplify, BPPARAM = BPPARAM)
 		}
 	})
 
 setMethod("colDists", c("ANY", "missing"),
-	function(x, at, ..., BPPARAM = bpparam()) {
+	function(x, at, ..., simplify = TRUE, BPPARAM = bpparam()) {
 		if ( missing(at) ) {
 			colDists(x, x, ..., BPPARAM = BPPARAM)
 		} else {
-			colDistsAt_int(x, at, ..., BPPARAM = BPPARAM)
+			colDistsAt_int(x, at, ...,
+				simplify=simplify, BPPARAM = BPPARAM)
 		}
 	})
 
@@ -165,7 +167,7 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 }
 
 rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
-	weights = NULL, BPPARAM = bpparam(), ...)
+	weights = NULL, simplify = TRUE, BPPARAM = bpparam(), ...)
 {
 	if ( "iter.dim" %in% ...names() )
 		matter_error("iter.dim will be ignored when 'at' is used")
@@ -187,11 +189,13 @@ rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		metric=metric, p=p, weights=weights,
 		BPPARAM=BPPARAM, ...)
 	names(ans) <- rownames(x)
+	if ( simplify && length(unique(lengths(ans))) == 1L )
+		ans <- do.call(rbind, ans)
 	ans
 }
 
 colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
-	weights = NULL, BPPARAM = bpparam(), ...)
+	weights = NULL, simplify = TRUE, BPPARAM = bpparam(), ...)
 {
 	if ( "iter.dim" %in% ...names() )
 		matter_error("iter.dim will be ignored when 'at' is used")
@@ -213,6 +217,8 @@ colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		metric=metric, p=p, weights=weights,
 		BPPARAM=BPPARAM, ...)
 	names(ans) <- colnames(x)
+	if ( simplify && length(unique(lengths(ans))) == 1L )
+		ans <- do.call(rbind, ans)
 	ans
 }
 

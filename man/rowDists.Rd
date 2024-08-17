@@ -29,10 +29,6 @@
 }
 
 \usage{
-\S4method{rowDists}{ANY,missing}(x, at, \dots, BPPARAM = bpparam())
-
-\S4method{colDists}{ANY,missing}(x, at, \dots, BPPARAM = bpparam())
-
 \S4method{rowDists}{matrix,matrix}(x, y, \dots, BPPARAM = bpparam())
 
 \S4method{colDists}{matrix,matrix}(x, y, \dots, BPPARAM = bpparam())
@@ -44,6 +40,10 @@
 \S4method{rowDists}{sparse_mat,matrix}(x, y, \dots, BPPARAM = bpparam())
 
 \S4method{colDists}{matrix,sparse_mat}(x, y, \dots, BPPARAM = bpparam())
+
+\S4method{rowDists}{ANY,missing}(x, at, \dots, simplify = TRUE, BPPARAM = bpparam())
+
+\S4method{colDists}{ANY,missing}(x, at, \dots, simplify = TRUE, BPPARAM = bpparam())
 
 rowdist(x, y = x, metric = "euclidean", p = 2, weights = NULL)
 
@@ -60,6 +60,8 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 	\item{x, y}{Numeric matrices for which distances should be calculated according to rows or columns. If a parallel backend is provided, then the calculation is parallelized over \code{x}, and \code{y} is passed to each worker.}
 
 	\item{at}{A list, matrix, or vector of specific row or column indices for which to calculate the distances. Each row or column of \code{x} will be compared to the rows or columns indicated by the corresponding element of \code{at}.}
+
+	\item{simplify}{Should the result be simplified into a matrix if possible?}
 
 	\item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 
@@ -87,7 +89,7 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 
     For \code{rowdist_at()} and \code{coldist_at()}, a list where each element gives the pairwise distances corresponding to the indices given by \code{ix} and \code{iy}.
 
-    \code{rowDists()} and \code{colDists()} have corresponding return values depending on whether \code{at} has been specified.
+    \code{rowDists()} and \code{colDists()} have corresponding return values depending on whether \code{at} has been specified (and the value of \code{simplify}).
 }
 
 \author{Kylie A. Bemis}
@@ -122,7 +124,7 @@ rowdist_at(x, ix=c(1,5), iy=list(1:3, 3:5))
 rowDists(x, at=roll(1:5, width=3))
 
 # distances between:
-# x[i,] vs x[1,]
+# x[,] vs x[1,]
 rowDists(x, at=1)
 }
 
