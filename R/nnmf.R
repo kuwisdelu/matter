@@ -183,10 +183,10 @@ nndsvd <- function(x, k = 3L, ...)
 		un <- u * (u < 0)
 		vp <- v * (v >= 0)
 		vn <- v * (v < 0)
-		upnorm = sqrt(sum(up^2))
-		unnorm = sqrt(sum(un^2))
-		vpnorm = sqrt(sum(vp^2))
-		vnnorm = sqrt(sum(vn^2))
+		upnorm <- sqrt(sum(up^2))
+		unnorm <- sqrt(sum(un^2))
+		vpnorm <- sqrt(sum(vp^2))
+		vnnorm <- sqrt(sum(vn^2))
 		mp <- upnorm * vpnorm
 		mn <- unnorm * vnnorm
 		if ( mp > mn ) {

@@ -171,13 +171,15 @@ rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		matter_error("iter.dim will be ignored when 'at' is used")
 	if ( is.matrix(at) )
 		at <- array2list(at, 1L)
+	if ( !is.list(at) )
+		at <- list(at)
 	if ( length(at) != nrow(x) )
 		at <- rep_len(at, nrow(x))
 	FUN <- isofun(function(xi, metric, p, weights)
 		{
-			di <- attr(xi, "depends")
-			i <- which(!vapply(di, is.null, logical(1L)))
-			j <- di[i]
+			dep <- attr(xi, "depends")
+			i <- which(!vapply(dep, is.null, logical(1L)))
+			j <- dep[i]
 			rowdist_at(xi, ix=i, iy=j,
 				metric=metric, p=p, weights=weights)
 		}, matter_env())
@@ -195,13 +197,15 @@ colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		matter_error("iter.dim will be ignored when 'at' is used")
 	if ( is.matrix(at) )
 		at <- array2list(at, 1L)
+	if ( !is.list(at) )
+		at <- list(at)
 	if ( length(at) != ncol(x) )
 		at <- rep_len(at, ncol(x))
 	FUN <- isofun(function(xi, metric, p, weights)
 		{
-			di <- attr(xi, "depends")
-			i <- which(!vapply(di, is.null, logical(1L)))
-			j <- di[i]
+			dep <- attr(xi, "depends")
+			i <- which(!vapply(dep, is.null, logical(1L)))
+			j <- dep[i]
 			coldist_at(xi, ix=i, iy=j,
 				metric=metric, p=p, weights=weights)
 		}, matter_env())

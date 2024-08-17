@@ -53,12 +53,12 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		d2 <- rowdist_at(co, ix=seq_len(nrow(co)), iy=nb, metric="euclidean")
 		a <- ((2 * r) + 1) / 4
 		wts <- lapply(d2, function(d) exp(-d^2 / (2 * a^2)))
-		if ( weights != "gaussian" ) {
+		if ( weights %in% c("bilateral", "adaptive") ) {
 			d3 <- Map(function(xi, i) abs(xi - x[i]), x, nb)
-			if ( weights == "adaptive" ) {
-				bs <- vapply(d3, function(d) (max(d) / 2)^2, numeric(1L))
-			} else {
+			if ( weights == "bilateral" ) {
 				bs <- rep_len(mad(x, na.rm=TRUE), length(x))
+			} else {
+				bs <- vapply(d3, function(d) (max(d) / 2)^2, numeric(1L))
 			}
 			awts <- Map(function(d, b) exp(-d^2 / (2 * b^2)), d3, bs)
 			awts <- lapply(awts, function(w) replace(w, is.na(w), 1))

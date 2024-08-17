@@ -180,6 +180,14 @@ test_that("rowDists + colDists", {
 		coldist_at(x, ix=1:6, iy=ic),
 		colDists(x, at=ic))
 
+	expect_equal(
+		rowDists(x, at=1:3),
+		rowDists(x, at=list(1:3)))
+
+	expect_equal(
+		colDists(x, at=1:3),
+		colDists(x, at=list(1:3)))
+
 })
 
 test_that("weighted rowDists + colDists", {
