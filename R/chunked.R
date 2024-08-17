@@ -33,6 +33,95 @@ setClass("chunked_mat", contains = "chunked_arr")
 
 setClass("chunked_list", contains = "chunked")
 
+chunked_vec <- function(x, nchunks = NA, chunksize = NA,
+	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
+{
+	if ( is.na(chunksize) )
+		chunksize <- getOption("matter.default.chunksize")
+	if ( is.na(nchunks) ) {
+		if ( is.finite(chunksize) && chunksize > 0 ) {
+			f <- 1
+			if ( is.numeric(permute) )
+				f <- length(permute) / length(x)
+			if ( is.list(permute) )
+				f <- sum(lengths(permute)) / length(x)
+			nchunks <- ceiling(f * unclass(mem_realized(x)) / chunksize)
+		} else {
+			nchunks <- getOption("matter.default.nchunks")
+		}
+	}
+	index <- chunkify(seq_along(x), nchunks=nchunks,
+		permute=permute, depends=depends)
+	new("chunked_vec", data=x, index=index,
+		verbose=verbose, drop=drop)
+}
+
+chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
+	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
+{
+	if ( length(dim(x)) != 2L )
+		matter_error("'x' must have exactly 2 dimensions")
+	if ( !margin %in% c(1L, 2L) )
+		matter_error("'margin' must be 1 or 2")
+	if ( is.na(chunksize) )
+		chunksize <- getOption("matter.default.chunksize")
+	if ( is.na(nchunks) ) {
+		if ( is.finite(chunksize) && chunksize > 0 ) {
+			f <- 1
+			if ( is.numeric(permute) )
+				f <- length(permute) / dim(x)[margin]
+			if ( is.list(permute) )
+				f <- sum(lengths(permute)) / dim(x)[margin]
+			nchunks <- ceiling(f * unclass(mem_realized(x)) / chunksize)
+		} else {
+			nchunks <- getOption("matter.default.nchunks")
+		}
+	}
+	margin <- as.integer(margin)
+	index <- switch(margin,
+		chunkify(seq_len(nrow(x)), nchunks=nchunks,
+			permute=permute, depends=depends),
+		chunkify(seq_len(ncol(x)), nchunks=nchunks,
+			permute=permute, depends=depends))
+	new("chunked_mat", data=x, margin=margin, index=index,
+		verbose=verbose, drop=drop)
+}
+
+chunked_list <- function(..., nchunks = NA, chunksize = NA,
+	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
+{
+	xs <- list(...)
+	if ( length(xs) > 1L ) {
+		len <- vapply(xs, length, integer(1L))
+		if ( n_unique(len) != 1L ) {
+			max.len <- max(len)
+			if ( max.len && any(len == 0L) )
+				matter_error("zero-length and non-zero length inputs cannot be mixed")
+			if ( any(max.len %% len) )
+				matter_warn("longer argument not a multiple of length of vector")
+			xs <- lapply(xs, rep_len, length.out=max.len)
+		}
+	}
+	if ( is.na(chunksize) )
+		chunksize <- getOption("matter.default.chunksize")
+	if ( is.na(nchunks) ) {
+		if ( is.finite(chunksize) && chunksize > 0 ) {
+			f <- 1
+			if ( is.numeric(permute) )
+				f <- length(permute) / length(xs[[1L]])
+			if ( is.list(permute) )
+				f <- sum(lengths(permute)) / length(xs[[1L]])
+			nchunks <- ceiling(f * unclass(mem_realized(xs)) / chunksize)
+		} else {
+			nchunks <- getOption("matter.default.nchunks")
+		}
+	}
+	index <- chunkify(seq_along(xs[[1L]]), nchunks=nchunks,
+		permute=permute, depends=depends)
+	new("chunked_list", data=xs, index=index,
+		verbose=verbose, drop=drop)
+}
+
 setAs("chunked", "list", function(from) from[])
 
 setMethod("as.list", "chunked", function(x) as(x, "list"))
@@ -83,80 +172,6 @@ setMethod("[",
 		}
 		y
 	})
-
-chunked_vec <- function(x, nchunks = NA, chunksize = NA,
-	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
-{
-	if ( is.na(chunksize) )
-		chunksize <- getOption("matter.default.chunksize")
-	if ( is.na(nchunks) ) {
-		if ( is.finite(chunksize) && chunksize > 0 ) {
-			nchunks <- ceiling(unclass(mem_realized(x)) / chunksize)
-		} else {
-			nchunks <- getOption("matter.default.nchunks")
-		}
-	}
-	index <- chunkify(seq_along(x), nchunks=nchunks,
-		permute=permute, depends=depends)
-	new("chunked_vec", data=x, index=index,
-		verbose=verbose, drop=drop)
-}
-
-chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
-	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
-{
-	if ( length(dim(x)) != 2L )
-		matter_error("'x' must have exactly 2 dimensions")
-	if ( !margin %in% c(1L, 2L) )
-		matter_error("'margin' must be 1 or 2")
-	if ( is.na(chunksize) )
-		chunksize <- getOption("matter.default.chunksize")
-	if ( is.na(nchunks) ) {
-		if ( is.finite(chunksize) && chunksize > 0 ) {
-			nchunks <- ceiling(unclass(mem_realized(x)) / chunksize)
-		} else {
-			nchunks <- getOption("matter.default.nchunks")
-		}
-	}
-	margin <- as.integer(margin)
-	index <- switch(margin,
-		chunkify(seq_len(nrow(x)), nchunks=nchunks,
-			permute=permute, depends=depends),
-		chunkify(seq_len(ncol(x)), nchunks=nchunks,
-			permute=permute, depends=depends))
-	new("chunked_mat", data=x, margin=margin, index=index,
-		verbose=verbose, drop=drop)
-}
-
-chunked_list <- function(..., nchunks = NA, chunksize = NA,
-	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
-{
-	xs <- list(...)
-	if ( length(xs) > 1L ) {
-		len <- vapply(xs, length, integer(1L))
-		if ( n_unique(len) != 1L ) {
-			max.len <- max(len)
-			if ( max.len && any(len == 0L) )
-				matter_error("zero-length and non-zero length inputs cannot be mixed")
-			if ( any(max.len %% len) )
-				matter_warn("longer argument not a multiple of length of vector")
-			xs <- lapply(xs, rep_len, length.out=max.len)
-		}
-	}
-	if ( is.na(chunksize) )
-		chunksize <- getOption("matter.default.chunksize")
-	if ( is.na(nchunks) ) {
-		if ( is.finite(chunksize) && chunksize > 0 ) {
-			nchunks <- ceiling(unclass(mem_realized(xs)) / chunksize)
-		} else {
-			nchunks <- getOption("matter.default.nchunks")
-		}
-	}
-	index <- chunkify(seq_along(xs[[1L]]), nchunks=nchunks,
-		permute=permute, depends=depends)
-	new("chunked_list", data=xs, index=index,
-		verbose=verbose, drop=drop)
-}
 
 setMethod("[[", c(x = "chunked_list"),
 	function(x, i, j, ..., exact = TRUE) {

@@ -45,10 +45,23 @@ test_that("chunked - memory", {
 
 	expect_equal(xcm_bp, xcm_l)
 
-	xr <- chunked_vec(x, permute=TRUE)
-	xrl <- unlist(as.list(xr))
+	i2 <- sample.int(100)
+	i3 <- list(sample.int(50), 50 + sample.int(50))
+	xr1 <- chunked_vec(x, permute=TRUE)
+	xr2 <- chunked_vec(x, permute=i2)
+	xr3 <- chunked_vec(x, permute=i3)
+	
+	xrl1 <- unlist(as.list(xr1))
+	xrl2 <- unlist(as.list(xr2))
+	xrl3 <- unlist(as.list(xr3))
 
-	expect_setequal(xrl, x)
+	expect_setequal(xrl1, x)
+	expect_setequal(xrl2, x)
+	expect_setequal(xrl3, x)
+
+	expect_equal(xrl2, x[i2])
+	expect_true(any(x[i3[[1L]]] %in% xr3[[1L]]))
+	expect_true(any(x[i3[[2L]]] %in% xr3[[1L]]))
 
 	set.seed(1, kind="default")	
 	u <- sort(runif(100))
