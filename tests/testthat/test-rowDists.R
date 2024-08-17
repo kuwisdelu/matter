@@ -163,22 +163,22 @@ test_that("rowDists + colDists", {
 
 	expect_equal(
 		rowdist_at(x, ix=1:5, iy=ir),
-		rowDists(x, at=ir))
+		rowDists(x, at=ir, simplify=FALSE))
 	
 	expect_equal(
 		coldist_at(x, ix=1:6, iy=ic),
-		colDists(x, at=ic))
+		colDists(x, at=ic, simplify=FALSE))
 
 	ir <- roll(1:5, width=3, na.drop=FALSE)
 	ic <- roll(1:6, width=3, na.drop=FALSE)
 
 	expect_equal(
 		rowdist_at(x, ix=1:5, iy=ir),
-		rowDists(x, at=ir))
+		rowDists(x, at=ir, simplify=FALSE))
 	
 	expect_equal(
 		coldist_at(x, ix=1:6, iy=ic),
-		colDists(x, at=ic))
+		colDists(x, at=ic, simplify=FALSE))
 
 	expect_equal(
 		rowDists(x, at=1:3),
