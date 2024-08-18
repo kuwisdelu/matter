@@ -61,6 +61,21 @@ test_that("filter 1d", {
 	expect_equal(x1[3:4998], x9[3:4998])
 	expect_equal(x2[3:4998], x10[3:4998])
 
+	set.seed(1, kind="default")
+	z <- matrix(rlnorm(5000), nrow=100, ncol=50)
+	i1 <- roll(seq_len(nrow(z)), width=5)
+	i2 <- roll(seq_len(ncol(z)), width=5)
+	w1 <- rep_len(list(rep.int(1/5, 5)), length(i1))
+	w2 <- rep_len(list(rep.int(1/5, 5)), length(i2))
+
+	FUN1 <- function(i, w, ...) colSums(w * z[i,,drop=FALSE], ...)
+	FUN2 <- function(i, w, ...) colSums(w * t(z[,i,drop=FALSE]), ...)
+	z1 <- t(mapply(FUN1, i1, w1))
+	z2 <- mapply(FUN2, i2, w2)
+
+	expect_equal(convolve_at(z, i1, w1, margin=1), z1)
+	expect_equal(convolve_at(z, i2, w2, margin=2), z2)
+
 })
 
 test_that("filter nd (1d)", {

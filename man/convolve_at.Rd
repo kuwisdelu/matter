@@ -9,17 +9,19 @@
 }
 
 \usage{
-convolve_at(x, index, weights, \dots)
+convolve_at(x, index, weights, margin = NULL, na.rm = FALSE)
 }
 
 \arguments{
-	\item{x}{A numeric vector.}
+	\item{x}{A numeric vector or matrix.}
 
     \item{index}{A list or matrix of numeric vectors giving the indices to convolve. If \code{index} is a list, then it must have the same length as \code{x} and element lengths that match \code{weights}. If \code{x} is a matrix, then its rows must correspond to \code{x} and its columns must correspond to \code{weights}.}
 
     \item{weights}{A list giving the weights of the kernels to convolve for each element of \code{x}. Lengths must match \code{index}.}
 
-    \item{\dots}{Additional arguments passed to \code{sum()}. (E.g, \code{na.rm}.)}
+    \item{margin}{If \code{x} is a matrix, then the margin to convolve over.}
+
+    \item{na.rm}{Should missing values (including \code{NaN}) be removed?}
 }
 
 \details{

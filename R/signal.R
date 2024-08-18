@@ -138,24 +138,43 @@ filt1_fun <- function(method)
 	options[[match.arg(method, names(options))]]
 }
 
-convolve_at <- function(x, index, weights, ...)
+convolve_at <- function(x, index, weights,
+	margin = NULL, na.rm = FALSE)
 {
+	if ( is.null(margin) ) {
+		lenX <- length(x)
+	} else {
+		if ( !is.matrix(x) )
+			matter_error("x must be a vector or matrix")
+		lenX <- dim(x)[margin]
+	}
 	if ( is.matrix(index) )
 		index <- array2list(index, 1L)
 	if ( !is.list(index) )
 		matter_error("index must be a list")
 	if ( is.numeric(weights) )
 		weights <- list(weights)
-	weights <- rep_len(weights, length(x))
-	if ( length(index) != length(x) )
-		matter_error("index and x must have the same length")
+	weights <- rep_len(weights, lenX)
+	if ( length(index) != lenX )
+		matter_error("index and x must have the same extent")
+	if ( length(weights) != lenX )
+		matter_error("weights and x must have the same extent")
 	if ( !all(lengths(index) == lengths(weights)) )
 		matter_error("lengths of index and weights must match")
-	vapply(seq_along(x),
-		function(i) {
+	if ( is.null(margin) ) {
+		FUN <- function(i) {
 			ii <- index[[i]]
-			sum(weights[[i]] * x[ii], ...)
-		}, numeric(1L))
+			sum(weights[[i]] * x[ii], na.rm=na.rm)
+		}
+		vapply(seq_along(x), FUN, numeric(1L))
+	} else {
+		FUN <- switch(margin,
+			function(i, w) colSums(w * x[i,,drop=FALSE], na.rm=na.rm),
+			function(i, w) colSums(w * t(x[,i,drop=FALSE]), na.rm=na.rm))
+		switch(margin,
+			t(mapply(FUN, index, weights)),
+			mapply(FUN, index, weights))
+	}
 }
 
 #### KNN Filtering and Smoothing ####
