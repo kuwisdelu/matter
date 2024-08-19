@@ -3,13 +3,12 @@
 ## -------------------------
 
 fastmap <- function(x, k = 3L, distfun = NULL,
-	transpose = FALSE, niter = 3L, verbose = NA,
-	BPPARAM = bpparam(), ...)
+	transpose = FALSE, niter = 10L, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	if ( is.null(distfun) )
-		distfun <- if (transpose) colDistFun else rowDistFun
+		distfun <- if (transpose) colDists else rowDists
 	k <- min(max(k), dim(x))
 	# prepare matrices
 	j <- seq_len(k)
@@ -24,58 +23,65 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		dimnames=list(snames, paste0("C", j)))
 	pivots <- matrix(nrow=k, ncol=3L,
 		dimnames=list(paste0("C", j), c("p1", "p2", "dist")))
-	fx <- distfun(x, x, verbose=verbose, ..., BPPARAM=BPPARAM)
 	for ( i in j )
 	{
 		matter_log("fitting FastMap component ", i, verbose=verbose)
 		# find pivots
-		p1 <- sample.int(N, 1L)
-		p2 <- sample.int(N, 1L)
-		plast <- c(p1, p2)
-		matter_log("finding pivots", verbose=verbose)
+		pv <- sample.int(N, 2L)
 		for ( iter in seq_len(niter) )
 		{
-			# get distances to pivot 1
-			d1x <- fx(p1)
-			d1proj <- rowdist_at(scores, p1)[[1L]]
-			d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
-			# update pivot 2
-			p2 <- which.max(d1)
-			# get distances to pivot 2
-			d2x <- fx(p2)
-			d2proj <- rowdist_at(scores, p2)[[1L]]
-			d2 <- sqrt(pmax(d2x^2 - d2proj^2, 0))
-			# update pivot 1
-			p1 <- which.max(d2)
-			# get distance between pivots
-			d12 <- d2[p1]
-			matter_log("pivot distance = ",
-				format.default(d12), " on iteration ", iter, verbose=verbose)
-			if ( setequal(c(p1, p2), plast) ) {
-				break
+			# get distances to pivot candidates
+			if ( transpose ) {
+				dx <- distfun(x, x[,pv,drop=FALSE], ...)
 			} else {
-				plast <- c(p1, p2)
+				dx <- distfun(x, x[pv,,drop=FALSE], ...)
+			}
+			# get pivot 1 distances
+			d1x <- dx[,1L]
+			d1proj <- rowdist_at(scores, pv[1L])[[1L]]
+			d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
+			# get pivot 2 distances
+			d2x <- dx[,2L]
+			d2proj <- rowdist_at(scores, pv[2L])[[1L]]
+			d2 <- sqrt(pmax(d2x^2 - d2proj^2, 0))
+			# get distance between pivots
+			d12 <- d1[pv[2L]]
+			# calculate best pivots for next iteration
+			pvnew <- c(which.max(d2), which.max(d1))
+			if ( iter < niter )
+			{
+				# update pivots
+				if ( d1[pvnew[2L]] > d2[pvnew[1L]] ) {
+					matter_log("iteration ", iter, ": ", "max pivot distance",
+						" (", pv[1L], ", ", pvnew[2L], ") = ",
+						format.default(d1[pvnew[2L]]), verbose=verbose)
+					pvnew[1L] <- pv[1L]
+				} else if ( d2[pvnew[1L]] > d1[pvnew[2L]] ) {
+					matter_log("iteration ", iter, ": ", "max pivot distance",
+						" (", pvnew[1L], ", ", pv[2L], ") = ",
+						format.default(d2[pvnew[1L]]), verbose=verbose)
+					pvnew[2L] <- pv[2L]
+				}
+				if ( setequal(pvnew, pv) )
+					break
+				pv <- pvnew
 			}
 		}
-		# finally, get distances to pivot 1
-		d1x <- fx(p1)
-		d1proj <- rowdist_at(scores, p1)[[1L]]
-		d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
-		matter_log("found pivots: ", p1, ", ", p2, verbose=verbose)
 		# project current component
+		matter_log("using pivots: ", pv[1L], ", ", pv[2L], verbose=verbose)
 		matter_log("projecting component ", i, verbose=verbose)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
 		scores[,i] <- xi
-		pivots[i,] <- c(p1, p2, d12)
+		pivots[i,] <- c(pv, d12)
 	}
 	pindex <- as.vector(pivots[,1:2])
 	if ( transpose ) {
-		xp <- x[,pindex,drop=FALSE]
+		pa <- x[,pindex,drop=FALSE]
 	} else {
-		xp <- x[pindex,,drop=FALSE]
+		pa <- x[pindex,,drop=FALSE]
 	}
 	ans <- list(x=scores, sdev=apply(scores, 2L, sd),
-		pivots=pivots, pivot.array=xp, distfun=distfun)
+		pivots=pivots, pivot.array=pa, distfun=distfun)
 	names(ans$sdev) <- paste0("C", j)
 	colnames(ans$x) <- paste0("C", j)
 	rownames(ans$pivots) <- paste0("C", j)
@@ -105,7 +111,6 @@ predict.fastmap <- function(object, newdata, ...)
 	if ( length(dim(newdata)) != 2L )
 		matter_error("'newdata' must be a matrix or data frame")
 	k <- nrow(object$pivots)
-	xp <- object$pivot.array
 	if (object$transpose) {
 		N <- NCOL(newdata)
 		snames <- colnames(newdata)
@@ -116,13 +121,13 @@ predict.fastmap <- function(object, newdata, ...)
 	j <- seq_len(k)
 	pred <- matrix(0, nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
-	fx <- object$distfun(xp, newdata, ...)
+	dx <- object$distfun(newdata, object$pivot.array, ...)
 	for ( i in j ) {
 		p1 <- object$pivots[i,1L]
 		p2 <- object$pivots[i,2L]
 		d12 <- object$pivots[i,3L]
 		# get distances to pivot 1
-		d1x <- fx(i)
+		d1x <- dx[,i]
 		if ( i > 1L ) {
 			proj1 <- object$x[p1,1L:(i - 1L),drop=FALSE]
 			d1proj <- rowdist(pred[,1L:(i - 1L),drop=FALSE], proj1)
@@ -131,7 +136,7 @@ predict.fastmap <- function(object, newdata, ...)
 			d1 <- d1x
 		}
 		# get distances to pivot 2
-		d2x <- fx(i + k)
+		d2x <- dx[,i + k]
 		if ( i > 1L ) {
 			proj2 <- object$x[p2,1L:(i - 1L),drop=FALSE]
 			d2proj <- rowdist(pred[,1L:(i - 1L),drop=FALSE], proj2)

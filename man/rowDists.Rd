@@ -46,7 +46,6 @@
 \S4method{colDists}{ANY,missing}(x, at, \dots, simplify = TRUE, BPPARAM = bpparam())
 
 rowdist(x, y = x, metric = "euclidean", p = 2, weights = NULL)
-
 coldist(x, y = x, metric = "euclidean", p = 2, weights = NULL)
 
 rowdist_at(x, ix, y = x, iy = list(1L:nrow(y)),

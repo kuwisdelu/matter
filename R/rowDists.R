@@ -189,7 +189,7 @@ rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		metric=metric, p=p, weights=weights,
 		BPPARAM=BPPARAM, ...)
 	names(ans) <- rownames(x)
-	if ( simplify && length(unique(lengths(ans))) == 1L )
+	if ( simplify && n_unique(lengths(ans)) == 1L )
 		ans <- do.call(rbind, ans)
 	ans
 }
@@ -217,7 +217,7 @@ colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 		metric=metric, p=p, weights=weights,
 		BPPARAM=BPPARAM, ...)
 	names(ans) <- colnames(x)
-	if ( simplify && length(unique(lengths(ans))) == 1L )
+	if ( simplify && n_unique(lengths(ans)) == 1L )
 		ans <- do.call(rbind, ans)
 	ans
 }
