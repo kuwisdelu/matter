@@ -9,7 +9,7 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
 	if ( is.null(distfun) )
-		distfun <- if (transpose) colDistFun else rowDistFun
+		distfun <- if (transpose) colDists else rowDists
 	y <- as.factor(y)
 	k <- nlevels(y)
 	priors <- rep_len(as.vector(priors), k)
@@ -73,13 +73,12 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		if ( k > 1L && !any(abs(s_statistic) > 0) )
 			matter_warn("model is fully sparse; 's' is too large")
 		if ( transpose ) {
-			fx <- distfun(s_centers, x, weights=1 / (sd + s0)^2,
-				BPPARAM=BPPARAM, ...)
+			ds <- distfun(x, s_centers,
+				weights=1 / (sd + s0)^2, BPPARAM=BPPARAM, ...)
 		} else {
-			fx <- distfun(t(s_centers), x, weights=1 / (sd + s0)^2,
-				BPPARAM=BPPARAM, ...)
+			ds <- distfun(x, t(s_centers),
+				weights=1 / (sd + s0)^2, BPPARAM=BPPARAM, ...)
 		}
-		ds <- fx(seq_len(k))
 		if ( !is.matrix(ds) ) {
 			ds <- as.matrix(ds)
 			colnames(ds) <- levels(y)
@@ -136,27 +135,30 @@ fitted.nscentroids <- function(object, type = c("response", "class"), ...)
 }
 
 predict.nscentroids <- function(object, newdata,
-	type = c("response", "class"), ...)
+	type = c("response", "class"), priors = NULL, ...)
 {
 	type <- match.arg(type)
 	if ( missing(newdata) )
 		return(fitted(object, type=type))
 	if ( length(dim(newdata)) != 2L )
 		matter_error("'newdata' must be a matrix or data frame")
-	priors <- object$priors
-	k <- length(priors)
+	if ( is.null(priors) ) {
+		priors <- object$priors
+	} else {
+		priors <- rep_len(priors, ncol(object$centers))
+	}
+	priors <- priors / sum(priors)
 	sd <- object$sd
 	s0 <- median(sd, na.rm=TRUE)
 	if ( object$transpose ) {
-		fx <- object$distfun(object$centers, newdata,
+		ds <- object$distfun(newdata, object$centers,
 			weights=1 / (sd + s0)^2, ...)
 	} else {
-		fx <- object$distfun(t(object$centers), newdata,
+		ds <- object$distfun(newdata, t(object$centers),
 			weights=1 / (sd + s0)^2, ...)
 	}
-	ds <- fx(seq_len(k))
 	scores <- ds^2 - 2 * log(rep(priors, each=nrow(ds)))
-	colnames(scores) <- names(priors)
+	colnames(scores) <- colnames(object$centers)
 	prob <- exp(-scores / 2)
 	prob <- pmax(prob / rowSums(prob, na.rm=TRUE), 0)
 	for ( j in seq_len(nrow(prob)) ) {

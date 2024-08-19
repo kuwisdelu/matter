@@ -32,16 +32,16 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		{
 			# get distances to pivot candidates
 			if ( transpose ) {
-				dx <- distfun(x, x[,pv,drop=FALSE], ...)
+				ds <- distfun(x, x[,pv,drop=FALSE], ...)
 			} else {
-				dx <- distfun(x, x[pv,,drop=FALSE], ...)
+				ds <- distfun(x, x[pv,,drop=FALSE], ...)
 			}
 			# get pivot 1 distances
-			d1x <- dx[,1L]
+			d1x <- ds[,1L]
 			d1proj <- rowdist_at(scores, pv[1L])[[1L]]
 			d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
 			# get pivot 2 distances
-			d2x <- dx[,2L]
+			d2x <- ds[,2L]
 			d2proj <- rowdist_at(scores, pv[2L])[[1L]]
 			d2 <- sqrt(pmax(d2x^2 - d2proj^2, 0))
 			# get distance between pivots
@@ -121,13 +121,13 @@ predict.fastmap <- function(object, newdata, ...)
 	j <- seq_len(k)
 	pred <- matrix(0, nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
-	dx <- object$distfun(newdata, object$pivot.array, ...)
+	ds <- object$distfun(newdata, object$pivot.array, ...)
 	for ( i in j ) {
 		p1 <- object$pivots[i,1L]
 		p2 <- object$pivots[i,2L]
 		d12 <- object$pivots[i,3L]
 		# get distances to pivot 1
-		d1x <- dx[,i]
+		d1x <- ds[,i]
 		if ( i > 1L ) {
 			proj1 <- object$x[p1,1L:(i - 1L),drop=FALSE]
 			d1proj <- rowdist(pred[,1L:(i - 1L),drop=FALSE], proj1)
@@ -136,7 +136,7 @@ predict.fastmap <- function(object, newdata, ...)
 			d1 <- d1x
 		}
 		# get distances to pivot 2
-		d2x <- dx[,i + k]
+		d2x <- ds[,i + k]
 		if ( i > 1L ) {
 			proj2 <- object$x[p2,1L:(i - 1L),drop=FALSE]
 			d2proj <- rowdist(pred[,1L:(i - 1L),drop=FALSE], proj2)
@@ -151,26 +151,3 @@ predict.fastmap <- function(object, newdata, ...)
 	pred
 }
 
-rowDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
-{
-	isoclos(function(i) {
-		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
-			verbose=isTRUE(verbose))
-		rowDists(y, x[i,,drop=FALSE], metric=metric, p=p, weights=weights,
-			verbose=verbose, chunkopts=chunkopts,
-			BPPARAM=BPPARAM)
-	}, matter_env())
-}
-
-colDistFun <- function(x, y, metric = "euclidean", p = 2, weights = NULL,
-	verbose = NA, chunkopts = list(), BPPARAM = bpparam(), ...)
-{
-	isoclos(function(i) {
-		matter_log("calculating distances from index: ", paste0(i, collapse=" "),
-			verbose=isTRUE(verbose))
-		colDists(y, x[,i,drop=FALSE], metric=metric, p=p, weights=weights,
-			verbose=verbose, chunkopts=chunkopts,
-			BPPARAM=BPPARAM)
-	}, matter_env())
-}

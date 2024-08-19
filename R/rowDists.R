@@ -225,7 +225,7 @@ colDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 #### Distances ####
 ## ----------------
 
-rowdist <- function(x, y = x, metric = "euclidean", p = 2, weights = NULL)
+rowdist <- function(x, y = x, metric = "euclidean", p = 2, weights = NULL, ...)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -243,7 +243,7 @@ rowdist <- function(x, y = x, metric = "euclidean", p = 2, weights = NULL)
 	.Call(C_rowDist, x, y, as_dist(metric), p, weights, PACKAGE="matter")
 }
 
-coldist <- function(x, y = x, metric = "euclidean", p = 2, weights = NULL)
+coldist <- function(x, y = x, metric = "euclidean", p = 2, weights = NULL, ...)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -279,7 +279,7 @@ dist_c <- function(x, y, ..., metric = "euclidean", p = 2)
 ## ------------------------------------
 
 rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
-	metric = "euclidean", p = 2, weights = NULL)
+	metric = "euclidean", p = 2, weights = NULL, ...)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)
@@ -313,7 +313,7 @@ rowdist_at <- function(x, ix, y = x, iy = list(1L:nrow(y)),
 }
 
 coldist_at <- function(x, ix, y = x, iy = list(1L:ncol(y)),
-	metric = "euclidean", p = 2, weights = NULL)
+	metric = "euclidean", p = 2, weights = NULL, ...)
 {
 	x <- as.matrix(x)
 	y <- as.matrix(y)

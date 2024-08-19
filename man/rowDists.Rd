@@ -45,14 +45,14 @@
 
 \S4method{colDists}{ANY,missing}(x, at, \dots, simplify = TRUE, BPPARAM = bpparam())
 
-rowdist(x, y = x, metric = "euclidean", p = 2, weights = NULL)
-coldist(x, y = x, metric = "euclidean", p = 2, weights = NULL)
+rowdist(x, y = x, metric = "euclidean", p = 2, weights = NULL, \dots)
+coldist(x, y = x, metric = "euclidean", p = 2, weights = NULL, \dots)
 
 rowdist_at(x, ix, y = x, iy = list(1L:nrow(y)),
-	metric = "euclidean", p = 2, weights = NULL)
+	metric = "euclidean", p = 2, weights = NULL, \dots)
 
 coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
-	metric = "euclidean", p = 2, weights = NULL)
+	metric = "euclidean", p = 2, weights = NULL, \dots)
 }
 
 \arguments{

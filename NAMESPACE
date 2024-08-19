@@ -438,10 +438,6 @@ exportMethods(
 	"colDists")
 
 export(
-	"rowDistFun",
-	"colDistFun")
-
-export(
 	"array_ind",
 	"linear_ind")
 
