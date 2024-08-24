@@ -4,7 +4,7 @@
 
 setClass("matter_str",
 	slots = c(encoding = "character"),
-	contains = "matter_",
+	contains = "matter_list",
 	validity = function(object) {
 		errors <- NULL
 		if ( !setequal(object@type, "character") )

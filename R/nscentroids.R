@@ -79,6 +79,8 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 			ds <- distfun(x, t(s_centers),
 				weights=1 / (sd + s0)^2, BPPARAM=BPPARAM, ...)
 		}
+		if ( is.function(ds) )
+			.Defunct(msg="distfun requirements have changed; see ?nscentroids")
 		if ( !is.matrix(ds) ) {
 			ds <- as.matrix(ds)
 			colnames(ds) <- levels(y)

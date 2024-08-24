@@ -36,6 +36,8 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 			} else {
 				ds <- distfun(x, x[pv,,drop=FALSE], ...)
 			}
+			if ( is.function(ds) )
+				.Defunct(msg="distfun requirements have changed; see ?fastmap")
 			# get pivot 1 distances
 			d1x <- ds[,1L]
 			d1proj <- rowdist_at(scores, pv[1L])[[1L]]

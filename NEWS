@@ -10,6 +10,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
         now use 'rowDists()' and 'colDists()' directly
     o Optional argument 'distfun' has new requirements
         in methods 'fastmap()' and 'nscentroids()'
+    o Class 'matter_str' now inherits from 'matter_list'
+        for consistency between R and C++ interfaces
 
 BUG FIXES
 
