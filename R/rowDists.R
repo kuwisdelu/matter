@@ -128,6 +128,8 @@ rowDists_int <- function(x, y, metric = "euclidean", p = 2,
 	ans
 }
 
+.rowDists <- rowDists_int
+
 colDists_fun <- function(iter.dim)
 {
 	switch(iter.dim,
@@ -165,6 +167,8 @@ colDists_int <- function(x, y, metric = "euclidean", p = 2,
 		dimnames(ans) <- list(colnames(x), colnames(y))
 	ans
 }
+
+.colDists <- colDists_int
 
 rowDistsAt_int <- function(x, at, metric = "euclidean", p = 2,
 	weights = NULL, simplify = TRUE, BPPARAM = bpparam(), ...)

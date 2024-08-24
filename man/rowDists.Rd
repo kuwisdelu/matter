@@ -3,6 +3,9 @@
 \alias{colDists}
 \alias{rowDists}
 
+\alias{.colDists}
+\alias{.rowDists}
+
 \alias{colDists,ANY,missing-method}
 \alias{colDists,matrix,matrix-method}
 \alias{colDists,matter_mat,matrix-method}
@@ -45,6 +48,13 @@
 
 \S4method{colDists}{ANY,missing}(x, at, \dots, simplify = TRUE, BPPARAM = bpparam())
 
+.rowDists(x, y, metric = "euclidean", p = 2,
+	weights = NULL, iter.dim = 1L, BPPARAM = bpparam(), \dots)
+
+.colDists(x, y, metric = "euclidean", p = 2,
+	weights = NULL, iter.dim = 1L, BPPARAM = bpparam(), \dots)
+
+# Low-level row/col distance functions
 rowdist(x, y = x, metric = "euclidean", p = 2, weights = NULL, \dots)
 coldist(x, y = x, metric = "euclidean", p = 2, weights = NULL, \dots)
 
@@ -67,6 +77,8 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 	\item{p}{The power for the Minkowski distance.}
 
 	\item{weights}{A numeric vector of weights for the distance components if calculating weighted distances. For example, the weighted Euclidean distance is \code{sqrt(sum(w * (x - y)^2))}.}
+
+	\item{iter.dim}{The dimension to iterate over. Must be 1 or 2, where 1 indicates rows and 2 indicates columns.}
 
 	\item{ix, iy}{A list of specific row or column indices for which to calculate the pairwise distances. Numeric vectors will be coerced to lists. Each list element should give a vector of indices to use for a distance computation. Elements of length 1 will be recycled to an appropriate length.}
 

@@ -311,6 +311,21 @@ export(
 	".colStats")
 
 export(
+	"inpoly",
+	"rowdist",
+	"coldist",
+	"rowdist_at",
+	"coldist_at")
+
+exportMethods(
+	"rowDists",
+	"colDists")
+
+export(
+	".rowDists",
+	".colDists")
+
+export(
 	"chunked_vec",
 	"chunked_mat",
 	"chunked_list",
@@ -425,17 +440,6 @@ export(
 	"to_raster3",
 	"estdim",
 	"trans2d")
-
-export(
-	"inpoly",
-	"rowdist",
-	"coldist",
-	"rowdist_at",
-	"coldist_at")
-
-exportMethods(
-	"rowDists",
-	"colDists")
 
 export(
 	"array_ind",
