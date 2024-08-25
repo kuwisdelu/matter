@@ -72,7 +72,7 @@ coldist_at(x, ix, y = x, iy = list(1L:ncol(y)),
 
 	\item{simplify}{Should the result be simplified into a matrix if possible?}
 
-	\item{metric}{Distance metric to use when finding the nearest neighbors. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
+	\item{metric}{Distance metric to compute. Supported metrics include "euclidean", "maximum", "manhattan", and "minkowski".}
 
 	\item{p}{The power for the Minkowski distance.}
 
