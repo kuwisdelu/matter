@@ -24,7 +24,7 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 	} else {
 		put <- NULL
 	}
-	CHUNKFUN <- chunk_loop_fun(FUN, type="array", margin=MARGIN, put=put)
+	CHUNKFUN <- chunk_loop_fun(FUN, type="matrix", margin=MARGIN, put=put)
 	ans.list <- chunk_apply(X, MARGIN, CHUNKFUN, ...,
 		verbose=verbose, BPPARAM=BPPARAM)
 	names(ans.list) <- dimnames(X)[[MARGIN]]
@@ -76,7 +76,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
+	CHUNKFUN <- chunk_fun(FUN, type="matrix", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
 		"from ", length(CHUNKS), " chunks", verbose=progress)
@@ -110,7 +110,7 @@ chunk_colapply <- function(X, FUN, ...,
 	} else {
 		rngseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="array", rngseeds=rngseeds)
+	CHUNKFUN <- chunk_fun(FUN, type="matrix", rngseeds=rngseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
 		"from ", length(CHUNKS), " chunks", verbose=progress)
@@ -269,7 +269,7 @@ chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 		X <- switch(type,
 			list=lapply(X, as.vector),
 			vector=as.vector(X),
-			array=as.array(X))
+			matrix=as.matrix(X))
 		id <- chunkinfo$chunkid
 		if ( !is.null(rngseeds) ) {
 			oseed <- getRNGStream()
@@ -296,7 +296,7 @@ chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 		N <- switch(type,
 			list=length(X),
 			vector=length(X),
-			array=switch(margin, nrow(X), ncol(X)))
+			matrix=switch(margin, nrow(X), ncol(X)))
 		X <- switch(type, list=list(X, ...), X)
 		ii <- 1L
 		for ( i in seq_len(N) )
@@ -315,7 +315,7 @@ chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 			xi <- switch(type,
 				list=lapply(X, get_subset, j),
 				vector=get_subset(X, j),
-				array=switch(margin,
+				matrix=switch(margin,
 					X[j,,drop=drop],
 					X[,j,drop=drop]))
 			iseed <- getRNGStream()
