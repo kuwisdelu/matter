@@ -73,10 +73,16 @@ mi_learn <- function(fn, x, y, bags, pos = 1L, ...,
 		# iterate
 		iter <- iter + 1
 		utot <- sum(y != yi, na.rm=TRUE)
-		uprop <- utot / sum(!is.na(yi))
+		uprop_new <- utot / sum(!is.na(yi))
 		matter_log("# ", utot, " labels updated (",
-			round(100 * uprop, digits=2L), "%)", verbose=verbose)
+			round(100 * uprop_new, digits=2L), "%)", verbose=verbose)
 		y <- yi
+		# check for improvement
+		if ( uprop_new < uprop ) {
+			uprop <- uprop_new
+		} else {
+			break
+		}
 	}
 	matter_log("# finalizing model", verbose=verbose)
 	fn(x, y, ...)
