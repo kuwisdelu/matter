@@ -459,11 +459,6 @@ as_dist <- function(x) {
 	make_code(codes, x[1L], nomatch=1L)
 }
 
-as_weights <- function(x) {
-	codes <- c("gaussian", "adaptive")
-	make_code(codes, x[1L], nomatch=1L)
-}
-
 #### Data structure utility functions ####
 ## ---------------------------------------
 

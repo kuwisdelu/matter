@@ -72,11 +72,11 @@ chunk_rowapply <- function(X, FUN, ...,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		rngseeds <- NULL
+		RNGseeds <- NULL
 	} else {
-		rngseeds <- RNGStreams(size=lengths(CHUNKS))
+		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="matrix", rngseeds=rngseeds)
+	CHUNKFUN <- chunk_fun(FUN, type="matrix", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
 		"from ", length(CHUNKS), " chunks", verbose=progress)
@@ -106,11 +106,11 @@ chunk_colapply <- function(X, FUN, ...,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		rngseeds <- NULL
+		RNGseeds <- NULL
 	} else {
-		rngseeds <- RNGStreams(size=lengths(CHUNKS))
+		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="matrix", rngseeds=rngseeds)
+	CHUNKFUN <- chunk_fun(FUN, type="matrix", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
 		"from ", length(CHUNKS), " chunks", verbose=progress)
@@ -176,11 +176,11 @@ chunk_lapply <- function(X, FUN, ...,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		rngseeds <- NULL
+		RNGseeds <- NULL
 	} else {
-		rngseeds <- RNGStreams(size=lengths(CHUNKS))
+		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
-	CHUNKFUN <- chunk_fun(FUN, type="vector", rngseeds=rngseeds)
+	CHUNKFUN <- chunk_fun(FUN, type="vector", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
 		"from ", length(CHUNKS), " chunks", verbose=progress)
@@ -246,12 +246,12 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		rngseeds <- NULL
+		RNGseeds <- NULL
 	} else {
-		rngseeds <- RNGStreams(size=lengths(CHUNKS))
+		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="list",
-		rngseeds=rngseeds, MoreArgs=MoreArgs)
+		RNGseeds=RNGseeds, MoreArgs=MoreArgs)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
 	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
 		"from ", length(CHUNKS), " chunks", verbose=progress)
@@ -261,7 +261,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 #### Chunk-Apply utilities ####
 ## -----------------------------
 
-chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
+chunk_fun <- function(FUN, type, RNGseeds, MoreArgs = NULL)
 {
 	isoclos(function(X, ...)
 	{
@@ -271,10 +271,10 @@ chunk_fun <- function(FUN, type, rngseeds, MoreArgs = NULL)
 			vector=as.vector(X),
 			matrix=as.matrix(X))
 		id <- chunkinfo$chunkid
-		if ( !is.null(rngseeds) ) {
+		if ( !is.null(RNGseeds) ) {
 			oseed <- getRNGStream()
 			on.exit(setRNGStream(oseed))
-			setRNGStream(rngseeds[[id]])
+			setRNGStream(RNGseeds[[id]])
 		}
 		if ( type == "list" ) {
 			X[[1L]] <- update_attr(X[[1L]], chunkinfo)
