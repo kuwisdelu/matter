@@ -2,6 +2,11 @@
 CHANGES IN VERSION 2.7.7 [2024-8-26]
 ------------------------------------
 
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Support both number of items _or_ size in bytes when
+        setting getOption("matter.default.chunksize")
+
 BUG FIXES
 
     o Fix potential infinite loop in 'mi_learn()'

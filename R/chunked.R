@@ -36,8 +36,11 @@ setClass("chunked_list", contains = "chunked")
 chunked_vec <- function(x, nchunks = NA, chunksize = NA,
 	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
 {
-	if ( is.na(chunksize) )
+	if ( is.na(chunksize) ) {
 		chunksize <- getOption("matter.default.chunksize")
+	} else {
+		chunksize <- as_size(chunksize)
+	}
 	if ( is.na(nchunks) ) {
 		if ( is.finite(chunksize) && chunksize > 0 ) {
 			f <- 1
@@ -45,7 +48,11 @@ chunked_vec <- function(x, nchunks = NA, chunksize = NA,
 				f <- length(permute) / length(x)
 			if ( is.list(permute) )
 				f <- sum(lengths(permute)) / length(x)
-			nchunks <- ceiling(f * unclass(mem_realized(x)) / chunksize)
+			if ( inherits(chunksize, "size_bytes") ) {
+				nchunks <- ceiling(f * unclass(mem_realized(x)) / chunksize)
+			} else {
+				nchunks <- ceiling(f * length(x) / chunksize)
+			}
 		} else {
 			nchunks <- getOption("matter.default.nchunks")
 		}
@@ -63,8 +70,11 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 		matter_error("'x' must have exactly 2 dimensions")
 	if ( !margin %in% c(1L, 2L) )
 		matter_error("'margin' must be 1 or 2")
-	if ( is.na(chunksize) )
+	if ( is.na(chunksize) ) {
 		chunksize <- getOption("matter.default.chunksize")
+	} else {
+		chunksize <- as_size(chunksize)
+	}
 	if ( is.na(nchunks) ) {
 		if ( is.finite(chunksize) && chunksize > 0 ) {
 			f <- 1
@@ -72,7 +82,11 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 				f <- length(permute) / dim(x)[margin]
 			if ( is.list(permute) )
 				f <- sum(lengths(permute)) / dim(x)[margin]
-			nchunks <- ceiling(f * unclass(mem_realized(x)) / chunksize)
+			if ( inherits(chunksize, "size_bytes") ) {
+				nchunks <- ceiling(f * unclass(mem_realized(x)) / chunksize)
+			} else {
+				nchunks <- ceiling(f * dim(x)[margin] / chunksize)
+			}
 		} else {
 			nchunks <- getOption("matter.default.nchunks")
 		}
@@ -102,8 +116,11 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 			xs <- lapply(xs, rep_len, length.out=max.len)
 		}
 	}
-	if ( is.na(chunksize) )
+	if ( is.na(chunksize) ) {
 		chunksize <- getOption("matter.default.chunksize")
+	} else {
+		chunksize <- as_size(chunksize)
+	}
 	if ( is.na(nchunks) ) {
 		if ( is.finite(chunksize) && chunksize > 0 ) {
 			f <- 1
@@ -111,7 +128,11 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 				f <- length(permute) / length(xs[[1L]])
 			if ( is.list(permute) )
 				f <- sum(lengths(permute)) / length(xs[[1L]])
-			nchunks <- ceiling(f * unclass(mem_realized(xs)) / chunksize)
+			if ( inherits(chunksize, "size_bytes") ) {
+				nchunks <- ceiling(f * unclass(mem_realized(xs)) / chunksize)
+			} else {
+				nchunks <- ceiling(f * length(xs[[1L]]) / chunksize)
+			}
 		} else {
 			nchunks <- getOption("matter.default.nchunks")
 		}

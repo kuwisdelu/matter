@@ -37,10 +37,9 @@ matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
 		nchunks <- getOption("matter.default.nchunks")
 	}
 	if ( !missing(chunksize) ) {
-		chunksize <- as.numeric(chunksize)
 		if ( isFALSE(chunksize > 0L) || length(chunksize) != 1L )
 			matter_error("chunksize must be a single positive number or NA")
-		options(matter.default.chunksize=chunksize)
+		options(matter.default.chunksize=as_size(chunksize))
 	} else {
 		chunksize <- getOption("matter.default.chunksize")
 	}
@@ -52,14 +51,13 @@ matter_defaults <- function(nchunks = 20L, chunksize = NA_real_,
 		serialize <- getOption("matter.default.serialize")
 	}
 	if ( !missing(verbose) ) {
-		verbose <- as.logical(verbose)
 		if ( !isTRUE(verbose) && !isFALSE(verbose) )
 			matter_error("verbose must be TRUE or FALSE")
 		options(matter.default.verbose=verbose)
 	} else {
 		verbose <- getOption("matter.default.verbose")
 	}
-	defaults <- list(nchunks=nchunks, chunksize=size_bytes(chunksize),
+	defaults <- list(nchunks=nchunks, chunksize=chunksize,
 		serialize=serialize, verbose=verbose)
 	if ( nargs() > 0L ) {
 		invisible(defaults)
@@ -457,6 +455,14 @@ as_dist <- function(x) {
 		"euclidean", "maximum",
 		"manhattan", "minkowski")
 	make_code(codes, x[1L], nomatch=1L)
+}
+
+as_size <- function(x) {
+	if ( is.null(names(x)) ) {
+		x[1L]
+	} else {
+		size_bytes(unname(x[1L]), units=names(x[1L]))
+	}
 }
 
 #### Data structure utility functions ####
@@ -1080,11 +1086,13 @@ tempmem <- function(pattern = ":memory:") {
 # creates internal S3 class 'size_bytes'
 # (similar to 'object_size' but works w/ vectors)
 size_bytes <- function(x, units = "B") {
+	if ( inherits(x, "size_bytes") )
+		return(x)
 	units <- match.arg(units,
-		c("B", "KB", "MB", "GB", "TB", "PB"))
+		c("bytes", "B", "KB", "MB", "GB", "TB", "PB"))
 	x <- set_names(as.numeric(x), names(x))
 	x <- switch(units,
-		"B" = x,
+		"bytes" = , "B" = x,
 		"KB" = x * 1000,
 		"MB" = x * 1000^2,
 		"GB" = x * 1000^3,
