@@ -77,7 +77,8 @@ matter_str(data, encoding, path = NULL,
 }
 
 \section{Extends}{
-   \code{\linkS4class{matter_list}}
+    \code{\linkS4class{matter}},
+    \code{\linkS4class{matter_list}}
 }
 
 \section{Creating Objects}{

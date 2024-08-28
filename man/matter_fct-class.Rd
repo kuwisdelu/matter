@@ -76,8 +76,8 @@ matter_fct(data, levels, path = NULL,
 }
 
 \section{Extends}{
-   \code{\linkS4class{matter}},
-   \code{\linkS4class{matter_vec}}
+    \code{\linkS4class{matter}},
+    \code{\linkS4class{matter_vec}}
 }
 
 \section{Creating Objects}{

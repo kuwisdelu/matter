@@ -88,6 +88,15 @@ matter_list(data, type = "double", path = NULL,
 }
 
 \section{Methods}{
+    Class-specific methods:
+    \describe{
+        \item{\code{path(x), path(x) <- value}:}{Get or set the data source names, i.e., file path(s).}
+
+        \item{\code{fetch(x, ...)}:}{Pull data into shared memory.}
+
+        \item{\code{flash(x, ...)}:}{Push data to a temporary file.}
+    }
+
     Standard generic methods:
     \describe{
         \item{\code{x[[i]], x[[i]] <- value}:}{Get or set a single element of the list.}
