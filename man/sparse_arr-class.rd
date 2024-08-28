@@ -81,6 +81,9 @@
 \alias{tcrossprod,sparse_mat,ANY-method}
 \alias{tcrossprod,ANY,sparse_mat-method}
 
+\alias{fetch,sparse_arr-method}
+\alias{flash,sparse_arr-method}
+
 \alias{is.sparse}
 \alias{as.sparse}
 
@@ -197,6 +200,10 @@ as.sparse(x, \dots)
         \item{\code{tolerance(x), tolerance(x) <- value}:}{Get or set resampling 'tolerance'.}
 
         \item{\code{sampler(x), sampler(x) <- value}:}{Get or set the 'sampler' method.}
+
+        \item{\code{fetch(x, ...)}:}{Pull data into shared memory.}
+
+        \item{\code{flash(x, ...)}:}{Push data to a temporary file.}
     }
 
     Standard generic methods:

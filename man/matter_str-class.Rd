@@ -23,6 +23,9 @@
 \alias{as.vector,matter_str-method}
 \alias{as.character,matter_str-method}
 
+\alias{fetch,matter_str-method}
+\alias{flash,matter_str-method}
+
 \title{Out-of-Memory Strings}
 
 \description{

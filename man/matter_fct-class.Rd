@@ -18,6 +18,9 @@
 \alias{as.vector,matter_fct-method}
 \alias{as.factor,matter_fct-method}
 
+\alias{fetch,matter_fct-method}
+\alias{flash,matter_fct-method}
+
 \title{Out-of-Memory Factors}
 
 \description{

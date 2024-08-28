@@ -319,3 +319,65 @@ test_that("sparse matrix multiplication", {
 
 })
 
+test_that("sparse fetch/flash", {
+
+	register(SerialParam())
+
+	set.seed(1, kind="default")
+	x0 <- rbinom(100, 1, 0.2)
+	x0[x0 != 0] <- seq_len(sum(x0 != 0))
+	y0 <- sparse_vec(x0)
+
+	y0a <- fetch(y0)
+	y0b <- flash(y0)
+
+	expect_equal(y0a[], x0)
+	expect_equal(y0b[], x0)
+	expect_true(is.shared(atomindex(y0a)))
+	expect_true(is.shared(atomdata(y0a)))
+	expect_true(is.matter(atomindex(y0b)))
+	expect_true(is.matter(atomdata(y0b)))
+
+	y1 <- y0
+	atomindex(y1) <- as.matter(atomindex(y1))
+	atomdata(y1) <- as.matter(atomdata(y1))
+	y1a <- fetch(y1)
+	y1b <- flash(y1)
+	
+	expect_equal(y1a[], x0)
+	expect_equal(y1b[], x0)	
+	expect_true(is.shared(atomindex(y1a)))
+	expect_true(is.shared(atomdata(y1a)))	
+	expect_true(is.matter(atomindex(y1b)))
+	expect_true(is.matter(atomdata(y1b)))
+
+	set.seed(1, kind="default")
+	x1 <- rbinom(200, 1, 0.2)
+	x1[x1 != 0] <- seq_len(sum(x1 != 0))
+	dim(x1) <- c(20, 10)
+	y2 <- sparse_mat(x1)
+
+	y2a <- fetch(y2)
+	y2b <- flash(y2)
+
+	expect_equal(y2a[], x1)
+	expect_equal(y2b[], x1)
+	expect_true(is.shared(atomindex(y2a)))
+	expect_true(is.shared(atomdata(y2a)))
+	expect_true(is.matter(atomindex(y2b)))
+	expect_true(is.matter(atomdata(y2b)))
+
+	y3 <- y2
+	atomindex(y3) <- as.matter(atomindex(y3))
+	atomdata(y3) <- as.matter(atomdata(y3))
+	y3a <- fetch(y3)
+	y3b <- flash(y3)
+	
+	expect_equal(y3a[], x1)
+	expect_equal(y3b[], x1)	
+	expect_true(is.shared(atomindex(y3a)))
+	expect_true(is.shared(atomdata(y3a)))
+	expect_true(is.matter(atomindex(y3b)))
+	expect_true(is.matter(atomdata(y3b)))
+
+})

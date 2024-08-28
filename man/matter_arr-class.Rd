@@ -74,6 +74,14 @@
 \alias{tcrossprod,matter_mat,ANY-method}
 \alias{tcrossprod,ANY,matter_mat-method}
 
+\alias{fetch,matter_arr-method}
+\alias{fetch,matter_mat-method}
+\alias{fetch,matter_vec-method}
+
+\alias{flash,matter_arr-method}
+\alias{flash,matter_mat-method}
+\alias{flash,matter_vec-method}
+
 \title{Out-of-Memory Arrays}
 
 \description{

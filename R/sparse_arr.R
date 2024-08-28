@@ -340,6 +340,36 @@ setMethod("mem_realized", "sparse_arr", function(x) {
 	size_bytes(sum(c(vm_index, vm_data), na.rm=TRUE))
 })
 
+setMethod("fetch", "sparse_arr",
+	function(object, ..., BPPARAM = bpparam()) {
+		if ( is.matter(atomindex(object)) ) {
+			atomindex(object) <- fetch(atomindex(object), ..., BPPARAM=BPPARAM)
+		} else {
+			atomindex(object) <- as.shared(atomindex(object))
+		}
+		if ( is.matter(atomdata(object)) ) {
+			atomdata(object) <- fetch(atomdata(object), ..., BPPARAM=BPPARAM)
+		} else {
+			atomdata(object) <- as.shared(atomdata(object))
+		}
+		object
+	})
+
+setMethod("flash", "sparse_arr",
+	function(object, ..., BPPARAM = bpparam()) {
+		if ( is.matter(atomindex(object)) ) {
+			atomindex(object) <- flash(atomindex(object), ..., BPPARAM=BPPARAM)
+		} else {
+			atomindex(object) <- as.matter(atomindex(object))
+		}
+		if ( is.matter(atomdata(object)) ) {
+			atomdata(object) <- flash(atomdata(object), ..., BPPARAM=BPPARAM)
+		} else {
+			atomdata(object) <- as.matter(atomdata(object))
+		}
+		object
+	})
+
 setMethod("atomdata", "sparse_arr",
 	function(object, i = NULL, ...)
 	{
