@@ -11,6 +11,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
 
     o Support both number of items OR size in bytes when
         setting getOption("matter.default.chunksize")
+    o Now using '@' prefix as shared memory identifier
+        for file system compatibility (e.g., Windows)
 
 BUG FIXES
 

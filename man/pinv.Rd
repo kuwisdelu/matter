@@ -5,7 +5,7 @@
 \title{Pseudoinverse of a Matrix}
 
 \description{
-    Calculate the Moore-Penrose pseudoinferce of a matrix.
+    Calculate the Moore-Penrose pseudoinverse of a matrix.
 }
 
 \usage{

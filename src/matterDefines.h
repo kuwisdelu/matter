@@ -135,6 +135,13 @@ inline bool pendingInterrupt()
 #define R_INT64_MAX INT64_MAX
 #define R_UINT64_MAX UINT64_MAX
 
+// Shared resources
+#define SH_FILE		1
+#define SH_MEMORY	2
+
+// Shared memory
+#define SHM_PATTERN '@'
+
 //// Typedefs
 //-------------------
 
@@ -397,10 +404,6 @@ class ArrayInterface {
 //// Source interface
 //-------------------
 
-// shared resource types
-#define SH_FILE		1
-#define SH_MEMORY	2
-
 class SourceInterface {
 
 	public:
@@ -426,7 +429,7 @@ class SourceInterface {
 
 inline int parse_sourcetype(const char * name)
 {
-	if ( *name == ':' )
+	if ( *name == SHM_PATTERN )
 		return SH_MEMORY;
 	else
 		return SH_FILE;
