@@ -73,7 +73,8 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		matter_log("using pivots: ", pv[1L], ", ", pv[2L], verbose=verbose)
 		matter_log("projecting component ", i, verbose=verbose)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
-		scores[,i] <- xi
+		xi <- ifelse(is.finite(xi), xi, 0)
+		scores[,i] <- pmax(xi, 0)
 		pivots[i,] <- c(pv, d12)
 	}
 	pindex <- as.vector(pivots[,1:2])
