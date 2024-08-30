@@ -13,6 +13,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
         setting getOption("matter.default.chunksize")
     o Now using '@' prefix as shared memory identifier
         for file system compatibility (e.g., Windows)
+    o Deprecated 'sgmixn()'; updated 'sgmix()' to support
+        multichannel images directly
 
 BUG FIXES
 

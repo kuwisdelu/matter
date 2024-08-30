@@ -418,15 +418,26 @@ print.sgmix <- function(x, ...)
 	invisible(x)
 }
 
-fitted.sgmix <- function(object, type = c("mu", "sigma", "class"), ...)
+fitted.sgmix <- function(object,
+	type = c("mu", "sigma", "class"), channel = NULL, ...)
 {
 	type <- match.arg(type)
-	if ( type == "mu" ) {
-		object$mu
-	} else if ( type == "sigma" ) {
-		object$sigma
+	if ( is.null(channel) ) {
+		if ( type == "mu" ) {
+			object$mu
+		} else if ( type == "sigma" ) {
+			object$sigma
+		} else {
+			object$class
+		}
 	} else {
-		object$class
+		if ( type == "mu" ) {
+			object$mu[,,channel]
+		} else if ( type == "sigma" ) {
+			object$sigma[,,channel]
+		} else {
+			object$class[[channel]]
+		}
 	}
 }
 

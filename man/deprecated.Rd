@@ -4,6 +4,7 @@
 \alias{profmem}
 \alias{asearch}
 \alias{nnpairs}
+\alias{sgmixn}
 
 \title{Deprecated and defunct objects in matter}
 
