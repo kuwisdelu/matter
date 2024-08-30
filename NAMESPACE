@@ -513,9 +513,6 @@ S3method("fitted", "sgmix")
 S3method("print", "sgmix")
 S3method("logLik", "sgmix")
 
-S3method("print", "sgmixn")
-S3method("logLik", "sgmixn")
-
 S3method("predict", "fastmap")
 S3method("print", "fastmap")
 

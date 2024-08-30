@@ -6,28 +6,126 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	weights = c("gaussian", "bilateral", "adaptive"),
 	metric = "maximum", p = 2, neighbors = NULL,
 	annealing = TRUE, niter = 10L, tol = 1e-3,
+	compress = FALSE, byrow = FALSE,
+	verbose = NA, BPPARAM = bpparam(), ...)
+{
+	if ( is.na(verbose) )
+		verbose <- getOption("matter.default.verbose")
+	if ( is.array(x) && missing(y) && missing(vals) ) {
+		if ( !is.matrix(x) && length(dim(x)) != 3L )
+			matter_error("x must be 2D matrix or 3D array")
+		co <- as.matrix(expand.grid(
+			x=seq_len(nrow(x)),
+			y=seq_len(ncol(x))))
+		dm <- c(nrow(x), ncol(x))
+		if ( is.matrix(x) ) {
+			vals <- list(x)
+		} else {
+			vals <- array2list(x, 3L)
+		}
+	} else {
+		co <- cbind(x, y)
+		dm <- NULL
+	}
+	if ( is.list(vals) ) {
+		n <- length(vals)
+	} else if ( length(dim(vals)) == 2L ) {
+		n <- if (byrow) nrow(vals) else ncol(vals)
+	} else {
+		matter_error("'vals' must be a list or matrix-like")
+	}
+	if ( n > 1 ) {
+		matter_log("fitting spatial segmentations for ", n, " images", verbose=verbose)
+		margin <- if (byrow) 1L else 2L
+		if ( is.list(vals) ) {
+			ans <- chunkLapply(vals, sgmix_int,
+				coord=co, r=r, k=k, group=group,
+				weights=weights, neighbors=neighbors,
+				annealing=annealing, niter=niter, tol=tol,
+				compress=compress, verbose=verbose, RNG=TRUE,
+				BPPARAM=BPPARAM, ...)
+		} else {
+			ans <- chunkApply(vals, margin, sgmix_int,
+				coord=co, r=r, k=k, group=group,
+				weights=weights, neighbors=neighbors,
+				annealing=annealing, niter=niter, tol=tol,
+				compress=compress, verbose=verbose, RNG=TRUE,
+				BPPARAM=BPPARAM, ...)
+		}
+	} else {
+		if ( is.list(vals) )
+			vals <- vals[[1L]]
+		ans <- sgmix_int(vals,
+			coord=co, r=r, k=k, group=group,
+			weights=weights, neighbors=neighbors,
+			annealing=annealing, niter=niter, tol=tol,
+			compress=compress, verbose=verbose)
+		ans <- list(ans)
+	}
+	group <- ans[[1L]]$group
+	loglik <- simplify2array(lapply(ans, `[[`, "logLik"))
+	kout <- vapply(ans, function(a) nlevels(droplevels(a$class)), integer(1L))
+	if ( any(kout < k) )
+		matter_warn("fewer than k classes for images ",
+			paste0(which(kout != k), collapse=", "))
+	pv <- simplify2array(lapply(ans, `[[`, "probability"))
+	ans <- list(
+		class=lapply(ans, `[[`, "class"),
+		probability=structure(pv,
+			group=attr(ans[[1L]]$probability, "group")),
+		mu=simplify2array(lapply(ans, `[[`, "mu")),
+		sigma=simplify2array(lapply(ans, `[[`, "sigma")),
+		alpha=simplify2array(lapply(ans, `[[`, "alpha")),
+		beta=simplify2array(lapply(ans, `[[`, "beta")))
+	if ( !is.null(dm) ) {
+		ans$class <- lapply(ans$class,
+			function(class) {
+				if ( !is.drle(class) ) {
+					class <- as.integer(class)
+					dim(class) <- dm
+				}
+				class
+			})
+	}
+	if ( is.list(pv) && is.null(pv[[1L]]) )
+		ans$probability <- NULL
+	ans$group <- group
+	ans$logLik <- loglik
+	class(ans) <- c("sgmixn", "sgmix")
+	ans
+}
+
+sgmixn <- function(x, y, vals, ...)
+{
+	.Deprecated("sgmix")
+	sgmix(x=x, y=y, vals=vals, ...)
+}
+
+sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
+	weights = c("gaussian", "bilateral", "adaptive"),
+	metric = "maximum", p = 2, neighbors = NULL,
+	annealing = TRUE, niter = 10L, tol = 1e-3,
 	compress = FALSE, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
-	if ( is.matrix(x) && missing(y) && missing(vals) ) {
-		dim <- dim(x)
+	if ( is.matrix(x) && missing(coord) ) {
 		co <- as.matrix(expand.grid(
 			x=seq_len(nrow(x)),
 			y=seq_len(ncol(x))))
-		x <- as.vector(x)
+		dm <- c(nrow(x), ncol(x))
 	} else {
-		dim <- NULL
-		if ( missing(y) && missing(vals) ) {
+		if ( missing(coord) ) {
 			co <- NULL
 			if ( !is.list(weights) && !is.list(neighbors) )
 				matter_error("both 'weights' and 'neighbors' must be ",
 					"specified when x/y coordinates are not")
 		} else {
-			co <- cbind(x, y)
-			x <- as.vector(vals)
+			co <- coord
 		}
+		dm <- NULL
 	}
+	x <- as.vector(x)
 	xmin <- min(x, na.rm=TRUE)
 	xmax <- max(x, na.rm=TRUE)
 	# find neighboring pixels
@@ -80,13 +178,13 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 				i <- which(group %in% g)
 				nbi <- lapply(nb[i], bsearch, table=i)
 				if ( is.character(weights) ) {
-					sgmix(co[i,1L], co[i,2L], x[i], r=r, k=k,
+					sgmix_int(x[i], coord=co[i,,drop=FALSE], r=r, k=k,
 						group=NULL, weights=weights, neighbors=nbi,
 						annealing=annealing, niter=niter, tol=tol,
 						compress=FALSE, verbose=verbose, ...)
 				} else {
-					sgmix(x[i], r=r, k=k,
-						group=NULL, weights=weights[i], neighbors=nbi,
+					sgmix_int(x[i], coord=co[i,,drop=FALSE], r=r, k=k,
+						group=NULL, weights=wts[i], neighbors=nbi,
 						annealing=annealing, niter=niter, tol=tol,
 						compress=FALSE, verbose=verbose, ...)
 				}
@@ -113,9 +211,9 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 			class <- drle(class)
 			y <- NULL
 		}
-		if ( !is.null(dim) && !is.drle(class) ) {
+		if ( !is.null(dm) && !is.drle(class) ) {
 			class <- as.integer(class)
-			dim(class) <- dim
+			dim(class) <- dm
 		}
 		loglik <- sum(unlist(lapply(ans, `[[`, "logLik")))
 		ans <- list(class=class, probability=y,
@@ -295,9 +393,9 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		class <- drle(class)
 		y <- NULL
 	}
-	if ( !is.null(dim) && !is.drle(class) ) {
+	if ( !is.null(dm) && !is.drle(class) ) {
 		class <- as.integer(class)
-		dim(class) <- dim
+		dim(class) <- dm
 	}
 	ans <- list(class=class, probability=y,
 		mu=t(mu), sigma=t(sigma), alpha=t(alpha), beta=beta)
@@ -306,20 +404,17 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	ans
 }
 
-sgmix_int <- function(vals, x, y, ...)
-{
-	sgmix(x, y, vals, ...)
-}
-
 print.sgmix <- function(x, ...)
 {
-	cat(sprintf("Spatial Gaussian mixture model (k=%d)\n",
-		ncol(x$mu)))
+	cat(sprintf("Spatial Gaussian mixture model (k=%d, channels=%d)\n",
+		ncol(x$mu), length(x$class)))
+	if ( !is.null(x$group) )
+		cat("\nGroups:", levels(x$group), "\n")
 	cat("\nParameter estimates:\n")
 	cat("$mu\n")
-	preview_matrix(x$mu, ...)
+	preview_Nd_array(x$mu, ...)
 	cat("\n$sigma\n")
-	preview_matrix(x$sigma, ...)
+	preview_Nd_array(x$sigma, ...)
 	invisible(x)
 }
 
@@ -336,71 +431,6 @@ fitted.sgmix <- function(object, type = c("mu", "sigma", "class"), ...)
 }
 
 logLik.sgmix <- function(object, ...)
-{
-	nobs <- length(object$class)
-	p <- 3L * length(object$mu) + 1L
-	structure(object$logLik, df=nobs - p, nobs=nobs,
-		class="logLik")
-}
-
-sgmixn <- function(x, y, vals, r = 1, k = 2, byrow = FALSE,
-	verbose = NA, BPPARAM = bpparam(), ...)
-{
-	if ( is.na(verbose) )
-		verbose <- getOption("matter.default.verbose")
-	if ( is.list(vals) ) {
-		n <- length(vals)
-	} else if ( length(dim(vals)) == 2L ) {
-		n <- if (byrow) nrow(vals) else ncol(vals)
-	} else {
-		matter_error("'vals' must be a list or matrix-like")
-	}
-	matter_log("fitting spatial segmentations for ", n, " images", verbose=verbose)
-	margin <- if (byrow) 1L else 2L
-	if ( is.list(vals) ) {
-		ans <- chunkLapply(vals, sgmix_int,
-			x=x, y=y, r=r, k=k, verbose=verbose, RNG=TRUE,
-			BPPARAM=BPPARAM, ...)
-	} else {
-		ans <- chunkApply(vals, margin, sgmix_int,
-			x=x, y=y, r=r, k=k, verbose=verbose, RNG=TRUE,
-			BPPARAM=BPPARAM, ...)
-	}
-	group <- ans[[1L]]$group
-	loglik <- simplify2array(lapply(ans, `[[`, "logLik"))
-	kout <- vapply(ans, function(a) nlevels(droplevels(a$class)), integer(1L))
-	if ( any(kout < k) )
-		matter_warn("fewer than k classes for images ",
-			paste0(which(kout != k), collapse=", "))
-	pv <- simplify2array(lapply(ans, `[[`, "probability"))
-	ans <- list(
-		class=lapply(ans, `[[`, "class"),
-		probability=pv,
-		mu=simplify2array(lapply(ans, `[[`, "mu")),
-		sigma=simplify2array(lapply(ans, `[[`, "sigma")),
-		alpha=simplify2array(lapply(ans, `[[`, "alpha")),
-		beta=simplify2array(lapply(ans, `[[`, "beta")))
-	if ( is.list(pv) && is.null(pv[[1L]]) )
-		ans$probability <- NULL
-	ans$group <- group
-	ans$logLik <- loglik
-	class(ans) <- c("sgmixn", "sgmix")
-	ans
-}
-
-print.sgmixn <- function(x, ...)
-{
-	cat(sprintf("Spatial Gaussian mixture models (k=%d, n=%d)\n",
-		ncol(x$mu), length(x$class)))
-	cat("\nParameter estimates:\n")
-	cat("$mu\n")
-	preview_Nd_array(x$mu, ...)
-	cat("\n$sigma\n")
-	preview_Nd_array(x$sigma, ...)
-	invisible(x)
-}
-
-logLik.sgmixn <- function(object, ...)
 {
 	nobs <- lengths(object$class)
 	p <- 3L * prod(dim(object$mu)[1:2]) + 1L

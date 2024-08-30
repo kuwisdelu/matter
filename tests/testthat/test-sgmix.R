@@ -55,7 +55,7 @@ test_that("sgmix", {
 	set.seed(1, kind="default")
 	gm02c <- sgmix(x, r=2, k=2, weights="gaussian", compress=TRUE)
 
-	expect_is(gm02c$class, "drle_fct")
+	expect_is(gm02c$class[[1L]], "drle_fct")
 	expect_null(gm02c$probability)
 
 })
@@ -88,10 +88,10 @@ test_that("sgmix (grouped)", {
 
 	expect_equal(rowSums(gm02$probability), rep.int(1, length(x)))
 	expect_equal(
-		rowSums(gm02$probability[,gs %in% "A"]),
+		rowSums(gm02$probability[,gs %in% "A",]),
 		as.numeric(group %in% "A"))
 	expect_equal(
-		rowSums(gm02$probability[,gs %in% "B"]),
+		rowSums(gm02$probability[,gs %in% "B",]),
 		as.numeric(group %in% "B"))
 
 })
@@ -107,7 +107,7 @@ test_that("sgmix (degenerate)", {
 	set.seed(1, kind="default")
 	gm01 <- sgmix(x, r=2, k=1)
 
-	expect_setequal(gm01$class, 1L)
+	expect_setequal(gm01$class[[1L]], 1L)
 	expect_setequal(as.numeric(gm01$probability), 1)
 
 	set.seed(1, kind="default")
@@ -121,7 +121,7 @@ test_that("sgmix (degenerate)", {
 
 })
 
-test_that("sgmixn", {
+test_that("sgmix (multichannel)", {
 
 	register(SerialParam())
 	
@@ -145,7 +145,7 @@ test_that("sgmixn", {
 	group <- rep(c("A", "B"), each=nrow(vals) %/% 2, length.out=nrow(vals))
 
 	set.seed(1, kind="default")
-	gmn02 <- sgmixn(co$x, co$y, vals, r=2, k=2, group=group)
+	gmn02 <- sgmix(co$x, co$y, vals, r=2, k=2, group=group)
 
 	expect_length(gmn02$class, 5)
 	expect_equal(dim(gmn02$mu), c(2,2,5))
@@ -162,7 +162,7 @@ test_that("sgmixn", {
 	expect_true(all(logLik(gmn02) > 0))
 
 	set.seed(1, kind="default")
-	gmn02c <- sgmixn(co$x, co$y, vals, r=2, k=2, group=group, compress=TRUE)
+	gmn02c <- sgmix(co$x, co$y, vals, r=2, k=2, group=group, compress=TRUE)
 
 	expect_is(gmn02c$class[[1L]], "drle_fct")
 
