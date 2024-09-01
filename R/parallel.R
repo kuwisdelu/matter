@@ -110,3 +110,51 @@ setMethod("bpstop", "SnowfastParam",
 		bpbackend(x) <- NULLcluster()
 		invisible(x)
 	})
+
+#### Parallel RNG ####
+## --------------------
+
+RNGStreams <- function(n = length(size), size = 1L) {
+	if ( length(size) != n )
+		size <- rep_len(size, n)
+	s <- getRNGStream()
+	seeds <- vector("list", n)
+	for ( i in seq_len(n) )
+	{
+		seeds[[i]] <- s
+		if ( s$kind == "L'Ecuyer-CMRG" )
+		{
+			if ( size[i] > 1L ) {
+				for ( j in seq_len(size[i]) )
+					s$seed <- nextRNGSubStream(s$seed)
+			} else {
+				s$seed <- nextRNGStream(s$seed)
+			}
+		}
+	}
+	seeds
+}
+
+getRNGStream <- function() {
+	if ( exists(".Random.seed", envir=globalenv()) ) {
+		seed <- get(".Random.seed", envir=globalenv())
+	} else {
+		seed <- NULL
+	}
+	list(seed=seed, kind=RNGkind()[1L])
+}
+
+setRNGStream <- function(seed = NULL, kind = NULL) {
+	if ( is.list(seed) ) {
+		kind <- seed$kind
+		seed <- seed$seed
+	}
+	RNGkind(kind)
+	if ( is.null(seed) ) {
+		if ( exists(".Random.seed", envir=globalenv()))
+			rm(".Random.seed", envir=globalenv())
+	} else {
+		assign(".Random.seed", seed, envir=globalenv())
+	}
+}
+
