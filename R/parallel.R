@@ -118,18 +118,24 @@ RNGStreams <- function(n = length(size), size = 1L) {
 	if ( length(size) != n )
 		size <- rep_len(size, n)
 	s <- getRNGStream()
+	if ( !is.null(s$seed) ) {
+		oseed <- s$seed
+		on.exit(setRNGStream(oseed))
+	}
 	seeds <- vector("list", n)
 	for ( i in seq_len(n) )
 	{
 		seeds[[i]] <- s
-		if ( s$kind == "L'Ecuyer-CMRG" )
-		{
+		if ( s$kind == "L'Ecuyer-CMRG" ) {
 			if ( size[i] > 1L ) {
 				for ( j in seq_len(size[i]) )
 					s$seed <- nextRNGSubStream(s$seed)
 			} else {
 				s$seed <- nextRNGStream(s$seed)
 			}
+		} else {
+			runif(size[i])
+			s$seed <- getRNGStream()$seed
 		}
 	}
 	seeds

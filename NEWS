@@ -15,6 +15,7 @@ SIGNIFICANT USER-VISIBLE CHANGES
         for file system compatibility (e.g., Windows)
     o Deprecated 'sgmixn()'; updated 'sgmix()' to support
         multichannel images directly
+    o Improved RNG behavior for non-L'Ecuyer seeds
 
 BUG FIXES
 

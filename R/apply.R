@@ -324,9 +324,13 @@ chunk_loop_fun <- function(FUN, type, margin = NULL, put = NULL)
 			} else {
 				ans[[ii]] <- FUN(xi, ...)
 			}
-			if ( iseed$kind == "L'Ecuyer-CMRG" )
+			if ( iseed$kind == "L'Ecuyer-CMRG" ) {
 				iseed$seed <- nextRNGSubStream(iseed$seed)
-			setRNGStream(iseed)
+				setRNGStream(iseed)
+			} else if ( !is.null(iseed$seed) ) {
+				setRNGStream(iseed)
+				runif(1L)
+			}
 			ii <- ii + 1L
 		}
 		if ( is.null(put) ) {
