@@ -1,7 +1,7 @@
 Package: matter
 Type: Package
 Title: Out-of-core statistical computing and signal processing
-Version: 2.7.6
+Version: 2.7.7
 Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
