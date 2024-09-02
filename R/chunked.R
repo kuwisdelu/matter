@@ -171,6 +171,8 @@ setMethod("vm_used", "chunked", function(x) vm_used(x@data))
 
 setMethod("shm_used", "chunked", function(x) shm_used(x@data))
 
+setMethod("mem_realized", "chunked", function(x) mem_realized(x@data))
+
 setMethod("length", "chunked", function(x) length(x@index))
 
 setMethod("lengths", "chunked", function(x) lengths(x@index))
@@ -199,7 +201,8 @@ setMethod("[[", c(x = "chunked_list"),
 		i <- as_subscripts(i, x)
 		y <- lapply(x@data, `[`, x@index[[i]], drop=x@drop)
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
-		matter_log_chunk(y, verbose=x@verbose)
+		if ( x@verbose )
+			print_chunk_progress(y)
 		y
 	})
 
@@ -208,7 +211,8 @@ setMethod("[[", c(x = "chunked_vec"),
 		i <- as_subscripts(i, x)
 		y <- x@data[x@index[[i]],drop=x@drop]
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
-		matter_log_chunk(y, verbose=x@verbose)
+		if ( x@verbose )
+			print_chunk_progress(y)
 		y
 	})
 
@@ -220,11 +224,24 @@ setMethod("[[", c(x = "chunked_mat"),
 			x@data[,x@index[[i]],drop=x@drop])
 		attr(y, "chunkinfo") <- attributes(x@index[[i]])
 		attr(y, "margin") <- x@margin
-		matter_log_chunk(y, verbose=x@verbose)
+		if ( x@verbose )
+			print_chunk_progress(y)
 		y
 	})
 
-matter_log_chunk <- function(x, verbose) {
+matter_log_chunk_init <- function(x, verbose) {
+	matter_log("# processing ", length(x), " chunks ",
+		"(~", sum(lengths(x)) %/% length(x), " items per chunk ",
+		"| ~", format(mem_realized(x) / length(x)), " per chunk",
+		")", verbose=verbose)
+}
+
+matter_log_chunk_exit <- function(x, verbose) {
+	matter_log("# collecting ", sum(lengths(x)), " results ",
+		"from ", length(x), " chunks", verbose=verbose)
+}
+
+print_chunk_progress <- function(x) {
 	info <- attr(x, "chunkinfo")
 	if ( is.list(x) ) {
 		sizes <- vapply(x, mem_realized, numeric(1L))
@@ -236,9 +253,9 @@ matter_log_chunk <- function(x, verbose) {
 			size <- format(size_bytes(object.size(x)))
 		}
 	}
-	matter_log("# processing chunk ",
+	message("# processing chunk ",
 		info$chunkid, "/", info$nchunks,
-		" (", info$chunklen, " items | ", size, ")", verbose=verbose)
+		" (", info$chunklen, " items | ", size, ")")
 }
 
 chunkify <- function(x, nchunks = 20L, permute = FALSE, depends = NULL)

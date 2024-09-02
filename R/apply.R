@@ -71,6 +71,7 @@ chunk_rowapply <- function(X, FUN, ...,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
+	matter_log_chunk_init(CHUNKS, verbose && !progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		RNGseeds <- NULL
 	} else {
@@ -78,8 +79,7 @@ chunk_rowapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="matrix", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
-	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=progress)
+	matter_log_chunk_exit(CHUNKS, verbose)
 	do.call(simplify, ans)
 }
 
@@ -105,6 +105,7 @@ chunk_colapply <- function(X, FUN, ...,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
+	matter_log_chunk_init(CHUNKS, verbose && !progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		RNGseeds <- NULL
 	} else {
@@ -112,8 +113,7 @@ chunk_colapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="matrix", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
-	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=progress)
+	matter_log_chunk_exit(CHUNKS, verbose)
 	do.call(simplify, ans)
 }
 
@@ -175,6 +175,7 @@ chunk_lapply <- function(X, FUN, ...,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
+	matter_log_chunk_init(CHUNKS, verbose && !progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		RNGseeds <- NULL
 	} else {
@@ -182,8 +183,7 @@ chunk_lapply <- function(X, FUN, ...,
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="vector", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
-	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=progress)
+	matter_log_chunk_exit(CHUNKS, verbose)
 	do.call(simplify, ans)
 }
 
@@ -245,6 +245,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
+	matter_log_chunk_init(CHUNKS, verbose && !progress)
 	if ( !RNG || has_RNGseed(BPPARAM) ) {
 		RNGseeds <- NULL
 	} else {
@@ -253,8 +254,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	CHUNKFUN <- chunk_fun(FUN, type="list",
 		RNGseeds=RNGseeds, MoreArgs=MoreArgs)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, BPPARAM=BPPARAM)
-	matter_log("# collecting ", sum(lengths(CHUNKS)), " results ",
-		"from ", length(CHUNKS), " chunks", verbose=progress)
+	matter_log_chunk_exit(CHUNKS, verbose)
 	do.call(simplify, ans)
 }
 
