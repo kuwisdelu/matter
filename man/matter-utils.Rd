@@ -88,6 +88,7 @@
 \alias{mem_realized,matter_list-method}
 \alias{mem_realized,matter_str-method}
 \alias{mem_realized,sparse_arr-method}
+\alias{mem_realized,chunked-method}
 
 \alias{sizeof}
 \alias{size_bytes}
