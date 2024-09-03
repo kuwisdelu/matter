@@ -20,6 +20,8 @@ SIGNIFICANT USER-VISIBLE CHANGES
 BUG FIXES
 
     o Fix potential infinite loop in 'mi_learn()'
+    o Add warning in chunk-apply functions if 'RNG=TRUE'
+        but 'RNGkind()' is _not_ "L'Ecuyer-CMRG"
 
 CHANGES IN VERSION 2.7.6 [2024-8-14]
 ------------------------------------
