@@ -139,12 +139,12 @@ test_that("sgmix (multichannel)", {
 		as.vector(x)
 	}
 
-	set.seed(1, kind="default")
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	vals <- replicate(5, f())
 	co <- expand.grid(x=1:64, y=1:64)
 	group <- rep(c("A", "B"), each=nrow(vals) %/% 2, length.out=nrow(vals))
 
-	set.seed(1, kind="default")
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	gmn02 <- sgmix(co$x, co$y, vals, r=2, k=2, group=group)
 
 	expect_length(gmn02$class, 5)
@@ -161,10 +161,13 @@ test_that("sgmix (multichannel)", {
 	
 	expect_true(all(logLik(gmn02) > 0))
 
-	set.seed(1, kind="default")
+	set.seed(1, kind="L'Ecuyer-CMRG")
 	gmn02c <- sgmix(co$x, co$y, vals, r=2, k=2, group=group, compress=TRUE)
 
 	expect_is(gmn02c$class[[1L]], "drle_fct")
+
+	# restore defaults for other tests
+	RNGkind("default", "default", "default")
 
 })
 

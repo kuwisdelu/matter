@@ -13,7 +13,7 @@ test_that("RNG", {
 	set.seed(1, kind="Mersenne-Twister")
 	x1 <- runif(n)
 	set.seed(1, kind="Mersenne-Twister")
-	ans1 <- chunkLapply(ns, runif, RNG=TRUE)
+	suppressWarnings(ans1 <- chunkLapply(ns, runif, RNG=TRUE))
 
 	expect_equal(ans1[[1L]], x1)
 
@@ -28,7 +28,7 @@ test_that("RNG", {
 	setRNGStream(s2)
 	y2 <- runif(n)
 	set.seed(1, kind="Mersenne-Twister")
-	ans2 <- chunkLapply(ns, runif, RNG=TRUE)
+	suppressWarnings(ans2 <- chunkLapply(ns, runif, RNG=TRUE))
 
 	expect_equal(ans2[[1L]], y1)
 	expect_equal(ans2[[2L]], y2)
@@ -36,9 +36,11 @@ test_that("RNG", {
 	# check that local seeds are independent of nchunks
 	register(SerialParam())
 	set.seed(1, kind="Mersenne-Twister")
-	ans4 <- chunkLapply(ns, runif, chunkopts=list(nchunks=10), RNG=TRUE)
+	suppressWarnings(ans4 <- chunkLapply(ns, runif,
+		chunkopts=list(nchunks=10), RNG=TRUE))
 	set.seed(1, kind="Mersenne-Twister")
-	ans5 <- chunkLapply(ns, runif, chunkopts=list(nchunks=50), RNG=TRUE)
+	suppressWarnings(ans5 <- chunkLapply(ns, runif,
+		chunkopts=list(nchunks=50), RNG=TRUE))
 
 	expect_equal(ans4, ans5)
 
@@ -46,7 +48,7 @@ test_that("RNG", {
 	register(SerialParam())
 	set.seed(1, kind="Mersenne-Twister")
 	s <- getRNGStream()
-	ans1 <- chunkLapply(ns, runif, RNG=TRUE)
+	suppressWarnings(ans1 <- chunkLapply(ns, runif, RNG=TRUE))
 
 	expect_equal(getRNGStream(), s)
 

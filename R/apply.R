@@ -72,10 +72,13 @@ chunk_rowapply <- function(X, FUN, ...,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	matter_log_chunk_init(CHUNKS, verbose && !progress)
-	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		RNGseeds <- NULL
-	} else {
+	if ( RNG && !has_RNGseed(BPPARAM) ) {
+		if ( !"L'Ecuyer-CMRG" %in% RNGkind() )
+			matter_warn("this function requires RNGkind(\"L'Ecuyer-CMRG\") ",
+				"for statistically safe RNG")
 		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
+	} else {
+		RNGseeds <- NULL
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="matrix", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
@@ -106,10 +109,13 @@ chunk_colapply <- function(X, FUN, ...,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	matter_log_chunk_init(CHUNKS, verbose && !progress)
-	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		RNGseeds <- NULL
-	} else {
+	if ( RNG && !has_RNGseed(BPPARAM) ) {
+		if ( !"L'Ecuyer-CMRG" %in% RNGkind() )
+			matter_warn("this function requires RNGkind(\"L'Ecuyer-CMRG\") ",
+				"for statistically safe RNG")
 		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
+	} else {
+		RNGseeds <- NULL
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="matrix", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
@@ -176,10 +182,13 @@ chunk_lapply <- function(X, FUN, ...,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	matter_log_chunk_init(CHUNKS, verbose && !progress)
-	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		RNGseeds <- NULL
-	} else {
+	if ( RNG && !has_RNGseed(BPPARAM) ) {
+		if ( !"L'Ecuyer-CMRG" %in% RNGkind() )
+			matter_warn("this function requires RNGkind(\"L'Ecuyer-CMRG\") ",
+				"for statistically safe RNG")
 		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
+	} else {
+		RNGseeds <- NULL
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="vector", RNGseeds=RNGseeds)
 	ans <- bplapply_int(CHUNKS, CHUNKFUN, ..., BPPARAM=BPPARAM)
@@ -246,10 +255,13 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		chunksize=get_chunksize(chunkopts),
 		verbose=progress, drop=drop)
 	matter_log_chunk_init(CHUNKS, verbose && !progress)
-	if ( !RNG || has_RNGseed(BPPARAM) ) {
-		RNGseeds <- NULL
-	} else {
+	if ( RNG && !has_RNGseed(BPPARAM) ) {
+		if ( !"L'Ecuyer-CMRG" %in% RNGkind() )
+			matter_warn("this function requires RNGkind(\"L'Ecuyer-CMRG\") ",
+				"for statistically safe RNG")
 		RNGseeds <- RNGStreams(size=lengths(CHUNKS))
+	} else {
+		RNGseeds <- NULL
 	}
 	CHUNKFUN <- chunk_fun(FUN, type="list",
 		RNGseeds=RNGseeds, MoreArgs=MoreArgs)
