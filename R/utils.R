@@ -957,10 +957,19 @@ pinv <- function(x, tol = sqrt(.Machine$double.eps))
 	}
 }
 
+# fix file paths
+fix_path <- function(path, winslash = "\\", mustWork = NA) {
+	file <- !is_shared_memory_pattern(path)
+	if ( any(file) )
+		path[file] <- normalizePath(path[file],
+			winslash=winslash, mustWork=mustWork)
+	path
+}
+
 # check file paths
-path_identical <- function(path1, path2) {
-	path1 <- normalizePath(path1, mustWork=FALSE)
-	path2 <- normalizePath(path2, mustWork=FALSE)
+same_path <- function(path1, path2) {
+	path1 <- fix_path(path1, mustWork=FALSE)
+	path2 <- fix_path(path2, mustWork=FALSE)
 	identical(path1, path2)
 }
 

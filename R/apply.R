@@ -16,9 +16,9 @@ chunkApply <- function(X, MARGIN, FUN, ...,
 	if ( outfile ) {
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
-		outpath <- normalizePath(outpath, mustWork=FALSE)
+		outpath <- fix_path(outpath, mustWork=FALSE)
 		put <- chunk_writer(pid, outpath)
-		outpath <- normalizePath(outpath, mustWork=TRUE)
+		outpath <- fix_path(outpath, mustWork=TRUE)
 		matter_log("writing output to path = ", sQuote(outpath),
 			verbose=verbose)
 	} else {
@@ -138,9 +138,9 @@ chunkLapply <- function(X, FUN, ...,
 	if ( outfile ) {
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
-		outpath <- normalizePath(outpath, mustWork=FALSE)
+		outpath <- fix_path(outpath, mustWork=FALSE)
 		put <- chunk_writer(pid, outpath)
-		outpath <- normalizePath(outpath, mustWork=TRUE)
+		outpath <- fix_path(outpath, mustWork=TRUE)
 		matter_log("writing output to path = ", sQuote(outpath),
 			verbose=verbose)
 	} else {
@@ -211,9 +211,9 @@ chunkMapply <- function(FUN, ...,
 	if ( outfile ) {
 		if ( !is.character(outpath) || length(outpath) != 1L )
 			matter_error("'outpath' must be a scalar string (or NULL)")
-		outpath <- normalizePath(outpath, mustWork=FALSE)
+		outpath <- fix_path(outpath, mustWork=FALSE)
 		put <- chunk_writer(pid, outpath)
-		outpath <- normalizePath(outpath, mustWork=TRUE)
+		outpath <- fix_path(outpath, mustWork=TRUE)
 		matter_log("writing output to path = ", sQuote(outpath),
 			verbose=verbose)
 	} else {
@@ -358,7 +358,7 @@ chunk_writer <- function(id, path)
 	if ( !file.exists(path) ) {
 		if ( !file.create(path) )
 			matter_error("failed to create file: ", sQuote(path))
-		path <- normalizePath(path, mustWork=TRUE)
+		path <- fix_path(path, mustWork=TRUE)
 	}
 	isoclos(function(x, i = 0L) {
 		while ( i && ipcvalue(id) != i ) {

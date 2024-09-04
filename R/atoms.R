@@ -153,7 +153,7 @@ setReplaceMethod("readonly", "atoms",
 
 setMethod("checksum", "character",
 	function(x, algo = "sha1", ...) {
-		x <- normalizePath(x, mustWork=FALSE)
+		x <- fix_path(x, mustWork=FALSE)
 		hash <- vapply(x, function(name) {
 				if ( is_shared_memory_pattern(name) ) {
 					NA_character_

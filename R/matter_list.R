@@ -43,7 +43,7 @@ matter_list <- function(data, type = "double", path = NULL,
 			}
 		}
 	}
-	path <- normalizePath(path, mustWork=FALSE)
+	path <- fix_path(path, mustWork=FALSE)
 	exists <- file.exists(path) | is_shared_memory_object(path)
 	if ( append ) {
 		readonly <- FALSE
@@ -81,7 +81,7 @@ matter_list <- function(data, type = "double", path = NULL,
 			matter_error("error creating file(s): ",
 				paste0(sQuote(path[newfiles][!success]), collapse=", "))
 	}
-	path[files] <- normalizePath(path[files], mustWork=TRUE)
+	path[files] <- fix_path(path[files], mustWork=TRUE)
 	x <- new("matter_list",
 		data=atoms(
 			source=path,

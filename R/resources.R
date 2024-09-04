@@ -29,14 +29,14 @@ matter_error <- function(...) {
 
 create_file_resource <- function(name)
 {
-	path <- normalizePath(name, mustWork=FALSE)
+	path <- fix_path(name, mustWork=FALSE)
 	known_resources <- matter_shared_resource_list()
 	if ( name %in% known_resources )
 		matter_error("shared resource named ", sQuote(name), "already exists")
 	if ( file.exists(path) )
 		matter_error("file ", sQuote(path), " already exists")
 	if ( file.create(path) ) {
-		path <- normalizePath(path, mustWork=TRUE)
+		path <- fix_path(path, mustWork=TRUE)
 		handle <- new.env(parent=emptyenv())
 		handle[["name"]] <- name
 		handle[["path"]] <- path
@@ -53,7 +53,7 @@ remove_file_resource <- function(handle)
 {
 	name <- handle[["name"]]
 	path <- handle[["path"]]
-	path <- normalizePath(handle[["path"]], mustWork=FALSE)
+	path <- fix_path(handle[["path"]], mustWork=FALSE)
 	status <- FALSE
 	known_resources <- matter_shared_resource_list()
 	if ( name %in% known_resources && file.exists(path) )
@@ -75,7 +75,7 @@ sizeof_file_resource <- function(name, owned = FALSE)
 		name <- name[!is_shared_memory_pattern(name)]
 	}
 	if ( length(name) ) {
-		size <- file.size(normalizePath(name, mustWork=FALSE))
+		size <- file.size(fix_path(name, mustWork=FALSE))
 		size_bytes(set_names(size, name))
 	} else {
 		numeric(0L)
