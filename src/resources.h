@@ -87,6 +87,7 @@ class SharedMemorySource : public SourceInterface {
 
 		SharedMemorySource(const char * name, bool readonly)
 		{
+			Rprintf("opening %s\n", name);
 			_sourcetype = SH_MEMORY;
 			ipc::mode_t mode;
 			if ( readonly )
@@ -162,6 +163,7 @@ class SharedMemorySource : public SourceInterface {
 
 		void map_region()
 		{
+			Rprintf("mapping region\n");
 			if ( _region != NULL )
 				delete _region;
 			if ( shared_memory_size() > 0 )
@@ -187,6 +189,7 @@ class SharedMemorySource : public SourceInterface {
 
 		void resize(size_t size)
 		{
+			Rprintf("resizing shm to %d bytes\n", size);
 			if ( shared_memory_size() < size )
 			{
 				try {
