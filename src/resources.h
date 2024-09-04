@@ -164,8 +164,10 @@ class SharedMemorySource : public SourceInterface {
 		void map_region()
 		{
 			Rprintf("mapping region\n");
-			if ( _region != NULL )
+			if ( _region != NULL ) {
+				Rprintf("deleting old region!\n");
 				delete _region;
+			}
 			Rprintf("checking shm size:\n");
 			if ( shared_memory_size() > 0 )
 			{
