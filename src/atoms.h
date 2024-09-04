@@ -372,6 +372,7 @@ class Atoms {
 		template<typename Tin, typename Tout>
 		size_t write_atom(Tin * ptr, int atom, index_t pos, size_t size, int stride = 1)
 		{
+			Rprintf("in Atoms::write_atom() 5\n");
 			// check for user interrupt
 			if ( pendingInterrupt() ) {
 				self_destruct();
@@ -477,6 +478,7 @@ class Atoms {
 		template<typename T>
 		size_t set_region(T * ptr, index_t i, size_t size, int grp = 0, int stride = 1)
 		{
+			Rprintf("in Atoms::set_region() 5\n");
 			AtomInfo ap = find_atom(i, grp);
 			int atom = ap.atom;
 			index_t n, pos = ap.pos, num_write = 0, num_towrite = size;

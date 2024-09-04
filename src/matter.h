@@ -88,6 +88,7 @@ class MatterArray : public Matter {
 		template<typename T>
 		size_t set_region(index_t i, size_t size, T * buffer, int stride = 1)
 		{
+			Rprintf("in MatterArray::set_region() 4\n");
 			if ( has_ops() ) {
 				self_destruct();
 				Rf_error("can't assign to array with deferred operations");
@@ -127,7 +128,7 @@ class MatterArray : public Matter {
 		template<typename T>
 		size_t set_elements(SEXP indx, T * buffer, int stride = 1)
 		{
-			Rprintf("in set_elements() 1\n");
+			Rprintf("in MatterArray::set_elements() 3\n");
 			if ( has_ops() ) {
 				self_destruct();
 				Rf_error("can't assign to array with deferred operations");
@@ -175,6 +176,7 @@ class MatterArray : public Matter {
 
 		void set_region(index_t i, size_t size, SEXP value)
 		{
+			Rprintf("in MatterArray::set_region() 3\n");
 			int stride = (XLENGTH(value) == 1) ? 0 : 1;
 			if ( size > XLENGTH(value) && stride != 0 ) {
 				self_destruct();
@@ -231,7 +233,7 @@ class MatterArray : public Matter {
 
 		void set_elements(SEXP indx, SEXP value)
 		{
-			Rprintf("in set_elements() 2\n");
+			Rprintf("in MatterArray::set_elements() 2\n");
 			if ( Rf_isNull(indx) )
 				return set_region(0, length(), value);
 			int stride = (XLENGTH(value) == 1) ? 0 : 1;
