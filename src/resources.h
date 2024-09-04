@@ -134,9 +134,9 @@ class SharedMemorySource : public SourceInterface {
 		template<typename T>
 		void read(void * ptr, size_t size)
 		{
+			Rprintf("trying to read %d elts at addr %d\n", size, _off);
 			if ( !ok() )
 				return;
-			Rprintf("trying to read %d elts at addr %d\n", size, _off);
 			index_t extent = _off + (sizeof(T) * size);
 			if ( extent > _region->get_size() )
 				resize(extent);
@@ -149,9 +149,9 @@ class SharedMemorySource : public SourceInterface {
 		template<typename T>
 		void write(void * ptr, size_t size)
 		{
+			Rprintf("trying to write %d elts at addr %d\n", size, _off);
 			if ( !ok() )
 				return;
-			Rprintf("trying to write %d elts at addr %d\n", size, _off);
 			index_t extent = _off + (sizeof(T) * size);
 			if ( extent > _region->get_size() )
 				resize(extent);
@@ -166,12 +166,15 @@ class SharedMemorySource : public SourceInterface {
 			Rprintf("mapping region\n");
 			if ( _region != NULL )
 				delete _region;
+			Rprintf("checking shm size:\n");
 			if ( shared_memory_size() > 0 )
 			{
 				try {
+					Rprintf("dereferencing shm!\n");
 					_region = new ipc::mapped_region(*_shm, _shm->get_mode());
 				}
 				catch(...) {
+					Rprintf("failed successfully!\n");
 					_region = new ipc::mapped_region();
 					_ok = false;
 				}
@@ -184,6 +187,7 @@ class SharedMemorySource : public SourceInterface {
 		{
 			ipc::offset_t size = 0;
 			_ok = _shm->get_size(size);
+			Rprintf("shm size is %d bytes\n", size);
 			return static_cast<index_t>(size);
 		}
 
