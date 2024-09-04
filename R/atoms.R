@@ -285,10 +285,10 @@ requisition_atoms <- function(x) {
 				matter_error("cannot resize read-only shared memory")
 			} else {
 				newsize <- resize_memory_resource(shm, max_extent)
+				if ( newsize < max_extent )
+					matter_error("failed to resize shared memory: ", sQuote(shm))
 			}
 		}
-		if ( newsize < max_extent )
-			matter_error("failed to resize shared memory: ", sQuote(shm))
 	}
 }
 
