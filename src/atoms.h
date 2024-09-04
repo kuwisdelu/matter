@@ -61,6 +61,7 @@ class DataSources {
 		{
 			if ( _sources[src] == NULL )
 			{
+				Rprintf("opening src %d\n", src);
 				const char * name = CHAR(STRING_ELT(_names, src));
 				switch(parse_sourcetype(name)) {
 					case SH_FILE:
@@ -89,6 +90,7 @@ class DataSources {
 		{
 			if ( _sources[src] != NULL )
 			{
+				Rprintf("closing src %d\n", src);
 				switch(_sources[src]->sourcetype()) {
 					case SH_FILE:
 						static_cast<FileSource*>(_sources[src])->close();
@@ -111,6 +113,7 @@ class DataSources {
 
 		DataSources * rseek(int src, index_t off = 0)
 		{
+			Rprintf("rseek src %d -> %d\n", src, off);
 			switch(open(src)->sourcetype()) {
 				case SH_FILE:
 					source<FileSource*>(src)->rseek(off);
@@ -126,6 +129,7 @@ class DataSources {
 
 		DataSources * wseek(int src, index_t off = 0)
 		{
+			Rprintf("wseek src %d -> %d\n", src, off);
 			switch(open(src)->sourcetype()) {
 				case SH_FILE:
 					source<FileSource*>(src)->wseek(off);
@@ -142,6 +146,7 @@ class DataSources {
 		template<typename T>
 		bool read(void * ptr, size_t size)
 		{
+			Rprintf("reading %d elts\n", size);
 			switch(open(_current)->sourcetype()) {
 				case SH_FILE:
 					source<FileSource*>(_current)->read<T>(ptr, size);
@@ -158,6 +163,7 @@ class DataSources {
 		template<typename T>
 		bool write(void * ptr, size_t size)
 		{
+			Rprintf("writing %d elts\n", size);
 			if ( readonly() ) {
 				exit_sources();
 				Rf_error("storage mode is read-only");
