@@ -135,6 +135,7 @@ class SharedMemorySource : public SourceInterface {
 		{
 			if ( !ok() )
 				return;
+			Rprintf("trying to read %d elts at addr %d\n", size, _off);
 			index_t extent = _off + (sizeof(T) * size);
 			if ( extent > _region->get_size() )
 				resize(extent);
@@ -149,6 +150,7 @@ class SharedMemorySource : public SourceInterface {
 		{
 			if ( !ok() )
 				return;
+			Rprintf("trying to write %d elts at addr %d\n", size, _off);
 			index_t extent = _off + (sizeof(T) * size);
 			if ( extent > _region->get_size() )
 				resize(extent);
