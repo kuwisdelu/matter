@@ -72,6 +72,7 @@ class DataSources {
 						}
 						break;
 					case SH_MEMORY:
+						Rprintf("opening shm src %d\n", src);
 						_sources[src] = new SharedMemorySource(name, readonly());
 						if ( !_sources[src]->ok() ) {
 							exit_sources();
