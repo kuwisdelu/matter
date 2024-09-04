@@ -41,9 +41,13 @@ class FileSource : public SourceInterface {
 		void close()
 		{
 			_ok = false;
-			if ( _file->is_open() )
-				_file->close();
-			delete _file;
+			if ( _file != NULL )
+			{
+				if ( _file->is_open() )
+					_file->close();
+				delete _file;
+				_file = NULL
+			}
 		}
 
 		void rseek(index_t off) {
@@ -106,8 +110,16 @@ class SharedMemorySource : public SourceInterface {
 
 		void close() {
 			_ok = false;
-			delete _region;
-			delete _shm;
+			if ( _region != NULL )
+			{
+				delete _region;
+				_region = NULL;
+			}
+			if ( _shm != NULL )
+			{
+				delete _shm;
+				_shm = NULL;
+			}
 		}
 
 		void rseek(index_t off) {
@@ -148,7 +160,8 @@ class SharedMemorySource : public SourceInterface {
 
 		void map_region()
 		{
-			delete _region;
+			if ( _region != NULL )
+				delete _region;
 			if ( shared_memory_size() > 0 )
 			{
 				try {
