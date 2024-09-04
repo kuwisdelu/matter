@@ -94,7 +94,7 @@ class SharedMemorySource : public SourceInterface {
 				mode = ipc::read_only;
 			else
 				mode = ipc::read_write;
-			_region = NULL
+			_region = NULL;
 			try {
 				_shm = new ipc::shared_memory_object(ipc::open_only, name, mode);
 				_ok = true;
