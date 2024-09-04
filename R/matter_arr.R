@@ -207,6 +207,7 @@ matter_mat <- function(data, type = "double", path = NULL,
 		n1 <- ncol(x) # number of atoms/groups
 		n2 <- nrow(x) # extent of each atom/group
 	}
+	extent <- as.numeric(atomdata(x)@extent)
 	if ( length(x@data) == n1 && all(unique(extent) == n2) ) {
 		x@data <- regroup_atoms(x@data, 0L:(n1 - 1L))
 	} else {
