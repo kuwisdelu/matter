@@ -46,7 +46,7 @@ class FileSource : public SourceInterface {
 				if ( _file->is_open() )
 					_file->close();
 				delete _file;
-				_file = NULL
+				_file = NULL;
 			}
 		}
 
