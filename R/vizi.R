@@ -399,6 +399,8 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 			args$zlim <- plot$coord$zlim
 		if ( is.null(args$zlim) )
 			args$zlim <- plot$channels$z$limits
+		if ( length(unique(args$zlim)) <= 1L )
+			args$zlim <- c(-1, 1) + args$zlim
 		# get x/y/z labels
 		if ( is.null(args$xlab) )
 			args$xlab <- plot$channels$x$label
@@ -890,6 +892,8 @@ merge_channels <- function(c1, c2, ...)
 
 merge_limits <- function(l1, l2, ...)
 {
+	if ( missing(l2) )
+		return(l1)
 	if ( ...length() > 0L )
 		l2 <- do.call(merge_limits, list(l2, ...))
 	if ( is_discrete(l1) && is_discrete(l2) ) {

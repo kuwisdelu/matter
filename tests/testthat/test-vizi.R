@@ -505,15 +505,21 @@ test_that("vizi - mark - pixels/voxels", {
 
 	expect_no_error(plot(v5))
 
+	z <- rep.int(1, nr * nc)
+	v6 <- vizi(x=x, y=y, z=z, color=vals)
+	v6 <- add_mark(v6, "voxels")
+
+	expect_no_error(plot(v6))
+
 	x2 <- rep.int(x, 5)
 	y2 <- rep.int(y, 5)
 	z2 <- rep(1:5, each=nr * nc)
 	vals2 <- c(vals, 2 * vals, 3 * vals, 4 * vals, 5 * vals)
 
-	v6 <- vizi(x=x2, y=y2, z=z2, color=vals2)
-	v6 <- add_mark(v6, "voxels")
+	v7 <- vizi(x=x2, y=y2, z=z2, color=vals2)
+	v7 <- add_mark(v7, "voxels")
 
-	expect_no_error(plot(v6))
+	expect_no_error(plot(v7))
 
 })
 
