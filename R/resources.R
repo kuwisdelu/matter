@@ -14,6 +14,10 @@ matter_log <- function(..., verbose = FALSE) {
 	matter_logger()$log(..., signal=verbose)
 }
 
+matter_message <- function(...) {
+	matter_logger()$message(...)
+}
+
 matter_warn <- function(...) {
 	call <- sys.call(-1L)
 	matter_logger()$warning(..., call=call)

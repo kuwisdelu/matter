@@ -102,6 +102,7 @@
 \alias{matter_shared_resource_pool}
 
 \alias{matter_log}
+\alias{matter_message}
 \alias{matter_warn}
 \alias{matter_error}
 

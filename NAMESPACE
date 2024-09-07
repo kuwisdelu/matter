@@ -606,6 +606,7 @@ export(
 
 export(
 	"matter_log",
+	"matter_message",
 	"matter_warn",
 	"matter_error")
 
