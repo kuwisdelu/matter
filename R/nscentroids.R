@@ -30,10 +30,10 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 	matter_log("calculating class centroids", verbose=verbose)
 	if ( transpose ) {
 		centers <- rowStats(x, stat="mean", group=y, na.rm=TRUE,
-			verbose=verbose, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, BPPARAM=BPPARAM, ...)
 	} else {
 		centers <- colStats(x, stat="mean", group=y, na.rm=TRUE,
-			verbose=verbose, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.matrix(centers) ) {
 		centers <- as.matrix(centers)
@@ -44,11 +44,11 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 	if ( transpose ) {
 		xc <- rowsweep(x, STATS=centers, group=y)
 		wcss <- rowStats(xc^2, stat="sum", group=y, na.rm=TRUE,
-			verbose=verbose, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, BPPARAM=BPPARAM, ...)
 	} else {
 		xc <- colsweep(x, STATS=centers, group=y)
 		wcss <- colStats(xc^2, stat="sum", group=y, na.rm=TRUE,
-			verbose=verbose, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, BPPARAM=BPPARAM, ...)
 	}
 	if ( !is.matrix(wcss) ) {
 		wcss <- as.matrix(wcss)
@@ -74,10 +74,12 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 			matter_warn("model is fully sparse; 's' is too large")
 		if ( transpose ) {
 			ds <- distfun(x, s_centers,
-				weights=1 / (sd + s0)^2, BPPARAM=BPPARAM, ...)
+				weights=1 / (sd + s0)^2, verbose=FALSE,
+				BPPARAM=BPPARAM, ...)
 		} else {
 			ds <- distfun(x, t(s_centers),
-				weights=1 / (sd + s0)^2, BPPARAM=BPPARAM, ...)
+				weights=1 / (sd + s0)^2, verbose=FALSE,
+				BPPARAM=BPPARAM, ...)
 		}
 		if ( is.function(ds) )
 			.Defunct(msg="distfun requirements have changed; see ?nscentroids")

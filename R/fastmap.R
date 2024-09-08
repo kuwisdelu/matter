@@ -32,9 +32,9 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		{
 			# get distances to pivot candidates
 			if ( transpose ) {
-				ds <- distfun(x, x[,pv,drop=FALSE], ...)
+				ds <- distfun(x, x[,pv,drop=FALSE], verbose=FALSE, ...)
 			} else {
-				ds <- distfun(x, x[pv,,drop=FALSE], ...)
+				ds <- distfun(x, x[pv,,drop=FALSE], verbose=FALSE, ...)
 			}
 			if ( is.function(ds) )
 				.Defunct(msg="distfun requirements have changed; see ?fastmap")
