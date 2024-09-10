@@ -147,6 +147,14 @@ setRefClass("simple_logger",
 			}
 			invisible(.self)
 		},
+		copy = function(file, overwrite = FALSE)
+		{
+			oldfile <- .self$logfile
+			newfile <- normalizePath(file, mustWork=FALSE)
+			if ( !file.copy(oldfile, newfile, overwrite=overwrite) )
+				base::warning("failed to copy log file")
+			invisible(.self)
+		},
 		close = function()
 		{
 			.self$flush()

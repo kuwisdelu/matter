@@ -72,6 +72,8 @@ matter_logger()
 
         \item{\code{$move(file):}}{Move the log file to a new location. Moving the log file automatically appends the current \code{sessionInfo()}.}
 
+        \item{\code{$copy(file):}}{Copy the log file to a different location.}
+
         \item{\code{$close():}}{Flush buffered log entries (including \code{sessionInfo()}) and detach the log file. This is called automatically at the end of an R session. Note that log files in the temporary directory will be deleted after the R session ends if they are not \code{$move()}ed to a persistent directory before quitting.}
     }
 
