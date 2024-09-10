@@ -149,10 +149,15 @@ setRefClass("simple_logger",
 		},
 		copy = function(file, overwrite = FALSE)
 		{
-			oldfile <- .self$logfile
+			if ( !is.character(file) || length(file) != 1L )
+				base::stop("file must be a single string")
 			newfile <- normalizePath(file, mustWork=FALSE)
-			if ( !file.copy(oldfile, newfile, overwrite=overwrite) )
-				base::warning("failed to copy log file")
+			if ( length(.self$logfile) ) {
+				if ( !file.copy(.self$logfile, newfile, overwrite=overwrite) )
+					base::warning("failed to copy log file")
+			} else {
+				writeLines(.self$buffer, newfile)
+			}
 			invisible(.self)
 		},
 		close = function()
