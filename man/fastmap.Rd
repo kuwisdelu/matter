@@ -11,8 +11,8 @@
 
 \usage{
 # FastMap projection
-fastmap(x, k = 3L, pivots = 10L, distfun = NULL,
-	transpose = FALSE, niter = 10L, verbose = NA, \dots)
+fastmap(x, k = 3L, group = NULL, distfun = NULL,
+	transpose = FALSE, pivots = 10L, niter = 10L, verbose = NA, \dots)
 
 \S3method{predict}{fastmap}(object, newdata, \dots)
 }
@@ -22,11 +22,13 @@ fastmap(x, k = 3L, pivots = 10L, distfun = NULL,
 
 	\item{k}{The number of FastMap components to project.}
 
-	\item{pivots}{The number of pivot candidates to attempt each iteration. Using more pivot candidates can help improve the quality of the pivot selection. Using fewer can help speed up computation.}
+	\item{group}{Grouping variable if pivots should be guaranteed to come from different groups.}
 
 	\item{distfun}{A distance function with the same usage (i.e., supports the same arguments and return values) as \code{\link{rowDists}} or \code{\link{colDists}}.}
 
 	\item{transpose}{A logical value indicating whether \code{x} should be considered transposed or not. This only used internally to indicate whether the input matrix is (P x N) or (N x P), and therefore extract the number of objects and their names.}
+
+	\item{pivots}{The number of pivot candidates to attempt each iteration. Using more pivot candidates can help improve the quality of the pivot selection. Using fewer can help speed up computation.}
 
 	\item{niter}{The maximum number of iterations for selecting the pivots.}
 

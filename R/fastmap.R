@@ -2,8 +2,8 @@
 #### FastMap Projection ####
 ## -------------------------
 
-fastmap <- function(x, k = 3L, pivots = 10L, distfun = NULL,
-	transpose = FALSE, niter = 10L, verbose = NA, ...)
+fastmap <- function(x, k = 3L, group = NULL, distfun = NULL,
+	transpose = FALSE, pivots = 10L, niter = 10L, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -40,9 +40,9 @@ fastmap <- function(x, k = 3L, pivots = 10L, distfun = NULL,
 			if ( is.function(ds) )
 				.Defunct(msg="distfun requirements have changed; see ?fastmap")
 			dproj <- do.call(cbind, rowdist_at(scores, pv))
-			dproj <- sqrt(pmax(ds^2 - dproj^2, 0))
-			dproj <- apply(dproj, 2L, function(di) di - min(di))
-			pvnew <- choose_pivots(pv, dproj)
+			di <- sqrt(pmax(ds^2 - dproj^2, 0))
+			di <- apply(di, 2L, function(d) d - min(d))
+			pvnew <- choose_pivots(pv, di, group)
 			pvdist <- attr(pvnew, "distance")
 			if ( iter < niter )
 			{
@@ -56,9 +56,9 @@ fastmap <- function(x, k = 3L, pivots = 10L, distfun = NULL,
 		}
 		# project current component
 		pv <- pv[1:2]
-		d1 <- dproj[,1L]
-		d2 <- dproj[,2L]
-		d12 <- 0.5 * (dproj[pv[2L],1L] + dproj[pv[1L],2L])
+		d1 <- di[,1L]
+		d2 <- di[,2L]
+		d12 <- max(di[pv[2L],1L], di[pv[1L],2L])
 		matter_log("using pivots: ", pv[1L], ", ", pv[2L], verbose=verbose)
 		matter_log("projecting component ", i, verbose=verbose)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
@@ -82,8 +82,15 @@ fastmap <- function(x, k = 3L, pivots = 10L, distfun = NULL,
 	ans
 }
 
-choose_pivots <- function(pivots, dists)
+choose_pivots <- function(pivots, dists, group)
 {
+	if ( !is.null(group) )
+	{
+		for ( j in seq_along(pivots) ) {
+			same <- group %in% group[pivots[j]]
+			dists[same,j] <- -Inf
+		}
+	}
 	i <- which.max(apply(dists, 2L, max))
 	p1 <- pivots[i]
 	p2 <- which.max(dists[,i])
@@ -141,6 +148,7 @@ predict.fastmap <- function(object, newdata, ...)
 		} else {
 			d1 <- d1x
 		}
+		d1 <- d1 - min(d1)
 		# get distances to pivot 2
 		d2x <- ds[,i + k]
 		if ( i > 1L ) {
@@ -150,6 +158,7 @@ predict.fastmap <- function(object, newdata, ...)
 		} else {
 			d2 <- d2x
 		}
+		d2 <- d2 - min(d2)
 		# project current component
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
 		pred[,i] <- xi
