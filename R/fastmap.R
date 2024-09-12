@@ -2,7 +2,7 @@
 #### FastMap Projection ####
 ## -------------------------
 
-fastmap <- function(x, k = 3L, distfun = NULL,
+fastmap <- function(x, k = 3L, pivots = 10L, distfun = NULL,
 	transpose = FALSE, niter = 10L, verbose = NA, ...)
 {
 	if ( is.na(verbose) )
@@ -19,6 +19,7 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 		N <- NROW(x)
 		snames <- rownames(x)
 	}
+	np <- max(2L, min(pivots, N))
 	scores <- matrix(0, nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
 	pivots <- matrix(nrow=k, ncol=3L,
@@ -27,7 +28,7 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 	{
 		matter_log("fitting FastMap component ", i, verbose=verbose)
 		# find pivots
-		pv <- sample.int(N, 2L)
+		pv <- sample.int(N, np)
 		for ( iter in seq_len(niter) )
 		{
 			# get distances to pivot candidates
@@ -38,38 +39,26 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 			}
 			if ( is.function(ds) )
 				.Defunct(msg="distfun requirements have changed; see ?fastmap")
-			# get pivot 1 distances
-			d1x <- ds[,1L]
-			d1proj <- rowdist_at(scores, pv[1L])[[1L]]
-			d1 <- sqrt(pmax(d1x^2 - d1proj^2, 0))
-			# get pivot 2 distances
-			d2x <- ds[,2L]
-			d2proj <- rowdist_at(scores, pv[2L])[[1L]]
-			d2 <- sqrt(pmax(d2x^2 - d2proj^2, 0))
-			# get distance between pivots
-			d12 <- d1[pv[2L]]
-			# calculate best pivots for next iteration
-			pvnew <- c(which.max(d2), which.max(d1))
+			dproj <- do.call(cbind, rowdist_at(scores, pv))
+			dproj <- sqrt(pmax(ds^2 - dproj^2, 0))
+			dproj <- apply(dproj, 2L, function(di) di - min(di))
+			pvnew <- choose_pivots(pv, dproj)
+			pvdist <- attr(pvnew, "distance")
 			if ( iter < niter )
 			{
-				# update pivots
-				if ( d1[pvnew[2L]] > d2[pvnew[1L]] ) {
-					matter_log("iteration ", iter, ": ", "max pivot distance",
-						" (", pv[1L], ", ", pvnew[2L], ") = ",
-						format.default(d1[pvnew[2L]]), verbose=verbose)
-					pvnew[1L] <- pv[1L]
-				} else if ( d2[pvnew[1L]] > d1[pvnew[2L]] ) {
-					matter_log("iteration ", iter, ": ", "max pivot distance",
-						" (", pvnew[1L], ", ", pv[2L], ") = ",
-						format.default(d2[pvnew[1L]]), verbose=verbose)
-					pvnew[2L] <- pv[2L]
-				}
-				if ( setequal(pvnew, pv) )
+				matter_log("iteration ", iter, ": ", "max pivot distance",
+					" (", pvnew[1L], ", ", pvnew[2L], ")",
+					" = ", format(pvdist), verbose=verbose)
+				if ( setequal(pvnew[1:2], pv[1:2]) )
 					break
 				pv <- pvnew
 			}
 		}
 		# project current component
+		pv <- pv[1:2]
+		d1 <- dproj[,1L]
+		d2 <- dproj[,2L]
+		d12 <- 0.5 * (dproj[pv[2L],1L] + dproj[pv[1L],2L])
 		matter_log("using pivots: ", pv[1L], ", ", pv[2L], verbose=verbose)
 		matter_log("projecting component ", i, verbose=verbose)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
@@ -91,6 +80,20 @@ fastmap <- function(x, k = 3L, distfun = NULL,
 	ans$transpose <- transpose
 	class(ans) <- "fastmap"
 	ans
+}
+
+choose_pivots <- function(pivots, dists)
+{
+	i <- which.max(apply(dists, 2L, max))
+	p1 <- pivots[i]
+	p2 <- which.max(dists[,i])
+	np <- length(pivots)
+	if ( np > 2L ) {
+		pivots <- c(p1, p2, sample.int(nrow(dists), np - 2L))
+	} else {
+		pivots <- c(p1, p2)
+	}
+	structure(pivots, distance=dists[p2,i])
 }
 
 print.fastmap <- function(x, print.x = FALSE, ...)

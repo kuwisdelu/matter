@@ -36,15 +36,15 @@ test_that("fastmap", {
 	f2 <- c(0.707089, 1.41418, 1.06062, 0.707089, 0)
 	f3 <- c(0.668149, 0.935411, 0, 0.668149, 1)
 
+	f <- cbind(f1, f2, f3)
+
+	set.seed(3142, kind="Mersenne-Twister")
+	fm <- fastmap(x, pivots=2)
+
 	# EXCEPT for component #3
 	# where the ties are broken
 	# by floating point error...
 	# so only compare #1 and #2
-
-	f <- cbind(f1, f2, f3)
-
-	set.seed(1, kind="Mersenne-Twister")
-	fm <- fastmap(x)
 
 	expect_equivalent(f[,1:2], fm$x[,1:2], tolerance=1e-5)
 
