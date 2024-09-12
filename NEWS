@@ -2,6 +2,11 @@
 CHANGES IN VERSION 2.7.9 [2024-9-12]
 ------------------------------------
 
+NEW FEATURES
+
+    o Add 'pivots' argument to 'fastmap()' to support
+        more than 2 pivot candidates per iteration
+
 BUG FIXES
 
     o Add 'chunkopts' to 'nscentroids()' and 'sgmix()'
