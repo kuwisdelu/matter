@@ -7,7 +7,8 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 	metric = "maximum", p = 2, neighbors = NULL,
 	annealing = TRUE, niter = 10L, tol = 1e-3,
 	compress = FALSE, byrow = FALSE,
-	verbose = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, chunkopts = list(),
+	BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -43,14 +44,14 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 				weights=weights, neighbors=neighbors,
 				annealing=annealing, niter=niter, tol=tol,
 				compress=compress, verbose=verbose, RNG=TRUE,
-				BPPARAM=BPPARAM, ...)
+				chunkopts=chunkopts, BPPARAM=BPPARAM)
 		} else {
 			ans <- chunkApply(vals, margin, sgmix_int,
 				coord=co, r=r, k=k, group=group,
 				weights=weights, neighbors=neighbors,
 				annealing=annealing, niter=niter, tol=tol,
 				compress=compress, verbose=verbose, RNG=TRUE,
-				BPPARAM=BPPARAM, ...)
+				chunkopts=chunkopts, BPPARAM=BPPARAM)
 		}
 	} else {
 		if ( is.list(vals) )

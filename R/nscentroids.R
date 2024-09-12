@@ -4,7 +4,8 @@
 
 nscentroids <- function(x, y, s = 0, distfun = NULL,
 	priors = table(y), center = NULL, transpose = FALSE,
-	verbose = NA, BPPARAM = bpparam(), ...)
+	verbose = NA, chunkopts=list(),
+	BPPARAM = bpparam(), ...)
 {
 	if ( is.na(verbose) )
 		verbose <- getOption("matter.default.verbose")
@@ -20,20 +21,20 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 		matter_log("calculating global centroid", verbose=verbose)
 		if ( transpose ) {
 			center <- rowStats(x, stat="mean", na.rm=TRUE,
-				verbose=verbose, BPPARAM=BPPARAM, ...)
+				verbose=verbose, chunkopts=chunkopts, BPPARAM=BPPARAM)
 		} else {
 			center <- colStats(x, stat="mean", na.rm=TRUE,
-				verbose=verbose, BPPARAM=BPPARAM, ...)
+				verbose=verbose, chunkopts=chunkopts, BPPARAM=BPPARAM)
 		}
 	}
 	# calculate class centroids
 	matter_log("calculating class centroids", verbose=verbose)
 	if ( transpose ) {
 		centers <- rowStats(x, stat="mean", group=y, na.rm=TRUE,
-			verbose=FALSE, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, chunkopts=chunkopts, BPPARAM=BPPARAM)
 	} else {
 		centers <- colStats(x, stat="mean", group=y, na.rm=TRUE,
-			verbose=FALSE, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, chunkopts=chunkopts, BPPARAM=BPPARAM)
 	}
 	if ( !is.matrix(centers) ) {
 		centers <- as.matrix(centers)
@@ -44,11 +45,11 @@ nscentroids <- function(x, y, s = 0, distfun = NULL,
 	if ( transpose ) {
 		xc <- rowsweep(x, STATS=centers, group=y)
 		wcss <- rowStats(xc^2, stat="sum", group=y, na.rm=TRUE,
-			verbose=FALSE, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, chunkopts=chunkopts, BPPARAM=BPPARAM)
 	} else {
 		xc <- colsweep(x, STATS=centers, group=y)
 		wcss <- colStats(xc^2, stat="sum", group=y, na.rm=TRUE,
-			verbose=FALSE, BPPARAM=BPPARAM, ...)
+			verbose=FALSE, chunkopts=chunkopts, BPPARAM=BPPARAM)
 	}
 	if ( !is.matrix(wcss) ) {
 		wcss <- as.matrix(wcss)
@@ -117,7 +118,7 @@ print.nscentroids <- function(x, digits = max(3L, getOption("digits") - 3L), ...
 		x$s, nlevels(x$class)))
 	if ( !is.null(x$priors) ) {
 		cat(sprintf("\nPriors (1, .., k=%d):\n", length(x$priors)))
-	    preview_vector(x$priors, ...)
+		preview_vector(x$priors, ...)
 	}
 	if ( !is.null(x$statistic) ) {
 		cat("\nStatistics:\n")

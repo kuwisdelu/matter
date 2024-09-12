@@ -1324,7 +1324,7 @@ encode_scheme <- function(x, scheme, limits)
 		scheme <- rep_len(scheme, nlevels(x))
 	} else {
 		dx <- diff(limits)
-        if ( dx == 0 ) {
+		if ( dx == 0 ) {
 			x <- rep.int(1L, length(x))
 		} else {
 			breaks <- seq.int(limits[1L], limits[2L], length.out=n + 1L)

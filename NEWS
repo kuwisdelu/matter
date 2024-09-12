@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.7.9 [2024-9-12]
+------------------------------------
+
+BUG FIXES
+
+    o Add 'chunkopts' to 'nscentroids()' and 'sgmix()'
+        signatures to fix downstream '...' bugs
+
 CHANGES IN VERSION 2.7.8 [2024-9-4]
 ------------------------------------
 

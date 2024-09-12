@@ -17,7 +17,8 @@ sgmix(x, y, vals, r = 1, k = 2, group = NULL,
 	metric = "maximum", p = 2, neighbors = NULL,
 	annealing = TRUE, niter = 10L, tol = 1e-3,
 	compress = FALSE, byrow = FALSE,
-	verbose = NA, BPPARAM = bpparam(), \dots)
+	verbose = NA, chunkopts=list(),
+	BPPARAM = bpparam(), \dots)
 
 \S3method{fitted}{sgmix}(object,
 	type = c("mu", "sigma", "class"), channel = NULL, \dots)
@@ -54,9 +55,11 @@ sgmix(x, y, vals, r = 1, k = 2, group = NULL,
 
 	\item{verbose}{Should progress be printed for each iteration?}
 
+	\item{chunkopts}{An (optional) list of chunk options including \code{nchunks}, \code{chunksize}, and \code{serialize}. See \code{\link{chunkApply}}.}
+
 	\item{BPPARAM}{An optional instance of \code{BiocParallelParam}. See documentation for \code{\link{bplapply}}.}
 
-	\item{\dots}{Additional options passed to \code{\link{kmeans}} or \code{\link{chunkApply}}.}
+	\item{\dots}{Ignored.}
 
 	\item{object}{An object inheriting from \code{sgmix}.}
 
