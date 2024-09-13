@@ -19,7 +19,7 @@ fastmap <- function(x, k = 3L, group = NULL, distfun = NULL,
 		N <- NROW(x)
 		snames <- rownames(x)
 	}
-	np <- max(2L, min(pivots, N))
+	np <- max(2L, min(pivots, N %/% 2L))
 	scores <- matrix(0, nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
 	pivots <- matrix(nrow=k, ncol=3L,
