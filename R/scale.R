@@ -3,13 +3,13 @@
 ## ----------------------------------
 
 setMethod("rowscale", "ANY",
-	function(x, center=TRUE, scale=TRUE, group = NULL, ..., BPPARAM = bpparam())
+	function(x, center = TRUE, scale = TRUE, group = NULL, ..., BPPARAM = bpparam())
 {
 	rowscale_int(x, center=center, scale=scale, group=group, ..., BPPARAM=BPPARAM)
 })
 
 setMethod("colscale", "ANY",
-	function(x, center=TRUE, scale=TRUE, group = NULL, ..., BPPARAM = bpparam())
+	function(x, center = TRUE, scale = TRUE, group = NULL, ..., BPPARAM = bpparam())
 {
 	colscale_int(x, center=center, scale=scale, group=group, ..., BPPARAM=BPPARAM)
 })
