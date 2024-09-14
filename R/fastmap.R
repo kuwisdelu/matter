@@ -55,16 +55,17 @@ fastmap <- function(x, k = 3L, group = NULL, distfun = NULL,
 			}
 		}
 		# project current component
-		pv <- pv[1:2]
+		p1 <- pv[1L]
+		p2 <- pv[2L]
 		d1 <- di[,1L]
 		d2 <- di[,2L]
-		d12 <- max(di[pv[2L],1L], di[pv[1L],2L])
-		matter_log("using pivots: ", pv[1L], ", ", pv[2L], verbose=verbose)
+		d12 <- max(d1[p2], d2[p1])
+		matter_log("using pivots: ", p1, ", ", p2, verbose=verbose)
 		matter_log("projecting component ", i, verbose=verbose)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
 		xi <- ifelse(is.finite(xi), xi, 0)
 		scores[,i] <- xi
-		pivots[i,] <- c(pv, d12)
+		pivots[i,] <- c(p1, p2, d12)
 	}
 	pindex <- as.vector(pivots[,1:2])
 	if ( transpose ) {
