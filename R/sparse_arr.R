@@ -554,7 +554,7 @@ get_sparse_arr_elts <- function(x, i = NULL)
 
 set_sparse_arr_elts <- function(x, i = NULL, value = 0)
 {
-	matter_error("sparse array assignment is not supported yet") # TODO
+	matter_error("sparse array assignment is not supported") # TODO?
 }
 
 subset_sparse_mat_submatrix <- function(x, i = NULL, j = NULL)
@@ -606,8 +606,9 @@ get_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, drop = FALSE)
 	y
 }
 
-set_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0) {
-	matter_error("sparse array assignment is not implemented yet") # TODO
+set_sparse_mat_submatrix <- function(x, i = NULL, j = NULL, value = 0)
+{
+	matter_error("sparse array assignment is not supported") # TODO?
 }
 
 setMethod("cbind2", c("sparse_mat", "sparse_mat"),
