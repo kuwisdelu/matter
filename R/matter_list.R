@@ -241,8 +241,10 @@ setMethod("mem_realized", "matter_list", function(x) {
 
 copy_to_matter_list <- function(object, path = NULL, ..., BPPARAM)
 {
-	x <- matter_list(NULL, type=type(object), path=path,
+	x <- matter_list(NULL, path=path,
+		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		lengths=object@dim, names=names(object))
+	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)

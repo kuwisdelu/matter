@@ -18,7 +18,7 @@ setClass("matter_fct",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_fct <- function(data, levels, path = NULL,
+matter_fct <- function(data, levels, type = typeof(levels), path = NULL,
 	length = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, append = FALSE, labels = as.character(levels), ...)
 {
@@ -33,7 +33,7 @@ matter_fct <- function(data, levels, path = NULL,
 		levels <- seq_len(nlevels(data))
 		labels <- levels(data)
 	}
-	x <- matter_vec(NULL, type=typeof(levels), path=path, length=length,
+	x <- matter_vec(NULL, type=type, path=path, length=length,
 		names=names, offset=offset, extent=extent,
 		readonly=readonly, append=append, rowMaj=FALSE, ...)
 	x <- as(x, "matter_fct")
@@ -75,8 +75,10 @@ setMethod("preview_for_display", "matter_fct", function(x) {
 copy_to_matter_fct <- function(object, path = NULL, ..., BPPARAM)
 {
 	x <- matter_fct(NULL, path=path,
+		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		length=length(object), names=names(object),
 		levels=object@levels, labels=object@labels)
+	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)

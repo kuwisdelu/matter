@@ -344,8 +344,11 @@ copy_to_matter_fun <- function(id, dest, margin = NULL)
 copy_to_matter_arr <- function(object, path = NULL,
 	rowMaj = FALSE, ..., BPPARAM)
 {
-	x <- matter_arr(NULL, type=type(object), path=path, rowMaj=rowMaj,
-		dim=dim(object), dimnames=dimnames(object))
+	x <- matter_arr(NULL, path=path,
+		type=type(atomdata(object)), extent=lengths(atomdata(object)),
+		dim=dim(object), dimnames=dimnames(object),
+		rowMaj=rowMaj)
+	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
@@ -358,8 +361,11 @@ copy_to_matter_arr <- function(object, path = NULL,
 copy_to_matter_mat <- function(object, path = NULL,
 	rowMaj = FALSE, ..., BPPARAM)
 {
-	x <- matter_mat(NULL, type=type(object), path=path, rowMaj=rowMaj,
-		nrow=nrow(object), ncol=ncol(object), dimnames=dimnames(object))
+	x <- matter_mat(NULL, path=path,
+		type=type(atomdata(object)), extent=lengths(atomdata(object)),
+		nrow=nrow(object), ncol=ncol(object), dimnames=dimnames(object),
+		rowMaj=rowMaj)
+	type(x) <- type(object)
 	pid <- ipcid()
 	if ( rowMaj ) {
 		FUN <- copy_to_matter_fun(pid, x, 1L)
@@ -377,8 +383,11 @@ copy_to_matter_mat <- function(object, path = NULL,
 copy_to_matter_vec <- function(object, path = NULL,
 	rowMaj = FALSE, ..., BPPARAM)
 {
-	x <- matter_vec(NULL, type=type(object), path=path, rowMaj=rowMaj,
-		length=length(object), names=names(object))
+	x <- matter_vec(NULL, path=path,
+		type=type(atomdata(object)), extent=lengths(atomdata(object)),
+		length=length(object), names=names(object),
+		rowMaj=rowMaj)
+	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)

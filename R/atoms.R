@@ -128,7 +128,7 @@ setMethod("show", "atoms", function(object) {
 	desc1 <- paste0(n, " element", if (n != 1L) "s")
 	desc2 <- paste0(nrows, if (n_unique(dms) > 1L) "+" else "", " per group")
 	desc3 <- paste0(ncols, " group", if (ncols != 1L) "s" else "")
-	cat("(", desc1, " | ", desc2, " | ", desc3, ")\n", sep="")
+	cat("(", desc1, " | ", desc2, " x ", desc3, ")\n", sep="")
 })
 
 setMethod("path", "atoms", function(object, ...) levels(object@source))

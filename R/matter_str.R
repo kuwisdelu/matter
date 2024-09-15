@@ -14,7 +14,7 @@ setClass("matter_str",
 		if ( is.null(errors) ) TRUE else errors
 	})
 
-matter_str <- function(data, encoding, path = NULL,
+matter_str <- function(data, encoding, type = "character", path = NULL,
 	nchar = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
 	readonly = NA, append = FALSE, ...)
 {
@@ -28,7 +28,7 @@ matter_str <- function(data, encoding, path = NULL,
 		if ( missing(encoding) )
 			encoding <- Encoding(data)
 	}
-	x <- matter_list(NULL, type="character", path=path, lengths=nchar,
+	x <- matter_list(NULL, type=type, path=path, lengths=nchar,
 		names=names, offset=offset, extent=extent,
 		readonly=readonly, append=append, ...)
 	x <- as(x, "matter_str")
@@ -95,8 +95,10 @@ setMethod("mem_realized", "matter_str", function(x) {
 copy_to_matter_str <- function(object, path = NULL, ..., BPPARAM)
 {
 	x <- matter_str(NULL, path=path,
+		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		nchar=object@dim, names=names(object),
 		encoding=Encoding(object))
+	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
