@@ -70,6 +70,26 @@ matter_list <- function(data, type = "double", path = NULL,
 		sizes <- sizeof(type) * extent
 		offset <- cumsum(c(offset, sizes[-length(sizes)]))
 	}
+	if ( isTRUE(all.equal(lengths, extent)) ) {
+		group <- seq_along(extent) - 1L
+	} else {
+		group <- integer(length(extent))
+		i1 <- min(1L, length(extent))
+		for ( j in seq_along(lengths) ) {
+			len <- extent[i1]
+			i2 <- i1
+			while ( len < lengths[j] ) {
+				i2 <- i2 + 1L
+				len <- len + extent[i2]
+			}
+			if ( len == lengths[j] ) {
+				group[i1:i2] <- j - 1L
+			} else {
+				matter_error("lengths and extent are incompatible")
+			}
+			i1 <- i2 + 1L
+		}
+	}
 	files <- !is_shared_memory_pattern(path)
 	newfiles <- !exists & files
 	if ( any(newfiles) ) {
@@ -88,7 +108,7 @@ matter_list <- function(data, type = "double", path = NULL,
 			type=as_Ctype(type),
 			offset=as.double(offset),
 			extent=as.double(extent),
-			group=seq_along(extent) - 1L,
+			group=group,
 			readonly=readonly,
 			refs=refs),
 		type=as_Rtype(type),

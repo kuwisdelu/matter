@@ -61,6 +61,15 @@ test_that("matter list init", {
 
 })
 
+test_that("matter list groups", {
+
+	x <- list(a=1:10, b=11:20)
+	y <- matter_list(x, lengths=c(10, 10), extent=rep.int(5, 4))
+
+	expect_equal(x, y[])
+
+})
+
 test_that("matter list coercion", {
 
 	x <- list(

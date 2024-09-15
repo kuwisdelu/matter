@@ -238,27 +238,27 @@ subset_atoms2 <- function(x, i = NULL, j = NULL) {
 		x
 }
 
+setgroup_atoms <- function(x, groups) {
+	atoms(source=x@source,
+		type=x@type,
+		offset=x@offset,
+		extent=x@extent,
+		group=groups,
+		readonly=x@readonly,
+		refs=x@refs)
+}
+
 regroup_atoms <- function(x, ngroups) {
-	if ( length(ngroups) == 1L ) {
-		if ( ngroups <= 1L )
-			return(x)
-		sub <- .Call(C_regroupAtoms, x, ngroups, PACKAGE="matter")
-		atoms(source=droplevels(x@source[sub$index]),
-			type=x@type[sub$index],
-			offset=sub$offset,
-			extent=sub$extent,
-			group=sub$group,
-			readonly=x@readonly,
-			refs=x@refs)
-	} else {
-		atoms(source=x@source,
-			type=x@type,
-			offset=x@offset,
-			extent=x@extent,
-			group=ngroups,
-			readonly=x@readonly,
-			refs=x@refs)
-	}
+	if ( ngroups <= 1L )
+		return(ungroup_atoms(x))
+	sub <- .Call(C_regroupAtoms, x, ngroups, PACKAGE="matter")
+	atoms(source=droplevels(x@source[sub$index]),
+		type=x@type[sub$index],
+		offset=sub$offset,
+		extent=sub$extent,
+		group=sub$group,
+		readonly=x@readonly,
+		refs=x@refs)
 }
 
 ungroup_atoms <- function(x) {

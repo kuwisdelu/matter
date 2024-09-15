@@ -209,7 +209,7 @@ matter_mat <- function(data, type = "double", path = NULL,
 	}
 	extent <- as.numeric(atomdata(x)@extent)
 	if ( length(x@data) == n1 && all(unique(extent) == n2) ) {
-		x@data <- regroup_atoms(x@data, 0L:(n1 - 1L))
+		x@data <- setgroup_atoms(x@data, 0L:(n1 - 1L))
 	} else {
 		x@data <- regroup_atoms(ungroup_atoms(x@data), n1)
 	}
