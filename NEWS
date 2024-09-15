@@ -7,6 +7,10 @@ NEW FEATURES
     o Add 'pivots' argument to 'fastmap()' to support
         more than 2 pivot candidates per iteration
 
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Update 'fetch()' and 'flash()' to preserve atoms types
+
 BUG FIXES
 
     o Add 'chunkopts' to 'nscentroids()' and 'sgmix()'
