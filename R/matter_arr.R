@@ -323,6 +323,24 @@ setMethod("mem_realized", "matter_arr", function(x) {
 	size_bytes(sum(length(x) * sizeof(type(x)), na.rm=TRUE))
 })
 
+copy_to_matter_fun <- function(id, dest, margin = NULL)
+{
+	if ( !is.null(margin) && !margin %in% c(1L, 2L) )
+		matter_error("'margin' must be 1 or 2")
+	isoclos(function(src) {
+		i <- attr(src, "index")
+		ipclock(id)
+		if ( is.null(margin) ) {
+			dest[i] <- src
+		} else {
+			switch(margin,
+				dest[i,] <- src,
+				dest[,i] <- src)
+		}
+		ipcunlock(id)
+	}, matter_env())
+}
+
 copy_to_matter_arr <- function(object, path = NULL,
 	rowMaj = FALSE, ..., BPPARAM)
 {
@@ -368,24 +386,6 @@ copy_to_matter_vec <- function(object, path = NULL,
 	ipcremove(pid)
 	if ( validObject(x) )
 		x
-}
-
-copy_to_matter_fun <- function(id, dest, margin = NULL)
-{
-	if ( !is.null(margin) && !margin %in% c(1L, 2L) )
-		matter_error("'margin' must be 1 or 2")
-	isoclos(function(src) {
-		ipclock(id)
-		i <- attr(src, "index")
-		if ( is.null(margin) ) {
-			dest[i] <- src
-		} else {
-			switch(margin,
-				dest[i,] <- src,
-				dest[,i] <- src)
-		}
-		ipcunlock(id)
-	}, matter_env())
 }
 
 setMethod("fetch", "matter_arr",
