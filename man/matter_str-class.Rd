@@ -34,7 +34,7 @@
 
 \usage{
 ## Instance creation
-matter_str(data, encoding, path = NULL,
+matter_str(data, encoding, type = "character", path = NULL,
     nchar = NA_integer_, names = NULL, offset = 0, extent = NA_real_,
     readonly = NA, append = FALSE, \dots)
 
@@ -45,6 +45,8 @@ matter_str(data, encoding, path = NULL,
         \item{data}{An optional data vector which will be initially written to virtual memory if provided.}
 
         \item{encoding}{The character encoding to use (if known).}
+
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
 
         \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}, which will be managed according the \code{getOption("matter.temp.gc")}.}
 
