@@ -19,7 +19,7 @@ fastmap <- function(x, k = 3L, group = NULL, distfun = NULL,
 		N <- NROW(x)
 		snames <- rownames(x)
 	}
-	np <- max(2L, min(pivots, N %/% 2L))
+	npivots <- max(2L, min(pivots, N))
 	scores <- matrix(0, nrow=N, ncol=k,
 		dimnames=list(snames, paste0("C", j)))
 	pivots <- matrix(nrow=k, ncol=3L,
@@ -28,7 +28,7 @@ fastmap <- function(x, k = 3L, group = NULL, distfun = NULL,
 	{
 		matter_log("fitting FastMap component ", i, verbose=verbose)
 		# find pivots
-		pv <- sample.int(N, np)
+		pv <- sample.int(N, npivots)
 		for ( iter in seq_len(niter) )
 		{
 			# get distances to pivot candidates
@@ -60,8 +60,8 @@ fastmap <- function(x, k = 3L, group = NULL, distfun = NULL,
 		d1 <- di[,1L]
 		d2 <- di[,2L]
 		d12 <- max(d1[p2], d2[p1])
-		matter_log("using pivots: ", p1, ", ", p2, verbose=verbose)
-		matter_log("projecting component ", i, verbose=verbose)
+		matter_log("projecting component ", i, " using ",
+			"pivots: ", p1, ", ", p2, verbose=verbose)
 		xi <- (d1^2 + d12^2 - d2^2) / (2 * d12)
 		xi <- ifelse(is.finite(xi), xi, 0)
 		scores[,i] <- xi
