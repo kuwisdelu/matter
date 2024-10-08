@@ -367,13 +367,14 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 				args$ylim <- rev(args$ylim)
 		}
 		# filter for valid graphical parameters
-		pars <- names(args)
-		pars <- pars[pars %in% names(par(no.readonly=TRUE))]
-		pars <- union(c("xlim", "ylim", "log", "asp"), pars)
-		args <- args[pars]
+		winargs <- c("xlim", "ylim", "log", "asp")
+		pars <- setdiff(names(par(no.readonly=TRUE)), winargs)
+		winargs <- args[intersect(names(args), winargs)]
+		pars <- args[intersect(names(args), pars)]
 		# initialize the 2d plot
 		plot.new()
-		do.call(plot.window, args)
+		do.call(plot.window, winargs)
+		par(pars)
 		# add annotations
 		if ( has_free_x(plot) || is_bottom_panel(n) ) {
 			xl <- plot$channels$x$limits

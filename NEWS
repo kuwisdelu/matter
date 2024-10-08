@@ -15,6 +15,7 @@ BUG FIXES
 
     o Add 'chunkopts' to 'nscentroids()' and 'sgmix()'
         signatures to fix downstream '...' bugs
+    o Fix graphical parameters not applying to vizi plots
 
 CHANGES IN VERSION 2.7.8 [2024-9-4]
 ------------------------------------
