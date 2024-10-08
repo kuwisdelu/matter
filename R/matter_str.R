@@ -94,6 +94,7 @@ setMethod("mem_realized", "matter_str", function(x) {
 
 copy_to_matter_str <- function(object, path = NULL, ..., BPPARAM)
 {
+	BPPARAM <- bplocalized(BPPARAM)
 	x <- matter_str(NULL, path=path,
 		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		nchar=object@dim, names=names(object),

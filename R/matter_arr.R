@@ -344,6 +344,7 @@ copy_to_matter_fun <- function(id, dest, margin = NULL)
 copy_to_matter_arr <- function(object, path = NULL,
 	rowMaj = FALSE, ..., BPPARAM)
 {
+	BPPARAM <- bplocalized(BPPARAM)
 	x <- matter_arr(NULL, path=path,
 		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		dim=dim(object), dimnames=dimnames(object),
@@ -361,6 +362,7 @@ copy_to_matter_arr <- function(object, path = NULL,
 copy_to_matter_mat <- function(object, path = NULL,
 	rowMaj = FALSE, ..., BPPARAM)
 {
+	BPPARAM <- bplocalized(BPPARAM)
 	x <- matter_mat(NULL, path=path,
 		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		nrow=nrow(object), ncol=ncol(object), dimnames=dimnames(object),
@@ -383,6 +385,7 @@ copy_to_matter_mat <- function(object, path = NULL,
 copy_to_matter_vec <- function(object, path = NULL,
 	rowMaj = FALSE, ..., BPPARAM)
 {
+	BPPARAM <- bplocalized(BPPARAM)
 	x <- matter_vec(NULL, path=path,
 		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		length=length(object), names=names(object),

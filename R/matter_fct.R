@@ -74,6 +74,7 @@ setMethod("preview_for_display", "matter_fct", function(x) {
 
 copy_to_matter_fct <- function(object, path = NULL, ..., BPPARAM)
 {
+	BPPARAM <- bplocalized(BPPARAM)
 	x <- matter_fct(NULL, path=path,
 		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		length=length(object), names=names(object),

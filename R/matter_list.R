@@ -241,6 +241,7 @@ setMethod("mem_realized", "matter_list", function(x) {
 
 copy_to_matter_list <- function(object, path = NULL, ..., BPPARAM)
 {
+	BPPARAM <- bplocalized(BPPARAM)
 	x <- matter_list(NULL, path=path,
 		type=type(atomdata(object)), extent=lengths(atomdata(object)),
 		lengths=object@dim, names=names(object))

@@ -625,6 +625,7 @@ export("matter_defaults")
 
 export(
 	"SnowfastParam",
-	"bplocal")
+	"bplocal",
+	"bplocalized")
 
 useDynLib("matter", .registration=TRUE, .fixes="C_")

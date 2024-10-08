@@ -93,6 +93,14 @@ bplocal <- function(x) {
 	}
 }
 
+bplocalized <- function(x) {
+	if ( is.null(x) ) {
+		NULL
+	} else {
+		as(x, "SerialParam")
+	}
+}
+
 setMethod("bpstart", "SnowfastParam",
 	function(x, lenX = bpnworkers(x)) {
 		if ( bpisup(x) )
