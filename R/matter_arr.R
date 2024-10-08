@@ -84,7 +84,7 @@ matter_arr <- function(data, type = "double", path = NULL,
 	exists <- file.exists(path) | is_shared_memory_object(path)
 	if ( append ) {
 		readonly <- FALSE
-		eof <- file.size(path)
+		eof <- sizeof_shared_resource(path)
 		offset <- ifelse(exists, offset + eof, offset)
 	}
 	if ( is.na(readonly) )
