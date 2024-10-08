@@ -10,6 +10,8 @@ NEW FEATURES
 SIGNIFICANT USER-VISIBLE CHANGES
 
     o Update 'fetch()' and 'flash()' to preserve atoms types
+    o Update 'fetch()' and 'flash()' to fall back to serial
+        execution if BPPARAM is a distributed cluster
 
 BUG FIXES
 

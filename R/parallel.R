@@ -96,6 +96,8 @@ bplocal <- function(x) {
 bplocalized <- function(x) {
 	if ( is.null(x) ) {
 		NULL
+	} else if ( isTRUE(bplocal(x)) ) {
+		as(x, "BiocParallelParam")
 	} else {
 		as(x, "SerialParam")
 	}
