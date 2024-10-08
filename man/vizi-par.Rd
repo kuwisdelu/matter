@@ -22,7 +22,7 @@ vizi_par(\dots, style = getOption("matter.vizi.style"))
 }
 
 \arguments{
-    \item{style}{The visual style to use for plotting. Currently supported styles are "light", "dark", and "classic".}
+    \item{style}{The visual style to use for plotting. Currently supported styles are "light", "dark", "voidlight", "voiddark", and "transparent".}
 
     \item{dpal, cpal}{The name of discrete and continous color palettes. See \code{\link{palette.pals}} and \code{\link{hcl.pals}}.}
 

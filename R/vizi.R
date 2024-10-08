@@ -719,6 +719,10 @@ setMethod("plot", "vizi_colorkey", plot.vizi_colorkey)
 vizi_par <- function(..., style = getOption("matter.vizi.style"))
 {
 	params <- getOption("matter.vizi.par")
+	if ( !is.null(style) ) {
+		p <- par_style(tolower(style), new=TRUE)
+		params <- par_update(params, more=p)
+	}
 	args <- list(...)
 	if ( length(args) > 0L ) {
 		if ( length(args) == 1L ) {
@@ -738,10 +742,6 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 	} else {
 		args < names(params)
 	}
-	if ( !is.null(style) ) {
-		p <- par_style(tolower(style))
-		params <- par_update(p, more=params)
-	}
 	if ( length(args) > 0L )
 		params <- params[args]
 	if ( length(params) == 1L )
@@ -752,7 +752,7 @@ vizi_par <- function(..., style = getOption("matter.vizi.style"))
 vizi_style <- function(style = "light", dpal = "Tableau 10", cpal = "Viridis")
 {
 	if ( !missing(style) ) {
-		style <- match.arg(style, c("light", "dark", "transparent"))
+		style <- match.arg(style, names(par_style_options()))
 		options(matter.vizi.style=style)
 	} else {
 		style <- getOption("matter.vizi.style")

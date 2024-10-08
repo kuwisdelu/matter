@@ -1726,12 +1726,27 @@ par_update <- function(params, ..., more = list())
 	params
 }
 
-par_style <- function(style = c("light", "dark", "classic"), ...)
+par_style_options <- function()
 {
-	switch(match.arg(style),
-		light = par_style_light(...),
-		dark = par_style_dark(...),
-		classic = par_style_classic(...))
+	list(
+		"light" = par_style_light,
+		"dark" = par_style_dark,
+		"voidlight" = par_style_voidlight,
+		"voiddark" = par_style_voiddark,
+		"transparent" = par_style_transparent)
+}
+
+par_style_fun <- function(method)
+{
+	options <- par_style_options()
+	if ( is.character(method) )
+		method <- tolower(method)
+	options[[match.arg(method, names(options))]]
+}
+
+par_style <- function(style, ...)
+{
+	par_style_fun(style)(...)
 }
 
 par_style_new <- function(params = list(), ...)
@@ -1740,22 +1755,9 @@ par_style_new <- function(params = list(), ...)
 		bty = "n",
 		mar = c(0.5, 0.5, 1, 1),	# inner margins
 		oma = c(3, 3, 1, 1),		# outer margins
-		mgp = c(1.5, 0.5, 0))		# adjust axes
-	par_update(p, ..., more=params)
-}
-
-par_style_classic <- function(params = list(), ..., new = FALSE)
-{
-	if ( new )
-		params <- par_update(par_style_new(), more=params)
-	p <- list(
-		fg="black",
-		bg="transparent",
-		col="black",
-		col.axis="black",
-		col.lab="black",
-		col.main="black",
-		col.sub="black")
+		mgp = c(1.5, 0.5, 0),		# adjust axes
+		xaxt = "s",
+		yaxt = "s")
 	par_update(p, ..., more=params)
 }
 
@@ -1786,6 +1788,63 @@ par_style_dark <- function(params = list(), ..., new = FALSE)
 		col.lab="white",
 		col.main="white",
 		col.sub="white")
+	par_update(p, ..., more=params)
+}
+
+par_style_voidlight <- function(params = list(), ..., new = FALSE)
+{
+	if ( new ) {
+		params <- par_update(par_style_new(), more=params)
+		params <- par_update(params,
+			mar = c(0, 0, 0, 0),
+			oma = c(0, 0, 1, 0))
+	}
+	p <- list(
+		fg="black",
+		bg="white",
+		col="black",
+		col.axis="transparent",
+		col.lab="transparent",
+		col.main="transparent",
+		col.sub="transparent",
+		xaxt="n",
+		yaxt="n")
+	par_update(p, ..., more=params)
+}
+
+par_style_voiddark <- function(params = list(), ..., new = FALSE)
+{
+	if ( new ) {
+		params <- par_update(par_style_new(), more=params)
+		params <- par_update(params,
+			mar = c(0, 0, 0, 0),
+			oma = c(0, 0, 1, 0))
+	}
+	p <- list(
+		fg="white",
+		bg="black",
+		col="white",
+		col.axis="transparent",
+		col.lab="transparent",
+		col.main="transparent",
+		col.sub="transparent",
+		xaxt="n",
+		yaxt="n")
+	par_update(p, ..., more=params)
+}
+
+par_style_transparent <- function(params = list(), ..., new = FALSE)
+{
+	if ( new )
+		params <- par_update(par_style_new(), more=params)
+	p <- list(
+		fg="black",
+		bg="transparent",
+		col="black",
+		col.axis="black",
+		col.lab="black",
+		col.main="black",
+		col.sub="black")
 	par_update(p, ..., more=params)
 }
 
