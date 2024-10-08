@@ -6,7 +6,7 @@ Date: 2016-10-11
 Author: Kylie A. Bemis <k.bemis@northeastern.edu>
 Maintainer: Kylie A. Bemis <k.bemis@northeastern.edu>
 Description: Toolbox for larger-than-memory scientific computing and visualization, providing efficient out-of-core data structures using files or shared memory, for dense and sparse vectors, matrices, and arrays, with applications to nonuniformly sampled signals and images.
-License: Artistic-2.0
+License: Artistic-2.0 LICENSE
 Depends: R (>= 4.0), BiocParallel, Matrix, methods
 Imports: BiocGenerics, ProtGenerics, digest, irlba,
 	stats, stats4, graphics, grDevices, parallel, utils
