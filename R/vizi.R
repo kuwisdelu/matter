@@ -2,7 +2,7 @@
 #### Define visual encoding classes for 'vizi' ####
 ## ------------------------------------------------
 
-vizi <- function(data, ..., encoding = NULL, params = NULL)
+vizi <- function(data, ..., encoding = NULL, mark = NULL, params = NULL)
 {
 	if ( missing(data) )
 		data <- NULL
@@ -13,6 +13,11 @@ vizi <- function(data, ..., encoding = NULL, params = NULL)
 	coord <- list(xlim=NULL, ylim=NULL, log="", asp=NA, grid=TRUE)
 	plot <- structure(list(encoding=encoding, channels=channels,
 		marks=list(), coord=coord, params=params), class="vizi_plot")
+	if ( !is.null(mark) ) {
+		for ( mk in mark )
+			plot <- add_mark(plot, mk)
+	}
+	plot
 }
 
 add_mark <- function(plot, mark, ..., encoding = NULL,

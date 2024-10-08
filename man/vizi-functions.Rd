@@ -37,7 +37,7 @@
 
 \usage{
 ## Initialize a plot
-vizi(data, \dots, encoding = NULL, params = NULL)
+vizi(data, \dots, encoding = NULL, mark = NULL, params = NULL)
 
 ## Add plot components
 add_mark(plot, mark, \dots, encoding = NULL, data = NULL,
@@ -74,6 +74,8 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
 
     \item{encoding}{Encodings specified as a list rather than using \dots.}
 
+    \item{mark}{The name of a supported mark, such as "points", "lines", etc.}
+
     \item{params}{Additional graphical parameters that are not mapped to the data, using either base R-style (e.g., pch, cex) \emph{or} ggplot-style names (e.g., shape, size)}
 
     \item{plot, plotlist}{A \code{vizi_plot} object, or a list of such objects, respectively.}
@@ -101,8 +103,6 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     \item{engine}{The plotting engine. Default is to use base graphics. Using "plotly" requires the \code{plotly} package to be installed.}
 
     \item{style}{The visual style to use for plotting. Currently supported styles are "light", "dark", and "classic".}
-
-    \item{mark}{The name of a supported mark, such as "points", "lines", etc.}
 
     \item{trans}{A list providing parameters for any transformations the mark supports.}
 
