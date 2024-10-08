@@ -14,11 +14,9 @@
 \alias{sparse_vec-class}
 
 \alias{atomdata,sparse_arr-method}
-\alias{aindex}
+
 \alias{aindex,sparse_arr-method}
-\alias{atomindex}
 \alias{atomindex,sparse_arr-method}
-\alias{atomindex<-}
 \alias{atomindex<-,sparse_arr-method}
 \alias{domain}
 \alias{domain,array-method}

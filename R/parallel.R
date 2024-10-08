@@ -83,6 +83,16 @@ SnowfastParam <- function(workers = snowWorkers(),
 		hostname=manager.hostname, port=manager.port)
 }
 
+bplocal <- function(x) {
+	if ( is.null(x) || is(x, "SerialParam") ) {
+		TRUE
+	} else if ( is(x, "SnowParam") ) {
+		is.numeric(bpworkers(x)) || all(bpworkers(x) %in% "localhost")
+	} else {
+		NA
+	}
+}
+
 setMethod("bpstart", "SnowfastParam",
 	function(x, lenX = bpnworkers(x)) {
 		if ( bpisup(x) )

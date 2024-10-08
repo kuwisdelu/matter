@@ -20,6 +20,11 @@
 \alias{atomdata,matter-method}
 \alias{atomdata<-}
 \alias{atomdata<-,matter-method}
+\alias{aindex}
+\alias{aindex,matter-method}
+\alias{atomindex}
+\alias{atomindex,matter-method}
+\alias{atomindex<-}
 \alias{type,atoms-method}
 \alias{type<-,atoms-method}
 \alias{type,matter-method}

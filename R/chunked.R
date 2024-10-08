@@ -229,6 +229,27 @@ setMethod("[[", c(x = "chunked_mat"),
 		y
 	})
 
+drop_from_BPPARAM <- function(X, BPPARAM, chunkopts = list())
+{
+	serialize <- get_serialize(chunkopts)
+	if ( is.na(serialize) )
+		serialize <- getOption("matter.default.serialize")
+	if ( isTRUE(serialize) ) {
+		drop <- FALSE
+	} else if ( isFALSE(serialize) ) {
+		drop <- NULL
+	} else {
+		if ( isFALSE(has_matter_data(X)) || is.null(BPPARAM) ) {
+			drop <- FALSE
+		} else if ( isTRUE(bplocal(BPPARAM)) ) {
+			drop <- NULL
+		} else {
+			drop <- FALSE
+		}
+	}
+	drop
+}
+
 matter_log_chunk_init <- function(x, verbose) {
 	matter_log("# processing ", length(x), " chunks ",
 		"(~", sum(lengths(x)) %/% length(x), " items per chunk ",

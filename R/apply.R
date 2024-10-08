@@ -64,7 +64,7 @@ chunk_rowapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
+	drop <- drop_from_BPPARAM(X, BPPARAM, chunkopts)
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=1L,
 		permute=permute, depends=depends,
@@ -101,7 +101,7 @@ chunk_colapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
+	drop <- drop_from_BPPARAM(X, BPPARAM, chunkopts)
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_mat(X, margin=2L,
 		permute=permute, depends=depends,
@@ -174,7 +174,7 @@ chunk_lapply <- function(X, FUN, ...,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	drop <- get_chunked_drop(X, chunkopts, BPPARAM)
+	drop <- drop_from_BPPARAM(X, BPPARAM, chunkopts)
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_vec(X,
 		permute=permute, depends=depends,
@@ -247,7 +247,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 		.Deprecated(old="nchunks", new="chunkopts")
 		chunkopts$nchunks <- list(...)$nchunks
 	}
-	drop <- get_chunked_drop(...elt(1L), chunkopts, BPPARAM)
+	drop <- drop_from_BPPARAM(...elt(1L), BPPARAM, chunkopts)
 	progress <- verbose && !has_progressbar(BPPARAM)
 	CHUNKS <- chunked_list(...,
 		permute=permute, depends=depends,
@@ -386,32 +386,6 @@ chunk_option <- function(options, name) {
 	if ( is.null(ans) )
 		ans <- NA
 	ans
-}
-
-get_chunked_drop <- function(X, chunkopts, BPPARAM)
-{
-	serialize <- get_serialize(chunkopts)
-	if ( is.na(serialize) )
-		serialize <- getOption("matter.default.serialize")
-	if ( isTRUE(serialize) || !has_matter_data(X) ) {
-		drop <- FALSE
-	} else {
-		if ( isFALSE(serialize) || has_local_cluster(BPPARAM) ) {
-			drop <- NULL
-		} else {
-			drop <- FALSE
-		}
-	}
-	drop
-}
-
-has_matter_data <- function(X) {
-	is(X, "matter_") || (is(X, "matter") && is.matter(atomdata(X)))
-}
-
-has_local_cluster <- function(BPPARAM) {
-	known_cl <- inherits(BPPARAM, c("SnowParam", "MulticoreParam"))
-	known_cl && is.numeric(bpworkers(BPPARAM))
 }
 
 has_progressbar <- function(BPPARAM) {

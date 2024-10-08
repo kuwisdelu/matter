@@ -119,6 +119,12 @@ as.shared <- function(x) {
 	}
 }
 
+has_matter_data <- function(X) {
+	is(X, "matter_") || 
+		(is(X, "matter") && is.matter(atomdata(X))) ||
+		(is(X, "matter") && is.matter(atomindex(X)))
+}
+
 setMethod("adata", "matter",
 	function(object, ...) atomdata(object, ...))
 
@@ -130,6 +136,12 @@ setReplaceMethod("atomdata", "matter", function(object, ..., value) {
 	if ( validObject(object) )
 		object
 })
+
+setMethod("aindex", "matter",
+	function(object, ...) NULL)
+
+setMethod("atomindex", "matter",
+	function(object, ...) NULL)
 
 setMethod("type", "matter", function(x) x@type)
 

@@ -5,6 +5,7 @@
 \alias{SnowfastParam}
 \alias{SnowfastParam-class}
 
+\alias{bplocal}
 \alias{bpstart,SnowfastParam-method}
 \alias{bpstop,SnowfastParam-method}
 
