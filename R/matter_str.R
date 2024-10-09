@@ -92,18 +92,26 @@ setMethod("mem_realized", "matter_str", function(x) {
 	size_bytes(sum(lengths(x) * sizeof(type(x)), na.rm=TRUE))
 })
 
-copy_to_matter_str <- function(object, path = NULL, ..., BPPARAM)
+copy_to_matter_str <- function(object, type = NULL, path = NULL,
+	offset = 0, readonly = TRUE, append = FALSE, ..., BPPARAM)
 {
 	BPPARAM <- bplocalized(BPPARAM)
-	x <- matter_str(NULL, path=path,
-		type=type(atomdata(object)), extent=lengths(atomdata(object)),
-		nchar=object@dim, names=names(object),
-		encoding=Encoding(object))
+	if ( is.matter(object) ) {
+		type <- type %||% type(atomdata(object))
+		extent <- lengths(atomdata(object))
+	} else {
+		type <- type %||% type(object)
+		extent <- length(object)
+	}
+	x <- matter_str(NULL, type=type, path=path,
+		nchar=object@dim, names=names(object), encoding=Encoding(object),
+		offset=offset, extent=extent, readonly=FALSE,
+		append=append)
 	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
-	readonly(x) <- readonly(object)
+	readonly(x) <- readonly
 	ipcremove(pid)
 	if ( validObject(x) )
 		x

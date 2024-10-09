@@ -72,18 +72,27 @@ setMethod("preview_for_display", "matter_fct", function(x) {
 	cat(paste_head(x@labels), "\n")
 })
 
-copy_to_matter_fct <- function(object, path = NULL, ..., BPPARAM)
+copy_to_matter_fct <- function(object, type = NULL, path = NULL,
+	offset = 0, readonly = TRUE, append = FALSE, ..., BPPARAM)
 {
 	BPPARAM <- bplocalized(BPPARAM)
-	x <- matter_fct(NULL, path=path,
-		type=type(atomdata(object)), extent=lengths(atomdata(object)),
+	if ( is.matter(object) ) {
+		type <- type %||% type(atomdata(object))
+		extent <- lengths(atomdata(object))
+	} else {
+		type <- type %||% type(object)
+		extent <- length(object)
+	}
+	x <- matter_fct(NULL, type=type, path=path,
 		length=length(object), names=names(object),
-		levels=object@levels, labels=object@labels)
+		levels=object@levels, labels=object@labels,
+		offset=offset, extent=extent, readonly=FALSE,
+		append=append)
 	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
-	readonly(x) <- readonly(object)
+	readonly(x) <- readonly
 	ipcremove(pid)
 	if ( validObject(x) )
 		x

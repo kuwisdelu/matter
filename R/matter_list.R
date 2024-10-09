@@ -239,17 +239,26 @@ setMethod("mem_realized", "matter_list", function(x) {
 	size_bytes(sum(lengths(x) * sizeof(type(x)), na.rm=TRUE))
 })
 
-copy_to_matter_list <- function(object, path = NULL, ..., BPPARAM)
+copy_to_matter_list <- function(object, type = NULL, path = NULL,
+	offset = 0, readonly = TRUE, append = FALSE, ..., BPPARAM)
 {
 	BPPARAM <- bplocalized(BPPARAM)
-	x <- matter_list(NULL, path=path,
-		type=type(atomdata(object)), extent=lengths(atomdata(object)),
-		lengths=object@dim, names=names(object))
+	if ( is.matter(object) ) {
+		type <- type %||% type(atomdata(object))
+		extent <- lengths(atomdata(object))
+	} else {
+		type <- type %||% type(object)
+		extent <- length(object)
+	}
+	x <- matter_list(NULL, type=type, path=path,
+		lengths=object@dim, names=names(object),
+		offset=offset, extent=extent, readonly=FALSE,
+		append=append)
 	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
-	readonly(x) <- readonly(object)
+	readonly(x) <- readonly
 	ipcremove(pid)
 	if ( validObject(x) )
 		x

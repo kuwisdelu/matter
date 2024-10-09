@@ -341,32 +341,48 @@ copy_to_matter_fun <- function(id, dest, margin = NULL)
 	}, matter_env())
 }
 
-copy_to_matter_arr <- function(object, path = NULL,
+copy_to_matter_arr <- function(object, type = NULL, path = NULL,
+	offset = 0, readonly = TRUE, append = FALSE,
 	rowMaj = FALSE, ..., BPPARAM)
 {
 	BPPARAM <- bplocalized(BPPARAM)
-	x <- matter_arr(NULL, path=path,
-		type=type(atomdata(object)), extent=lengths(atomdata(object)),
+	if ( is.matter(object) ) {
+		type <- type %||% type(atomdata(object))
+		extent <- lengths(atomdata(object))
+	} else {
+		type <- type %||% type(object)
+		extent <- length(object)
+	}
+	x <- matter_arr(NULL, type=type, path=path,
 		dim=dim(object), dimnames=dimnames(object),
-		rowMaj=rowMaj)
+		offset=offset, extent=extent, readonly=FALSE,
+		append=append, rowMaj=rowMaj)
 	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
-	readonly(x) <- readonly(object)
+	readonly(x) <- readonly
 	ipcremove(pid)
 	if ( validObject(x) )
 		x
 }
 
-copy_to_matter_mat <- function(object, path = NULL,
+copy_to_matter_mat <- function(object, type = NULL, path = NULL,
+	offset = 0, readonly = TRUE, append = FALSE,
 	rowMaj = FALSE, ..., BPPARAM)
 {
 	BPPARAM <- bplocalized(BPPARAM)
-	x <- matter_mat(NULL, path=path,
-		type=type(atomdata(object)), extent=lengths(atomdata(object)),
+	if ( is.matter(object) ) {
+		type <- type %||% type(atomdata(object))
+		extent <- lengths(atomdata(object))
+	} else {
+		type <- type %||% type(object)
+		extent <- length(object)
+	}
+	x <- matter_mat(NULL, type=type, path=path,
 		nrow=nrow(object), ncol=ncol(object), dimnames=dimnames(object),
-		rowMaj=rowMaj)
+		offset=offset, extent=extent, readonly=FALSE,
+		append=append, rowMaj=rowMaj)
 	type(x) <- type(object)
 	pid <- ipcid()
 	if ( rowMaj ) {
@@ -376,25 +392,33 @@ copy_to_matter_mat <- function(object, path = NULL,
 		FUN <- copy_to_matter_fun(pid, x, 2L)
 		chunk_colapply(object, FUN, ..., BPPARAM=BPPARAM)
 	}
-	readonly(x) <- readonly(object)
+	readonly(x) <- readonly
 	ipcremove(pid)
 	if ( validObject(x) )
 		x
 }
 
-copy_to_matter_vec <- function(object, path = NULL,
+copy_to_matter_vec <- function(object, type = NULL, path = NULL,
+	offset = 0, readonly = TRUE, append = FALSE,
 	rowMaj = FALSE, ..., BPPARAM)
 {
 	BPPARAM <- bplocalized(BPPARAM)
-	x <- matter_vec(NULL, path=path,
-		type=type(atomdata(object)), extent=lengths(atomdata(object)),
+	if ( is.matter(object) ) {
+		type <- type %||% type(atomdata(object))
+		extent <- lengths(atomdata(object))
+	} else {
+		type <- type %||% type(object)
+		extent <- length(object)
+	}
+	x <- matter_vec(NULL, type=type, path=path,
 		length=length(object), names=names(object),
-		rowMaj=rowMaj)
+		offset=offset, extent=extent, readonly=FALSE,
+		append=append, rowMaj=rowMaj)
 	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
-	readonly(x) <- readonly(object)
+	readonly(x) <- readonly
 	ipcremove(pid)
 	if ( validObject(x) )
 		x
