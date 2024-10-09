@@ -448,6 +448,46 @@ setMethod("flash", "matter_vec",
 	function(object, ..., BPPARAM = bpparam())
 		copy_to_matter_vec(object, ..., BPPARAM=BPPARAM))
 
+setMethod("fetch", "raw",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "raw",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, ..., BPPARAM=BPPARAM))
+
+setMethod("fetch", "logical",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "logical",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, ..., BPPARAM=BPPARAM))
+
+setMethod("fetch", "numeric",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "numeric",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_vec(object, ..., BPPARAM=BPPARAM))
+
+setMethod("fetch", "matrix",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_mat(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "matrix",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_mat(object, ..., BPPARAM=BPPARAM))
+
+setMethod("fetch", "array",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_arr(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "array",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_arr(object, ..., BPPARAM=BPPARAM))
+
 subset_matter_arr_elts <- function(x, i = NULL)
 {
 	if ( x@transpose ) {

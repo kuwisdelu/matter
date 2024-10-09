@@ -125,6 +125,13 @@ setMethod("flash", "matter_str",
 	function(object, ..., BPPARAM = bpparam())
 		copy_to_matter_str(object, ..., BPPARAM=BPPARAM))
 
+setMethod("fetch", "character",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_str(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "character",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_str(object, ..., BPPARAM=BPPARAM))
 
 subset_matter_str_elts <- function(x, i = NULL)
 {

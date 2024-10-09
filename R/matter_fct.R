@@ -106,6 +106,14 @@ setMethod("flash", "matter_fct",
 	function(object, ..., BPPARAM = bpparam())
 		copy_to_matter_fct(object, ..., BPPARAM=BPPARAM))
 
+setMethod("fetch", "factor",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_fct(object, path=":memory:", ..., BPPARAM=BPPARAM))
+
+setMethod("flash", "factor",
+	function(object, ..., BPPARAM = bpparam())
+		copy_to_matter_fct(object, ..., BPPARAM=BPPARAM))
+
 get_matter_fct_elts <- function(x, i = NULL) {
 	y <- get_matter_arr_elts(x, i)
 	factor(y, levels=x@levels, labels=x@labels)
