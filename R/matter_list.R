@@ -229,7 +229,7 @@ setMethod("as.vector", "matter_list",
 
 setMethod("describe_for_display", "matter_list", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
-	desc2 <- paste0("out-of-memory list")
+	desc2 <- paste0("out-of-core list")
 	paste0(desc1, " :: ", desc2)
 })
 

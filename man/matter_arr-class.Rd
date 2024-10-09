@@ -82,10 +82,10 @@
 \alias{flash,matter_mat-method}
 \alias{flash,matter_vec-method}
 
-\title{Out-of-Memory Arrays}
+\title{Out-of-Core Arrays}
 
 \description{
-    The \code{matter_arr} class implements out-of-memory arrays.
+    The \code{matter_arr} class implements out-of-core arrays.
 }
 
 \usage{
@@ -109,7 +109,7 @@ matter_vec(data, type = "double", path = NULL,
 \arguments{
         \item{data}{An optional data vector which will be initially written to virtual memory if provided.}
 
-        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. See \code{?"matter-types"} for possible values.}
 
         \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}, which will be managed according the \code{getOption("matter.temp.gc")}.}
 

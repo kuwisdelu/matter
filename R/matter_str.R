@@ -82,7 +82,7 @@ setMethod("as.character", "matter_str",
 
 setMethod("describe_for_display", "matter_str", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
-	desc2 <- paste0("out-of-memory strings")
+	desc2 <- paste0("out-of-core strings")
 	paste0(desc1, " :: ", desc2)
 })
 

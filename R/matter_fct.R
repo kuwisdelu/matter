@@ -62,7 +62,7 @@ setMethod("as.factor", "matter_fct",
 
 setMethod("describe_for_display", "matter_fct", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
-	desc2 <- paste0("out-of-memory factor")
+	desc2 <- paste0("out-of-core factor")
 	paste0(desc1, " :: ", desc2)
 })
 

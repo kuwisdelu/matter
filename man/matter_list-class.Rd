@@ -31,10 +31,10 @@
 \alias{fetch,matter_list-method}
 \alias{flash,matter_list-method}
 
-\title{Out-of-Memory Lists of Vectors}
+\title{Out-of-Core Lists of Vectors}
 
 \description{
-    The \code{matter_list} class implements out-of-memory lists.
+    The \code{matter_list} class implements out-of-core lists.
 }
 
 \usage{

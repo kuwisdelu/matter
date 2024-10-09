@@ -26,10 +26,10 @@
 \alias{fetch,matter_str-method}
 \alias{flash,matter_str-method}
 
-\title{Out-of-Memory Strings}
+\title{Out-of-Core Strings}
 
 \description{
-    The \code{matter_str} class implements out-of-memory strings.
+    The \code{matter_str} class implements out-of-core strings.
 }
 
 \usage{
@@ -46,7 +46,7 @@ matter_str(data, encoding, type = "character", path = NULL,
 
         \item{encoding}{The character encoding to use (if known).}
 
-        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. See \code{?"matter-types"} for possible values.}
 
         \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}, which will be managed according the \code{getOption("matter.temp.gc")}.}
 

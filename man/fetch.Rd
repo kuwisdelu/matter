@@ -19,7 +19,7 @@ flash(object, \dots)
 \arguments{
     \item{object}{An object with data to move.}
     
-    \item{\dots}{Additional arguments to the \code{\linkS4class{matter}} constructor or \code{\link{chunk_lapply}}.}
+    \item{\dots}{Additional arguments to the \code{\linkS4class{matter}} constructor, \code{\link{chunk_colapply}}, \code{\link{chunk_rowapply}}, or \code{\link{chunk_lapply}}.}
 }
 
 \details{

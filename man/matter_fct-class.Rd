@@ -21,10 +21,10 @@
 \alias{fetch,matter_fct-method}
 \alias{flash,matter_fct-method}
 
-\title{Out-of-Memory Factors}
+\title{Out-of-Core Factors}
 
 \description{
-    The \code{matter_fct} class implements out-of-memory factors.
+    The \code{matter_fct} class implements out-of-core factors.
 }
 
 \usage{
@@ -41,7 +41,7 @@ matter_fct(data, levels, type = typeof(levels), path = NULL,
 
         \item{levels}{The levels of the factor. These should be of the same type as the data. (Use \code{labels} for the string representation of the levels.)}
 
-        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory such. See \code{?"matter-types"} for possible values.}
+        \item{type}{A 'character' vector giving the storage mode of the data in virtual memory. See \code{?"matter-types"} for possible values.}
 
         \item{path}{A 'character' vector of the path(s) to the file(s) where the data are stored. If \code{NULL}, then a temporary file is created using \code{\link{tempfile}}, which will be managed according the \code{getOption("matter.temp.gc")}.}
 

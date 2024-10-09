@@ -292,19 +292,19 @@ setMethod("as.array", "matter_arr",
 
 setMethod("describe_for_display", "matter_arr", function(x) {
 	desc1 <- paste0("<", paste0(dim(x), collapse=" x "), " dim> ", class(x))
-	desc2 <- paste0("out-of-memory ", type(x), " array")
+	desc2 <- paste0("out-of-core ", type(x), " array")
 	paste0(desc1, " :: ", desc2)
 })
 
 setMethod("describe_for_display", "matter_mat", function(x) {
 	desc1 <- paste0("<", nrow(x), " row x ", ncol(x), " col> ", class(x))
-	desc2 <- paste0("out-of-memory ", type(x), " matrix")
+	desc2 <- paste0("out-of-core ", type(x), " matrix")
 	paste0(desc1, " :: ", desc2)
 })
 
 setMethod("describe_for_display", "matter_vec", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
-	desc2 <- paste0("out-of-memory ", type(x), " vector")
+	desc2 <- paste0("out-of-core ", type(x), " vector")
 	paste0(desc1, " :: ", desc2)
 })
 
