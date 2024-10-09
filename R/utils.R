@@ -474,8 +474,8 @@ combine_names <- function(x1, x2) {
 	nm2 <- names(x2)
 	if ( is.null(nm1) && is.null(nm2) )
 		return(names(x1))
-	nm1 <- if (is.null(nm1)) character(length(x1)) else nm1
-	nm2 <- if (is.null(nm2)) character(length(x2)) else nm2
+	nm1 <- nm1 %||% character(length(x1))
+	nm2 <- nm2 %||% character(length(x2))
 	c(nm1, nm2)
 }
 
@@ -509,8 +509,8 @@ cbind_dimnames <- function(x1, x2) {
 	c2 <- colnames(x2)
 	if ( is.null(c1) && is.null(c2) )
 		return(dimnames(x1))
-	c1 <- if (is.null(c1)) character(ncol(x1)) else c1
-	c2 <- if (is.null(c2)) character(ncol(x2)) else c2
+	c1 <- c1 %||% character(ncol(x1))
+	c2 <- c2 %||% character(ncol(x2))
 	list(rownames(x1), c(c1, c2))
 }
 
@@ -519,8 +519,8 @@ rbind_dimnames <- function(x1, x2) {
 	r2 <- rownames(x2)
 	if ( is.null(r1) && is.null(r2) )
 		return(dimnames(x1))
-	r1 <- if (is.null(r1)) character(nrow(x1)) else r1
-	r2 <- if (is.null(r2)) character(nrow(x2)) else r2
+	r1 <- r1 %||% character(nrow(x1))
+	r2 <- r2 %||% character(nrow(x2))
 	list(c(r1, r2), colnames(x1))
 }
 

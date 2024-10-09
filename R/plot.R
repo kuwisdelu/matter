@@ -1192,7 +1192,7 @@ plot_mark_image <- function(mark, plot = NULL, ...,
 			rc <- add_alpha(rc, alpha)
 		dxi <- 0.5 * (xmax[i] - xmin[i]) / (ncol(rc) - 1)
 		dyi <- 0.5 * (ymax[i] - ymin[i]) / (nrow(rc) - 1)
-		rev <- if (is.null(plot$coord$rev)) "" else plot$coord$rev
+		rev <- plot$coord$rev %||% ""
 		if ( e$name == "base" ) {
 			hasRaster <- dev.capabilities("rasterImage")$rasterImage
 			if ( hasRaster == "no" )
@@ -1462,7 +1462,7 @@ plot_mark_pixels <- function(mark, plot = NULL, ...,
 		return()
 	# plot the image
 	if ( e$name == "base" ) {
-		rev <- if (is.null(plot$coord$rev)) "" else plot$coord$rev
+		rev <- plot$coord$rev %||% ""
 		hasRaster <- dev.capabilities("rasterImage")$rasterImage
 		if ( !is2d(plot) || hasRaster != "yes" )
 			useRaster <- FALSE
@@ -1546,9 +1546,9 @@ plot_mark_voxels <- function(mark, plot = NULL, ...,
 	y <- encode_var("y", encoding, plot$channels)
 	z <- encode_var("z", encoding, plot$channels)
 	# compute slices
-	xslice <- if (is.null(xslice)) integer() else xslice
-	yslice <- if (is.null(yslice)) integer() else yslice
-	zslice <- if (is.null(zslice)) integer() else zslice
+	xslice <- xslice %||% integer()
+	yslice <- yslice %||% integer()
+	zslice <- zslice %||% integer()
 	slices <- c(
 		set_names(xslice, rep.int("x", length(xslice))),
 		set_names(yslice, rep.int("y", length(yslice))),
