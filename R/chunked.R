@@ -241,7 +241,7 @@ drop_from_BPPARAM <- function(X, BPPARAM, chunkopts = list())
 	} else {
 		if ( isFALSE(has_matter_data(X)) || is.null(BPPARAM) ) {
 			drop <- FALSE
-		} else if ( isTRUE(bplocal(BPPARAM)) ) {
+		} else if ( isTRUE(bpislocal(BPPARAM)) ) {
 			drop <- NULL
 		} else {
 			drop <- FALSE

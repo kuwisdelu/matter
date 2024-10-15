@@ -83,7 +83,7 @@ SnowfastParam <- function(workers = snowWorkers(),
 		hostname=manager.hostname, port=manager.port)
 }
 
-bplocal <- function(x) {
+bpislocal <- function(x) {
 	if ( is.null(x) || is(x, "SerialParam") ) {
 		TRUE
 	} else if ( is(x, "SnowParam") ) {
@@ -96,11 +96,21 @@ bplocal <- function(x) {
 bplocalized <- function(x) {
 	if ( is.null(x) ) {
 		NULL
-	} else if ( isTRUE(bplocal(x)) ) {
-		as(x, "BiocParallelParam")
+	} else if ( isTRUE(bpislocal(x)) ) {
+		as(x, "BiocParallelParam", strict=FALSE)
 	} else {
 		as(x, "SerialParam")
 	}
+}
+
+bptrystart <- function(x) {
+	if ( !bpisup(x) )
+		bpstart(x)
+}
+
+bptrystop <- function(x) {
+	if ( bpisup(x) )
+		bpstop(x)
 }
 
 setMethod("bpstart", "SnowfastParam",

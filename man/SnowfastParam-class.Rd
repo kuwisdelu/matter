@@ -5,10 +5,13 @@
 \alias{SnowfastParam}
 \alias{SnowfastParam-class}
 
-\alias{bplocal}
-\alias{bplocalized}
 \alias{bpstart,SnowfastParam-method}
 \alias{bpstop,SnowfastParam-method}
+
+\alias{bpislocal}
+\alias{bplocalized}
+\alias{bptrystart}
+\alias{bptrystop}
 
 \title{Fast Simple Network of Workstations (SNOW)-style Parallel Backend}
 
