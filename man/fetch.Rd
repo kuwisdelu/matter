@@ -4,6 +4,24 @@
 \alias{fetch}
 \alias{flash}
 
+\alias{fetch,raw-method}
+\alias{fetch,logical-method}
+\alias{fetch,numeric-method}
+\alias{fetch,character-method}
+\alias{fetch,factor-method}
+\alias{fetch,array-method}
+\alias{fetch,matrix-method}
+\alias{fetch,list-method}
+
+\alias{flash,raw-method}
+\alias{flash,logical-method}
+\alias{flash,numeric-method}
+\alias{flash,character-method}
+\alias{flash,factor-method}
+\alias{flash,array-method}
+\alias{flash,matrix-method}
+\alias{flash,list-method}
+
 \title{Move Data Between Shared Memory and File Storage}
 
 \description{
