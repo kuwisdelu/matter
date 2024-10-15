@@ -1,4 +1,16 @@
 
+CHANGES IN VERSION 2.7.10 [2024-10-14]
+------------------------------------
+
+NEW FEATURES
+
+    o Add 'fetch' and 'flash()' for base R types
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Update 'fetch()' and 'flash()' to pass more
+        arguments to underlying 'matter' constructors
+
 CHANGES IN VERSION 2.7.9 [2024-10-7]
 ------------------------------------
 
