@@ -88,7 +88,6 @@ copy_to_matter_fct <- function(object, type = NULL, path = NULL,
 		levels=object@levels, labels=object@labels,
 		offset=offset, extent=extent, readonly=FALSE,
 		append=append)
-	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)

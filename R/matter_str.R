@@ -107,7 +107,6 @@ copy_to_matter_str <- function(object, type = NULL, path = NULL,
 		nchar=object@dim, names=names(object), encoding=Encoding(object),
 		offset=offset, extent=extent, readonly=FALSE,
 		append=append)
-	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)

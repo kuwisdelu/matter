@@ -342,31 +342,15 @@ setMethod("mem_realized", "sparse_arr", function(x) {
 
 setMethod("fetch", "sparse_arr",
 	function(object, ..., BPPARAM = bpparam()) {
-		if ( is.matter(atomindex(object)) ) {
-			atomindex(object) <- fetch(atomindex(object), ..., BPPARAM=BPPARAM)
-		} else {
-			atomindex(object) <- as.shared(atomindex(object))
-		}
-		if ( is.matter(atomdata(object)) ) {
-			atomdata(object) <- fetch(atomdata(object), ..., BPPARAM=BPPARAM)
-		} else {
-			atomdata(object) <- as.shared(atomdata(object))
-		}
+		atomindex(object) <- fetch(atomindex(object), ..., BPPARAM=BPPARAM)
+		atomdata(object) <- fetch(atomdata(object), ..., BPPARAM=BPPARAM)
 		object
 	})
 
 setMethod("flash", "sparse_arr",
 	function(object, ..., BPPARAM = bpparam()) {
-		if ( is.matter(atomindex(object)) ) {
-			atomindex(object) <- flash(atomindex(object), ..., BPPARAM=BPPARAM)
-		} else {
-			atomindex(object) <- as.matter(atomindex(object))
-		}
-		if ( is.matter(atomdata(object)) ) {
-			atomdata(object) <- flash(atomdata(object), ..., BPPARAM=BPPARAM)
-		} else {
-			atomdata(object) <- as.matter(atomdata(object))
-		}
+		atomindex(object) <- flash(atomindex(object), ..., BPPARAM=BPPARAM)
+		atomdata(object) <- flash(atomdata(object), ..., BPPARAM=BPPARAM)
 		object
 	})
 

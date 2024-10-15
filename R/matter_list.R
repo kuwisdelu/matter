@@ -246,15 +246,20 @@ copy_to_matter_list <- function(object, type = NULL, path = NULL,
 	if ( is.matter(object) ) {
 		type <- type %||% type(atomdata(object))
 		extent <- lengths(atomdata(object))
+		lengths <- object@dim
 	} else {
-		type <- type %||% type(object)
-		extent <- length(object)
+		type <- type %||% vapply(object, type, character(1L))
+		extent <- lengths(object)
+		chr <- type %in% "character"
+		nch <- vapply(object[chr],
+			function(ch) nchar(ch, "bytes")[1L], numeric(1))
+		extent[chr] <- nch
+		lengths <- extent
 	}
 	x <- matter_list(NULL, type=type, path=path,
-		lengths=object@dim, names=names(object),
+		lengths=lengths, names=names(object),
 		offset=offset, extent=extent, readonly=FALSE,
 		append=append)
-	type(x) <- type(object)
 	pid <- ipcid()
 	FUN <- copy_to_matter_fun(pid, x)
 	chunk_lapply(object, FUN, ..., BPPARAM=BPPARAM)
