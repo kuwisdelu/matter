@@ -298,9 +298,10 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 		c3 <- colSums(c2, na.rm=TRUE) / colSums(c1, na.rm=TRUE)
 		gr$beta <- sum(y * (-log1p(ybar) + c3), na.rm=TRUE)
 		# find step size limits
-		limits <- c(0,
-			min(abs(mu / gr$mu), abs(sigma / gr$sigma),
-				abs(alpha / gr$alpha), abs(beta / gr$beta), na.rm=TRUE))
+		limits <- c(0, min(
+				abs(sigma / gr$sigma),
+				abs(alpha / gr$alpha),
+				abs(beta / gr$beta), na.rm=TRUE))
 		# update parameters
 		list(
 			mu=mu - eta * gr$mu,
