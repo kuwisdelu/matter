@@ -343,10 +343,10 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 		matter_log("log Lik = ", format.default(-G$objective), " on iteration ", iter,
 			" (step size = ", format.default(G$minimum), ")", verbose=verbose)
-		if ( annealing || loglik > -G$objective )
+		if ( annealing )
 		{
 			# simulate annealing
-			i <- sample(k)
+			i <- sample.int(k, 1L)
 			sa_mu <- mu
 			sa_mu[i] <- rnorm(1L, mean=mu[i], sd=tt * sigma[i])
 			S <- stepE(y, mu=sa_mu, sigma=sigma, alpha=alpha, beta=beta)
@@ -359,11 +359,12 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 				mu <- sa_mu
 				next
 			}
-			if ( loglik > -G$objective ) {
-				matter_log("log Lik decreased; reverting to previous model",
-					verbose=verbose)
-				break
-			}
+		}
+		if ( loglik > -G$objective )
+		{
+			matter_log("log Lik decreased; reverting to previous model",
+				verbose=verbose)
+			break
 		}
 		# update parameters from maximization step
 		M <- stepM(G$minimum, y=y, ybar=ybar,
