@@ -2,7 +2,7 @@
 #### Spatial Gaussian mixture model ####
 ## --------------------------------------
 
-sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
+sgmix <- function(x, y, vals, r = 1, k = 2, beta = r, group = NULL,
 	weights = c("gaussian", "bilateral", "adaptive"),
 	metric = "maximum", p = 2, neighbors = NULL,
 	annealing = TRUE, niter = 10L, tol = 1e-3,
@@ -40,14 +40,14 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		margin <- if (byrow) 1L else 2L
 		if ( is.list(vals) ) {
 			ans <- chunkLapply(vals, sgmix_int,
-				coord=co, r=r, k=k, group=group,
+				coord=co, r=r, k=k, beta=beta, group=group,
 				weights=weights, neighbors=neighbors,
 				annealing=annealing, niter=niter, tol=tol,
 				compress=compress, verbose=verbose, RNG=TRUE,
 				chunkopts=chunkopts, BPPARAM=BPPARAM)
 		} else {
 			ans <- chunkApply(vals, margin, sgmix_int,
-				coord=co, r=r, k=k, group=group,
+				coord=co, r=r, k=k, beta=beta, group=group,
 				weights=weights, neighbors=neighbors,
 				annealing=annealing, niter=niter, tol=tol,
 				compress=compress, verbose=verbose, RNG=TRUE,
@@ -57,7 +57,7 @@ sgmix <- function(x, y, vals, r = 1, k = 2, group = NULL,
 		if ( is.list(vals) )
 			vals <- vals[[1L]]
 		ans <- sgmix_int(vals,
-			coord=co, r=r, k=k, group=group,
+			coord=co, r=r, k=k, beta=beta, group=group,
 			weights=weights, neighbors=neighbors,
 			annealing=annealing, niter=niter, tol=tol,
 			compress=compress, verbose=verbose)
@@ -102,7 +102,7 @@ sgmixn <- function(x, y, vals, ...)
 	sgmix(x=x, y=y, vals=vals, ...)
 }
 
-sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
+sgmix_int <- function(x, coord, r = 1, k = 2, beta = r, group = NULL,
 	weights = c("gaussian", "bilateral", "adaptive"),
 	metric = "maximum", p = 2, neighbors = NULL,
 	annealing = TRUE, niter = 10L, tol = 1e-3,
@@ -180,12 +180,12 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 				nbi <- lapply(nb[i], bsearch, table=i)
 				if ( is.character(weights) ) {
 					sgmix_int(x[i], coord=co[i,,drop=FALSE], r=r, k=k,
-						group=NULL, weights=weights, neighbors=nbi,
+						beta=beta, group=NULL, weights=weights, neighbors=nbi,
 						annealing=annealing, niter=niter, tol=tol,
 						compress=FALSE, verbose=verbose, ...)
 				} else {
 					sgmix_int(x[i], coord=co[i,,drop=FALSE], r=r, k=k,
-						group=NULL, weights=wts[i], neighbors=nbi,
+						beta=beta, group=NULL, weights=wts[i], neighbors=nbi,
 						annealing=annealing, niter=niter, tol=tol,
 						compress=FALSE, verbose=verbose, ...)
 				}
@@ -236,7 +236,7 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 		sigma <- set_names(rep.int(0, k), seq_len(k))
 		alpha <- set_names(rep.int(1, k), seq_len(k))
 		ans <- list(class=class, probability=y, mu=t(mu), sigma=t(sigma),
-			alpha=t(alpha), beta=1, logLik=NA_real_)
+			alpha=t(alpha), beta=beta, logLik=NA_real_)
 		class(ans) <- "sgmix"
 		return(ans)
 	}
@@ -247,7 +247,6 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 	sigma <- as.vector(tapply(x, init$cluster, sd))
 	sigma <- ifelse(is.finite(sigma), sigma, 0.15 * mu)
 	alpha <- rep.int(1, k)
-	beta <- 1
 	# initialize p(x|mu,sigma)
 	px <- matrix(0, nrow=length(x), ncol=k)
 	for ( i in seq_len(k) )
@@ -339,6 +338,7 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 	E <- sgmix_stepE(x, y, nb=nb, wts=wts,
 		mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 	y <- E$y
+	# y <- E$ybar
 	colnames(y) <- seq_len(k)
 	class <- predict_class(y)
 	if ( compress ) {
@@ -384,15 +384,18 @@ sgmix_stepM <- function(eta, x, y, ybar, mu, sigma, alpha, beta, ...)
 		sigma=rep.int(1, length(mu)),
 		alpha=rep.int(1, length(mu)),
 		beta=1)
-	# compute gradient
+	# compute mu gradient
 	gr$mu <- rowSums(t(y) * (mu - rep(x, each=length(mu))) / sigma^2, na.rm=TRUE)
+	# compute sigma gradient
 	c1 <- 1 / sigma
 	c2 <- (mu - rep(x, each=length(mu)))^2 / sigma^3
 	gr$sigma <- rowSums(t(y) * (c1 - c2), na.rm=TRUE)
+	# compute alpha gradient
 	c1 <- -rowSums(2 * t(y) / alpha, na.rm=TRUE)
 	c2 <- colSums(y * ybar^beta, na.rm=TRUE)
 	c3 <- rowSums(alpha^2 * t(ybar^beta), na.rm=TRUE)
 	gr$alpha <- c1 + 2 * alpha * sum(c2 / c3)
+	# compute beta gradient
 	c1 <- alpha^2 * t(ybar^beta)
 	c2 <- c1 * t(log1p(ybar))
 	c3 <- colSums(c2, na.rm=TRUE) / colSums(c1, na.rm=TRUE)

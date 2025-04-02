@@ -12,7 +12,7 @@
 
 \usage{
 # Spatial Gaussian mixture model
-sgmix(x, y, vals, r = 1, k = 2, group = NULL,
+sgmix(x, y, vals, r = 1, k = 2, beta = r, group = NULL,
 	weights = c("gaussian", "bilateral", "adaptive"),
 	metric = "maximum", p = 2, neighbors = NULL,
 	annealing = TRUE, niter = 10L, tol = 1e-3,
@@ -32,6 +32,8 @@ sgmix(x, y, vals, r = 1, k = 2, group = NULL,
 	\item{r}{The spatial smoothing radius.}
 
 	\item{k}{The number of segments (per group, if applicable).}
+
+	\item{beta}{The strength of spatial smoothing. This is used for initialization and then further refined based on the data.}
 
 	\item{group}{A vector of pixel groups. Pixels belonging to each group will be segmented independently, and will be assigned to different segments.}
 
