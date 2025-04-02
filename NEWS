@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.9.2 [2025-4-2]
+------------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Improved 'sgmix()' algorithm with more consistent segmentations
+    o Add 'beta' argument to 'sgmix()' to control smoothing strength
+
 CHANGES IN VERSION 2.9.1 [2024-11-4]
 ------------------------------------
 
