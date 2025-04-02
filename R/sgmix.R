@@ -254,70 +254,14 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 		px[,i] <- (1 / sigma[i]) * exp(-(x - mu[i])^2 / (2 * sigma[i]^2))
 	y <- px / rowSums(px)
 	class <- predict_class(y)
-	# expectation step
-	stepE <- function(y, mu, sigma, alpha, beta, ...)
-	{
-		# compute posterior probability p(z|neighbors)
-		ybar <- apply(y, 2L, convolve_at,
-			index=nb, weights=wts, na.rm=TRUE)
-		# update p(x|mu,sigma)
-		px <- matrix(0, nrow=length(x), ncol=k)
-		for ( i in seq_len(k) )
-			px[,i] <- (1 / sigma[i]) * exp(-(x - mu[i])^2 / (2 * sigma[i]^2))
-		px <- px / rowSums(px, na.rm=TRUE)
-		# update prior probability
-		priors <- t(alpha * t(ybar)^beta)
-		priors <- priors / rowSums(priors, na.rm=TRUE)
-		# update posterior probability p(z)
-		y <- px * priors
-		# compute log-likelihood
-		loglik <- sum(log1p(rowSums(pmax(y, 0))), na.rm=TRUE)
-		y <- y / rowSums(y, na.rm=TRUE)
-		list(y=y, ybar=ybar, loglik=loglik)
-	}
-	# maximization step
-	stepM <- function(eta, y, ybar, mu, sigma, alpha, beta, ...)
-	{
-		# initialize gradient
-		gr <- list(
-			mu=rep.int(1, k),
-			sigma=rep.int(1, k),
-			alpha=rep.int(1, k),
-			beta=1)
-		# compute gradient
-		gr$mu <- rowSums(t(y) * (mu - rep(x, each=k)) / sigma^2, na.rm=TRUE)
-		c1 <- 1 / sigma
-		c2 <- (mu - rep(x, each=k))^2 / sigma^3
-		gr$sigma <- rowSums(t(y) * (c1 - c2), na.rm=TRUE)
-		c1 <- -rowSums(2 * t(y) / alpha, na.rm=TRUE)
-		c2 <- colSums(y * ybar^beta, na.rm=TRUE)
-		c3 <- rowSums(alpha^2 * t(ybar^beta), na.rm=TRUE)
-		gr$alpha <- c1 + 2 * alpha * sum(c2 / c3)
-		c1 <- alpha^2 * t(ybar^beta)
-		c2 <- c1 * t(log1p(ybar))
-		c3 <- colSums(c2, na.rm=TRUE) / colSums(c1, na.rm=TRUE)
-		gr$beta <- sum(y * (-log1p(ybar) + c3), na.rm=TRUE)
-		# find step size limits
-		limits <- c(0, min(
-				abs(sigma / gr$sigma),
-				abs(alpha / gr$alpha),
-				abs(beta / gr$beta), na.rm=TRUE))
-		# update parameters
-		list(
-			mu=mu - eta * gr$mu,
-			sigma=sigma - eta * gr$sigma,
-			alpha=alpha - eta * gr$alpha,
-			beta=beta - eta * gr$beta,
-			limits=limits,
-			gr=gr)
-	}
 	# iterate
 	tt <- 1
 	matter_log("estimating parameters with gradient descent", verbose=verbose)
 	for ( iter in seq_len(niter) )
 	{
 		# update probability from expectation step
-		E <- stepE(y, mu=mu, sigma=sigma, alpha=alpha, beta=beta)
+		E <- sgmix_stepE(x, y, nb=nb, wts=wts,
+			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 		ybar <- E$ybar
 		y <- E$y
 		loglik <- E$loglik
@@ -328,8 +272,9 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 		class <- predict_class(y)
 		# set up objective function
 		fn <- function(eta, ...) {
-			m <- stepM(eta, ...)
-			e <- stepE(y, mu=m$mu, sigma=m$sigma, alpha=m$alpha, beta=m$beta)
+			m <- sgmix_stepM(eta, ...)
+			e <- sgmix_stepE(x, y, nb=nb, wts=wts,
+				mu=m$mu, sigma=m$sigma, alpha=m$alpha, beta=m$beta)
 			if ( is.finite(e$loglik) ) {
 				-e$loglik
 			} else {
@@ -337,9 +282,9 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 			}
 		}
 		# find optimal gradient descent step size
-		eta <- stepM(0, y=y, ybar=ybar,
+		eta <- sgmix_stepM(0, x=x, y=y, ybar=ybar,
 			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
-		G <- optimize(fn, eta$limits, y=y, ybar=ybar,
+		G <- optimize(fn, eta$limits, x=x, y=y, ybar=ybar,
 			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 		matter_log("log Lik = ", format.default(-G$objective), " on iteration ", iter,
 			" (step size = ", format.default(G$minimum), ")", verbose=verbose)
@@ -349,7 +294,8 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 			i <- sample.int(k, 1L)
 			sa_mu <- mu
 			sa_mu[i] <- rnorm(1L, mean=mu[i], sd=tt * sigma[i])
-			S <- stepE(y, mu=sa_mu, sigma=sigma, alpha=alpha, beta=beta)
+			S <- sgmix_stepE(x, y, nb=nb, wts=wts,
+				mu=sa_mu, sigma=sigma, alpha=alpha, beta=beta)
 			tt <- tt - (1 / niter)
 			if ( S$loglik > -G$objective && S$loglik > loglik )
 			{
@@ -367,7 +313,7 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 			break
 		}
 		# update parameters from maximization step
-		M <- stepM(G$minimum, y=y, ybar=ybar,
+		M <- sgmix_stepM(G$minimum, x=x, y=y, ybar=ybar,
 			mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 		if ( any(c(M$sigma, M$alpha, M$beta) <= 0) || 
 			any(M$mu < xmin) || any(M$mu > xmax) )
@@ -390,7 +336,8 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 	sigma <- set_names(sigma[ord], seq_len(k))
 	alpha <- set_names(alpha[ord], seq_len(k))
 	# estimate final parameters and probabilities
-	E <- stepE(y, mu=mu, sigma=sigma, alpha=alpha, beta=beta)
+	E <- sgmix_stepE(x, y, nb=nb, wts=wts,
+		mu=mu, sigma=sigma, alpha=alpha, beta=beta)
 	y <- E$y
 	colnames(y) <- seq_len(k)
 	class <- predict_class(y)
@@ -407,6 +354,62 @@ sgmix_int <- function(x, coord, r = 1, k = 2, group = NULL,
 	ans$logLik <- loglik
 	class(ans) <- "sgmix"
 	ans
+}
+
+sgmix_stepE <- function(x, y, nb, wts, mu, sigma, alpha, beta, ...)
+{
+	# compute posterior probability p(z|neighbors)
+	ybar <- apply(y, 2L, convolve_at, index=nb, weights=wts, na.rm=TRUE)
+	# update p(x|mu,sigma)
+	px <- matrix(0, nrow=length(x), ncol=length(mu))
+	for ( i in seq_len(length(mu)) )
+		px[,i] <- (1 / sigma[i]) * exp(-(x - mu[i])^2 / (2 * sigma[i]^2))
+	px <- px / rowSums(px, na.rm=TRUE)
+	# update prior probability
+	priors <- t(alpha * t(ybar)^beta)
+	priors <- priors / rowSums(priors, na.rm=TRUE)
+	# update posterior probability p(z)
+	y <- px * priors
+	# compute log-likelihood
+	loglik <- sum(log1p(rowSums(pmax(y, 0))), na.rm=TRUE)
+	y <- y / rowSums(y, na.rm=TRUE)
+	list(y=y, ybar=ybar, loglik=loglik)
+}
+
+sgmix_stepM <- function(eta, x, y, ybar, mu, sigma, alpha, beta, ...)
+{
+	# initialize gradient
+	gr <- list(
+		mu=rep.int(1, length(mu)),
+		sigma=rep.int(1, length(mu)),
+		alpha=rep.int(1, length(mu)),
+		beta=1)
+	# compute gradient
+	gr$mu <- rowSums(t(y) * (mu - rep(x, each=length(mu))) / sigma^2, na.rm=TRUE)
+	c1 <- 1 / sigma
+	c2 <- (mu - rep(x, each=length(mu)))^2 / sigma^3
+	gr$sigma <- rowSums(t(y) * (c1 - c2), na.rm=TRUE)
+	c1 <- -rowSums(2 * t(y) / alpha, na.rm=TRUE)
+	c2 <- colSums(y * ybar^beta, na.rm=TRUE)
+	c3 <- rowSums(alpha^2 * t(ybar^beta), na.rm=TRUE)
+	gr$alpha <- c1 + 2 * alpha * sum(c2 / c3)
+	c1 <- alpha^2 * t(ybar^beta)
+	c2 <- c1 * t(log1p(ybar))
+	c3 <- colSums(c2, na.rm=TRUE) / colSums(c1, na.rm=TRUE)
+	gr$beta <- sum(y * (-log1p(ybar) + c3), na.rm=TRUE)
+	# find step size limits
+	limits <- c(0, min(
+			abs(sigma / gr$sigma),
+			abs(alpha / gr$alpha),
+			abs(beta / gr$beta), na.rm=TRUE))
+	# update parameters
+	list(
+		mu=mu - eta * gr$mu,
+		sigma=sigma - eta * gr$sigma,
+		alpha=alpha - eta * gr$alpha,
+		beta=beta - eta * gr$beta,
+		limits=limits,
+		gr=gr)
 }
 
 print.sgmix <- function(x, ...)
