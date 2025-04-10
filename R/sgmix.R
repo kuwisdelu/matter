@@ -359,10 +359,11 @@ sgmix_int <- function(x, coord, r = 1, k = 2, beta = r, group = NULL,
 sgmix_stepE <- function(x, y, nb, wts, mu, sigma, alpha, beta, ...)
 {
 	# compute posterior probability p(z|neighbors)
+	k <- length(mu)
 	ybar <- apply(y, 2L, convolve_at, index=nb, weights=wts, na.rm=TRUE)
 	# update p(x|mu,sigma)
-	px <- matrix(0, nrow=length(x), ncol=length(mu))
-	for ( i in seq_len(length(mu)) )
+	px <- matrix(0, nrow=length(x), ncol=k)
+	for ( i in seq_len(k) )
 		px[,i] <- (1 / sigma[i]) * exp(-(x - mu[i])^2 / (2 * sigma[i]^2))
 	px <- px / rowSums(px, na.rm=TRUE)
 	# update prior probability
@@ -370,25 +371,30 @@ sgmix_stepE <- function(x, y, nb, wts, mu, sigma, alpha, beta, ...)
 	priors <- priors / rowSums(priors, na.rm=TRUE)
 	# update posterior probability p(z)
 	y <- px * priors
+	y[rowSums(y) <= 0] <- 1
 	# compute log-likelihood
 	loglik <- sum(log1p(rowSums(pmax(y, 0))), na.rm=TRUE)
+	# normalize posterior
 	y <- y / rowSums(y, na.rm=TRUE)
+	nas <- apply(y, 1L, anyNA)
+	y[nas,] <- 1 / k
 	list(y=y, ybar=ybar, loglik=loglik)
 }
 
 sgmix_stepM <- function(eta, x, y, ybar, mu, sigma, alpha, beta, ...)
 {
 	# initialize gradient
+	k <- length(mu)
 	gr <- list(
-		mu=rep.int(1, length(mu)),
-		sigma=rep.int(1, length(mu)),
-		alpha=rep.int(1, length(mu)),
+		mu=rep.int(1, k),
+		sigma=rep.int(1, k),
+		alpha=rep.int(1, k),
 		beta=1)
 	# compute mu gradient
-	gr$mu <- rowSums(t(y) * (mu - rep(x, each=length(mu))) / sigma^2, na.rm=TRUE)
+	gr$mu <- rowSums(t(y) * (mu - rep(x, each=k)) / sigma^2, na.rm=TRUE)
 	# compute sigma gradient
 	c1 <- 1 / sigma
-	c2 <- (mu - rep(x, each=length(mu)))^2 / sigma^3
+	c2 <- (mu - rep(x, each=k))^2 / sigma^3
 	gr$sigma <- rowSums(t(y) * (c1 - c2), na.rm=TRUE)
 	# compute alpha gradient
 	c1 <- -rowSums(2 * t(y) / alpha, na.rm=TRUE)
