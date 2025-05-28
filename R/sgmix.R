@@ -361,41 +361,28 @@ sgmix_stepE <- function(x, y, nb, wts, mu, sigma, alpha, beta, ...)
 	# compute posterior probability p(z|neighbors)
 	k <- length(mu)
 	ybar <- apply(y, 2L, convolve_at, index=nb, weights=wts, na.rm=TRUE)
-	
 	# update p(x|mu,sigma)
 	logpx <- matrix(0, nrow=length(x), ncol=k)
 	for ( i in seq_len(k) )
 		logpx[,i] <- -(x - mu[i])^2 / (2 * sigma[i]^2) - log(sigma[i])
-		
-	### shifting logs for numerical stability of normalization.
-	### we're shifting so that row-wise maxima are equal to 0, after taking an exponent this will mean that 
-	### the row-wise maxima are 1. 
-	### row-wise normalization implicitly reverses this shift, because shifting logs of rows corresponds to multiplying each row by a constant.
-	logpx_shifted <- t(apply(logpx, 1, function(x) x - max(x)))  # t() can be removed if px transposed from the start, will improve efficiecy
-	
-	### normalizing px
-	px <- exp(logpx_shifted)
-	px <- px / rowSums(px, na.rm=TRUE)  # na.rm=TRUE should not be necessary anymore
-	
+	## PATCHED CONTRIBUTED by Michal Ciach (@mciach)
+	## we shift log-probabilities for numerical stability
+	logpx <- logpx - apply(logpx, 1, max, na.rm=TRUE)
+	# normalize px
+	px <- exp(logpx)
+	px <- px / rowSums(px, na.rm=TRUE)
 	# update prior probability
-	### I moved the outer t() from this line to after the next apply() to avoid unnecessary transpositions,
-	### which means that logpriors is transposed with respect to logpriors_shifted
-	logpriors <- log(alpha) + beta*log(t(ybar))  
-	
-	### shifting logs for numerical stability
-	logpriors_shifted <- t(apply(logpriors, 2, function(x) x - max(x)))
-	
-	### normalizing priors
-	priors <- exp(logpriors_shifted)
+	logpriors <- t(log(alpha) + beta * log(t(ybar)))
+	logpriors <- logpriors - apply(logpriors, 1, max, na.rm=TRUE)
+	# normalize priors
+	priors <- exp(logpriors)
 	priors <- priors / rowSums(priors, na.rm=TRUE) 
-	
 	# compute log-likelihood
 	loglik <- sum(log1p(rowSums(pmax(px * priors, 0))), na.rm=TRUE)
-	
 	# normalize posterior
-	logy_shifted <- logpx_shifted + logpriors_shifted
-	logy_shifted <- t(apply(logy_shifted, 1, function(x) x - max(x)))
-	y <- exp(logy_shifted)
+	logy <- logpx + logpriors
+	logy <- logy - apply(logy, 1, max, na.rm=TRUE)
+	y <- exp(logy)
 	y <- y / rowSums(y, na.rm=TRUE)
 	list(y=y, ybar=ybar, loglik=loglik)
 }
