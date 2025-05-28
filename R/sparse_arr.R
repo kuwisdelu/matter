@@ -265,9 +265,17 @@ setMethod("as.double", "sparse_arr",
 setMethod("as.numeric", "sparse_arr",
 	function(x, ...) as.vector(x, "double"))
 
-setMethod("as.matrix", "sparse_arr", function(x) as.matrix(x[]))
+setAs("sparse_arr", "matrix", function(from) as.matrix(from[]))
 
-setMethod("as.array", "sparse_arr", function(x) as.array(x[]))
+setAs("sparse_arr", "array", function(from) as.array(from[]))
+
+as.matrix.sparse_arr <- function(x, ...) as(x, "matrix")
+
+as.array.sparse_arr <- function(x, ...) as(x, "array")
+
+setMethod("as.matrix", "sparse_arr", as.matrix.sparse_arr)
+
+setMethod("as.array", "sparse_arr", as.array.sparse_arr)
 
 setMethod("describe_for_display", "sparse_mat", function(x) {
 	desc1 <- paste0("<", nrow(x), " row x ", ncol(x), " col> ", class(x))

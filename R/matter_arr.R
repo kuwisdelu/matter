@@ -270,25 +270,33 @@ setMethod("as.double", "matter_arr",
 setMethod("as.numeric", "matter_arr",
 	function(x, ...) as.vector(x, "double"))
 
-setMethod("as.matrix", "matter_arr",
-	function(x, ...) {
-		y <- as(x, "matter_mat")
+setAs("matter_arr", "matrix",
+	function(from) {
+		to <- as(from, "matter_mat")
 		if ( getOption("matter.coerce.altrep") ) {
-			as.altrep(y)
+			as.altrep(to)
 		} else {
-			y[]
+			to[]
 		}
 	})
 
-setMethod("as.array", "matter_arr",
-	function(x, ...) {
-		y <- as(x, "matter_arr")
+setAs("matter_arr", "array",
+	function(from) {
+		to <- as(from, "matter_arr")
 		if ( getOption("matter.coerce.altrep") ) {
-			as.altrep(y)
+			as.altrep(to)
 		} else {
-			y[]
+			to[]
 		}
 	})
+
+as.matrix.matter_arr <- function(x, ...) as(x, "matrix")
+
+as.array.matter_arr <- function(x, ...) as(x, "array")
+
+setMethod("as.matrix", "matter_arr", as.matrix.matter_arr)
+
+setMethod("as.array", "matter_arr", as.array.matter_arr)
 
 setMethod("describe_for_display", "matter_arr", function(x) {
 	desc1 <- paste0("<", paste0(dim(x), collapse=" x "), " dim> ", class(x))

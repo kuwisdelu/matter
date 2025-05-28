@@ -292,18 +292,25 @@ requisition_atoms <- function(x) {
 	}
 }
 
-setMethod("as.data.frame", "atoms",
-	function(x, ...){
-		data.frame(
-			source=x@source[],
-			type=x@type[],
-			offset=x@offset[],
-			extent=x@extent[],
-			group=x@group[])
+setAs("atoms", "list",
+	function(from) {
+		list(
+			source=from@source[],
+			type=from@type[],
+			offset=from@offset[],
+			extent=from@extent[],
+			group=from@group[])
 	})
 
-setMethod("as.list", "atoms",
-	function(x, ...) as.list(as.data.frame(x, ...)))
+setAs("atoms", "data.frame", function(from) as.data.frame(as(x, "list")))
+
+as.list.atoms <- function(x, ...) as(x, "list")
+
+as.data.frame.atoms <- function(x, ...) as(x, "data.frame")
+
+setMethod("as.list", "atoms", as.list.atoms)
+
+setMethod("as.data.frame", "atoms", as.data.frame.atoms)
 
 # no. of atoms
 setMethod("length", "atoms", function(x) length(x@offset))

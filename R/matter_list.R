@@ -203,14 +203,18 @@ setAs("matter_mat", "matter_list",
 setAs("matter_list", "matter_arr",
 	function(from) as(as(from, "matter_vec"), "matter_arr"))
 
-setMethod("as.list", "matter_list",
-	function(x, ...) {
+setAs("matter_list", "list",
+	function(from) {
 		if ( getOption("matter.coerce.altrep") ) {
-			as.altrep(x)
+			as.altrep(from)
 		} else {
-			x[]
+			from[]
 		}
 	})
+
+as.list.matter_list <- function(x, ...) as(x, "list")
+
+setMethod("as.list", "matter_list", as.list.matter_list)
 
 setMethod("as.vector", "matter_list",
 	function(x, mode = "any") {

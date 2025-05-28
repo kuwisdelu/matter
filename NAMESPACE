@@ -164,6 +164,20 @@ exportMethods(
 	"as.factor",
 	"as.data.frame")
 
+S3method("as.list", "atoms")
+S3method("as.list", "drle")
+S3method("as.list", "chunked")
+S3method("as.list", "matter_list")
+
+S3method("as.matrix", "matter_arr")
+S3method("as.matrix", "sparse_arr")
+
+S3method("as.array", "matter_arr")
+S3method("as.array", "sparse_arr")
+
+S3method("as.data.frame", "atoms")
+S3method("as.data.frame", "drle")
+
 export("as.vector")
 
 exportMethods(

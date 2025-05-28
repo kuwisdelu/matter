@@ -145,7 +145,9 @@ chunked_list <- function(..., nchunks = NA, chunksize = NA,
 
 setAs("chunked", "list", function(from) from[])
 
-setMethod("as.list", "chunked", function(x) as(x, "list"))
+as.list.chunked <- function(x, ...) as(x, "list")
+
+setMethod("as.list", "chunked", as.list.chunked)
 
 setMethod("describe_for_display", "chunked", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))
