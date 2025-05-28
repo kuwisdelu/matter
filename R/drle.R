@@ -68,13 +68,13 @@ setMethod("as.numeric", "drle", function(x) as(x, "numeric"))
 
 setMethod("as.factor", "drle_fct", function(x) as(x, "factor"))
 
-as.list.drle <- function(x) as(x, "list")
+as.list.drle <- function(x, ...) as(x, "list")
 
-as.data.frame.drle <- function(x) as.data.frame(as(x, "list"))
+as.data.frame.drle <- function(x, ...) as.data.frame(as(x, "list"))
 
-setMethod("as.list", "drle", function(x) as.list.drle)
+setMethod("as.list", "drle", function(x, ..) as.list.drle)
 
-setMethod("as.data.frame", "drle", function(x) as.data.frame.drle)
+setMethod("as.data.frame", "drle", function(x, ...) as.data.frame.drle)
 
 setMethod("describe_for_display", "drle", function(x) {
 	desc1 <- paste0("<", length(x), " length> ", class(x))

@@ -302,7 +302,7 @@ setAs("atoms", "list",
 			group=from@group[])
 	})
 
-setAs("atoms", "data.frame", function(from) as.data.frame(as(x, "list")))
+setAs("atoms", "data.frame", function(from) as.data.frame(as(from, "list")))
 
 as.list.atoms <- function(x, ...) as(x, "list")
 
