@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.11.1 [2025-5-28]
+------------------------------------
+
+BUG FIXES
+
+    o Fix S3/S4 method issues with 'bplapply()'
+    o Improve to 'sgmix()' numeric stability
+
 CHANGES IN VERSION 2.9.3 [2024-4-10]
 ------------------------------------
 
