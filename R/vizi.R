@@ -267,7 +267,7 @@ as_plotly <- function(plot, source = "A")
 	plot$engineopts <- list(
 		source=source,
 		render=FALSE)
-	output <- print(plot, engine="plotly")
+	output <- plot(plot, engine="plotly")
 	output$engine$plotly
 }
 
