@@ -262,6 +262,15 @@ set_engine <- function(plot, engine = c("base", "plotly"))
 	plot
 }
 
+as_plotly <- function(plot, source = "A")
+{
+	plot$engineopts <- list(
+		source=source,
+		render=FALSE)
+	output <- print(plot, engine="plotly")
+	output$engine$plotly
+}
+
 # register for S4 methods
 
 setOldClass("vizi_plot")
@@ -317,8 +326,13 @@ plot_init <- function(plot = NULL, ..., more = list(), n = 1L)
 	if ( e$name == "plotly" )
 	{
 		# initialize plotly
-		if ( is.null(e$plotly) )
-			plot$engine$plotly <- plotly::plot_ly()
+		if ( is.null(e$plotly) ) {
+			if ( is.character(plot$engineopts$source) ) {
+				plot$engine$plotly <- plotly::plot_ly(source=plot$engineopts$source)
+			} else {
+				plot$engine$plotly <- plotly::plot_ly()
+			}
+		}
 		# setup axes
 		xlab <- plot$channels$x$label
 		ylab <- plot$channels$y$label
@@ -541,7 +555,8 @@ plot.vizi_plot <- function(x, add = FALSE, ..., engine = NULL)
 			if ( !is.null(x$title) )
 				x$engine$plotly <- plotly::layout(x$engine$plotly,
 					title=list(text=x$title))
-			print(x$engine$plotly)
+			if ( is.null(x$engineopts) || isTRUE(x$engineopts$render) )
+				print(x$engine$plotly)
 		}
 	}
 	x$keys <- keys
@@ -631,13 +646,11 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 				mtext(x$labels[i], cex=par("cex"), col=par("col.lab"))
 			if ( x$engine$name == "plotly" )
 			{
-				x$engine$plotly <- plotly::add_annotations(x$engine$plotly,
+				x$engine$facets[[i]] <- plotly::add_annotations(x$engine$plotly,
 					x=0.5, y=1, xanchor="center", yanchor="top",
 					xref="paper", yref="paper", showarrow=FALSE,
 					text=x$labels[i])
-
-				x$engine$facets[[i]] <- plot$engine$plotly
-				x$engine$plotly <- NULL
+				x$engine$plotly <- NULL # reset for next facet
 			}
 		}
 		if ( x$engine$name == "base" && add )
@@ -671,11 +684,13 @@ plot.vizi_facets <- function(x, add = FALSE, ..., engine = NULL)
 		}
 		if ( x$engine$name == "plotly" )
 		{
+			x$engine$plotly <- plotly::subplot(x$engine$facets,
+				nrows=x$dim[1L], shareX=!has_free_x(x), shareY=!has_free_y(x))
 			if ( !is.null(x$title) )
 				x$engine$plotly <- plotly::layout(x$engine$plotly,
 					title=list(text=x$title))
-			print(plotly::subplot(x$engine$facets, nrows=x$dim[1L],
-				shareX=!has_free_x(x), shareY=!has_free_y(x)))
+			if ( is.null(x$engineopts) || isTRUE(x$engineopts$render) )
+				print(x$engine$plotly)
 		}
 	}
 	x$keys <- keys

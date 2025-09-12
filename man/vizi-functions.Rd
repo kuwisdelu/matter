@@ -8,8 +8,9 @@
 \alias{set_coord}
 \alias{set_par}
 \alias{set_engine}
-\alias{as_facets}
 \alias{as_layers}
+\alias{as_facets}
+\alias{as_plotly}
 
 \alias{preplot,vizi_plot-method}
 \alias{preplot,vizi_facets-method}
@@ -65,6 +66,9 @@ as_layers(plotlist, \dots)
 
 as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     labels = NULL, drop = TRUE, free = "")
+
+## Coercion
+as_plotly(plot, source = "A")
 }
 
 \arguments{
@@ -113,6 +117,8 @@ as_facets(plotlist, \dots, nrow = NA, ncol = NA,
     \item{drop}{Should empty facets be dropped?}
 
     \item{free}{A string specifying the free spatial dimensions during faceting. E.g., \code{""}, \code{"x"}, \code{"y"}, or \code{"xy"}.}
+
+    \item{source}{See \code{\link[plotly]{plot_ly}}.}
 }
 
 \details{
