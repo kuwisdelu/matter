@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.11.2 [2025-9-11]
+------------------------------------
+
+NEW FEATURES
+
+    o Add 'as_plotly()' for coercing vizi plots
+
 CHANGES IN VERSION 2.11.1 [2025-5-28]
 ------------------------------------
 
