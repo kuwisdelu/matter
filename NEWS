@@ -1,4 +1,12 @@
 
+CHANGES IN VERSION 2.13.1 [2026-2-18]
+------------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Add argument for passing list of vectors to 'chunk_mapply()'
+    o Add argument for passing list of vectors to 'chunked_list()'
+
 CHANGES IN VERSION 2.11.2 [2025-9-11]
 ------------------------------------
 
