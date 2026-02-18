@@ -234,7 +234,8 @@ chunkMapply <- function(FUN, ...,
 	ans.list
 }
 
-chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
+chunk_mapply <- function(FUN, ...,
+	XS = NULL, MoreArgs = NULL,
 	simplify = "c", depends = NULL, permute = FALSE,
 	RNG = FALSE, verbose = NA, chunkopts = list(),
 	BPPARAM = bpparam())
@@ -249,7 +250,7 @@ chunk_mapply <- function(FUN, ..., MoreArgs = NULL,
 	}
 	drop <- drop_from_BPPARAM(...elt(1L), BPPARAM, chunkopts)
 	progress <- verbose && !has_progressbar(BPPARAM)
-	CHUNKS <- chunked_list(...,
+	CHUNKS <- chunked_list(..., xlist=XS,
 		permute=permute, depends=depends,
 		nchunks=get_nchunks(chunkopts),
 		chunksize=get_chunksize(chunkopts),

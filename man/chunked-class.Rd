@@ -50,14 +50,14 @@ chunked_vec(x, nchunks = NA, chunksize = NA,
 chunked_mat(x, margin, nchunks = NA, chunksize = NA,
     verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
 
-chunked_list(\dots, nchunks = NA, chunksize = NA,
+chunked_list(\dots, xlist = NULL, nchunks = NA, chunksize = NA,
     verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
 
 ## Additional methods documented below
 }
 
 \arguments{
-    \item{x, \dots}{The data to be chunked. If multiple objects are passed via \dots, then they are all recycled to the same length.}
+    \item{x, xlist, \dots}{The data to be chunked. If multiple objects are passed via \dots, then they are all recycled to the same length.}
 
     \item{nchunks}{The number of chunks to use. If \code{NA} (the default), this is taken from \code{getOption("matter.default.nchunks")}. For IO-bound operations, using fewer chunks will often be faster, but use more memory. If both \code{nchunks} and \code{chunksize} are specified, then \code{nchunks} takes priority.}
 

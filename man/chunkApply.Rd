@@ -50,14 +50,14 @@ chunk_lapply(X, FUN, \dots,
     RNG = FALSE, verbose = NA, chunkopts = list(),
     BPPARAM = bpparam())
 
-chunk_mapply(FUN, \dots, MoreArgs = NULL,
+chunk_mapply(FUN, \dots, XS = NULL, MoreArgs = NULL,
     simplify = "c", depends = NULL, permute = FALSE,
     RNG = FALSE, verbose = NA, chunkopts = list(),
     BPPARAM = bpparam())
 }
 
 \arguments{
-    \item{X}{A matrix for \code{chunkApply()}, a list or vector for \code{chunkLapply()}, or lists for \code{chunkMapply()}. These may be any class that implements suitable methods for \code{[}, \code{[[}, \code{dim}, and \code{length()}.}
+    \item{X, XS}{A matrix for \code{chunkApply()}, a list or vector for \code{chunkLapply()}, or lists for \code{chunkMapply()}. These may be any class that implements suitable methods for \code{[}, \code{[[}, \code{dim}, and \code{length()}.}
 
     \item{MARGIN}{If the object is matrix-like, which dimension to iterate over. Must be 1 or 2, where 1 indicates rows and 2 indicates columns. The dimension names can also be used if \code{X} has \code{dimnames} set.}
     

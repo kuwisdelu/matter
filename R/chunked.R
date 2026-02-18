@@ -101,10 +101,10 @@ chunked_mat <- function(x, margin, nchunks = NA, chunksize = NA,
 		verbose=verbose, drop=drop)
 }
 
-chunked_list <- function(..., nchunks = NA, chunksize = NA,
+chunked_list <- function(..., xlist = NULL, nchunks = NA, chunksize = NA,
 	verbose = FALSE, permute = FALSE, depends = NULL, drop = FALSE)
 {
-	xs <- list(...)
+	xs <- c(list(...), xlist)
 	if ( length(xs) > 1L ) {
 		len <- vapply(xs, length, integer(1L))
 		if ( n_unique(len) != 1L ) {

@@ -20,6 +20,7 @@ test_that("chunked - memory", {
 	zc1 <- chunked_mat(z, 1L, nchunks=nchunks)
 	zc2 <- chunked_mat(z, 2L, nchunks=nchunks)
 	mc <- chunked_list(x, y, nchunks=nchunks)
+	mc2  <- chunked_list(xlist=list(x, y), nchunks=nchunks)
 
 	expect_equivalent(xc[[1L]], x[i1])
 	expect_equivalent(yc[[1L]], y[i1])
@@ -36,6 +37,7 @@ test_that("chunked - memory", {
 	expect_equivalent(zc1[18:20], list(zc1[[18L]], zc1[[19L]], zc1[[20L]]))
 	expect_equivalent(zc2[18:20], list(zc2[[18L]], zc2[[19L]], zc2[[20L]]))
 	
+	expect_identical(mc, mc2)
 	expect_equivalent(mc[[1L]][[1L]], xc[[1L]])
 	expect_equivalent(mc[[1L]][[2L]], yc[[1L]])
 	expect_equivalent(mc[1:2], list(mc[[1L]], mc[[2L]]))
@@ -93,11 +95,17 @@ test_that("chunked - matter", {
 	zc1 <- chunked_mat(z, 1L, nchunks=nchunks, drop=drop)
 	zc2 <- chunked_mat(z, 2L, nchunks=nchunks, drop=drop)
 	mc <- chunked_list(x, y, nchunks=nchunks, drop=drop)
+	mc2 <- chunked_list(xlist=list(x, y), nchunks=nchunks, drop=drop)
 
 	expect_equivalent(xc[[1L]], x[i1])
 	expect_equivalent(yc[[1L]], y[i1])
 	expect_equivalent(zc1[[1L]], z[i1,,drop=FALSE])
 	expect_equivalent(zc2[[1L]], z[,i1,drop=FALSE])
+
+	expect_identical(mc, mc2)
+	expect_equivalent(mc[[1L]][[1L]], xc[[1L]])
+	expect_equivalent(mc[[1L]][[2L]], yc[[1L]])
+	expect_equivalent(mc[1:2], list(mc[[1L]], mc[[2L]]))
 
 	nchunks <- 20L
 	drop <- NULL
