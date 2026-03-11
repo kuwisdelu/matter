@@ -161,10 +161,27 @@ struct Pair {
 //// Data accessor template
 //-------------------------
 
+// explicit overload to remove DATAPTR() usage
+
+// template<typename T>
+// T * DataPtr(SEXP x)
+// {
+// 	return ((T *)(DATAPTR(x)));
+// }
+
 template<typename T>
-T * DataPtr(SEXP x)
+T * DataPtr(SEXP x);
+
+template<> inline
+int * DataPtr(SEXP x)
 {
-	return ((T *)(DATAPTR(x)));
+	return INTEGER(x);
+}
+
+template<> inline
+double * DataPtr(SEXP x)
+{
+	return REAL(x);
 }
 
 inline index_t IndexElt(SEXP indx, index_t i)

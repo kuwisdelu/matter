@@ -136,7 +136,7 @@ static SEXP matter_altarray_Realize(SEXP x)
 static void * matter_altarray_Dataptr(SEXP x, Rboolean writeable)
 {
 	MTDEBUG0("matter: Dataptr() access\n");
-	return DATAPTR(matter_altarray_Realize(x));
+	return DATAPTR_RW(matter_altarray_Realize(x));
 }
 
 static const void * matter_altarray_Dataptr_or_null(SEXP x)
@@ -145,7 +145,7 @@ static const void * matter_altarray_Dataptr_or_null(SEXP x)
 	if ( Rf_isNull(R_altrep_data2(x)) )
 		return NULL;
 	else
-		return DATAPTR(R_altrep_data2(x));
+		return DATAPTR_RW(R_altrep_data2(x));
 }
 
 static SEXP matter_altarray_Extract_subset(SEXP x, SEXP indx, SEXP call)
@@ -266,7 +266,7 @@ static SEXP matter_altstring_Realize(SEXP x)
 static void * matter_altstring_Dataptr(SEXP x, Rboolean writeable)
 {
 	MTDEBUG0("matter: Dataptr() access\n");
-	return DATAPTR(matter_altstring_Realize(x));
+	return DATAPTR_RW(matter_altstring_Realize(x));
 }
 
 static const void * matter_altstring_Dataptr_or_null(SEXP x)
@@ -275,7 +275,7 @@ static const void * matter_altstring_Dataptr_or_null(SEXP x)
 	if ( Rf_isNull(R_altrep_data2(x)) )
 		return NULL;
 	else
-		return DATAPTR(R_altrep_data2(x));
+		return DATAPTR_RW(R_altrep_data2(x));
 }
 
 static SEXP matter_altstring_Extract_subset(SEXP x, SEXP indx, SEXP call)
