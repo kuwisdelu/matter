@@ -3,6 +3,8 @@
 
 #include <R_ext/Altrep.h>
 #include <Rversion.h>
+
+// support older R versions
 #if R_VERSION < R_Version(4, 6, 0)
 #define DATAPTR_RW(x) DATAPTR(x)
 #endif
