@@ -2,6 +2,10 @@
 #define MATTER_ALTREP
 
 #include <R_ext/Altrep.h>
+#include <Rversion.h>
+#if R_VERSION < R_Version(4, 6, 0)
+#define DATAPTR_RW(x) DATAPTR(x)
+#endif
 
 #define MATTER_PKG "matter"
 
