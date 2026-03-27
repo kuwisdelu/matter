@@ -67,9 +67,10 @@ SEXP quickOrder(SEXP x)
 		case REALSXP:
 			do_quick_sort(INTEGER(indx), REAL(x), 0, XLENGTH(x), true);
 			break;
-		case STRSXP:
-			do_quick_sort(INTEGER(indx), STRING_PTR(x), 0, XLENGTH(x), true);
-			break;
+		// NEEDS REFACTOR: we can't use STRING_PTR anymore
+		// case STRSXP:
+		// 	do_quick_sort(INTEGER(indx), STRING_PTR(x), 0, XLENGTH(x), true);
+		// 	break;
 		default:
 			Rf_error("unsupported data type");
 	}
@@ -90,10 +91,11 @@ SEXP quickRank(SEXP x, SEXP ties_max)
 			do_quick_rank(INTEGER(rank), REAL(x), 0, XLENGTH(x),
 				Rf_asLogical(ties_max));
 			break;
-		case STRSXP:
-			do_quick_rank(INTEGER(rank), STRING_PTR(x), 0, XLENGTH(x),
-				Rf_asLogical(ties_max));
-			break;
+		// NEEDS REFACTOR: we can't use STRING_PTR anymore
+		// case STRSXP:
+		// 	do_quick_rank(INTEGER(rank), STRING_PTR(x), 0, XLENGTH(x),
+		// 		Rf_asLogical(ties_max));
+		// 	break;
 		default:
 			Rf_error("unsupported data type");
 	}
@@ -114,10 +116,11 @@ SEXP quickSelect(SEXP x, SEXP k)
 			do_quick_select(REAL(result), REAL(x), 0, XLENGTH(x),
 				INTEGER(k), LENGTH(k));
 			break;
-		case STRSXP:
-			do_quick_select(STRING_PTR(result), STRING_PTR(x), 0, XLENGTH(x),
-				INTEGER(k), LENGTH(k));
-			break;
+		// NEEDS REFACTOR: we can't use STRING_PTR anymore
+		// case STRSXP:
+		// 	do_quick_select(STRING_PTR(result), STRING_PTR(x), 0, XLENGTH(x),
+		// 		INTEGER(k), LENGTH(k));
+		// 	break;
 		default:
 			Rf_error("unsupported data type");
 	}
@@ -167,11 +170,12 @@ SEXP binarySearch(SEXP x, SEXP table, SEXP tol,
 				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
 				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
 			break;
-		case STRSXP:
-			do_binary_search(INTEGER(pos), STRING_PTR(x), LENGTH(x), STRING_PTR(table),
-				0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
-				Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
-			break;
+		// NEEDS REFACTOR: we can't use STRING_PTR anymore
+		// case STRSXP:
+		// 	do_binary_search(INTEGER(pos), STRING_PTR(x), LENGTH(x), STRING_PTR(table),
+		// 		0, LENGTH(table), Rf_asReal(tol), Rf_asInteger(tol_ref),
+		// 		Rf_asInteger(nomatch), Rf_asLogical(nearest), true);
+		// 	break;
 		default:
 			Rf_error("unsupported data type");
 	}

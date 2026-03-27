@@ -17,7 +17,7 @@ reldiff(x, y, ref = "y")
 }
 
 \arguments{
-	\item{x}{A vector of values to be matched. Only integer, numeric, and character vectors are supported.}
+	\item{x}{A numeric vector of values to be matched.}
 
 	\item{y, table}{A sorted (non-decreasing) vector of values to be matched against. Only integer, numeric, and character vectors are supported.}
 
@@ -56,11 +56,6 @@ bsearch(2.22, a) # 2
 bsearch(3.0, a) # NA
 bsearch(3.0, a, nearest=TRUE) # 3
 bsearch(3.0, a, tol=0.1, tol.ref="values") # 3
-
-b <- c("hello", "world!")
-bsearch("world!", b) # 2
-bsearch("worl", b) # NA
-bsearch("worl", b, nearest=TRUE) # 2
 }
 
 \keyword{utilities}
