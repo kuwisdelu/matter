@@ -1,4 +1,15 @@
 
+CHANGES IN VERSION 2.13.4 [2026-3-27]
+------------------------------------
+
+SIGNIFICANT USER-VISIBLE CHANGES
+
+    o Removes character vector support from 'bsearch()'
+
+BUG FIXES
+
+    o Remove 'STRING_PTR' usage from C/C++ code
+
 CHANGES IN VERSION 2.13.3 [2026-3-12]
 ------------------------------------
 
