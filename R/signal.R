@@ -536,10 +536,10 @@ rescale_ref <- function(x, ref = 1L, scale = 1, domain = NULL)
 		domain <- seq_along(x)
 	if ( length(x) != length(domain) )
 		matter_error("length of 'domain' must match length of 'x'")
-	if ( ref < min(domain) || ref > max(domain) )
-		matter_error("'ref' is outside of domain limits")
 	i <- bsearch(ref, domain, nearest=TRUE)
-	if ( x[i] != 0 ) {
+	if ( is.na(i) ) {
+		y <- x
+	} else if ( x[i] != 0 ) {
 		y <- scale * x / x[i]
 	} else {
 		y <- rep.int(0, length(x))
