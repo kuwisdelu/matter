@@ -529,6 +529,9 @@ stat_c.stream_var <- function(x, y, ...) {
 		val_N <- (num1 + num2) / (nx + ny - 1)
 	}
 	val <- ifelse(nle1, val_1, val_N)
+	val <- ifelse(nx == 0 | ny == 0, ifelse(nx == 0, y, x), val)
+	m <- ifelse(nx == 0 | ny == 0,
+		ifelse(nx == 0, attr(y, "mean"), attr(x, "mean")), m)
 	ret <- stream_stat_attr(val, x, y)
 	attr(ret, "mean") <- m
 	ret
@@ -585,6 +588,9 @@ stat_c.stream_sd <- function(x, y, ...) {
 		val_N <- sqrt((num1 + num2) / (nx + ny - 1))
 	}
 	val <- ifelse(nle1, val_1, val_N)
+	val <- ifelse(nx == 0 | ny == 0, ifelse(nx == 0, y, x), val)
+	m <- ifelse(nx == 0 | ny == 0,
+		ifelse(nx == 0, attr(y, "mean"), attr(x, "mean")), m)
 	ret <- stream_stat_attr(val, x, y)
 	attr(ret, "mean") <- m
 	ret
