@@ -1,4 +1,11 @@
 
+CHANGES IN VERSION 2.15.1 [2026-11-16]
+------------------------------------
+
+BUG FIXES
+
+    o Fix grouped var/sd in rowStats() when chunks are missing groups
+
 CHANGES IN VERSION 2.13.5 [2026-4-10]
 ------------------------------------
 
