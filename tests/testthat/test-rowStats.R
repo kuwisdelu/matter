@@ -259,3 +259,30 @@ test_that("rowStats + colStats - sparse matrix", {
 		colStats(y, "var"))
 
 })
+
+test_that("rowStats - groups missing from chunks", {
+
+	register(SerialParam())
+	set.seed(1, kind="default")
+	x <- matrix(10 * runif(10 * 40), nrow=10, ncol=40)
+	group <- factor(rep(LETTERS[1:4], each=10))
+	copts <- list(nchunks=4L)
+	y <- sparse_mat(x)
+
+	a1 <- rowStats(x, "var", group=group, chunkopts=copts, iter.dim=2L)
+	a2 <- t(aggregate(t(x), list(group), "var")[-1L])
+	expect_equivalent(a1, a2)
+
+	a1 <- rowStats(x, "sd", group=group, chunkopts=copts, iter.dim=2L)
+	a2 <- t(aggregate(t(x), list(group), "sd")[-1L])
+	expect_equivalent(a1, a2)
+
+	a1 <- rowStats(y, "var", group=group, chunkopts=copts)
+	a2 <- t(aggregate(t(x), list(group), "var")[-1L])
+	expect_equivalent(a1, a2)
+
+	a1 <- rowStats(y, "sd", group=group, chunkopts=copts)
+	a2 <- t(aggregate(t(x), list(group), "sd")[-1L])
+	expect_equivalent(a1, a2)
+
+})
